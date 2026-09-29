@@ -1,3 +1,5 @@
+#include "actors/actor_403200.h"
+#include "actors/actors_shared_801673f8.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -14,7 +16,7 @@
 /// Spawns one debris task and gives it a work block seeded with `seed`.
 #define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                               \
     {                                                                                                 \
-        Task*                  t = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
+        Task*                  t = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 0, 0, 0); \
         DumpingHoleDebrisSeed* w = Mem_Malloc(0x24, 0);                                               \
         t->work                  = w;                                                                 \
         if (w == NULL) {                                                                              \
@@ -65,6 +67,52 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 #include <psyq/strings.h>
+
+#include "gameplay/animation.h"
+#include "gameplay/pad_script.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+
+extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
+
+static void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1);
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u16 D_shelter_b3_dumping_hole_8018F4D4[2];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u16 D_shelter_b3_dumping_hole_8018F4D4_value __asm__("D_shelter_b3_dumping_hole_8018F4D4");
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b3_dumping_hole_8018F4D0[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u8 D_shelter_b3_dumping_hole_8018F4D0_value __asm__("D_shelter_b3_dumping_hole_8018F4D0");
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u16 D_shelter_b3_dumping_hole_8018F4B0[2];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumping_hole_8018F4B0");
+
+// The animation copy spans the bank and its following records.
+// Keep the typed fields and the complete copied word range together.
+typedef union {
+    struct {
+        GpAnimSet* sets[4];
+        GpCopyArg copy;
+    } data;
+    s32 words[6];
+} ShelterB3DumpingHoleAnimStorageAFC8;
+STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleAnimStorageAFC8, 24);
+
+extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 
 typedef struct {
     s32   field_0;
@@ -190,22 +238,11 @@ typedef struct {
 } DumpingHoleDebrisSeed;
 
 typedef struct {
-    u8 pad_00[0x4A];
-    u8 field_4A;
-} DumpingHoleFlags;
-
-typedef struct {
     u8  pad_00[0xC];
     s16 field_C;
     s16 field_E;
     s16 field_10;
 } DumpingHoleSpawnWork;
-
-typedef struct {
-    u16 field_0;
-    u16 field_2;
-    u16 field_4;
-} DumpingHoleSpawnArg;
 
 /// Spawn record for a falling shard: where it starts relative to `parent`, its
 /// base velocity, its size, and the downward speed it gains each frame.
@@ -277,8 +314,8 @@ typedef struct {
 /// The encounter's enemy slots, in the order the controller starts them.
 extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 
-extern TaskDesc               D_shelter_b3_dumping_hole_80188C04;
-extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8;
+extern TaskDesc               D_shelter_b3_dumping_hole_80188C04[];
+extern TaskDesc               D_shelter_b3_dumping_hole_80188BC8[];
 extern s16                    D_shelter_b3_dumping_hole_8018809C;
 extern Task*                  D_shelter_b3_dumping_hole_8018F4A8;
 extern s16                    D_shelter_b3_dumping_hole_80188154[];
@@ -286,23 +323,33 @@ extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
 extern s16                    D_shelter_b3_dumping_hole_8018816C[];
 extern s16                    D_shelter_b3_dumping_hole_80188184[];
 extern s32                    D_shelter_b3_dumping_hole_8018819C[];
-extern u8                     D_shelter_b3_dumping_hole_801881CC;
-extern s32                    D_shelter_b3_dumping_hole_801881E4;
+extern GpXformArg D_shelter_b3_dumping_hole_801881CC;
+extern GpXformArg D_shelter_b3_dumping_hole_801881E4;
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_801881FC[];
 extern DumpingHoleSpawnEntry  D_shelter_b3_dumping_hole_80188304[];
 extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
-extern s32                    D_shelter_b3_dumping_hole_801880A0[];
-extern s32                    D_shelter_b3_dumping_hole_80188640;
-extern s32                    D_shelter_b3_dumping_hole_80188A78;
-extern DumpingHoleFlags       D_shelter_b3_dumping_hole_8018EF04;
-extern u16                    D_shelter_b3_dumping_hole_8018F4B0;
+extern GpAnimSet* D_shelter_b3_dumping_hole_801880A0[6];
+extern GpEvsCmd D_shelter_b3_dumping_hole_80188640[];
+extern GpEvsCmd D_shelter_b3_dumping_hole_80188A78[];
+extern GpObj4C D_shelter_b3_dumping_hole_8018ECA4[10];
 extern Task*                  D_shelter_b3_dumping_hole_8018F4AC;
 extern GpXformArg             D_shelter_b3_dumping_hole_8018966C;
-extern TaskDesc               D_shelter_b3_dumping_hole_80189ADC;
+extern TaskDesc               D_shelter_b3_dumping_hole_80189ADC[];
 extern s32                    D_shelter_b3_dumping_hole_8018F4D8;
-extern s32                    D_shelter_b3_dumping_hole_8018965C;
-extern s32                    D_shelter_b3_dumping_hole_8018968C;
-extern s32                    D_shelter_b3_dumping_hole_801899A4;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *, s32, GpCmdArg *);
+        void (*call1)(Task *, s32, GpXformArg *);
+        void (*call2)(Task *, s32, s32);
+    } handler;
+} ShelterB3DumpingHole2MessageEntry;
+STATIC_ASSERT_SIZEOF(ShelterB3DumpingHole2MessageEntry, 8);
+
+extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
+extern GpEvsCmd D_shelter_b3_dumping_hole_8018968C[];
+extern GpEvsCmd D_shelter_b3_dumping_hole_801899A4[];
 extern TaskDesc               D_shelter_b3_dumping_hole_8018AFBC;
 extern GpEvt12*               D_shelter_b3_dumping_hole_8018F4BC;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C6;
@@ -314,7 +361,6 @@ extern s16                    D_shelter_b3_dumping_hole_8018F4C2;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C4;
 extern s16                    D_shelter_b3_dumping_hole_8018F4C8;
 extern s16                    D_shelter_b3_dumping_hole_8018F4CA;
-extern u8                     D_shelter_b3_dumping_hole_8018F4D0;
 
 extern s16      D_shelter_b3_dumping_hole_8018B578;
 extern s16      D_shelter_b3_dumping_hole_8018B57A;
@@ -323,21 +369,11 @@ extern u16      D_shelter_b3_dumping_hole_8018F4CE;
 extern s32      D_shelter_b3_dumping_hole_8018B670;
 extern s32      D_shelter_b3_dumping_hole_8018B674;
 extern TaskDesc D_shelter_b3_dumping_hole_8018B588;
-extern u16      D_shelter_b3_dumping_hole_8018F4D4;
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
 extern TaskDesc D_shelter_b3_dumping_hole_8018B594;
-extern TaskDesc D_shelter_b3_dumping_hole_8018B83C;
-extern u8       D_shelter_b3_dumping_hole_8018B7AC[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B86C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B8BC[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B92C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B93C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B94C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B95C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B96C[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B974[];
-extern SVECTOR  D_shelter_b3_dumping_hole_8018B98C[];
+extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[];
+extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 static s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
@@ -347,7 +383,7 @@ static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 a
 static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
-static void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1);
+static void func_shelter_b3_dumping_hole_8017FD9C(GpCoord* arg0, s32 arg1);
 static void func_shelter_b3_dumping_hole_80181C8C(void);
 static s32  func_shelter_b3_dumping_hole_80181F80(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_dumping_hole_80182AA0(void);
@@ -378,6 +414,2295 @@ static void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
 static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+
+extern TmdSource D_shelter_b3_dumping_hole_801877F4;
+extern TmdSource D_shelter_b3_dumping_hole_80187A70;
+extern TmdSource D_shelter_b3_dumping_hole_80187D74;
+void func_shelter_b3_dumping_hole_8017DCFC(Task *);
+void func_shelter_b3_dumping_hole_8017DF90(Task *);
+void func_shelter_b3_dumping_hole_8017E440(Task *);
+void func_shelter_b3_dumping_hole_8017E94C(Task *);
+void func_shelter_b3_dumping_hole_8017F820(Task *);
+void func_shelter_b3_dumping_hole_8017FBA0(Task *);
+void func_shelter_b3_dumping_hole_8017FCA0(s16);
+void func_shelter_b3_dumping_hole_8017FE34(void);
+void func_shelter_b3_dumping_hole_8017FE64(s32);
+void func_shelter_b3_dumping_hole_8017FE9C(s32);
+void func_shelter_b3_dumping_hole_8017FED4(s16);
+void func_shelter_b3_dumping_hole_8017FEF4(s16);
+void func_shelter_b3_dumping_hole_8017FF14(void);
+void func_shelter_b3_dumping_hole_8017FFF4(void);
+void func_shelter_b3_dumping_hole_80180014(void);
+void func_shelter_b3_dumping_hole_80180034(void);
+
+void func_shelter_b3_dumping_hole_8018005C(Task *);
+void func_shelter_b3_dumping_hole_80181430(void);
+void func_shelter_b3_dumping_hole_80181560(Task *);
+void func_shelter_b3_dumping_hole_801817D8(Task *, s32, s32);
+void func_shelter_b3_dumping_hole_80181854(Task *, s32, GpXformArg *);
+void func_shelter_b3_dumping_hole_801818E0(void);
+void func_shelter_b3_dumping_hole_80181958(s32);
+void func_shelter_b3_dumping_hole_80181990(s16);
+void func_shelter_b3_dumping_hole_801819B0(void);
+void func_shelter_b3_dumping_hole_801819D0(void);
+void func_shelter_b3_dumping_hole_801819F0(void);
+
+void func_shelter_b3_dumping_hole_80181A48(Task *);
+
+extern GpAnimSet D_shelter_b3_dumping_hole_80189DD0;
+extern GpAnimSet D_shelter_b3_dumping_hole_8018A274;
+extern GpAnimSet D_shelter_b3_dumping_hole_8018AF84;
+extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
+
+extern GpAnimArg D_shelter_b3_dumping_hole_8018AFF4;
+extern GpAnimArg D_shelter_b3_dumping_hole_8018B008;
+extern GpAnimArg D_shelter_b3_dumping_hole_8018B01C;
+extern GpCmdArg D_shelter_b3_dumping_hole_8018B078;
+extern GpScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2];
+extern GpScriptRec D_shelter_b3_dumping_hole_8018AFB4[2];
+extern GpXformArg D_shelter_b3_dumping_hole_8018B030;
+extern GpXformArg D_shelter_b3_dumping_hole_8018B048;
+extern GpXformArg D_shelter_b3_dumping_hole_8018B060;
+extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
+void func_shelter_b3_dumping_hole_80181A18(void);
+void func_shelter_b3_dumping_hole_80181B04(s16);
+void func_shelter_b3_dumping_hole_80181B44(s32);
+
+extern GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1];
+extern GpObj4C D_shelter_b3_dumping_hole_8018E88C[8];
+extern GpObj4C D_shelter_b3_dumping_hole_8018EF9C[8];
+void func_shelter_b3_dumping_hole_80183024(Task *);
+void func_shelter_b3_dumping_hole_80183060(Task *);
+
+void func_shelter_b3_dumping_hole_80183530(Task *, s32, GpCmdArg *);
+void func_shelter_b3_dumping_hole_80183550(Task *);
+void func_shelter_b3_dumping_hole_801835C8(Task *);
+void func_shelter_b3_dumping_hole_80183620(Task *);
+void func_shelter_b3_dumping_hole_80183678(Task *);
+
+extern GpDrawAreaRec D_shelter_b3_dumping_hole_8018D3E0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018C944[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018C954[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018C964[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAA0[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAB8[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAC8[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CAD8[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC28[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC40[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC50[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC60[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018CC70[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018D3B0[6];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018D7B4[4];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018D964[4];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018D984[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DB24[4];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DBE4[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DBFC[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DC0C[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD34[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD4C[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD5C[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD80[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DD98[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DF88[3];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFA0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFB0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFC0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFD0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFE0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018DFF0[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018E000[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018E010[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018E020[2];
+extern GpSprtCmd D_shelter_b3_dumping_hole_8018E030[2];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018C974[15];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018CAE8[16];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018CC80[92];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018D3F4[48];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018D7D4[20];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018D994[20];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018DB44[8];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018DC1C[14];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018DD6C[1];
+extern GpSprtElem D_shelter_b3_dumping_hole_8018DDA8[24];
+extern TaskDesc D_80164B78;
+extern TaskDesc D_80174D58;
+extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[5];
+
+DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[13] = {
+    { 704, 0, 112, 112, 48, 48 },
+    { 716, 48, 112, 112, 48, 48 },
+    { 728, 96, 112, 112, 48, 48 },
+    { 740, 144, 112, 112, 48, 48 },
+    { 752, 192, 112, 112, 48, 48 },
+    { 704, 0, 160, 160, 48, 48 },
+    { 716, 48, 160, 160, 48, 48 },
+    { 728, 96, 160, 160, 48, 48 },
+    { 740, 144, 160, 160, 48, 48 },
+    { 752, 192, 160, 160, 48, 48 },
+    { 704, 0, 208, 208, 48, 48 },
+    { 716, 48, 208, 208, 48, 48 },
+    { -1, 0, 0, 0, 0, 0 },
+};
+
+s16 D_shelter_b3_dumping_hole_80188154[12] = {
+    2,
+    2,
+    2,
+    2,
+    2,
+    60,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+s16 D_shelter_b3_dumping_hole_8018816C[12] = {
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+s16 D_shelter_b3_dumping_hole_80188184[12] = {
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+s32 D_shelter_b3_dumping_hole_8018819C[12] = {
+    8000,
+    0,
+    -6000,
+    0,
+    0x4000000,
+    0,
+    0x290E,
+    0,
+    -6000,
+    0,
+    0x4000000,
+    0,
+};
+
+GpXformArg D_shelter_b3_dumping_hole_801881CC = { { 0x290E, 0, -6000, 0 }, { 0, 3072, 0, 0 } };
+
+GpXformArg D_shelter_b3_dumping_hole_801881E4 = { { 5000, 1800, -6000, 0 }, { 0, 0, 0, 0 } };
+
+DumpingHoleSpawnEntry D_shelter_b3_dumping_hole_801881FC[11] = {
+    { 9000, { 24, 252, 255, 255, 36, 250, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8900, { 192, 249, 255, 255, 20, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8200, { 4, 247, 255, 255, 76, 235, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 248, 248, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8400, { 248, 248, 255, 255, 12, 229, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9100, { 80, 251, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9000, { 80, 251, 255, 255, 168, 228, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9000, { 224, 252, 255, 255, 188, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8400, { 204, 247, 255, 255, 144, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 7900, { 172, 244, 255, 255, 132, 234, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 0xFFFF, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+};
+
+DumpingHoleSpawnEntry D_shelter_b3_dumping_hole_80188304[19] = {
+    { 8800, { 24, 252, 255, 255, 244, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 160, 246, 255, 255, 200, 231, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 136, 250, 255, 255, 224, 227, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 36, 250, 255, 255, 212, 229, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9100, { 180, 251, 255, 255, 44, 232, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9000, { 136, 250, 255, 255, 88, 233, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8900, { 124, 252, 255, 255, 232, 234, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 180, 251, 255, 255, 220, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 236, 250, 255, 255, 208, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 92, 249, 255, 255, 164, 237, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8900, { 48, 248, 255, 255, 20, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8600, { 4, 247, 255, 255, 208, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8400, { 172, 244, 255, 255, 120, 236, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8400, { 48, 248, 255, 255, 168, 228, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 104, 247, 255, 255, 80, 226, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 8800, { 236, 250, 255, 255, 80, 226, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9100, { 224, 252, 255, 255, 224, 227, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 9000, { 68, 253, 255, 255, 8, 238, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { 0xFFFF, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+};
+
+DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[13] = {
+    { 8300, -2900, -5600, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 9000, -1200, -6700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8600, -2700, -7000, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8600, -2300, -6700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8600, -1800, -5500, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8800, -1500, -5400, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8900, -1000, -7700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
+    { 8800, -1900, -6300, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8300, -2300, -4800, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8700, -1700, -4400, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8500, -1800, -7700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 8700, -2300, -5600, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
+    { 0xFFFF, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
+};
+
+GpOverlayIds D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
+
+GpEvsCmd D_shelter_b3_dumping_hole_80188640[45] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FE34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_8017FE64 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 12, { .overlays = &D_shelter_b3_dumping_hole_80188638 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FFF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_80180014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_8017FE64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_80180034 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b3_dumping_hole_80188A78[14] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FF14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_8017FCA0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
+    { 0, 192, func_shelter_b3_dumping_hole_8017F820, { .model = NULL } },
+    { 0, 192, func_shelter_b3_dumping_hole_8017FBA0, { .model = NULL } },
+    { 257, 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
+    { 257, 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
+    { 257, 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
+};
+
+TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
+    { 2, 192, func_shelter_b3_dumping_hole_8017DCFC, { .model = NULL } },
+    { 2, 192, func_shelter_b3_dumping_hole_8017DF90, { .model = NULL } },
+    { 2, 192, NULL, { .model = NULL } },
+    { 2, 192, func_shelter_b3_dumping_hole_8017E440, { .model = NULL } },
+};
+
+TmdBone D_shelter_b3_dumping_hole_80188C34[4] = {
+#include "assets/shelter_b3_dumping_hole_model_0C078_skeleton.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80188CC4[4] = {
+#include "assets/shelter_b3_dumping_hole_model_0C078_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80188CD4[100] = {
+#include "assets/shelter_b3_dumping_hole_model_0C078_verts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80188FF4[18] = {
+#include "assets/shelter_b3_dumping_hole_model_0C078_normals.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80189084[365] = {
+#include "assets/shelter_b3_dumping_hole_model_0C078_stream.inc"
+};
+
+TmdSource D_shelter_b3_dumping_hole_80189638 = {
+    0, 2600, 0, 4,
+    D_shelter_b3_dumping_hole_80188CC4, D_shelter_b3_dumping_hole_80188CD4, D_shelter_b3_dumping_hole_80188FF4, D_shelter_b3_dumping_hole_80188C34, D_shelter_b3_dumping_hole_80189084,
+};
+
+ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
+    { 2005, { .call2 = func_shelter_b3_dumping_hole_801817D8 } },
+    { 2004, { .call1 = func_shelter_b3_dumping_hole_80181854 } },
+};
+
+GpXformArg D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
+
+GpOverlayIds D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
+
+GpEvsCmd D_shelter_b3_dumping_hole_8018968C[33] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 12, { .overlays = &D_shelter_b3_dumping_hole_80189684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_801819B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_801819D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_801819F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b3_dumping_hole_801899A4[13] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_80181430 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 19, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
+    { 257, 192, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
+    { 2, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB3DumpingHolePoseBankC534;
+
+ShelterB3DumpingHolePoseBankC534 D_shelter_b3_dumping_hole_80189AF4 = { .poses = {
+#include "assets/shelter_b3_dumping_hole_animation_0C810_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_dumping_hole_80189B3C[46] = {
+#include "assets/shelter_b3_dumping_hole_animation_0C810_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_dumping_hole_80189BF4[109] = {
+#include "assets/shelter_b3_dumping_hole_animation_0C810_records.inc"
+};
+
+u16 D_shelter_b3_dumping_hole_80189DA8[20] = {
+#include "assets/shelter_b3_dumping_hole_animation_0C810_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_dumping_hole_80189DD0 = {
+    D_shelter_b3_dumping_hole_80189BF4, D_shelter_b3_dumping_hole_80189DA8,
+    { NULL, D_shelter_b3_dumping_hole_80189AF4.words, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} ShelterB3DumpingHolePoseBankC838;
+
+ShelterB3DumpingHolePoseBankC838 D_shelter_b3_dumping_hole_80189DF8 = { .poses = {
+#include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_dumping_hole_80189E64[97] = {
+#include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_dumping_hole_80189FE8[153] = {
+#include "assets/shelter_b3_dumping_hole_animation_0CCB4_records.inc"
+};
+
+u16 D_shelter_b3_dumping_hole_8018A24C[20] = {
+#include "assets/shelter_b3_dumping_hole_animation_0CCB4_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_dumping_hole_8018A274 = {
+    D_shelter_b3_dumping_hole_80189FE8, D_shelter_b3_dumping_hole_8018A24C,
+    { NULL, D_shelter_b3_dumping_hole_80189DF8.words, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[28];
+    GpPackedSvec words[84];
+} ShelterB3DumpingHolePoseBankCCDC;
+
+ShelterB3DumpingHolePoseBankCCDC D_shelter_b3_dumping_hole_8018A29C = { .poses = {
+#include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_dumping_hole_8018A3EC[232] = {
+#include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_dumping_hole_8018A78C[500] = {
+#include "assets/shelter_b3_dumping_hole_animation_0D9C4_records.inc"
+};
+
+u16 D_shelter_b3_dumping_hole_8018AF5C[20] = {
+#include "assets/shelter_b3_dumping_hole_animation_0D9C4_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_dumping_hole_8018AF84 = {
+    D_shelter_b3_dumping_hole_8018A78C, D_shelter_b3_dumping_hole_8018AF5C,
+    { NULL, D_shelter_b3_dumping_hole_8018A29C.words, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
+};
+
+GpScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
+    { 257, 1 },
+    { 0, 0 },
+};
+
+GpScriptRec D_shelter_b3_dumping_hole_8018AFB4[2] = {
+    { 255, 250, 9, 1 },
+    { 0, 0, 9, 0 },
+};
+
+TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { 0, 192, func_shelter_b3_dumping_hole_80181A48, { .model = NULL } };
+
+ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &D_shelter_b3_dumping_hole_80189DD0, &D_shelter_b3_dumping_hole_8018A274, &D_shelter_b3_dumping_hole_8018AF84 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
+
+GpAnimArg D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpAnimArg D_shelter_b3_dumping_hole_8018AFF4 = { { .index = 1 }, 48, 1, 30, 1 };
+
+GpAnimArg D_shelter_b3_dumping_hole_8018B008 = { { .index = 1 }, 49, 0, 0, 0 };
+
+GpAnimArg D_shelter_b3_dumping_hole_8018B01C = { { .index = 1 }, 50, 0, 0, 0 };
+
+GpXformArg D_shelter_b3_dumping_hole_8018B030 = { { 0x2904, 0, -3300, 0 }, { 0, -2048, 0, 0 } };
+
+GpXformArg D_shelter_b3_dumping_hole_8018B048 = { { 0x2904, -100, -3300, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_shelter_b3_dumping_hole_8018B060 = { { 8800, 0, -6000, 0 }, { 0, 1024, 0, 0 } };
+
+GpCmdArg D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
+
+GpCmdArg D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
+
+GpEvsCmd D_shelter_b3_dumping_hole_8018B080[39] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b3_dumping_hole_8018AFC8.data.copy }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b3_dumping_hole_8018B078 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54270001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 130 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018B008 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b3_dumping_hole_8018B030 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 4, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54270002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_dumping_hole_80181A18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 14, { .padCommands = D_shelter_b3_dumping_hole_8018AFAC }, { .padRecords = D_shelter_b3_dumping_hole_8018AFB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_shelter_b3_dumping_hole_80181B04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_80181B44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018B01C }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b3_dumping_hole_8018B048 }, { .value = 0 } },
+    { 4, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b3_dumping_hole_8018B060 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b3_dumping_hole_8018B428[14] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b3_dumping_hole_8018B078 }, { .value = 0 } },
+    { 16, { .value = 0x54270001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x54270002 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b3_dumping_hole_8018B060 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_dumping_hole_80181B44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+s16 D_shelter_b3_dumping_hole_8018B578 = 384;
+
+s16 D_shelter_b3_dumping_hole_8018B57A = 0;
+
+DumpingHoleCaptionTaskSeed D_shelter_b3_dumping_hole_8018B57C = { 0, 32, func_shelter_b3_dumping_hole_80181B64, NULL };
+
+TaskDesc D_shelter_b3_dumping_hole_8018B588 = { 0, 32, func_shelter_b3_dumping_hole_80183024, { .model = NULL } };
+
+TaskDesc D_shelter_b3_dumping_hole_8018B594 = { 0, 32, func_shelter_b3_dumping_hole_80183060, { .model = NULL } };
+
+OverlayCapWindow D_shelter_b3_dumping_hole_8018B5A0[13] = {
+    { 300, 295, 16, 5 },
+    { 240, 235, 16, 4 },
+    { 180, 175, 16, 3 },
+    { 120, 115, 16, 2 },
+    { 60, 55, 16, 1 },
+    { 30, 25, 17, 30 },
+    { 5, 4, 17, 5 },
+    { 4, 3, 17, 4 },
+    { 3, 2, 17, 3 },
+    { 2, 1, 17, 2 },
+    { 1, 0, 17, 1 },
+    { 0, -3, 17, 0 },
+    { -1, 0, 0, 0 },
+};
+
+s32 D_shelter_b3_dumping_hole_8018B670 = 8;
+
+s32 D_shelter_b3_dumping_hole_8018B674 = 0;
+
+GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[2] = {
+    { D_shelter_b3_dumping_hole_8018C3EC, NULL, D_shelter_b3_dumping_hole_8018ECA4, NULL },
+    { D_shelter_b3_dumping_hole_8018C3EC, D_shelter_b3_dumping_hole_8018E88C, D_shelter_b3_dumping_hole_8018EF9C, NULL },
+};
+
+u8 * D_shelter_b3_dumping_hole_8018B698[2] = {
+    D_8010CAF8,
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b3_dumping_hole_8018B6A0[2] = {
+    { { .bytes = { 37, 0 } } },
+    { { .bytes = { 37, 0 } } },
+};
+
+GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[3] = {
+    { { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, 0x54270004, 0x54270003, 0, 30, 0, 0 },
+    { { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, 0, 0, 0, 30, 0, 0 },
+    { { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x4C2C, 0, -4450 } }, { 0, 0, 0, 0 }, 0, 0, 0, 15, 0, 0 },
+};
+
+ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
+    { 1500, -3950, -550, 2048 },
+    { 4500, -3950, -550, 2048 },
+    { 7500, -3950, -550, 2048 },
+    { 0x2904, -3950, -550, 2048 },
+    { 0x34BC, -3950, -550, 2048 },
+    { 0x4074, -3950, -550, 2048 },
+    { 1500, -3950, -0x30A2, 0 },
+    { 4500, -3950, -0x30A2, 0 },
+    { 7500, -3950, -0x30A2, 0 },
+    { 0x2904, -3950, -0x30A2, 0 },
+    { 0x34BC, -3950, -0x30A2, 0 },
+    { 0x4074, -3950, -0x30A2, 0 },
+};
+
+ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
+    { 2011, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
+    { 0, 801, { 0, 0 }, 0 },
+    { 1, 2305, { 0, 0 }, 0 },
+    { 2, 513, { 0, 0 }, 0 },
+    { 0, 1041, { 0, 0 }, 0 },
+    { 0, 2049, { 0, 0 }, 0 },
+    { 2, 2305, { 0, 0 }, 0 },
+    { 1, 769, { 0, 0 }, 0 },
+    { 1, 2561, { 0, 0 }, 0 },
+    { 2, 1025, { 0, 0 }, 0 },
+    { 0, 2561, { 0, 0 }, 0 },
+    { 1, 1025, { 0, 0 }, 0 },
+    { 1, 2561, { 0, 0 }, 0 },
+    { 2, 1281, { 0, 0 }, 0 },
+    { 0, 2817, { 0, 0 }, 0 },
+    { 1, 2817, { 0, 0 }, 0 },
+    { 0, 769, { 0, 0 }, 0 },
+};
+
+TaskDesc D_shelter_b3_dumping_hole_8018B83C[4] = {
+    { 0, 32, func_shelter_b3_dumping_hole_80183550, { .model = NULL } },
+    { 0, 97, func_shelter_b3_dumping_hole_801835C8, { .model = NULL } },
+    { 0, 97, func_shelter_b3_dumping_hole_80183620, { .model = NULL } },
+    { 0, 97, func_shelter_b3_dumping_hole_80183678, { .model = NULL } },
+};
+
+// Lighting task indexes a shared pool through entry 40; interior bases also address entries in the same pool. The final existing eight-point view ends at entry 43.
+SVECTOR D_shelter_b3_dumping_hole_8018B86C[44] = {
+    { 1170, -7750, 150, 0 },
+    { 1830, -7750, 150, 0 },
+    { 4170, -7750, 150, 0 },
+    { 4830, -7750, 150, 0 },
+    { 7170, -7750, 150, 0 },
+    { 7830, -7750, 150, 0 },
+    { 10170, -7750, 150, 0 },
+    { 10830, -7750, 150, 0 },
+    { 13170, -7750, 150, 0 },
+    { 13830, -7750, 150, 0 },
+    { 16170, -7750, 150, 0 },
+    { 16830, -7750, 150, 0 },
+    { 1170, -7750, -12150, 0 },
+    { 1830, -7750, -12150, 0 },
+    { 4170, -7750, -12150, 0 },
+    { 4830, -7750, -12150, 0 },
+    { 7170, -7750, -12150, 0 },
+    { 7830, -7750, -12150, 0 },
+    { 10170, -7750, -12150, 0 },
+    { 10830, -7750, -12150, 0 },
+    { 13170, -7750, -12150, 0 },
+    { 13830, -7750, -12150, 0 },
+    { 16170, -7750, -12150, 0 },
+    { 16830, -7750, -12150, 0 },
+    { 1500, -10440, -3500, 0 },
+    { 4500, -10440, -3500, 0 },
+    { 1500, -10440, -8500, 0 },
+    { 4500, -10440, -8500, 0 },
+    { 19090, -5050, -4610, 0 },
+    { 19090, -5050, -7300, 0 },
+    { 19090, -1044, -3620, 0 },
+    { 20150, -2050, -4400, 0 },
+    { 1500, -4380, 550, 0 },
+    { 4500, -4380, 550, 0 },
+    { 7500, -4380, 550, 0 },
+    { 10500, -4380, 550, 0 },
+    { 13500, -4380, 550, 0 },
+    { 16500, -4380, 550, 0 },
+    { 1500, -4380, -12550, 0 },
+    { 4500, -4380, -12550, 0 },
+    { 7500, -4380, -12550, 0 },
+    { 10500, -4380, -12550, 0 },
+    { 13500, -4380, -12550, 0 },
+    { 16500, -4380, -12550, 0 },
+};
+
+SVECTOR D_shelter_b3_dumping_hole_8018B9CC[35] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, 0, -4096, 0 },
+    { -2896, -2896, 0, 0 },
+    { 2666, -3110, 0, 0 },
+    { 0, -3898, -1257, 0 },
+    { 0, -3898, 1257, 0 },
+    { -832, -3536, 1892, 0 },
+    { -832, -3536, -1892, 0 },
+    { 2740, -3045, 0, 0 },
+    { -699, -3549, -1922, 0 },
+    { -776, -3530, 1928, 0 },
+    { -776, -3530, -1928, 0 },
+    { -699, -3549, 1922, 0 },
+    { 39, -3757, 1631, 0 },
+    { 77, -3580, -1989, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 1513, 0, 3806, 0 },
+    { 1992, 0, -3579, 0 },
+    { -965, 0, 3981, 0 },
+    { -1188, 0, -3920, 0 },
+    { 3162, 0, 2604, 0 },
+    { 2896, 0, -2896, 0 },
+    { -533, 0, -4061, 0 },
+    { 1928, 0, 3614, 0 },
+    { 1363, 0, 3862, 0 },
+    { 1328, 0, -3875, 0 },
+    { 593, 0, 4053, 0 },
+    { 1473, 0, -3822, 0 },
+    { 488, 0, -4067, 0 },
+    { 2554, 0, -3202, 0 },
+};
+
+SVECTOR D_shelter_b3_dumping_hole_8018BAE4[90] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0x46B4, 100, -8500, 0 },
+    { 2300, -500, -8500, 0 },
+    { 3000, 100, -8500, 0 },
+    { 2300, -500, -3500, 0 },
+    { 0x46B4, 100, -3500, 0 },
+    { 3000, 100, -3500, 0 },
+    { 1300, -1400, -6475, 0 },
+    { -100, 0, -8550, 0 },
+    { -100, 0, -3450, 0 },
+    { 1300, -1400, -5525, 0 },
+    { 0x46B4, -1900, 100, 0 },
+    { 1300, -1400, -1450, 0 },
+    { -100, -1900, 100, 0 },
+    { 1300, -1400, -0x2936, 0 },
+    { 0x46B4, -1900, -0x2F44, 0 },
+    { -100, -1900, -0x2F44, 0 },
+    { 0, -0x2AF8, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, -0x2EE0, 0 },
+    { 0, -0x2AF8, -0x2EE0, 0 },
+    { 0x4650, 0, -0x2EE0, 0 },
+    { 0x4650, -0x2AF8, -0x2EE0, 0 },
+    { 0x4650, -5000, -8500, 0 },
+    { 0x4650, -5000, -3500, 0 },
+    { 0x4650, -0x2AF8, 0, 0 },
+    { 0x4650, 0, 0, 0 },
+    { 0x4650, 0, -8500, 0 },
+    { 0x4E20, -5000, -3500, 0 },
+    { 0x4E20, -5000, -8500, 0 },
+    { 0x4E20, 0, -8500, 0 },
+    { 0x4E20, 0, -3500, 0 },
+    { 0x4650, 0, -3500, 0 },
+    { 0x4851, 0, -3800, 0 },
+    { 0x4851, -1000, -3800, 0 },
+    { 0x4E52, -1000, -3800, 0 },
+    { 0x4E52, 0, -3800, 0 },
+    { 3950, 0, -5100, 0 },
+    { 3950, 0, -6600, 0 },
+    { 3950, -1000, -6600, 0 },
+    { 3950, -1000, -5100, 0 },
+    { 0x4851, -1000, -8200, 0 },
+    { 0x4851, 0, -8200, 0 },
+    { 0x4E52, 0, -8200, 0 },
+    { 0x4E52, -1000, -8200, 0 },
+    { 0x4367, -1000, -4500, 0 },
+    { 0x4367, 0, -4500, 0 },
+    { 0x413C, 0, -4500, 0 },
+    { 0x413C, -1000, -4500, 0 },
+    { 0x4367, 0, -7700, 0 },
+    { 0x4367, -1000, -7700, 0 },
+    { 0x413C, -1000, -7700, 0 },
+    { 0x413C, 0, -7700, 0 },
+    { 0x3458, -1000, -8500, 0 },
+    { 9150, -1000, -8500, 0 },
+    { 9150, 0, -8500, 0 },
+    { 0x3458, 0, -8500, 0 },
+    { 0x3458, 0, -3500, 0 },
+    { 0x300C, 0, -3500, 0 },
+    { 0x300C, -1000, -3500, 0 },
+    { 0x3458, -1000, -3500, 0 },
+    { 8450, -1000, -7650, 0 },
+    { 8450, 0, -7650, 0 },
+    { 0x2EAE, 0, -3850, 0 },
+    { 0x2EAE, -1000, -3850, 0 },
+    { 6300, -1000, -6900, 0 },
+    { 4800, -1000, -6900, 0 },
+    { 4800, 0, -6900, 0 },
+    { 6300, 0, -6900, 0 },
+    { 0x2C24, 0, -3850, 0 },
+    { 0x2C24, -1000, -3850, 0 },
+    { 9395, 0, -3600, 0 },
+    { 9395, -1000, -3600, 0 },
+    { 7425, 0, -7500, 0 },
+    { 7425, -1000, -7500, 0 },
+    { 4825, -1000, -4800, 0 },
+    { 4825, 0, -4800, 0 },
+    { 6363, -1000, -4800, 0 },
+    { 6363, 0, -4800, 0 },
+    { 7400, -1000, -4400, 0 },
+    { 7400, 0, -4400, 0 },
+    { 8568, -1000, -4260, 0 },
+    { 8568, 0, -4260, 0 },
+};
+
+GpGridFace D_shelter_b3_dumping_hole_8018BDB4[56] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 8, 9, 10, 0xFFFF }, 2, 0 },
+    { { 11, 12, 13, 0xFFFF }, 3, 0 },
+    { { 15, 16, 14, 17 }, 4, 0 },
+    { { 13, 10, 11, 9 }, 5, 0 },
+    { { 18, 19, 20, 0xFFFF }, 6, 0 },
+    { { 21, 22, 23, 0xFFFF }, 7, 0 },
+    { { 15, 21, 23, 0xFFFF }, 8, 0 },
+    { { 19, 16, 20, 0xFFFF }, 9, 0 },
+    { { 14, 17, 9, 11 }, 10, 0 },
+    { { 9, 15, 14, 0xFFFF }, 11, 0 },
+    { { 15, 9, 21, 0xFFFF }, 12, 0 },
+    { { 19, 11, 16, 0xFFFF }, 13, 0 },
+    { { 11, 17, 16, 0xFFFF }, 14, 0 },
+    { { 21, 9, 22, 8 }, 15, 0 },
+    { { 18, 12, 19, 11 }, 16, 0 },
+    { { 25, 26, 24, 27 }, 17, 0 },
+    { { 26, 28, 27, 29 }, 2, 0 },
+    { { 30, 31, 29, 32 }, 18, 0 },
+    { { 33, 25, 32, 24 }, 3, 0 },
+    { { 26, 34, 28, 0xFFFF }, 19, 0 },
+    { { 24, 27, 32, 29 }, 20, 0 },
+    { { 29, 28, 30, 34 }, 18, 0 },
+    { { 36, 37, 35, 38 }, 18, 0 },
+    { { 31, 39, 32, 33 }, 18, 0 },
+    { { 35, 38, 31, 39 }, 3, 0 },
+    { { 37, 36, 34, 30 }, 2, 0 },
+    { { 38, 37, 39, 34 }, 19, 4 },
+    { { 36, 35, 30, 31 }, 20, 0 },
+    { { 39, 25, 33, 0xFFFF }, 19, 0 },
+    { { 39, 34, 25, 26 }, 19, 4 },
+    { { 41, 42, 40, 43 }, 3, 3 },
+    { { 45, 46, 44, 47 }, 17, 3 },
+    { { 49, 50, 48, 51 }, 2, 3 },
+    { { 53, 54, 52, 55 }, 3, 3 },
+    { { 57, 58, 56, 59 }, 2, 3 },
+    { { 48, 57, 49, 56 }, 21, 3 },
+    { { 40, 53, 41, 52 }, 22, 3 },
+    { { 61, 62, 60, 63 }, 2, 3 },
+    { { 65, 66, 64, 67 }, 3, 3 },
+    { { 60, 63, 58, 59 }, 23, 3 },
+    { { 64, 67, 54, 55 }, 24, 3 },
+    { { 68, 69, 61, 62 }, 25, 3 },
+    { { 70, 71, 65, 66 }, 26, 3 },
+    { { 73, 74, 72, 75 }, 2, 3 },
+    { { 76, 77, 70, 71 }, 3, 3 },
+    { { 79, 77, 78, 76 }, 27, 3 },
+    { { 81, 72, 80, 75 }, 28, 3 },
+    { { 46, 45, 73, 74 }, 29, 3 },
+    { { 83, 44, 82, 47 }, 30, 3 },
+    { { 80, 69, 81, 68 }, 31, 3 },
+    { { 85, 83, 84, 82 }, 3, 3 },
+    { { 87, 85, 86, 84 }, 32, 3 },
+    { { 89, 87, 88, 86 }, 33, 3 },
+    { { 78, 89, 79, 88 }, 34, 3 },
+};
+
+s16 D_shelter_b3_dumping_hole_8018C054[19] = {
+    0,
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11,
+    12,
+    15,
+    17,
+    18,
+    21,
+    22,
+    31,
+    33,
+    49,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C07C[24] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    22,
+    31,
+    33,
+    45,
+    49,
+    50,
+    52,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C0AC[20] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    13,
+    14,
+    16,
+    17,
+    20,
+    22,
+    30,
+    31,
+    33,
+    50,
+    52,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C0D4[12] = {
+    0,
+    1,
+    6,
+    9,
+    13,
+    16,
+    17,
+    20,
+    22,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C0EC[21] = {
+    0,
+    1,
+    2,
+    5,
+    7,
+    10,
+    11,
+    12,
+    15,
+    18,
+    21,
+    22,
+    31,
+    33,
+    39,
+    43,
+    45,
+    48,
+    49,
+    51,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C118[22] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    10,
+    15,
+    16,
+    31,
+    33,
+    39,
+    43,
+    45,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C144[21] = {
+    0,
+    1,
+    3,
+    5,
+    6,
+    10,
+    13,
+    14,
+    16,
+    20,
+    22,
+    30,
+    31,
+    33,
+    47,
+    50,
+    52,
+    53,
+    54,
+    55,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C170[9] = {
+    0,
+    1,
+    6,
+    16,
+    20,
+    22,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C184[15] = {
+    0,
+    1,
+    2,
+    7,
+    15,
+    18,
+    21,
+    22,
+    31,
+    39,
+    41,
+    43,
+    48,
+    51,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C1A4[23] = {
+    0,
+    1,
+    2,
+    3,
+    15,
+    16,
+    21,
+    30,
+    31,
+    39,
+    40,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    51,
+    52,
+    53,
+    54,
+    55,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C1D4[18] = {
+    0,
+    1,
+    3,
+    6,
+    16,
+    20,
+    22,
+    30,
+    31,
+    40,
+    42,
+    44,
+    46,
+    47,
+    53,
+    54,
+    55,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C1F8[9] = {
+    0,
+    1,
+    6,
+    16,
+    20,
+    22,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C20C[15] = {
+    0,
+    1,
+    2,
+    7,
+    15,
+    18,
+    19,
+    21,
+    22,
+    23,
+    31,
+    36,
+    39,
+    41,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C22C[25] = {
+    0,
+    1,
+    2,
+    3,
+    15,
+    16,
+    19,
+    21,
+    22,
+    28,
+    29,
+    30,
+    31,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    44,
+    46,
+    47,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C260[18] = {
+    0,
+    1,
+    3,
+    6,
+    16,
+    19,
+    20,
+    22,
+    25,
+    30,
+    31,
+    35,
+    40,
+    42,
+    44,
+    46,
+    47,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C284[8] = {
+    0,
+    1,
+    6,
+    16,
+    20,
+    22,
+    30,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C294[20] = {
+    0,
+    1,
+    2,
+    7,
+    15,
+    18,
+    19,
+    21,
+    22,
+    23,
+    24,
+    27,
+    28,
+    29,
+    31,
+    34,
+    36,
+    37,
+    41,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C2BC[27] = {
+    0,
+    1,
+    2,
+    3,
+    15,
+    16,
+    19,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    34,
+    35,
+    36,
+    37,
+    38,
+    41,
+    42,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C2F4[20] = {
+    0,
+    1,
+    3,
+    6,
+    16,
+    19,
+    20,
+    22,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    31,
+    32,
+    35,
+    38,
+    42,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C31C[10] = {
+    0,
+    1,
+    6,
+    16,
+    19,
+    20,
+    22,
+    25,
+    30,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C330[14] = {
+    0,
+    1,
+    15,
+    19,
+    21,
+    22,
+    23,
+    24,
+    27,
+    28,
+    29,
+    34,
+    37,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C34C[15] = {
+    0,
+    1,
+    19,
+    22,
+    24,
+    26,
+    27,
+    28,
+    29,
+    31,
+    32,
+    34,
+    37,
+    38,
+    -1,
+};
+
+s16 D_shelter_b3_dumping_hole_8018C36C[15] = {
+    0,
+    1,
+    3,
+    16,
+    19,
+    22,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    32,
+    38,
+    -1,
+};
+
+s16 * D_shelter_b3_dumping_hole_8018C38C[24] = {
+    D_shelter_b3_dumping_hole_8018C054,
+    D_shelter_b3_dumping_hole_8018C07C,
+    D_shelter_b3_dumping_hole_8018C0AC,
+    D_shelter_b3_dumping_hole_8018C0D4,
+    D_shelter_b3_dumping_hole_8018C0EC,
+    D_shelter_b3_dumping_hole_8018C118,
+    D_shelter_b3_dumping_hole_8018C144,
+    D_shelter_b3_dumping_hole_8018C170,
+    D_shelter_b3_dumping_hole_8018C184,
+    D_shelter_b3_dumping_hole_8018C1A4,
+    D_shelter_b3_dumping_hole_8018C1D4,
+    D_shelter_b3_dumping_hole_8018C1F8,
+    D_shelter_b3_dumping_hole_8018C20C,
+    D_shelter_b3_dumping_hole_8018C22C,
+    D_shelter_b3_dumping_hole_8018C260,
+    D_shelter_b3_dumping_hole_8018C284,
+    D_shelter_b3_dumping_hole_8018C294,
+    D_shelter_b3_dumping_hole_8018C2BC,
+    D_shelter_b3_dumping_hole_8018C2F4,
+    D_shelter_b3_dumping_hole_8018C31C,
+    D_shelter_b3_dumping_hole_8018C330,
+    D_shelter_b3_dumping_hole_8018C34C,
+    D_shelter_b3_dumping_hole_8018C36C,
+    NULL,
+};
+
+GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1] = {
+    { NULL, D_shelter_b3_dumping_hole_8018B9CC, D_shelter_b3_dumping_hole_8018BAE4, D_shelter_b3_dumping_hole_8018BDB4, D_shelter_b3_dumping_hole_8018C38C, 100, 0x2F44, 6, 4, 4000, 56 },
+};
+
+GpViewRec D_shelter_b3_dumping_hole_8018C410[37] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x61A8, 6000 } }, 257 },
+    { { { { 3054, 0, 2728 }, { 510, 4023, -571 }, { -2680, 766, 3000 } }, { -0x452F, 2991, 0x2DB7 } }, 257 },
+    { { { { 3126, 0, 2645 }, { 600, 3989, -709 }, { -2576, 929, 3045 } }, { -0x3779, 3121, 0x2A83 } }, 257 },
+    { { { { 2261, 0, -3415 }, { -290, 4081, -192 }, { 3403, 348, 2252 } }, { -0x2919, 2411, 9983 } }, 257 },
+    { { { { 4028, 0, -739 }, { -727, 736, -3963 }, { 132, 4029, 724 } }, { -8741, 9891, 7423 } }, 289 },
+    { { { { 4028, 0, -739 }, { -727, 736, -3963 }, { 132, 4029, 724 } }, { -0x3CD3, 9891, 7423 } }, 289 },
+    { { { { 4095, 0, 19 }, { 2, 4057, -556 }, { -19, 556, 4057 } }, { -0x33FE, 2784, 0x3158 } }, 230 },
+    { { { { 2223, 0, -3439 }, { -1144, 3862, -739 }, { 3243, 1362, 2096 } }, { -0x31C5, 2794, 9228 } }, 257 },
+    { { { { 1013, 0, -3968 }, { -3267, 2324, -834 }, { 2252, 3372, 574 } }, { -8292, 7543, 6554 } }, 289 },
+    { { { { 1061, 0, -3956 }, { -2152, 3436, -577 }, { 3319, 2228, 890 } }, { -0x333C, 4161, 7069 } }, 289 },
+    { { { { 4028, 0, -739 }, { -723, 834, -3944 }, { 150, 4010, 821 } }, { -0x2E19, 8861, 7423 } }, 289 },
+    { { { { 4037, 0, -690 }, { -663, 1141, -3877 }, { 192, 3933, 1125 } }, { -0x41F1, 7141, 7933 } }, 257 },
+    { { { { 618, 0, 4049 }, { -574, 4054, 87 }, { -4008, -580, 611 } }, { -0x511E, 690, 6915 } }, 257 },
+    { { { { 2533, 0, -3218 }, { -725, 3990, -570 }, { 3135, 922, 2468 } }, { -0x410B, 1800, 6163 } }, 329 },
+    { { { { 2538, 0, 3214 }, { -729, 3989, 575 }, { -3130, -929, 2472 } }, { -0x3A3F, 581, 4683 } }, 289 },
+    { { { { 3865, 0, -1353 }, { 0, 4096, 0 }, { 1353, 0, 3865 } }, { -9755, 1115, 5205 } }, 447 },
+    { { { { 3700, 0, -1756 }, { 511, 3918, 1077 }, { 1680, -1193, 3539 } }, { -0x2FE5, 2981, 1883 } }, 257 },
+    { { { { 2435, 0, -3293 }, { 228, 4086, 168 }, { 3285, -283, 2429 } }, { -6561, 901, 8903 } }, 257 },
+    { { { { 547, 0, 4059 }, { -348, 4080, 47 }, { -4044, -351, 545 } }, { -0x3071, 1141, 6693 } }, 257 },
+    { { { { 2366, 0, 3342 }, { 2987, 1837, -2115 }, { -1499, 3660, 1061 } }, { -0x28F1, 5771, 7663 } }, 289 },
+    { { { { 2828, 0, 2962 }, { -1276, 3696, 1218 }, { -2673, -1764, 2552 } }, { -6451, 9662, 7109 } }, 257 },
+    { { { { 2533, 0, -3218 }, { -725, 3990, -570 }, { 3135, 922, 2468 } }, { -0x410B, 1800, 6163 } }, 329 },
+    { { { { 449, 0, 4071 }, { -401, 4075, 44 }, { -4051, -404, 447 } }, { -0x2B7A, 1770, 6430 } }, 230 },
+    { { { { 3412, 0, 2265 }, { 1845, 2373, -2781 }, { -1312, 3337, 1977 } }, { -0x3C29, 0x2879, 0x2BFF } }, 275 },
+    { { { { 449, 0, -4071 }, { 286, 4085, 31 }, { 4061, -287, 448 } }, { -0x376A, 1090, 6535 } }, 230 },
+    { { { { 3508, 0, -2113 }, { -876, 3727, -1454 }, { 1923, 1697, 3192 } }, { -0x31C5, 4261, 0x297F } }, 230 },
+    { { { { 941, 0, -3986 }, { -3234, 2393, -764 }, { 2329, 3323, 550 } }, { -0x2AB4, 7743, 6554 } }, 289 },
+    { { { { 3954, 0, -1065 }, { -1039, 900, -3858 }, { 234, 3995, 869 } }, { -0x3CA1, 8931, 7643 } }, 257 },
+    { { { { 473, 0, -4068 }, { 308, 4084, 35 }, { 4056, -310, 472 } }, { -8800, 1401, 6883 } }, 257 },
+    { { { { 698, 0, -4035 }, { 449, 4070, 77 }, { 4010, -456, 694 } }, { -0x2F6C, 1401, 6883 } }, 257 },
+    { { { { 354, 0, 4080 }, { -290, 4085, 25 }, { -4070, -291, 353 } }, { -0x4589, 1641, 7013 } }, 230 },
+    { { { { 627, 0, -4047 }, { -2564, 3169, -397 }, { 3131, 2594, 485 } }, { -3752, 7543, 6554 } }, 289 },
+    { { { { 639, 0, 4045 }, { 1942, 3592, -307 }, { -3548, 1967, 560 } }, { -0x40D0, 5263, 7144 } }, 289 },
+    { { { { 3310, 0, 2412 }, { 400, 4039, -549 }, { -2378, 680, 3264 } }, { -0x452F, 2991, 0x2DB7 } }, 257 },
+    { { { { 344, 0, 4081 }, { 160, 4092, -13 }, { -4078, 160, 344 } }, { -0x3517, 1731, 6823 } }, 230 },
+    { { { { 1289, 0, 3887 }, { 2700, 2946, -895 }, { -2797, 2844, 927 } }, { -7481, 2971, 7013 } }, 257 },
+    { { { { 618, 0, 4049 }, { -574, 4054, 87 }, { -4008, -580, 611 } }, { -0x511E, 690, 6915 } }, 257 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018C944[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018C954[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018C964[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018C974[15] = {
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, 32, 1637, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 80, 0, 1612, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 40, 1575, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 32, 1587, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -16, 1587, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 216 } }, 112, -120, 1537, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 120, -120, 1500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 128, -120, 1462, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 136, -120, 1425, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 144, -120, 1412, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 152, -120, 1375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 112 } }, 104, -120, 1575, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 104, -8, 1500, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -16, 1600, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, -80, 1575, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CAA0[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 15, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CAB8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CAC8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CAD8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018CAE8[16] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 16, 1025, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 64, 1125, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, 32, 1075, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 144 } }, 104, -40, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 152 } }, 112, -40, 975, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -80, 950, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 240 } }, 120, -120, 950, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 240 } }, 136, -120, 900, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 88, 24, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -40, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 104 } }, 96, 0, 1025, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -24, 1000, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -8, 986, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1087, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 72, 1125, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 72, 24, 1075, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CC28[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 16, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CC40[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CC50[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CC60[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018CC70[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018CC80[92] = {
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, 16, 950, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -120, -64, 987, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -128, -64, 987, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -128, 16, 950, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -136, -64, 987, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -136, 16, 950, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -144, -64, 1012, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, 16, 937, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -64, 1025, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, 16, 937, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -64, 1025, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, 16, 937, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -88, 48, 2700, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 48, 2700, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 48, 2700, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -104, 56, 2700, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -40, 56, 2700, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 24, 56, 2700, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 56, 2700, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 2700, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 2700, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 2700, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 2700, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 2700, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 2700, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 64, 2700, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 64, 2700, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 56, 2125, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 2125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -104, 56, 2125, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -32, 56, 2125, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 32, 56, 2125, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -120, 64, 2125, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 64, 2125, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 64, 2125, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 2125, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 2125, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 2125, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 2125, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 2125, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 2125, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 2125, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 2125, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 2125, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 2125, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 2125, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 72, 2125, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 72, 2125, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 72, 2125, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 72, 2125, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 72, 2125, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 72, 2125, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 72, 2125, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 72, 2125, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 72, 2125, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 72, 2125, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 72, 2125, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 72, 2125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 2125, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 72, 2125, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 72, 2125, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 72, 2125, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 72, 2125, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 72, 2125, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 56, 1400, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 64, 56, 1425, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 1425, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 72, 1400, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 1400, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 1400, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 1400, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 1400, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 1400, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 1400, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 1400, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 1400, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 1400, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 1400, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 72, 1400, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 72, 1400, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -72, 72, 1400, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -40, 72, 1400, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 72, 1400, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 72, 1400, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 72, 1400, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 72, 1400, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 1400, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 1400, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 1400, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 1400, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 1400, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 1400, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018D3B0[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 12, 0, 0, { 3, 0 } },
+    { 12, 15, 0, 0, { 0, 0 } },
+    { 27, 37, 0, 0, { 2, 0 } },
+    { 64, 28, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpDrawAreaRec D_shelter_b3_dumping_hole_8018D3E0[2] = {
+    { { 1, 0, 318, 196 }, 1400 },
+    { { 0, 0, 0, 0 }, 0xFFFF },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018D3F4[48] = {
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 0, -120, 1050, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, -120, 1050, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -120, 1050, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 24, -120, 1050, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, -120, 1050, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -120, 1000, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -120, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, -120, 912, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -80, 1025, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -80, 975, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -80, 900, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -80, 1075, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, -80, 1050, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -120, 887, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -120, 887, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -120, 875, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -120, 925, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -120, 925, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, -120, 950, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -120, 950, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -120, 1000, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -120, 1000, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -96, 750, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -56, 750, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -16, 750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -96, 800, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -56, 800, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -16, 800, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -96, 875, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -56, 875, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -16, 900, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -96, 925, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -56, 925, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -16, 837, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -96, 950, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -56, 975, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -16, 875, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 120 } }, -48, -96, 1125, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -96, 1000, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -56, 1000, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -16, 900, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, 24, 1125, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 24, 1025, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 24, 775, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 24, 800, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 24, 912, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 962, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 24, 962, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018D7B4[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 22, 0, 0, { 1, 0 } },
+    { 22, 26, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018D7D4[20] = {
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 625, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 8, 625, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 0, 32, 625, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -104, 48, 625, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -128, 72, 625, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -88, 72, 625, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -48, 72, 625, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -8, 72, 625, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 32, 72, 625, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 72, 625, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 112, 72, 625, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, 72, 625, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 80, 32, 625, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, -16, 625, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, -40, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 32, 625, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 32, -64, 875, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -112, 875, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -88, 875, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, 56, -64, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018D964[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 16, 0, 0, { 1, 0 } },
+    { 16, 4, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018D984[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018D994[20] = {
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -56, 768, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, -56, 769, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, -56, 769, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -56, 789, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -80, 595, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, 0, 573, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 40, 691, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -80, 634, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -40, 598, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, 0, 590, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 40, 622, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -80, 490, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -40, 465, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 0, 456, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -136, 40, 450, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -80, 392, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -40, 383, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, 0, 371, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 40, 359, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -40, 568, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DB24[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 4, 0, 0, { 1, 0 } },
+    { 4, 16, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018DB44[8] = {
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, -160, 24, 375, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, -136, 32, 375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, -112, 40, 375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, -88, 48, 375, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 56, 375, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -40, 64, 375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, 72, 375, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 8, 96, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DBE4[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DBFC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DC0C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018DC1C[14] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -40, 375, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 0, -120, 375, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, -120, 375, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -24, -104, 375, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 32, -104, 375, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -40, -88, 375, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 24, -88, 375, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 88, -88, 375, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, -72, 375, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 16, -72, 375, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, -72, 375, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -56, -56, 375, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 8, -56, 375, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -40, -40, 375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DD34[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 14, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DD4C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DD5C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018DD6C[1] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 8, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DD80[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DD98[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b3_dumping_hole_8018DDA8[24] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 562, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 88, 1300, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 72, 1250, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 80, 1200, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 16, 750, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, 104, 24, 712, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 32, 675, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 637, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 48, 600, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 88, 1150, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 96, 1100, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 120, 104, 1050, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 32, 1200, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 32, 1150, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 40, 1100, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 40, 1050, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 128, 48, 1000, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 136, 48, 950, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, 56, 900, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 0, 750, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -24, 750, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 48, 1225, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 64, 1300, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 64, 850, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DF88[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 24, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFA0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFB0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFC0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFD0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFE0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018DFF0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018E000[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018E010[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018E020[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018E030[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b3_dumping_hole_8018E040[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b3_dumping_hole_8018E050[37] = {
+    { { .empty = D_shelter_b3_dumping_hole_8018C944 }, D_shelter_b3_dumping_hole_8018C944, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018C954 }, D_shelter_b3_dumping_hole_8018C954, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018C964 }, D_shelter_b3_dumping_hole_8018C964, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018C974 }, D_shelter_b3_dumping_hole_8018CAA0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CAB8 }, D_shelter_b3_dumping_hole_8018CAB8, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CAC8 }, D_shelter_b3_dumping_hole_8018CAC8, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CAD8 }, D_shelter_b3_dumping_hole_8018CAD8, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018CAE8 }, D_shelter_b3_dumping_hole_8018CC28, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CC40 }, D_shelter_b3_dumping_hole_8018CC40, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CC50 }, D_shelter_b3_dumping_hole_8018CC50, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CC60 }, D_shelter_b3_dumping_hole_8018CC60, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018CC70 }, D_shelter_b3_dumping_hole_8018CC70, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018CC80 }, D_shelter_b3_dumping_hole_8018D3B0, D_shelter_b3_dumping_hole_8018D3E0 },
+    { { .elements = D_shelter_b3_dumping_hole_8018D3F4 }, D_shelter_b3_dumping_hole_8018D7B4, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018D7D4 }, D_shelter_b3_dumping_hole_8018D964, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018D984 }, D_shelter_b3_dumping_hole_8018D984, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018D994 }, D_shelter_b3_dumping_hole_8018DB24, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018DB44 }, D_shelter_b3_dumping_hole_8018DBE4, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DBFC }, D_shelter_b3_dumping_hole_8018DBFC, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DC0C }, D_shelter_b3_dumping_hole_8018DC0C, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018DC1C }, D_shelter_b3_dumping_hole_8018DD34, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DD4C }, D_shelter_b3_dumping_hole_8018DD4C, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DD5C }, D_shelter_b3_dumping_hole_8018DD5C, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018DD6C }, D_shelter_b3_dumping_hole_8018DD80, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DD98 }, D_shelter_b3_dumping_hole_8018DD98, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018DDA8 }, D_shelter_b3_dumping_hole_8018DF88, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFA0 }, D_shelter_b3_dumping_hole_8018DFA0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFB0 }, D_shelter_b3_dumping_hole_8018DFB0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFC0 }, D_shelter_b3_dumping_hole_8018DFC0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFD0 }, D_shelter_b3_dumping_hole_8018DFD0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFE0 }, D_shelter_b3_dumping_hole_8018DFE0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018DFF0 }, D_shelter_b3_dumping_hole_8018DFF0, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018E000 }, D_shelter_b3_dumping_hole_8018E000, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018E010 }, D_shelter_b3_dumping_hole_8018E010, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018E020 }, D_shelter_b3_dumping_hole_8018E020, NULL },
+    { { .empty = D_shelter_b3_dumping_hole_8018E030 }, D_shelter_b3_dumping_hole_8018E030, NULL },
+    { { .elements = D_shelter_b3_dumping_hole_8018CC80 }, D_shelter_b3_dumping_hole_8018D3B0, NULL },
+};
+
+GpLight D_shelter_b3_dumping_hole_8018E20C[2] = {
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9988, -0x2B02, -2510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2871, 2582, 2295, { 0, 0 } },
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9632, -0x2B02, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 925, 820, { 0, 0 } },
+};
+
+GpPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A38, -3000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 819, 737, 655, { 0, 0 } }, 3561, 4500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2903, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4914, 409, 0, { 0, 0 } }, 1500, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4914, 409, 0, { 0, 0 } }, 1500, 2000 },
+};
+
+GpRoomCoordSet D_shelter_b3_dumping_hole_8018E3DC = { 2, D_shelter_b3_dumping_hole_8018E20C, 3, D_shelter_b3_dumping_hole_8018E2BC, 0, NULL };
+
+GpPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1230, 1110, 985, { 0, 0 } }, 4202, 7241 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A98, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1229, 1106, 987, { 0, 0 } }, 4339, 7000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1230, 1109, 984, { 0, 0 } }, 4124, 7086 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A98, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1229, 1109, 987, { 0, 0 } }, 4239, 6981 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1229, 1106, 986, { 0, 0 } }, 4180, 7000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1232, 1106, 985, { 0, 0 } }, 4275, 7000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A38, -3000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2052, 1844, 1640, { 0, 0 } }, 3561, 4500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2903, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4915, 409, 0, { 0, 0 } }, 1500, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4915, 409, 0, { 0, 0 } }, 1500, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4DF6, -2052, -4394 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 310, 3279, 1229, { 0, 0 } }, 1341, 1738 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A91, -2181, -3367 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2460, 3690, 4096, { 0, 0 } }, 1400, 2022 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6000, -9400, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2460, 2215, 1970, { 0, 0 } }, 3000, 4000 },
+};
+
+GpRoomCoordSet D_shelter_b3_dumping_hole_8018E874 = { 0, NULL, 12, D_shelter_b3_dumping_hole_8018E3F4, 0, NULL };
+
+GpObj4C D_shelter_b3_dumping_hole_8018E88C[8] = {
+    { NULL, NULL, NULL, { 0x3F30, -5696, -5696, 0 }, { { 0, -6336, -4624, 0 }, { 0, -6336, 4624, 0 }, { 0, 6336, -4624, 0 }, { 0, 6336, 4624, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 30, 29, 1, 0 },
+    { NULL, NULL, NULL, { 0x3FE0, -5664, -5728, 0 }, { { 0, -6336, 4624, 0 }, { 0, -6336, -4624, 0 }, { 0, 6336, 4624, 0 }, { 0, 6336, -4624, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 29, 30, 1, 0 },
+    { NULL, NULL, NULL, { 0x327F, -5280, -5793, 0 }, { { -452, -6336, 4602, 0 }, { 453, -6336, -4601, 0 }, { -452, 6336, 4602, 0 }, { 453, 6336, -4601, 0 } }, { -4077, 0, -401, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 31, 29, 1, 0 },
+    { NULL, NULL, NULL, { 0x31DE, -5345, -5858, 0 }, { { 453, -6336, -4601, 0 }, { -452, -6336, 4602, 0 }, { 453, 6336, -4601, 0 }, { -452, 6336, 4602, 0 } }, { 4076, 0, 400, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 29, 31, 1, 0 },
+    { NULL, NULL, NULL, { 9152, -5376, -6017, 0 }, { { 453, -6336, -4601, 0 }, { -452, -6336, 4602, 0 }, { 453, 6336, -4601, 0 }, { -452, 6336, 4602, 0 } }, { 4076, 0, 400, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 31, 35, 1, 0 },
+    { NULL, NULL, NULL, { 9311, -5344, -5921, 0 }, { { -452, -6336, 4602, 0 }, { 453, -6336, -4601, 0 }, { -452, 6336, 4602, 0 }, { 453, 6336, -4601, 0 } }, { -4077, 0, -401, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 35, 31, 1, 0 },
+    { NULL, NULL, NULL, { 6016, -4993, -6048, 0 }, { { 0, -6336, -4623, 0 }, { 0, -6336, 4623, 0 }, { 0, 6336, -4623, 0 }, { 0, 6336, 4623, 0 } }, { 4095, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 35, 36, 1, 0 },
+    { NULL, NULL, NULL, { 6176, -5120, -6112, 0 }, { { 0, -6336, 4623, 0 }, { 0, -6336, -4623, 0 }, { 0, 6336, 4623, 0 }, { 0, 6336, -4623, 0 } }, { -4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 36, 35, 129, 0 },
+};
+
+GpAreaPlace D_shelter_b3_dumping_hole_8018EAEC[5] = {
+    { 32, 0, 0, 4276, 1, -6109, 1024, 0, 0, 2, 0 },
+    { 252, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 103, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+    { 44, 1, 0, 0x38C0, 0, -5888, 2048, 0, 4, 6, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB3C[5] = {
+    { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
+    { 103, 417, 2, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
+    { 252, 417, 5, 0, { 0, 0 }, D_80176354 },
+    { 44, 44, 5, 2, { 0, 0 }, &D_80174D58 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB78[2] = {
+    { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b3_dumping_hole_8018EB90[2] = {
+    { 32, 0, 0, 4276, 1, -6109, 1024, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaTmdRec D_shelter_b3_dumping_hole_8018EBB0[5] = {
+    { 44, 44, 0, 1, { 0, 0 }, &D_80142604 },
+    { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
+    { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
+    { 103, 421, 2, 1, { 0, 0 }, &D_80164B78 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b3_dumping_hole_8018EBEC[5] = {
+    { 44, 1, 0, 0x38C0, 4000, -5888, 2048, 0, 0, 2, 0 },
+    { 70, 1, 0, 0x2B5C, 0, -8200, 2048, 0, 2, 4, 0 },
+    { 71, 1, 1, 5000, 0, -5900, 2048, 0, 3, 5, 0 },
+    { 103, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b3_dumping_hole_8018EC3C[13] = {
+    { NULL, NULL },
+    { D_shelter_b3_dumping_hole_8018EAEC, D_shelter_b3_dumping_hole_8018EB3C },
+    { D_shelter_b3_dumping_hole_8018EBEC, D_shelter_b3_dumping_hole_8018EBB0 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b3_dumping_hole_8018EB90, D_shelter_b3_dumping_hole_8018EB78 },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpObj4C D_shelter_b3_dumping_hole_8018ECA4[10] = {
+    { NULL, NULL, NULL, { 0x4BD0, -48, -4688, 0 }, { { -688, 0, -624, 0 }, { 688, 0, -624, 0 }, { -688, 0, 624, 0 }, { 688, 0, 624, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 927, 0, 40, 19, 2, 0 },
+    { NULL, NULL, NULL, { 0x3820, -64, -0x3A40, 0 }, { { -688, 0, -2576, 0 }, { 688, 0, -2576, 0 }, { -688, 0, 2576, 0 }, { 688, 0, 2576, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 2660, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 0x4B61, -64, -3760, 0 }, { { -1008, 0, -832, 0 }, { 1008, 0, -832, 0 }, { -1008, 0, 832, 0 }, { 1008, 0, 832, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1305, 2, 18, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4224, -64, -5808, 0 }, { { -464, 0, -1184, 0 }, { 464, 0, -1184, 0 }, { -464, 0, 1184, 0 }, { 464, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { 4075, 0, -402, 0 }, 1267, 2, 1, 1, 2, 0 },
+    { NULL, NULL, NULL, { 8816, -64, -3984, 0 }, { { -800, 0, -1008, 0 }, { 800, 0, -432, 0 }, { -800, 0, 432, 0 }, { 800, 0, 1008, 0 } }, { 0, 4098, 0, 0 }, { 399, 0, -4075, 0 }, 1286, 2, 19, 1, 2, 0 },
+    { NULL, NULL, NULL, { 8816, -64, -7824, 0 }, { { -816, 0, -224, 0 }, { 816, 0, -1216, 0 }, { -816, 0, 1216, 0 }, { 816, 0, 224, 0 } }, { 0, 4099, 0, 0 }, { 14, 0, 4094, 0 }, 1459, 2, 25, 1, 2, 0 },
+    { NULL, NULL, NULL, { 0x2D70, -64, -3808, 0 }, { { -2080, 0, -512, 0 }, { 2080, 0, -512, 0 }, { -2080, 0, 512, 0 }, { 2080, 0, 512, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 2141, 2, 19, 1, 2, 0 },
+    { NULL, NULL, NULL, { 0x2DB0, -64, -8272, 0 }, { { -2000, 0, -368, 0 }, { 2000, 0, -368, 0 }, { -2000, 0, 368, 0 }, { 2000, 0, 368, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 2031, 2, 25, 1, 2, 0 },
+    { NULL, NULL, NULL, { 8608, -64, -5888, 0 }, { { -688, 0, -2576, 0 }, { 688, 0, -2576, 0 }, { -688, 0, 2576, 0 }, { 688, 0, 2576, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 2660, 0x4002, 20, 1, 2, 0 },
+    { NULL, NULL, NULL, { -496, -64, -6080, 0 }, { { -1504, 0, -4336, 0 }, { 1504, 0, -4336, 0 }, { -1504, 0, 4336, 0 }, { 1504, 0, 4336, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 4579, 2, 21, 1, 130, 0 },
+};
+
+GpObj4C D_shelter_b3_dumping_hole_8018EF9C[8] = {
+    { NULL, NULL, NULL, { 0x4BD0, -48, -4688, 0 }, { { -688, 0, -624, 0 }, { 688, 0, -624, 0 }, { -688, 0, 624, 0 }, { 688, 0, 624, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 927, 0, 40, 19, 2, 0 },
+    { NULL, NULL, NULL, { 6334, -64, -5984, 0 }, { { -144, 0, -2576, 0 }, { 144, 0, -2576, 0 }, { -144, 0, 2576, 0 }, { 144, 0, 2576, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 2572, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 0x4B61, -64, -3760, 0 }, { { -1008, 0, -832, 0 }, { 1008, 0, -832, 0 }, { -1008, 0, 832, 0 }, { 1008, 0, 832, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1305, 2, 18, 1, 2, 0 },
+    { NULL, NULL, NULL, { 4224, -64, -5808, 0 }, { { -464, 0, -1184, 0 }, { 464, 0, -1184, 0 }, { -464, 0, 1184, 0 }, { 464, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { 4075, 0, -402, 0 }, 1267, 2, 1, 1, 2, 0 },
+    { NULL, NULL, NULL, { 8816, -64, -3984, 0 }, { { -800, 0, -1008, 0 }, { 800, 0, -432, 0 }, { -800, 0, 432, 0 }, { 800, 0, 1008, 0 } }, { 0, 4098, 0, 0 }, { 399, 0, -4075, 0 }, 1286, 2, 19, 1, 2, 0 },
+    { NULL, NULL, NULL, { 8816, -64, -7824, 0 }, { { -816, 0, -224, 0 }, { 816, 0, -1216, 0 }, { -816, 0, 1216, 0 }, { 816, 0, 224, 0 } }, { 0, 4099, 0, 0 }, { 14, 0, 4094, 0 }, 1459, 2, 25, 1, 2, 0 },
+    { NULL, NULL, NULL, { 0x2D70, -64, -3808, 0 }, { { -2080, 0, -512, 0 }, { 2080, 0, -512, 0 }, { -2080, 0, 512, 0 }, { 2080, 0, 512, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 2141, 2, 19, 1, 2, 0 },
+    { NULL, NULL, NULL, { 0x2DB0, -64, -8272, 0 }, { { -2000, 0, -368, 0 }, { 2000, 0, -368, 0 }, { -2000, 0, 368, 0 }, { 2000, 0, 368, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 2031, 2, 25, 1, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_b3_dumping_hole_8018F1FC[38] = {
+    { 37, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 208, 208, 208, 208 },
+    { 208, 208, 208, 208 },
+    { 308, 311, 308, 309 },
+    { 208, 208, 208, 208 },
+    { 208, 208, 208, 208 },
+    { 310, 310, 310, 310 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 537, 453, 359, 472 },
+    { 16, 16, 16, 16 },
+    { 516, 512, 516, 514 },
+    { 246, 249, 246, 247 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 25, 288, 287, 189 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 205, 205, 205, 205 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+GpRoomBoundVec D_shelter_b3_dumping_hole_8018F32C[38] = {
+    { 37, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 616, 618, 617, 617 },
+    { 617, 618, 618, 617 },
+    { 616, 617, 617, 616 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 615, 615, 615, 615 },
+    { 615, 615, 615, 615 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_shelter_b3_dumping_hole_8018F45C[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+GpRoomParamRec D_shelter_b3_dumping_hole_8018F468[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b3_dumping_hole_8018F470[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b3_dumping_hole_8018F478[1] = {
+    { 0, 0, 1, 0, D_shelter_b3_dumping_hole_8018F45C },
+};
+
+GpRoomParamRec * D_shelter_b3_dumping_hole_8018F480[9] = {
+    D_shelter_b3_dumping_hole_8018F468,
+    D_shelter_b3_dumping_hole_8018F468,
+    D_shelter_b3_dumping_hole_8018F468,
+    D_shelter_b3_dumping_hole_8018F470,
+    D_shelter_b3_dumping_hole_8018F478,
+    D_shelter_b3_dumping_hole_8018F468,
+    D_shelter_b3_dumping_hole_8018F468,
+    D_shelter_b3_dumping_hole_8018F468,
+    NULL,
+};
+
+u8 D_shelter_b3_dumping_hole_8018F4A4[4] = {
+    0,
+    74,
+    201,
+    8,
+};
+
+Task * D_shelter_b3_dumping_hole_8018F4A8 = NULL;
+
+Task * D_shelter_b3_dumping_hole_8018F4AC = NULL;
+
+u16 D_shelter_b3_dumping_hole_8018F4B0[2] = {
+    0,
+    0xDF0D,
+};
+
+GpCapEntry * D_shelter_b3_dumping_hole_8018F4B4 = NULL;
+
+GlyphUvwh * D_shelter_b3_dumping_hole_8018F4B8 = NULL;
+
+GpEvt12 * D_shelter_b3_dumping_hole_8018F4BC = NULL;
+
+s16 D_shelter_b3_dumping_hole_8018F4C0 = 0;
+
+s16 D_shelter_b3_dumping_hole_8018F4C2 = 0;
+
+s16 D_shelter_b3_dumping_hole_8018F4C4 = 0;
+
+s16 D_shelter_b3_dumping_hole_8018F4C6 = 0;
+
+s16 D_shelter_b3_dumping_hole_8018F4C8 = 0;
+
+s16 D_shelter_b3_dumping_hole_8018F4CA = 0;
+
+u16 D_shelter_b3_dumping_hole_8018F4CC = 0;
+
+u16 D_shelter_b3_dumping_hole_8018F4CE = 0;
+
+u8 D_shelter_b3_dumping_hole_8018F4D0[4] = {
+    0,
+    19,
+    111,
+    0,
+};
+
+u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
+    0,
+    0xD086,
+};
+
+s32 D_shelter_b3_dumping_hole_8018F4D8 = 0;
 
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.
@@ -465,7 +2790,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
     if (entity->field_42 == 1) {
-        taskKill((Task*)arg0);
+        taskKill(arg0);
         return;
     }
 
@@ -504,7 +2829,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
                 (u16) W->field_1C = (u16)W->field_1C + 1;
                 W->field_1E       = 0;
                 if ((u16)D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
-                    taskKill((Task*)arg0);
+                    taskKill(arg0);
                     return;
                 }
             }
@@ -524,7 +2849,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0,
             D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4,
             W->field_8, 0x43C0, 0) != 0) {
-        taskKill((Task*)arg0);
+        taskKill(arg0);
         return;
     }
     coord->flg = 0;
@@ -1082,14 +3407,14 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     return;
                 case 1:
                     for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].field_0 != 0xFFFF; i++) {
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
+                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_80188304[i].field_0 != 0xFFFF; i++) {
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
+                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
                     }
                     for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].x != 0xFFFF; i++) {
                         e = &D_shelter_b3_dumping_hole_801884CC[i];
-                        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 4, 2, e);
+                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, e);
                         if (e->field_18 != 0) {
                             p            = e;
                             seed.x       = p->x;
@@ -1147,8 +3472,8 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 Mem_Set(work, 0, 0x50);
                 work->field_24                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->field_28                     = (Task*)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
-                work->field_2C                     = (Task*)Gp_FindWorkById((gGameSession->at4.loc.stage << 8) | (u16)(gGameSession->at4.loc.area | 0x1000))->field_0;
+                work->field_28                     = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                work->field_2C                     = Gp_FindWorkById((gGameSession->at4.loc.stage << 8) | (u16)(gGameSession->at4.loc.area | 0x1000))->field_0;
                 work->field_42                     = 0;
                 work->field_40                     = 0;
                 work->field_4A                     = 0;
@@ -1182,7 +3507,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             while (D_shelter_b3_dumping_hole_801880A0[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.words = &D_shelter_b3_dumping_hole_801880A0[0];
+            msg.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsgPtr(w2->field_24, 0x3F7, &msg, 0);
             weaponId             = Player_Status.weapon;
@@ -1196,12 +3521,13 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             arg0->state++;
             break;
         case 2:
-            func_800E8634(&D_shelter_b3_dumping_hole_80188640, 0, &D_shelter_b3_dumping_hole_80188A78);
+            func_800E8634(D_shelter_b3_dumping_hole_80188640, 0, D_shelter_b3_dumping_hole_80188A78);
             arg0->state++;
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-                D_shelter_b3_dumping_hole_8018EF04.field_4A &= ~0x40;
+                GpObj4C* collision = &D_shelter_b3_dumping_hole_8018ECA4[8];
+                collision->field_4A &= ~0x40;
                 taskKill(arg0);
                 return;
             }
@@ -1270,12 +3596,12 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
 }
 
-static void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnArg* arg1)
+void func_shelter_b3_dumping_hole_8017FCF4(GpCoord* arg0, SVECTOR* arg1)
 {
     Task*                 task;
     DumpingHoleSpawnWork* work;
 
-    task       = Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
+    task       = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
     work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
     task->work = (TaskIdMap*)work;
     if (work == NULL) {
@@ -1283,17 +3609,17 @@ static void func_shelter_b3_dumping_hole_8017FCF4(Task* arg0, DumpingHoleSpawnAr
         return;
     }
     Mem_Set(work, 0, 0x24);
-    work->field_C  = arg1->field_0;
-    work->field_E  = arg1->field_2;
-    work->field_10 = arg1->field_4;
+    work->field_C  = (u16)arg1->vx;
+    work->field_E  = (u16)arg1->vy;
+    work->field_10 = (u16)arg1->vz;
 }
 
-static void func_shelter_b3_dumping_hole_8017FD9C(s32 arg0, s32 arg1)
+static void func_shelter_b3_dumping_hole_8017FD9C(GpCoord* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) == 0) {
-        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
-        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 3, -0xA, arg0);
-        Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188C04, 3, 0xA, arg0);
+        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
+        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, -0xA, arg0);
+        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0xA, arg0);
     }
 }
 
@@ -1307,7 +3633,7 @@ static void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
 
 void func_shelter_b3_dumping_hole_8017FE34(void)
 {
-    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
+    Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
 }
 
 void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
@@ -1401,7 +3727,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     work  = (DumpingHoleShard*)arg0->work;
     coord = arg0->extra.tmd->coords;
     cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2.pointer;
-    if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
+    if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
         taskKill(arg0);
         return;
     }
@@ -1588,7 +3914,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->field_58.vx                  = 0;
                     work->field_58.vy                  = 0;
                     work->field_58.vz                  = 0;
-                    D_shelter_b3_dumping_hole_8018F4B0 = 1;
+                    D_shelter_b3_dumping_hole_8018F4B0_value = 1;
                     work->field_68                     = &task->extra.tmd->coords[2];
                     work->field_6C                     = 0x14;
                     work->scale.vx                     = 0x1000;
@@ -1605,7 +3931,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         work->field_60.vz = 0;
                         work->field_6E    = 4;
                         for (i = 0; i < 10; i++) {
-                            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->field_58);
+                            Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->field_58);
                         }
                     }
                     if (work->timer >= 0x5B) {
@@ -1699,7 +4025,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             Gp_DispatchMsg(task, 0x7D5, 2, 0);
-            D_shelter_b3_dumping_hole_8018F4B0 = 0;
+            D_shelter_b3_dumping_hole_8018F4B0_value = 0;
             work->field_96                     = 1;
             Gp_PulseState1C();
             buf2.loc.from.loc.stage = gGameSession->at4.loc.stage;
@@ -1792,7 +4118,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     ent->field_96 = 1;
     Gp_PulseState1C();
 
-    D_shelter_b3_dumping_hole_8018F4B0 = 0;
+    D_shelter_b3_dumping_hole_8018F4B0_value = 0;
     desc.from.loc.stage                = gGameSession->at4.loc.stage;
     desc.from.loc.area                 = gGameSession->at4.loc.area;
     desc.command                       = 0x13;
@@ -1834,10 +4160,10 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 Mem_Set(work, 0, 0xA0);
                 work->field_80                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->field_84                     = (Task*)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                work->field_84                     = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
-                task->msgTable                     = &D_shelter_b3_dumping_hole_8018965C;
+                task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
                 func_shelter_b3_dumping_hole_80183218(0);
             }
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
@@ -1853,7 +4179,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             break;
         case 1:
             D_shelter_b3_dumping_hole_8018809C = 0;
-            func_800E8634(&D_shelter_b3_dumping_hole_8018968C, 0, &D_shelter_b3_dumping_hole_801899A4);
+            func_800E8634(D_shelter_b3_dumping_hole_8018968C, 0, D_shelter_b3_dumping_hole_801899A4);
             task->state++;
             break;
         case 2:
@@ -1983,7 +4309,7 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
 {
     func_shelter_b3_dumping_hole_8017FD9C(
-        (s32)&gameGetPtrSlot(3)->extra.tmd->coords[1], arg0);
+        &gameGetPtrSlot(3)->extra.tmd->coords[1], arg0);
 }
 
 void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
@@ -2110,7 +4436,7 @@ static s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
         D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
     D_shelter_b3_dumping_hole_8018F4C8 = func_shelter_b3_dumping_hole_80182E50(
         D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
-    D_shelter_b3_dumping_hole_8018F4D0 = 0x1E;
+    D_shelter_b3_dumping_hole_8018F4D0_value = 0x1E;
     return 0;
 }
 
@@ -2347,8 +4673,8 @@ static void func_shelter_b3_dumping_hole_80182AA0(void)
     s32        c1;
     s32        c2;
 
-    if (D_shelter_b3_dumping_hole_8018F4D0 != 0) {
-        D_shelter_b3_dumping_hole_8018F4D0 -= 1;
+    if (D_shelter_b3_dumping_hole_8018F4D0_value != 0) {
+        D_shelter_b3_dumping_hole_8018F4D0_value -= 1;
         return;
     }
     prim           = (Prim82AA0*)gGpuPrimCursor;
@@ -2672,8 +4998,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
-        D_shelter_b3_dumping_hole_8018F4D4++;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        D_shelter_b3_dumping_hole_8018F4D4_value++;
         task       = enemy->task;
         obj        = task->extra.tmd;
         obj->tpage = 3;
@@ -2682,8 +5008,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << 12;
-        D_shelter_b3_dumping_hole_8018F4D4++;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        D_shelter_b3_dumping_hole_8018F4D4_value++;
         task       = enemy->task;
         obj        = task->extra.tmd;
         obj->tpage = 3;
@@ -2716,13 +5042,13 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
             arg  = D_shelter_b3_dumping_hole_8018B7BC[idx].command;
             switch (type) {
                 case 0:
-                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
+                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
                     break;
                 case 1:
-                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
+                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
                     break;
                 case 2:
-                    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
+                    Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
                     break;
             }
             ent->nextSlot++;
@@ -2829,7 +5155,7 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
     for (i = 15; i >= 0; i--) {
         D_shelter_b3_dumping_hole_8018B7BC[i].status = 0;
     }
-    D_shelter_b3_dumping_hole_8018F4D4 = 0;
+    D_shelter_b3_dumping_hole_8018F4D4_value = 0;
     arg0->work                         = work;
     arg0->msgTable                     = D_shelter_b3_dumping_hole_8018B7AC;
     arg0->state                       += 1;
@@ -2853,7 +5179,7 @@ static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
 {
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if ((s16)(ent->frames += 1) == 0xF) {
-        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        (Gp_IncStateF0Ref)(0);
         gGameSession->spawnPhase[0] = 1;
         Gp_ArmStateF0(1);
         arg0->state += 1;
@@ -2891,10 +5217,10 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4;
+            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                             = enemy;
             enemy->placeKey                                                         = idx << 12;
-            D_shelter_b3_dumping_hole_8018F4D4                                      = idx + 1;
+            D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                            += 1;
             return;
         }
@@ -2917,7 +5243,7 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2C;
         desc.command        = arg0->spawnArg1.value;
-        Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
+        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         arg0->state += 1;
     }
 }
@@ -2940,10 +5266,10 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4;
+            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                             = enemy;
             enemy->placeKey                                                         = idx << 12;
-            D_shelter_b3_dumping_hole_8018F4D4                                      = idx + 1;
+            D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                            += 1;
             return;
         }
@@ -2966,7 +5292,7 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2A;
         desc.command        = arg0->spawnArg1.value;
-        Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
+        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         arg0->state += 1;
     }
 }
@@ -3000,7 +5326,7 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
         desc.from.loc.stage = 0;
         desc.from.loc.area  = 0x2E;
         desc.command        = arg0->spawnArg1.value;
-        Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
+        Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
     }
     ent->frames  = 0;
     arg0->state += 1;
@@ -3026,7 +5352,7 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             desc.from.loc.stage = 0;
             desc.from.loc.area  = 0x2E;
             desc.command        = arg0->spawnArg1.value;
-            Gp_DispatchMsg(t00, 0x7DB, (s32)&desc, 0);
+            Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         }
     }
     ent->frames  = 0;
@@ -3047,13 +5373,13 @@ static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
-            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
+            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
             break;
         case 1:
-            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
+            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
             break;
         case 2:
-            Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
+            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
             break;
     }
 }
@@ -3078,7 +5404,7 @@ static void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183F84(Task* task)
+void func_shelter_b3_dumping_hole_80183F84(Task* task)
 {
     u8 view;
 
@@ -3090,34 +5416,34 @@ static void func_shelter_b3_dumping_hole_80183F84(Task* task)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[0], 0x300, 0x100);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[1], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[2], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[3], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[4], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x100);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
             break;
         case 3:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[1], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[2], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[3], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x300);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
             break;
         case 4:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[9], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[9], 0x300, 0x400);
             break;
         case 7:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B974[0], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B974[1], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B974[2], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B974[3], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B974[4], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[0], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[1], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[2], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[3], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 33)[4], 0x300, 0x400);
             break;
         case 14:
             if (D_shelter_b3_dumping_hole_8018F4D8 != 0) {
-                func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B95C[0], 0x280, 0x44);
-                func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B95C[1], 0x280, 0x40);
+                func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
+                func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
             }
             break;
         case 15:
@@ -3129,46 +5455,46 @@ static void func_shelter_b3_dumping_hole_80183F84(Task* task)
             func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x23], 0x300, 0x400);
             break;
         case 17:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B98C[0], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 36)[0], 0x300, 0x400);
             break;
         case 18:
-            func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B8BC[0], 0x200, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B8BC[0x12], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B8BC[0x13], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B8BC[0x19], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B8BC[0x1A], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B8BC[0x1B], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184638(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x12], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x13], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x19], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1A], 0x300, 0x300);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1B], 0x300, 0x200);
             break;
         case 19:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[0], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x400);
             break;
         case 21:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B92C[0], 0x400, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B92C[1], 0x400, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 24)[0], 0x400, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 24)[1], 0x400, 0x444);
             break;
         case 22:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B95C[0], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B95C[1], 0x280, 0x40);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
             break;
         case 23:
             func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
             func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x400);
             break;
         case 26:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B93C[0], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B93C[1], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 26)[0], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 26)[1], 0x300, 0x400);
             break;
         case 29:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[2], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[3], 0x280, 0x40);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
             break;
         case 30:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[0], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[1], 0x280, 0x444);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[2], 0x280, 0x44);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B94C[3], 0x280, 0x40);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
             break;
         case 31:
             func_shelter_b3_dumping_hole_80184638(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
@@ -3186,18 +5512,18 @@ static void func_shelter_b3_dumping_hole_80183F84(Task* task)
             func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x400);
             break;
         case 34:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[1], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[2], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[3], 0x300, 0x300);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[4], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[5], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x300);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[5], 0x300, 0x400);
             break;
         case 35:
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[0], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[1], 0x300, 0x400);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[6], 0x300, 0x200);
-            func_shelter_b3_dumping_hole_80184E7C(&D_shelter_b3_dumping_hole_8018B96C[7], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x400);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[6], 0x300, 0x200);
+            func_shelter_b3_dumping_hole_80184E7C(&(D_shelter_b3_dumping_hole_8018B86C + 32)[7], 0x300, 0x400);
             break;
         case 13:
         case 37:
@@ -3438,7 +5764,7 @@ static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 a
 /// `period` ticks, releasing the task after the set's last frame. While an
 /// event is running the task only draws, and is released once the event state
 /// reaches 4.
-static void func_shelter_b3_dumping_hole_8018521C(Task* task)
+void func_shelter_b3_dumping_hole_8018521C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -3730,7 +6056,7 @@ static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 a
 /// with `vy` growing by 6, and advance the frame every `period` ticks,
 /// releasing the task after frame 7. While an event is running the task only
 /// draws, and is released once the event state reaches 4.
-static void func_shelter_b3_dumping_hole_80186218(Task* task)
+void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -3970,7 +6296,7 @@ static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 a
     SCRATCH_POP(GpRingScratch);
 }
 
-static void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
+void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

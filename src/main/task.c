@@ -460,7 +460,7 @@ void Task_RequestKill(Task* task, s32 arg1)
     Task* temp;
 
     task->status     = 0xFF;
-    task->extraState = arg1;
+    task->extraState.value = arg1;
     task->callback   = textNoopCallback;
 
     temp = task->firstChild;
@@ -483,7 +483,7 @@ s32 Task_PollKill(Task* task, s32* arg1)
     result = 0;
     if (task->status == 0xFF) {
         if (arg1 != NULL) {
-            *arg1 = task->extraState;
+            *arg1 = task->extraState.value;
         }
         task->exitCallback(task);
         result = 1;

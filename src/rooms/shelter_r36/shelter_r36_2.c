@@ -1,3 +1,5 @@
+#include "shelter_r36_private.h"
+
 #include "common.h"
 
 #include "gameplay/display.h"

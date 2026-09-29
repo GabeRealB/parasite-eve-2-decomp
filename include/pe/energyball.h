@@ -1,6 +1,8 @@
 #ifndef PE_ENERGYBALL_H
 #define PE_ENERGYBALL_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -31,5 +33,11 @@ typedef struct EnergyBallWork {
     /* 0x20 */ GpRec18 rec;
 } EnergyBallWork;
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
+
+void func_energyball_8012F180(Task* arg0);
+
+void func_energyball_8013107C(Task* arg0);
+
+void func_energyball_8012EF48(Task* arg0);
 
 #endif /* PE_ENERGYBALL_H */

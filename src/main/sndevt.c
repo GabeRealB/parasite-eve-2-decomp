@@ -1742,7 +1742,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             {
                 s32 id;
                 id                          = state->payload.header.bankId;
-                *(volatile s32*)&D_800689E4 = id;
+                *&D_800689E4 = id;
                 if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.variant) == -1) {
                     state->field_2 = 6;
                     break;

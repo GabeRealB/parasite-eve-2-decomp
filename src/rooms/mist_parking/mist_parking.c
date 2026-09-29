@@ -1,3 +1,6 @@
+#include "mist_parking_private.h"
+
+#include "gameplay/message.h"
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -5,6 +8,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/captions.h"
@@ -37,8 +41,9 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+#include "gameplay/animation.h"
+
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 /// The 0xFFFF-terminated item id lists `func_mist_parking_8017D8F8` chooses
 /// from.
@@ -109,6 +114,1900 @@ extern u16 D_mist_parking_801863A4[];
 extern u16 D_mist_parking_80186534[];
 
 static void func_mist_parking_80181E50(Task* task);
+
+void func_mist_parking_8017DF68(UiList *, UiObject *);
+
+void func_mist_parking_8017E90C(Task *);
+void func_mist_parking_8017EB5C(UiList *, UiObject *);
+void func_mist_parking_8017ED7C(Task *);
+void func_mist_parking_8017EF24(Task *);
+void func_mist_parking_8017F108(UiList *, UiObject *);
+void func_mist_parking_8017F31C(Task *);
+void func_mist_parking_8017FDB8(UiList *, UiObject *);
+void func_mist_parking_8017FE74(Task *);
+
+void func_mist_parking_8017E90C(Task *);
+void func_mist_parking_8017F49C(Task *);
+void func_mist_parking_8017F764(Task *);
+void func_mist_parking_8017F938(Task *);
+void func_mist_parking_8017FF9C(Task *);
+void func_mist_parking_801800D0(UiList *, UiObject *);
+void func_mist_parking_8018089C(UiList *, UiObject *);
+void func_mist_parking_801812B4(Task *);
+void func_mist_parking_80181760(Task *);
+void func_mist_parking_80181920(Task *);
+void func_mist_parking_80181B14(UiList *, UiObject *);
+void func_mist_parking_80181BF8(UiList *, UiObject *);
+void func_mist_parking_80181CC0(UiList *, UiObject *);
+void func_mist_parking_80181D88(UiList *, UiObject *);
+void func_mist_parking_80181E8C(Task *);
+void func_mist_parking_80182628(Task *);
+
+s32 func_mist_parking_801823F8(s32, s32, s32);
+s32 func_mist_parking_801826B8(void);
+s32 func_mist_parking_801826C0(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_mist_parking_801826E8(Task *, s32, GpMsg13EF *);
+void func_mist_parking_80182750(s32);
+void func_mist_parking_801827A0(s32);
+
+u16 D_mist_parking_80186058[4] = {
+    140, 143, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186060[4] = {
+    172, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_mist_parking_80186068[4] = {
+    103, 98, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186070[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186080[8] = {
+    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186090[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801860A0[4] = {
+    108, 100, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801860A8[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801860B8[8] = {
+    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
+};
+
+u16 D_mist_parking_801860C8[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801860D8[4] = {
+    98, 105, 106, 0xFFFF,
+};
+
+u16 D_mist_parking_801860E0[10] = {
+    65, 59, 58, 1, 2, 6, 8, 4,
+    0xFFFF, 0,
+};
+
+u16 D_mist_parking_801860F4[12] = {
+    131, 157, 140, 142, 143, 10, 70, 69,
+    67, 138, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_8018610C[10] = {
+    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
+    0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186120[4] = {
+    108, 100, 102, 0xFFFF,
+};
+
+u16 D_mist_parking_80186128[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186138[12] = {
+    157, 9, 140, 142, 138, 143, 10, 70,
+    69, 66, 67, 0xFFFF,
+};
+
+u16 D_mist_parking_80186150[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_mist_parking_80186164[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_mist_parking_8018616C[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_mist_parking_80186180[14] = {
+    157, 9, 140, 142, 143, 10, 70, 69,
+    66, 67, 68, 138, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_8018619C[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801861AC[6] = {
+    103, 98, 100, 97, 107, 0xFFFF,
+};
+
+u16 D_mist_parking_801861B8[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801861D0[14] = {
+    140, 142, 138, 143, 10, 70, 69, 66,
+    67, 68, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801861EC[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_mist_parking_80186200[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_mist_parking_80186208[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_mist_parking_8018621C[16] = {
+    140, 142, 138, 139, 143, 10, 70, 69,
+    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_8018623C[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_8018624C[6] = {
+    100, 98, 97, 103, 107, 0xFFFF,
+};
+
+u16 D_mist_parking_80186258[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186270[2] = {
+    139, 0xFFFF,
+};
+
+u16 D_mist_parking_80186274[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_mist_parking_80186278[4] = {
+    108, 13, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186280[8] = {
+    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186290[4] = {
+    131, 138, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186298[4] = {
+    160, 171, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801862A0[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_mist_parking_801862A8[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_801862B4[4] = {
+    140, 138, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801862BC[6] = {
+    160, 172, 171, 175, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801862C8[4] = {
+    98, 13, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801862D0[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_801862DC[6] = {
+    131, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_801862E8[4] = {
+    160, 171, 175, 0xFFFF,
+};
+
+u16 D_mist_parking_801862F0[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_mist_parking_801862F8[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_80186304[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186310[4] = {
+    171, 175, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186318[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186324[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_80186330[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_8018633C[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_mist_parking_80186340[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_mist_parking_8018634C[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_80186358[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_mist_parking_80186364[4] = {
+    171, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_mist_parking_8018636C[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186378[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_mist_parking_80186384[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_mist_parking_80186390[4] = {
+    171, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_mist_parking_80186398[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_mist_parking_801863A4[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+RoomShopTier D_mist_parking_801863B0[13] = {
+    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
+    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
+    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
+    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
+    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
+    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
+    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
+    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
+    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
+    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
+    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
+    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
+    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
+};
+
+s32 D_mist_parking_8018644C = -1;
+
+u8 D_mist_parking_80186450[20] = {
+    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+u8 D_mist_parking_80186464[8] = {
+    80, 97, 115, 115, 0, 0, 0, 0,
+};
+
+u8 D_mist_parking_8018646C[16] = {
+    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
+};
+
+u8 D_mist_parking_8018647C[4] = { 0 };
+
+u8 D_mist_parking_80186480[60] = {
+    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
+    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
+    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
+    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
+};
+
+u8 D_mist_parking_801864BC[8] = {
+    87, 101, 97, 112, 111, 110, 115, 0,
+};
+
+u8 D_mist_parking_801864C4[12] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
+};
+
+u8 D_mist_parking_801864D0[8] = {
+    65, 114, 109, 111, 114, 0, 0, 0,
+};
+
+u8 D_mist_parking_801864D8[8] = {
+    73, 116, 101, 109, 115, 0, 0, 0,
+};
+
+u8 D_mist_parking_801864E0[20] = {
+    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
+    0, 0, 0, 0,
+};
+
+u8 D_mist_parking_801864F4[16] = {
+    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
+};
+
+u8 D_mist_parking_80186504[32] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
+    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
+};
+
+u8 D_mist_parking_80186524[12] = {
+    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_mist_parking_80186530[4] = {
+    120, 0, 0, 0,
+};
+
+u16 D_mist_parking_80186534[2] = {
+    0xFFFF, 0,
+};
+
+UiListItemFunc D_mist_parking_80186538[1] = {
+    func_mist_parking_8017DF68,
+};
+
+UiListItemFunc D_mist_parking_8018653C[1] = {
+    func_mist_parking_8017EB5C,
+};
+
+UiList D_mist_parking_80186540 = { D_mist_parking_8018653C, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_mist_parking_80186564[2] = {
+    func_mist_parking_8017F108,
+    func_mist_parking_8017FDB8,
+};
+
+UiList D_mist_parking_8018656C = { D_mist_parking_80186564, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_mist_parking_80186590 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_mist_parking_8017ED7C, 0 };
+
+UiObjectDesc D_mist_parking_801865AC = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_mist_parking_8017E90C, 0 };
+
+UiObjectDesc D_mist_parking_801865C8 = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_mist_parking_8017EF24, 0 };
+
+UiObjectDesc D_mist_parking_801865E4 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_mist_parking_8017FE74, 0 };
+
+UiObjectDesc D_mist_parking_80186600 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_mist_parking_8017F31C, 0 };
+
+// Retained data: Complete UI descriptor follows the adjacent UI descriptors. Its last 12 bytes also resemble a TaskDesc, which is its embedded task seed.
+UiObjectDesc D_mist_parking_8018661C = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_mist_parking_8017E90C, 0 };
+
+UiObjectDesc D_mist_parking_80186638 = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_mist_parking_8017F49C, 0 };
+
+UiObjectDesc D_mist_parking_80186654 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_mist_parking_8017F764, 0 };
+
+UiObjectDesc D_mist_parking_80186670 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_mist_parking_8017F938, 0 };
+
+TaskDesc D_mist_parking_8018668C = { 0, 192, func_mist_parking_8017FF9C, { .model = NULL } };
+
+u8 D_mist_parking_80186698[8] = {
+    83,
+    97,
+    118,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801866A0[12] = {
+    80,
+    108,
+    97,
+    121,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801866AC[12] = {
+    87,
+    101,
+    97,
+    112,
+    111,
+    110,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_mist_parking_801866B8[8] = {
+    80,
+    69,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_mist_parking_801866C0[8] = {
+    84,
+    105,
+    109,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801866C8[4] = {
+    87,
+    111,
+    110,
+    0,
+};
+
+u8 D_mist_parking_801866CC[8] = {
+    69,
+    115,
+    99,
+    97,
+    112,
+    101,
+    100,
+    0,
+};
+
+u8 D_mist_parking_801866D4[12] = {
+    66,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    0,
+};
+
+u8 D_mist_parking_801866E0[16] = {
+    69,
+    120,
+    116,
+    101,
+    114,
+    109,
+    105,
+    110,
+    97,
+    116,
+    101,
+    100,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801866F0[8] = {
+    83,
+    97,
+    118,
+    101,
+    100,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801866F8[8] = {
+    67,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    0,
+};
+
+u8 D_mist_parking_80186700[8] = {
+    77,
+    97,
+    120,
+    32,
+    69,
+    88,
+    80,
+    0,
+};
+
+u8 D_mist_parking_80186708[8] = {
+    77,
+    97,
+    120,
+    32,
+    66,
+    80,
+    0,
+    0,
+};
+
+u8 D_mist_parking_80186710[8] = {
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    0,
+    0,
+};
+
+u8 D_mist_parking_80186718[4] = {
+    37,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018671C[44] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    10,
+    116,
+    105,
+    109,
+    101,
+    32,
+    115,
+    112,
+    101,
+    110,
+    116,
+    32,
+    102,
+    111,
+    114,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_80186748[36] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    115,
+    97,
+    118,
+    101,
+    115,
+    10,
+    117,
+    115,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018676C[48] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    10,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018679C[52] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    115,
+    99,
+    97,
+    112,
+    101,
+    115,
+    10,
+    102,
+    114,
+    111,
+    109,
+    32,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_801867D0[52] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_mist_parking_80186804[56] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    32,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_mist_parking_8018683C[52] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    32,
+    121,
+    111,
+    117,
+    32,
+    104,
+    97,
+    118,
+    101,
+    10,
+    99,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    32,
+    115,
+    111,
+    32,
+    102,
+    97,
+    114,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_80186870[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    69,
+    88,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_mist_parking_801868A8[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    66,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+UiListItemFunc D_mist_parking_801868E0[1] = {
+    func_mist_parking_801800D0,
+};
+
+UiList D_mist_parking_801868E4 = { D_mist_parking_801868E0, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_mist_parking_80186908[1] = {
+    func_mist_parking_8018089C,
+};
+
+UiList D_mist_parking_8018690C = { D_mist_parking_80186908, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_mist_parking_80186930 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_mist_parking_80181760, 0 };
+
+UiObjectDesc D_mist_parking_8018694C = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_mist_parking_80181920, 0 };
+
+UiObjectDesc D_mist_parking_80186968 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_mist_parking_801812B4, 0 };
+
+UiListItemFunc D_mist_parking_80186984[4] = {
+    func_mist_parking_80181B14,
+    func_mist_parking_80181BF8,
+    func_mist_parking_80181CC0,
+    func_mist_parking_80181D88,
+};
+
+UiList D_mist_parking_80186994 = { D_mist_parking_80186984, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+TaskDesc D_mist_parking_801869B8[3] = {
+    { 0, 32, func_mist_parking_80181E8C, { .model = NULL } },
+    { 0, 32, func_mist_parking_80182628, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MistParkingPoseBank941C;
+
+MistParkingPoseBank941C D_mist_parking_801869DC = { .poses = {
+#include "assets/mist_parking_animation_095D0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_801869F4[17] = {
+#include "assets/mist_parking_animation_095D0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80186A38[76] = {
+#include "assets/mist_parking_animation_095D0_records.inc"
+};
+
+u16 D_mist_parking_80186B68[20] = {
+#include "assets/mist_parking_animation_095D0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80186B90 = {
+    D_mist_parking_80186A38, D_mist_parking_80186B68,
+    { NULL, D_mist_parking_801869DC.words, NULL, NULL, D_mist_parking_801869F4, NULL, NULL, NULL },
+};
+
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, GpMsg13EF *);
+        s32 (*call2)(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+        s32 (*call3)(s32, s32, s32);
+    } handler;
+} MistParkingMessageEntry;
+STATIC_ASSERT_SIZEOF(MistParkingMessageEntry, 8);
+
+MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
+    { 5102, { .call2 = func_mist_parking_801826C0 } },
+    { 5103, { .call1 = func_mist_parking_801826E8 } },
+    { 5105, { .call0 = func_mist_parking_801826B8 } },
+    { 5104, { .call3 = func_mist_parking_801823F8 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+GpXformArg D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_mist_parking_80186BF8 = { { 8448, 1, -3828, 0 }, { 0, 2048, 0, 0 } };
+
+GpXformArg D_mist_parking_80186C10 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+
+GpAnimSet * D_mist_parking_80186C28[1] = {
+    &D_mist_parking_80186B90,
+};
+
+GpCopyArg D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, 1 };
+
+GpAnimArg D_mist_parking_80186C34 = { { .index = 1 }, 47, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_80186C48 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpEvsCmd D_mist_parking_80186C5C[15] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_801827A0 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_80186BE0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80182750 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_80186DC4[13] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },
+    { 15, { .value = 0x51130001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_80186BF8 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80182750 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_80186EFC[12] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_80186C10 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80186C2C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C34 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4005 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TmdBone D_mist_parking_8018701C[1] = {
+#include "assets/mist_parking_model_09CD4_skeleton.inc"
+};
+
+u32 D_mist_parking_80187040[1] = {
+#include "assets/mist_parking_model_09CD4_partVerts.inc"
+};
+
+SVECTOR D_mist_parking_80187044[35] = {
+#include "assets/mist_parking_model_09CD4_verts.inc"
+};
+
+u32 D_mist_parking_8018715C[78] = {
+#include "assets/mist_parking_model_09CD4_stream.inc"
+};
+
+TmdSource D_mist_parking_80187294 = {
+    0, 576, 0, 1,
+    D_mist_parking_80187040, D_mist_parking_80187044, &D_mist_parking_80187044[35], D_mist_parking_8018701C, D_mist_parking_8018715C,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MistParkingPoseBank9CF8;
+
+MistParkingPoseBank9CF8 D_mist_parking_801872B8 = { .poses = {
+#include "assets/mist_parking_animation_09FD4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80187300[46] = {
+#include "assets/mist_parking_animation_09FD4_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_801873B8[109] = {
+#include "assets/mist_parking_animation_09FD4_records.inc"
+};
+
+u16 D_mist_parking_8018756C[20] = {
+#include "assets/mist_parking_animation_09FD4_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80187594 = {
+    D_mist_parking_801873B8, D_mist_parking_8018756C,
+    { NULL, D_mist_parking_801872B8.words, NULL, NULL, D_mist_parking_80187300, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} MistParkingPoseBank9FFC;
+
+MistParkingPoseBank9FFC D_mist_parking_801875BC = { .poses = {
+#include "assets/mist_parking_animation_0A774_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80187658[179] = {
+#include "assets/mist_parking_animation_0A774_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80187924[250] = {
+#include "assets/mist_parking_animation_0A774_records.inc"
+};
+
+u16 D_mist_parking_80187D0C[20] = {
+#include "assets/mist_parking_animation_0A774_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80187D34 = {
+    D_mist_parking_80187924, D_mist_parking_80187D0C,
+    { NULL, D_mist_parking_801875BC.words, NULL, NULL, D_mist_parking_80187658, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MistParkingPoseBankA79C;
+
+MistParkingPoseBankA79C D_mist_parking_80187D5C = { .poses = {
+#include "assets/mist_parking_animation_0AC5C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80187DA4[110] = {
+#include "assets/mist_parking_animation_0AC5C_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80187F5C[166] = {
+#include "assets/mist_parking_animation_0AC5C_records.inc"
+};
+
+u16 D_mist_parking_801881F4[20] = {
+#include "assets/mist_parking_animation_0AC5C_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018821C = {
+    D_mist_parking_80187F5C, D_mist_parking_801881F4,
+    { NULL, D_mist_parking_80187D5C.words, NULL, NULL, D_mist_parking_80187DA4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} MistParkingPoseBankAC84;
+
+MistParkingPoseBankAC84 D_mist_parking_80188244 = { .poses = {
+#include "assets/mist_parking_animation_0B138_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_801882B0[117] = {
+#include "assets/mist_parking_animation_0B138_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80188484[147] = {
+#include "assets/mist_parking_animation_0B138_records.inc"
+};
+
+u16 D_mist_parking_801886D0[20] = {
+#include "assets/mist_parking_animation_0B138_indices.inc"
+};
+
+GpAnimSet D_mist_parking_801886F8 = {
+    D_mist_parking_80188484, D_mist_parking_801886D0,
+    { NULL, D_mist_parking_80188244.words, NULL, NULL, D_mist_parking_801882B0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} MistParkingPoseBankB160;
+
+MistParkingPoseBankB160 D_mist_parking_80188720 = { .poses = {
+#include "assets/mist_parking_animation_0B700_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80188798[143] = {
+#include "assets/mist_parking_animation_0B700_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_801889D4[177] = {
+#include "assets/mist_parking_animation_0B700_records.inc"
+};
+
+u16 D_mist_parking_80188C98[20] = {
+#include "assets/mist_parking_animation_0B700_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80188CC0 = {
+    D_mist_parking_801889D4, D_mist_parking_80188C98,
+    { NULL, D_mist_parking_80188720.words, NULL, NULL, D_mist_parking_80188798, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MistParkingPoseBankB728;
+
+MistParkingPoseBankB728 D_mist_parking_80188CE8 = { .poses = {
+#include "assets/mist_parking_animation_0BAB4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80188D24[65] = {
+#include "assets/mist_parking_animation_0BAB4_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80188E28[137] = {
+#include "assets/mist_parking_animation_0BAB4_records.inc"
+};
+
+u16 D_mist_parking_8018904C[20] = {
+#include "assets/mist_parking_animation_0BAB4_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80189074 = {
+    D_mist_parking_80188E28, D_mist_parking_8018904C,
+    { NULL, D_mist_parking_80188CE8.words, NULL, NULL, D_mist_parking_80188D24, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} MistParkingPoseBankBADC;
+
+MistParkingPoseBankBADC D_mist_parking_8018909C = { .poses = {
+#include "assets/mist_parking_animation_0C1B0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018912C[153] = {
+#include "assets/mist_parking_animation_0C1B0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80189390[238] = {
+#include "assets/mist_parking_animation_0C1B0_records.inc"
+};
+
+u16 D_mist_parking_80189748[20] = {
+#include "assets/mist_parking_animation_0C1B0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80189770 = {
+    D_mist_parking_80189390, D_mist_parking_80189748,
+    { NULL, D_mist_parking_8018909C.words, NULL, NULL, D_mist_parking_8018912C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistParkingPoseBankC1D8;
+
+MistParkingPoseBankC1D8 D_mist_parking_80189798 = { .poses = {
+#include "assets/mist_parking_animation_0C688_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_801897EC[94] = {
+#include "assets/mist_parking_animation_0C688_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80189964[175] = {
+#include "assets/mist_parking_animation_0C688_records.inc"
+};
+
+u16 D_mist_parking_80189C20[20] = {
+#include "assets/mist_parking_animation_0C688_indices.inc"
+};
+
+GpAnimSet D_mist_parking_80189C48 = {
+    D_mist_parking_80189964, D_mist_parking_80189C20,
+    { NULL, D_mist_parking_80189798.words, NULL, NULL, D_mist_parking_801897EC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} MistParkingPoseBankC6B0;
+
+MistParkingPoseBankC6B0 D_mist_parking_80189C70 = { .poses = {
+#include "assets/mist_parking_animation_0CD80_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80189D00[177] = {
+#include "assets/mist_parking_animation_0CD80_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80189FC4[213] = {
+#include "assets/mist_parking_animation_0CD80_records.inc"
+};
+
+u16 D_mist_parking_8018A318[20] = {
+#include "assets/mist_parking_animation_0CD80_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018A340 = {
+    D_mist_parking_80189FC4, D_mist_parking_8018A318,
+    { NULL, D_mist_parking_80189C70.words, NULL, NULL, D_mist_parking_80189D00, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MistParkingPoseBankCDA8;
+
+MistParkingPoseBankCDA8 D_mist_parking_8018A368 = { .poses = {
+#include "assets/mist_parking_animation_0D060_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018A38C[63] = {
+#include "assets/mist_parking_animation_0D060_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018A488[92] = {
+#include "assets/mist_parking_animation_0D060_records.inc"
+};
+
+u16 D_mist_parking_8018A5F8[20] = {
+#include "assets/mist_parking_animation_0D060_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018A620 = {
+    D_mist_parking_8018A488, D_mist_parking_8018A5F8,
+    { NULL, D_mist_parking_8018A368.words, NULL, NULL, D_mist_parking_8018A38C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MistParkingPoseBankD088;
+
+MistParkingPoseBankD088 D_mist_parking_8018A648 = { .poses = {
+#include "assets/mist_parking_animation_0D3E4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018A690[69] = {
+#include "assets/mist_parking_animation_0D3E4_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018A7A4[118] = {
+#include "assets/mist_parking_animation_0D3E4_records.inc"
+};
+
+u16 D_mist_parking_8018A97C[20] = {
+#include "assets/mist_parking_animation_0D3E4_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018A9A4 = {
+    D_mist_parking_8018A7A4, D_mist_parking_8018A97C,
+    { NULL, D_mist_parking_8018A648.words, NULL, NULL, D_mist_parking_8018A690, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MistParkingPoseBankD40C;
+
+MistParkingPoseBankD40C D_mist_parking_8018A9CC = { .poses = {
+#include "assets/mist_parking_animation_0D6A4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018A9FC[40] = {
+#include "assets/mist_parking_animation_0D6A4_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018AA9C[104] = {
+#include "assets/mist_parking_animation_0D6A4_records.inc"
+};
+
+u16 D_mist_parking_8018AC3C[20] = {
+#include "assets/mist_parking_animation_0D6A4_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018AC64 = {
+    D_mist_parking_8018AA9C, D_mist_parking_8018AC3C,
+    { NULL, D_mist_parking_8018A9CC.words, NULL, NULL, D_mist_parking_8018A9FC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistParkingPoseBankD6CC;
+
+MistParkingPoseBankD6CC D_mist_parking_8018AC8C = { .poses = {
+#include "assets/mist_parking_animation_0DA94_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018ACE0[62] = {
+#include "assets/mist_parking_animation_0DA94_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018ADD8[149] = {
+#include "assets/mist_parking_animation_0DA94_records.inc"
+};
+
+u16 D_mist_parking_8018B02C[20] = {
+#include "assets/mist_parking_animation_0DA94_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018B054 = {
+    D_mist_parking_8018ADD8, D_mist_parking_8018B02C,
+    { NULL, D_mist_parking_8018AC8C.words, NULL, NULL, D_mist_parking_8018ACE0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} MistParkingPoseBankDABC;
+
+MistParkingPoseBankDABC D_mist_parking_8018B07C = { .poses = {
+#include "assets/mist_parking_animation_0DE94_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018B0F4[85] = {
+#include "assets/mist_parking_animation_0DE94_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018B248[121] = {
+#include "assets/mist_parking_animation_0DE94_records.inc"
+};
+
+u16 D_mist_parking_8018B42C[20] = {
+#include "assets/mist_parking_animation_0DE94_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018B454 = {
+    D_mist_parking_8018B248, D_mist_parking_8018B42C,
+    { NULL, D_mist_parking_8018B07C.words, NULL, NULL, D_mist_parking_8018B0F4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} MistParkingPoseBankDEBC;
+
+MistParkingPoseBankDEBC D_mist_parking_8018B47C = { .poses = {
+#include "assets/mist_parking_animation_0E1D0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018B4DC[65] = {
+#include "assets/mist_parking_animation_0E1D0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018B5E0[98] = {
+#include "assets/mist_parking_animation_0E1D0_records.inc"
+};
+
+u16 D_mist_parking_8018B768[20] = {
+#include "assets/mist_parking_animation_0E1D0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018B790 = {
+    D_mist_parking_8018B5E0, D_mist_parking_8018B768,
+    { NULL, D_mist_parking_8018B47C.words, NULL, NULL, D_mist_parking_8018B4DC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} MistParkingPoseBankE1F8;
+
+MistParkingPoseBankE1F8 D_mist_parking_8018B7B8 = { .poses = {
+#include "assets/mist_parking_animation_0E6E0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018B830[109] = {
+#include "assets/mist_parking_animation_0E6E0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018B9E4[165] = {
+#include "assets/mist_parking_animation_0E6E0_records.inc"
+};
+
+u16 D_mist_parking_8018BC78[20] = {
+#include "assets/mist_parking_animation_0E6E0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018BCA0 = {
+    D_mist_parking_8018B9E4, D_mist_parking_8018BC78,
+    { NULL, D_mist_parking_8018B7B8.words, NULL, NULL, D_mist_parking_8018B830, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistParkingPoseBankE708;
+
+MistParkingPoseBankE708 D_mist_parking_8018BCC8 = { .poses = {
+#include "assets/mist_parking_animation_0EA0C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018BD1C[56] = {
+#include "assets/mist_parking_animation_0EA0C_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018BDFC[106] = {
+#include "assets/mist_parking_animation_0EA0C_records.inc"
+};
+
+u16 D_mist_parking_8018BFA4[20] = {
+#include "assets/mist_parking_animation_0EA0C_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018BFCC = {
+    D_mist_parking_8018BDFC, D_mist_parking_8018BFA4,
+    { NULL, D_mist_parking_8018BCC8.words, NULL, NULL, D_mist_parking_8018BD1C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} MistParkingPoseBankEA34;
+
+MistParkingPoseBankEA34 D_mist_parking_8018BFF4 = { .poses = {
+#include "assets/mist_parking_animation_0EDE0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018C054[84] = {
+#include "assets/mist_parking_animation_0EDE0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018C1A4[117] = {
+#include "assets/mist_parking_animation_0EDE0_records.inc"
+};
+
+u16 D_mist_parking_8018C378[20] = {
+#include "assets/mist_parking_animation_0EDE0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018C3A0 = {
+    D_mist_parking_8018C1A4, D_mist_parking_8018C378,
+    { NULL, D_mist_parking_8018BFF4.words, NULL, NULL, D_mist_parking_8018C054, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistParkingPoseBankEE08;
+
+MistParkingPoseBankEE08 D_mist_parking_8018C3C8 = { .poses = {
+#include "assets/mist_parking_animation_0F14C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018C41C[74] = {
+#include "assets/mist_parking_animation_0F14C_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018C544[104] = {
+#include "assets/mist_parking_animation_0F14C_records.inc"
+};
+
+u16 D_mist_parking_8018C6E4[20] = {
+#include "assets/mist_parking_animation_0F14C_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018C70C = {
+    D_mist_parking_8018C544, D_mist_parking_8018C6E4,
+    { NULL, D_mist_parking_8018C3C8.words, NULL, NULL, D_mist_parking_8018C41C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MistParkingPoseBankF174;
+
+MistParkingPoseBankF174 D_mist_parking_8018C734 = { .poses = {
+#include "assets/mist_parking_animation_0F574_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018C770[90] = {
+#include "assets/mist_parking_animation_0F574_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018C8D8[141] = {
+#include "assets/mist_parking_animation_0F574_records.inc"
+};
+
+u16 D_mist_parking_8018CB0C[20] = {
+#include "assets/mist_parking_animation_0F574_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018CB34 = {
+    D_mist_parking_8018C8D8, D_mist_parking_8018CB0C,
+    { NULL, D_mist_parking_8018C734.words, NULL, NULL, D_mist_parking_8018C770, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MistParkingPoseBankF59C;
+
+MistParkingPoseBankF59C D_mist_parking_8018CB5C = { .poses = {
+#include "assets/mist_parking_animation_0F7F0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018CB80[43] = {
+#include "assets/mist_parking_animation_0F7F0_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018CC2C[87] = {
+#include "assets/mist_parking_animation_0F7F0_records.inc"
+};
+
+u16 D_mist_parking_8018CD88[20] = {
+#include "assets/mist_parking_animation_0F7F0_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018CDB0 = {
+    D_mist_parking_8018CC2C, D_mist_parking_8018CD88,
+    { NULL, D_mist_parking_8018CB5C.words, NULL, NULL, D_mist_parking_8018CB80, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MistParkingPoseBankF818;
+
+MistParkingPoseBankF818 D_mist_parking_8018CDD8 = { .poses = {
+#include "assets/mist_parking_animation_0FC60_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018CE14[99] = {
+#include "assets/mist_parking_animation_0FC60_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018CFA0[150] = {
+#include "assets/mist_parking_animation_0FC60_records.inc"
+};
+
+u16 D_mist_parking_8018D1F8[20] = {
+#include "assets/mist_parking_animation_0FC60_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018D220 = {
+    D_mist_parking_8018CFA0, D_mist_parking_8018D1F8,
+    { NULL, D_mist_parking_8018CDD8.words, NULL, NULL, D_mist_parking_8018CE14, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MistParkingPoseBankFC88;
+
+MistParkingPoseBankFC88 D_mist_parking_8018D248 = { .poses = {
+#include "assets/mist_parking_animation_0FE5C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018D278[17] = {
+#include "assets/mist_parking_animation_0FE5C_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018D2BC[78] = {
+#include "assets/mist_parking_animation_0FE5C_records.inc"
+};
+
+u16 D_mist_parking_8018D3F4[20] = {
+#include "assets/mist_parking_animation_0FE5C_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018D41C = {
+    D_mist_parking_8018D2BC, D_mist_parking_8018D3F4,
+    { NULL, D_mist_parking_8018D248.words, NULL, NULL, D_mist_parking_8018D278, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistParkingPoseBankFE84;
+
+MistParkingPoseBankFE84 D_mist_parking_8018D444 = { .poses = {
+#include "assets/mist_parking_animation_10174_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018D498[54] = {
+#include "assets/mist_parking_animation_10174_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018D570[103] = {
+#include "assets/mist_parking_animation_10174_records.inc"
+};
+
+u16 D_mist_parking_8018D70C[20] = {
+#include "assets/mist_parking_animation_10174_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018D734 = {
+    D_mist_parking_8018D570, D_mist_parking_8018D70C,
+    { NULL, D_mist_parking_8018D444.words, NULL, NULL, D_mist_parking_8018D498, NULL, NULL, NULL },
+};
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists and the high halfword one of
@@ -1152,7 +3051,7 @@ void func_mist_parking_8017F938(Task* task)
     price  = Gp_ItemDescs[itemId].price;
 
     if (task->state == 0) {
-        task->extraState = 1;
+        task->extraState.value = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
         task->state = task->state + 1;
     }
@@ -1192,7 +3091,7 @@ void func_mist_parking_8017F938(Task* task)
         Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
-    count = task->extraState;
+    count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, D_mist_parking_80186530, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
@@ -1212,18 +3111,18 @@ void func_mist_parking_8017F938(Task* task)
     if (obj->panel.field_0.w == 1) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState < maxQty) {
-                task->extraState = task->extraState + 1;
+            if (task->extraState.value < maxQty) {
+                task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState >= 2) {
-                task->extraState = task->extraState - 1;
+            if (task->extraState.value >= 2) {
+                task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState;
-            for (i = 0; i < task->extraState; i++) {
+            Player_Status.bp -= price * task->extraState.value;
+            for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -2021,7 +3920,7 @@ void func_mist_parking_801812B4(Task* task)
     }
 }
 
-static void func_mist_parking_80181468(Task* task)
+void func_mist_parking_80181468(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -2358,7 +4257,6 @@ static void func_mist_parking_80181E50(Task* task)
 }
 
 /// The area records applied when the scene hands the Dryfield story on.
-extern GpAreaApplyRec D_mist_parking_80188888;
 
 /// The room's cutscene runner: suppresses the player and ally HUD, loads and
 /// starts the scene's caption slot, lets confirm or cancel cut the scene
@@ -2421,7 +4319,7 @@ void func_mist_parking_80181E8C(Task* task)
             }
             break;
         case 4:
-            D_mist_parking_80195318 = Task_SpawnFromTable(&D_mist_parking_801869B8, 1, 0, rec->field_10);
+            D_mist_parking_80195318 = Task_SpawnFromTable(D_mist_parking_801869B8, 1, 0, rec->field_10);
             Gp_StartCapSlot(rec->field_1, 0, 0x63);
             task->state++;
             break;
@@ -2466,7 +4364,7 @@ void func_mist_parking_80181E8C(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(&D_mist_parking_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -2550,9 +4448,9 @@ void func_mist_parking_80181E8C(Task* task)
     }
 }
 
-extern s32 D_mist_parking_80186EFC;
-extern s32 D_mist_parking_8018F0A4;
-extern s32 D_mist_parking_8018F194;
+extern GpEvsCmd D_mist_parking_80186EFC[];
+extern GpEvsCmd D_mist_parking_8018F0A4[];
+extern GpEvsCmd D_mist_parking_8018F194[];
 
 /// The scene record the room hands the cutscene runner.
 extern RoomCutsceneRec D_mist_parking_8019533C;
@@ -2568,19 +4466,19 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             if (temp == 2) {
                 if (GameFlag_GetNibble(0xF1) == 1) {
                     Gp_MsgPlayerWeapon(0);
-                    func_800E8614((s32)&D_mist_parking_8018F0A4, 1);
+                    func_800E8614(D_mist_parking_8018F0A4, 1);
                     GameFlag_SetNibble(0xF1, 2);
                 } else if (GameFlag_GetNibble(0xF1) == temp) {
                     Gp_MsgPlayerWeapon(0);
-                    func_800E8614((s32)&D_mist_parking_8018F194, 1);
+                    func_800E8614(D_mist_parking_8018F194, 1);
                     GameFlag_SetNibble(0xF1, 3);
                 } else if (GameFlag_GetNibble(0xF1) == 3) {
                     Gp_MsgPlayerWeapon(0);
-                    Task_SpawnFromTable(&D_mist_parking_8018D75C, 8, 0, 0);
+                    Task_SpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
                 }
             } else if (GameFlag_GetNibble(0xED) == 1) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_mist_parking_80190824, 4, 0, 0);
+                Task_SpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
             }
             break;
         case 8:
@@ -2592,7 +4490,7 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_8  = 0x51130004;
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
-            Task_SpawnFromTable(&D_mist_parking_801869B8, 0, 4, &D_mist_parking_8019533C);
+            Task_SpawnFromTable(D_mist_parking_801869B8, 0, 4, &D_mist_parking_8019533C);
             session                     = gGameSession;
             Mc_SaveData[0].state.at4.loc.warp = 2;
             session->at4.loc.warp       = 2;
@@ -2600,13 +4498,13 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
         case 18:
             Gp_MsgPlayerWeapon(0);
             if (gGameSession->at4.loc.place == 1) {
-                Task_SpawnFromTable(&D_mist_parking_80190824, 3, 0, 0);
+                Task_SpawnFromTable(D_mist_parking_80190824, 3, 0, 0);
             } else {
-                Task_SpawnFromTable(&D_mist_parking_8018D75C, 7, 0, 0);
+                Task_SpawnFromTable(D_mist_parking_8018D75C, 7, 0, 0);
             }
             break;
         case 1:
-            func_800E8614((s32)&D_mist_parking_80186EFC, 1);
+            func_800E8614(D_mist_parking_80186EFC, 1);
             break;
     }
     return 0;
@@ -2658,20 +4556,20 @@ s32 func_mist_parking_801826C0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc*
     return 1;
 }
 
-extern s32 D_mist_parking_80186BB8;
-extern s32 D_mist_parking_80186C5C;
-extern s32 D_mist_parking_80186DC4;
-extern s32 D_mist_parking_8018DF34;
-extern s32 D_mist_parking_8018EDBC;
-extern s32 D_mist_parking_8018EFE4;
+extern MistParkingMessageEntry D_mist_parking_80186BB8[5];
+extern GpEvsCmd D_mist_parking_80186C5C[];
+extern GpEvsCmd D_mist_parking_80186DC4[];
+extern GpEvsCmd D_mist_parking_8018DF34[];
+extern GpEvsCmd D_mist_parking_8018EDBC[];
+extern GpEvsCmd D_mist_parking_8018EFE4[];
 
 s32 func_mist_parking_801826E8(Task* task, s32 msgId, GpMsg13EF* arg2)
 {
     if (arg2->field_2 == 1) {
-        func_800E8614((s32)&D_mist_parking_80186C5C, 1);
+        func_800E8614(D_mist_parking_80186C5C, 1);
     }
     if (arg2->field_2 == 2) {
-        func_800E8614((s32)&D_mist_parking_80186DC4, 1);
+        func_800E8614(D_mist_parking_80186DC4, 1);
         GameFlag_SetNibble(0xED, 1);
     }
     return 1;
@@ -2694,16 +4592,16 @@ void func_mist_parking_801827A0(s32 arg0)
 
 static void func_mist_parking_801827C0(Task* arg0)
 {
-    arg0->msgTable = &D_mist_parking_80186BB8;
+    arg0->msgTable = D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
         if (Mc_SaveData[0].state.at4.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
-            func_800E8634(&D_mist_parking_8018DF34, 0, &D_mist_parking_8018EDBC);
+            func_800E8634(D_mist_parking_8018DF34, 0, D_mist_parking_8018EDBC);
         } else {
             func_mist_parking_8018471C(0);
-            func_800E8614((s32)&D_mist_parking_8018EFE4, 1);
+            func_800E8614(D_mist_parking_8018EFE4, 1);
         }
     }
     arg0->state = arg0->state + 1;
@@ -2715,7 +4613,7 @@ static void func_mist_parking_80182888(Task* task)
     char pad[0x10];
 }
 
-extern s32 D_mist_parking_8018D830;
+extern GpCopyArg D_mist_parking_8018D82C;
 extern s8  D_mist_parking_8018DA28[];
 
 /// Runs the handler for the task's state from a stack copy of
@@ -2739,7 +4637,7 @@ void func_mist_parking_801828F0(Task* task)
     actor = (GameActor*)(gameGetPtrSlot(3))->work;
     if (D_801156F9 == 0) {
         idx = actor->field_438[1].nextSet - 0x2F;
-        if ((idx > 0) && (idx < D_mist_parking_8018D830)) {
+        if ((idx > 0) && (idx < D_mist_parking_8018D82C.count)) {
             flag = D_mist_parking_8018DA28[idx];
         } else {
             flag = 0;
@@ -2759,7 +4657,7 @@ void func_mist_parking_801828F0(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
-            func_800B0928(gameGetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(gameGetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

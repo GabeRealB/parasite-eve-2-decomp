@@ -1,1 +1,66 @@
 // Overlay-local symbols for shelter_b1_control_room.
+D_shelter_b1_control_room_80181BD4 = 0x80181BD4; // size:0x90 defined:True
+D_shelter_b1_control_room_80181B94 = 0x80181B94; // size:0x28 defined:True
+D_shelter_b1_control_room_80181C64 = 0x80181C64; // size:0xC defined:True
+D_shelter_b1_control_room_80181C70 = 0x80181C70; // size:0x4 defined:True
+D_shelter_b1_control_room_80181C74 = 0x80181C74; // size:0x2 defined:True
+D_shelter_b1_control_room_80181C78 = 0x80181C78; // size:0xA8 defined:True
+D_shelter_b1_control_room_80181D20 = 0x80181D20; // size:0x38 defined:True
+D_shelter_b1_control_room_80181BBC = 0x80181BBC; // size:0x18 defined:True
+D_shelter_b1_control_room_80181B88 = 0x80181B88; // size:0xC defined:True
+D_shelter_b1_control_room_80181D58 = 0x80181D58; // size:0x1C0 defined:True
+D_shelter_b1_control_room_80181F18 = 0x80181F18; // size:0x15C defined:True
+D_shelter_b1_control_room_80182074 = 0x80182074; // size:0x1A defined:True
+D_shelter_b1_control_room_80182090 = 0x80182090; // size:0x30 defined:True
+D_shelter_b1_control_room_801820C0 = 0x801820C0; // size:0x2A defined:True
+D_shelter_b1_control_room_801820EC = 0x801820EC; // size:0xC defined:True
+D_shelter_b1_control_room_801820F8 = 0x801820F8; // size:0x24 defined:True
+D_shelter_b1_control_room_8018211C = 0x8018211C; // size:0x120 defined:True
+D_shelter_b1_control_room_8018223C = 0x8018223C; // size:0x10 defined:True
+D_shelter_b1_control_room_8018224C = 0x8018224C; // size:0x7BC defined:True
+D_shelter_b1_control_room_80182A08 = 0x80182A08; // size:0x28 defined:True
+D_shelter_b1_control_room_80182A30 = 0x80182A30; // size:0x35C defined:True
+D_shelter_b1_control_room_80182D8C = 0x80182D8C; // size:0x28 defined:True
+D_shelter_b1_control_room_80182DB4 = 0x80182DB4; // size:0x244 defined:True
+D_shelter_b1_control_room_80182FF8 = 0x80182FF8; // size:0x18 defined:True
+D_shelter_b1_control_room_80183010 = 0x80183010; // size:0x1A4 defined:True
+D_shelter_b1_control_room_801831B4 = 0x801831B4; // size:0x18 defined:True
+D_shelter_b1_control_room_801831CC = 0x801831CC; // size:0x1B8 defined:True
+D_shelter_b1_control_room_80183384 = 0x80183384; // size:0x18 defined:True
+D_shelter_b1_control_room_8018339C = 0x8018339C; // size:0x10 defined:True
+D_shelter_b1_control_room_801833AC = 0x801833AC; // size:0x10 defined:True
+D_shelter_b1_control_room_801833BC = 0x801833BC; // size:0x60 defined:True
+D_shelter_b1_control_room_8018341C = 0x8018341C; // size:0xC0 defined:True
+D_shelter_b1_control_room_801834DC = 0x801834DC; // size:0x18 defined:True
+D_shelter_b1_control_room_801834F4 = 0x801834F4; // size:0x130 defined:True
+D_shelter_b1_control_room_80183624 = 0x80183624; // size:0x260 defined:True
+D_shelter_b1_control_room_80183884 = 0x80183884; // size:0x24 defined:True
+D_shelter_b1_control_room_801838A8 = 0x801838A8; // size:0x18 defined:True
+D_shelter_b1_control_room_801838C0 = 0x801838C0; // size:0x18 defined:True
+D_shelter_b1_control_room_801838D8 = 0x801838D8; // size:0x18 defined:True
+D_shelter_b1_control_room_801838F0 = 0x801838F0; // size:0x18 defined:True
+D_shelter_b1_control_room_80183908 = 0x80183908; // size:0x80 defined:True
+D_shelter_b1_control_room_80183988 = 0x80183988; // size:0x40 defined:True
+D_shelter_b1_control_room_801839C8 = 0x801839C8; // size:0x40 defined:True
+D_shelter_b1_control_room_80183A08 = 0x80183A08; // size:0x20 defined:True
+D_shelter_b1_control_room_80183A28 = 0x80183A28; // size:0x70 defined:True
+D_shelter_b1_control_room_80183A98 = 0x80183A98; // size:0xB0 defined:True
+D_shelter_b1_control_room_80183B48 = 0x80183B48; // size:0x48 defined:True
+D_shelter_b1_control_room_80183B90 = 0x80183B90; // size:0xC defined:True
+D_shelter_b1_control_room_80183B9C = 0x80183B9C; // size:0xC defined:True
+D_shelter_b1_control_room_80183BA8 = 0x80183BA8; // size:0x8 defined:True
+D_shelter_b1_control_room_80183BB0 = 0x80183BB0; // size:0x8 defined:True
+D_shelter_b1_control_room_80183BB8 = 0x80183BB8; // size:0x8 defined:True
+D_shelter_b1_control_room_80183BC0 = 0x80183BC0; // size:0x20 defined:True
+D_80135C30 = 0x80135C30; // absolute:True
+D_8013C8F4 = 0x8013C8F4; // absolute:True
+D_8014E47C = 0x8014E47C; // absolute:True
+D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // size:0x8 defined:True
+
+func_shelter_b1_control_room_8017F150 = 0x8017F150; // type:func
+
+func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func
+
+func_shelter_b1_control_room_801804D8 = 0x801804D8; // type:func
+
+func_shelter_b1_control_room_80181138 = 0x80181138; // type:func

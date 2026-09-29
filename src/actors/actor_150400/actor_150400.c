@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b1_control_room.h"
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -29,16 +30,30 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/animation.h"
+
+#include "gameplay/evs.h"
+
 extern TaskDesc D_actor_150400_80132CF0;
-extern TaskDesc D_80181BBC;
 extern Task*    D_actor_150400_8013C924;
 extern Task*    D_actor_150400_8013C928;
 
 extern TaskDesc   D_actor_150400_8013C8F4[];
 extern u8         D_actor_150400_8013C90C[];
-extern GpMsgEntry D_actor_150400_8013C8C4[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, GpAnimArg *);
+        s32 (*call2)(Task *, s32, GpXformArg *);
+        s32 (*call3)(Task *, s32, s32);
+    } handler;
+} Actor150400MsgEntry;
+STATIC_ASSERT_SIZEOF(Actor150400MsgEntry, 8);
 
-extern GpAreaApplyRec D_80183BE0;
+extern Actor150400MsgEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
@@ -49,6 +64,297 @@ static void func_actor_150400_801324E0(Task* task);
 static void func_actor_150400_8013257C(Task* task);
 static void func_actor_150400_801325C8(Task* task);
 static void func_actor_150400_80132640(Task* task);
+
+extern TmdSource D_actor_150400_80139A64;
+extern TmdSource D_actor_150400_8013C8A0;
+void func_actor_150400_801323E0(Task *);
+void func_actor_150400_801328BC(Task *);
+
+s32 func_actor_150400_801326A4(Task *, s32, GpAnimArg *);
+s32 func_actor_150400_80132710(Task *, s32, s32);
+s32 func_actor_150400_80132774(Task *, s32, GpXformArg *);
+s32 func_actor_150400_801327EC(void);
+s32 func_actor_150400_801327F4(Task *, s32, GpXformArg *);
+
+void func_actor_150400_80131ECC(void);
+void func_actor_150400_80131F6C(void);
+
+void func_actor_150400_80131ECC(void);
+void func_actor_150400_80131F6C(void);
+
+void func_actor_150400_80131E24(Task *);
+void func_actor_150400_80131ECC(void);
+void func_actor_150400_80131F6C(void);
+void func_actor_150400_80131F9C(s32);
+
+TmdBone D_actor_150400_8013292C[1] = {
+#include "assets/actor_150400_model_00EAC_skeleton.inc"
+};
+
+u32 D_actor_150400_80132950[1] = {
+#include "assets/actor_150400_model_00EAC_partVerts.inc"
+};
+
+SVECTOR D_actor_150400_80132954[34] = {
+#include "assets/actor_150400_model_00EAC_verts.inc"
+};
+
+u32 D_actor_150400_80132A64[154] = {
+#include "assets/actor_150400_model_00EAC_stream.inc"
+};
+
+TmdSource D_actor_150400_80132CCC = {
+    0, 1144, 0, 1,
+    D_actor_150400_80132950, D_actor_150400_80132954, &D_actor_150400_80132954[34], D_actor_150400_8013292C, D_actor_150400_80132A64,
+};
+
+TaskDesc D_actor_150400_80132CF0 = { 257, 32, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
+
+GpAnimArg D_actor_150400_80132CFC = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_actor_150400_80132D10 = { { .index = 0 }, 4, 1, 10, 0 };
+
+GpAnimArg D_actor_150400_80132D24 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpXformArg D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
+
+GpOverlayIds D_actor_150400_80132D68 = { 5, 4, 11 };
+
+GpEvsCmd D_actor_150400_80132D70[33] = {
+    { 12, { .overlays = &D_actor_150400_80132D68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_150400_80132D24 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_150400_80131F9C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_actor_150400_80132D38 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_150400_80132D10 }, { .value = 0 } },
+    { 36, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_actor_150400_80132D50 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_150400_80131F9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_150400_80131F6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_150400_80131ECC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 37, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_actor_150400_80133088[14] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_150400_80131F6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_150400_80131ECC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TmdBone D_actor_150400_801331D8[19] = {
+#include "assets/actor_150400_model_07C44_skeleton.inc"
+};
+
+u32 D_actor_150400_80133484[19] = {
+#include "assets/actor_150400_model_07C44_partVerts.inc"
+};
+
+SVECTOR D_actor_150400_801334D0[432] = {
+#include "assets/actor_150400_model_07C44_verts.inc"
+};
+
+SVECTOR D_actor_150400_80134250[444] = {
+#include "assets/actor_150400_model_07C44_normals.inc"
+};
+
+u32 D_actor_150400_80135030[4749] = {
+#include "assets/actor_150400_model_07C44_stream.inc"
+};
+
+TmdSource D_actor_150400_80139A64 = {
+    0, 26564, 6624, 19,
+    D_actor_150400_80133484, D_actor_150400_801334D0, D_actor_150400_80134250, D_actor_150400_801331D8, D_actor_150400_80135030,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[21];
+    GpPackedSvec words[63];
+} Actor150400PoseBank7C68;
+
+Actor150400PoseBank7C68 D_actor_150400_80139A88 = { .poses = {
+#include "assets/actor_150400_animation_08878_bank1.inc"
+} };
+
+GpPackedSvec D_actor_150400_80139B84[317] = {
+#include "assets/actor_150400_animation_08878_bank4.inc"
+};
+
+GpAnimRec D_actor_150400_8013A078[382] = {
+#include "assets/actor_150400_animation_08878_records.inc"
+};
+
+u16 D_actor_150400_8013A670[20] = {
+#include "assets/actor_150400_animation_08878_indices.inc"
+};
+
+GpAnimSet D_actor_150400_8013A698 = {
+    D_actor_150400_8013A078, D_actor_150400_8013A670,
+    { NULL, D_actor_150400_80139A88.words, NULL, NULL, D_actor_150400_80139B84, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} Actor150400PoseBank88A0;
+
+Actor150400PoseBank88A0 D_actor_150400_8013A6C0 = { .poses = {
+#include "assets/actor_150400_animation_08FE0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_150400_8013A750[187] = {
+#include "assets/actor_150400_animation_08FE0_bank4.inc"
+};
+
+GpAnimRec D_actor_150400_8013AA3C[231] = {
+#include "assets/actor_150400_animation_08FE0_records.inc"
+};
+
+u16 D_actor_150400_8013ADD8[20] = {
+#include "assets/actor_150400_animation_08FE0_indices.inc"
+};
+
+GpAnimSet D_actor_150400_8013AE00 = {
+    D_actor_150400_8013AA3C, D_actor_150400_8013ADD8,
+    { NULL, D_actor_150400_8013A6C0.words, NULL, NULL, D_actor_150400_8013A750, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[20];
+    GpPackedSvec words[60];
+} Actor150400PoseBank9008;
+
+Actor150400PoseBank9008 D_actor_150400_8013AE28 = { .poses = {
+#include "assets/actor_150400_animation_09BD0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_150400_8013AF18[321] = {
+#include "assets/actor_150400_animation_09BD0_bank4.inc"
+};
+
+GpAnimRec D_actor_150400_8013B41C[363] = {
+#include "assets/actor_150400_animation_09BD0_records.inc"
+};
+
+u16 D_actor_150400_8013B9C8[20] = {
+#include "assets/actor_150400_animation_09BD0_indices.inc"
+};
+
+GpAnimSet D_actor_150400_8013B9F0 = {
+    D_actor_150400_8013B41C, D_actor_150400_8013B9C8,
+    { NULL, D_actor_150400_8013AE28.words, NULL, NULL, D_actor_150400_8013AF18, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} Actor150400PoseBank9BF8;
+
+Actor150400PoseBank9BF8 D_actor_150400_8013BA18 = { .poses = {
+#include "assets/actor_150400_animation_0A538_bank1.inc"
+} };
+
+GpPackedSvec D_actor_150400_8013BAD8[237] = {
+#include "assets/actor_150400_animation_0A538_bank4.inc"
+};
+
+GpAnimRec D_actor_150400_8013BE8C[297] = {
+#include "assets/actor_150400_animation_0A538_records.inc"
+};
+
+u16 D_actor_150400_8013C330[20] = {
+#include "assets/actor_150400_animation_0A538_indices.inc"
+};
+
+GpAnimSet D_actor_150400_8013C358 = {
+    D_actor_150400_8013BE8C, D_actor_150400_8013C330,
+    { NULL, D_actor_150400_8013BA18.words, NULL, NULL, D_actor_150400_8013BAD8, NULL, NULL, NULL },
+};
+
+TmdBone D_actor_150400_8013C380[1] = {
+#include "assets/actor_150400_model_0AA80_skeleton.inc"
+};
+
+u32 D_actor_150400_8013C3A4[1] = {
+#include "assets/actor_150400_model_0AA80_partVerts.inc"
+};
+
+SVECTOR D_actor_150400_8013C3A8[29] = {
+#include "assets/actor_150400_model_0AA80_verts.inc"
+};
+
+SVECTOR D_actor_150400_8013C490[24] = {
+#include "assets/actor_150400_model_0AA80_normals.inc"
+};
+
+u32 D_actor_150400_8013C550[212] = {
+#include "assets/actor_150400_model_0AA80_stream.inc"
+};
+
+TmdSource D_actor_150400_8013C8A0 = {
+    0, 1436, 0, 1,
+    D_actor_150400_8013C3A4, D_actor_150400_8013C3A8, D_actor_150400_8013C490, D_actor_150400_8013C380, D_actor_150400_8013C550,
+};
+
+Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
+    { 2003, { .call1 = func_actor_150400_801326A4 } },
+    { 2005, { .call3 = func_actor_150400_80132710 } },
+    { 2004, { .call2 = func_actor_150400_80132774 } },
+    { 2011, { .call0 = func_actor_150400_801327EC } },
+    { 2013, { .call2 = func_actor_150400_801327F4 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_actor_150400_8013C8F4[2] = {
+    { 1, 96, func_actor_150400_801323E0, { .model = &D_actor_150400_80139A64 } },
+    { 257, 96, func_actor_150400_801328BC, { .model = &D_actor_150400_8013C8A0 } },
+};
+
+u8 D_actor_150400_8013C90C[24] = {
+    0, 0, 0, 0, 152, 166, 19, 128, 0, 174, 19, 128, 240, 185, 19, 128,
+    88, 195, 19, 128, 0, 0, 0, 0,
+};
+
+Task * D_actor_150400_8013C924 = NULL;
+
+Task * D_actor_150400_8013C928 = NULL;
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
@@ -94,7 +400,7 @@ void func_actor_150400_80131ECC(void)
         SetDispMask(1);
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
-        Gp_ApplyAreaRecs(&D_80183BE0);
+        Gp_ApplyAreaRecs(D_shelter_b1_control_room_80183BE0);
         Mc_SaveData[0].state.at4.loc.stage = 4;
         Mc_SaveData[0].state.at4.loc.area  = 0x21;
         Mc_SaveData[0].state.at4.loc.warp  = 4;
@@ -107,7 +413,7 @@ void func_actor_150400_80131ECC(void)
 
 void func_actor_150400_80131F6C(void)
 {
-    Task_SpawnFromTable(&D_80181BBC, 0, 0, 0);
+    Task_SpawnFromTable(D_shelter_b1_control_room_80181BBC, 0, 0, 0);
 }
 
 void func_actor_150400_80131F9C(s32 arg0)

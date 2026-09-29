@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/neo_ark_submarine_gallery.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -68,7 +69,7 @@ typedef union Actor206100VecScratch {
 
 STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
 
-extern TaskDesc D_actor_206100_80158B0C;
+extern TaskDesc D_actor_206100_80158B0C[];
 
 /// Status flags `func_actor_206100_8014F970` reads through two widths: bit 0
 /// as a halfword, then bits 0x102 as a word.  The same union
@@ -105,7 +106,6 @@ typedef struct {
 
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
-extern GpAreaApplyRec D_8018590C;
 
 /// The pair table the beam's collision object carries at `GpObj.key`
 /// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
@@ -346,7 +346,7 @@ typedef struct Actor206100Work {
     /* 0x530 */ byte pad_530[0x4];
     /// Countdown decremented by the running state each frame while nonzero.
     /* 0x534 */ s16  field_534;
-    /* 0x536 */ u16  field_536; // seeded from D_80181A48 when the block is built
+    /* 0x536 */ u16  field_536; // seeded from D_neo_ark_submarine_gallery_80181A48 when the block is built
     /* 0x538 */ byte pad_538[0x2];
     /// Retract ramp `func_actor_206100_8014B0AC` runs while the effect is
     /// retiring: 0 is the resting sub-state, 1 folds the two `field_4D8` /
@@ -474,7 +474,7 @@ extern OverlayWaveCtx D_actor_206100_80158CCC;
 
 /// Child task `func_actor_206100_8014CB68` starts with the tint above as its
 /// spawn arg.  Its callback is `func_actor_206100_80149ED0`.
-extern TaskDesc D_actor_206100_80158AF0;
+extern TaskDesc D_actor_206100_80158AF0[];
 
 /// Spawn-state body: hands the freshly spawned enemy its model, its part
 /// coordinate and its state, then starts the animation.
@@ -556,8 +556,8 @@ static void func_actor_206100_8014CD08(Task* task);
 
 /// State handler 4 of `D_actor_206100_80149E94`, and the one that hands the
 /// actor to `func_actor_206100_8014CD08` above.  It clears the fixed-address
-/// `D_801818B8` flag, ticks the per-state counter `field_51E` and seeds
-/// `D_actor_206100_80158CD0` with 2 on the first frame; frame 3 retires the
+/// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
+/// `D_actor_206100_80158CCC.state` with 2 on the first frame; frame 3 retires the
 /// child task `func_actor_206100_8014CB68` spawned into `field_4F8`, and if the
 /// kill left the counter alone, fires sound event 0x551E0003; frame 0xC splats
 /// the 0x01202148 particle ring `func_actor_206100_8014D574` fires, at a radius
@@ -637,19 +637,12 @@ static void func_actor_206100_8014F490(Task* task);
 /// alone.
 static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst);
 
-extern s16 D_801818B8;
-
-extern u16 D_80181A48;
-
-extern s16 D_actor_206100_80158CD0;
-
 static void func_actor_206100_8014B0AC(Task* task, u8 arg1);
 static void func_actor_206100_8014E0C0(Task* task);
 static void func_actor_206100_8014EB60(Task* task);
 static void func_actor_206100_8014EC54(Task* task);
 static void func_actor_206100_8014DEAC(Task* task);
 static void func_actor_206100_8014FAE4(Task* task);
-void        func_8004BFF8(s16 angle, MATRIX* matrix);
 
 static GpEnemy* func_actor_206100_8014EE2C(s32 arg0);
 
@@ -663,10 +656,10 @@ static void func_actor_206100_8014F738(Task* task);
 static void func_actor_206100_8014F770(Task* task);
 static void func_actor_206100_8014F7B4(Task* task);
 static void func_actor_206100_8014F878(Task* task);
-static void func_actor_206100_8014E964(Task* task);
-static void func_actor_206100_8014FBE4(Task* task);
-static void func_actor_206100_8014FCD4(Task* task);
-static void func_actor_206100_8014FDE8(Task* task);
+static void func_actor_206100_8014E964(Task* task, void* unusedTable);
+static void func_actor_206100_8014FBE4(Task* task, void* unusedTable);
+static void func_actor_206100_8014FCD4(Task* task, void* unusedTable);
+static void func_actor_206100_8014FDE8(Task* task, void* unusedTable);
 static void func_actor_206100_8014AB3C(GpCoord* coord, u16 arg1, u16 arg2, s32 arg3);
 static void func_actor_206100_8014E228(Task* task);
 
@@ -680,11 +673,10 @@ extern OverlayWaveCtx* D_actor_206100_80158BA8;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 D_actor_206100_80158BAC[11];
-extern OverlayWaveRec6 D_actor_206100_80158BFC[30];
+extern OverlayWaveRec6 D_actor_206100_80158BAC[13];
+extern OverlayWaveRec6 D_actor_206100_80158BFC[32];
 
 /// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
-extern TaskDesc D_801818BC;
 
 static void func_actor_206100_8014DEAC(Task* task);
 static void func_actor_206100_8014F284(Task* task);
@@ -704,6 +696,529 @@ static const TaskFuncTable3 D_actor_206100_80149E24 = {
         func_actor_206100_8014EFC8,
     },
 };
+
+extern u32 D_actor_206100_80154B4C[1];
+extern SVECTOR D_actor_206100_80154B50[24];
+extern SVECTOR D_actor_206100_80154C10[25];
+extern TmdBone D_actor_206100_80154B28[1];
+extern u32 D_actor_206100_80154CD8[270];
+
+extern TmdSource D_actor_206100_801530C8;
+void func_actor_206100_80149ED0(Task *);
+void func_actor_206100_8014F134(Task *);
+void func_actor_206100_8014F428(Task *);
+
+TmdBone D_actor_206100_8014FE80[15] = {
+#include "assets/actor_206100_model_092A8_skeleton.inc"
+};
+
+u32 D_actor_206100_8015009C[15] = {
+#include "assets/actor_206100_model_092A8_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_801500D8[145] = {
+#include "assets/actor_206100_model_092A8_verts.inc"
+};
+
+SVECTOR D_actor_206100_80150560[142] = {
+#include "assets/actor_206100_model_092A8_normals.inc"
+};
+
+u32 D_actor_206100_801509D0[2494] = {
+#include "assets/actor_206100_model_092A8_stream.inc"
+};
+
+TmdSource D_actor_206100_801530C8 = {
+    0, 11652, 5104, 15,
+    D_actor_206100_8015009C, D_actor_206100_801500D8, D_actor_206100_80150560, D_actor_206100_8014FE80, D_actor_206100_801509D0,
+};
+
+TmdBone D_actor_206100_801530EC[1] = {
+#include "assets/actor_206100_model_09B0C_skeleton.inc"
+};
+
+u32 D_actor_206100_80153110[1] = {
+#include "assets/actor_206100_model_09B0C_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_80153114[35] = {
+#include "assets/actor_206100_model_09B0C_verts.inc"
+};
+
+SVECTOR D_actor_206100_8015322C[44] = {
+#include "assets/actor_206100_model_09B0C_normals.inc"
+};
+
+u32 D_actor_206100_8015338C[360] = {
+#include "assets/actor_206100_model_09B0C_stream.inc"
+};
+
+TmdSource D_actor_206100_8015392C = {
+    0, 2388, 0, 1,
+    D_actor_206100_80153110, D_actor_206100_80153114, D_actor_206100_8015322C, D_actor_206100_801530EC, D_actor_206100_8015338C,
+};
+
+TmdBone D_actor_206100_80153950[1] = {
+#include "assets/actor_206100_model_09EC4_skeleton.inc"
+};
+
+u32 D_actor_206100_80153974[1] = {
+#include "assets/actor_206100_model_09EC4_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_80153978[14] = {
+#include "assets/actor_206100_model_09EC4_verts.inc"
+};
+
+SVECTOR D_actor_206100_801539E8[24] = {
+#include "assets/actor_206100_model_09EC4_normals.inc"
+};
+
+u32 D_actor_206100_80153AA8[143] = {
+#include "assets/actor_206100_model_09EC4_stream.inc"
+};
+
+TmdSource D_actor_206100_80153CE4 = {
+    0, 904, 0, 1,
+    D_actor_206100_80153974, D_actor_206100_80153978, D_actor_206100_801539E8, D_actor_206100_80153950, D_actor_206100_80153AA8,
+};
+
+TmdBone D_actor_206100_80153D08[1] = {
+#include "assets/actor_206100_model_0A27C_skeleton.inc"
+};
+
+u32 D_actor_206100_80153D2C[1] = {
+#include "assets/actor_206100_model_0A27C_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_80153D30[14] = {
+#include "assets/actor_206100_model_0A27C_verts.inc"
+};
+
+SVECTOR D_actor_206100_80153DA0[24] = {
+#include "assets/actor_206100_model_0A27C_normals.inc"
+};
+
+u32 D_actor_206100_80153E60[143] = {
+#include "assets/actor_206100_model_0A27C_stream.inc"
+};
+
+TmdSource D_actor_206100_8015409C = {
+    0, 904, 0, 1,
+    D_actor_206100_80153D2C, D_actor_206100_80153D30, D_actor_206100_80153DA0, D_actor_206100_80153D08, D_actor_206100_80153E60,
+};
+
+TmdBone D_actor_206100_801540C0[1] = {
+#include "assets/actor_206100_model_0A7B0_skeleton.inc"
+};
+
+u32 D_actor_206100_801540E4[1] = {
+#include "assets/actor_206100_model_0A7B0_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_801540E8[19] = {
+#include "assets/actor_206100_model_0A7B0_verts.inc"
+};
+
+SVECTOR D_actor_206100_80154180[33] = {
+#include "assets/actor_206100_model_0A7B0_normals.inc"
+};
+
+u32 D_actor_206100_80154288[210] = {
+#include "assets/actor_206100_model_0A7B0_stream.inc"
+};
+
+TmdSource D_actor_206100_801545D0 = {
+    0, 1360, 0, 1,
+    D_actor_206100_801540E4, D_actor_206100_801540E8, D_actor_206100_80154180, D_actor_206100_801540C0, D_actor_206100_80154288,
+};
+
+TmdBone D_actor_206100_801545F4[1] = {
+#include "assets/actor_206100_model_0ACE4_skeleton.inc"
+};
+
+u32 D_actor_206100_80154618[1] = {
+#include "assets/actor_206100_model_0ACE4_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_8015461C[19] = {
+#include "assets/actor_206100_model_0ACE4_verts.inc"
+};
+
+SVECTOR D_actor_206100_801546B4[33] = {
+#include "assets/actor_206100_model_0ACE4_normals.inc"
+};
+
+u32 D_actor_206100_801547BC[210] = {
+#include "assets/actor_206100_model_0ACE4_stream.inc"
+};
+
+TmdSource D_actor_206100_80154B04 = {
+    0, 1360, 0, 1,
+    D_actor_206100_80154618, D_actor_206100_8015461C, D_actor_206100_801546B4, D_actor_206100_801545F4, D_actor_206100_801547BC,
+};
+
+TmdBone D_actor_206100_80154B28[1] = {
+#include "assets/actor_206100_model_0B2F0_skeleton.inc"
+};
+
+u32 D_actor_206100_80154B4C[1] = {
+#include "assets/actor_206100_model_0B2F0_partVerts.inc"
+};
+
+SVECTOR D_actor_206100_80154B50[24] = {
+#include "assets/actor_206100_model_0B2F0_verts.inc"
+};
+
+SVECTOR D_actor_206100_80154C10[25] = {
+#include "assets/actor_206100_model_0B2F0_normals.inc"
+};
+
+u32 D_actor_206100_80154CD8[270] = {
+#include "assets/actor_206100_model_0B2F0_stream.inc"
+};
+
+TmdSource D_actor_206100_80155110 = {
+    0, 1760, 0, 1,
+    D_actor_206100_80154B4C, D_actor_206100_80154B50, D_actor_206100_80154C10,
+    D_actor_206100_80154B28, D_actor_206100_80154CD8,
+};
+
+GpAreaPlace D_actor_206100_80155134[6] = {
+    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 },
+    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 },
+    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7 },
+    { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpU16Pair D_actor_206100_80155194 = { 26, 5 };
+
+GpPairSrcE D_actor_206100_80155198 = { &D_actor_206100_80155194, 2000, 400, 1000, 15, 200, 3, 100, 5, 0 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} Actor206100PoseBankB388;
+
+Actor206100PoseBankB388 D_actor_206100_801551A8 = { .poses = {
+#include "assets/actor_206100_animation_0B8F8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80155208[133] = {
+#include "assets/actor_206100_animation_0B8F8_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_8015541C[183] = {
+#include "assets/actor_206100_animation_0B8F8_records.inc"
+};
+
+u16 D_actor_206100_801556F8[16] = {
+#include "assets/actor_206100_animation_0B8F8_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80155718 = {
+    D_actor_206100_8015541C, D_actor_206100_801556F8,
+    { NULL, D_actor_206100_801551A8.words, NULL, NULL, D_actor_206100_80155208, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} Actor206100PoseBankB920;
+
+Actor206100PoseBankB920 D_actor_206100_80155740 = { .poses = {
+#include "assets/actor_206100_animation_0BC80_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80155764[78] = {
+#include "assets/actor_206100_animation_0BC80_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_8015589C[121] = {
+#include "assets/actor_206100_animation_0BC80_records.inc"
+};
+
+u16 D_actor_206100_80155A80[16] = {
+#include "assets/actor_206100_animation_0BC80_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80155AA0 = {
+    D_actor_206100_8015589C, D_actor_206100_80155A80,
+    { NULL, D_actor_206100_80155740.words, NULL, NULL, D_actor_206100_80155764, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} Actor206100PoseBankBCA8;
+
+Actor206100PoseBankBCA8 D_actor_206100_80155AC8 = { .poses = {
+#include "assets/actor_206100_animation_0C544_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80155B28[174] = {
+#include "assets/actor_206100_animation_0C544_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_80155DE0[345] = {
+#include "assets/actor_206100_animation_0C544_records.inc"
+};
+
+u16 D_actor_206100_80156344[16] = {
+#include "assets/actor_206100_animation_0C544_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80156364 = {
+    D_actor_206100_80155DE0, D_actor_206100_80156344,
+    { NULL, D_actor_206100_80155AC8.words, NULL, NULL, D_actor_206100_80155B28, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} Actor206100PoseBankC56C;
+
+Actor206100PoseBankC56C D_actor_206100_8015638C = { .poses = {
+#include "assets/actor_206100_animation_0CC4C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80156404[167] = {
+#include "assets/actor_206100_animation_0CC4C_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_801566A0[235] = {
+#include "assets/actor_206100_animation_0CC4C_records.inc"
+};
+
+u16 D_actor_206100_80156A4C[16] = {
+#include "assets/actor_206100_animation_0CC4C_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80156A6C = {
+    D_actor_206100_801566A0, D_actor_206100_80156A4C,
+    { NULL, D_actor_206100_8015638C.words, NULL, NULL, D_actor_206100_80156404, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} Actor206100PoseBankCC74;
+
+Actor206100PoseBankCC74 D_actor_206100_80156A94 = { .poses = {
+#include "assets/actor_206100_animation_0D530_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80156B0C[213] = {
+#include "assets/actor_206100_animation_0D530_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_80156E60[308] = {
+#include "assets/actor_206100_animation_0D530_records.inc"
+};
+
+u16 D_actor_206100_80157330[16] = {
+#include "assets/actor_206100_animation_0D530_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80157350 = {
+    D_actor_206100_80156E60, D_actor_206100_80157330,
+    { NULL, D_actor_206100_80156A94.words, NULL, NULL, D_actor_206100_80156B0C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor206100PoseBankD558;
+
+Actor206100PoseBankD558 D_actor_206100_80157378 = { .poses = {
+#include "assets/actor_206100_animation_0D968_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_801573C0[103] = {
+#include "assets/actor_206100_animation_0D968_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_8015755C[131] = {
+#include "assets/actor_206100_animation_0D968_records.inc"
+};
+
+u16 D_actor_206100_80157768[16] = {
+#include "assets/actor_206100_animation_0D968_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80157788 = {
+    D_actor_206100_8015755C, D_actor_206100_80157768,
+    { NULL, D_actor_206100_80157378.words, NULL, NULL, D_actor_206100_801573C0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[15];
+    GpPackedSvec words[45];
+} Actor206100PoseBankD990;
+
+Actor206100PoseBankD990 D_actor_206100_801577B0 = { .poses = {
+#include "assets/actor_206100_animation_0DEA8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80157864[109] = {
+#include "assets/actor_206100_animation_0DEA8_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_80157A18[164] = {
+#include "assets/actor_206100_animation_0DEA8_records.inc"
+};
+
+u16 D_actor_206100_80157CA8[16] = {
+#include "assets/actor_206100_animation_0DEA8_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80157CC8 = {
+    D_actor_206100_80157A18, D_actor_206100_80157CA8,
+    { NULL, D_actor_206100_801577B0.words, NULL, NULL, D_actor_206100_80157864, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[20];
+    GpPackedSvec words[60];
+} Actor206100PoseBankDED0;
+
+Actor206100PoseBankDED0 D_actor_206100_80157CF0 = { .poses = {
+#include "assets/actor_206100_animation_0E4A8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80157DE0[126] = {
+#include "assets/actor_206100_animation_0E4A8_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_80157FD8[180] = {
+#include "assets/actor_206100_animation_0E4A8_records.inc"
+};
+
+u16 D_actor_206100_801582A8[16] = {
+#include "assets/actor_206100_animation_0E4A8_indices.inc"
+};
+
+GpAnimSet D_actor_206100_801582C8 = {
+    D_actor_206100_80157FD8, D_actor_206100_801582A8,
+    { NULL, D_actor_206100_80157CF0.words, NULL, NULL, D_actor_206100_80157DE0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor206100PoseBankE4D0;
+
+Actor206100PoseBankE4D0 D_actor_206100_801582F0 = { .poses = {
+#include "assets/actor_206100_animation_0E798_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_8015832C[43] = {
+#include "assets/actor_206100_animation_0E798_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_801583D8[112] = {
+#include "assets/actor_206100_animation_0E798_records.inc"
+};
+
+u16 D_actor_206100_80158598[16] = {
+#include "assets/actor_206100_animation_0E798_indices.inc"
+};
+
+GpAnimSet D_actor_206100_801585B8 = {
+    D_actor_206100_801583D8, D_actor_206100_80158598,
+    { NULL, D_actor_206100_801582F0.words, NULL, NULL, D_actor_206100_8015832C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} Actor206100PoseBankE7C0;
+
+Actor206100PoseBankE7C0 D_actor_206100_801585E0 = { .poses = {
+#include "assets/actor_206100_animation_0ECA8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_206100_80158664[108] = {
+#include "assets/actor_206100_animation_0ECA8_bank4.inc"
+};
+
+GpAnimRec D_actor_206100_80158814[165] = {
+#include "assets/actor_206100_animation_0ECA8_records.inc"
+};
+
+u16 D_actor_206100_80158AA8[16] = {
+#include "assets/actor_206100_animation_0ECA8_indices.inc"
+};
+
+GpAnimSet D_actor_206100_80158AC8 = {
+    D_actor_206100_80158814, D_actor_206100_80158AA8,
+    { NULL, D_actor_206100_801585E0.words, NULL, NULL, D_actor_206100_80158664, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_206100_80158AF0[2] = {
+    { 0, 192, func_actor_206100_80149ED0, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_actor_206100_80158B08 = 256;
+
+TaskDesc D_actor_206100_80158B0C[2] = {
+    { 1, 96, func_actor_206100_8014F428, { .model = &D_actor_206100_801530C8 } },
+    { 2, 96, func_actor_206100_8014F134, { .model = NULL } },
+};
+
+GpAnimSet * D_actor_206100_80158B24[17] = {
+    NULL,
+    &D_actor_206100_80155718,
+    NULL,
+    &D_actor_206100_80155AA0,
+    NULL,
+    &D_actor_206100_80156364,
+    NULL,
+    &D_actor_206100_80156A6C,
+    &D_actor_206100_80157350,
+    NULL,
+    &D_actor_206100_80157788,
+    &D_actor_206100_80157CC8,
+    NULL,
+    NULL,
+    &D_actor_206100_801582C8,
+    &D_actor_206100_801585B8,
+    &D_actor_206100_80158AC8,
+};
+
+Actor206100RingPos D_actor_206100_80158B68[8] = {
+    { 0, 3000, 7600, 0 },
+    { 5373, 3000, 5373, 0 },
+    { 7600, 3000, 0, 0 },
+    { 5373, 3000, -5373, 0 },
+    { 0, 3000, -7600, 0 },
+    { -5373, 3000, -5373, 0 },
+    { -7600, 3000, 0, 0 },
+    { -5373, 3000, 5373, 0 },
+};
+
+OverlayWaveCtx * D_actor_206100_80158BA8 = NULL;
+
+OverlayWaveRec6 D_actor_206100_80158BAC[13] = { 0 };
+
+OverlayWaveRec6 D_actor_206100_80158BFC[32] = { 0 };
+
+Actor206100Slot D_actor_206100_80158CBC[2] = { 0 };
+
+OverlayWaveCtx D_actor_206100_80158CCC = { 0 };
 
 /// Screen-wave child `func_actor_206100_8014CB68` starts off
 /// `D_actor_206100_80158AF0`.  State 0 seeds the column and row phases, parks
@@ -900,7 +1415,7 @@ static void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 a
                 gte_ldsv(dir);
                 gte_gpf12();
                 gte_stsv(dir);
-                Gp_SpawnEff(0x600E0, coord, param, dir);
+                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
             }
             break;
 
@@ -925,7 +1440,7 @@ static void func_actor_206100_8014A70C(GpCoord* coord, u16 arg1, u16 arg2, u32 a
                 gte_ldsv(dir);
                 gte_gpf12();
                 gte_stsv(dir);
-                Gp_SpawnEff(0x600E0, coord, param, dir);
+                Gp_SpawnEff(0x600E0, coord, (s32)(param), dir);
             }
             break;
     }
@@ -1341,7 +1856,7 @@ static void func_actor_206100_8014B8B4(Task* task)
     mode  = 1;
     if (Gp_StateF0.field_4 == 0) {
         child->field_5A   += 2;
-        *(u32*)&coord->flg = 0;
+        *&coord->flg = 0;
         coord->coord.t[0] += child->field_58;
         coord->coord.t[1] += child->field_5A;
         coord->coord.t[2] += child->field_5C;
@@ -1630,7 +2145,7 @@ static void func_actor_206100_8014BEC4(GpCoord* coord, s16 yaw)
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
     Actor206100_AccumulateRotation(coord, rotation, &gGfxViewCoord);
-    func_8004BFF8(yaw, rotation);
+    RotMatrixY(yaw, rotation);
     out = Actor206100_LocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
@@ -1707,8 +2222,8 @@ static void func_actor_206100_8014C274(Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    D_801818B8      = 1;
-    work->field_536 = D_80181A48;
+    D_neo_ark_submarine_gallery_801818B8      = 1;
+    work->field_536 = (u16)D_neo_ark_submarine_gallery_80181A48.height;
     for (i = 0; i < 2; i++) {
         D_actor_206100_80158CBC[i].enemy = NULL;
         D_actor_206100_80158CBC[i].timer = 0;
@@ -1727,7 +2242,7 @@ static void func_actor_206100_8014C274(Task* task)
     work->field_526   = 0x2710;
     coord->coord.t[1] = 0x2710;
     coord->coord.t[2] = 0;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     state            = (Actor206100Work*)task->work;
     task->state      = 1;
     state->field_520 = 0;
@@ -1759,9 +2274,9 @@ static void func_actor_206100_8014F524(Task* task);
 static void func_actor_206100_8014CFF4(Task* task);
 static void func_actor_206100_8014D380(Task* task);
 static void func_actor_206100_8014D6F4(Task* task);
-static void func_actor_206100_8014F59C(void);
-static void func_actor_206100_8014F5A4(void);
-static void func_actor_206100_8014F5AC(void);
+static void func_actor_206100_8014F59C(Task* task);
+static void func_actor_206100_8014F5A4(Task* task);
+static void func_actor_206100_8014F5AC(Task* task);
 static void func_actor_206100_8014F5B4(Task* task);
 static void func_actor_206100_8014F608(Task* task);
 
@@ -1771,9 +2286,9 @@ static const TaskFuncTable9 D_actor_206100_80149E70 = {
         func_actor_206100_8014CFF4,
         func_actor_206100_8014D380,
         func_actor_206100_8014D6F4,
-        (TaskFunc)func_actor_206100_8014F59C,
-        (TaskFunc)func_actor_206100_8014F5A4,
-        (TaskFunc)func_actor_206100_8014F5AC,
+        func_actor_206100_8014F59C,
+        func_actor_206100_8014F5A4,
+        func_actor_206100_8014F5AC,
         func_actor_206100_8014F5B4,
         func_actor_206100_8014F608,
     },
@@ -1906,7 +2421,7 @@ static void func_actor_206100_8014C458(Task* task)
             scratch.matrix.ident.m20_m21        = 0;
             mtx->matrix.mat.m[2][2]             = 0x1000;
             RotMatrixZ(pose->field_440, &mtx->matrix.mat);
-            func_8004BFF8(pose->field_43E, &mtx->matrix.mat);
+            RotMatrixY(pose->field_43E, &mtx->matrix.mat);
             dest                    = &destcoord->coord;
             dest->m[0][0]           = scratch.matrix.mat.m[0][0];
             dest->m[0][1]           = scratch.matrix.mat.m[0][1];
@@ -1933,7 +2448,7 @@ static void func_actor_206100_8014C458(Task* task)
             func_actor_206100_8014BAA8(task);
             if (work->field_555 != 0) {
                 root  = &task->extra.tmd->coords[4];
-                spawn = Task_SpawnFromTable(&D_actor_206100_80158B0C, 1, 0, 0);
+                spawn = Task_SpawnFromTable(D_actor_206100_80158B0C, 1, 0, 0);
                 if (spawn != NULL) {
                     beam = memCalloc(0x68, 0);
                     if (beam == NULL) {
@@ -2079,7 +2594,7 @@ static void func_actor_206100_8014CB68(Task* task)
         D_actor_206100_80158CCC.blend = 1;
         D_actor_206100_80158CCC.g     = 0x80;
         D_actor_206100_80158CCC.b     = 0x80;
-        work->field_4F8               = Task_SpawnFromTable(&D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
+        work->field_4F8               = Task_SpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
     }
 }
 static void func_actor_206100_8014CD08(Task* task)
@@ -2125,8 +2640,8 @@ static void func_actor_206100_8014CD08(Task* task)
     func_actor_206100_8014EA8C(task, 0x30, work->field_43E);
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
-/// `D_801818B8` flag, ticks the per-state counter `field_51E` and seeds
-/// `D_actor_206100_80158CD0` with 2 on its first frame.
+/// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
+/// `D_actor_206100_80158CCC.state` with 2 on its first frame.
 ///
 /// Frame 3 retires the child task `func_actor_206100_8014CB68` spawned into
 /// `field_4F8` and, if the kill left the counter where it was, fires the
@@ -2152,11 +2667,11 @@ static void func_actor_206100_8014CE60(Task* task)
     s16              frame;
 
     work            = (Actor206100Work*)task->work;
-    D_801818B8      = 0;
+    D_neo_ark_submarine_gallery_801818B8      = 0;
     coord           = task->extra.tmd->coords;
     work->field_51E = work->field_51E + 1;
     if ((s16)work->field_51E == 1) {
-        D_actor_206100_80158CD0 = 2;
+        D_actor_206100_80158CCC.state = 2;
     }
     frame = (s16)work->field_51E;
     if (frame == 3) {
@@ -2401,15 +2916,14 @@ static const TaskFuncTable3 D_actor_206100_80149EB4 = {
 
 /// The last object in this unit's `.rodata`, one object after
 /// `D_actor_206100_80149EB4` and flush against the unit's first code address:
-/// the four handlers `func_actor_206100_8014E7D4` dispatches between.  The cast
-/// is the second argument its call passes, which the four one-argument handlers
-/// ignore -- see `Actor206100StateTable4`.
+/// the four handlers `func_actor_206100_8014E7D4` dispatches between. They
+/// ignore the table pointer supplied as their second argument.
 static const Actor206100StateTable4 D_actor_206100_80149EC0 = {
     {
-        (Actor206100StateFunc)func_actor_206100_8014FBE4,
-        (Actor206100StateFunc)func_actor_206100_8014FCD4,
-        (Actor206100StateFunc)func_actor_206100_8014E964,
-        (Actor206100StateFunc)func_actor_206100_8014FDE8,
+        func_actor_206100_8014FBE4,
+        func_actor_206100_8014FCD4,
+        func_actor_206100_8014E964,
+        func_actor_206100_8014FDE8,
     },
 };
 
@@ -2705,7 +3219,7 @@ static void func_actor_206100_8014DA28(Task* task)
             matrix.ident.m20_m21   = 0;
             mtx->m[2][2]           = 0x1000;
             RotMatrixZ(sub->field_440, &matrix.mat);
-            func_8004BFF8(sub->field_43E, &matrix.mat);
+            RotMatrixY(sub->field_43E, &matrix.mat);
             dest                    = &coord->coord;
             dest->m[0][0]           = matrix.mat.m[0][0];
             dest->m[0][1]           = matrix.mat.m[0][1];
@@ -3079,7 +3593,7 @@ static void func_actor_206100_8014E228(Task* task)
         limit = -0x200;
     }
     RotMatrixX((s32)limit, &mc.mat);
-    func_8004BFF8((s16)(u16)work->field_35E / 3, &mc.mat);
+    RotMatrixY((s16)((s16)(u16)work->field_35E / 3), &mc.mat);
     TransposeMatrix(&c1->coord, &t1);
     TransposeMatrix(&c2->coord, &t2);
     TransposeMatrix(&c3->coord, &t3);
@@ -3155,7 +3669,7 @@ static void func_actor_206100_8014E7D4(Task* task)
 /// materialises `i` shares a block with the case-3 increment, post-reload CSE
 /// folds that increment's `+ 1` into `+ $s0`, and the phase is written with
 /// `addu`.  Here the branch targets the initialiser instead.
-static void func_actor_206100_8014E964(Task* task)
+static void func_actor_206100_8014E964(Task* task, void* unusedTable)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3541,15 +4055,15 @@ static void func_actor_206100_8014F524(Task* task)
     sp.funcs[(s16)work->field_522](task);
 }
 
-static void func_actor_206100_8014F59C(void)
+static void func_actor_206100_8014F59C(Task* task)
 {
 }
 
-static void func_actor_206100_8014F5A4(void)
+static void func_actor_206100_8014F5A4(Task* task)
 {
 }
 
-static void func_actor_206100_8014F5AC(void)
+static void func_actor_206100_8014F5AC(Task* task)
 {
 }
 
@@ -3804,7 +4318,7 @@ static void func_actor_206100_8014FAE4(Task* task)
     last->field_522 = 0;
 }
 
-static void func_actor_206100_8014FBE4(Task* task)
+static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
 {
     Actor206100Work* work;
     GpEnemy*         enemy;
@@ -3814,7 +4328,7 @@ static void func_actor_206100_8014FBE4(Task* task)
     work  = (Actor206100Work*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     SndEvt_EnqueueType7(0x551E0002, 1);
-    Gp_ApplyAreaRecs(&D_8018590C);
+    Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
     work->field_526 = work->field_536;
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(task, 0);
@@ -3848,7 +4362,7 @@ static void func_actor_206100_8014FBE4(Task* task)
 /// and threads the branch past it.  See `DECOMPILATION_LEARNINGS.md`, "A
 /// constant store in a delay slot decides whether post-reload CSE folds it into
 /// a later increment".
-static void func_actor_206100_8014FCD4(Task* task)
+static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3894,7 +4408,7 @@ static void func_actor_206100_8014FCD4(Task* task)
 /// loads to be scheduled first, which is the target's order; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store".
-static void func_actor_206100_8014FDE8(Task* task)
+static void func_actor_206100_8014FDE8(Task* task, void* unusedTable)
 {
     Actor206100Work* work;
     Actor206100Work* next;
@@ -3906,7 +4420,7 @@ static void func_actor_206100_8014FDE8(Task* task)
     work->field_526 = work->field_526 + 0x10;
     coord->flg      = 0;
     if ((s16)work->field_51E == 0x5A) {
-        Task_SpawnFromTable(&D_801818BC, 0, 0, 0);
+        Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     if ((s16)work->field_51E >= 0x10E) {
         task->state     = 4;

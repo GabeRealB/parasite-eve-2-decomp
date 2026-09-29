@@ -226,7 +226,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     if (lists == NULL) {
         return;
     }
-    place = lists[sess->area].field_0;
+    place = lists[sess->area].field_0.records;
     if (place == NULL) {
         return;
     }
@@ -259,7 +259,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
     if (lists == NULL) {
         return;
     }
-    place = lists[arg0->area].field_0;
+    place = lists[arg0->area].field_0.records;
     if (place == NULL) {
         return;
     }

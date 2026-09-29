@@ -1,6 +1,8 @@
 #ifndef WEAPONS_P229_H
 #define WEAPONS_P229_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -9,5 +11,7 @@
 /// `func_p229_8011D860` quad. Each is a fixed quadrant (`i << 10`) plus a
 /// 10-bit LCG jitter, so the four quads always fan out around the muzzle.
 extern s16 D_p229_8012B658[4];
+
+void func_p229_8011D1DC(Task* task);
 
 #endif

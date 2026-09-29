@@ -1,3 +1,5 @@
+#include "dryfield_toilet_private.h"
+
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -16,16 +18,29 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "gameplay/animation.h"
+
 /// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
 /// type 7): the one the running scene starts and the one it parks in
 /// `D_801156D0` for the task that follows it.
-extern s32 D_dryfield_toilet_80180C58;
-extern s32 D_dryfield_toilet_80180F40;
+extern GpEvsCmd D_dryfield_toilet_80180C58[];
+extern GpEvsCmd D_dryfield_toilet_80180F40[];
 
 /// The room task's message table (published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
 /// hands that call as `arg2`.
-extern s32 D_dryfield_toilet_801802A4;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, s32, s32);
+        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+    } handler;
+} DryfieldToiletMessageEntry;
+STATIC_ASSERT_SIZEOF(DryfieldToiletMessageEntry, 8);
+
+extern DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6];
 extern s32 D_dryfield_toilet_801802D4;
 
 /// The template the room's collision grid is restored from, and the grid
@@ -39,6 +54,103 @@ static void func_dryfield_toilet_8017D9D4(Task* task);
 /// The room task's three states: entry, idle and `taskKill`.
 static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
+};
+
+s32 func_dryfield_toilet_8017D810(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_toilet_8017D884(Task *, s32, s32, s32);
+s32 func_dryfield_toilet_8017D8B8(void);
+s32 func_dryfield_toilet_8017D8C0(void);
+s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg *, RoomEventMsg *);
+
+DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
+    { 5102, { .call2 = func_dryfield_toilet_8017D810 } },
+    { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
+    { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
+    { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
+    { 5106, { .call1 = func_dryfield_toilet_8017D884 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+s32 D_dryfield_toilet_801802D4 = 4098;
+
+SVECTOR D_dryfield_toilet_801802D8[1] = {
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_dryfield_toilet_801802E0[4] = {
+    { -830, 80, -590, 0 },
+    { -830, -2010, -590, 0 },
+    { -2250, -2010, -590, 0 },
+    { -2250, 80, -590, 0 },
+};
+
+GpGridFace D_dryfield_toilet_80180300[1] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+};
+
+s16 D_dryfield_toilet_8018030C[2] = {
+    0,
+    -1,
+};
+
+s16 * D_dryfield_toilet_80180310[1] = {
+    D_dryfield_toilet_8018030C,
+};
+
+GpGridParams D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} DryfieldToiletPoseBank2D78;
+
+DryfieldToiletPoseBank2D78 D_dryfield_toilet_80180338 = { .poses = {
+#include "assets/dryfield_toilet_animation_03054_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_toilet_80180380[46] = {
+#include "assets/dryfield_toilet_animation_03054_bank4.inc"
+};
+
+GpAnimRec D_dryfield_toilet_80180438[109] = {
+#include "assets/dryfield_toilet_animation_03054_records.inc"
+};
+
+u16 D_dryfield_toilet_801805EC[20] = {
+#include "assets/dryfield_toilet_animation_03054_indices.inc"
+};
+
+GpAnimSet D_dryfield_toilet_80180614 = {
+    D_dryfield_toilet_80180438, D_dryfield_toilet_801805EC,
+    { NULL, D_dryfield_toilet_80180338.words, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} DryfieldToiletPoseBank307C;
+
+DryfieldToiletPoseBank307C D_dryfield_toilet_8018063C = { .poses = {
+#include "assets/dryfield_toilet_animation_035A4_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_toilet_801806A8[131] = {
+#include "assets/dryfield_toilet_animation_035A4_bank4.inc"
+};
+
+GpAnimRec D_dryfield_toilet_801808B4[162] = {
+#include "assets/dryfield_toilet_animation_035A4_records.inc"
+};
+
+u16 D_dryfield_toilet_80180B3C[20] = {
+#include "assets/dryfield_toilet_animation_035A4_indices.inc"
+};
+
+GpAnimSet D_dryfield_toilet_80180B64 = {
+    D_dryfield_toilet_801808B4, D_dryfield_toilet_80180B3C,
+    { NULL, D_dryfield_toilet_8018063C.words, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
 };
 
 /// Restores one face of the room's collision grid (its normal, four corners and
@@ -82,7 +194,7 @@ static void func_dryfield_toilet_8017D5E4(void)
 s32 func_dryfield_toilet_8017D810(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->msgId == 0xF && in->field_5 == 0) {
+    if (in->prefix.packed == 0xF && in->field_5 == 0) {
         out->field_3 = GameFlag_GetNibble(0x61) + 1;
     }
     return 1;
@@ -118,7 +230,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
     u8 subId = in->field_2;
 
     if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == subId) {
-        func_800E8634(&D_dryfield_toilet_80180C58, 1, &D_dryfield_toilet_80180F40);
+        func_800E8634(D_dryfield_toilet_80180C58, 1, D_dryfield_toilet_80180F40);
         GameFlag_SetNibble(0x60, 1);
     }
     return 0;
@@ -131,7 +243,7 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 /// the next state either way.
 static void func_dryfield_toilet_8017D940(Task* arg0)
 {
-    arg0->msgTable = &D_dryfield_toilet_801802A4;
+    arg0->msgTable = D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == 1) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_toilet_801802D4, 0x7DB);

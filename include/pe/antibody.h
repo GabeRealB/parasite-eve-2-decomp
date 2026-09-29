@@ -1,9 +1,10 @@
 #ifndef PE_ANTIBODY_H
 #define PE_ANTIBODY_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
-
 
 /// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
@@ -45,5 +46,9 @@ typedef struct AntibodyArcScratch {
     /* 0x26 */ s16     sy1;
 } AntibodyArcScratch;
 STATIC_ASSERT_SIZEOF(AntibodyArcScratch, 0x28);
+
+void func_antibody_8012F734(Task* arg0);
+
+void func_antibody_8012EF34(Task* arg0);
 
 #endif /* PE_ANTIBODY_H */

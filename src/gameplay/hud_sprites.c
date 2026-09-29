@@ -1332,7 +1332,7 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     SCRATCH_POP(_GpRelMatScratch);
 }
 
-s32 Gp_TrySpawnViewTask(s32 arg0)
+s32 Gp_TrySpawnViewTask(GpViewRec* arg0)
 {
     return Task_Spawn(0, 0xF, 0, arg0) != NULL;
 }

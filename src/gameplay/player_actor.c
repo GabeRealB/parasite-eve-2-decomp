@@ -187,15 +187,6 @@ typedef struct _GpPitchScratch {
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
-/// Argument for `func_801052B8`. `field_0` is copied onto
-/// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
-typedef struct _GpCountArg {
-    /* 0x0 */ u16  field_0;
-    /* 0x2 */ byte pad_2[2];
-    /* 0x4 */ s32  field_4;
-} GpCountArg;
-STATIC_ASSERT_SIZEOF(GpCountArg, 8);
-
 /// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
 /// are passed to `Pad_PostEvent` (`lbu` / `lh`).
 typedef struct _GpPadEvt {
@@ -291,6 +282,7 @@ typedef struct {
         s32 (*call3)(Task*, s32, GpFacingArg*);
         s32 (*call4)(Task*);
         s32 (*call5)(Task*, s32, s32);
+        s32 (*coord)(Task*, s32, GpCoord*);
         s32 (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
         s32 (*call7)(Task*, s32, GpAnimArg*);
         s32 (*call8)(Task*, s32, GpCountArg*);
@@ -336,8 +328,6 @@ static const TaskFuncTable12 Gp_PlayerMode2States;
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.
 s32 func_80104508(Task* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
-
-s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -431,15 +421,11 @@ static GpCoord* func_8010403C(s32 arg0);
 
 static void func_801041FC(Task* arg0, s32 arg1);
 
-s32 func_80104684(Task* arg0, s32 arg1, s32 arg2);
-
 static void func_80104A4C(Task* arg0);
 
 static void func_80104AAC(Task* arg0);
 
 s32 func_80104CAC(Task* arg0, s32 arg1, GpAnimArg* arg2);
-
-s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2);
 
 /// Puts the player in `field_954` mode 2 (`Gp_TickPlayerMode2`): clears the
 /// movement state and the HUD flag, re-applies the equipped weapon, and during
@@ -450,27 +436,17 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2);
 
 s32 func_80105190(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 
-s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2);
-
 s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
 s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_80105754(Task* arg0);
 
-s32 func_80105828(Task* arg0);
-
-s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2);
-
 s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2);
 
 s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2);
 
-s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2);
-
 s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2);
-
-s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2);
 
 static void func_80105B0C(Task* arg0);
 
@@ -478,7 +454,7 @@ static void func_8010615C(Task* arg0);
 
 static s32 func_801062DC(Task* arg0, s32 arg1);
 
-static void func_801065A0(void);
+static void func_801065A0(Task* task);
 
 static void func_801065A8(Task* arg0);
 
@@ -541,7 +517,7 @@ static void func_80109138(Task* arg0);
 
 static void Gp_PlayerMode1State0(Task* arg0);
 
-static void Gp_PlayerMode1State3(void);
+static void Gp_PlayerMode1State3(Task* task);
 
 static void func_80109210(Task* arg0);
 
@@ -970,7 +946,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { 1010, { .call6 = Gp_SetActorDest } },
     { 1011, { .call5 = func_80104684 } },
     { 1012, { .call7 = func_80104B54 } },
-    { 1013, { .call5 = func_80105A60 } },
+    { 1013, { .coord = func_80105A60 } },
     { 1014, { .call8 = func_801052B8 } },
     { 1015, { .call9 = Gp_CopyPlayerAnim } },
     { 1016, { .call10 = func_801054D8 } },
@@ -1593,7 +1569,7 @@ void Gp_EffSprTask81(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
-                Gp_SpawnEff(0x6003F, coord, mem->scale, 0);
+                Gp_SpawnEff(0x6003F, coord, (s32)(mem->scale), 0);
             }
             break;
         case 4:
@@ -2116,7 +2092,7 @@ void Gp_EffSprTask30(Task* arg0)
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
-                        Gp_SpawnEff(0x600A7, coord, mem->pos.vx, NULL);
+                        Gp_SpawnEff(0x600A7, coord, (s32)(mem->pos.vx), NULL);
                     }
                     Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
@@ -2158,7 +2134,7 @@ void Gp_EffSprTask30(Task* arg0)
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     rnd          = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
-                        Gp_SpawnEff(0x600A7, coord, mem->pos.vx, NULL);
+                        Gp_SpawnEff(0x600A7, coord, (s32)(mem->pos.vx), NULL);
                     }
                     Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
@@ -2343,7 +2319,7 @@ static void Gp_EffTask07State1(Task* arg0)
             return;
         }
         Gp_SpawnEff(spawnId, slot->extra.tmd->coords,
-                    Gp_StateC08.field_2, 0);
+                    (s32)(Gp_StateC08.field_2), 0);
     } else if (kind == 1) {
         idx = ((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
               ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 - 1;
@@ -4761,7 +4737,7 @@ static void Gp_TeardownSlot0(Task* arg0)
     Gp_UnlinkObj((GpObj*)inner->field_EC);
     Gp_UnlinkObj((GpObj*)inner->field_10C);
     Gp_UnlinkObj((GpObj*)inner->field_12C);
-    taskKill((Task*)arg0);
+    taskKill(arg0);
 }
 
 void Gp_PlayerWorkTask(Task* arg0)
@@ -5422,7 +5398,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    task->parent            = (Task*)arg0;
+    task->parent            = arg0;
     coord                   = task->extra.tmd->coords;
     coord->sub              = saved;
     coord->param.clearFlags = 0;
@@ -5480,7 +5456,7 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
     return task;
 }
 
-s32 Gp_SpawnWeaponEff(void)
+Task* Gp_SpawnWeaponEff(void)
 {
     Task*         work;
     GameActor*    actor;
@@ -5568,7 +5544,7 @@ join_50:
     func_801066DC(work, 1);
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
-    return (s32)actor->field_91C;
+    return actor->field_91C;
 }
 
 Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
@@ -5956,7 +5932,7 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    task->parent            = (Task*)arg0;
+    task->parent            = arg0;
     coord                   = task->extra.tmd->coords;
     coord->sub              = saved;
     coord->param.clearFlags = 0;
@@ -5991,7 +5967,7 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         return NULL;
     }
     extra                   = task->extra.tmd;
-    task->parent            = (Task*)arg0;
+    task->parent            = arg0;
     coord                   = extra->coords;
     coord->sub              = saved;
     coord->param.clearFlags = 1;
@@ -6046,7 +6022,7 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         return NULL;
     }
     extra                = task->extra.tmd;
-    task->parent         = (Task*)arg0;
+    task->parent         = arg0;
     (extra->coords)->sub = saved;
     return task;
 }
@@ -6793,7 +6769,7 @@ s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GpAnimSlot* slot;
 
-    slot = (GpAnimSlot*)((arg1 * sizeof(GpAnimSlot)) + (s32)((GameActor*)arg0->work)->field_438);
+    slot = &((GameActor*)arg0->work)->field_438[(u32)arg1];
     return (slot->flags & 0x102) == 0;
 }
 
@@ -6830,7 +6806,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  count;
 
     dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon];
-    src        = arg2->words;
+    src        = arg2->source.words;
     count      = arg2->count;
     if (count >= 0x21) {
         return 1;
@@ -6861,9 +6837,9 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     return ret;
 }
 
-s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
+s32 func_80105A60(Task* arg0, s32 arg1, GpCoord* arg2)
 {
-    Gp_ReparentCoord((GpCoord*)arg2, arg0->extra.tmd->coords);
+    Gp_ReparentCoord(arg2, arg0->extra.tmd->coords);
     return 0;
 }
 
@@ -7085,17 +7061,17 @@ s32 func_801060E0(Task* arg0)
 /// `func_8010615C`. Most live in the weapon overlay loaded at the time;
 /// `func_801065A0` serves the weapons with none.
 static const TaskFuncTable33 D_800978BC = { {
-    (TaskFunc)func_801065A0,
+    func_801065A0,
     func_8011D1D8,
     func_8011D1C4,
     func_8011D1DC,
     func_8011D1D8,
     func_8011DDA0,
-    (TaskFunc)func_801065A0,
-    (TaskFunc)func_801065A0,
-    (TaskFunc)func_801065A0,
+    func_801065A0,
+    func_801065A0,
+    func_801065A0,
     func_8011D1D8,
-    (TaskFunc)func_801065A0,
+    func_801065A0,
     func_8011D1D4,
     func_8011D1D4,
     func_8011D1DC,
@@ -7103,13 +7079,13 @@ static const TaskFuncTable33 D_800978BC = { {
     func_8011D1DC,
     func_8011D1C4,
     func_8011D1DC,
-    (TaskFunc)func_801065A0,
+    func_801065A0,
     func_8011DBFC,
     func_8011D1C4,
     func_8011D1C4,
     func_8011F724,
     func_8011E040,
-    (TaskFunc)func_801065A0,
+    func_801065A0,
     func_8011E710,
     func_8011DA34,
     func_8011D1EC,
@@ -7250,7 +7226,7 @@ void func_80106550(Task* arg0)
     }
 }
 
-static void func_801065A0(void)
+static void func_801065A0(Task* task)
 {
 }
 
@@ -7609,7 +7585,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 temp             = actor->field_98F;
                 actor->field_95E = 1;
                 if (temp == 0) {
-                    Gp_SpawnEff(0x6006E, coord, Player_Status.weapon, NULL);
+                    Gp_SpawnEff(0x6006E, coord, (s32)(Player_Status.weapon), NULL);
                 }
             }
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
@@ -8658,7 +8634,7 @@ static const TaskFuncTable4 Gp_PlayerMode1States = { {
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
     Gp_PlayerMode1State0,
-    (TaskFunc)Gp_PlayerMode1State3,
+    Gp_PlayerMode1State3,
 } };
 
 static void Gp_TickPlayerMode1(Task* arg0)
@@ -8795,7 +8771,7 @@ static void Gp_PlayerMode1State0(Task* arg0)
     }
 }
 
-static void Gp_PlayerMode1State3(void)
+static void Gp_PlayerMode1State3(Task* task)
 {
 }
 

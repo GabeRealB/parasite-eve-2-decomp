@@ -1,6 +1,8 @@
 #ifndef PE_COMBUSTION_H
 #define PE_COMBUSTION_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -21,5 +23,13 @@ typedef struct CombustionStep {
     /* 0x6 */ s16 field_6;
 } CombustionStep;
 STATIC_ASSERT_SIZEOF(CombustionStep, 0x8);
+
+void func_combustion_8012EF34(Task* arg0);
+
+void func_combustion_8012F2BC(Task* arg0);
+
+void func_combustion_8012F888(Task* arg0);
+
+void func_combustion_801308E0(Task* arg0);
 
 #endif /* PE_COMBUSTION_H */

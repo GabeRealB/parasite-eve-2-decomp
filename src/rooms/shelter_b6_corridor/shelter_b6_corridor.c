@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b6_corridor.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -36,7 +38,19 @@
 #include "main/task.h"
 #include "overlay.h"
 
-extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+#include "gameplay/message.h"
+
+#include "gameplay/animation.h"
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -45,28 +59,527 @@ extern s32 D_shelter_b6_corridor_8017EF20;
 /// The room task's message records.
 extern GpMsgEntry D_shelter_b6_corridor_8017EF24[];
 
-extern s32 D_shelter_b6_corridor_8017F354;
-extern s32 D_shelter_b6_corridor_8017F684;
-
-extern SVECTOR D_shelter_b6_corridor_8017F834[];
-extern SVECTOR D_shelter_b6_corridor_8017F844[];
-extern SVECTOR D_shelter_b6_corridor_8017F874[];
+extern GpEvsCmd D_shelter_b6_corridor_8017F354[];
+extern GpEvsCmd D_shelter_b6_corridor_8017F684[];
 
 /// The context the wave task was spawned with: its ramp limit, peak, mode and
 /// tint.
 extern OverlayWaveCtx* D_shelter_b6_corridor_80180568;
 
 /// Phase records of the wave's 9 column edges and 30 row edges.
-extern OverlayWaveRec D_shelter_b6_corridor_8018056C[9];
+extern OverlayWaveRec D_shelter_b6_corridor_8018056C[10];
 extern OverlayWaveRec D_shelter_b6_corridor_801805BC[30];
 
 /// The two 8 by 30 quad grids, one per frame-buffer half.
-extern POLY_FT4 D_shelter_b6_corridor_801807EC[][30][8];
+// The task starts at row 1 and draws rows -1 through 28.
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    POLY_FT4 value[2][30][8];
+    u8 retained[4];
+} ShelterB6CorridorStorage06AC;
+STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage06AC, 19204);
 
-extern s16 D_shelter_b6_corridor_801851B0;
+extern ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC;
+
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    s16 value;
+    u8 retained[6];
+} ShelterB6CorridorStorage51B0;
+STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage51B0, 8);
+
+extern ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 extern s32 D_shelter_b6_corridor_801851B8;
 
 static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+// Indexed views below share one contiguous table.
+extern GpAnimArg D_shelter_b6_corridor_8017F27C;
+extern GpCmdArg D_shelter_b6_corridor_8017F34C;
+extern GpCmdArg D_shelter_b6_corridor_8017F350;
+extern GpCopyArg D_shelter_b6_corridor_8017F260;
+void func_shelter_b6_corridor_8017E19C(s32);
+void func_shelter_b6_corridor_8017E204(void);
+
+void func_shelter_b6_corridor_8017E19C(s32);
+void func_shelter_b6_corridor_8017E204(void);
+
+s32 func_shelter_b6_corridor_8017DEA8(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b6_corridor_8017DEB0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b6_corridor_8017DF48(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b6_corridor_8017E020(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b6_corridor_8017E028(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b6_corridor_8017D5D0(Task *);
+
+TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
+    { 0, 192, func_shelter_b6_corridor_8017D5D0, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_shelter_b6_corridor_8017EF20 = 256;
+
+GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
+    { 5102, func_shelter_b6_corridor_8017DEB0 },
+    { 5105, func_shelter_b6_corridor_8017DEA8 },
+    { 5103, func_shelter_b6_corridor_8017E020 },
+    { 5104, func_shelter_b6_corridor_8017DF48 },
+    { 5108, func_shelter_b6_corridor_8017E028 },
+    { 0x7FFFFFFF, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB6CorridorPoseBank1994;
+
+ShelterB6CorridorPoseBank1994 D_shelter_b6_corridor_8017EF54 = { .poses = {
+#include "assets/shelter_b6_corridor_animation_01C70_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b6_corridor_8017EF9C[46] = {
+#include "assets/shelter_b6_corridor_animation_01C70_bank4.inc"
+};
+
+GpAnimRec D_shelter_b6_corridor_8017F054[109] = {
+#include "assets/shelter_b6_corridor_animation_01C70_records.inc"
+};
+
+u16 D_shelter_b6_corridor_8017F208[20] = {
+#include "assets/shelter_b6_corridor_animation_01C70_indices.inc"
+};
+
+GpAnimSet D_shelter_b6_corridor_8017F230 = {
+    D_shelter_b6_corridor_8017F054, D_shelter_b6_corridor_8017F208,
+    { NULL, D_shelter_b6_corridor_8017EF54.words, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_shelter_b6_corridor_8017F258[2] = {
+    NULL,
+    &D_shelter_b6_corridor_8017F230,
+};
+
+GpCopyArg D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, 2 };
+
+GpAnimArg D_shelter_b6_corridor_8017F268 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_shelter_b6_corridor_8017F27C = { { .index = 1 }, 48, 1, 20, 0 };
+
+GpAnimArg D_shelter_b6_corridor_8017F290[5] = {
+    { { .index = 0 }, 1, 0, 0, 0 },
+    { { .index = 0 }, 1, 1, 10, 0 },
+    { { .index = 0 }, 2, 1, 8, 0 },
+    { { .index = 0 }, 3, 0, 0, 0 },
+    { { .index = 0 }, 4, 1, 4, 0 },
+};
+
+GpXformArg D_shelter_b6_corridor_8017F2F4 = { { 7000, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_shelter_b6_corridor_8017F30C = { { 7800, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_shelter_b6_corridor_8017F324 = { { 0x4E20, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+
+GpCmdArg D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
+
+GpCmdArg D_shelter_b6_corridor_8017F340 = { { .loc = { 5, 24 } }, 2 };
+
+GpSpawnAnimArg D_shelter_b6_corridor_8017F344 = { 3, 4 };
+
+GpCmdArg D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
+
+GpCmdArg D_shelter_b6_corridor_8017F350 = { { .loc = { 5, 24 } }, 1 };
+
+GpEvsCmd D_shelter_b6_corridor_8017F354[34] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_corridor_8017F260 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_corridor_8017E204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F34C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F350 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F33C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b6_corridor_8017F2F4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_corridor_8017F30C }, { .storage = &D_shelter_b6_corridor_8017F344 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x55180004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F340 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_corridor_8017F324 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_corridor_8017E19C }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b6_corridor_8017F684[18] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_corridor_8017E204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_corridor_8017F260 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F34C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2011 }, { .storage = &D_shelter_b6_corridor_8017F350 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_corridor_8017E19C }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_shelter_b6_corridor_8017F834[16] = {
+    { 2000, -3250, 1450, 0 },
+    { 2000, -400, 1450, 0 },
+    { 4000, -3250, 1450, 0 },
+    { 4000, -400, 1450, 0 },
+    { 6000, -3250, 1450, 0 },
+    { 6000, -400, 1450, 0 },
+    { 8000, -3250, 1450, 0 },
+    { 8000, -400, 1450, 0 },
+    { 2000, -3250, -1450, 0 },
+    { 2000, -400, -1450, 0 },
+    { 4000, -3250, -1450, 0 },
+    { 4000, -400, -1450, 0 },
+    { 6000, -3250, -1450, 0 },
+    { 6000, -400, -1450, 0 },
+    { 8000, -3250, -1450, 0 },
+    { 8000, -400, -1450, 0 },
+};
+
+u8 * D_shelter_b6_corridor_8017F8B4[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b6_corridor_8017F8B8[1] = {
+    { { .bytes = { 5, 0 } } },
+};
+
+GpWarpRec D_shelter_b6_corridor_8017F8BC[2] = {
+    { { .words = { 1024, 430, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 1024, 430, 0, 0 } }, { 0, 0, 0, 0 }, 0x55180001, 0, 0, 4, 0, 0 },
+    { { .words = { 3072, 8400, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, 8400, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0x55180003, 0, 3, 0, 0 },
+};
+
+SVECTOR D_shelter_b6_corridor_8017F92C[6] = {
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+};
+
+SVECTOR D_shelter_b6_corridor_8017F95C[12] = {
+    { 0, -3500, -1350, 0 },
+    { 0, 0, -750, 0 },
+    { 0, 0, -1350, 0 },
+    { 9000, 0, -1350, 0 },
+    { 9000, -3500, -1350, 0 },
+    { 9000, -3500, 1350, 0 },
+    { 9000, 0, 775, 0 },
+    { 9000, 0, 1350, 0 },
+    { 0, 0, 1350, 0 },
+    { 0, -3500, 1350, 0 },
+    { 9000, 0, -750, 0 },
+    { 0, 0, 775, 0 },
+};
+
+GpGridFace D_shelter_b6_corridor_8017F9BC[12] = {
+    { { 0, 1, 2, 0xFFFF }, 0, 0 },
+    { { 2, 3, 0, 4 }, 1, 0 },
+    { { 5, 6, 7, 0xFFFF }, 2, 0 },
+    { { 7, 8, 5, 9 }, 3, 0 },
+    { { 10, 3, 1, 2 }, 4, 2 },
+    { { 9, 0, 5, 4 }, 5, 0 },
+    { { 11, 8, 6, 7 }, 4, 2 },
+    { { 1, 11, 10, 6 }, 4, 1 },
+    { { 10, 4, 3, 0xFFFF }, 2, 0 },
+    { { 5, 4, 6, 10 }, 2, 0 },
+    { { 11, 9, 8, 0xFFFF }, 0, 0 },
+    { { 0, 9, 1, 11 }, 0, 0 },
+};
+
+s16 D_shelter_b6_corridor_8017FA4C[10] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_b6_corridor_8017FA60[7] = {
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    -1,
+};
+
+s16 D_shelter_b6_corridor_8017FA70[10] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    -1,
+};
+
+s16 * D_shelter_b6_corridor_8017FA84[3] = {
+    D_shelter_b6_corridor_8017FA4C,
+    D_shelter_b6_corridor_8017FA60,
+    D_shelter_b6_corridor_8017FA70,
+};
+
+GpGridParams D_shelter_b6_corridor_8017FA90 = { NULL, D_shelter_b6_corridor_8017F92C, D_shelter_b6_corridor_8017F95C, D_shelter_b6_corridor_8017F9BC, D_shelter_b6_corridor_8017FA84, 0, 1350, 3, 1, 4000, 12 };
+
+GpViewRec D_shelter_b6_corridor_8017FAB4[5] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x61A8, 0 } }, 680 },
+    { { { { 715, 0, 4033 }, { 264, 4087, -46 }, { -4024, 268, 713 } }, { -7040, 1470, 560 } }, 230 },
+    { { { { 682, 0, -4038 }, { -252, 4087, -42 }, { 4030, 256, 681 } }, { -1740, 1470, 560 } }, 230 },
+    { { { { 955, 0, 3982 }, { -1522, 3784, 365 }, { -3680, -1565, 883 } }, { -3190, 170, 810 } }, 230 },
+    { { { { 0, 0, -4096 }, { -860, 4004, 0 }, { 4004, 860, 0 } }, { -6235, 1350, 0 } }, 329 },
+};
+
+GpSprtCmd D_shelter_b6_corridor_8017FB68[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b6_corridor_8017FB78[35] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 32, 1246, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -120, 906, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -88, 1012, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -56, 1009, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -24, 1100, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 8, 1037, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 40, 1007, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -112, 1025, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -80, 1170, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -48, 1167, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -16, 1162, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 16, 1162, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -96, 1174, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -72, 1278, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -48, 1287, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -24, 1296, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 0, 1303, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 24, 1288, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -88, 1256, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 615, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -80, 586, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 591, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 605, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 40, 614, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 556, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -120, 649, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -80, 656, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 662, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 0, 661, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 40, 660, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 80, 598, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 16, 672, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 40, 677, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 64, 672, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 72, 643, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b6_corridor_8017FE34[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 19, 0, 0, { 1, 0 } },
+    { 19, 16, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b6_corridor_8017FE54[22] = {
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -104, 1199, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -72, 1396, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -40, 1450, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -8, 1382, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 24, 1363, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -96, 1422, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -80, 1503, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -56, 1564, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -32, 1581, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -8, 1590, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 16, 1563, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -120, 745, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -80, 745, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -40, 702, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -120, 830, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -80, 926, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -40, 895, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 0, 822, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 40, 799, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 0, 951, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 32, 944, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, -120, 927, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b6_corridor_8018000C[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 11, 0, 0, { 1, 0 } },
+    { 11, 11, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b6_corridor_8018002C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b6_corridor_8018003C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b6_corridor_8018004C[5] = {
+    { { .empty = D_shelter_b6_corridor_8017FB68 }, D_shelter_b6_corridor_8017FB68, NULL },
+    { { .elements = D_shelter_b6_corridor_8017FB78 }, D_shelter_b6_corridor_8017FE34, NULL },
+    { { .elements = D_shelter_b6_corridor_8017FE54 }, D_shelter_b6_corridor_8018000C, NULL },
+    { { .empty = D_shelter_b6_corridor_8018002C }, D_shelter_b6_corridor_8018002C, NULL },
+    { { .empty = D_shelter_b6_corridor_8018003C }, D_shelter_b6_corridor_8018003C, NULL },
+};
+
+GpPointLight D_shelter_b6_corridor_80180088[1] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4600, -2750, -50 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 5000, 0x2710 },
+};
+
+GpRoomCoordSet D_shelter_b6_corridor_801800E8 = { 0, NULL, 1, D_shelter_b6_corridor_80180088, 0, NULL };
+
+GpObj4C D_shelter_b6_corridor_80180100[6] = {
+    { NULL, NULL, NULL, { 4576, -2065, 96, 0 }, { { 0, -2528, 2144, 0 }, { 0, -2528, -2144, 0 }, { 0, 2528, 2144, 0 }, { 0, 2528, -2144, 0 } }, { -4112, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 4384, -2177, 128, 0 }, { { 0, -2480, -2256, 0 }, { 0, -2480, 2256, 0 }, { 0, 2480, -2256, 0 }, { 0, 2480, 2256, 0 } }, { 4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 1245, -1952, 924, 0 }, { { -571, -2528, 1161, 0 }, { 572, -2528, -1161, 0 }, { -571, 2528, 1161, 0 }, { 572, 2528, -1161, 0 } }, { -3684, 0, -1813, 0 }, { 0, 0, 4096, 0 }, 2839, 0, 4, 2, 1, 0 },
+    { NULL, NULL, NULL, { 1048, -1952, 1047, 0 }, { { 611, -2480, -1198, 0 }, { -612, -2480, 1198, 0 }, { 611, 2480, -1198, 0 }, { -612, 2480, 1198, 0 } }, { 3657, 0, 1865, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 2, 4, 1, 0 },
+    { NULL, NULL, NULL, { 1567, -2080, -1409, 0 }, { { 233, -2528, 1273, 0 }, { -232, -2528, -1273, 0 }, { 233, 2528, 1273, 0 }, { -232, 2528, -1273, 0 } }, { -4038, 0, 736, 0 }, { 0, 0, 4096, 0 }, 2839, 0, 4, 2, 1, 0 },
+    { NULL, NULL, NULL, { 1439, -2016, -1409, 0 }, { { -222, -2480, -1327, 0 }, { 223, -2480, 1327, 0 }, { -222, 2480, -1327, 0 }, { 223, 2480, 1327, 0 } }, { 4050, 0, -680, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 2, 4, 129, 0 },
+};
+
+GpAreaTmdRec D_shelter_b6_corridor_801802C8[5] = {
+    { 131, 505, 2, 0, { 0, 0 }, D_80168EA4 },
+    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
+    { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
+    { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_shelter_b6_corridor_80180304[13] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017C0F0, D_shelter_b6_corridor_801802C8 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpObj4C D_shelter_b6_corridor_8018036C[5] = {
+    { NULL, NULL, NULL, { 512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1144, 0, 9, 17, 2, 0 },
+    { NULL, NULL, NULL, { 8512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1144, 0, 25, 33, 2, 0 },
+    { NULL, NULL, NULL, { 2752, -64, 704, 0 }, { { -1056, 0, -608, 0 }, { 1056, 0, -608, 0 }, { -1056, 0, 608, 0 }, { 1056, 0, 608, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, -4096, 0 }, 1214, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4384, -64, -688, 0 }, { { -1056, 0, -688, 0 }, { 1056, 0, -688, 0 }, { -1056, 0, 688, 0 }, { 1056, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1254, 2, 3, 255, 2, 0 },
+    { NULL, NULL, NULL, { 6720, -64, 688, 0 }, { { -1056, 0, -656, 0 }, { 1056, 0, -656, 0 }, { -1056, 0, 656, 0 }, { 1056, 0, 656, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 1241, 2, 4, 255, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_b6_corridor_801804E8[6] = {
+    { 5, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 392, 437, 278, 400 },
+    { 393, 435, 277, 399 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_shelter_b6_corridor_80180518[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+s32 D_shelter_b6_corridor_80180524[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b6_corridor_80180530[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b6_corridor_80180538[1] = {
+    { 0, 0, 1, 0, D_shelter_b6_corridor_80180518 },
+};
+
+GpRoomParamRec D_shelter_b6_corridor_80180540[1] = {
+    { 0, 0, 1, 0, D_shelter_b6_corridor_80180524 },
+};
+
+GpRoomParamRec * D_shelter_b6_corridor_80180548[8] = {
+    D_shelter_b6_corridor_80180530,
+    D_shelter_b6_corridor_80180538,
+    D_shelter_b6_corridor_80180540,
+    D_shelter_b6_corridor_80180530,
+    D_shelter_b6_corridor_80180530,
+    D_shelter_b6_corridor_80180530,
+    D_shelter_b6_corridor_80180530,
+    D_shelter_b6_corridor_80180530,
+};
+
+OverlayWaveCtx * D_shelter_b6_corridor_80180568 = NULL;
+
+// Nine active columns and one retained zero entry.
+OverlayWaveRec D_shelter_b6_corridor_8018056C[10] = { 0 };
+
+OverlayWaveRec D_shelter_b6_corridor_801805BC[30] = { 0 };
+
+ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC = { { 0 }, { 0 } };
+
+ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0 = { 0, { 0, 0, 0, 0, 0, 0 } };
+
+s32 D_shelter_b6_corridor_801851B8 = 0;
+
+#define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
+#define D_shelter_b6_corridor_8017F874 (D_shelter_b6_corridor_8017F834 + 8)
 
 /// Task that ripples the whole screen. On its first frame it gives each of the
 /// 9 column and 30 row edges a random phase offset and speed, takes its
@@ -136,7 +649,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = D_shelter_b6_corridor_801807EC[i];
+                grid   = &D_shelter_b6_corridor_801806AC.value[i][1];
                 for (j = -1; j < 29; j++) {
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
@@ -222,7 +735,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_shelter_b6_corridor_801807EC[gDisplayState.drawBuffer];
+                grid    = &D_shelter_b6_corridor_801806AC.value[gDisplayState.drawBuffer][1];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -268,19 +781,19 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     SCRATCH_POP(OverlayWaveScratch);
 }
 
-s32 func_shelter_b6_corridor_8017DEA8(void)
+s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017DEB0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     u16 id;
     s32 k;
 
     *out = *in;
-    func_80179B14(in, out);
-    k  = in->msgId;
+    func_map_neo_ark_80179B14(in, out);
+    k  = in->prefix.packed;
     id = k;
     k  = 0x19;
     if (id == 9) {
@@ -295,7 +808,7 @@ s32 func_shelter_b6_corridor_8017DEB0(s32 arg0, s32 arg1, RoomEventMsg* in, Room
     return 1;
 }
 
-s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 2:
@@ -329,14 +842,14 @@ s32 func_shelter_b6_corridor_8017DF48(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E020(void)
+s32 func_shelter_b6_corridor_8017E020(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E028(void)
+s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
-    func_800E8634(&D_shelter_b6_corridor_8017F354, 0, &D_shelter_b6_corridor_8017F684);
+    func_800E8634(D_shelter_b6_corridor_8017F354, 0, D_shelter_b6_corridor_8017F684);
     func_800E3FAC(0xA2, 0x2F);
     return 0;
 }
@@ -355,7 +868,7 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
         i   += 1;
         ptr += 1;
     } while (i <= 0x12BFF);
-    D_shelter_b6_corridor_801851B0 = 2;
+    D_shelter_b6_corridor_801851B0.value = 2;
     if (gGameSession->at4.loc.place == 1) {
         gStageSceneMusicEntry    = 2;
         gGameSession->flowFlags |= 1;
@@ -403,7 +916,7 @@ void func_shelter_b6_corridor_8017E204(void)
     Gp_PulseState1C();
 }
 
-static void func_shelter_b6_corridor_8017E238(Task* task)
+void func_shelter_b6_corridor_8017E238(Task* task)
 {
     u8 view;
 
@@ -572,7 +1085,7 @@ static void func_shelter_b6_corridor_8017E360(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_shelter_b6_corridor_8017EBA4(Task* task)
+void func_shelter_b6_corridor_8017EBA4(Task* task)
 {
     GpCoord* coord;
     u8       rgb[3];
@@ -594,7 +1107,7 @@ static void func_shelter_b6_corridor_8017EBA4(Task* task)
     }
 }
 
-static void func_shelter_b6_corridor_8017ECA8(Task* task)
+void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -637,7 +1150,7 @@ static void func_shelter_b6_corridor_8017ECA8(Task* task)
     }
 }
 
-static void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
+void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];

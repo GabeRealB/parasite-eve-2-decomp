@@ -1,6 +1,12 @@
 #ifndef ROOMS_ACROPOLIS_BRIDGE_H
 #define ROOMS_ACROPOLIS_BRIDGE_H
 
+#include "gameplay/area.h"
+
+#include "main/task_types.h"
+
+#include "types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -95,5 +101,21 @@ typedef struct AcropolisBridgeDebrisScratch {
     /* 0x16 */ u16     sy;
 } AcropolisBridgeDebrisScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
+
+void func_acropolis_bridge_8017F868(Task* task);
+void func_acropolis_bridge_801812F4(Task* task);
+void func_acropolis_bridge_801819C8(Task* task);
+void func_acropolis_bridge_80181D28(Task* task);
+void func_acropolis_bridge_80180320(Task* task);
+void func_acropolis_bridge_8018063C(Task* task);
+void func_acropolis_bridge_8018099C(Task* task);
+void func_acropolis_bridge_80180CC0(Task* task);
+void func_acropolis_bridge_80180FF0(Task* task);
+void func_acropolis_bridge_80182694(Task* task);
+void func_acropolis_bridge_80182AF8(Task* task);
+void func_acropolis_bridge_80182394(Task* task);
+extern u8 D_acropolis_bridge_80189A9C[24];
+
+extern GpAreaVariant D_acropolis_bridge_8019004C[12];
 
 #endif

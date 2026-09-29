@@ -1,4 +1,16 @@
 #include "gameplay/item_menu.h"
+#include "rooms/shelter_b1_underground_parking.h"
+#include "rooms/dryfield_night_motel_room_6.h"
+#include "rooms/dryfield_motel_room_6.h"
+#include "rooms/acropolis_west_elevator_hall.h"
+#include "rooms/acropolis_east_elevator_hall.h"
+#include "rooms/acropolis_square.h"
+#include "rooms/mist_parking.h"
+#include "rooms/dryfield_night_trailer_coach.h"
+#include "rooms/dryfield_trailer_coach.h"
+#include "rooms/shelter_b1_armory.h"
+#include "rooms/dryfield_night_garage.h"
+#include "rooms/shelter_1f_heliport.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -123,7 +135,7 @@ static s32 func_800CF204(CdCmdEntry* arg0);
 
 static s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2);
 
-static void Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1);
+static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1);
 
 static void Gp_DrawMapCursor(Task* arg0);
 
@@ -156,32 +168,6 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp);
 static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3);
 
 static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1);
-
-extern TaskDesc D_80181188;
-
-extern TaskDesc D_80181C2C;
-
-extern TaskDesc D_801824D0;
-
-extern TaskDesc D_80183F84;
-
-extern TaskDesc D_801846D0;
-
-extern TaskDesc D_8018668C;
-
-extern TaskDesc D_801871F0;
-
-extern UiObject* D_80067634;
-
-void func_8017F41C(Task* task);
-
-void func_8017F2F8(Task* task);
-
-void func_8017F304(Task* task);
-
-void func_80181184(Task* task);
-
-void func_801811A0(Task* task);
 
 static inline s32 _gpIsItemRowFree(McItemRec* arg0)
 {
@@ -786,7 +772,7 @@ void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            Gp_SpawnItemUsePrompt((s32)arg0, arg1);
+            Gp_SpawnItemUsePrompt(arg0, arg1);
             arg0->field_22 = 0x20;
         }
     }
@@ -929,19 +915,19 @@ void func_800CFD78(Task* arg0)
     }
     switch (D_80114DCC) {
         case 0x1010000:
-            func_8017F41C(arg0);
+            func_acropolis_square_8017F41C(arg0);
             break;
         case 0x1020000:
-            func_8017F2F8(arg0);
+            func_acropolis_east_elevator_hall_8017F2F8(arg0);
             break;
         case 0x1110000:
-            func_8017F304(arg0);
+            func_acropolis_west_elevator_hall_8017F304(arg0);
             break;
         case 0x21E0000:
-            func_80181184(arg0);
+            func_dryfield_motel_room_6_80181184(arg0);
             break;
         case 0x31E0000:
-            func_801811A0(arg0);
+            func_dryfield_night_motel_room_6_801811A0(arg0);
             break;
         default:
             taskKill(arg0);
@@ -949,7 +935,7 @@ void func_800CFD78(Task* arg0)
     }
 }
 
-static void Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1)
+static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1)
 {
     u8   id;
     s32  one;
@@ -3104,25 +3090,25 @@ s32 func_800D4D2C(s32 arg0)
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:
-            Display_InitModeObj(&D_8018668C, arg0, 0, 0);
+            Display_InitModeObj(&D_mist_parking_8018668C, arg0, 0, 0);
             break;
         case 0x21B0000:
-            Display_InitModeObj(&D_80183F84, arg0, 0, 0);
+            Display_InitModeObj(&D_dryfield_trailer_coach_80183F84, arg0, 0, 0);
             break;
         case 0x31B0000:
-            Display_InitModeObj(&D_801846D0, arg0, 0, 0);
+            Display_InitModeObj(&D_dryfield_night_trailer_coach_801846D0, arg0, 0, 0);
             break;
         case 0x3180000:
-            Display_InitModeObj(&D_80181C2C, arg0, 0, 0);
+            Display_InitModeObj(&D_dryfield_night_garage_80181C2C, arg0, 0, 0);
             break;
         case 0x40D0000:
-            Display_InitModeObj(&D_801824D0, arg0, 0, 0);
+            Display_InitModeObj(&D_shelter_b1_armory_801824D0, arg0, 0, 0);
             break;
         case 0x4140000:
-            Display_InitModeObj(&D_801871F0, arg0, 0, 0);
+            Display_InitModeObj(&D_shelter_b1_underground_parking_801871F0.value, arg0, 0, 0);
             break;
         case 0x5040000:
-            Display_InitModeObj(&D_80181188, arg0, 0, 0);
+            Display_InitModeObj(&D_shelter_1f_heliport_80181188, arg0, 0, 0);
             break;
         default:
             return 0;
@@ -3130,13 +3116,13 @@ s32 func_800D4D2C(s32 arg0)
     return 1;
 }
 
-void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+UiObject* Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 one;
 
     one    = 1;
     arg3 <<= 16;
-    Ui_SpawnFromDesc(&D_8010F788, arg3 | arg1, one, one, arg0);
+    return Ui_SpawnFromDesc(&D_8010F788, arg3 | arg1, one, one, arg0);
 }
 
 s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2)

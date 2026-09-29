@@ -49,6 +49,32 @@ extern u8 D_dryfield_night_general_store_801858C6;
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
 static void func_dryfield_night_general_store_8017DE80(Task* task);
 
+void func_dryfield_night_general_store_8017D794(Task *);
+s32 func_dryfield_night_general_store_8017D904(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+void func_dryfield_night_general_store_8017DAF0(Task *);
+void func_dryfield_night_general_store_8017DCA8(Task *);
+s32 func_dryfield_night_general_store_8017DD88(Task *, s32, s32, GpMessageArg);
+s32 func_dryfield_night_general_store_8017DDF0(Task *, s32, s32, s32);
+s32 func_dryfield_night_general_store_8017DE24(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_general_store_8017DE2C(Task *, s32, GpMessageArg, GpMessageArg);
+
+TaskDesc D_dryfield_night_general_store_8017E78C = { 0, 32, func_dryfield_night_general_store_8017D794, { .model = NULL } };
+
+TaskDesc D_dryfield_night_general_store_8017E798[3] = {
+    { 0, 32, func_dryfield_night_general_store_8017DCA8, { .model = NULL } },
+    { 0, 32, func_dryfield_night_general_store_8017DAF0, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_dryfield_night_general_store_8017E7BC[6] = {
+    { 5102, func_dryfield_night_general_store_8017D904 },
+    { 5105, func_dryfield_night_general_store_8017DE24 },
+    { 5103, func_dryfield_night_general_store_8017DE2C },
+    { 5104, func_dryfield_night_general_store_8017DD88 },
+    { 5106, func_dryfield_night_general_store_8017DDF0 },
+    { 0x7FFFFFFF, NULL },
+};
+
 /// The room's event gate. Returns 1 when game-flag nibble `req->flagId`
 /// already reads set (clear, for a negative id). Otherwise, when
 /// `req->itemId` has been collected or is 0, it returns 2 and - unless
@@ -146,7 +172,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858BC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_general_store_801858BC.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -169,14 +195,14 @@ void func_dryfield_night_general_store_8017D794(Task* task)
 /// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
 /// latches `field_2` / `field_3` for the spawned task and answers 2, or runs
 /// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
-s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventReq req;
     u16          msgId;
     s32          v;
 
     *out  = *in;
-    msgId = in->msgId;
+    msgId = in->prefix.packed;
     if (msgId == 1 && in->field_5 == 0) {
         if (GameFlag_GetNibble(0x63) == 0) {
             out->field_3 = msgId;
@@ -189,7 +215,7 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
             out->field_3 = v;
         }
     }
-    if (in->msgId == 0x26 && in->field_5 == 0) {
+    if (in->prefix.packed == 0x26 && in->field_5 == 0) {
         if (GameFlag_GetNibble(0xC9) != 0) {
             if (GameFlag_GetNibble(0x53) == 0) {
                 out->field_3 = 1;
@@ -205,7 +231,7 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
             out->field_3 = 5;
         }
     }
-    if (in->msgId == 1) {
+    if (in->prefix.packed == 1) {
         req.field_0 = 0xD;
         req.field_4 = 0xD;
         req.field_8 = Gp_PackStageSndId(0x5203000C);
@@ -214,7 +240,7 @@ s32 func_dryfield_night_general_store_8017D904(s32 arg0, s32 arg1, RoomEventMsg*
         req.itemId  = 0;
         return func_dryfield_night_general_store_8017D630(&req, in);
     }
-    if (in->msgId != 0x26) {
+    if (in->prefix.packed != 0x26) {
         return 1;
     }
     if (in->field_5 != 0) {
@@ -337,7 +363,7 @@ void func_dryfield_night_general_store_8017DCA8(Task* task)
 /// `Gp_SpawnIfCapIdle` 0x18 when pointer slot 0xA holds a task and 0x19
 /// otherwise; action 9 spawns the room's CAP-command task to run CAP command 9
 /// and toggle flag nibble 0x53. Always returns 0.
-s32 func_dryfield_night_general_store_8017DD88(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_general_store_8017DD88(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     s32   arg;
     void* slot;
@@ -368,14 +394,14 @@ s32 func_dryfield_night_general_store_8017DDF0(Task* task, s32 msgId, s32 arg2, 
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE24(void)
+s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE2C(void)
+s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

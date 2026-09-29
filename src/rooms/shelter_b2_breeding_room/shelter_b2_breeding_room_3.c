@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b2_breeding_room.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -41,7 +42,7 @@ static void func_shelter_b2_breeding_room_80180004(GpCoord* arg0, s32 arg1);
 /// drawing a widening ring and fading, and releases the work block once faded;
 /// state 4 releases it at once. While `Gp_State1C->eventState` is non-zero it
 /// does nothing but release once that reaches 4.
-static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
+void func_shelter_b2_breeding_room_8017E774(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -80,7 +81,7 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -158,7 +159,7 @@ static void func_shelter_b2_breeding_room_8017E774(Task* arg0)
 /// `func_shelter_b2_breeding_room_8017EEF0`, releasing the effect at tick 20.
 /// While `Gp_State1C->eventState` is non-zero it does nothing but release from
 /// state 4.
-static void func_shelter_b2_breeding_room_8017ECCC(Task* task)
+void func_shelter_b2_breeding_room_8017ECCC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -167,7 +168,7 @@ static void func_shelter_b2_breeding_room_8017ECCC(Task* task)
 
     work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1.value;
+    target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -384,7 +385,7 @@ static void func_shelter_b2_breeding_room_8017F598(GpCoord* arg0, s32 arg1, u8* 
 /// spent the main level runs down, and the work block is released when it
 /// does. While `Gp_State1C->eventState` is non-zero it does nothing but
 /// release once that reaches 4.
-static void func_shelter_b2_breeding_room_8017F92C(Task* arg0)
+void func_shelter_b2_breeding_room_8017F92C(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;

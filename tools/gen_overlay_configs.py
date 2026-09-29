@@ -129,6 +129,22 @@ def write_package_id(family: str, package: str) -> None:
         src.write_text(text, encoding="utf-8")
 
 
+def check_c_data_owner(name: str, objects: list[dict], start: int, end: int, size: int) -> None:
+    """An embedded resource must fit wholly within a code unit's data run."""
+    runs = sorted(
+        (int(str(obj["data"]), 16), True)
+        if "unit" in obj else (int(str(obj["at"]), 16), False)
+        for obj in objects
+        if ("unit" in obj and "data" in obj)
+        or (obj.get("kind") in ("data", "model", "modelSource", "animation", "collision", "collisionSource")
+            and not obj.get("in_c"))
+    )
+    owner = next((is_c for at, is_c in reversed(runs) if at <= start), False)
+    limit = next((at for at, _ in runs if at > start), size)
+    if not owner or end > limit:
+        raise SystemExit(f"{name}: C resource at 0x{start:X}..0x{end:X} has no C data owner")
+
+
 def check_model_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
     """Every `model` object is exactly the model its `modelSource` record describes.
 
@@ -159,9 +175,14 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
                 raise SystemExit(
                     f"{name}: the record at 0x{at:X} describes a model at "
                     f"0x{src['head']:X}..0x{src['end']:X}, not the declared 0x{model_at:X}..0x{at:X}")
-            end = next((a for a in starts if a > at), len(data))
-            if end != at + pkg_model.TMD_SOURCE_SIZE:
-                raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
+            if objects[i - 1].get("in_c"):
+                check_c_data_owner(name, objects, model_at, at, len(data))
+            if objects[i].get("in_c"):
+                check_c_data_owner(name, objects, at, at + pkg_model.TMD_SOURCE_SIZE, len(data))
+            else:
+                end = next((a for a in starts if a > at), len(data))
+                if end != at + pkg_model.TMD_SOURCE_SIZE:
+                    raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
 
 
 def declared_models(manifest: dict) -> list[dict]:
@@ -188,7 +209,60 @@ def declared_models(manifest: dict) -> list[dict]:
                         "load": load,
                         "model": int(str(objects[i - 1]["at"]), 16),
                         "source": int(str(obj["at"]), 16),
+                        "in_c": bool(objects[i - 1].get("in_c")),
                     })
+    return rows
+
+
+def check_animation_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """An animation resource contains exactly its declared exported sets."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "peassets"))
+    import pkg_anim
+
+    starts = sorted(
+        int(str(obj[key]), 16)
+        for obj in objects if not obj.get("in_c")
+        for key in ("at", "rodata", "text", "data") if key in obj
+    )
+    for obj in objects:
+        if obj.get("kind") != "animation":
+            continue
+        at = int(str(obj["at"]), 16)
+        cursor = at
+        if not obj.get("sets"):
+            raise SystemExit(f"{name}: animation at 0x{at:X} declares no sets")
+        for offset in obj["sets"]:
+            try:
+                aset = pkg_anim.read_set(data, load, int(str(offset), 16))
+            except ValueError as exc:
+                raise SystemExit(f"{name}: {exc}")
+            if aset["head"] != cursor:
+                raise SystemExit(f"{name}: animation at 0x{at:X} has a gap or overlap at 0x{cursor:X}")
+            cursor = aset["end"]
+        end = next((start for start in starts if start > at), len(data))
+        if obj.get("in_c"):
+            check_c_data_owner(name, objects, at, cursor, len(data))
+        elif cursor != end:
+            raise SystemExit(f"{name}: animation at 0x{at:X} ends at 0x{cursor:X}, not 0x{end:X}")
+
+
+def declared_animations(manifest: dict) -> list[dict]:
+    """Animation resources and their exported sets, once per physical package."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            for obj in slot.get("objects") or entry["objects"]:
+                if obj.get("kind") == "animation":
+                    rows.append(dict(
+                        family=family, package=name, load=load,
+                        offset=int(str(obj["at"]), 16),
+                        sets=[int(str(at), 16) for at in obj["sets"]],
+                        in_c=bool(obj.get("in_c")),
+                    ))
     return rows
 
 
@@ -209,9 +283,14 @@ def object_subsegments(
     the defect the object list exists to remove.
     """
     check_model_records(name, objects, data, load)
+    check_animation_records(name, objects, data, load)
     lines: list[str] = []
     for obj in objects:
         kind = obj.get("kind")
+        if obj.get("in_c"):
+            if kind not in ("model", "modelSource", "animation", "collision", "collisionSource"):
+                raise SystemExit(f"{name}: in_c is only supported for model, animation, and collision declarations")
+            continue
         if kind == "packageId":
             if pkg_id is None:
                 raise SystemExit(
@@ -219,10 +298,16 @@ def object_subsegments(
             write_package_id(family, name)
             lines.append((0x0, f"      - [0x0, .rodata, {package_id_unit(family, name)}]"))
             continue
-        if kind in ("data", "model", "modelSource", "collision", "collisionSource", "rodata"):
+        if kind == "pad":
+            at = int(str(obj["at"]), 16)
+            if not (0 < len(data) - at <= 3) or any(data[at:]):
+                raise SystemExit(f"{name}: explicit pad must cover 1-3 zero bytes at the package end")
+            lines.append((at, f"      - [0x{at:X}, pad]"))
+            continue
+        if kind in ("data", "model", "modelSource", "animation", "collision", "collisionSource", "rodata"):
             at = int(str(obj["at"]), 16)
             typ = {"model": "databin", "modelSource": "data", "collision": "databin",
-                   "collisionSource": "data", "data": "data", "rodata": "rodata"}[kind]
+                   "animation": "databin", "collisionSource": "data", "data": "data", "rodata": "rodata"}[kind]
             lines.append((at, f"      - [0x{at:X}, {typ}, {name}_{kind}_{at:05X}]"))
             continue
         unit = str(obj["unit"])
@@ -254,6 +339,9 @@ def object_subsegments(
                                       f"source: {entry_name}/{unit}}}"))
                 else:
                     lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
+        if "bss" in obj:
+            at = int(str(obj["bss"]), 16)
+            lines.append((at, f"      - {{start: 0x{at:X}, type: .bss, name: {path}, vram: 0x{load + at:08X}}}"))
     out = [line for _, line in sorted(lines, key=lambda t: t[0])]
     tails = [i for i, obj in enumerate(objects) if obj.get("tail", False)]
     if tails and (tails != [len(objects) - 1] or "data" not in objects[-1]):
@@ -290,6 +378,28 @@ def slot_packages(spec: dict) -> list[tuple[str, dict, dict]]:
         for slot in entry.get("slots") or [{"package": name, "slot": entry.get("slot")}]:
             out.append((str(slot["package"]), slot, entry))
     return out
+
+
+def serialized_bss_tail(name: str, objects: list[dict], data: bytes) -> tuple[int, int] | None:
+    """A zero-initialized terminal allocation may extend beyond its package.
+
+    Keep its full runtime size in C BSS. Only the zero prefix present in the
+    extracted file is serialized; the complete allocation remains available
+    to the room or actor at runtime.
+    """
+    rows = [obj for obj in objects if "bss" in obj]
+    if not rows:
+        return None
+    if len(rows) != 1:
+        raise SystemExit(f"{name}: only one terminal BSS allocation is supported")
+    obj = rows[0]
+    start = int(str(obj["bss"]), 16)
+    size = int(str(obj["bss_size"]), 16)
+    if not (0 <= start < len(data) <= start + size) or any(data[start:]):
+        raise SystemExit(f"{name}: serialized BSS must be a zero prefix of the terminal allocation")
+    if any(int(str(row.get("data", "0")), 16) >= start for row in objects):
+        raise SystemExit(f"{name}: initialized data cannot follow terminal BSS")
+    return start, size
 
 
 def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path]:
@@ -338,6 +448,8 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         # the slot it declares rather than being restated per overlay.
         load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
         vram_end = load if slot_addr else int(spec["global_vram_end"])
+        objects = slot.get("objects") or entry["objects"]
+        bss_tail = serialized_bss_tail(name, objects, data)
 
         text = template
         for key, val in {
@@ -367,6 +479,22 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)
+        if any(obj.get("tail") for obj in objects) or bss_tail:
+            # Only declared data contributions may follow the terminal C
+            # object. Even an empty auto-linked .data section can align the
+            # location counter and add bytes to a partial-word package tail.
+            text = text.replace(
+                "  section_order:",
+                '  auto_link_sections: [".rodata", ".bss"]\n  section_order:',
+                1,
+            )
+        if bss_tail:
+            start, size = bss_tail
+            text = text.replace(
+                "    subsegments:",
+                f"    bss_size: 0x{start + size - len(data):X}\n    subsegments:",
+                1,
+            )
         if "@@" in text:
             raise SystemExit(f"{family}/{name}: unsubstituted placeholder in template")
 

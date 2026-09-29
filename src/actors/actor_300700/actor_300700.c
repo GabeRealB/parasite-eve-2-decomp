@@ -34,6 +34,8 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
+#include "gameplay/animation.h"
+
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
 /// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
@@ -100,7 +102,7 @@ extern u16 D_actor_300700_80165B78[];
 extern GpU16Pair  D_actor_300700_80165B64;
 extern GpPairSrcE D_actor_300700_80165B68;
 /// Pose source handed to `func_800B3F84` as its animation data record.
-extern u32 D_actor_300700_80165B94;
+extern GpAnimSet* D_actor_300700_80165B94[2];
 
 /// The second variant's pair of the same kind, and its pose source.
 extern GpU16Pair  D_actor_300700_80169328;
@@ -114,6 +116,118 @@ extern u16 D_actor_300700_8016934C[];
 extern s16 D_actor_300700_8016936C[];
 extern u16 D_actor_300700_8016937C[];
 extern s16 D_actor_300700_8016939C[];
+
+static void func_actor_300700_8016335C(Task *);
+
+TmdBone D_actor_300700_80165490[4] = {
+#include "assets/actor_300700_model_03CA4_skeleton.inc"
+};
+
+u32 D_actor_300700_80165520[4] = {
+#include "assets/actor_300700_model_03CA4_partVerts.inc"
+};
+
+SVECTOR D_actor_300700_80165530[26] = {
+#include "assets/actor_300700_model_03CA4_verts.inc"
+};
+
+SVECTOR D_actor_300700_80165600[20] = {
+#include "assets/actor_300700_model_03CA4_normals.inc"
+};
+
+u32 D_actor_300700_801656A0[265] = {
+#include "assets/actor_300700_model_03CA4_stream.inc"
+};
+
+TmdSource D_actor_300700_80165AC4 = {
+    0, 1488, 208, 4,
+    D_actor_300700_80165520, D_actor_300700_80165530, D_actor_300700_80165600, D_actor_300700_80165490, D_actor_300700_801656A0,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor300700PoseBank3CC8;
+
+Actor300700PoseBank3CC8 D_actor_300700_80165AE8 = { .poses = {
+#include "assets/actor_300700_animation_03D1C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_300700_80165B00[1] = {
+#include "assets/actor_300700_animation_03D1C_bank4.inc"
+};
+
+GpAnimRec D_actor_300700_80165B04[12] = {
+#include "assets/actor_300700_animation_03D1C_records.inc"
+};
+
+u16 D_actor_300700_80165B34[4] = {
+#include "assets/actor_300700_animation_03D1C_indices.inc"
+};
+
+GpAnimSet D_actor_300700_80165B3C = {
+    D_actor_300700_80165B04, D_actor_300700_80165B34,
+    { NULL, D_actor_300700_80165AE8.words, NULL, NULL, D_actor_300700_80165B00, NULL, NULL, NULL },
+};
+
+GpU16Pair D_actor_300700_80165B64 = { 5, 1 };
+
+GpPairSrcE D_actor_300700_80165B68 = { &D_actor_300700_80165B64, 1, 2, 18, 1, 100, 0, 100, 99, 0 };
+
+u16 D_actor_300700_80165B78[8] = {
+    2,
+    8,
+    16,
+    24,
+    32,
+    32,
+    32,
+    36,
+};
+
+TaskDesc D_actor_300700_80165B88 = { 1, 96, func_actor_300700_8016335C, { .model = &D_actor_300700_80165AC4 } };
+
+GpAnimSet * D_actor_300700_80165B94[2] = {
+    NULL,
+    &D_actor_300700_80165B3C,
+};
+
+ActorSpriteUv D_actor_300700_80165B9C[8] = {
+    { 96, 0, 96, 0 },
+    { 0, 0, 160, 0 },
+    { 0, 0, 192, 0 },
+    { 32, 0, 192, 0 },
+    { 0, 0, 224, 0 },
+    { 32, 0, 224, 0 },
+    { 64, 0, 224, 0 },
+    { 96, 0, 224, 0 },
+};
+
+TmdBone D_actor_300700_80165BBC[7] = {
+#include "assets/actor_300700_model_055E0_skeleton.inc"
+};
+
+u32 D_actor_300700_80165CB8[7] = {
+#include "assets/actor_300700_model_055E0_partVerts.inc"
+};
+
+SVECTOR D_actor_300700_80165CD4[78] = {
+#include "assets/actor_300700_model_055E0_verts.inc"
+};
+
+SVECTOR D_actor_300700_80165F44[113] = {
+#include "assets/actor_300700_model_055E0_normals.inc"
+};
+
+u32 D_actor_300700_801662CC[1101] = {
+#include "assets/actor_300700_model_055E0_stream.inc"
+};
+
+TmdSource D_actor_300700_80167400 = {
+    0, 5164, 2392, 7,
+    D_actor_300700_80165CB8, D_actor_300700_80165CD4, D_actor_300700_80165F44, D_actor_300700_80165BBC, D_actor_300700_801662CC,
+};
 
 static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
 {
@@ -152,12 +266,12 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_228          = 0x100;
     work->field_22A          = 1;
     work->field_224          = coord;
-    func_800B3F84(&work->anim, &D_actor_300700_80165B94, obj,
+    func_800B3F84(&work->anim, D_actor_300700_80165B94, obj,
                   work->field_B4, work->slots);
     for (i = 1; i < 4; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
     }
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     work->field_2D6       = 1;
     work->field_2AC       = (s32)coord->coord.t[0];
     work->field_2B0       = (s32)coord->coord.t[1];
@@ -626,7 +740,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                 case 2:
                     work->field_2E0--;
                     if (work->field_2E0 <= 0) {
-                        Gp_DestroyEnemy(arg0, (Task*)arg1);
+                        Gp_DestroyEnemy(arg0, arg1);
                     }
                     break;
             }
@@ -718,7 +832,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
     prim->y2    = sc->v[2].vy;
     prim->x3    = sc->v[3].vx;
     prim->y3    = sc->v[3].vy;
-    addPrim((u_long*)(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), prim);
+    addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), prim);
     SCRATCH_POP_BYTES(0x28);
 }
 /// The first variant's state handlers, dispatched by `func_actor_300700_8016335C`
@@ -825,7 +939,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
     }
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
 
     work->field_37E     = 1;
     work->field_380     = 1;

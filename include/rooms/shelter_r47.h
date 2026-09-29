@@ -1,6 +1,12 @@
 #ifndef ROOMS_SHELTER_R47_H
 #define ROOMS_SHELTER_R47_H
 
+#include "gameplay/area.h"
+
+#include "gameplay/area_flags.h"
+
+#include "gameplay/collision.h"
+
 #include "common.h"
 #include "rooms/room_common.h"
 
@@ -104,5 +110,17 @@ void func_shelter_r47_80183E24(void);
 void func_shelter_r47_80183F0C(void);
 void func_shelter_r47_80183FF4(Task* task, s16 arg1);
 void func_shelter_r47_80184124(Task* task, s16 arg1);
+
+extern TaskDesc D_shelter_r47_80187618;
+
+extern GpGridParams D_shelter_r47_8018828C;
+
+extern GpAreaApplyRec D_shelter_r47_8018A638[21];
+
+extern GpAreaVariant D_shelter_r47_80187CB8[12];
+
+void func_shelter_r47_8017EC04(Task* task);
+
+void func_shelter_r47_801858BC(Task* unused);
 
 #endif // ROOMS_SHELTER_R47_H

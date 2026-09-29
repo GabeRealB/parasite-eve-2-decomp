@@ -1,3 +1,5 @@
+#include "dryfield_night_water_tower_private.h"
+
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -16,18 +18,32 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_dryfield_night_water_tower_80182C58[4];
+
 /// The event the room's gate `func_dryfield_night_water_tower_8017D60C`
 /// latched: the incoming message and the request, kept for the event task it
 /// spawns from `D_dryfield_night_water_tower_8017E6E0`, and the flag the gate
 /// sets once it has done so.
 extern RoomEventMsg D_dryfield_night_water_tower_80182C50;
 extern RoomEventReq D_dryfield_night_water_tower_80182C5C;
-extern u8           D_dryfield_night_water_tower_80182C58;
 extern TaskDesc     D_dryfield_night_water_tower_8017E6E0;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
 extern GpMsgEntry D_dryfield_night_water_tower_8017E6EC[];
+
+RoomEventMsg D_dryfield_night_water_tower_80182C50 = { 0 };
+
+u8 D_dryfield_night_water_tower_80182C58[4] = {
+    0,
+    1,
+    238,
+    253,
+};
+
+RoomEventReq D_dryfield_night_water_tower_80182C5C = { 0 };
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
@@ -45,7 +61,7 @@ static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEvent
     s32 neg;
 
     flag                                  = req->flagId;
-    D_dryfield_night_water_tower_80182C58 = 0;
+    D_dryfield_night_water_tower_80182C58[0] = 0;
     neg                                   = flag < 0;
     got                                   = (s16)flag;
     if (neg) {
@@ -69,7 +85,7 @@ static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEvent
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_dryfield_night_water_tower_8017E6E0, 0, 0, 0);
-                D_dryfield_night_water_tower_80182C58 = 1;
+                D_dryfield_night_water_tower_80182C58[0] = 1;
                 return 2;
             }
             return ret;
@@ -127,7 +143,7 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_water_tower_80182C50.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_water_tower_80182C50.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -146,13 +162,13 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
 /// from 2 back to 1 unless it is only a query. For 0x15 it also clears nibble
 /// 0x4B when it reads 7, and answers 1 on stage 3 and otherwise only while
 /// nibble 0x32 is 2. Everything else answers 1.
-s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
+s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
 {
     RoomEventReq req;
     s32          ret;
 
     *out = *msg;
-    if (msg->msgId == 0x13) {
+    if (msg->prefix.packed == 0x13) {
         req.field_0 = 0xA;
         req.field_4 = 6;
         req.field_8 = Gp_PackStageSndId(0x5214000E);
@@ -163,7 +179,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_night_water_tower_80182C58 != 0) {
+        if (D_dryfield_night_water_tower_80182C58[0] != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
         return ret;
@@ -171,7 +187,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
     if (msg->field_5 == 0 && GameFlag_GetNibble(0x55) == 2) {
         GameFlag_SetNibble(0x55, 1);
     }
-    if (msg->msgId == 0x15) {
+    if (msg->prefix.packed == 0x15) {
         if (msg->field_5 == 0 && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
@@ -187,7 +203,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
 
 /// The room's handler for message 0x13F2: plays the stage sound for script
 /// events 8 and 13 and answers 0 for every event.
-s32 func_dryfield_night_water_tower_8017DA4C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_water_tower_8017DA4C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 8:
@@ -201,14 +217,14 @@ s32 func_dryfield_night_water_tower_8017DA4C(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_water_tower_8017DA9C(void)
+s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13F0: script event 7 starts CAP slot 7;
 /// every event answers 0.
-s32 func_dryfield_night_water_tower_8017DAA4(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 7) {
         Gp_StartCapSlot(7, 1, 3);
@@ -217,7 +233,7 @@ s32 func_dryfield_night_water_tower_8017DAA4(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_water_tower_8017DAD4(void)
+s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

@@ -99,7 +99,7 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field);
 
 static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
 
-static void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2);
+static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2);
 
 /// Inline copy of `Gp_GetAttachLevels`.
 static __inline__ u8* getAttachLevels(void);
@@ -918,7 +918,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     return changed;
 }
 
-static void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
+static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
 {
     UiObject  obj;
     TILE*     tile;
@@ -1217,7 +1217,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
             Gp_StateC08.field_3  = -1;
             Gp_StateC08.field_A  = 3;
         }
-        Gp_DrawPeGauge((s32)arg0, x, y);
+        Gp_DrawPeGauge(arg0, x, y);
         if (Gp_StateC08.field_A == 3) {
             Gp_StateC08.field_2--;
         }
@@ -1532,7 +1532,7 @@ after:
             k            &= GP_LOC_STAGE_AREA;
             arg0->field_8 = 0;
             if (k != GP_LOC_KEY(1, 20, 0, 0)) {
-                Display_InitModeObj(&D_8010CAB0, 0, (s32)arg0, 0x100);
+                Display_InitModeObj(&D_8010CAB0, 0, arg0, 0x100);
             } else {
                 arg0->field_4 = arg0->field_4 + 1;
             }
@@ -1654,7 +1654,7 @@ after:
                 func_80108874(w);
             } else {
                 if (flags & 0x40) {
-                    Gp_DispatchMsg((Task*)w, 0x3F1, 2, 0);
+                    Gp_DispatchMsg(w, 0x3F1, 2, 0);
                 }
             }
             p    = &Player_Status;
@@ -1700,7 +1700,7 @@ after:
                 arg0->field_4 = 0;
                 arg0->field_0 = 0;
             } else {
-                Display_InitModeObj(&D_8010CABC, 0, (s32)arg0, 0);
+                Display_InitModeObj(&D_8010CABC, 0, arg0, 0);
             }
             q = &Gp_StateC08;
             if (q->field_A >= 2) {

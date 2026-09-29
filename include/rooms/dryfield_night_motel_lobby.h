@@ -1,6 +1,8 @@
 #ifndef ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H
 #define ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 #include "rooms/room_common.h"
 
@@ -52,5 +54,11 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
 s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y);
 
 void func_dryfield_night_motel_lobby_8017FE90(Task* task);
+
+extern GpAreaVariant D_dryfield_night_motel_lobby_801843C4[11];
+
+void func_dryfield_night_motel_lobby_8017EAE0(Task* task);
+
+void func_dryfield_night_motel_lobby_801812F8(Task* unused);
 
 #endif // ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H

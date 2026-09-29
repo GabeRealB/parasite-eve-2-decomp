@@ -1,5 +1,6 @@
-#include "common.h"
 #include "pe/lifedrain.h"
+
+#include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -79,7 +80,7 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// `angle` radius. Once `angle` passes the row's `unk6` it moves to state
 /// 3, which shrinks `scale` by 0x10 a frame and redraws the same funnel
 /// until it drops below 0x11, then releases through state 4.
-static void func_lifedrain_8012EF48(Task* arg0)
+void func_lifedrain_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -237,14 +238,14 @@ static void func_lifedrain_8012EF48(Task* arg0)
             mem->step   = ((u32)Gp_LcgState >> 16) & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 0);
-            gte_SetRotMatrix((MATRIX*)&coord->coord);
+            gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();
             gte_stsv(&mem->move);
             mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
             mem->move.vy = (rsin(mem->step) * mem->angle) >> 12;
             mem->move.vz = 0;
-            spawned      = Gp_SpawnEff(0x600AD, coord, D_lifedrain_80130AB4[mem->index].unk6,
+            spawned      = Gp_SpawnEff(0x600AD, coord, (s32)(D_lifedrain_80130AB4[mem->index].unk6),
                                        &mem->move);
             if (spawned != NULL) {
                 Task_Reparent(arg0, spawned->task);
@@ -312,7 +313,7 @@ static void func_lifedrain_8012EF48(Task* arg0)
 /// spawned through gameplay's effect table. State 0 seeds the spin and colour
 /// from the spawn argument and the LCG; state 1 lifts the frame and draws the
 /// additive quad on odd ticks until the animation runs out.
-static void func_lifedrain_8012F9A8(Task* arg0)
+void func_lifedrain_8012F9A8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -379,7 +380,7 @@ static void func_lifedrain_8012F9A8(Task* arg0)
 /// so later ticks pull harder. State 2 then steps each drift component 0x10
 /// toward that heading every frame, re-aiming as it goes, and releases at tick
 /// 0x1E.
-static void func_lifedrain_8012FAF8(Task* arg0)
+void func_lifedrain_8012FAF8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -420,7 +421,7 @@ static void func_lifedrain_8012FAF8(Task* arg0)
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                        spawned = Gp_SpawnEff(0x600AD, coord, mem->angle, NULL);
+                        spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             Task_Reparent(arg0, spawned->task);
                         }
@@ -467,7 +468,7 @@ static void func_lifedrain_8012FAF8(Task* arg0)
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                        spawned = Gp_SpawnEff(0x600AD, coord, mem->angle, NULL);
+                        spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             Task_Reparent(arg0, spawned->task);
                         }
@@ -652,7 +653,7 @@ static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     SCRATCH_POP_BYTES(0x18);
 }
 
-static void func_lifedrain_801308C0(Task* arg0)
+void func_lifedrain_801308C0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

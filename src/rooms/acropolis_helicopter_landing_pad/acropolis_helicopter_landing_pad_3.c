@@ -1,3 +1,5 @@
+#include "acropolis_helicopter_landing_pad_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -43,6 +45,17 @@
 #include "overlay.h"
 #include "rooms/room_common.h"
 
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/actor_511000.h"
+#include "gameplay/evs.h"
+#include "gameplay/pad_script.h"
+#include "gameplay/world_targets.h"
+
+extern GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9];
+
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
 /// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
 /// endpoints, rotated by the coord's `workm` and offset by its translation;
@@ -84,11 +97,1306 @@ static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
 static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
-static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord);
 
 /// The whole-unit delta of the last step
 /// `func_acropolis_helicopter_landing_pad_801819C0` applied.
 extern SVECTOR D_acropolis_helicopter_landing_pad_80187F88;
+
+void func_acropolis_helicopter_landing_pad_8017EB58(Task *);
+void func_acropolis_helicopter_landing_pad_8017ED00(Task *);
+
+extern GpGridParams D_acropolis_helicopter_landing_pad_80185998[1];
+extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
+extern GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16];
+extern GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1];
+
+GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
+    { 5102, func_acropolis_helicopter_landing_pad_8017E3F0 },
+    { 5105, func_acropolis_helicopter_landing_pad_8017E49C },
+    { 5103, func_acropolis_helicopter_landing_pad_8017E4A4 },
+    { 5104, func_acropolis_helicopter_landing_pad_8017E570 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
+    { 256, 257 },
+    { 771, 0 },
+    { 1024, 0 },
+    { 0, 0 },
+};
+
+GpScriptRec D_acropolis_helicopter_landing_pad_80183748[2] = {
+    { 0, 0, 1, 0 },
+    { 255, 255, 4, 1 },
+};
+
+GpXformArg D_acropolis_helicopter_landing_pad_80183750 = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_80183768 = { { 3000, 0, -6692, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_80183780 = { { 3000, 0, -6692, 0 }, { 0, -1204, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_80183798 = { { 3000, 0, -6692, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_801837B0 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_801837C8 = { { -3975, -2871, -1454, 0 }, { 0, 808, 0, 0 } };
+
+s32 D_acropolis_helicopter_landing_pad_801837E0[18] = {
+    -3496,
+    -2871,
+    -1283,
+    0,
+    0x3280000,
+    0,
+    -360,
+    -120,
+    480,
+    0,
+    0,
+    0,
+    -3188,
+    -2871,
+    -694,
+    0,
+    0x9C40000,
+    0,
+};
+
+GpXformArg D_acropolis_helicopter_landing_pad_80183828 = { { -2176, 0, -6845, 0 }, { 0, 1024, 0, 0 } };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183840 = { { .index = 0 }, 1, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183854 = { { .index = 0 }, 2, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183868 = { { .index = 0 }, 3, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_8018387C = { { .index = 0 }, 4, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183890 = { { .index = 0 }, 5, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801838A4 = { { .index = 0 }, 6, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801838B8 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801838CC = { { .index = 0 }, 2, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, 0, 0, 0 };
+
+GpAnimSet * D_acropolis_helicopter_landing_pad_801838F4[3] = {
+    NULL,
+    &D_actor_511000_80136AE8,
+    &D_actor_511000_801398FC,
+};
+
+GpCopyArg D_acropolis_helicopter_landing_pad_80183900 = { { .sets = D_acropolis_helicopter_landing_pad_801838F4 }, 3 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183908 = { { .index = 1 }, 47, 1, 5, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_8018391C = { { .index = 1 }, 48, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183930 = { { .index = 1 }, 49, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183944 = { { .index = 1 }, 1, 1, 7, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183958 = { { .index = 1 }, 9, 1, 6, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, 1, 10, 0 };
+
+GpOverlayIds D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
+
+GpOverlayIds D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
+
+GpOverlayIds D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80183998 = { { .index = 0 }, 1, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801839AC = { { .index = 0 }, 2, 0, 1, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801839C0 = { { .index = 0 }, 3, 0, 1, 0 };
+
+GpCmdArg D_acropolis_helicopter_landing_pad_801839D4 = { { .loc = { 1, 16 } }, 0 };
+
+GpCmdArg D_acropolis_helicopter_landing_pad_801839D8 = { { .loc = { 1, 16 } }, 1 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801839DC = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_801839F0 = { { .index = 0 }, 2, 0, 0, 0 };
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_80183A04[2] = {
+    { 15, { .value = 0x51100005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_80183A34[58] = {
+    { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x51100005 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
+    { 12, { .overlays = &D_acropolis_helicopter_landing_pad_80183980 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_80183840 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 14, { .padCommands = D_acropolis_helicopter_landing_pad_80183738 }, { .padRecords = D_acropolis_helicopter_landing_pad_80183748 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51100006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_helicopter_landing_pad_8017E6C0 }, { .value = 3072 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 43 }, { .value = 43 }, { .value = 45 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_80183854 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_80183780 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_80183868 }, { .value = 0 } },
+    { 4, { .value = 360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_8018387C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_80183890 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_80183768 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 1 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_80183FA4[16] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_80183768 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 1 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_80184124[38] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 49, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 12, { .overlays = &D_acropolis_helicopter_landing_pad_80183988 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183828 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E724 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801838A4 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E67C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 40 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801839DC }, { .value = 0 } },
+    { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 20, { .value = 6 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51100003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 21, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 2 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E6F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_801844B4[19] = {
+    { 20, { .value = 6 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 21, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183944 }, { .value = 0 } },
+    { 1, { .value = -1 }, { .value = 40 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801839F0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E67C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 2 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E6F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_8018467C[69] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_helicopter_landing_pad_80183900 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 12, { .overlays = &D_acropolis_helicopter_landing_pad_80183990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1013 }, { .storage = &gGfxViewCoord }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_801837C8 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E5E8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_80183998 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 26, { .value = 32 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_helicopter_landing_pad_8017E75C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_helicopter_landing_pad_8017E75C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 26, { .value = 64 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801839AC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801839C0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 1 }, { .value = 1001 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_8018391C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_helicopter_landing_pad_801839D8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_helicopter_landing_pad_80183750 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801838CC }, { .value = 0 } },
+    { 4, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183930 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_helicopter_landing_pad_801838E0 }, { .value = 0 } },
+    { 4, { .value = 350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E5B8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x313A0003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x313A0003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x313A0004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 1 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x313A0004 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E64C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 37, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_helicopter_landing_pad_80184CF4[7] = {
+    { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E64C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+s32 D_acropolis_helicopter_landing_pad_80184D9C = 0;
+
+TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9] = {
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017DA9C, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017E76C, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017E81C, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017DE78, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017E974, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017DFCC, { .model = NULL } },
+    { 0, 32, func_acropolis_helicopter_landing_pad_8017E0F8, { .model = NULL } },
+    { 0, 97, func_acropolis_helicopter_landing_pad_8017E270, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_acropolis_helicopter_landing_pad_80184E0C = 0;
+
+s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+};
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80184E28 = { 0 };
+
+GpAnimArg D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 1 }, 0, 0, 0, 0 };
+
+GpXformArg D_acropolis_helicopter_landing_pad_80184E50 = { { -6801, 0, -1998, 0 }, { 0, 1024, 0, 0 } };
+
+TaskDesc D_acropolis_helicopter_landing_pad_80184E68[2] = {
+    { 0, 192, func_acropolis_helicopter_landing_pad_8017ED00, { .model = NULL } },
+    { 0, 192, func_acropolis_helicopter_landing_pad_8017EB58, { .model = NULL } },
+};
+
+SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12] = {
+    { -7050, -2800, -7030, 0 },
+    { -2800, -3000, -7760, 0 },
+    { 2800, -3000, -7760, 0 },
+    { 7050, -2800, -7030, 0 },
+    { 7760, -3000, -2800, 0 },
+    { 7760, -3000, 2800, 0 },
+    { 7050, -2800, 7030, 0 },
+    { 2800, -3000, 7760, 0 },
+    { -2800, -3000, 7760, 0 },
+    { -7050, -2800, 7030, 0 },
+    { -7760, -3000, 2800, 0 },
+    { -7760, -3000, -2900, 0 },
+};
+
+s32 D_acropolis_helicopter_landing_pad_80184EE0[12] = {
+    0x4014404,
+    0x4014000,
+    8,
+    0x8818,
+    2064,
+    0xC2830,
+    0xC2910,
+    0x2C2980,
+    0x200580,
+    0x200700,
+    0x200600,
+    0x20400,
+};
+
+GpRoomObjRec D_acropolis_helicopter_landing_pad_80184F10[1] = {
+    { D_acropolis_helicopter_landing_pad_80185998, D_acropolis_helicopter_landing_pad_801859BC, D_acropolis_helicopter_landing_pad_80185E7C, D_acropolis_helicopter_landing_pad_80186128 },
+};
+
+u8 D_acropolis_helicopter_landing_pad_80184F20[28] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    0,
+};
+
+u8 * D_acropolis_helicopter_landing_pad_80184F3C[1] = {
+    D_acropolis_helicopter_landing_pad_80184F20,
+};
+
+GpViewCountRec D_acropolis_helicopter_landing_pad_80184F40[1] = {
+    { { .bytes = { 27, 0 } } },
+};
+
+GpRoomCoordRec D_acropolis_helicopter_landing_pad_80184F44[1] = {
+    { D_acropolis_helicopter_landing_pad_80186AE8, NULL },
+};
+
+GpWarpRec D_acropolis_helicopter_landing_pad_80184F4C[3] = {
+    { { .words = { 2048, -6387, 1, -6306 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6387, 1, -6306 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { .words = { 1024, -5340, -3001, -1921 } }, { 0, 0, 0, 0 }, { .words = { 1024, -5340, -3001, -1921 } }, { 0, 0, 0, 0 }, 0, 0, 0, 11, 0, 0 },
+    { { .words = { 2048, -6400, 600, -5280 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6387, 451, -5400 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
+};
+
+SVECTOR D_acropolis_helicopter_landing_pad_80184FF4[15] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 3620, -1916, 0, 0 },
+    { 0, -1916, 3620, 0 },
+    { -3620, -1916, 0, 0 },
+    { 0, -1916, -3620, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 1856, 0, -3651, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, -3172, 2591, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+};
+
+SVECTOR D_acropolis_helicopter_landing_pad_8018506C[92] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { -0x2710, -3000, 0x2710, 0 },
+    { -5500, 5500, 5500, 0 },
+    { -5500, 5500, -5500, 0 },
+    { -0x2710, -3000, -0x2710, 0 },
+    { 5500, 5500, -5500, 0 },
+    { 0x2710, -3000, -0x2710, 0 },
+    { 5500, 5500, 5500, 0 },
+    { 0x2710, -3000, 0x2710, 0 },
+    { -6000, 0, -2626, 0 },
+    { -6000, -3000, -2626, 0 },
+    { -8000, -3000, -2626, 0 },
+    { -8000, 0, -2626, 0 },
+    { -6100, 340, -6000, 0 },
+    { -6100, -560, -6000, 0 },
+    { -6100, -560, -6280, 0 },
+    { -6100, 340, -6280, 0 },
+    { -5510, -560, -5980, 0 },
+    { -5510, 340, -5980, 0 },
+    { -6100, 0, -6000, 0 },
+    { 8000, 0, -8000, 0 },
+    { -8000, 0, -8000, 0 },
+    { -8000, 0, -6000, 0 },
+    { -8000, 0, -6000, 0 },
+    { -8000, 980, -4800, 0 },
+    { -6100, 980, -4800, 0 },
+    { -6100, 0, -6000, 0 },
+    { -8000, -3000, -8000, 0 },
+    { -8000, -3000, 8000, 0 },
+    { 8000, -3000, 8000, 0 },
+    { 8000, -3000, -8000, 0 },
+    { -6000, -3000, -1500, 0 },
+    { -6000, 2000, -1500, 0 },
+    { -6000, 2000, 6000, 0 },
+    { -6000, -3000, 6000, 0 },
+    { 6000, 2000, 6000, 0 },
+    { 6000, -3000, 6000, 0 },
+    { 6000, 2000, -6000, 0 },
+    { 6000, -3000, -6000, 0 },
+    { -6000, 2000, -6000, 0 },
+    { -6000, -3000, -6000, 0 },
+    { -6000, 2000, -2450, 0 },
+    { -6000, -3000, -2450, 0 },
+    { -4750, 2000, -2450, 0 },
+    { -4750, -3000, -2450, 0 },
+    { -4750, 2000, -1500, 0 },
+    { -4750, -3000, -1500, 0 },
+    { -5500, -3400, -1500, 0 },
+    { -5500, -3000, -1500, 0 },
+    { -6000, -3400, -1500, 0 },
+    { -6000, -3400, -2450, 0 },
+    { -5500, -3000, -2450, 0 },
+    { -5500, -3400, -2450, 0 },
+    { -5500, -3000, -5500, 0 },
+    { -5500, -3400, -5500, 0 },
+    { 5500, -3000, -5500, 0 },
+    { 5500, -3400, -5500, 0 },
+    { 5500, -3000, 5500, 0 },
+    { 5500, -3400, 5500, 0 },
+    { -5500, -3000, 5500, 0 },
+    { -5500, -3400, 5500, 0 },
+    { -8005, 0, -5880, 0 },
+    { -8005, -200, -5880, 0 },
+    { -6095, -200, -5880, 0 },
+    { -6095, 0, -5880, 0 },
+    { -7200, 0, 7200, 0 },
+    { -7200, -3000, 7200, 0 },
+    { 7200, -3000, 7200, 0 },
+    { 7200, 0, 7200, 0 },
+    { 7200, 0, -7200, 0 },
+    { 7200, -3000, -7200, 0 },
+    { -7200, -3000, -7200, 0 },
+    { -7200, 0, -7200, 0 },
+    { -6100, 0, -2700, 0 },
+    { 8000, 0, 8000, 0 },
+    { -8000, 0, -2700, 0 },
+    { -8000, 0, 8000, 0 },
+};
+
+GpGridFace D_acropolis_helicopter_landing_pad_8018534C[37] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 17, 18, 16, 19 }, 4, 6 },
+    { { 18, 20, 19, 21 }, 5, 6 },
+    { { 20, 22, 21, 23 }, 6, 6 },
+    { { 22, 17, 23, 16 }, 7, 6 },
+    { { 25, 26, 24, 27 }, 8, 0 },
+    { { 29, 30, 28, 31 }, 9, 0 },
+    { { 30, 32, 31, 33 }, 10, 0 },
+    { { 35, 36, 34, 37 }, 11, 3 },
+    { { 39, 40, 38, 41 }, 12, 1 },
+    { { 43, 44, 42, 45 }, 11, 2 },
+    { { 47, 48, 46, 49 }, 9, 0 },
+    { { 48, 50, 49, 51 }, 8, 0 },
+    { { 50, 52, 51, 53 }, 13, 0 },
+    { { 52, 54, 53, 55 }, 14, 0 },
+    { { 54, 56, 55, 57 }, 9, 0 },
+    { { 56, 58, 57, 59 }, 8, 0 },
+    { { 58, 60, 59, 61 }, 9, 0 },
+    { { 60, 47, 61, 46 }, 14, 0 },
+    { { 63, 46, 62, 64 }, 14, 0 },
+    { { 46, 57, 64, 65 }, 13, 0 },
+    { { 57, 66, 65, 67 }, 8, 0 },
+    { { 66, 68, 67, 69 }, 13, 0 },
+    { { 68, 70, 69, 71 }, 8, 0 },
+    { { 70, 72, 71, 73 }, 9, 0 },
+    { { 72, 74, 73, 75 }, 14, 0 },
+    { { 74, 63, 75, 62 }, 13, 0 },
+    { { 77, 78, 76, 79 }, 14, 0 },
+    { { 81, 82, 80, 83 }, 14, 4 },
+    { { 85, 86, 84, 87 }, 8, 4 },
+    { { 82, 85, 83, 84 }, 9, 4 },
+    { { 86, 81, 87, 80 }, 13, 4 },
+    { { 34, 88, 35, 89 }, 11, 3 },
+    { { 88, 90, 89, 91 }, 11, 3 },
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185508[20] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    9,
+    10,
+    11,
+    12,
+    13,
+    17,
+    18,
+    25,
+    26,
+    30,
+    32,
+    34,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185530[30] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    29,
+    30,
+    32,
+    34,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018556C[21] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    8,
+    13,
+    14,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    29,
+    34,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185598[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    13,
+    14,
+    15,
+    28,
+    29,
+    31,
+    34,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801855B8[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    13,
+    14,
+    15,
+    28,
+    29,
+    31,
+    34,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801855D8[9] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    13,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801855EC[20] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    9,
+    10,
+    11,
+    12,
+    13,
+    17,
+    18,
+    25,
+    26,
+    30,
+    32,
+    34,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185614[30] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    29,
+    30,
+    32,
+    34,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185650[21] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    8,
+    13,
+    14,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    29,
+    34,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018567C[16] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    13,
+    14,
+    15,
+    28,
+    29,
+    31,
+    34,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018569C[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    13,
+    14,
+    15,
+    28,
+    29,
+    31,
+    34,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801856BC[8] = {
+    0,
+    1,
+    2,
+    3,
+    7,
+    13,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801856CC[12] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    11,
+    13,
+    17,
+    26,
+    32,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801856E4[12] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    11,
+    13,
+    17,
+    26,
+    32,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801856FC[8] = {
+    0,
+    1,
+    2,
+    3,
+    13,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018570C[12] = {
+    0,
+    1,
+    2,
+    3,
+    7,
+    13,
+    15,
+    28,
+    31,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185724[11] = {
+    0,
+    1,
+    2,
+    3,
+    7,
+    13,
+    15,
+    28,
+    31,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018573C[8] = {
+    0,
+    1,
+    2,
+    3,
+    7,
+    13,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018574C[16] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    11,
+    13,
+    16,
+    17,
+    26,
+    27,
+    32,
+    33,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018576C[16] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    11,
+    13,
+    16,
+    17,
+    26,
+    27,
+    32,
+    33,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018578C[12] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    13,
+    16,
+    27,
+    33,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801857A4[16] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    15,
+    16,
+    27,
+    28,
+    31,
+    33,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801857C4[16] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    15,
+    16,
+    27,
+    28,
+    31,
+    33,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801857E4[8] = {
+    0,
+    1,
+    2,
+    3,
+    7,
+    13,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801857F4[16] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    11,
+    13,
+    16,
+    17,
+    26,
+    27,
+    32,
+    33,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185814[16] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    11,
+    13,
+    16,
+    17,
+    26,
+    27,
+    32,
+    33,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_80185834[11] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    13,
+    16,
+    27,
+    33,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018584C[16] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    15,
+    16,
+    27,
+    28,
+    31,
+    33,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018586C[16] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    15,
+    16,
+    27,
+    28,
+    31,
+    33,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_8018588C[10] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858A0[10] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    11,
+    13,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858B4[8] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    13,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858C4[8] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    13,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858D4[8] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    13,
+    35,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858E4[10] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    13,
+    35,
+    36,
+    -1,
+};
+
+s16 D_acropolis_helicopter_landing_pad_801858F8[7] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    -1,
+};
+
+s16 * D_acropolis_helicopter_landing_pad_80185908[36] = {
+    D_acropolis_helicopter_landing_pad_80185508,
+    D_acropolis_helicopter_landing_pad_80185530,
+    D_acropolis_helicopter_landing_pad_8018556C,
+    D_acropolis_helicopter_landing_pad_80185598,
+    D_acropolis_helicopter_landing_pad_801855B8,
+    D_acropolis_helicopter_landing_pad_801855D8,
+    D_acropolis_helicopter_landing_pad_801855EC,
+    D_acropolis_helicopter_landing_pad_80185614,
+    D_acropolis_helicopter_landing_pad_80185650,
+    D_acropolis_helicopter_landing_pad_8018567C,
+    D_acropolis_helicopter_landing_pad_8018569C,
+    D_acropolis_helicopter_landing_pad_801856BC,
+    D_acropolis_helicopter_landing_pad_801856CC,
+    D_acropolis_helicopter_landing_pad_801856E4,
+    D_acropolis_helicopter_landing_pad_801856FC,
+    D_acropolis_helicopter_landing_pad_8018570C,
+    D_acropolis_helicopter_landing_pad_80185724,
+    D_acropolis_helicopter_landing_pad_8018573C,
+    D_acropolis_helicopter_landing_pad_8018574C,
+    D_acropolis_helicopter_landing_pad_8018576C,
+    D_acropolis_helicopter_landing_pad_8018578C,
+    D_acropolis_helicopter_landing_pad_801857A4,
+    D_acropolis_helicopter_landing_pad_801857C4,
+    D_acropolis_helicopter_landing_pad_801857E4,
+    D_acropolis_helicopter_landing_pad_801857F4,
+    D_acropolis_helicopter_landing_pad_80185814,
+    D_acropolis_helicopter_landing_pad_80185834,
+    D_acropolis_helicopter_landing_pad_8018584C,
+    D_acropolis_helicopter_landing_pad_8018586C,
+    D_acropolis_helicopter_landing_pad_8018588C,
+    D_acropolis_helicopter_landing_pad_801858A0,
+    D_acropolis_helicopter_landing_pad_801858B4,
+    D_acropolis_helicopter_landing_pad_801858C4,
+    D_acropolis_helicopter_landing_pad_801858D4,
+    D_acropolis_helicopter_landing_pad_801858E4,
+    D_acropolis_helicopter_landing_pad_801858F8,
+};
+
+GpGridParams D_acropolis_helicopter_landing_pad_80185998[1] = {
+    { NULL, D_acropolis_helicopter_landing_pad_80184FF4, D_acropolis_helicopter_landing_pad_8018506C, D_acropolis_helicopter_landing_pad_8018534C, D_acropolis_helicopter_landing_pad_80185908, 0x2710, 0x2710, 6, 6, 4000, 37 },
+};
+
+GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16] = {
+    { NULL, NULL, NULL, { -5505, 0, -5857, 0 }, { { -473, 6080, -1561, 0 }, { 474, 6080, 1562, 0 }, { -473, -6080, -1561, 0 }, { 474, -6080, 1562, 0 } }, { -3931, 0, 1191, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -6016, 0, -5888, 0 }, { { 395, 6080, 1582, 0 }, { -397, 6080, -1584, 0 }, { 395, -6080, 1582, 0 }, { -397, -6080, -1584, 0 } }, { 3984, 0, -998, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -1985, 0, -5921, 0 }, { { 155, 6080, 1619, 0 }, { -165, 6080, -1627, 0 }, { 155, -6080, 1619, 0 }, { -165, -6080, -1627, 0 } }, { 4085, 0, -403, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -1536, 0, -6112, 0 }, { { -161, 6080, -1626, 0 }, { 157, 6080, 1621, 0 }, { -161, -6080, -1626, 0 }, { 157, -6080, 1621, 0 } }, { -4087, 0, 400, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 3550, 0, -5857, 0 }, { { 1224, 6080, -1401, 0 }, { -1223, 6080, 1401, 0 }, { 1224, -6080, -1401, 0 }, { -1223, -6080, 1401, 0 } }, { -3090, 0, -2698, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 3007, 0, -6113, 0 }, { { -1515, 6080, 1692, 0 }, { 1515, 6080, -1691, 0 }, { -1515, -6080, 1692, 0 }, { 1515, -6080, -1691, 0 } }, { 3053, 0, 2735, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 6048, 0, -1152, 0 }, { { 1860, 6080, -35, 0 }, { -1860, 6080, 34, 0 }, { 1860, -6080, -35, 0 }, { -1860, -6080, 34, 0 } }, { -77, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 5, 6, 1, 0 },
+    { NULL, NULL, NULL, { 6144, 0, -1729, 0 }, { { -1860, 6080, 34, 0 }, { 1860, 6080, -35, 0 }, { -1860, -6080, 34, 0 }, { 1860, -6080, -35, 0 } }, { 75, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 6, 5, 1, 0 },
+    { NULL, NULL, NULL, { 5760, 0, 3359, 0 }, { { -1624, 6080, 907, 0 }, { 1624, 6080, -907, 0 }, { -1624, -6080, 907, 0 }, { 1624, -6080, -907, 0 } }, { 1999, 0, 3580, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { 5952, 0, 3840, 0 }, { { 1666, 6080, -827, 0 }, { -1667, 6080, 826, 0 }, { 1666, -6080, -827, 0 }, { -1667, -6080, 826, 0 } }, { -1823, 0, -3675, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { 2655, 0, 6143, 0 }, { { 304, 6080, 1833, 0 }, { -310, 6080, -1836, 0 }, { 304, -6080, 1833, 0 }, { -310, -6080, -1836, 0 } }, { 4044, 0, -677, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 7, 8, 1, 0 },
+    { NULL, NULL, NULL, { 3231, 0, 6047, 0 }, { { -310, 6080, -1836, 0 }, { 304, 6080, 1832, 0 }, { -310, -6080, -1836, 0 }, { 304, -6080, 1832, 0 } }, { -4044, 0, 676, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { -4193, 0, 6111, 0 }, { { 124, 6080, 1855, 0 }, { -126, 6080, -1856, 0 }, { 124, -6080, 1855, 0 }, { -126, -6080, -1856, 0 } }, { 4091, 0, -276, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 8, 9, 1, 0 },
+    { NULL, NULL, NULL, { -3939, 0, 6079, 0 }, { { -216, 6080, -1848, 0 }, { 215, 6080, 1846, 0 }, { -216, -6080, -1848, 0 }, { 215, -6080, 1846, 0 } }, { -4073, 0, 474, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 9, 8, 1, 0 },
+    { NULL, NULL, NULL, { -6098, 0, 3342, 0 }, { { -1437, 6080, 1741, 0 }, { 1437, 6080, -1740, 0 }, { -1437, -6080, 1741, 0 }, { 1437, -6080, -1740, 0 } }, { 3159, 0, 2608, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 9, 10, 1, 0 },
+    { NULL, NULL, NULL, { -5856, 0, 4064, 0 }, { { 1437, 6080, -1741, 0 }, { -1437, 6080, 1740, 0 }, { 1437, -6080, -1741, 0 }, { -1437, -6080, 1740, 0 } }, { -3161, 0, -2610, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 10, 9, 129, 0 },
+};
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
 {
@@ -238,7 +1546,7 @@ static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
     }
 }
 
-static void func_acropolis_helicopter_landing_pad_8017EF60(void)
+void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1)
 {
     Task_Spawn(2, 0xF, 0, 0);
 }
@@ -433,7 +1741,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 /// `scale` grows by `period` and the frame counter advances until it
 /// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
 /// once and 2..3 idles.
-static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
+void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -573,7 +1881,7 @@ static void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// effects reparented under this task, and claims slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
 /// `Gp_State1C->eventState` is set.
-static void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
+void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -748,7 +2056,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
 /// the coord's `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
+void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -823,7 +2131,7 @@ static void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 /// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
 /// 64th frame; state 3 releases the state-1C memory. Idle while
 /// `Gp_State1C->eventState` is set.
-static void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
+void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -891,7 +2199,7 @@ static void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// 1-in-16. While `Gp_State1C->eventState` is 0 the coord drifts and the frame
 /// counter advances until it expires, which releases the state-1C memory;
 /// `field_4 >= 4` releases it at once and 2..3 idles.
-static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
+void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -1018,7 +2326,7 @@ static void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 /// 0..0xFE triangle wave kept in the effect work's `scale` (the low two bits
 /// are dropped on the rising half so the ramp steps in fours), then runs
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
-static void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
+void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 {
     GpEffWork* work = (GpEffWork*)arg0->spawnArg2.pointer;
     SVECTOR*   pos;

@@ -1,8 +1,9 @@
+#include "pe/flare.h"
+
 #include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "pe/flare.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -35,7 +36,7 @@ static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 /// are running on their own.
 ///
 /// A cancelled or interrupted cast stops the cue and releases immediately.
-static void flareEffectTask(Task* arg0)
+void flareEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -86,7 +87,7 @@ static void flareEffectTask(Task* arg0)
 /// reference. Every frame after that it advances by that velocity and draws the
 /// next sprite frame, stepping the frame on every second tick. Releases once
 /// all eight frames have been drawn.
-static void flareSparkTask(Task* arg0)
+void flareSparkTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;

@@ -31,9 +31,9 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-static s32 func_map_dryfield_full_80179954(MapDryfieldFullRec* arg0, MapDryfieldFullOut* arg1)
+s32 func_map_dryfield_full_80179954(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
-    if ((arg0->field_0 == 0x1A) && (arg0->field_5 == 0)) {
+    if ((arg0->prefix.packed == 0x1A) && (arg0->field_5 == 0)) {
         arg1->field_3 = GameFlag_GetNibble(0x9F) + 1;
     }
     return 1;
@@ -274,46 +274,46 @@ static GpEnemyDesc D_map_dryfield_full_8017A44C[2] = {
 };
 
 GpBit2List D_map_dryfield_full_8017A46C[40] = {
-    { NULL, NULL },
-    { D_80114588, D_map_dryfield_full_8017A41C },
-    { D_801145F8, D_map_dryfield_full_8017A40C },
-    { D_80114628, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_80114658, D_map_dryfield_full_8017A40C },
-    { D_80114678, D_map_dryfield_full_8017A40C },
-    { D_80114698, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_801146A8, D_map_dryfield_full_8017A40C },
-    { D_801146D8, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_801146F8, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_80114718, D_map_dryfield_full_8017A40C },
-    { D_80114748, D_map_dryfield_full_8017A40C },
-    { D_80114768, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_80114798, D_map_dryfield_full_8017A40C },
-    { D_80114808, D_map_dryfield_full_8017A40C },
-    { D_80114828, D_map_dryfield_full_8017A40C },
-    { D_80114848, D_map_dryfield_full_8017A40C },
-    { D_80114888, D_map_dryfield_full_8017A40C },
-    { D_801148A8, D_map_dryfield_full_8017A40C },
-    { D_801148D8, D_map_dryfield_full_8017A42C },
-    { D_80114918, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_80114938, D_map_dryfield_full_8017A40C },
-    { D_80114968, D_map_dryfield_full_8017A44C },
-    { D_80114998, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { D_801149B8, D_map_dryfield_full_8017A40C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { (GpBit2Rec*)-1, NULL },
+    { { NULL }, NULL },
+    { { D_80114588 }, D_map_dryfield_full_8017A41C },
+    { { D_801145F8 }, D_map_dryfield_full_8017A40C },
+    { { D_80114628 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_80114658 }, D_map_dryfield_full_8017A40C },
+    { { D_80114678 }, D_map_dryfield_full_8017A40C },
+    { { D_80114698 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_801146A8 }, D_map_dryfield_full_8017A40C },
+    { { D_801146D8 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_801146F8 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_80114718 }, D_map_dryfield_full_8017A40C },
+    { { D_80114748 }, D_map_dryfield_full_8017A40C },
+    { { D_80114768 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_80114798 }, D_map_dryfield_full_8017A40C },
+    { { D_80114808 }, D_map_dryfield_full_8017A40C },
+    { { D_80114828 }, D_map_dryfield_full_8017A40C },
+    { { D_80114848 }, D_map_dryfield_full_8017A40C },
+    { { D_80114888 }, D_map_dryfield_full_8017A40C },
+    { { D_801148A8 }, D_map_dryfield_full_8017A40C },
+    { { D_801148D8 }, D_map_dryfield_full_8017A42C },
+    { { D_80114918 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_80114938 }, D_map_dryfield_full_8017A40C },
+    { { D_80114968 }, D_map_dryfield_full_8017A44C },
+    { { D_80114998 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { D_801149B8 }, D_map_dryfield_full_8017A40C },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { .sentinel = -1 }, NULL },
 };
 
 GpTaskDesc D_map_dryfield_full_8017A5AC[] = {

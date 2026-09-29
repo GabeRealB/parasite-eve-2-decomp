@@ -43,7 +43,7 @@
 typedef struct _StageCtx {
     /* 0x00 */ TaskDesc* field_0; // task desc table for spawn
     /* 0x04 */ s32       field_4; // spawn arg
-    /* 0x08 */ s32       field_8; // spawn arg
+    /* 0x08 */ TaskSpawnArg field_8; // second task spawn payload
     /* 0x0C */ u32       field_C;
     /* 0x10 */ byte      unknown_10;
     /* 0x11 */ u8        field_11;
@@ -743,7 +743,7 @@ static s32 Stage_BeginTransitionKind3(void)
     return 0;
 }
 
-s32 Display_InitModeObj(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3)
 {
     StageCtx* temp;
 
@@ -997,7 +997,7 @@ static void Mdec_ProcessDecode(void)
             DecDCTReset(0);
             DecDCTvlcSize2(0);
             DecDCTvlc2((u_long*)D_8007A360, (u_long*)gMemActiveAuxHeap,
-                       (u_short*)p->field_18C);
+                       p->field_18C);
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
             DecDCTin((u_long*)gMemActiveAuxHeap, p->field_22A);
@@ -1095,7 +1095,7 @@ static void Mdec_DecodeToVram(void)
                 do {
                     temp   = i & 0xFFFF;
                     rect.x = temp * 0x10;
-                    LoadImage(&rect, (u_long*)Fs_ImgBuffers->buffers[temp]);
+                    LoadImage(&rect, &Fs_ImgBuffers->words[temp * 1920]);
                     i++;
                 } while ((u32)(i & 0xFFFF) < 0x14U);
                 rect.w = 0x140;
@@ -1177,7 +1177,7 @@ static void Mdec_StripCallback(void)
         DecDCToutCallback(0);
     } else {
         D_8007A35C = D_8007A35C + 1;
-        DecDCTout(Fs_ImgBuffers->buffers[D_8007A35C], 0x780);
+        DecDCTout(&Fs_ImgBuffers->words[D_8007A35C * 1920], 0x780);
     }
 }
 

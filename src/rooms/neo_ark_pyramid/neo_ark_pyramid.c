@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_pyramid.h"
+#include "mapui/map_neo_ark.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -29,7 +31,17 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "mapui/stage_tables.h"
 
 /// Angle of the room's rotating quad, set by `func_neo_ark_pyramid_8017DAC0`.
 extern s32      D_neo_ark_pyramid_801818A4;
@@ -42,8 +54,6 @@ extern GpMsgEntry D_neo_ark_pyramid_8017FBE4[];
 /// The two points on the spawner's parent coordinate that the ribbon task
 /// trails: the first entry places the effect, the second (reached here both
 /// as `[1]` and under its own label) is the ribbon's other edge.
-extern SVECTOR D_neo_ark_pyramid_8017FC18[];
-extern SVECTOR D_neo_ark_pyramid_8017FC20;
 
 static void func_neo_ark_pyramid_8017DAC0(s32 arg0);
 static void func_neo_ark_pyramid_8017DB18(Task* task);
@@ -58,6 +68,779 @@ static void func_neo_ark_pyramid_8017F224(GpCoord* arg0, s16 arg1, u8* rgb);
 static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
     { func_neo_ark_pyramid_8017DB18, func_neo_ark_pyramid_8017DB5C, taskKill }
 };
+
+void func_neo_ark_pyramid_8017D600(Task *);
+s32 func_neo_ark_pyramid_8017D9F0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_pyramid_8017D9F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_pyramid_8017DA3C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_pyramid_8017DA44(Task *, s32, GpMsg13EF *, GpMessageArg);
+
+extern GpGridParams D_neo_ark_pyramid_801802C4[1];
+extern GpObj3A D_neo_ark_pyramid_80181790[3];
+extern GpObj4C D_neo_ark_pyramid_801812B0[6];
+extern GpObj4C D_neo_ark_pyramid_80181478[7];
+extern GpRoomCoordSet D_neo_ark_pyramid_80181298[1];
+
+GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
+    { 5102, func_neo_ark_pyramid_8017D9F8 },
+    { 5105, func_neo_ark_pyramid_8017D9F0 },
+    { 5103, func_neo_ark_pyramid_8017DA44 },
+    { 5104, func_neo_ark_pyramid_8017DA3C },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_neo_ark_pyramid_8017FC0C = { 0, 32, func_neo_ark_pyramid_8017D600, { .model = NULL } };
+
+SVECTOR D_neo_ark_pyramid_8017FC18[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_neo_ark_pyramid_8017FC28[2] = {
+    { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
+    { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
+};
+
+GpRoomCoordRec D_neo_ark_pyramid_8017FC48[2] = {
+    { D_neo_ark_pyramid_80181298, NULL },
+    { D_neo_ark_pyramid_80181298, NULL },
+};
+
+u8 D_neo_ark_pyramid_8017FC58[8] = {
+    1,
+    2,
+    3,
+    6,
+    5,
+    4,
+    7,
+    8,
+};
+
+u8 * D_neo_ark_pyramid_8017FC60[2] = {
+    D_8010CAF8,
+    D_neo_ark_pyramid_8017FC58,
+};
+
+GpViewCountRec D_neo_ark_pyramid_8017FC68[2] = {
+    { { .bytes = { 8, 0 } } },
+    { { .bytes = { 8, 0 } } },
+};
+
+GpWarpRec D_neo_ark_pyramid_8017FC6C[2] = {
+    { { .words = { 2048, -2944, 0, -2035 } }, { 0, 0, 0, 0 }, { .words = { 2048, -2944, 0, -2035 } }, { 0, 0, 0, 0 }, 0x55200002, 0x55200001, 0, 2, 0, 0 },
+    { { .words = { 3072, 3200, -650, -7490 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4200, -1160, -7500 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 1, 0 },
+};
+
+SVECTOR D_neo_ark_pyramid_8017FCDC[13] = {
+    { 2989, 0, 2801, 0 },
+    { 1110, 0, 3943, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { -2817, 0, -2974, 0 },
+    { 4096, 0, 0, 0 },
+    { -4094, 0, -136, 0 },
+    { 0, 0, 4096, 0 },
+    { 2896, 0, 2896, 0 },
+    { -3650, -1858, 0, 0 },
+    { -2276, -3405, 0, 0 },
+    { -2370, -3341, 0, 0 },
+};
+
+SVECTOR D_neo_ark_pyramid_8017FD44[66] = {
+    { -1475, -8000, -6825, 0 },
+    { -1475, 0, -6825, 0 },
+    { 1500, 0, -0x2710, 0 },
+    { 1500, -8000, -0x2710, 0 },
+    { 6515, 0, -0x29FE, 0 },
+    { 6515, -8000, -0x29FE, 0 },
+    { 3850, -8000, -0x2710, 0 },
+    { 3850, 0, -0x2710, 0 },
+    { 0x3AFC, -8000, -0x29FE, 0 },
+    { 0x3AFC, 0, -0x29FE, 0 },
+    { 0x3AFC, 0, -4800, 0 },
+    { 0x3AFC, -8000, -4800, 0 },
+    { -1950, -8000, -1500, 0 },
+    { -1950, 0, -1500, 0 },
+    { -4000, 0, -1500, 0 },
+    { -4000, -8000, -1500, 0 },
+    { 0, -8000, -4800, 0 },
+    { 0, 0, -4800, 0 },
+    { -1900, 0, -3000, 0 },
+    { -1900, -8000, -3000, 0 },
+    { -4000, 0, -4300, 0 },
+    { -4000, -8000, -4300, 0 },
+    { -2450, 0, -5850, 0 },
+    { -2450, -8000, -5850, 0 },
+    { 7025, 250, -3500, 0 },
+    { 7025, -1250, -3500, 0 },
+    { 7025, -1250, -0x2CEC, 0 },
+    { 7025, 250, -0x2CEC, 0 },
+    { 8526, -4197, -5000, 0 },
+    { 8526, -4197, -0x2710, 0 },
+    { 0x34D5, -4197, -5000, 0 },
+    { 0x34D5, -4197, -0x2710, 0 },
+    { 2640, 150, -8195, 0 },
+    { 2640, -550, -8195, 0 },
+    { 2640, -550, -8525, 0 },
+    { 2640, 150, -8525, 0 },
+    { 8825, 150, -8525, 0 },
+    { 8325, -4350, -8525, 0 },
+    { 8825, -4350, -8525, 0 },
+    { 8325, -4350, -8195, 0 },
+    { 8825, -4350, -8195, 0 },
+    { 2640, 150, -6375, 0 },
+    { 2640, -550, -6375, 0 },
+    { 2640, -550, -6695, 0 },
+    { 2640, 150, -6695, 0 },
+    { 8325, -4350, -6375, 0 },
+    { 8325, -4350, -6695, 0 },
+    { 8825, -4350, -6375, 0 },
+    { 8825, -4350, -6695, 0 },
+    { 8825, 150, -6375, 0 },
+    { 2640, 0, -6650, 0 },
+    { 2640, -200, -6650, 0 },
+    { 2640, -200, -8250, 0 },
+    { 2640, 0, -8250, 0 },
+    { 8280, -4200, -6650, 0 },
+    { 8280, -4200, -8250, 0 },
+    { 8825, -4200, -6650, 0 },
+    { 8825, -4200, -8250, 0 },
+    { 8280, -4200, -8270, 0 },
+    { 8280, -4400, -8270, 0 },
+    { 8280, -4400, -6630, 0 },
+    { 8280, -4200, -6630, 0 },
+    { 2640, -200, -6680, 0 },
+    { 2640, -1600, -6680, 0 },
+    { 2640, -1600, -8200, 0 },
+    { 2640, -200, -8200, 0 },
+};
+
+GpGridFace D_neo_ark_pyramid_8017FF54[36] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 1 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 13, 14, 12, 15 }, 3, 0 },
+    { { 10, 9, 7, 4 }, 4, 3 },
+    { { 17, 18, 16, 19 }, 5, 1 },
+    { { 21, 15, 20, 14 }, 6, 1 },
+    { { 16, 11, 17, 10 }, 3, 1 },
+    { { 18, 13, 19, 12 }, 7, 1 },
+    { { 20, 14, 18, 13 }, 4, 3 },
+    { { 18, 22, 20, 0xFFFF }, 4, 3 },
+    { { 6, 3, 7, 2 }, 8, 1 },
+    { { 7, 2, 10, 17 }, 4, 3 },
+    { { 23, 21, 22, 20 }, 9, 1 },
+    { { 22, 1, 23, 0 }, 9, 0 },
+    { { 1, 17, 2, 0xFFFF }, 4, 3 },
+    { { 18, 17, 22, 1 }, 4, 3 },
+    { { 4, 9, 5, 8 }, 8, 1 },
+    { { 25, 26, 24, 27 }, 2, 0 },
+    { { 28, 29, 25, 26 }, 10, 0 },
+    { { 30, 31, 28, 29 }, 4, 0 },
+    { { 33, 34, 32, 35 }, 2, 0 },
+    { { 36, 37, 38, 0xFFFF }, 3, 0 },
+    { { 36, 35, 37, 34 }, 3, 0 },
+    { { 37, 34, 39, 33 }, 11, 0 },
+    { { 39, 40, 37, 38 }, 4, 0 },
+    { { 42, 43, 41, 44 }, 2, 0 },
+    { { 46, 43, 45, 42 }, 11, 0 },
+    { { 45, 47, 46, 48 }, 4, 0 },
+    { { 45, 42, 49, 41 }, 8, 0 },
+    { { 45, 49, 47, 0xFFFF }, 8, 0 },
+    { { 51, 52, 50, 53 }, 2, 3 },
+    { { 55, 52, 54, 51 }, 12, 3 },
+    { { 54, 56, 55, 57 }, 4, 3 },
+    { { 59, 60, 58, 61 }, 6, 1 },
+    { { 63, 64, 62, 65 }, 2, 2 },
+};
+
+s16 D_neo_ark_pyramid_80180104[9] = {
+    0,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180118[14] = {
+    0,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180134[12] = {
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    15,
+    16,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_8018014C[16] = {
+    0,
+    1,
+    4,
+    11,
+    12,
+    15,
+    21,
+    23,
+    24,
+    26,
+    27,
+    29,
+    31,
+    32,
+    35,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_8018016C[17] = {
+    0,
+    5,
+    7,
+    12,
+    14,
+    15,
+    16,
+    21,
+    23,
+    24,
+    26,
+    27,
+    29,
+    31,
+    32,
+    35,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180190[9] = {
+    3,
+    5,
+    7,
+    8,
+    9,
+    12,
+    15,
+    16,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_801801A4[23] = {
+    1,
+    4,
+    11,
+    12,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_801801D4[21] = {
+    4,
+    7,
+    12,
+    18,
+    19,
+    20,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180200[5] = {
+    7,
+    12,
+    18,
+    19,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_8018020C[19] = {
+    1,
+    4,
+    12,
+    17,
+    18,
+    19,
+    20,
+    22,
+    23,
+    24,
+    25,
+    27,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180234[18] = {
+    4,
+    7,
+    12,
+    18,
+    19,
+    20,
+    22,
+    23,
+    24,
+    25,
+    27,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180258[6] = {
+    7,
+    12,
+    18,
+    19,
+    20,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180264[6] = {
+    2,
+    4,
+    12,
+    17,
+    20,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_80180270[6] = {
+    2,
+    4,
+    7,
+    12,
+    20,
+    -1,
+};
+
+s16 D_neo_ark_pyramid_8018027C[6] = {
+    2,
+    4,
+    7,
+    12,
+    20,
+    -1,
+};
+
+s16 * D_neo_ark_pyramid_80180288[15] = {
+    D_neo_ark_pyramid_80180104,
+    D_neo_ark_pyramid_80180118,
+    D_neo_ark_pyramid_80180134,
+    D_neo_ark_pyramid_8018014C,
+    D_neo_ark_pyramid_8018016C,
+    D_neo_ark_pyramid_80180190,
+    D_neo_ark_pyramid_801801A4,
+    D_neo_ark_pyramid_801801D4,
+    D_neo_ark_pyramid_80180200,
+    D_neo_ark_pyramid_8018020C,
+    D_neo_ark_pyramid_80180234,
+    D_neo_ark_pyramid_80180258,
+    D_neo_ark_pyramid_80180264,
+    D_neo_ark_pyramid_80180270,
+    D_neo_ark_pyramid_8018027C,
+};
+
+GpGridParams D_neo_ark_pyramid_801802C4[1] = {
+    { NULL, D_neo_ark_pyramid_8017FCDC, D_neo_ark_pyramid_8017FD44, D_neo_ark_pyramid_8017FF54, D_neo_ark_pyramid_80180288, 4000, 0x2CEC, 5, 3, 4000, 36 },
+};
+
+GpViewRec D_neo_ark_pyramid_801802E8[8] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5270, 0x7530, 7060 } }, 380 },
+    { { { { 3888, 0, 1288 }, { -275, 4001, 830 }, { -1258, -875, 3798 } }, { 2039, 468, 5719 } }, 230 },
+    { { { { 2546, 0, 3208 }, { 47, 4095, -37 }, { -3208, 60, 2545 } }, { -1654, 855, 7910 } }, 230 },
+    { { { { -1401, 0, -3848 }, { 212, 4089, -77 }, { 3842, -226, -1399 } }, { 2273, 757, 5456 } }, 230 },
+    { { { { -405, 0, -4075 }, { -324, 4083, 32 }, { 4062, 325, -404 } }, { -570, 1119, 8915 } }, 230 },
+    { { { { -1401, 0, -3848 }, { 212, 4089, -77 }, { 3842, -226, -1399 } }, { 2273, 757, 5456 } }, 230 },
+    { { { { -1554, 0, 3789 }, { 807, 4001, 331 }, { -3702, 872, -1518 } }, { 765, 870, 6068 } }, 257 },
+    { { { { -2878, 0, 2914 }, { 16, 4095, 16 }, { -2914, 23, -2878 } }, { 1595, 667, 6136 } }, 312 },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180408[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180418[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_pyramid_80180428[12] = {
+    { 143, 0x3FC0, { .fields = { 16, 104 } }, -112, -48, 1050, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 104 } }, -96, -48, 1075, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -80, -40, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 8, 1606, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 0, 1611, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 0, 1621, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 0, 1588, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -8, 1611, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 96, -8, 1611, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -8, 1611, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 112, -16, 1611, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 40, 1611, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180518[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 12, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_pyramid_80180530[43] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 16, 1399, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 16, 1399, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 24, 1395, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 24, 1395, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 40, 1425, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_pyramid_8018088C[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 34, 0, 0, { 1, 0 } },
+    { 34, 9, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_pyramid_801808AC[24] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 24, 723, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 96 } }, -160, -96, 1184, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 112 } }, -144, -112, 1268, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, -120, 1336, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, -120, 1845, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, -120, 1098, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 0, 772, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 24, 708, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 56, 639, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 606, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 0, 774, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, 24, 713, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 642, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, 80, 589, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 0, 756, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 24, 719, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 56, 645, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 80, 593, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 0, 760, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 24, 711, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 56, 627, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 80, 585, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, 0, 764, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 715, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180A8C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 24, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_pyramid_80180AA4[41] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1405, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 192 } }, -160, -120, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 184 } }, -120, -120, 1625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, -104, -104, 1625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, -104, 1625, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, -120, 1625, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -88, 1625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -80, 1625, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -80, 1625, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 1625, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 1625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 1395, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 24, 1437, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 8, 1589, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, 16, 1503, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 0, 1651, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -8, 1745, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, -16, 1824, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, -24, 1963, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -48, -32, 2033, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, -40, 2182, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, -48, 2324, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, -56, 2624, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, -64, 2681, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 1426, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 40, 1393, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 32, 1426, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -24, 40, 1426, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1391, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 1390, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 16, 1399, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 24, 1395, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, -16, 1562, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, -8, 1466, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 0, 1389, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 8, 1339, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1298, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1254, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1263, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1263, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180DD8[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 32, 0, 0, { 1, 0 } },
+    { 32, 9, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180DF8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_pyramid_80180E08[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_neo_ark_pyramid_80180E18[8] = {
+    { { .empty = D_neo_ark_pyramid_80180408 }, D_neo_ark_pyramid_80180408, NULL },
+    { { .empty = D_neo_ark_pyramid_80180418 }, D_neo_ark_pyramid_80180418, NULL },
+    { { .elements = D_neo_ark_pyramid_80180428 }, D_neo_ark_pyramid_80180518, NULL },
+    { { .elements = D_neo_ark_pyramid_80180530 }, D_neo_ark_pyramid_8018088C, NULL },
+    { { .elements = D_neo_ark_pyramid_801808AC }, D_neo_ark_pyramid_80180A8C, NULL },
+    { { .elements = D_neo_ark_pyramid_80180AA4 }, D_neo_ark_pyramid_80180DD8, NULL },
+    { { .empty = D_neo_ark_pyramid_80180DF8 }, D_neo_ark_pyramid_80180DF8, NULL },
+    { { .empty = D_neo_ark_pyramid_80180E08 }, D_neo_ark_pyramid_80180E08, NULL },
+};
+
+GpPointLight D_neo_ark_pyramid_80180E78[11] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3490, -2000, -3010 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -80, -4000, -6040 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 2000, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4120, -2000, -5600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2560, -2000, -9990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3940, -2000, -0x28E6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5480, -2000, -0x2B16 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1900, -2000, -7420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2760, -2000, -5140 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1360, -2000, -6580 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4890, -2000, -4660 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -230, -2000, -7890 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 4000 },
+};
+
+GpRoomCoordSet D_neo_ark_pyramid_80181298[1] = {
+    { 0, NULL, 11, D_neo_ark_pyramid_80180E78, 0, NULL },
+};
+
+GpObj4C D_neo_ark_pyramid_801812B0[6] = {
+    { NULL, NULL, NULL, { -2792, -4000, -3605, 0 }, { { 2775, -4752, 1502, 0 }, { -2776, -4752, -1503, 0 }, { 2775, 4752, 1502, 0 }, { -2776, 4752, -1503, 0 } }, { -1953, 0, 3606, 0 }, { 0, 0, 4096, 0 }, 5701, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -2914, -4033, -3426, 0 }, { { -2775, -4752, -1502, 0 }, { 2776, -4752, 1503, 0 }, { -2775, 4752, -1502, 0 }, { 2776, 4752, 1503, 0 } }, { 1952, 0, -3608, 0 }, { 0, 0, 4096, 0 }, 5701, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -449, -4064, -7490, 0 }, { { 1127, -4752, 3686, 0 }, { -1148, -4752, -3699, 0 }, { 1127, 4752, 3686, 0 }, { -1148, 4752, -3699, 0 } }, { -3931, 0, 1210, 0 }, { 0, 0, 4096, 0 }, 6122, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -544, -3936, -7296, 0 }, { { -1147, -4752, -3698, 0 }, { 1128, -4752, 3687, 0 }, { -1147, 4752, -3698, 0 }, { 1128, 4752, 3687, 0 } }, { 3930, 0, -1211, 0 }, { 0, 0, 4096, 0 }, 6122, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 2766, -3968, -0x2BF1, 0 }, { { 32, -4752, 2884, 0 }, { -31, -4752, -2884, 0 }, { 32, 4752, 2884, 0 }, { -31, 4752, -2884, 0 } }, { -4106, 0, 44, 0 }, { 0, 0, 4096, 0 }, 5538, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 2559, -4032, -0x2BC0, 0 }, { { -31, -4752, -2884, 0 }, { 32, -4752, 2884, 0 }, { -31, 4752, -2884, 0 }, { 32, 4752, 2884, 0 } }, { 4105, 0, -46, 0 }, { 0, 0, 4096, 0 }, 5538, 0, 5, 4, 129, 0 },
+};
+
+GpObj4C D_neo_ark_pyramid_80181478[7] = {
+    { NULL, NULL, NULL, { 3005, -3872, -7457, 0 }, { { -13, -5344, 1023, 0 }, { 14, -5344, -1022, 0 }, { -13, 5344, 1023, 0 }, { 14, 5344, -1022, 0 } }, { -4109, 0, -55, 0 }, { -4092, -201, -14, 0 }, 5418, 0x8000, 20, 33, 2, 0 },
+    { NULL, NULL, NULL, { 2272, -64, -7472, 0 }, { { 416, 14, -702, 0 }, { 416, -13, 703, 0 }, { -416, 14, -702, 0 }, { -416, -13, 703, 0 } }, { 0, 4103, 71, 0 }, { -4096, 0, 0, 0 }, 814, 1, 71, 64, 2, 0 },
+    { NULL, NULL, NULL, { 3104, -658, -7488, 0 }, { { 416, -2, -974, 0 }, { 416, 3, 975, 0 }, { -416, -2, -974, 0 }, { -416, 3, 975, 0 } }, { 0, 4099, -21, 0 }, { 4091, 0, -201, 0 }, 1055, 0x8101, 67, 192, 2, 0 },
+    { NULL, NULL, NULL, { -2945, -48, -1888, 0 }, { { 975, -2, 416, 0 }, { -974, 3, 416, 0 }, { 975, -2, -416, 0 }, { -974, 3, -416, 0 } }, { 10, 4099, 0, 0 }, { -201, 0, -4091, 0 }, 1055, 0, 29, 18, 2, 0 },
+    { NULL, NULL, NULL, { -1632, -64, -5985, 0 }, { { 963, -2, -443, 0 }, { -346, 3, 1002, 0 }, { 346, -2, -1001, 0 }, { -963, 3, 443, 0 } }, { 0, 4099, -11, 0 }, { 3405, 0, 2275, 0 }, 1055, 0x4005, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6558, -64, -5760, 0 }, { { 416, 14, -894, 0 }, { 416, -13, 895, 0 }, { -416, 14, -894, 0 }, { -416, -13, 895, 0 } }, { 0, 4106, 56, 0 }, { -4096, 0, 0, 0 }, 985, 2, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6528, -64, -9792, 0 }, { { 416, 14, -1278, 0 }, { 416, -13, 1279, 0 }, { -416, 14, -1278, 0 }, { -416, -13, 1279, 0 } }, { 0, 4119, 39, 0 }, { -4096, 0, 0, 0 }, 1342, 2, 5, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_neo_ark_pyramid_8018168C[2] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_pyramid_801816A4[2] = {
+    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_pyramid_801816BC[3] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_pyramid_801816E0[3] = {
+    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+    { 20, 20, 2, 0, { 0, 0 }, D_80177DF0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_pyramid_80181704[3] = {
+    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_neo_ark_pyramid_80181728[13] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017C580, D_neo_ark_pyramid_8018168C },
+    { D_map_neo_ark_8017C620, D_neo_ark_pyramid_801816A4 },
+    { D_map_neo_ark_8017C690, D_neo_ark_pyramid_801816BC },
+    { D_map_neo_ark_8017C720, D_neo_ark_pyramid_801816E0 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_neo_ark_8017C760, D_neo_ark_pyramid_80181704 },
+    { NULL, NULL },
+};
+
+GpObj3A D_neo_ark_pyramid_80181790[3] = {
+    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
+    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
+    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, { -76, 33 }, 129, 0 },
+};
+
+s32 D_neo_ark_pyramid_80181844[3] = {
+    0x10000039,
+    0x1000003B,
+    0x10000039,
+};
+
+s32 D_neo_ark_pyramid_80181850[3] = {
+    0x1000003D,
+    0x1000003F,
+    0x1000003D,
+};
+
+GpRoomParamRec D_neo_ark_pyramid_8018185C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_pyramid_80181864[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_pyramid_8018186C[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_pyramid_80181874[1] = {
+    { 0, 0, 1, 0, D_neo_ark_pyramid_80181844 },
+};
+
+GpRoomParamRec D_neo_ark_pyramid_8018187C[1] = {
+    { 0, 0, 1, 0, D_neo_ark_pyramid_80181850 },
+};
+
+GpRoomParamRec * D_neo_ark_pyramid_80181884[8] = {
+    D_neo_ark_pyramid_8018185C,
+    D_neo_ark_pyramid_80181864,
+    D_neo_ark_pyramid_8018186C,
+    D_neo_ark_pyramid_80181874,
+    D_neo_ark_pyramid_8018187C,
+    D_neo_ark_pyramid_8018185C,
+    D_neo_ark_pyramid_8018185C,
+    D_neo_ark_pyramid_8018185C,
+};
+
+s32 D_neo_ark_pyramid_801818A4 = 0;
 
 /// Event task that turns the room's rotating quad one step. It hides the HUD
 /// and runs capture command 1; unless that ends on event key 0xC it plays a
@@ -179,23 +962,23 @@ static void func_neo_ark_pyramid_8017D7F4(s32 arg0)
 }
 
 /// Handler for message 0x13F1 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017D9F0(void)
+s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EE in the room's message table: copies the
 /// incoming save-location record onto the outgoing one and forwards both to
-/// `func_80179B14`. Always answers 1.
-s32 func_neo_ark_pyramid_8017D9F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// `func_map_neo_ark_80179B14`. Always answers 1.
+s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
 /// Handler for message 0x13F0 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017DA3C(void)
+s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -204,7 +987,7 @@ s32 func_neo_ark_pyramid_8017DA3C(void)
 /// `field_2` is 1 it resets the quad's angle; once the quad has turned four
 /// times it spawns capture event 3, otherwise it has the player lower the
 /// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
@@ -256,7 +1039,7 @@ void func_neo_ark_pyramid_8017DB98(Task* task)
 
 /// One-shot task: on its first tick stores 0x601E2, 0x601FE and 0x6021A into
 /// three gameplay globals and sets `Gp_State1C` room effect mode 2.
-static void func_neo_ark_pyramid_8017DBF0(Task* arg0)
+void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758                 = 0x601E2;
@@ -274,7 +1057,7 @@ static void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 /// while dimming by 0x10 a frame, and releases the effect once the brightness
 /// is spent. Once the room's event state leaves zero it only waits for state 4
 /// to release.
-static void func_neo_ark_pyramid_8017DC50(Task* task)
+void func_neo_ark_pyramid_8017DC50(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -454,7 +1237,7 @@ static void func_neo_ark_pyramid_8017E320(GpCoord* arg0, s16 arg1, u8* rgb)
 /// draws the ribbon through `func_neo_ark_pyramid_8017EBA4` and releases the
 /// effect once its age reaches `spawnArg1`. It stops advancing once the room's
 /// event state reaches 2.
-static void func_neo_ark_pyramid_8017E6B4(Task* task)
+void func_neo_ark_pyramid_8017E6B4(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -512,9 +1295,12 @@ static void func_neo_ark_pyramid_8017E6B4(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_neo_ark_pyramid_8017FC20.vx;
-                coord.coord.t[1] = D_neo_ark_pyramid_8017FC20.vy;
-                coord.coord.t[2] = D_neo_ark_pyramid_8017FC20.vz;
+                {
+                    SVECTOR* edge = &D_neo_ark_pyramid_8017FC18[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -653,7 +1439,7 @@ static void func_neo_ark_pyramid_8017EBA4(GpCoord* arg0, GpCoord* arg1, s16 arg2
 /// rings in a fading `(a, a/2, a/4)` colour. The effect is then released.
 /// Once the room's event state leaves zero it only waits for state 4 to
 /// release.
-static void func_neo_ark_pyramid_8017EF9C(Task* task)
+void func_neo_ark_pyramid_8017EF9C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

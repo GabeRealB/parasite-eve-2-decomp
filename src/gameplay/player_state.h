@@ -7,7 +7,7 @@
 
 #include "main/task_types.h"
 
-s32 Gp_SetupAllyWeapon(void);
+Task* Gp_SetupAllyWeapon(void);
 
 Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 

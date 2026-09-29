@@ -1,6 +1,8 @@
 #ifndef PE_LIFEDRAIN_H
 #define PE_LIFEDRAIN_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 struct GpCoord;
@@ -18,5 +20,13 @@ typedef struct LifeDrainScale {
     /* 0x8 */ s16 unk8;
 } LifeDrainScale;
 STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
+
+void func_lifedrain_8012F9A8(Task* arg0);
+
+void func_lifedrain_801308C0(Task* arg0);
+
+void func_lifedrain_8012EF48(Task* arg0);
+
+void func_lifedrain_8012FAF8(Task* arg0);
 
 #endif /* PE_LIFEDRAIN_H */

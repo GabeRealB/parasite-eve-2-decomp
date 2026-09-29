@@ -1,9 +1,12 @@
 #ifndef ACTOR_521100_H
 #define ACTOR_521100_H
 
+#include "gameplay/animation.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
+
+#include "actors/actor.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/effects.h"
@@ -114,5 +117,16 @@ typedef struct Actor521100Work {
     /* 0x6BE */ s16 field_6BE;
 } Actor521100Work;
 STATIC_ASSERT_SIZEOF(Actor521100Work, 0x6C0);
+
+// Native animation sets referenced by room script banks.
+extern GpAnimSet D_actor_521100_80137294;
+extern GpAnimSet D_actor_521100_801377E4;
+extern GpAnimSet D_actor_521100_80137DB8;
+extern GpAnimSet D_actor_521100_8013805C;
+extern GpAnimSet D_actor_521100_80138F88;
+extern GpAnimSet D_actor_521100_801399C4;
+extern GpAnimSet D_actor_521100_8013A02C;
+extern GpAnimSet D_actor_521100_8013AE50;
+extern GpAnimSet D_actor_521100_8013AFE0;
 
 #endif

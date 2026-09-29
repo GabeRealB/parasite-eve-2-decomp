@@ -1,3 +1,6 @@
+#include "mine_secret_passage_private.h"
+#include "mapui/map_shelter.h"
+
 #include "common.h"
 #include "rooms/room.h"
 
@@ -15,8 +18,7 @@
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
-
-extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
+#include "rooms/room_common.h"
 
 /// Staging save location this room's warp handler latches: `field_2` /
 /// `field_4` / `field_1` take the three bytes the outgoing location carries.
@@ -29,7 +31,7 @@ extern GpMsgEntry D_mine_secret_passage_80180E8C[];
 
 /// 0x1E pair this room hands `Task_Spawn` for the helper it raises in state 4,
 /// the same shape `D_mine_mesa_80189B38` has.
-extern GpFadeWork D_mine_secret_passage_80183440;
+extern RoomFadeStorage D_mine_secret_passage_80183440;
 
 static void func_mine_secret_passage_8017D8C8(Task* arg0);
 static void func_mine_secret_passage_8017D914(Task* arg0);
@@ -43,6 +45,8 @@ static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
     func_mine_secret_passage_8017D968,
     taskKill,
 };
+
+GpSaveLoc D_mine_secret_passage_80183448 = { 0 };
 
 /// Runs the room's save sequence. State 0 asks for the caption, state 1 waits
 /// for it and drops the periscope overlay, state 2 takes the confirm key or
@@ -85,10 +89,10 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             Gp_TriggerPeIfArmed();
             goto advance;
         case 4:
-            D_mine_secret_passage_80183440.field_0 = 0;
-            D_mine_secret_passage_80183440.field_1 = 0;
-            D_mine_secret_passage_80183440.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440);
+            D_mine_secret_passage_80183440.fade.field_0 = 0;
+            D_mine_secret_passage_80183440.fade.field_1 = 0;
+            D_mine_secret_passage_80183440.fade.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440.fade);
             SndEvt_EnqueueType6(0x54080003, 0, 0);
             goto advance;
         case 5:
@@ -110,22 +114,22 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
     }
 }
 
-s32 func_mine_secret_passage_8017D7C4(void)
+s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler id 0x13EE of the room's `GpMsgEntry` table
 /// `D_mine_secret_passage_80180E8C`: copies the
-/// requested `GpSaveLoc` to `dst` and forwards both to `func_80179A04`. A
+/// requested `GpSaveLoc` to `dst` and forwards both to `func_map_shelter_80179A04`. A
 /// stage-9 request latches the outgoing location's three bytes into the room's
 /// staging save location and starts the cutscene task; `field_5` set only
 /// suppresses that side effect. Returns 2 for a stage-9 request and 1 for
 /// every other one.
-s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
-    func_80179A04(src, dst);
+    func_map_shelter_80179A04(src, dst);
     if (*(u16*)src == 9) {
         if (src->field_5 == 0) {
             D_mine_secret_passage_80183448.field_2              = dst->prefix.bytes.field_0;
@@ -139,12 +143,12 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc* src, GpS
     return 1;
 }
 
-s32 func_mine_secret_passage_8017D888(void)
+s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_mine_secret_passage_8017D890(void)
+s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

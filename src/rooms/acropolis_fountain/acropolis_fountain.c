@@ -32,18 +32,37 @@ static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
     { func_acropolis_fountain_8017D960, func_acropolis_fountain_8017D9BC, taskKill },
 };
 
+s32 func_acropolis_fountain_8017D604(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_fountain_8017D774(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_fountain_8017D77C(Task *, s32, s32, s32);
+s32 func_acropolis_fountain_8017D7F4(Task *, s32, s32, s32);
+void func_acropolis_fountain_8017D868(Task *);
+
+GpMsgEntry D_acropolis_fountain_8017E764[5] = {
+    { 5102, func_acropolis_fountain_8017D604 },
+    { 5104, func_acropolis_fountain_8017D77C },
+    { 5105, func_acropolis_fountain_8017D774 },
+    { 5106, func_acropolis_fountain_8017D7F4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_acropolis_fountain_8017E78C[2] = {
+    { 0, 32, func_acropolis_fountain_8017D868, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
 /// Message gate for the fountain's hotspot: copies the incoming record to the
 /// outgoing one, then edits the copy's `field_3` (the answer the caller acts
 /// on) according to the message id and the room's progress nibbles. Message 3
 /// before nibble 0 reaches 5 hands the record's first two bytes to
 /// `D_acropolis_fountain_80183BB0`/`BB1` and spawns the room's own task,
 /// consuming the message (returns 0); from nibble 0 == 5 on it only answers.
-s32 func_acropolis_fountain_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     s32 msgId;
 
     *out  = *in;
-    msgId = in->msgId;
+    msgId = in->prefix.packed;
     if (msgId == 3) {
         if (GameFlag_GetNibble(0) < 5) {
             if (in->field_5 == 0) {
@@ -53,7 +72,7 @@ s32 func_acropolis_fountain_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
             }
             return 0;
         }
-        if (in->msgId == msgId && in->field_5 == 0) {
+        if (in->prefix.packed == msgId && in->field_5 == 0) {
             if (GameFlag_GetNibble(0) < 2) {
                 if (GameFlag_GetNibble(0x21) < 2) {
                     out->field_3 = 1;
@@ -77,7 +96,7 @@ s32 func_acropolis_fountain_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomE
 
 /// Handler for message 0x13F1 in the room task's message table: ignores the
 /// message and answers 0.
-s32 func_acropolis_fountain_8017D774(void)
+s32 func_acropolis_fountain_8017D774(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

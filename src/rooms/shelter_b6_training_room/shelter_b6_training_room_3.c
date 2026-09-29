@@ -1,3 +1,6 @@
+#include "shelter_b6_training_room_private.h"
+#include "rooms/shelter_b6_training_room.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -24,6 +27,19 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "overlay.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomRingShape entries[3];
+    u16 retained;
+} ShelterB6TrainingRoomRingStorage;
+STATIC_ASSERT_SIZEOF(ShelterB6TrainingRoomRingStorage, 20);
+extern ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404;
 
 /// Scratchpad block `func_shelter_b6_training_room_80181FDC` takes from
 /// `G_SCRATCH_HEAD`: the two world points the textured strip joins, the first
@@ -62,7 +78,6 @@ extern GpCoord*      D_shelter_b6_training_room_80185C94;
 extern u16           D_shelter_b6_training_room_80185C98;
 extern SVECTOR       D_shelter_b6_training_room_80184334[];
 extern u16           D_shelter_b6_training_room_801843FC[];
-extern RoomRingShape D_shelter_b6_training_room_80184404[];
 extern u8            D_shelter_b6_training_room_80185C60[][16];
 
 static void func_shelter_b6_training_room_8017E28C(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -74,7 +89,317 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coor
 static void func_shelter_b6_training_room_80181BAC(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1, s32 arg2, s16 arg3);
 
-static void func_shelter_b6_training_room_8017DDE8(Task* task)
+extern GpEvsCmd D_shelter_b6_training_room_80184124[];
+
+GpMsgEntry D_shelter_b6_training_room_80182AF4[6] = {
+    { 5102, func_shelter_b6_training_room_8017D640 },
+    { 5105, func_shelter_b6_training_room_8017D638 },
+    { 5103, func_shelter_b6_training_room_8017D75C },
+    { 5104, func_shelter_b6_training_room_8017D684 },
+    { 5108, func_shelter_b6_training_room_8017D764 },
+    { 0x7FFFFFFF, NULL },
+};
+
+s32 D_shelter_b6_training_room_80182B24 = 0x11805;
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB6TrainingRoomPoseBank5568;
+
+ShelterB6TrainingRoomPoseBank5568 D_shelter_b6_training_room_80182B28 = { .poses = {
+#include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b6_training_room_80182B70[46] = {
+#include "assets/shelter_b6_training_room_animation_05844_bank4.inc"
+};
+
+GpAnimRec D_shelter_b6_training_room_80182C28[109] = {
+#include "assets/shelter_b6_training_room_animation_05844_records.inc"
+};
+
+u16 D_shelter_b6_training_room_80182DDC[20] = {
+#include "assets/shelter_b6_training_room_animation_05844_indices.inc"
+};
+
+GpAnimSet D_shelter_b6_training_room_80182E04 = {
+    D_shelter_b6_training_room_80182C28, D_shelter_b6_training_room_80182DDC,
+    { NULL, D_shelter_b6_training_room_80182B28.words, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} ShelterB6TrainingRoomPoseBank586C;
+
+ShelterB6TrainingRoomPoseBank586C D_shelter_b6_training_room_80182E2C = { .poses = {
+#include "assets/shelter_b6_training_room_animation_05F74_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b6_training_room_80182EC8[171] = {
+#include "assets/shelter_b6_training_room_animation_05F74_bank4.inc"
+};
+
+GpAnimRec D_shelter_b6_training_room_80183174[230] = {
+#include "assets/shelter_b6_training_room_animation_05F74_records.inc"
+};
+
+u16 D_shelter_b6_training_room_8018350C[20] = {
+#include "assets/shelter_b6_training_room_animation_05F74_indices.inc"
+};
+
+GpAnimSet D_shelter_b6_training_room_80183534 = {
+    D_shelter_b6_training_room_80183174, D_shelter_b6_training_room_8018350C,
+    { NULL, D_shelter_b6_training_room_80182E2C.words, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} ShelterB6TrainingRoomPoseBank5F9C;
+
+ShelterB6TrainingRoomPoseBank5F9C D_shelter_b6_training_room_8018355C = { .poses = {
+#include "assets/shelter_b6_training_room_animation_061B8_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b6_training_room_80183580[28] = {
+#include "assets/shelter_b6_training_room_animation_061B8_bank4.inc"
+};
+
+GpAnimRec D_shelter_b6_training_room_801835F0[88] = {
+#include "assets/shelter_b6_training_room_animation_061B8_records.inc"
+};
+
+u16 D_shelter_b6_training_room_80183750[20] = {
+#include "assets/shelter_b6_training_room_animation_061B8_indices.inc"
+};
+
+GpAnimSet D_shelter_b6_training_room_80183778 = {
+    D_shelter_b6_training_room_801835F0, D_shelter_b6_training_room_80183750,
+    { NULL, D_shelter_b6_training_room_8018355C.words, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} ShelterB6TrainingRoomPoseBank61E0;
+
+ShelterB6TrainingRoomPoseBank61E0 D_shelter_b6_training_room_801837A0 = { .poses = {
+#include "assets/shelter_b6_training_room_animation_063C0_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b6_training_room_801837B8[29] = {
+#include "assets/shelter_b6_training_room_animation_063C0_bank4.inc"
+};
+
+GpAnimRec D_shelter_b6_training_room_8018382C[75] = {
+#include "assets/shelter_b6_training_room_animation_063C0_records.inc"
+};
+
+u16 D_shelter_b6_training_room_80183958[20] = {
+#include "assets/shelter_b6_training_room_animation_063C0_indices.inc"
+};
+
+GpAnimSet D_shelter_b6_training_room_80183980 = {
+    D_shelter_b6_training_room_8018382C, D_shelter_b6_training_room_80183958,
+    { NULL, D_shelter_b6_training_room_801837A0.words, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
+};
+
+TaskDesc D_shelter_b6_training_room_801839A8 = { 0, 96, func_shelter_b6_training_room_8017D9C8, { .model = NULL } };
+
+GpAnimSet * D_shelter_b6_training_room_801839B4[5] = {
+    NULL,
+    &D_shelter_b6_training_room_80182E04,
+    &D_shelter_b6_training_room_80183534,
+    &D_shelter_b6_training_room_80183778,
+    &D_shelter_b6_training_room_80183980,
+};
+
+GpCopyArg D_shelter_b6_training_room_801839C8 = { { .sets = D_shelter_b6_training_room_801839B4 }, 5 };
+
+GpAnimArg D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_shelter_b6_training_room_801839E4 = { { .index = 1 }, 48, 1, 20, 0 };
+
+GpAnimArg D_shelter_b6_training_room_801839F8 = { { .index = 1 }, 49, 0, 0, 0 };
+
+GpAnimArg D_shelter_b6_training_room_80183A0C = { { .index = 1 }, 50, 0, 0, 0 };
+
+GpAnimArg D_shelter_b6_training_room_80183A20 = { { .index = 1 }, 51, 1, 2, 0 };
+
+GpXformArg D_shelter_b6_training_room_80183A34 = { { 2300, 0, 8900, 0 }, { 0, 910, 0, 0 } };
+
+GpXformArg D_shelter_b6_training_room_80183A4C = { { 2300, 0, 9000, 0 }, { 0, 1707, 0, 0 } };
+
+GpAnimArg D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_shelter_b6_training_room_80183A78 = { { .index = 0 }, 1, 1, 20, 0 };
+
+GpAnimArg D_shelter_b6_training_room_80183A8C = { { .index = 0 }, 2, 1, 20, 1 };
+
+GpAnimArg D_shelter_b6_training_room_80183AA0 = { { .index = 0 }, 3, 1, 8, 1 };
+
+GpAnimArg D_shelter_b6_training_room_80183AB4 = { { .index = 0 }, 4, 0, 0, 1 };
+
+GpAnimArg D_shelter_b6_training_room_80183AC8 = { { .index = 0 }, 5, 1, 4, 1 };
+
+GpXformArg D_shelter_b6_training_room_80183ADC = { { 2850, 0, 8050, 0 }, { 0, -228, 0, 0 } };
+
+GpAnimArg D_shelter_b6_training_room_80183AF4[5] = {
+    { { .index = 0 }, 1, 0, 0, 0 },
+    { { .index = 0 }, 1, 1, 10, 0 },
+    { { .index = 0 }, 2, 1, 8, 0 },
+    { { .index = 0 }, 3, 1, 8, 0 },
+    { { .index = 0 }, 4, 1, 8, 0 },
+};
+
+GpXformArg D_shelter_b6_training_room_80183B58 = { { 3250, 0, 9500, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_shelter_b6_training_room_80183B70 = { { 3250, 0, 9500, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_shelter_b6_training_room_80183B88 = { { 5000, 0, 0x2710, 0 }, { 0, 1024, 0, 0 } };
+
+GpCmdArg D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
+
+GpCmdArg D_shelter_b6_training_room_80183BA4 = { { .loc = { 5, 24 } }, 2 };
+
+GpSpawnAnimArg D_shelter_b6_training_room_80183BA8 = { 3, 4 };
+
+GpCmdArg D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
+
+GpEvsCmd D_shelter_b6_training_room_80183BB4[58] = {
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_training_room_8017DAF8 }, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_training_room_801839C8 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_training_room_8017DB70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = D_shelter_b6_training_room_80184124 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b6_training_room_80183A34 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_shelter_b6_training_room_80183B58 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_shelter_b6_training_room_80183ADC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 4 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_training_room_8017D940 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839F8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183A78 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_shelter_b6_training_room_80183BA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_training_room_80183B70 }, { .storage = &D_shelter_b6_training_room_80183BA8 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x55190001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_shelter_b6_training_room_80183B88 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b6_training_room_80183A4C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_80183A0C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183A8C }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x55190004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183AA0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183A8C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_80183A20 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x55190002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183AB4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_shelter_b6_training_room_80183AC8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b6_training_room_80184124[14] = {
+    { 13, { .callback = func_shelter_b6_training_room_8017DAF8 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b6_training_room_801839C8 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_training_room_8017DB70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b6_training_room_80183A4C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b6_training_room_80184274[7] = {
+    { 15, { .value = 0x55190005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_training_room_8017DAC8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b6_training_room_8017DB28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_shelter_b6_training_room_8018431C[2] = {
+    { 0, 192, func_shelter_b6_training_room_8017DD98, { .model = NULL } },
+    { 0, 192, func_shelter_b6_training_room_8017DBBC, { .model = NULL } },
+};
+
+SVECTOR D_shelter_b6_training_room_80184334[25] = {
+    { 260, -1440, 0x283C, 0 },
+    { 565, -1405, 0x283C, 0 },
+    { 910, -1470, 0x283C, 0 },
+    { 910, -1240, 0x283C, 0 },
+    { 1180, -1470, 0x283C, 0 },
+    { 1180, -1240, 0x283C, 0 },
+    { 1765, -1440, 0x283C, 0 },
+    { 2065, -1410, 0x283C, 0 },
+    { 4950, -2250, 9750, 0 },
+    { 4950, -2250, 9250, 0 },
+    { 50, -2250, 1750, 0 },
+    { 50, -2250, 1250, 0 },
+    { 350, -4400, 9750, 0 },
+    { 350, -4400, 7750, 0 },
+    { 350, -4400, 6250, 0 },
+    { 350, -4400, 4250, 0 },
+    { 350, -4400, 2750, 0 },
+    { 350, -4400, 750, 0 },
+    { 4650, -4400, 9750, 0 },
+    { 4650, -4400, 7750, 0 },
+    { 4650, -4400, 6250, 0 },
+    { 4650, -4400, 4250, 0 },
+    { 4650, -4400, 2750, 0 },
+    { 4650, -4400, 750, 0 },
+    { 2500, -1000, 7750, 0 },
+};
+
+u16 D_shelter_b6_training_room_801843FC[4] = {
+    258, 532, 1064, 1596,
+};
+
+ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
+
+void func_shelter_b6_training_room_8017DDE8(Task* task)
 {
     s32 i;
     s32 j;
@@ -372,7 +697,7 @@ static void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 
     SCRATCH_POP(RoomDraw13Scratch);
 }
 
-static void func_shelter_b6_training_room_8017EE70(Task* arg0)
+void func_shelter_b6_training_room_8017EE70(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -622,7 +947,7 @@ static void func_shelter_b6_training_room_8017F540(GpCoord* arg0, s32 arg1)
     SCRATCH_POP_BYTES(0x38);
 }
 
-static void func_shelter_b6_training_room_8017F8B8(Task* task)
+void func_shelter_b6_training_room_8017F8B8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -707,7 +1032,7 @@ static void func_shelter_b6_training_room_8017F8B8(Task* task)
 /// capsule from `func_shelter_b6_training_room_80180530`. The fill colour comes
 /// from the 4-bit-per-channel palette entry `color`, scaled by 16 and
 /// brightened on alternate fields; the outer vertices are black.
-static void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color)
+void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color)
 {
     void**           scratch;
     u8*              head;
@@ -973,7 +1298,7 @@ static void func_shelter_b6_training_room_80180530(GpCoord* from, GpCoord* to, s
     SCRATCH_POP_BYTES(0x2C);
 }
 
-static void func_shelter_b6_training_room_80180DB4(Task* task)
+void func_shelter_b6_training_room_80180DB4(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -1053,7 +1378,7 @@ static void func_shelter_b6_training_room_80180DB4(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-static void func_shelter_b6_training_room_801811AC(Task* task)
+void func_shelter_b6_training_room_801811AC(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1140,7 +1465,7 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coor
     u16                                height;
     u16                                period;
 
-    shape    = &D_shelter_b6_training_room_80184404[band];
+    shape    = &D_shelter_b6_training_room_80184404.entries[band];
     period   = mem->period;
     rBase    = mem->angle;
     height   = period + (u16)shape->yOff;
@@ -1212,7 +1537,7 @@ static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GpCoord* coor
     SCRATCH_POP_BYTES(0x78);
 }
 
-static void func_shelter_b6_training_room_80181930(Task* task)
+void func_shelter_b6_training_room_80181930(Task* task)
 {
     GpCoord* coord;
     u8       rgb[3];
@@ -1235,7 +1560,7 @@ static void func_shelter_b6_training_room_80181930(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_80181A3C(Task* task)
+void func_shelter_b6_training_room_80181A3C(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1418,7 +1743,7 @@ static void func_shelter_b6_training_room_80181FDC(GpCoord* arg0, GpCoord* arg1,
     SCRATCH_POP_BYTES(0x28);
 }
 
-static void func_shelter_b6_training_room_8018245C(Task* task)
+void func_shelter_b6_training_room_8018245C(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1461,7 +1786,7 @@ static void func_shelter_b6_training_room_8018245C(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_801825C0(Task* task)
+void func_shelter_b6_training_room_801825C0(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1493,7 +1818,7 @@ static void func_shelter_b6_training_room_801825C0(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_801826E0(Task* task)
+void func_shelter_b6_training_room_801826E0(Task* task)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1526,7 +1851,7 @@ static void func_shelter_b6_training_room_801826E0(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_80182804(Task* task)
+void func_shelter_b6_training_room_80182804(Task* task)
 {
     GpEffWork* mem;
 
@@ -1546,7 +1871,7 @@ static void func_shelter_b6_training_room_80182804(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_8018294C(Task* task)
+void func_shelter_b6_training_room_8018294C(Task* task)
 {
     if (Gp_State1C->eventState == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -1557,7 +1882,7 @@ static void func_shelter_b6_training_room_8018294C(Task* task)
     }
 }
 
-static void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
+void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];

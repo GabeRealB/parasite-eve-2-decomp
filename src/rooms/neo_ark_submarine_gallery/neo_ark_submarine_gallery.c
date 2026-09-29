@@ -1,3 +1,7 @@
+#include "neo_ark_submarine_gallery_private.h"
+#include "rooms/neo_ark_submarine_gallery.h"
+#include "mapui/map_neo_ark.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -25,6 +29,9 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "overlay.h"
+#include "rooms/room_common.h"
+
+#include "gameplay/area_flags.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -37,7 +44,7 @@ extern s16        D_neo_ark_submarine_gallery_801818B8;
 
 /// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
 /// the same shape `D_mine_mesa_80189B38` has.
-extern GpFadeWork D_neo_ark_submarine_gallery_8018591C;
+extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 
 /// Staging save location the gallery commits: `field_2` / `field_4` / `field_1`
 /// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
@@ -45,7 +52,16 @@ extern GpFadeWork D_neo_ark_submarine_gallery_8018591C;
 /// same three bytes into `Mc_SaveData[0].state.at4.loc.area` / `field_8` / `field_5`.
 extern GpSaveLoc D_neo_ark_submarine_gallery_80185924;
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+GpAreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
+    { 5, 12, 4, 0 },
+    { 5, 14, 4, 0 },
+    { 5, 30, 4, 0 },
+    { 255, 0, 0, 0 },
+};
+
+RoomFadeStorage D_neo_ark_submarine_gallery_8018591C = { 0 };
+
+GpSaveLoc D_neo_ark_submarine_gallery_80185924 = { 0 };
 
 /// Water-refraction ripple over parts of the screen, drawn only in some views
 /// of areas 27, 14, 15, 13, 30 and 29; every other view returns at once. The
@@ -794,10 +810,10 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             arg0->state++;
             break;
         case 3:
-            D_neo_ark_submarine_gallery_8018591C.field_0 = 0;
-            D_neo_ark_submarine_gallery_8018591C.field_1 = 0;
-            D_neo_ark_submarine_gallery_8018591C.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C);
+            D_neo_ark_submarine_gallery_8018591C.fade.field_0 = 0;
+            D_neo_ark_submarine_gallery_8018591C.fade.field_1 = 0;
+            D_neo_ark_submarine_gallery_8018591C.fade.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
             SndEvt_EnqueueType6(0x551E0001, 0, 0);
             arg0->state++;
             break;
@@ -817,7 +833,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
     }
 }
 
-s32 func_neo_ark_submarine_gallery_8017EA04(void)
+s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -826,10 +842,10 @@ s32 func_neo_ark_submarine_gallery_8017EA04(void)
 /// reports no pending flag, latches the save location the outgoing message
 /// carries and starts the cutscene the gallery leads out of. Returns 0 for that
 /// message and 1 for every other one.
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
-    func_80179B14(src, dst);
+    func_map_neo_ark_80179B14(src, dst);
     if (*(u16*)src == 0xE) {
         if (src->field_5 == 0) {
             D_neo_ark_submarine_gallery_80185924.field_2              = dst->prefix.bytes.field_0;
@@ -842,7 +858,7 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* sr
     return 1;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EABC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 2:
@@ -865,7 +881,7 @@ s32 func_neo_ark_submarine_gallery_8017EABC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EB48(void)
+s32 func_neo_ark_submarine_gallery_8017EB48(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -904,11 +920,11 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
     SVECTOR  p0;
     SVECTOR  p1;
     SVECTOR  p2;
-    s32      sxy0;
-    s32      sxy1;
-    s32      sxy2;
-    s32      p;
-    s32      flag;
+    long     sxy0;
+    long     sxy1;
+    long     sxy2;
+    long     p;
+    long     flag;
     POLY_G3* prim;
     DR_MODE* dr;
     s32      otz;

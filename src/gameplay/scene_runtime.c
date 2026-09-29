@@ -1,4 +1,18 @@
 #include "gameplay/scene_runtime.h"
+#include "rooms/mist_shooting_gallery.h"
+#include "rooms/neo_ark_pavilion.h"
+#include "rooms/shelter_r48.h"
+#include "rooms/dryfield_night_motel_room_6.h"
+#include "rooms/dryfield_motel_room_6.h"
+#include "rooms/neo_ark_bridge.h"
+#include "rooms/shelter_b1_control_room.h"
+#include "rooms/neo_ark_island.h"
+#include "rooms/neo_ark_submarine_gallery.h"
+#include "rooms/neo_ark_woodland_path.h"
+#include "rooms/neo_ark_garden.h"
+#include "rooms/neo_ark_submarine_tunnel.h"
+#include "rooms/neo_ark_observatory.h"
+#include "rooms/neo_ark_r31.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/abs.h>
@@ -49,20 +63,6 @@
 #include "main/stream_types.h"
 #include "main/task.h"
 #include "main/tmd.h"
-
-/// Packed translation + rotation (no `SVECTOR` pad). `Gp_AnimBlendPose`
-/// GPF/GPL-blends `vx`/`vy`/`vz` and copies `rx`/`ry`/`rz` into
-/// `GpAnimScratch80.vec0` / `vec1`. `func_800B3448` dispatches here when
-/// `GpAnimSlot.poseKind == 1`.
-typedef struct _GpPackedPose {
-    /* 0x00 */ s16 vx;
-    /* 0x02 */ s16 vy;
-    /* 0x04 */ s16 vz;
-    /* 0x06 */ s16 rx;
-    /* 0x08 */ s16 ry;
-    /* 0x0A */ s16 rz;
-} GpPackedPose;
-STATIC_ASSERT_SIZEOF(GpPackedPose, 0xC);
 
 /// Source/dest pointers for `Gp_AnimBlendPacked` / `Gp_AnimBlendPose`. Lives at
 /// offset 4 of the 0x18-byte scratch `func_800B3448` allocates from
@@ -296,9 +296,7 @@ static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item);
 
 void Gp_BindSlot4(Task* task);
 
-void func_800B6398(void);
-
-void func_8017FBD8(void);
+void func_800B6398(Task* task);
 
 extern TaskDesc D_80115D9C[];
 
@@ -307,32 +305,6 @@ extern TaskDesc D_80119218[];
 extern TaskDesc D_8011922C[];
 
 extern TaskDesc D_801637C8[];
-
-extern TaskDesc D_8017D9E8[];
-
-extern TaskDesc D_80180DBC[];
-
-extern TaskDesc D_801810E4[];
-
-extern TaskDesc D_80181398[];
-
-extern TaskDesc D_80181638[];
-
-extern TaskDesc D_8018186C[];
-
-extern TaskDesc D_80181B30[];
-
-extern TaskDesc D_80181B88[];
-
-extern TaskDesc D_80181F18[];
-
-extern TaskDesc D_80182D0C[];
-
-extern TaskDesc D_80182E74[];
-
-extern TaskDesc D_80182FAC[];
-
-extern TaskDesc D_8018384C[];
 
 extern GpBit2List D_map_akropolis_8017A7FC[];
 
@@ -1806,50 +1778,50 @@ void func_800B25B0(void)
 {
     switch (GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(5, 27, 0, 0):
-            Task_SpawnFromTable(D_80181F18, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 15, 0, 0):
-            Task_SpawnFromTable(D_80181398, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 14, 0, 0):
-            Task_SpawnFromTable(D_80181B30, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 13, 0, 0):
-            Task_SpawnFromTable(D_8018384C, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 12, 0, 0):
-            Task_SpawnFromTable(D_801810E4, 1, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, 1, 0, 0);
             break;
         case GP_LOC_KEY(5, 7, 0, 0):
-            Task_SpawnFromTable(D_80180DBC, 0, 0, 0);
+            Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 0, 0, 0);
             break;
         case GP_LOC_KEY(2, 30, 0, 0):
-            Task_SpawnFromTable(D_80182D0C, 0, 1, 0);
+            Task_SpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, 1, 0);
             break;
         case GP_LOC_KEY(3, 30, 0, 0):
-            Task_SpawnFromTable(D_80182E74, 0, 1, 0);
+            Task_SpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, 1, 0);
             break;
         case GP_LOC_KEY(4, 18, 0, 0):
-            Task_SpawnFromTable(D_80181B88, 0, 0, 0);
+            Task_SpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 31, 0, 0):
-            Task_SpawnFromTable(D_8017D9E8, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
             break;
         case GP_LOC_KEY(5, 30, 0, 0):
-            Task_SpawnFromTable(D_8018186C, 0, 0, 0);
-            Task_SpawnFromTable(D_8018186C, 1, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 1, 0, 0);
             break;
         case GP_LOC_KEY(5, 29, 0, 0):
-            Task_SpawnFromTable(D_80181638, 0, 0, 0);
+            Task_SpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
         case GP_LOC_KEY(4, 22, 0, 0):
             Task_SpawnFromTable(D_801637C8, 0, 0, 0);
             break;
         case GP_LOC_KEY(4, 48, 0, 0):
-            Task_SpawnFromTable(D_80182FAC, 0, 0, 0);
+            Task_SpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
             break;
         case GP_LOC_KEY(1, 20, 0, 0):
-            func_8017FBD8();
+            func_mist_shooting_gallery_8017FBD8();
             break;
     }
 }
@@ -2086,7 +2058,7 @@ static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
     func_800B3448(arg0, arg1, 0, 0);
 }
 
-void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_800B3448(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpPackedSvec* arg3)
 {
     GpAnimScratch18* s;
     GpAnimSlot*      slot;
@@ -2190,7 +2162,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     s->src.field_10 = slot->bufPose;
     slot->bufPose   = 0;
     if (slot->curSet == 0x7FFF) {
-        s->src.field_0 = (GpPackedSvec*)((s32)arg0->poses + (arg1 << 4));
+        s->src.field_0 = &arg0->poses[arg1 * 4];
         slot->bufPose  = 1;
     } else {
         recs           = slot->sets[slot->curSet]->recs;
@@ -2198,7 +2170,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
         s->src.field_0 = &poses[recs[slot->curRec].pose];
     }
     if (slot->nextSet == 0x7FFF) {
-        s->src.field_4 = (GpPackedSvec*)((s32)arg0->poses + (arg1 << 4));
+        s->src.field_4 = &arg0->poses[arg1 * 4];
         slot->bufPose  = 1;
     } else {
         set            = slot->sets[slot->nextSet];
@@ -2211,8 +2183,8 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     } else {
         s->src.field_10 = 0;
     }
-    s->src.field_8 = (GpPackedSvec*)arg3;
-    s->src.field_C = (GpAnimPose*)arg2;
+    s->src.field_8 = arg3;
+    s->src.field_C = arg2;
     switch (op) {
         case 1:
             Gp_AnimBlendPose(&s->src, coord, slot);
@@ -2239,7 +2211,7 @@ static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3
 
     off  = arg1 << 4;
     slot = &arg0->slots[arg1];
-    func_800B3448(arg0, arg1, 0, (s32)arg0->poses + off);
+    func_800B3448(arg0, arg1, 0, (GpPackedSvec*)((u8*)arg0->poses + off));
     slot->curSet = 0x7FFF;
     set          = slot->sets[arg2];
     recs         = set->recs;
@@ -2303,7 +2275,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
         idx            = arg1->trackIndex;
         off            = idx << 4;
         slot           = &arg0->slots[idx];
-        func_800B3448(arg0, idx, 0, (s32)arg0->poses + off);
+        func_800B3448(arg0, idx, 0, (GpPackedSvec*)((u8*)arg0->poses + off));
         slot->curSet = 0x7FFF;
         set          = slot->sets[(u16)setIdx];
         recs         = set->recs;
@@ -2596,7 +2568,7 @@ void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1)
     func_800B3448(arg0, arg1, 0, 0);
 }
 
-void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
+void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     GpAnimSlot* slot;
     GpAnimSet*  set;
@@ -2608,7 +2580,7 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
 
     off  = arg1 << 4;
     slot = &arg0->slots[arg1];
-    func_800B3448(arg0, arg1, arg2, (s32)arg0->poses + off);
+    func_800B3448(arg0, arg1, arg2, (GpPackedSvec*)((u8*)arg0->poses + off));
     slot->curSet = 0x7FFF;
     set          = slot->sets[arg3];
     recs         = set->recs;
@@ -2688,7 +2660,7 @@ static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
     arg1->curSet = arg2;
 }
 
-void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                      void* arg7)
 {
     GpAnimSlot* slot;
@@ -2701,7 +2673,7 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s3
 
     off  = arg1 << 4;
     slot = &arg0->slots[arg1];
-    func_800B3448(arg0, arg1, arg2, (s32)arg0->poses + off);
+    func_800B3448(arg0, arg1, arg2, (GpPackedSvec*)((u8*)arg0->poses + off));
     slot->curSet = 0x7FFF;
     if (arg7 != NULL) {
         arg0->sets = arg7;
@@ -3770,7 +3742,7 @@ void Gp_BindSlot4(Task* task)
     task->state++;
 }
 
-void func_800B6398(void)
+void func_800B6398(Task* task)
 {
     Gp_DrawTargetCursor();
 }

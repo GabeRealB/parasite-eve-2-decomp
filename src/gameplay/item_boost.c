@@ -306,8 +306,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     if (table == NULL) {
         return;
     }
-    rec = table->field_0;
-    if (rec == (GpBit2Rec*)-1) {
+    rec = table->field_0.records;
+    if (table->field_0.sentinel == -1) {
         return;
     }
     do {
@@ -321,8 +321,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
             }
         }
         table++;
-        rec = table->field_0;
-    } while (rec != (GpBit2Rec*)-1);
+        rec = table->field_0.records;
+    } while (table->field_0.sentinel != -1);
 }
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
@@ -648,16 +648,14 @@ void Gp_InitModeEquip(void)
     s32           start;
     s32           limit;
 
-    s32               item;
-    s32               slots;
-    GpItemSlotAddress selected;
-    u8                slotItem;
+    s32           item;
+    u8            slotItem;
 
     cfg = &Player_Status;
     acc = 0;
     if (cfg->weapon == 0) {
         scan = &Mc_SaveData[0].state.carriedItems;
-        item = 0x81;
+        item     = 0x81;
         switch (scan->table) {
             case 2:
                 tmp = Gp_ItemTable2;
@@ -690,11 +688,8 @@ void Gp_InitModeEquip(void)
         }
     }
     if (cfg->weapon == 2) {
-        /* Keep the item-id bias in an address word. Only the final slot is
-         * a pointer into weaponItems; there is no pointer before the array. */
-        slots         = (s32)Mc_SaveData[0].state.weaponItems - 0x80 * (s32)sizeof(McItemSlot);
-        selected.word = slots + 0x81 * (s32)sizeof(McItemSlot);
-        slotItem      = selected.slot->ammoId;
+        item     = 0x81;
+        slotItem = gpItemSlot(item)->ammoId;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
             Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, 0x81, 0xA0, -1);
         }

@@ -1,2 +1,139 @@
 // Overlay-local symbols for shelter_b6_training_room.
-D_shelter_b6_training_room_80185C98 = 0x80185C98; // type:u16 size:0x2
+D_shelter_b6_training_room_80185C58 = 0x80185C58; // size:0x4 defined:True
+D_shelter_b6_training_room_80185C5C = 0x80185C5C; // size:0x4 defined:True
+D_shelter_b6_training_room_801843FC = 0x801843FC; // size:0x8 defined:True
+
+D_shelter_b6_training_room_801859DC = 0x801859DC; // size:0x68 defined:True
+D_shelter_b6_training_room_80185A44 = 0x80185A44; // size:0x17C defined:True
+D_shelter_b6_training_room_80185BC0 = 0x80185BC0; // size:0x48 defined:True
+D_shelter_b6_training_room_80185C08 = 0x80185C08; // size:0xC defined:True
+D_shelter_b6_training_room_80185C14 = 0x80185C14; // size:0xC defined:True
+D_shelter_b6_training_room_80185C20 = 0x80185C20; // size:0x8 defined:True
+D_shelter_b6_training_room_80185C28 = 0x80185C28; // size:0x8 defined:True
+D_shelter_b6_training_room_80185C30 = 0x80185C30; // size:0x8 defined:True
+D_shelter_b6_training_room_80185C38 = 0x80185C38; // size:0x20 defined:True
+D_shelter_b6_training_room_80185C60 = 0x80185C60; // size:0x30 defined:True
+D_shelter_b6_training_room_80185C90 = 0x80185C90; // size:0x4 defined:True
+D_shelter_b6_training_room_80185C94 = 0x80185C94; // size:0x4 defined:True
+D_map_neo_ark_8017C140 = 0x8017C140; // absolute:True
+D_shelter_b6_training_room_80184418 = 0x80184418; // size:0x4 defined:True
+D_shelter_b6_training_room_8018441C = 0x8018441C; // size:0x4 defined:True
+D_shelter_b6_training_room_80184420 = 0x80184420; // size:0x70 defined:True
+D_shelter_b6_training_room_80184490 = 0x80184490; // size:0x38 defined:True
+D_shelter_b6_training_room_801844C8 = 0x801844C8; // size:0xB0 defined:True
+D_shelter_b6_training_room_80184578 = 0x80184578; // size:0xFC defined:True
+D_shelter_b6_training_room_80184674 = 0x80184674; // size:0x1C defined:True
+D_shelter_b6_training_room_80184690 = 0x80184690; // size:0x22 defined:True
+D_shelter_b6_training_room_801846B4 = 0x801846B4; // size:0x22 defined:True
+D_shelter_b6_training_room_801846D8 = 0x801846D8; // size:0x14 defined:True
+D_shelter_b6_training_room_801846EC = 0x801846EC; // size:0x14 defined:True
+D_shelter_b6_training_room_80184700 = 0x80184700; // size:0x1C defined:True
+D_shelter_b6_training_room_8018471C = 0x8018471C; // size:0x18 defined:True
+D_shelter_b6_training_room_80184734 = 0x80184734; // size:0x24 defined:True
+D_shelter_b6_training_room_80184758 = 0x80184758; // size:0x120 defined:True
+D_shelter_b6_training_room_80184878 = 0x80184878; // size:0x10 defined:True
+D_shelter_b6_training_room_80184888 = 0x80184888; // size:0x10 defined:True
+D_shelter_b6_training_room_80184898 = 0x80184898; // size:0x230 defined:True
+D_shelter_b6_training_room_80184AC8 = 0x80184AC8; // size:0x20 defined:True
+D_shelter_b6_training_room_80184AE8 = 0x80184AE8; // size:0x10 defined:True
+D_shelter_b6_training_room_80184AF8 = 0x80184AF8; // size:0x10 defined:True
+D_shelter_b6_training_room_80184B08 = 0x80184B08; // size:0x10 defined:True
+D_shelter_b6_training_room_80184B18 = 0x80184B18; // size:0x230 defined:True
+D_shelter_b6_training_room_80184D48 = 0x80184D48; // size:0x20 defined:True
+D_shelter_b6_training_room_80184D68 = 0x80184D68; // size:0x10 defined:True
+D_shelter_b6_training_room_80184D78 = 0x80184D78; // size:0x60 defined:True
+D_shelter_b6_training_room_80184DD8 = 0x80184DD8; // size:0x480 defined:True
+D_shelter_b6_training_room_80185258 = 0x80185258; // size:0x510 defined:True
+D_shelter_b6_training_room_80185768 = 0x80185768; // size:0x18 defined:True
+D_shelter_b6_training_room_80185780 = 0x80185780; // size:0x214 defined:True
+D_shelter_b6_training_room_80185994 = 0x80185994; // size:0x48 defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+D_80141464 = 0x80141464; // absolute:True
+D_8014CA60 = 0x8014CA60; // absolute:True
+D_801567C4 = 0x801567C4; // absolute:True
+D_80169D10 = 0x80169D10; // absolute:True
+D_801708DC = 0x801708DC; // absolute:True
+D_shelter_b6_training_room_80184334 = 0x80184334; // size:0xC8 defined:True
+D_shelter_b6_training_room_80184404 = 0x80184404; // size:0x14 defined:True
+D_shelter_b6_training_room_80185C98 = 0x80185C98; // size:0x2 defined:True
+D_shelter_b6_training_room_80182AF4 = 0x80182AF4; // size:0x30 defined:True
+D_shelter_b6_training_room_80182B24 = 0x80182B24; // size:0x4 defined:True
+D_shelter_b6_training_room_80182B28 = 0x80182B28; // size:0x48 defined:True
+D_shelter_b6_training_room_80182B70 = 0x80182B70; // size:0xB8 defined:True
+D_shelter_b6_training_room_80182C28 = 0x80182C28; // size:0x1B4 defined:True
+D_shelter_b6_training_room_80182DDC = 0x80182DDC; // size:0x28 defined:True
+D_shelter_b6_training_room_80182E04 = 0x80182E04; // size:0x28 defined:True
+D_shelter_b6_training_room_80182E2C = 0x80182E2C; // size:0x9C defined:True
+D_shelter_b6_training_room_80182EC8 = 0x80182EC8; // size:0x2AC defined:True
+D_shelter_b6_training_room_80183174 = 0x80183174; // size:0x398 defined:True
+D_shelter_b6_training_room_8018350C = 0x8018350C; // size:0x28 defined:True
+D_shelter_b6_training_room_80183534 = 0x80183534; // size:0x28 defined:True
+D_shelter_b6_training_room_8018355C = 0x8018355C; // size:0x24 defined:True
+D_shelter_b6_training_room_80183580 = 0x80183580; // size:0x70 defined:True
+D_shelter_b6_training_room_801835F0 = 0x801835F0; // size:0x160 defined:True
+D_shelter_b6_training_room_80183750 = 0x80183750; // size:0x28 defined:True
+D_shelter_b6_training_room_80183778 = 0x80183778; // size:0x28 defined:True
+D_shelter_b6_training_room_801837A0 = 0x801837A0; // size:0x18 defined:True
+D_shelter_b6_training_room_801837B8 = 0x801837B8; // size:0x74 defined:True
+D_shelter_b6_training_room_8018382C = 0x8018382C; // size:0x12C defined:True
+D_shelter_b6_training_room_80183958 = 0x80183958; // size:0x28 defined:True
+D_shelter_b6_training_room_80183980 = 0x80183980; // size:0x28 defined:True
+D_shelter_b6_training_room_801839A8 = 0x801839A8; // size:0xC defined:True
+D_shelter_b6_training_room_801839B4 = 0x801839B4; // size:0x14 defined:True
+D_shelter_b6_training_room_801839C8 = 0x801839C8; // size:0x8 defined:True
+D_shelter_b6_training_room_801839D0 = 0x801839D0; // size:0x14 defined:True
+D_shelter_b6_training_room_801839E4 = 0x801839E4; // size:0x14 defined:True
+D_shelter_b6_training_room_801839F8 = 0x801839F8; // size:0x14 defined:True
+D_shelter_b6_training_room_80183A0C = 0x80183A0C; // size:0x14 defined:True
+D_shelter_b6_training_room_80183A20 = 0x80183A20; // size:0x14 defined:True
+D_shelter_b6_training_room_80183A34 = 0x80183A34; // size:0x18 defined:True
+D_shelter_b6_training_room_80183A4C = 0x80183A4C; // size:0x18 defined:True
+D_shelter_b6_training_room_80183A64 = 0x80183A64; // size:0x14 defined:True
+D_shelter_b6_training_room_80183A78 = 0x80183A78; // size:0x14 defined:True
+D_shelter_b6_training_room_80183A8C = 0x80183A8C; // size:0x14 defined:True
+D_shelter_b6_training_room_80183AA0 = 0x80183AA0; // size:0x14 defined:True
+D_shelter_b6_training_room_80183AB4 = 0x80183AB4; // size:0x14 defined:True
+D_shelter_b6_training_room_80183AC8 = 0x80183AC8; // size:0x14 defined:True
+D_shelter_b6_training_room_80183ADC = 0x80183ADC; // size:0x18 defined:True
+D_shelter_b6_training_room_80183AF4 = 0x80183AF4; // size:0x64 defined:True
+D_shelter_b6_training_room_80183B58 = 0x80183B58; // size:0x18 defined:True
+D_shelter_b6_training_room_80183B70 = 0x80183B70; // size:0x18 defined:True
+D_shelter_b6_training_room_80183B88 = 0x80183B88; // size:0x18 defined:True
+D_shelter_b6_training_room_80183BA0 = 0x80183BA0; // size:0x4 defined:True
+D_shelter_b6_training_room_80183BA4 = 0x80183BA4; // size:0x4 defined:True
+D_shelter_b6_training_room_80183BA8 = 0x80183BA8; // size:0x8 defined:True
+D_shelter_b6_training_room_80183BB0 = 0x80183BB0; // size:0x4 defined:True
+D_shelter_b6_training_room_80183BB4 = 0x80183BB4; // size:0x570 defined:True
+D_shelter_b6_training_room_80184124 = 0x80184124; // size:0x150 defined:True
+D_shelter_b6_training_room_80184274 = 0x80184274; // size:0xA8 defined:True
+D_shelter_b6_training_room_8018431C = 0x8018431C; // size:0x18 defined:True
+
+func_shelter_b6_training_room_80181930 = 0x80181930; // type:func
+
+func_shelter_b6_training_room_8018294C = 0x8018294C; // type:func
+
+func_shelter_b6_training_room_80182A14 = 0x80182A14; // type:func
+
+func_shelter_b6_training_room_8017FC40 = 0x8017FC40; // type:func
+
+func_shelter_b6_training_room_8017D874 = 0x8017D874; // type:func
+
+func_shelter_b6_training_room_8017EE70 = 0x8017EE70; // type:func
+
+func_shelter_b6_training_room_8017F8B8 = 0x8017F8B8; // type:func
+
+func_shelter_b6_training_room_80180DB4 = 0x80180DB4; // type:func
+
+func_shelter_b6_training_room_801811AC = 0x801811AC; // type:func
+
+func_shelter_b6_training_room_80181A3C = 0x80181A3C; // type:func
+
+func_shelter_b6_training_room_8018245C = 0x8018245C; // type:func
+
+func_shelter_b6_training_room_801825C0 = 0x801825C0; // type:func
+
+func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func
+
+func_shelter_b6_training_room_80182804 = 0x80182804; // type:func
+
+func_shelter_b6_training_room_8017DDE8 = 0x8017DDE8; // type:func

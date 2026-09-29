@@ -1,3 +1,6 @@
+#include "neo_ark_power_plant_1_private.h"
+#include "mapui/map_neo_ark.h"
+
 #include "common.h"
 #include "rooms/room.h"
 
@@ -22,16 +25,17 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
 
 /// Main-executable globals with no module header yet, which
 /// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
 
 /// Script blobs in the overlay's `.data`, handed to `func_800E8634` /
 /// `func_800E8614` (which forward them to `Task_Spawn`) as raw addresses.
-extern s32 D_neo_ark_power_plant_1_8017EB7C;
-extern s32 D_neo_ark_power_plant_1_8017EDBC;
-extern s32 D_neo_ark_power_plant_1_8017EEE4;
+extern GpEvsCmd D_neo_ark_power_plant_1_8017EB7C[];
+extern GpEvsCmd D_neo_ark_power_plant_1_8017EDBC[];
+extern GpEvsCmd D_neo_ark_power_plant_1_8017EEE4[];
 
 /// Countdown `func_neo_ark_power_plant_1_8017D5EC` arms to 4 and ticks down;
 /// reaching 0 enqueues a sound event.
@@ -51,6 +55,47 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task);
 /// plant every frame, and the last state kills the task.
 static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
     { func_neo_ark_power_plant_1_8017D928, func_neo_ark_power_plant_1_8017D5EC, taskKill },
+};
+
+extern s32 D_neo_ark_power_plant_1_80181B9C[3];
+extern s32 D_neo_ark_power_plant_1_80181BA8[3];
+
+s32 D_neo_ark_power_plant_1_80181BB4[3] = {
+    0x10000015,
+    0x10000017,
+    0x10000019,
+};
+
+GpRoomParamRec D_neo_ark_power_plant_1_80181BC0[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_power_plant_1_80181BC8[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_power_plant_1_80181BD0[1] = {
+    { 0, 0, 1, 0, D_neo_ark_power_plant_1_80181B9C },
+};
+
+GpRoomParamRec D_neo_ark_power_plant_1_80181BD8[1] = {
+    { 0, 0, 1, 0, D_neo_ark_power_plant_1_80181BA8 },
+};
+
+GpRoomParamRec * D_neo_ark_power_plant_1_80181BE0[8] = {
+    D_neo_ark_power_plant_1_80181BC0,
+    D_neo_ark_power_plant_1_80181BC0,
+    D_neo_ark_power_plant_1_80181BC0,
+    D_neo_ark_power_plant_1_80181BC8,
+    D_neo_ark_power_plant_1_80181BD0,
+    D_neo_ark_power_plant_1_80181BD8,
+    D_neo_ark_power_plant_1_80181BC0,
+    D_neo_ark_power_plant_1_80181BC0,
+};
+
+GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
+    { 5, 18, 2, 1 },
+    { 255, 0, 0, 0 },
 };
 
 /// Second state of the room task, run every frame. While nibble 0xDE is clear
@@ -79,7 +124,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         GameFlag_SetNibble(0x1B2, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
                         Mc_SaveData[0].state.sceneEvent = 0x16;
-                        func_800E8634(&D_neo_ark_power_plant_1_8017EB7C, 0, &D_neo_ark_power_plant_1_8017EDBC);
+                        func_800E8634(D_neo_ark_power_plant_1_8017EB7C, 0, D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }
             }
@@ -89,7 +134,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         GameFlag_SetNibble(0xFB, 1);
         gGameSession->field_126         = 0;
         Gp_StateF0.prefix.bytes.field_0 = 0;
-        func_800E8614((s32)&D_neo_ark_power_plant_1_8017EEE4, 0);
+        func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
     }
     if ((Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
@@ -108,18 +153,18 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
 
 /// Handler the room's message table gives message 0x13F1: accepts it and
 /// does nothing.
-s32 func_neo_ark_power_plant_1_8017D7AC(void)
+s32 func_neo_ark_power_plant_1_8017D7AC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `GpSaveLoc` onto the outgoing one and passes both on to `func_80179B14`.
+/// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_power_plant_1_8017D7B4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_power_plant_1_8017D7B4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
@@ -171,7 +216,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
 
 /// Handler the room's message table gives message 0x13EF: accepts it and
 /// does nothing.
-s32 func_neo_ark_power_plant_1_8017D8C8(void)
+s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

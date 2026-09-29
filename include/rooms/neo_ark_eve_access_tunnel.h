@@ -1,6 +1,10 @@
 #ifndef ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_H
 #define ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_H
 
+#include "main/task_types.h"
+
+#include "gameplay/area.h"
+
 #include "common.h"
 
 /// Sets the tunnel's view flags: `arg0` picks the run to write (0 the single
@@ -10,5 +14,9 @@
 /// `func_neo_ark_eve_access_tunnel_8017DFC0` calls it with (0, 0) and (1, 0)
 /// together while the session is still below state 4, so both runs are set.
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1);
+
+extern GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13];
+
+void func_neo_ark_eve_access_tunnel_8017E15C(Task* unused);
 
 #endif // ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_H

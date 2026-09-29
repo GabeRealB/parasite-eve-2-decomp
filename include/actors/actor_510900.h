@@ -128,7 +128,6 @@ extern TaskDesc D_actor_510900_80167A18[];
 extern GpPairSrcE D_actor_510900_80167980;
 
 /// The block the tick handler reaches through `Task::msgTable`.
-extern u32 D_actor_510900_80167A6C;
 
 /// The animation data `func_800B3F84` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
@@ -140,5 +139,23 @@ void func_actor_510900_8013B424(s32 arg0);
 void func_actor_510900_8013B524(Task* arg0);
 void func_actor_510900_8013B608(Task* arg0);
 void func_actor_510900_8013BC38(Task* arg0, GpCoord* arg1);
+
+void func_actor_510900_80131F24(Task* arg0);
+
+void func_actor_510900_801340E8(Task* arg0);
+
+void func_actor_510900_80132D4C(Task* arg0);
+
+void func_actor_510900_801332EC(Task* arg0);
+
+void func_actor_510900_8013371C(Task* arg0);
+
+void func_actor_510900_80133C84(Task* arg0);
+
+void func_actor_510900_80134284(Task* arg0);
+
+void func_actor_510900_8013482C(Task* arg0);
+
+void func_actor_510900_801346D4(Task* arg0);
 
 #endif

@@ -1,5 +1,6 @@
-#include "common.h"
 #include "pe/healing.h"
+
+#include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -46,7 +47,7 @@ static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// offset and parents a `0x60017` spark. State 2 shrinks brightness. Both
 /// draw two rings plus one or two arcs. State 3 holds for 0x1F frames then
 /// releases.
-static void func_healing_8012EF34(Task* arg0)
+void func_healing_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -114,7 +115,7 @@ static void func_healing_8012EF34(Task* arg0)
             Gp_LcgState  = rng;
             mem->move.vy = temp_lo >> 12;
             mem->move.vz = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            spawned      = Gp_SpawnEff(0x60017, coord, D_healing_8012FC1C[mem->index].field_6,
+            spawned      = Gp_SpawnEff(0x60017, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
                                        &mem->move);
             if (spawned != NULL) {
                 Task_Reparent(arg0, spawned->task);
@@ -171,7 +172,7 @@ static void func_healing_8012EF34(Task* arg0)
 /// seeds the spin and colour from the spawn argument and the LCG; state 1 lifts
 /// the frame and draws the additive quad on odd ticks until the animation runs
 /// out. Life Drain carries an identical copy.
-static void func_healing_8012F494(Task* arg0)
+void func_healing_8012F494(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -219,7 +220,7 @@ static void func_healing_8012F494(Task* arg0)
     }
 }
 
-static void func_healing_8012F5E4(Task* arg0)
+void func_healing_8012F5E4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -265,7 +266,7 @@ static void func_healing_8012F5E4(Task* arg0)
                 func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
             }
             if ((mem->age & 7) == 1) {
-                spawned = Gp_SpawnEff(0x60016, coord, mem->angle, 0);
+                spawned = Gp_SpawnEff(0x60016, coord, (s32)(mem->angle), 0);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }

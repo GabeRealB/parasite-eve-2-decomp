@@ -2,6 +2,7 @@
 #define ACTOR_400100_MOTION_H
 
 #include "actors/actor.h"
+#include "rooms/mine_mesa.h"
 #include "actors/actor_400100.h"
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -10,8 +11,6 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/wipsys.h"
-
-void func_801811C4(s32 amount);
 
 static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
 {

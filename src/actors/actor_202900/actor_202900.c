@@ -1,3 +1,4 @@
+#include "actors/actor_202900.h"
 #include "common.h"
 #include "actors/actor.h"
 
@@ -16,6 +17,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/animation.h"
+
 /// Work block of the overlay's actor, allocated zeroed by its setup handler
 /// and reached through `D_actor_202900_80156E54`, which the actor's update
 /// refreshes from the task every frame: the light and colour matrices the
@@ -31,7 +34,17 @@ typedef struct Actor202900Work {
 } Actor202900Work;
 STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
 
-extern u8       D_actor_202900_80156E0C[];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpAnimArg *);
+        s32 (*call1)(Task *, s32, s32);
+    } handler;
+} Actor202900MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor202900MessageEntry, 8);
+
+extern Actor202900MessageEntry D_actor_202900_80156E0C[3];
 extern TaskDesc D_actor_202900_80156E24[];
 extern u8       D_actor_202900_80156E3C[];
 
@@ -55,6 +68,189 @@ static void func_actor_202900_8014A208(void);
 static void func_actor_202900_8014A260(void);
 static void func_actor_202900_8014A304(void);
 static s32  func_actor_202900_8014A394(void);
+
+extern TmdSource D_actor_202900_801559A8;
+extern TmdSource D_actor_202900_80155B48;
+void func_actor_202900_8014A02C(Task *);
+void func_actor_202900_8014A088(Task *);
+
+s32 func_actor_202900_8014A3E0(Task *, s32, GpAnimArg *);
+s32 func_actor_202900_8014A440(Task *, s32, s32);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[158];
+    GpPackedSvec words[474];
+} Actor202900PoseBank68C;
+
+Actor202900PoseBank68C D_actor_202900_8014A4AC = { .poses = {
+#include "assets/actor_202900_animation_06098_bank1.inc"
+} };
+
+GpPackedSvec D_actor_202900_8014AC14[2161] = {
+#include "assets/actor_202900_animation_06098_bank4.inc"
+};
+
+GpAnimRec D_actor_202900_8014CDD8[3118] = {
+#include "assets/actor_202900_animation_06098_records.inc"
+};
+
+u16 D_actor_202900_8014FE90[20] = {
+#include "assets/actor_202900_animation_06098_indices.inc"
+};
+
+GpAnimSet D_actor_202900_8014FEB8 = {
+    D_actor_202900_8014CDD8, D_actor_202900_8014FE90,
+    { NULL, D_actor_202900_8014A4AC.words, NULL, NULL, D_actor_202900_8014AC14, NULL, NULL, NULL },
+};
+
+TmdBone D_actor_202900_8014FEE0[19] = {
+#include "assets/actor_202900_model_0BB88_skeleton.inc"
+};
+
+u32 D_actor_202900_8015018C[19] = {
+#include "assets/actor_202900_model_0BB88_partVerts.inc"
+};
+
+SVECTOR D_actor_202900_801501D8[377] = {
+#include "assets/actor_202900_model_0BB88_verts.inc"
+};
+
+SVECTOR D_actor_202900_80150DA0[406] = {
+#include "assets/actor_202900_model_0BB88_normals.inc"
+};
+
+u32 D_actor_202900_80151A50[4054] = {
+#include "assets/actor_202900_model_0BB88_stream.inc"
+};
+
+TmdSource D_actor_202900_801559A8 = {
+    0, 22188, 6568, 19,
+    D_actor_202900_8015018C, D_actor_202900_801501D8, D_actor_202900_80150DA0, D_actor_202900_8014FEE0, D_actor_202900_80151A50,
+};
+
+TmdBone D_actor_202900_801559CC[1] = {
+#include "assets/actor_202900_model_0BD28_skeleton.inc"
+};
+
+u32 D_actor_202900_801559F0[1] = {
+#include "assets/actor_202900_model_0BD28_partVerts.inc"
+};
+
+SVECTOR D_actor_202900_801559F4[6] = {
+#include "assets/actor_202900_model_0BD28_verts.inc"
+};
+
+SVECTOR D_actor_202900_80155A24[8] = {
+#include "assets/actor_202900_model_0BD28_normals.inc"
+};
+
+u32 D_actor_202900_80155A64[57] = {
+#include "assets/actor_202900_model_0BD28_stream.inc"
+};
+
+TmdSource D_actor_202900_80155B48 = {
+    0, 320, 0, 1,
+    D_actor_202900_801559F0, D_actor_202900_801559F4, D_actor_202900_80155A24, D_actor_202900_801559CC, D_actor_202900_80155A64,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[25];
+    GpPackedSvec words[75];
+} Actor202900PoseBankBD4C;
+
+Actor202900PoseBankBD4C D_actor_202900_80155B6C = { .poses = {
+#include "assets/actor_202900_animation_0CDB4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_202900_80155C98[427] = {
+#include "assets/actor_202900_animation_0CDB4_bank4.inc"
+};
+
+GpAnimRec D_actor_202900_80156344[538] = {
+#include "assets/actor_202900_animation_0CDB4_records.inc"
+};
+
+u16 D_actor_202900_80156BAC[20] = {
+#include "assets/actor_202900_animation_0CDB4_indices.inc"
+};
+
+GpAnimSet D_actor_202900_80156BD4 = {
+    D_actor_202900_80156344, D_actor_202900_80156BAC,
+    { NULL, D_actor_202900_80155B6C.words, NULL, NULL, D_actor_202900_80155C98, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor202900PoseBankCDDC;
+
+Actor202900PoseBankCDDC D_actor_202900_80156BFC = { .poses = {
+#include "assets/actor_202900_animation_0CFC4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_202900_80156C14[33] = {
+#include "assets/actor_202900_animation_0CFC4_bank4.inc"
+};
+
+GpAnimRec D_actor_202900_80156C98[73] = {
+#include "assets/actor_202900_animation_0CFC4_records.inc"
+};
+
+u16 D_actor_202900_80156DBC[20] = {
+#include "assets/actor_202900_animation_0CFC4_indices.inc"
+};
+
+GpAnimSet D_actor_202900_80156DE4 = {
+    D_actor_202900_80156C98, D_actor_202900_80156DBC,
+    { NULL, D_actor_202900_80156BFC.words, NULL, NULL, D_actor_202900_80156C14, NULL, NULL, NULL },
+};
+
+Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
+    { 2003, { .call0 = func_actor_202900_8014A3E0 } },
+    { 2005, { .call1 = func_actor_202900_8014A440 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_actor_202900_80156E24[2] = {
+    { 1, 192, func_actor_202900_8014A02C, { .model = &D_actor_202900_801559A8 } },
+    { 1, 192, func_actor_202900_8014A088, { .model = &D_actor_202900_80155B48 } },
+};
+
+u8 D_actor_202900_80156E3C[24] = {
+    0,
+    0,
+    0,
+    0,
+    212,
+    107,
+    21,
+    128,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    228,
+    109,
+    21,
+    128,
+    0,
+    0,
+    0,
+    0,
+};
+
+Actor202900Work * D_actor_202900_80156E54 = NULL;
+
+Task * D_actor_202900_80156E58 = NULL;
+
+Task * D_actor_202900_80156E5C = NULL;
 
 /// Setup handler, state 0 of the actor's update: allocates and publishes the
 /// work block, starts the second task and textures its model from the area

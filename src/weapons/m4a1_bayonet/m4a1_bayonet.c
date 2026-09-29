@@ -40,7 +40,7 @@ static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 /// `age & 7`, re-runs the whole ring so the older slots follow their
 /// parents, and hands the ribbon to `func_m4a1_bayonet_8011D69C`. The task
 /// lives 13 frames.
-static void func_m4a1_bayonet_8011D1E4(Task* task)
+void func_m4a1_bayonet_8011D1E4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;

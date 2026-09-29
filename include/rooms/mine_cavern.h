@@ -1,6 +1,10 @@
 #ifndef ROOMS_MINE_CAVERN_H
 #define ROOMS_MINE_CAVERN_H
 
+#include "gameplay/area.h"
+
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -76,5 +80,12 @@ void func_mine_cavern_8017E394(void);
 /// their `GpSprtCmd::field_4`, which keeps a command's sprites out of the
 /// ordering table; any other value changes nothing.
 void func_mine_cavern_8017E3A0(s32 arg0);
+
+void func_mine_cavern_80180320(Task* task);
+void func_mine_cavern_8017E474(Task* arg0);
+void func_mine_cavern_8017F240(Task* task);
+void func_mine_cavern_8017FF88(Task* arg0);
+void func_mine_cavern_80181730(Task* arg0);
+extern GpAreaVariant D_mine_cavern_8018E238[22];
 
 #endif

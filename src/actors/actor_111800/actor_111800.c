@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/acropolis_square.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,6 +28,8 @@
 #include "main/wipsys.h"
 #include <psyq/memory.h>
 
+#include "gameplay/animation.h"
+
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
 /// layout: a `GpAnimCtx` and the nineteen `GpAnimSlot`s `func_800B3F84` seeds
@@ -52,17 +55,189 @@ STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 
 /// Animation bank `func_800B3F84` builds the work block's clip context from;
 /// the actor hands it over whole, so it is only ever a byte address here.
-extern u8 D_actor_111800_8013A448[];
+extern GpAnimSet* D_actor_111800_8013A448[8];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// Main-executable globals with no module header yet: `Gp_StateC08.field_A` is the
-/// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_80182360` is
+/// cutscene-mode flag and `gDisplayState.pendingMode` is a live cutscene. `func_acropolis_square_80182360` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
-void func_80182360(s32);
 
-/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+extern TmdSource D_actor_111800_80138004;
+void func_actor_111800_8013251C(Task *);
+
+TmdBone D_actor_111800_801329C4[19] = {
+#include "assets/actor_111800_model_061E4_skeleton.inc"
+};
+
+u32 D_actor_111800_80132C70[19] = {
+#include "assets/actor_111800_model_061E4_partVerts.inc"
+};
+
+SVECTOR D_actor_111800_80132CBC[306] = {
+#include "assets/actor_111800_model_061E4_verts.inc"
+};
+
+SVECTOR D_actor_111800_8013364C[365] = {
+#include "assets/actor_111800_model_061E4_normals.inc"
+};
+
+u32 D_actor_111800_801341B4[3988] = {
+#include "assets/actor_111800_model_061E4_stream.inc"
+};
+
+TmdSource D_actor_111800_80138004 = {
+    0, 20032, 7672, 19,
+    D_actor_111800_80132C70, D_actor_111800_80132CBC, D_actor_111800_8013364C, D_actor_111800_801329C4, D_actor_111800_801341B4,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor111800PoseBank6208;
+
+Actor111800PoseBank6208 D_actor_111800_80138028 = { .poses = {
+#include "assets/actor_111800_animation_065FC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_111800_80138058[69] = {
+#include "assets/actor_111800_animation_065FC_bank4.inc"
+};
+
+GpAnimRec D_actor_111800_8013816C[162] = {
+#include "assets/actor_111800_animation_065FC_records.inc"
+};
+
+u16 D_actor_111800_801383F4[20] = {
+#include "assets/actor_111800_animation_065FC_indices.inc"
+};
+
+GpAnimSet D_actor_111800_8013841C = {
+    D_actor_111800_8013816C, D_actor_111800_801383F4,
+    { NULL, D_actor_111800_80138028.words, NULL, NULL, D_actor_111800_80138058, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[28];
+    GpPackedSvec words[84];
+} Actor111800PoseBank6624;
+
+Actor111800PoseBank6624 D_actor_111800_80138444 = { .poses = {
+#include "assets/actor_111800_animation_07120_bank1.inc"
+} };
+
+GpPackedSvec D_actor_111800_80138594[247] = {
+#include "assets/actor_111800_animation_07120_bank4.inc"
+};
+
+GpAnimRec D_actor_111800_80138970[362] = {
+#include "assets/actor_111800_animation_07120_records.inc"
+};
+
+u16 D_actor_111800_80138F18[20] = {
+#include "assets/actor_111800_animation_07120_indices.inc"
+};
+
+GpAnimSet D_actor_111800_80138F40 = {
+    D_actor_111800_80138970, D_actor_111800_80138F18,
+    { NULL, D_actor_111800_80138444.words, NULL, NULL, D_actor_111800_80138594, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[32];
+    GpPackedSvec words[96];
+} Actor111800PoseBank7148;
+
+Actor111800PoseBank7148 D_actor_111800_80138F68 = { .poses = {
+#include "assets/actor_111800_animation_07BA4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_111800_801390E8[223] = {
+#include "assets/actor_111800_animation_07BA4_bank4.inc"
+};
+
+GpAnimRec D_actor_111800_80139464[334] = {
+#include "assets/actor_111800_animation_07BA4_records.inc"
+};
+
+u16 D_actor_111800_8013999C[20] = {
+#include "assets/actor_111800_animation_07BA4_indices.inc"
+};
+
+GpAnimSet D_actor_111800_801399C4 = {
+    D_actor_111800_80139464, D_actor_111800_8013999C,
+    { NULL, D_actor_111800_80138F68.words, NULL, NULL, D_actor_111800_801390E8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor111800PoseBank7BCC;
+
+Actor111800PoseBank7BCC D_actor_111800_801399EC = { .poses = {
+#include "assets/actor_111800_animation_07FAC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_111800_80139A34[70] = {
+#include "assets/actor_111800_animation_07FAC_bank4.inc"
+};
+
+GpAnimRec D_actor_111800_80139B4C[150] = {
+#include "assets/actor_111800_animation_07FAC_records.inc"
+};
+
+u16 D_actor_111800_80139DA4[20] = {
+#include "assets/actor_111800_animation_07FAC_indices.inc"
+};
+
+GpAnimSet D_actor_111800_80139DCC = {
+    D_actor_111800_80139B4C, D_actor_111800_80139DA4,
+    { NULL, D_actor_111800_801399EC.words, NULL, NULL, D_actor_111800_80139A34, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} Actor111800PoseBank7FD4;
+
+Actor111800PoseBank7FD4 D_actor_111800_80139DF4 = { .poses = {
+#include "assets/actor_111800_animation_08600_bank1.inc"
+} };
+
+GpPackedSvec D_actor_111800_80139ECC[146] = {
+#include "assets/actor_111800_animation_08600_bank4.inc"
+};
+
+GpAnimRec D_actor_111800_8013A114[185] = {
+#include "assets/actor_111800_animation_08600_records.inc"
+};
+
+u16 D_actor_111800_8013A3F8[20] = {
+#include "assets/actor_111800_animation_08600_indices.inc"
+};
+
+GpAnimSet D_actor_111800_8013A420 = {
+    D_actor_111800_8013A114, D_actor_111800_8013A3F8,
+    { NULL, D_actor_111800_80139DF4.words, NULL, NULL, D_actor_111800_80139ECC, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_actor_111800_8013A448[8] = {
+    &D_actor_111800_8013841C,
+    &D_actor_111800_80138F40,
+    &D_actor_111800_801399C4,
+    NULL,
+    NULL,
+    &D_actor_111800_80139DCC,
+    &D_actor_111800_8013A420,
+    NULL,
+};
+
+TaskDesc D_actor_111800_8013A468 = { 257, 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } };/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
@@ -74,7 +249,7 @@ static void func_actor_111800_80131E40(GpCoord* coord, s16 yaw)
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    func_8004BFF8(yaw, rotation);
+    RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
@@ -234,7 +409,7 @@ static void func_actor_111800_80132390(Task* task)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
-    place           = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place           = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != 0x13) {
         place++;
     }
@@ -272,7 +447,7 @@ static __inline__ s32 Actor111800_Accumulate(GpCoord* arg0, MATRIX* arg1, MATRIX
 
 /// Per-frame state machine. State 0 waits until no cutscene is up, then runs
 /// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
-/// `field_492`, and advances after `func_80182360` when the player is in
+/// `field_492`, and advances after `func_acropolis_square_80182360` when the player is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
 /// `field_494`, writes it back, yaws it through `func_actor_111800_80131E40`, and
@@ -315,7 +490,7 @@ void func_actor_111800_8013251C(Task* task)
             x              = viewMtx->t[0];
             if ((x >= 0x5DD && viewMtx->t[2] >= -0x513) || (x >= 0xC81 && viewMtx->t[2] < -0x514)) {
                 work->field_484 = 0;
-                func_80182360(x);
+                func_acropolis_square_80182360(x);
                 task->state += 1;
             }
             break;

@@ -1,0 +1,2 @@
+
+func_mp5a5_8011D1E0 = 0x8011D1E0; // type:func

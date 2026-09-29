@@ -1,1 +1,33 @@
 // Overlay-local symbols for shelter_1f_guardroom.
+D_shelter_1f_guardroom_8017E014 = 0x8017E014; // size:0x4 defined:True
+D_shelter_1f_guardroom_8017DA30 = 0x8017DA30; // size:0x30 defined:True
+D_shelter_1f_guardroom_8017DA60 = 0x8017DA60; // size:0xC defined:True
+D_shelter_1f_guardroom_8017DA6C = 0x8017DA6C; // size:0xC defined:True
+D_shelter_1f_guardroom_8017DA78 = 0x8017DA78; // size:0x10 defined:True
+D_shelter_1f_guardroom_8017DA88 = 0x8017DA88; // size:0x8 defined:True
+D_shelter_1f_guardroom_8017DA90 = 0x8017DA90; // size:0x4 defined:True
+D_shelter_1f_guardroom_8017DA94 = 0x8017DA94; // size:0x2 defined:True
+D_shelter_1f_guardroom_8017DA98 = 0x8017DA98; // size:0x38 defined:True
+D_shelter_1f_guardroom_8017DAD0 = 0x8017DAD0; // size:0x38 defined:True
+D_shelter_1f_guardroom_8017DB08 = 0x8017DB08; // size:0x70 defined:True
+D_shelter_1f_guardroom_8017DB78 = 0x8017DB78; // size:0x60 defined:True
+D_shelter_1f_guardroom_8017DBD8 = 0x8017DBD8; // size:0x12 defined:True
+D_shelter_1f_guardroom_8017DBEC = 0x8017DBEC; // size:0x4 defined:True
+D_shelter_1f_guardroom_8017DBF0 = 0x8017DBF0; // size:0x24 defined:True
+D_shelter_1f_guardroom_8017DC14 = 0x8017DC14; // size:0x6C defined:True
+D_shelter_1f_guardroom_8017DC80 = 0x8017DC80; // size:0x10 defined:True
+D_shelter_1f_guardroom_8017DC90 = 0x8017DC90; // size:0x10 defined:True
+D_shelter_1f_guardroom_8017DCA0 = 0x8017DCA0; // size:0x28 defined:True
+D_shelter_1f_guardroom_8017DCC8 = 0x8017DCC8; // size:0x18 defined:True
+D_shelter_1f_guardroom_8017DCE0 = 0x8017DCE0; // size:0x24 defined:True
+D_shelter_1f_guardroom_8017DD04 = 0x8017DD04; // size:0x120 defined:True
+D_shelter_1f_guardroom_8017DE24 = 0x8017DE24; // size:0x18 defined:True
+D_shelter_1f_guardroom_8017DE3C = 0x8017DE3C; // size:0x98 defined:True
+D_shelter_1f_guardroom_8017DED4 = 0x8017DED4; // size:0xE4 defined:True
+D_shelter_1f_guardroom_8017DFB8 = 0x8017DFB8; // size:0x20 defined:True
+D_shelter_1f_guardroom_8017DFD8 = 0x8017DFD8; // size:0xC defined:True
+D_shelter_1f_guardroom_8017DFE4 = 0x8017DFE4; // size:0x8 defined:True
+D_shelter_1f_guardroom_8017DFEC = 0x8017DFEC; // size:0x8 defined:True
+D_shelter_1f_guardroom_8017DFF4 = 0x8017DFF4; // size:0x20 defined:True
+
+func_shelter_1f_guardroom_8017DA28 = 0x8017DA28; // type:func

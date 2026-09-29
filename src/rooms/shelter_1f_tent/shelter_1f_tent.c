@@ -1,9 +1,12 @@
 #include "common.h"
+#include "rooms/shelter_1f_tent.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
@@ -32,14 +35,11 @@
 extern void func_80132210(void);
 extern void func_801322B8(void);
 extern void func_80132390(void);
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 extern s32            D_801362B8;
 extern s32            D_80137890;
-extern GpAreaApplyRec D_80188888[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
@@ -97,7 +97,7 @@ extern UiObjectDesc D_shelter_1f_tent_80181C68;
 extern UiList       D_shelter_1f_tent_80181C94;
 
 /// Task table the cutscene and its sound task are spawned from.
-extern TaskDesc D_shelter_1f_tent_80181CB8;
+extern TaskDesc D_shelter_1f_tent_80181CB8[];
 
 /// Message table of the room's message task.
 extern GpMsgEntry D_shelter_1f_tent_80181CDC[];
@@ -115,6 +115,189 @@ extern Task* D_shelter_1f_tent_801843C0;
 extern RoomCutsceneRec D_shelter_1f_tent_801843C4;
 
 static void func_shelter_1f_tent_8017F448(Task* task);
+
+void func_shelter_1f_tent_8017D6C8(UiList *, UiObject *);
+void func_shelter_1f_tent_8017DE94(UiList *, UiObject *);
+void func_shelter_1f_tent_8017E8AC(Task *);
+void func_shelter_1f_tent_8017ED58(Task *);
+void func_shelter_1f_tent_8017EF18(Task *);
+void func_shelter_1f_tent_8017F10C(UiList *, UiObject *);
+void func_shelter_1f_tent_8017F1F0(UiList *, UiObject *);
+void func_shelter_1f_tent_8017F2B8(UiList *, UiObject *);
+void func_shelter_1f_tent_8017F380(UiList *, UiObject *);
+void func_shelter_1f_tent_8017F484(Task *);
+
+void func_shelter_1f_tent_8017F484(Task *);
+void func_shelter_1f_tent_8017FBC4(Task *);
+
+s32 func_shelter_1f_tent_8017FC54(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_tent_8017FC5C(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_shelter_1f_tent_8017FCA0(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_1f_tent_8017FD54(Task *, s32, RoomEventMsg *, GpMessageArg);
+
+u8 D_shelter_1f_tent_80181998[8] = {
+    83, 97, 118, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_801819A0[12] = {
+    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_801819AC[12] = {
+    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_1f_tent_801819B8[8] = {
+    80, 69, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_1f_tent_801819C0[8] = {
+    84, 105, 109, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_801819C8[4] = {
+    87, 111, 110, 0,
+};
+
+u8 D_shelter_1f_tent_801819CC[8] = {
+    69, 115, 99, 97, 112, 101, 100, 0,
+};
+
+u8 D_shelter_1f_tent_801819D4[12] = {
+    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
+};
+
+u8 D_shelter_1f_tent_801819E0[16] = {
+    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_801819F0[8] = {
+    83, 97, 118, 101, 100, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_801819F8[8] = {
+    67, 108, 101, 97, 114, 101, 100, 0,
+};
+
+u8 D_shelter_1f_tent_80181A00[8] = {
+    77, 97, 120, 32, 69, 88, 80, 0,
+};
+
+u8 D_shelter_1f_tent_80181A08[8] = {
+    77, 97, 120, 32, 66, 80, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A10[8] = {
+    32, 116, 105, 109, 101, 115, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A18[4] = {
+    37, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A1C[44] = {
+    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
+    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
+    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A48[36] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
+    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A6C[48] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
+    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181A9C[52] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
+    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181AD0[52] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
+    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181B04[56] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
+    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
+    115, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_1f_tent_80181B3C[52] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
+    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
+    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_1f_tent_80181B70[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
+    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
+    101, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_1f_tent_80181BA8[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
+    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
+    32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+UiListItemFunc D_shelter_1f_tent_80181BE0[1] = {
+    func_shelter_1f_tent_8017D6C8,
+};
+
+UiList D_shelter_1f_tent_80181BE4 = { D_shelter_1f_tent_80181BE0, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_1f_tent_80181C08[1] = {
+    func_shelter_1f_tent_8017DE94,
+};
+
+UiList D_shelter_1f_tent_80181C0C = { D_shelter_1f_tent_80181C08, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_1f_tent_80181C30 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_1f_tent_8017ED58, 0 };
+
+UiObjectDesc D_shelter_1f_tent_80181C4C = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_1f_tent_8017EF18, 0 };
+
+UiObjectDesc D_shelter_1f_tent_80181C68 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_1f_tent_8017E8AC, 0 };
+
+UiListItemFunc D_shelter_1f_tent_80181C84[4] = {
+    func_shelter_1f_tent_8017F10C,
+    func_shelter_1f_tent_8017F1F0,
+    func_shelter_1f_tent_8017F2B8,
+    func_shelter_1f_tent_8017F380,
+};
+
+UiList D_shelter_1f_tent_80181C94 = { D_shelter_1f_tent_80181C84, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+void func_shelter_1f_tent_8017F484(Task *);
+void func_shelter_1f_tent_8017FBC4(Task *);
+
+TaskDesc D_shelter_1f_tent_80181CB8[3] = {
+    { 0, 32, func_shelter_1f_tent_8017F484, { .model = NULL } },
+    { 0, 32, func_shelter_1f_tent_8017FBC4, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_1f_tent_80181CDC[5] = {
+    { 5102, func_shelter_1f_tent_8017FC5C },
+    { 5105, func_shelter_1f_tent_8017FC54 },
+    { 5103, func_shelter_1f_tent_8017FD54 },
+    { 5104, func_shelter_1f_tent_8017FCA0 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of
@@ -760,7 +943,7 @@ static const char D_shelter_1f_tent_8017D638[12] = "Telephone\0\x0C-";
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
 /// out and updates the list. When the first child window finishes, the menu
 /// opens the item prompt its selection picks, or closes.
-static void func_shelter_1f_tent_8017EA60(Task* task)
+void func_shelter_1f_tent_8017EA60(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1148,7 +1331,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
             break;
         case 4:
             D_shelter_1f_tent_801843C0 =
-                Task_SpawnFromTable(&D_shelter_1f_tent_80181CB8, 1, 0, script->field_10);
+                Task_SpawnFromTable(D_shelter_1f_tent_80181CB8, 1, 0, script->field_10);
             Gp_StartCapSlot(script->field_1, 0, 0x63);
             task->state++;
             break;
@@ -1193,7 +1376,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -1350,21 +1533,21 @@ void func_shelter_1f_tent_8017FBC4(Task* task)
     }
 }
 
-s32 func_shelter_1f_tent_8017FC54(void)
+s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Copies the incoming `GpSaveLoc` onto the outgoing one, hands both to
-/// `func_80179B14` and returns 1.
-s32 func_shelter_1f_tent_8017FC5C(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// `func_map_neo_ark_80179B14` and returns 1.
+s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
-s32 func_shelter_1f_tent_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x169) == 0) {
@@ -1380,12 +1563,12 @@ s32 func_shelter_1f_tent_8017FCA0(s32 arg0, s32 arg1, s32 arg2)
         D_shelter_1f_tent_801843C4.field_8  = 0x551C0006;
         D_shelter_1f_tent_801843C4.field_10 = 0x551C0004;
         D_shelter_1f_tent_801843C4.field_C  = 0x551C0005;
-        Task_SpawnFromTable(&D_shelter_1f_tent_80181CB8, 0, 0xC, &D_shelter_1f_tent_801843C4);
+        Task_SpawnFromTable(D_shelter_1f_tent_80181CB8, 0, 0xC, &D_shelter_1f_tent_801843C4);
     }
     return 0;
 }
 
-s32 func_shelter_1f_tent_8017FD54(s32 arg0, s32 arg1, RoomEventMsg* arg2)
+s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         func_801322B8();

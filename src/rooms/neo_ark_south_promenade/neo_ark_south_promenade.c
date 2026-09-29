@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_south_promenade.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -24,16 +26,24 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
 
 /// The room's message table, which the message-driven task installs.
 extern GpMsgEntry D_neo_ark_south_promenade_8017F6B4[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `D_neo_ark_south_promenade_8017F6E4` is
+/// and `[1]` the second trail's frame. `D_neo_ark_south_promenade_8017F6DC[1]` is
 /// `[1]` under its own name, which the per-frame path reads directly.
-extern SVECTOR D_neo_ark_south_promenade_8017F6DC[];
-extern SVECTOR D_neo_ark_south_promenade_8017F6E4;
 
 static void func_neo_ark_south_promenade_8017D62C(Task* task);
 static void func_neo_ark_south_promenade_8017D670(Task* task);
@@ -48,33 +58,652 @@ static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
     { func_neo_ark_south_promenade_8017D62C, func_neo_ark_south_promenade_8017D670, taskKill },
 };
 
+s32 func_neo_ark_south_promenade_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_south_promenade_8017D5D8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_south_promenade_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_south_promenade_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+
+extern GpGridParams D_neo_ark_south_promenade_8017FD8C[1];
+extern GpObj3A D_neo_ark_south_promenade_8018094C[1];
+extern GpObj4C D_neo_ark_south_promenade_801804E8[6];
+extern GpObj4C D_neo_ark_south_promenade_801806B0[6];
+extern GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1];
+
+GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
+    { 5102, func_neo_ark_south_promenade_8017D5D8 },
+    { 5105, func_neo_ark_south_promenade_8017D5D0 },
+    { 5103, func_neo_ark_south_promenade_8017D624 },
+    { 5104, func_neo_ark_south_promenade_8017D61C },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_neo_ark_south_promenade_8017F6DC[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomCoordRec D_neo_ark_south_promenade_8017F6EC[1] = {
+    { D_neo_ark_south_promenade_801804D0, NULL },
+};
+
+GpRoomObjRec D_neo_ark_south_promenade_8017F6F4[1] = {
+    { D_neo_ark_south_promenade_8017FD8C, D_neo_ark_south_promenade_801804E8, D_neo_ark_south_promenade_801806B0, D_neo_ark_south_promenade_8018094C },
+};
+
+u8 * D_neo_ark_south_promenade_8017F704[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_neo_ark_south_promenade_8017F708[1] = {
+    { { .bytes = { 5, 0 } } },
+};
+
+GpWarpRec D_neo_ark_south_promenade_8017F70C[2] = {
+    { { .words = { 1024, 1137, 0, 2500 } }, { 0, 0, 0, 0 }, { .words = { 1024, 1137, 0, 2500 } }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, 0, 5, 0, 0 },
+    { { .words = { 3072, 0x2A30, 0, 0x3200 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x2A30, 0, 0x3200 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+};
+
+SVECTOR D_neo_ark_south_promenade_8017F77C[13] = {
+    { 0, -4096, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { -2365, -3344, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 2215, 0, 3445, 0 },
+    { 3971, 0, -1003, 0 },
+    { 1349, 0, -3867, 0 },
+    { -2370, -3340, 0, 0 },
+    { -1047, 0, 3960, 0 },
+    { -2866, 0, 2926, 0 },
+    { -3963, 0, 1034, 0 },
+};
+
+SVECTOR D_neo_ark_south_promenade_8017F7E4[81] = {
+    { 700, 0, 4300, 0 },
+    { 8200, 0, 4300, 0 },
+    { 8200, 0, 500, 0 },
+    { 700, 0, 500, 0 },
+    { 8200, 0, 0x3390, 0 },
+    { 0x3458, 0, 0x3390, 0 },
+    { 0x3458, 0, 4300, 0 },
+    { 0x3458, 0, 500, 0 },
+    { 0x2B70, 0, 0x3390, 0 },
+    { 0x2B70, -200, 0x3390, 0 },
+    { 0x2B70, -200, 0x2C88, 0 },
+    { 0x2B70, 0, 0x2C88, 0 },
+    { 0x3AE8, -3000, 0x2C88, 0 },
+    { 0x3AE8, 0, 0x2C88, 0 },
+    { 0x3E80, -3000, 0x2C88, 0 },
+    { 0x3E80, 0, 0x2C88, 0 },
+    { 0x3AE8, -3000, 0x3390, 0 },
+    { 0x3E80, -3000, 0x3390, 0 },
+    { 0x3AE8, -3200, 0x3390, 0 },
+    { 0x3AE8, -3200, 0x2C88, 0 },
+    { 700, 0, 3800, 0 },
+    { 700, -3000, 3800, 0 },
+    { 1100, -3000, 3800, 0 },
+    { 1100, 0, 3800, 0 },
+    { 1100, -3000, 4300, 0 },
+    { 1100, 0, 4300, 0 },
+    { 1100, 0, 500, 0 },
+    { 1100, -3000, 500, 0 },
+    { 1100, -3000, 1000, 0 },
+    { 1100, 0, 1000, 0 },
+    { 700, -3000, 1000, 0 },
+    { 700, 0, 1000, 0 },
+    { 9600, 0, 7600, 0 },
+    { 9600, -3000, 7600, 0 },
+    { 8200, -3000, 8500, 0 },
+    { 8200, 0, 8500, 0 },
+    { 8200, 0, 8500, 0 },
+    { 8200, -3000, 8500, 0 },
+    { 8200, -3000, 0x3390, 0 },
+    { 8200, 0, 0x3390, 0 },
+    { 8200, -3000, 0x3390, 0 },
+    { 0x36B0, -3000, 0x3390, 0 },
+    { 0x36B0, 0, 0x3390, 0 },
+    { 9600, -3000, 7600, 0 },
+    { 9600, 0, 7600, 0 },
+    { 9600, 0, 4930, 0 },
+    { 9600, -3000, 4930, 0 },
+    { 9477, 0, 4444, 0 },
+    { 9477, -3000, 4444, 0 },
+    { 8920, 0, 4250, 0 },
+    { 8920, -3000, 4250, 0 },
+    { 700, 0, 4250, 0 },
+    { 700, -3000, 4250, 0 },
+    { 0x3E85, 0, 0x2AAD, 0 },
+    { 0x3999, 0, 0x2AAD, 0 },
+    { 0x3999, -3690, 0x2AAD, 0 },
+    { 0x3E85, -3690, 0x2AAD, 0 },
+    { 0x28EB, -660, 0x2AAD, 0 },
+    { 0x28EB, -660, 0x2D69, 0 },
+    { 0x3999, -3690, 0x2D69, 0 },
+    { 0x3E85, -3690, 0x2D69, 0 },
+    { 0x28EB, 0, 0x2AAD, 0 },
+    { 0x3999, 0, 0x2D69, 0 },
+    { 0x3E85, 0, 0x2D69, 0 },
+    { 0x28EB, 0, 0x2D69, 0 },
+    { 9450, 0, 600, 0 },
+    { 9450, -3000, 600, 0 },
+    { 703, -3000, 600, 0 },
+    { 703, 0, 600, 0 },
+    { 0x2CD1, 0, 1135, 0 },
+    { 0x2CD1, -3000, 1135, 0 },
+    { 0x31DD, 0, 2400, 0 },
+    { 0x31DD, -3000, 2400, 0 },
+    { 0x33F4, 0, 4450, 0 },
+    { 0x33F4, -3000, 4450, 0 },
+    { 0x33F4, 0, 0x2C88, 0 },
+    { 0x33F4, -3000, 0x2C88, 0 },
+    { 0x2B70, -3000, 0x3390, 0 },
+    { 0x2B70, -3000, 0x2C88, 0 },
+    { 0x3458, -3000, 0x2C88, 0 },
+    { 0x3458, 0, 0x2C88, 0 },
+};
+
+GpGridFace D_neo_ark_south_promenade_8017FA6C[35] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 1 }, 0, 1 },
+    { { 6, 7, 1, 2 }, 0, 1 },
+    { { 9, 10, 8, 11 }, 1, 1 },
+    { { 10, 12, 11, 13 }, 2, 0 },
+    { { 14, 15, 12, 13 }, 2, 0 },
+    { { 17, 14, 16, 12 }, 0, 0 },
+    { { 16, 12, 9, 10 }, 3, 0 },
+    { { 16, 12, 18, 19 }, 4, 0 },
+    { { 21, 22, 20, 23 }, 2, 0 },
+    { { 22, 24, 23, 25 }, 4, 0 },
+    { { 27, 28, 26, 29 }, 4, 0 },
+    { { 28, 30, 29, 31 }, 5, 0 },
+    { { 30, 21, 31, 20 }, 4, 0 },
+    { { 33, 34, 32, 35 }, 6, 0 },
+    { { 37, 38, 36, 39 }, 4, 0 },
+    { { 40, 41, 4, 42 }, 2, 0 },
+    { { 44, 45, 43, 46 }, 4, 0 },
+    { { 47, 48, 45, 46 }, 7, 0 },
+    { { 49, 50, 47, 48 }, 8, 0 },
+    { { 49, 51, 50, 52 }, 2, 0 },
+    { { 54, 55, 53, 56 }, 2, 0 },
+    { { 57, 58, 55, 59 }, 9, 0 },
+    { { 55, 59, 56, 60 }, 0, 0 },
+    { { 54, 61, 55, 57 }, 2, 0 },
+    { { 59, 62, 60, 63 }, 5, 0 },
+    { { 61, 64, 57, 58 }, 1, 1 },
+    { { 64, 62, 58, 59 }, 5, 0 },
+    { { 66, 67, 65, 68 }, 5, 0 },
+    { { 69, 70, 65, 66 }, 10, 0 },
+    { { 71, 72, 69, 70 }, 11, 0 },
+    { { 73, 74, 71, 72 }, 12, 0 },
+    { { 76, 74, 75, 73 }, 1, 0 },
+    { { 77, 78, 8, 11 }, 1, 2 },
+    { { 78, 79, 11, 80 }, 2, 2 },
+};
+
+s16 D_neo_ark_south_promenade_8017FC10[9] = {
+    0,
+    9,
+    10,
+    11,
+    12,
+    13,
+    20,
+    28,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC24[6] = {
+    0,
+    9,
+    10,
+    13,
+    20,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC30[10] = {
+    0,
+    1,
+    2,
+    17,
+    18,
+    19,
+    20,
+    28,
+    29,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC44[10] = {
+    0,
+    1,
+    2,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC58[10] = {
+    1,
+    14,
+    15,
+    16,
+    17,
+    22,
+    24,
+    26,
+    27,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC6C[4] = {
+    1,
+    15,
+    16,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC74[13] = {
+    0,
+    1,
+    2,
+    17,
+    18,
+    19,
+    20,
+    28,
+    29,
+    30,
+    31,
+    32,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FC90[12] = {
+    0,
+    1,
+    2,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    31,
+    32,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FCA8[18] = {
+    1,
+    3,
+    4,
+    7,
+    14,
+    15,
+    16,
+    17,
+    21,
+    22,
+    23,
+    24,
+    26,
+    27,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FCCC[14] = {
+    1,
+    3,
+    4,
+    7,
+    15,
+    16,
+    22,
+    24,
+    26,
+    27,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FCE8[7] = {
+    1,
+    2,
+    29,
+    30,
+    31,
+    32,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FCF8[5] = {
+    1,
+    2,
+    31,
+    32,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FD04[18] = {
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    16,
+    21,
+    22,
+    23,
+    24,
+    25,
+    27,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 D_neo_ark_south_promenade_8017FD28[18] = {
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    16,
+    21,
+    22,
+    23,
+    24,
+    25,
+    27,
+    32,
+    33,
+    34,
+    -1,
+};
+
+s16 * D_neo_ark_south_promenade_8017FD4C[16] = {
+    D_neo_ark_south_promenade_8017FC10,
+    D_neo_ark_south_promenade_8017FC24,
+    NULL,
+    NULL,
+    D_neo_ark_south_promenade_8017FC30,
+    D_neo_ark_south_promenade_8017FC44,
+    D_neo_ark_south_promenade_8017FC58,
+    D_neo_ark_south_promenade_8017FC6C,
+    D_neo_ark_south_promenade_8017FC74,
+    D_neo_ark_south_promenade_8017FC90,
+    D_neo_ark_south_promenade_8017FCA8,
+    D_neo_ark_south_promenade_8017FCCC,
+    D_neo_ark_south_promenade_8017FCE8,
+    D_neo_ark_south_promenade_8017FCF8,
+    D_neo_ark_south_promenade_8017FD04,
+    D_neo_ark_south_promenade_8017FD28,
+};
+
+GpGridParams D_neo_ark_south_promenade_8017FD8C[1] = {
+    { NULL, D_neo_ark_south_promenade_8017F77C, D_neo_ark_south_promenade_8017F7E4, D_neo_ark_south_promenade_8017FA6C, D_neo_ark_south_promenade_8017FD4C, -700, -500, 4, 4, 4000, 35 },
+};
+
+GpViewRec D_neo_ark_south_promenade_8017FDB0[5] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x58D6, -7000 } }, 289 },
+    { { { { 4002, 0, 871 }, { 35, 4092, -163 }, { -871, 167, 3998 } }, { -0x3070, 1502, -3900 } }, 257 },
+    { { { { -3965, 0, 1025 }, { 54, 4090, 210 }, { -1023, 217, -3960 } }, { -0x31E2, 1650, -0x2BC0 } }, 257 },
+    { { { { -954, 0, 3983 }, { 197, 4090, 47 }, { -3978, 203, -953 } }, { -0x3070, 1690, -3200 } }, 207 },
+    { { { { -870, 0, 4002 }, { 776, 4018, 168 }, { -3926, 794, -853 } }, { -8000, 2042, -3300 } }, 207 },
+};
+
+GpSprtCmd D_neo_ark_south_promenade_8017FE64[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_south_promenade_8017FE74[25] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 24, 912, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 912, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 56, 900, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 16, 900, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -48, 1856, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1837, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -40, 1837, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -88, 1837, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 128, -112, 1837, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -88, 1837, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -40, 1837, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 8, 1837, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, 8, 1856, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, -40, 1856, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -16, -16, 1856, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -16, 8, 1856, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 136, -64, 1905, { .fields = { 120, 240 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 112, -48, 1905, { .fields = { 112, 248 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 16, 40 } }, 0, -8, 1905, { .fields = { 24, 144 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 16, -24, 1905, { .fields = { 40, 144 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 40, -40, 1905, { .fields = { 8, 40 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 64, -56, 1905, { .fields = { 8, 80 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 88, -72, 1905, { .fields = { 8, 0 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 112, -88, 1905, { .fields = { 24, 184 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 136, -104, 1905, { .fields = { 0, 120 } }, 128, 128, 128, 2 },
+};
+
+GpSprtCmd D_neo_ark_south_promenade_80180068[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 4, 0, 0, { 1, 0 } },
+    { 4, 12, 0, 0, { 2, 0 } },
+    { 16, 9, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_south_promenade_80180090[39] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -120, 1862, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -120, 1625, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 80, 24, 1625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 24, 1837, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 8, 1837, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1375, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 80, -24, 1625, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1375, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 80, -72, 1625, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, -88, 1625, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, -72, 1837, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 48, -120, 1837, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -120, 2306, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1862, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 72, 8, 1862, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, 8, 1862, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -40, 1862, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -40, 1862, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -88, 1862, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 32 } }, 112, -120, 1862, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, -88, 1862, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 32 } }, 72, -120, 1862, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 56, -120, 1862, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, 64, -88, 1862, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -120, 2175, { .fields = { 32, 240 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 56, 8, 1862, { .fields = { 56, 240 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 112, -16, 1625, { .fields = { 56, 192 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 112, -64, 1625, { .fields = { 32, 144 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 112, -112, 1625, { .fields = { 8, 192 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 48, 8 } }, 112, -120, 1625, { .fields = { 56, 88 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 64, -16, 1812, { .fields = { 32, 96 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 64, -64, 1812, { .fields = { 40, 48 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 56, -64, 1862, { .fields = { 64, 240 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 64, -112, 1812, { .fields = { 32, 0 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 8 } }, 64, -120, 1750, { .fields = { 16, 248 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 16, 24 } }, 48, -112, 1862, { .fields = { 64, 136 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 16, 8 } }, 48, -120, 1862, { .fields = { 40, 240 } }, 128, 128, 128, 2 },
+};
+
+GpSprtCmd D_neo_ark_south_promenade_8018039C[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 14, 0, 0, { 1, 0 } },
+    { 14, 12, 0, 0, { 2, 0 } },
+    { 26, 13, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_south_promenade_801803C4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_south_promenade_801803D4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_neo_ark_south_promenade_801803E4[5] = {
+    { { .empty = D_neo_ark_south_promenade_8017FE64 }, D_neo_ark_south_promenade_8017FE64, NULL },
+    { { .elements = D_neo_ark_south_promenade_8017FE74 }, D_neo_ark_south_promenade_80180068, NULL },
+    { { .elements = D_neo_ark_south_promenade_80180090 }, D_neo_ark_south_promenade_8018039C, NULL },
+    { { .empty = D_neo_ark_south_promenade_801803C4 }, D_neo_ark_south_promenade_801803C4, NULL },
+    { { .empty = D_neo_ark_south_promenade_801803D4 }, D_neo_ark_south_promenade_801803D4, NULL },
+};
+
+GpLight D_neo_ark_south_promenade_80180420[2] = {
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 392, -740, 260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4997, 4915, 4894, { 0, 0 } },
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -332, 260, -220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1310, 1290, 1228, { 0, 0 } },
+};
+
+GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1] = {
+    { 2, D_neo_ark_south_promenade_80180420, 0, NULL, 0, NULL },
+};
+
+GpObj4C D_neo_ark_south_promenade_801804E8[6] = {
+    { NULL, NULL, NULL, { 5005, -1568, 2682, 0 }, { { 44, -1904, -2937, 0 }, { -44, -1904, 2938, 0 }, { 44, 1904, -2937, 0 }, { -44, 1904, 2938, 0 } }, { 4109, 0, 60, 0 }, { 0, 0, 4096, 0 }, 3500, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 5272, -1600, 2635, 0 }, { { -17, -1904, 3156, 0 }, { 17, -1904, -3155, 0 }, { -17, 1904, 3156, 0 }, { 17, 1904, -3155, 0 } }, { -4101, 0, -23, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 9087, -1441, 2401, 0 }, { { 309, -1904, 2737, 0 }, { -308, -1904, -2736, 0 }, { 309, 1904, 2737, 0 }, { -308, 1904, -2736, 0 } }, { -4071, 0, 458, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 8784, -1601, 2400, 0 }, { { -323, -1904, -2719, 0 }, { 322, -1904, 2718, 0 }, { -323, 1904, -2719, 0 }, { 322, 1904, 2718, 0 } }, { 4084, 0, -485, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 0x2C11, -1440, 7472, 0 }, { { 3787, -1904, 557, 0 }, { -3788, -1904, -558, 0 }, { 3787, 1904, 557, 0 }, { -3788, 1904, -558, 0 } }, { -597, 0, 4053, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x2BD1, -1504, 7632, 0 }, { { -3440, -1904, -505, 0 }, { 3439, -1904, 504, 0 }, { -3440, 1904, -505, 0 }, { 3439, 1904, 504, 0 } }, { 594, 0, -4057, 0 }, { 0, 0, 4096, 0 }, 3957, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_neo_ark_south_promenade_801806B0[6] = {
+    { NULL, NULL, NULL, { 1104, -48, 2416, 0 }, { { -496, 0, -1104, 0 }, { 496, 0, -1104, 0 }, { -496, 0, 1104, 0 }, { 496, 0, 1104, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 1207, 0, 18, 18, 2, 0 },
+    { NULL, NULL, NULL, { 0x2D20, -1248, 0x3070, 0 }, { { 0, 1280, -1072, 0 }, { 0, -1280, -1072, 0 }, { 0, 1280, 1072, 0 }, { 0, -1280, 1072, 0 } }, { 4106, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1668, 0, 7, 35, 3, 0 },
+    { NULL, NULL, NULL, { 0x2A30, -64, 0x30A0, 0 }, { { -288, 0, -592, 0 }, { 288, 0, -592, 0 }, { -288, 0, 592, 0 }, { 288, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 655, 1, 24, 64, 2, 0 },
+    { NULL, NULL, NULL, { 6464, -64, 912, 0 }, { { -5648, 0, -480, 0 }, { 5648, 0, -480, 0 }, { -5648, 0, 480, 0 }, { 5648, 0, 480, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 5655, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4720, -64, 3936, 0 }, { { -3872, 0, -480, 0 }, { 3872, 0, -480, 0 }, { -3872, 0, 480, 0 }, { 3872, 0, 480, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 3899, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 0x2B2F, -64, 1375, 0 }, { { -1874, 0, -1634, 0 }, { 2368, 0, 812, 0 }, { -2367, 0, -811, 0 }, { 1875, 0, 1635, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 2495, 2, 2, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_neo_ark_south_promenade_80180878[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_south_promenade_80180884[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_south_promenade_80180890[2] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_south_promenade_801808A8[2] = {
+    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_south_promenade_801808C0[3] = {
+    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_neo_ark_south_promenade_801808E4[13] = {
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_neo_ark_8017BDB0, D_neo_ark_south_promenade_80180878 },
+    { D_map_neo_ark_8017BDC0, D_neo_ark_south_promenade_80180884 },
+    { D_map_neo_ark_8017BDD0, D_neo_ark_south_promenade_80180890 },
+    { D_map_neo_ark_8017BE40, D_neo_ark_south_promenade_801808A8 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_neo_ark_8017BE70, D_neo_ark_south_promenade_801808C0 },
+    { NULL, NULL },
+};
+
+GpObj3A D_neo_ark_south_promenade_8018094C[1] = {
+    { NULL, NULL, { 4912, -1568, 7344, 0 }, { { -4560, 2496, 2832, 0 }, { 4560, 2496, -2832, 0 }, { -4560, -2496, 2832, 0 }, { 4560, -2496, -2832, 0 } }, { 2162, 0, 3481, 0 }, { 16, 23 }, 129, 0 },
+};
+
+s32 D_neo_ark_south_promenade_80180988[3] = {
+    0x10000041,
+    0x10000043,
+    0x10000041,
+};
+
+GpRoomParamRec D_neo_ark_south_promenade_80180994[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_south_promenade_8018099C[1] = {
+    { 0, 0, 1, 0, D_neo_ark_south_promenade_80180988 },
+};
+
+GpRoomParamRec D_neo_ark_south_promenade_801809A4[1] = {
+    { 0, 1, 0, 0, D_neo_ark_south_promenade_80180988 },
+};
+
+GpRoomParamRec * D_neo_ark_south_promenade_801809AC[8] = {
+    D_neo_ark_south_promenade_80180994,
+    D_neo_ark_south_promenade_8018099C,
+    D_neo_ark_south_promenade_801809A4,
+    D_neo_ark_south_promenade_80180994,
+    D_neo_ark_south_promenade_80180994,
+    D_neo_ark_south_promenade_80180994,
+    D_neo_ark_south_promenade_80180994,
+    D_neo_ark_south_promenade_80180994,
+};
+
 /// Message handler the room's message table names for one of its entries:
 /// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D5D0(void)
+s32 func_neo_ark_south_promenade_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler the room's message table names for one of its entries:
 /// copies the incoming message onto the outgoing one, passes both to
-/// `func_80179B14` and returns 1.
-s32 func_neo_ark_south_promenade_8017D5D8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// `func_map_neo_ark_80179B14` and returns 1.
+s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
 /// Message handler the room's message table names for one of its entries:
 /// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D61C(void)
+s32 func_neo_ark_south_promenade_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler the room's message table names for one of its entries:
 /// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D624(void)
+s32 func_neo_ark_south_promenade_8017D624(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -104,7 +733,7 @@ void func_neo_ark_south_promenade_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
+void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758  = 0x601DE;
@@ -120,7 +749,7 @@ static void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
 /// full-screen fade quad; state 2 fades an afterglow at three times the radius
 /// back out before releasing the work block. It releases the block early once
 /// the room's event state reaches 4.
-static void func_neo_ark_south_promenade_8017D720(Task* task)
+void func_neo_ark_south_promenade_8017D720(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -298,7 +927,7 @@ static void func_neo_ark_south_promenade_8017DDF0(GpCoord* arg0, s16 arg1, u8* r
 /// re-derives all sixteen against the view and draws them. The task frees
 /// itself once its age reaches the spawn argument, and idles while the room's
 /// event state is 2 or more.
-static void func_neo_ark_south_promenade_8017E184(Task* task)
+void func_neo_ark_south_promenade_8017E184(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -356,9 +985,12 @@ static void func_neo_ark_south_promenade_8017E184(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_neo_ark_south_promenade_8017F6E4.vx;
-                coord.coord.t[1] = D_neo_ark_south_promenade_8017F6E4.vy;
-                coord.coord.t[2] = D_neo_ark_south_promenade_8017F6E4.vz;
+                {
+                    SVECTOR* edge = &D_neo_ark_south_promenade_8017F6DC[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -498,7 +1130,7 @@ static void func_neo_ark_south_promenade_8017E674(GpCoord* arg0, GpCoord* arg1, 
 /// of rings whose radius grows and brightness falls each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and releases its
 /// work block, or earlier once the room's event state reaches 4.
-static void func_neo_ark_south_promenade_8017EA6C(Task* task)
+void func_neo_ark_south_promenade_8017EA6C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

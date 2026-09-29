@@ -101,12 +101,12 @@ typedef struct ActorBeamScratch {
     SVECTOR corner1;
     SVECTOR corner2;
     SVECTOR corner3;
-    s32     screen0;
-    s32     screen1;
-    s32     screen2;
-    s32     screen3;
-    s32     perspective;
-    s32     flags;
+    long    screen0;
+    long    screen1;
+    long    screen2;
+    long    screen3;
+    long    perspective;
+    long    flags;
     s32     depth;
 } ActorBeamScratch;
 STATIC_ASSERT_SIZEOF(ActorBeamScratch, 0x8C);
@@ -1975,24 +1975,6 @@ typedef struct Actor105600FxWork {
     s16 field_EE;
 } Actor105600FxWork;
 STATIC_ASSERT_SIZEOF(Actor105600FxWork, 0xF0);
-
-/// 0x14-byte placement descriptor in the overlay's `.data`, handed to
-/// `Gp_PackPair` as the source of the body objects' `GpObj.key`.
-/// `field_E` is the variant flag `Actor05600_Fn031B0` latches into its
-/// work block: it is 1 when the actor is placed normally, and anything else
-/// puts the body in the other pose.
-typedef struct Actor105600PlaceSrc {
-    GpU16Pair pair;
-    u16       field_4;
-    u16       field_6;
-    u16       field_8;
-    u16       field_A;
-    u16       field_C;
-    u16       field_E;
-    u16       field_10;
-    u16       field_12;
-} Actor105600PlaceSrc;
-STATIC_ASSERT_SIZEOF(Actor105600PlaceSrc, 0x14);
 
 /// 0x40-byte scratch carved off `G_SCRATCH_HEAD` by `Actor05600_Fn02548`:
 /// the converted matrix, the `gte_rtv0` output and the two vectors fed through

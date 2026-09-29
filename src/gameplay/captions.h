@@ -48,7 +48,7 @@ extern s16 D_801156BC;
 
 void Gp_InitCapTask(Task* task);
 
-void Gp_CapTaskState1(void);
+void Gp_CapTaskState1(Task* task);
 
 extern GpCapChoice D_801155D0[15];
 

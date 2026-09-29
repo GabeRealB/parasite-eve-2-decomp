@@ -203,7 +203,7 @@ void func_800DD940(GpObj* arg0)
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         if (D_80115450[i] &&
             Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy < -0xDDA &&
-            func_800DD324(i, block->seg, block->ray, (s32)arg0)) {
+            func_800DD324(i, block->seg, block->ray, arg0)) {
             slot  = arg0->ctx.dir->field_8;
             flags = slot->flags;
             if (flags & 1) {
@@ -275,7 +275,7 @@ void func_800DDDF8(GpObj* obj)
     func_800DEC80(obj, block->pos, block->ray, 1);
 
     for (i = 0; i < Gp_GridParams->field_22; i++) {
-        if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, (s32)obj) != 0) {
+        if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
             slot = obj->ctx.d4rec->recs;
             if (obj->flags & 0x400) {
                 if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]

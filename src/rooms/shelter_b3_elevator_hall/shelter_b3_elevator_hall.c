@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b3_elevator_hall.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -36,13 +38,23 @@
 #include "main/task.h"
 #include "overlay.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b3_elevator_hall_80184A08[4];
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16 retained;
+} ShelterB3ElevatorHallHaloStorage;
+STATIC_ASSERT_SIZEOF(ShelterB3ElevatorHallHaloStorage, 20);
+extern ShelterB3ElevatorHallHaloStorage D_shelter_b3_elevator_hall_80182B34;
 
 /// The event request latched by the gate, and the message that carried it.
 extern RoomEventMsg D_shelter_b3_elevator_hall_80184A00;
 extern RoomEventReq D_shelter_b3_elevator_hall_80184A0C;
 /// Set when the gate latched a request and spawned the task that runs it.
-extern u8 D_shelter_b3_elevator_hall_80184A08;
 /// Descriptor of the task that runs a latched request.
 extern TaskDesc D_shelter_b3_elevator_hall_80182A20;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
@@ -54,7 +66,6 @@ extern SVECTOR    D_shelter_b3_elevator_hall_80182AB4[];
 extern SVECTOR    D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
 /// blue, selected by the palette index in the spawn argument.
-extern RoomHaloShade D_shelter_b3_elevator_hall_80182B34[];
 
 static void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
 static void func_shelter_b3_elevator_hall_8017DE10(Task* task);
@@ -64,6 +75,69 @@ static void func_shelter_b3_elevator_hall_8017ED84(GpCoord* arg0, s32 arg1, s32 
 static void func_shelter_b3_elevator_hall_8017FA80(GpCoord* coord, s16 size);
 static void func_shelter_b3_elevator_hall_8017FFAC(GpCoord* arg0, s32 arg1);
 static void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* arg2);
+
+void func_shelter_b3_elevator_hall_8017D790(Task *);
+void func_shelter_b3_elevator_hall_8017D900(Task *);
+void func_shelter_b3_elevator_hall_8017DAF0(Task *);
+s32 func_shelter_b3_elevator_hall_8017DC78(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_elevator_hall_8017DC80(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b3_elevator_hall_8017DD88(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_elevator_hall_8017DD90(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_elevator_hall_8017DD98(Task *, s32, s32, GpMessageArg);
+
+TaskDesc D_shelter_b3_elevator_hall_80182A20 = { 0, 32, func_shelter_b3_elevator_hall_8017D790, { .model = NULL } };
+
+TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
+    { 0, 32, func_shelter_b3_elevator_hall_8017D900, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_b3_elevator_hall_80182A38[6] = {
+    { 5102, func_shelter_b3_elevator_hall_8017DC80 },
+    { 5105, func_shelter_b3_elevator_hall_8017DC78 },
+    { 5103, func_shelter_b3_elevator_hall_8017DD90 },
+    { 5104, func_shelter_b3_elevator_hall_8017DD88 },
+    { 5106, func_shelter_b3_elevator_hall_8017DD98 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {
+    { 0, 32, func_shelter_b3_elevator_hall_8017DAF0, { .model = NULL } },
+};
+
+SVECTOR D_shelter_b3_elevator_hall_80182A74[8] = {
+    { -5771, -3058, 151, 0 },
+    { -5771, -3058, -1003, 0 },
+    { -5653, -3058, 151, 0 },
+    { -5653, -3058, -1003, 0 },
+    { -3341, -3058, -1525, 0 },
+    { -2185, -3058, -1525, 0 },
+    { -3341, -3058, -1644, 0 },
+    { -2185, -3058, -1644, 0 },
+};
+
+SVECTOR D_shelter_b3_elevator_hall_80182AB4[8] = {
+    { -357, -3058, -1525, 0 },
+    { 798, -3058, -1525, 0 },
+    { -357, -3058, -1644, 0 },
+    { 798, -3058, -1644, 0 },
+    { 2609, -3058, -1525, 0 },
+    { 3763, -3058, -1525, 0 },
+    { 2609, -3058, -1644, 0 },
+    { 3763, -3058, -1644, 0 },
+};
+
+SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
+    { 3863, -2122, 3666, 0 },
+    { 5022, -2122, 3666, 0 },
+    { 3863, -2032, 3742, 0 },
+    { 5022, -2032, 3742, 0 },
+    { 7230, -2032, 3742, 0 },
+    { 8394, -2032, 3742, 0 },
+    { 7230, -2122, 3666, 0 },
+    { 8394, -2122, 3666, 0 },
+};
+
+ShelterB3ElevatorHallHaloStorage D_shelter_b3_elevator_hall_80182B34 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 1685 };
 
 /// Decides whether the event `req` describes fires for message `msg`. A set
 /// flag nibble (a clear one for a negative `flagId`) means it already has, and
@@ -82,7 +156,7 @@ static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMs
     s32 neg;
 
     flag                                = req->flagId;
-    D_shelter_b3_elevator_hall_80184A08 = 0;
+    D_shelter_b3_elevator_hall_80184A08[0] = 0;
     neg                                 = flag < 0;
     got                                 = (s16)flag;
     if (neg) {
@@ -106,7 +180,7 @@ static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMs
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_shelter_b3_elevator_hall_80182A20, 0, 0, 0);
-                D_shelter_b3_elevator_hall_80184A08 = 1;
+                D_shelter_b3_elevator_hall_80184A08[0] = 1;
                 return 2;
             }
             return ret;
@@ -163,7 +237,7 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -176,7 +250,7 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
 /// chosen event key 0xB, 0xC or 0xD to area 9 warp 3, area 0x1B warp 2 or
 /// area 0x2A warp 3; any other key hands control back and ends the task.
 /// After the voice cue in the spawn argument finishes, it resolves the room
-/// through `func_80179A04` and starts the load.
+/// through `func_map_shelter_80179A04` and starts the load.
 void func_shelter_b3_elevator_hall_8017D900(Task* task)
 {
     RoomEventMsg msg;
@@ -226,10 +300,10 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData[0].state.at4.loc.area;
+            msg.prefix.packed   = Mc_SaveData[0].state.at4.loc.area;
             msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
             msg2        = msg;
-            func_80179A04(&msg, &msg2);
+            func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
             Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
@@ -303,18 +377,18 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC78(void)
+s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC80(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventReq req;
 
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0x29) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0x29) {
         req.field_0 = 1;
         req.field_4 = 1;
         req.field_8 = 0x542A0005;
@@ -323,7 +397,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.itemId  = 0;
         return func_shelter_b3_elevator_hall_8017D62C(&req, out);
     }
-    if (in->msgId != 0x1A) {
+    if (in->prefix.packed != 0x1A) {
         return 1;
     }
     if (in->field_5 == 0) {
@@ -336,17 +410,17 @@ s32 func_shelter_b3_elevator_hall_8017DC80(s32 arg0, s32 arg1, RoomEventMsg* in,
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD88(void)
+s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD90(void)
+s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2)
+s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x542A0000 | 1, 0, 0);
@@ -378,7 +452,7 @@ void func_shelter_b3_elevator_hall_8017DE18(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
+void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024D;
@@ -559,7 +633,7 @@ static void func_shelter_b3_elevator_hall_8017DFB0(SVECTOR* arg0, s32 arg1, s32 
 /// rises with a random extra speed and brightens. It fades over the last
 /// ticks of its lifetime and releases its work block when dark, or when the
 /// room's event state reaches 4.
-static void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
+void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -816,7 +890,7 @@ static void func_shelter_b3_elevator_hall_8017F1A8(GpCoord* arg0, s16 arg1, u8* 
 /// duration; state 1 ramps the level up while drawing a growing disc, a
 /// half-bright wider disc on odd ticks and a shrinking ring; state 2 fades the
 /// level out through a two-ring flare before the work block is released.
-static void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
+void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -860,9 +934,9 @@ static void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].b;
+                rgb[0]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].r;
+                rgb[1]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].g;
+                rgb[2]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].b;
                 func_shelter_b3_elevator_hall_8017F1A8(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -880,9 +954,9 @@ static void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].r;
-                    rgb[1] = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].g;
-                    rgb[2] = mem->scale >> D_shelter_b3_elevator_hall_80182B34[mem->index].b;
+                    rgb[0] = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].r;
+                    rgb[1] = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].g;
+                    rgb[2] = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].b;
                     func_shelter_b3_elevator_hall_80180324(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
@@ -903,7 +977,7 @@ kill:
 /// glow at that size, and while its echo level lasts a widening ring fading
 /// out around them. The work block is released once the disc's level runs
 /// down, or when the room's event state reaches 4.
-static void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
+void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1282,7 +1356,7 @@ static void func_shelter_b3_elevator_hall_80180324(GpCoord* arg0, s16 arg1, u8* 
 /// grows with age, and spawns the child effect `D_80115728` at the task's
 /// coordinate frame. Releases the work block after 0x15 ticks, or when the
 /// room's event state reaches 4.
-static void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
+void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

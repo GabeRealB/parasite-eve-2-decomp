@@ -73,7 +73,7 @@ static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 ///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
 ///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `age`
 ///   and releases the work block when the last step runs out.
-static void func_m4a1_javelin_8011D1E4(Task* task)
+void func_m4a1_javelin_8011D1E4(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -702,7 +702,7 @@ static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
     D_m4a1_javelin_8012EB68.vz = arg0->vz;
 }
 
-static void func_m4a1_javelin_8011F4E8(Task* arg0)
+void func_m4a1_javelin_8011F4E8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

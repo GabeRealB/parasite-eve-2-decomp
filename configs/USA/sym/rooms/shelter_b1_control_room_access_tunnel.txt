@@ -1,1 +1,59 @@
 // Overlay-local symbols for shelter_b1_control_room_access_tunnel.
+D_shelter_b1_control_room_access_tunnel_80181E9C = 0x80181E9C; // size:0x10 defined:True
+D_shelter_b1_control_room_access_tunnel_80181EAC = 0x80181EAC; // size:0x38 defined:True
+D_shelter_b1_control_room_access_tunnel_80181EF4 = 0x80181EF4; // size:0xC defined:True
+D_shelter_b1_control_room_access_tunnel_80181E74 = 0x80181E74; // size:0x28 defined:True
+D_shelter_b1_control_room_access_tunnel_80181F00 = 0x80181F00; // size:0x4 defined:True
+D_shelter_b1_control_room_access_tunnel_80181F04 = 0x80181F04; // size:0x2 defined:True
+D_shelter_b1_control_room_access_tunnel_80181F08 = 0x80181F08; // size:0x70 defined:True
+D_shelter_b1_control_room_access_tunnel_80181F78 = 0x80181F78; // size:0x30 defined:True
+D_shelter_b1_control_room_access_tunnel_80181FA8 = 0x80181FA8; // size:0x60 defined:True
+D_shelter_b1_control_room_access_tunnel_80182008 = 0x80182008; // size:0x48 defined:True
+D_shelter_b1_control_room_access_tunnel_80182050 = 0x80182050; // size:0xC defined:True
+D_shelter_b1_control_room_access_tunnel_8018205C = 0x8018205C; // size:0xC defined:True
+D_shelter_b1_control_room_access_tunnel_80182068 = 0x80182068; // size:0x8 defined:True
+D_shelter_b1_control_room_access_tunnel_80182070 = 0x80182070; // size:0x24 defined:True
+D_shelter_b1_control_room_access_tunnel_80182094 = 0x80182094; // size:0x6C defined:True
+D_shelter_b1_control_room_access_tunnel_80182100 = 0x80182100; // size:0x10 defined:True
+D_shelter_b1_control_room_access_tunnel_80182110 = 0x80182110; // size:0x10 defined:True
+D_shelter_b1_control_room_access_tunnel_80182120 = 0x80182120; // size:0x10 defined:True
+D_shelter_b1_control_room_access_tunnel_80182130 = 0x80182130; // size:0x24 defined:True
+D_shelter_b1_control_room_access_tunnel_80182154 = 0x80182154; // size:0x180 defined:True
+D_shelter_b1_control_room_access_tunnel_801822D4 = 0x801822D4; // size:0x18 defined:True
+D_shelter_b1_control_room_access_tunnel_801822EC = 0x801822EC; // size:0x98 defined:True
+D_shelter_b1_control_room_access_tunnel_80182384 = 0x80182384; // size:0x98 defined:True
+D_shelter_b1_control_room_access_tunnel_8018241C = 0x8018241C; // size:0x24 defined:True
+D_shelter_b1_control_room_access_tunnel_80182440 = 0x80182440; // size:0x24 defined:True
+D_shelter_b1_control_room_access_tunnel_80182464 = 0x80182464; // size:0x18 defined:True
+D_shelter_b1_control_room_access_tunnel_8018247C = 0x8018247C; // size:0x24 defined:True
+D_shelter_b1_control_room_access_tunnel_801824A0 = 0x801824A0; // size:0xC defined:True
+D_shelter_b1_control_room_access_tunnel_801824AC = 0x801824AC; // size:0x50 defined:True
+D_shelter_b1_control_room_access_tunnel_801824FC = 0x801824FC; // size:0x40 defined:True
+D_shelter_b1_control_room_access_tunnel_8018253C = 0x8018253C; // size:0x20 defined:True
+D_shelter_b1_control_room_access_tunnel_8018255C = 0x8018255C; // size:0x40 defined:True
+D_shelter_b1_control_room_access_tunnel_8018259C = 0x8018259C; // size:0x10 defined:True
+D_shelter_b1_control_room_access_tunnel_801825AC = 0x801825AC; // size:0xB0 defined:True
+D_shelter_b1_control_room_access_tunnel_8018265C = 0x8018265C; // size:0xC defined:True
+D_shelter_b1_control_room_access_tunnel_80182668 = 0x80182668; // size:0x8 defined:True
+D_shelter_b1_control_room_access_tunnel_80182670 = 0x80182670; // size:0x8 defined:True
+D_shelter_b1_control_room_access_tunnel_80182678 = 0x80182678; // size:0x20 defined:True
+D_80135C30 = 0x80135C30; // absolute:True
+D_80147400 = 0x80147400; // absolute:True
+D_8014E47C = 0x8014E47C; // absolute:True
+D_8015F400 = 0x8015F400; // absolute:True
+D_8015FDF0 = 0x8015FDF0; // absolute:True
+D_shelter_b1_control_room_access_tunnel_80181EE4 = 0x80181EE4; // size:0x10 defined:True
+
+func_shelter_b1_control_room_access_tunnel_8017E1BC = 0x8017E1BC; // type:func
+
+func_shelter_b1_control_room_access_tunnel_8017E2D8 = 0x8017E2D8; // type:func
+
+func_shelter_b1_control_room_access_tunnel_8017ED3C = 0x8017ED3C; // type:func
+
+func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func
+
+func_shelter_b1_control_room_access_tunnel_8018026C = 0x8018026C; // type:func
+
+func_shelter_b1_control_room_access_tunnel_801807C4 = 0x801807C4; // type:func
+
+func_shelter_b1_control_room_access_tunnel_80181424 = 0x80181424; // type:func

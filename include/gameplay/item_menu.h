@@ -48,7 +48,7 @@ extern RoomActionPrompt D_80114D28[2];
 
 void Gp_SetHolderItemText(s32 arg0);
 
-void Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+UiObject* Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_800D4D2C(s32 arg0);
 

@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_1f_bulwark.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -34,20 +36,31 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern s8 D_shelter_1f_bulwark_80180ECC[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern s8 D_shelter_1f_bulwark_80180ECC_value __asm__("D_shelter_1f_bulwark_80180ECC");
 
 extern TaskDesc         D_shelter_1f_bulwark_80180320;
 extern GpMsgEntry       D_shelter_1f_bulwark_8018032C[];
 extern TaskDesc         D_shelter_1f_bulwark_80180354;
-extern TaskDesc         D_shelter_1f_bulwark_80180360;
+extern TaskDesc         D_shelter_1f_bulwark_80180360[];
 extern SVECTOR          D_shelter_1f_bulwark_80180378[];
 extern SVECTOR          D_shelter_1f_bulwark_80180398[];
-extern SVECTOR          D_shelter_1f_bulwark_801803A0[];
-extern SVECTOR          D_shelter_1f_bulwark_801803A8;
 extern GpFadeWork       D_shelter_1f_bulwark_80180EBC;
 extern GpFadeWork       D_shelter_1f_bulwark_80180EC0;
 extern GpSaveLoc        D_shelter_1f_bulwark_80180EC4;
-extern s8               D_shelter_1f_bulwark_80180ECC;
 extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
@@ -56,6 +69,349 @@ static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, 
 static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
+
+extern GpGridParams D_shelter_1f_bulwark_80180648[1];
+extern GpObj3A D_shelter_1f_bulwark_80180E08[2];
+extern GpObj4C D_shelter_1f_bulwark_80180A8C[2];
+extern GpObj4C D_shelter_1f_bulwark_80180B24[8];
+extern GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1];
+
+s32 func_shelter_1f_bulwark_8017D7B4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_shelter_1f_bulwark_8017DBBC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_bulwark_8017DBC4(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_bulwark_8017DBCC(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_1f_bulwark_8017D61C(Task *);
+void func_shelter_1f_bulwark_8017DA60(Task *);
+void func_shelter_1f_bulwark_8017DC78(Task *);
+void func_shelter_1f_bulwark_8017DE04(Task *);
+
+TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, func_shelter_1f_bulwark_8017D61C, { .model = NULL } };
+
+GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
+    { 5102, func_shelter_1f_bulwark_8017D7B4 },
+    { 5105, func_shelter_1f_bulwark_8017DBBC },
+    { 5103, func_shelter_1f_bulwark_8017DBCC },
+    { 5104, func_shelter_1f_bulwark_8017DBC4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_1f_bulwark_80180354 = { 0, 32, func_shelter_1f_bulwark_8017DA60, { .model = NULL } };
+
+TaskDesc D_shelter_1f_bulwark_80180360[2] = {
+    { 0, 192, func_shelter_1f_bulwark_8017DE04, { .model = NULL } },
+    { 0, 192, func_shelter_1f_bulwark_8017DC78, { .model = NULL } },
+};
+
+SVECTOR D_shelter_1f_bulwark_80180378[4] = {
+    { 3560, -6380, 2770, 0 },
+    { 3560, -5130, -2810, 0 },
+    { 2910, -4050, 1890, 0 },
+    { 2910, -4050, -1930, 0 },
+};
+
+SVECTOR D_shelter_1f_bulwark_80180398[1] = {
+    { -4180, -1940, 2720, 0 },
+};
+
+SVECTOR D_shelter_1f_bulwark_801803A0[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_shelter_1f_bulwark_801803B0[1] = {
+    { D_shelter_1f_bulwark_80180648, D_shelter_1f_bulwark_80180A8C, D_shelter_1f_bulwark_80180B24, D_shelter_1f_bulwark_80180E08 },
+};
+
+GpRoomCoordRec D_shelter_1f_bulwark_801803C0[1] = {
+    { D_shelter_1f_bulwark_80180A74, NULL },
+};
+
+u8 * D_shelter_1f_bulwark_801803C8[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_1f_bulwark_801803CC[1] = {
+    { { .bytes = { 3, 0 } } },
+};
+
+GpWarpRec D_shelter_1f_bulwark_801803D0[2] = {
+    { { .words = { 3072, 4000, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, 3130, 0, 0 } }, { 0, 0, 0, 0 }, 0x55030002, 0x55030001, 0, 2, 0, 428 },
+    { { .words = { 1024, -3800, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, -3800, 0, 0 } }, { 0, 0, 0, 0 }, 0x55030004, 0x55030003, 0, 3, 0, 0 },
+};
+
+SVECTOR D_shelter_1f_bulwark_80180440[6] = {
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+};
+
+SVECTOR D_shelter_1f_bulwark_80180470[22] = {
+    { -4250, -6000, 3500, 0 },
+    { -4250, 0, 3500, 0 },
+    { -4250, 0, -3500, 0 },
+    { -4250, -6000, -3500, 0 },
+    { 4250, 0, -3500, 0 },
+    { 4250, -6000, -3500, 0 },
+    { 4250, 0, 3500, 0 },
+    { 4250, -6000, 3500, 0 },
+    { -1840, 0, -1580, 0 },
+    { -1840, -1980, -1580, 0 },
+    { -1840, -1980, -3500, 0 },
+    { -1840, 0, -3500, 0 },
+    { 4270, -1980, -1580, 0 },
+    { 4270, -1980, -3500, 0 },
+    { 4270, 0, -1580, 0 },
+    { -1100, 20, 3500, 0 },
+    { -1100, -1980, 3500, 0 },
+    { -1100, -1980, 1370, 0 },
+    { -1100, 20, 1370, 0 },
+    { 4250, -1980, 1370, 0 },
+    { 4250, 20, 1370, 0 },
+    { 4250, -1980, 3500, 0 },
+};
+
+GpGridFace D_shelter_1f_bulwark_80180520[12] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+    { { 6, 4, 1, 2 }, 4, 1 },
+    { { 0, 3, 7, 5 }, 5, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 12, 13, 9, 10 }, 4, 0 },
+    { { 12, 9, 14, 8 }, 1, 0 },
+    { { 16, 17, 15, 18 }, 2, 0 },
+    { { 17, 19, 18, 20 }, 3, 0 },
+    { { 21, 19, 16, 17 }, 4, 0 },
+};
+
+s16 D_shelter_1f_bulwark_801805B0[11] = {
+    0,
+    1,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_bulwark_801805C8[11] = {
+    0,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_bulwark_801805E0[11] = {
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_bulwark_801805F8[10] = {
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_bulwark_8018060C[9] = {
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_bulwark_80180620[7] = {
+    2,
+    3,
+    4,
+    5,
+    10,
+    11,
+    -1,
+};
+
+s16 * D_shelter_1f_bulwark_80180630[6] = {
+    D_shelter_1f_bulwark_801805B0,
+    D_shelter_1f_bulwark_801805C8,
+    D_shelter_1f_bulwark_801805E0,
+    D_shelter_1f_bulwark_801805F8,
+    D_shelter_1f_bulwark_8018060C,
+    D_shelter_1f_bulwark_80180620,
+};
+
+GpGridParams D_shelter_1f_bulwark_80180648[1] = {
+    { NULL, D_shelter_1f_bulwark_80180440, D_shelter_1f_bulwark_80180470, D_shelter_1f_bulwark_80180520, D_shelter_1f_bulwark_80180630, 4250, 3500, 3, 2, 4000, 12 },
+};
+
+GpViewRec D_shelter_1f_bulwark_8018066C[3] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x38D6, 0 } }, 257 },
+    { { { { 888, 0, -3998 }, { 1332, 3861, 296 }, { 3769, -1364, 837 } }, { 2810, 260, 870 } }, 257 },
+    { { { { 902, 0, 3995 }, { 3827, 1174, -864 }, { -1145, 3924, 258 } }, { 1110, 5890, 370 } }, 207 },
+};
+
+GpSprtCmd D_shelter_1f_bulwark_801806D8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_1f_bulwark_801806E8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_1f_bulwark_801806F8[8] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 32, 1225, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -104, 40, 1225, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -120, 48, 1225, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 48, 1400, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 64, 1400, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 96, 1425, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 32 } }, -112, 64, 1225, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 24 } }, -112, 96, 1425, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_1f_bulwark_80180798[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_1f_bulwark_801807B0[3] = {
+    { { .empty = D_shelter_1f_bulwark_801806D8 }, D_shelter_1f_bulwark_801806D8, NULL },
+    { { .empty = D_shelter_1f_bulwark_801806E8 }, D_shelter_1f_bulwark_801806E8, NULL },
+    { { .elements = D_shelter_1f_bulwark_801806F8 }, D_shelter_1f_bulwark_80180798, NULL },
+};
+
+GpPointLight D_shelter_1f_bulwark_801807D4[7] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3994, -1930, 2718 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 0, 0, { 0, 0 } }, 1000, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2293, 2048, { 0, 0 } }, 2500, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2293, 2048, { 0, 0 } }, 2500, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2293, 2048, { 0, 0 } }, 3000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2293, 2048, { 0, 0 } }, 3000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -6000, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 1638, 1228, { 0, 0 } }, 6000, 7000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -6000, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 1638, 1228, { 0, 0 } }, 6000, 7000 },
+};
+
+GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1] = {
+    { 0, NULL, 7, D_shelter_1f_bulwark_801807D4, 0, NULL },
+};
+
+GpObj4C D_shelter_1f_bulwark_80180A8C[2] = {
+    { NULL, NULL, NULL, { -620, -3248, 96, 0 }, { { -313, -3712, -2468, 0 }, { 310, -3712, 2465, 0 }, { -313, 3712, -2468, 0 }, { 310, 3712, 2465, 0 } }, { 4075, 0, -516, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -478, -3312, 191, 0 }, { { 291, -3712, 2444, 0 }, { -302, -3712, -2455, 0 }, { 291, 3712, 2444, 0 }, { -302, 3712, -2455, 0 } }, { -4074, 0, 492, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_shelter_1f_bulwark_80180B24[8] = {
+    { NULL, NULL, NULL, { 3696, -53, 0, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, 0, 2, 19, 2, 0 },
+    { NULL, NULL, NULL, { -3776, -53, 112, 0 }, { { -496, 0, -1776, 0 }, { 496, 0, -1776, 0 }, { -496, 0, 1776, 0 }, { 496, 0, 1776, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1841, 2, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { 656, -64, -1200, 0 }, { { -3552, 0, -368, 0 }, { 3552, 0, -368, 0 }, { -3552, 0, 368, 0 }, { 3552, 0, 368, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 3565, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { -304, -64, 992, 0 }, { { -1744, 0, -368, 0 }, { 1744, 0, -368, 0 }, { -1744, 0, 368, 0 }, { 1744, 0, 368, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, -4096, 0 }, 1778, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { -1600, -64, 2144, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2656, -64, -2176, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3808, -64, -2704, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 496, 0 }, { 496, 0, 496, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 701, 0, 4, 33, 2, 0 },
+    { NULL, NULL, NULL, { 2848, -64, 1024, 0 }, { { -1328, 0, -368, 0 }, { 1328, 0, -368, 0 }, { -1328, 0, 368, 0 }, { 1328, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1372, 2, 3, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_shelter_1f_bulwark_80180D84[3] = {
+    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017AF00, D_shelter_1f_bulwark_80180D84 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpObj3A D_shelter_1f_bulwark_80180E08[2] = {
+    { NULL, NULL, { 1840, -16, 2576, 0 }, { { -2864, 1936, -1104, 0 }, { 2864, 1936, 1104, 0 }, { -2864, -1936, -1104, 0 }, { 2864, -1936, 1104, 0 } }, { -1477, 0, 3827, 0 }, { 36, 14 }, 1, 0 },
+    { NULL, NULL, { 2624, 0, -3120, 0 }, { { -3216, 1936, 896, 0 }, { 3216, 1936, -896, 0 }, { -3216, -1936, 896, 0 }, { 3216, -1936, -896, 0 } }, { 1102, 0, 3957, 0 }, { 17, 15 }, 129, 0 },
+};
+
+s32 D_shelter_1f_bulwark_80180E80[3] = {
+    0x10000041,
+    0x10000043,
+    0x10000041,
+};
+
+GpRoomParamRec D_shelter_1f_bulwark_80180E8C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_1f_bulwark_80180E94[1] = {
+    { 0, 0, 1, 0, D_shelter_1f_bulwark_80180E80 },
+};
+
+GpRoomParamRec * D_shelter_1f_bulwark_80180E9C[8] = {
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E94,
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E8C,
+    D_shelter_1f_bulwark_80180E8C,
+};
+
+GpFadeWork D_shelter_1f_bulwark_80180EBC = { 0 };
+
+GpFadeWork D_shelter_1f_bulwark_80180EC0 = { 0 };
+
+GpSaveLoc D_shelter_1f_bulwark_80180EC4 = { 0 };
+
+s8 D_shelter_1f_bulwark_80180ECC[4] = {
+    0,
+    33,
+    -78,
+    -119,
+};
+
+RoomLatchedEvent D_shelter_1f_bulwark_80180ED0 = { 0 };
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it to finish and,
@@ -111,7 +467,7 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
 
 static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_bulwark_80180ECC = 0;
+    D_shelter_1f_bulwark_80180ECC_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_bulwark_80180EC4 = *dst;
@@ -120,19 +476,19 @@ static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
-            D_shelter_1f_bulwark_80180ECC = 1;
+            D_shelter_1f_bulwark_80180ECC_value = 1;
         }
         return 2;
     }
     return 1;
 }
 
-s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     RoomLatchedEvent event;
 
     *dst = *src;
-    func_80179B14(src, dst);
+    func_map_neo_ark_80179B14(src, dst);
     if (*(u16*)src == 4) {
         if (GameFlag_GetNibble(0x15D) == 0) {
             Gp_SpawnIfCapIdle(1, 0);
@@ -203,7 +559,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             goto advance;
         case 5:
             GameFlag_SetNibble(0x7A, 6);
-            Task_SpawnFromTable(&D_shelter_1f_bulwark_80180360, 0, 0, 0);
+            Task_SpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
         case 4:
         case 6:
         advance:
@@ -215,17 +571,17 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
     }
 }
 
-s32 func_shelter_1f_bulwark_8017DBBC(void)
+s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBC4(void)
+s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBCC(void)
+s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -330,7 +686,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Display_SpawnWithOt(&D_shelter_1f_bulwark_80180360, 1, 0, 0);
+            Display_SpawnWithOt(D_shelter_1f_bulwark_80180360, 1, 0, 0);
             gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             Gp_StateF0.field_4 = 1;
@@ -429,7 +785,7 @@ static void func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES(0xC);
 }
 
-static void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
+void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 {
     u8 view;
 
@@ -456,7 +812,7 @@ static void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
     }
 }
 
-static void func_shelter_1f_bulwark_8017E38C(Task* task)
+void func_shelter_1f_bulwark_8017E38C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -626,7 +982,7 @@ static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
     SCRATCH_POP(RoomFanScratch);
 }
 
-static void func_shelter_1f_bulwark_8017EDF0(Task* task)
+void func_shelter_1f_bulwark_8017EDF0(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -684,9 +1040,12 @@ static void func_shelter_1f_bulwark_8017EDF0(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_1f_bulwark_801803A8.vx;
-                coord.coord.t[1] = D_shelter_1f_bulwark_801803A8.vy;
-                coord.coord.t[2] = D_shelter_1f_bulwark_801803A8.vz;
+                {
+                    SVECTOR* edge = &D_shelter_1f_bulwark_801803A0[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -820,7 +1179,7 @@ static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 a
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-static void func_shelter_1f_bulwark_8017F6D8(Task* task)
+void func_shelter_1f_bulwark_8017F6D8(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

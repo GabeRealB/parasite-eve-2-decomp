@@ -68,7 +68,7 @@ static Task* D_apobiosis_80130BA0 = NULL;
 /// a frame in state 3, two a frame in state 4 - and state 5 fades the last of
 /// the flash before releasing the work block. `Gp_SpawnPadLerp` rumbles at each
 /// state change, hardest on the widest row.
-static void func_apobiosis_8012EF4C(Task* arg0)
+void func_apobiosis_8012EF4C(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -330,7 +330,7 @@ static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the intensity `step` that picks a `D_apobiosis_80130B5C` row. Both live
 /// states redraw the shard every other frame, at twice the row's radius while
 /// pinned and at the plain radius once free.
-static void func_apobiosis_8012FE10(Task* arg0)
+void func_apobiosis_8012FE10(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

@@ -1,6 +1,10 @@
 #ifndef ROOMS_ACROPOLIS_PATIO_H
 #define ROOMS_ACROPOLIS_PATIO_H
 
+#include "gameplay/area.h"
+
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -31,5 +35,10 @@ STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
 typedef struct ApGreyLevels {
     u8 level[3];
 } ApGreyLevels;
+
+void func_acropolis_patio_8017E100(Task* task);
+void func_acropolis_patio_8017E324(Task* task);
+void func_acropolis_patio_8017E730(Task* task);
+extern GpAreaVariant D_acropolis_patio_80184A90[12];
 
 #endif

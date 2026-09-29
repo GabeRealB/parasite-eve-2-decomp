@@ -12,4 +12,6 @@ extern TaskDesc D_neo_ark_altar_8017EFC0[];
 
 void func_neo_ark_altar_8017DC40(s32 arg0);
 
+void func_neo_ark_altar_8017EF84(Task* unused);
+
 #endif // ROOMS_NEO_ARK_ALTAR_H

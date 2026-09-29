@@ -37,7 +37,7 @@ static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
 static void func_tonfa_baton_8011DB78(Task* task);
 
-static void func_tonfa_baton_8011D1EC(Task* task)
+void func_tonfa_baton_8011D1EC(Task* task)
 {
     GpCoord    local;
     GpCoord*   coord;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/dryfield_driveway.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,19 +28,917 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s32 D_dryfield_driveway_8017E384;
-extern s32 D_dryfield_driveway_8017E4FC;
-extern s32 D_dryfield_driveway_8017E67C;
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+#include "gameplay/animation.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_dryfield_driveway_80180690[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u8 D_dryfield_driveway_80180690_value __asm__("D_dryfield_driveway_80180690");
+
+extern GpEvsCmd D_dryfield_driveway_8017E384[];
+extern GpEvsCmd D_dryfield_driveway_8017E4FC[];
+extern GpEvsCmd D_dryfield_driveway_8017E67C[];
 
 extern TaskDesc D_dryfield_driveway_8017E2F0;
 extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
-extern GpFadeWork       D_dryfield_driveway_80180680;
+extern RoomFadeStorage       D_dryfield_driveway_80180680;
 extern RoomEventMsg     D_dryfield_driveway_80180688;
-extern u8               D_dryfield_driveway_80180690;
 extern RoomLatchedEvent D_dryfield_driveway_80180694;
+
+extern GpAnimArg D_dryfield_driveway_8017E330;
+extern GpAnimArg D_dryfield_driveway_8017E358;
+extern GpCopyArg D_dryfield_driveway_8017E328;
+extern GpGridParams D_dryfield_driveway_8017ED74[1];
+extern GpObj4C D_dryfield_driveway_8017FC98[6];
+extern GpObj4C D_dryfield_driveway_801802F8[11];
+extern GpRoomCoordSet D_dryfield_driveway_801802E0[1];
+extern TaskDesc D_8014D8A4;
+s32 func_dryfield_driveway_8017D77C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_driveway_8017DC70(Task *, s32, s32, s32);
+s32 func_dryfield_driveway_8017DCC0(Task *, s32, s32, s32);
+s32 func_dryfield_driveway_8017DDB0(Task *, s32, s32, s32);
+s32 func_dryfield_driveway_8017DDB8(Task *, s32, s32, s32);
+void func_dryfield_driveway_8017DC48(s32);
+void func_dryfield_driveway_8017DC54(s16);
+void func_dryfield_driveway_8017DC64(u8);
+
+void func_dryfield_driveway_8017D5E4(Task *);
+void func_dryfield_driveway_8017DAD0(Task *);
+void func_dryfield_driveway_8017DB68(Task *);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} DryfieldDrivewayPoseBank8C0;
+
+DryfieldDrivewayPoseBank8C0 D_dryfield_driveway_8017DE80 = { .poses = {
+#include "assets/dryfield_driveway_animation_00D08_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_driveway_8017DEF8[95] = {
+#include "assets/dryfield_driveway_animation_00D08_bank4.inc"
+};
+
+GpAnimRec D_dryfield_driveway_8017E074[139] = {
+#include "assets/dryfield_driveway_animation_00D08_records.inc"
+};
+
+u16 D_dryfield_driveway_8017E2A0[20] = {
+#include "assets/dryfield_driveway_animation_00D08_indices.inc"
+};
+
+GpAnimSet D_dryfield_driveway_8017E2C8 = {
+    D_dryfield_driveway_8017E074, D_dryfield_driveway_8017E2A0,
+    { NULL, D_dryfield_driveway_8017DE80.words, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
+};
+
+TaskDesc D_dryfield_driveway_8017E2F0 = { 0, 32, func_dryfield_driveway_8017D5E4, { .model = NULL } };
+
+TaskDesc D_dryfield_driveway_8017E2FC[3] = {
+    { 0, 32, func_dryfield_driveway_8017DAD0, { .model = NULL } },
+    { 0, 32, func_dryfield_driveway_8017DB68, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpAnimSet * D_dryfield_driveway_8017E320[2] = {
+    &D_dryfield_driveway_8017E2C8,
+    NULL,
+};
+
+GpCopyArg D_dryfield_driveway_8017E328 = { { .sets = D_dryfield_driveway_8017E320 }, 2 };
+
+GpAnimArg D_dryfield_driveway_8017E330 = { { .index = 1 }, 47, 0, 0, 1 };
+
+GpAnimArg D_dryfield_driveway_8017E344 = { { .index = 1 }, 48, 1, 7, 1 };
+
+GpAnimArg D_dryfield_driveway_8017E358 = { { .index = 1 }, 32, 1, 5, 0 };
+
+GpXformArg D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
+
+GpEvsCmd D_dryfield_driveway_8017E384[14] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_driveway_8017E328 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E358 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_dryfield_driveway_8017DC48 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E330 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpAnimArg D_dryfield_driveway_8017E4D4 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_dryfield_driveway_8017E4E8 = { { .index = 1 }, 24, 0, 0, 0 };
+
+GpEvsCmd D_dryfield_driveway_8017E4FC[16] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_dryfield_driveway_8017DC64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E4D4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x52190009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_driveway_8017DC54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E4E8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_driveway_8017E67C[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_driveway_8017DC54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpMsgEntry D_dryfield_driveway_8017E754[6] = {
+    { 5102, func_dryfield_driveway_8017D77C },
+    { 5105, func_dryfield_driveway_8017DCC0 },
+    { 5103, func_dryfield_driveway_8017DDB8 },
+    { 5104, func_dryfield_driveway_8017DDB0 },
+    { 5106, func_dryfield_driveway_8017DC70 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpRoomObjRec D_dryfield_driveway_8017E784[2] = {
+    { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
+    { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
+};
+
+u8 D_dryfield_driveway_8017E7A4[8] = {
+    1,
+    2,
+    3,
+    7,
+    5,
+    6,
+    4,
+    0,
+};
+
+u8 * D_dryfield_driveway_8017E7AC[2] = {
+    D_8010CAF8,
+    D_dryfield_driveway_8017E7A4,
+};
+
+GpRoomCoordRec D_dryfield_driveway_8017E7B4[2] = {
+    { D_dryfield_driveway_801802E0, NULL },
+    { D_dryfield_driveway_801802E0, NULL },
+};
+
+GpViewCountRec D_dryfield_driveway_8017E7C4[2] = {
+    { { .bytes = { 7, 0 } } },
+    { { .bytes = { 7, 0 } } },
+};
+
+GpWarpRec D_dryfield_driveway_8017E7C8[3] = {
+    { { .words = { 1024, -3400, 0, 600 } }, { 0, 0, 0, 0 }, { .words = { 1024, -3400, 0, 1250 } }, { 0, 0, 0, 0 }, 0x52190004, 0x52190003, 0, 4, 0, 474 },
+    { { .words = { 0x7800, -1300, 0, 1700 } }, { 0, 0, 0, 0 }, { .words = { 1024, 200, 0, 1650 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
+    { { .words = { 1024, -9500, 4, -1418 } }, { 0, 0, 0, 0 }, { .words = { 1024, 200, 0, 1650 } }, { 0, 0, 0, 0 }, 0x52190002, 0x52190001, 0, 2, 0, 482 },
+};
+
+SVECTOR D_dryfield_driveway_8017E870[13] = {
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 30, 0 },
+    { -15, 0, 4096, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { -3174, 0, -2589, 0 },
+    { -4096, 0, 0, 0 },
+    { -63, 0, 4096, 0 },
+    { 4096, 0, 8, 0 },
+    { 4096, 0, 8, 0 },
+    { -4096, 0, -3, 0 },
+    { -4096, 0, -3, 0 },
+};
+
+SVECTOR D_dryfield_driveway_8017E8D8[64] = {
+    { -25, 110, -1900, 0 },
+    { -25, -5890, -1900, 0 },
+    { -0x272E, -5890, -1900, 0 },
+    { -0x272E, 110, -1900, 0 },
+    { -10, 110, 120, 0 },
+    { -10, -5890, 120, 0 },
+    { 0x34A8, 110, 170, 0 },
+    { 0x34A8, -5890, 170, 0 },
+    { -4030, 110, 2990, 0 },
+    { -4030, -4490, 2990, 0 },
+    { 7010, -4490, 2990, 0 },
+    { 7010, 110, 2990, 0 },
+    { -3890, 110, -1050, 0 },
+    { -3890, -5190, -1050, 0 },
+    { -3890, -5190, 3990, 0 },
+    { -3890, 110, 3990, 0 },
+    { -0x2724, 110, -1050, 0 },
+    { -0x2724, -5190, -1050, 0 },
+    { -30, -890, 3200, 0 },
+    { 7010, -890, 3200, 0 },
+    { 7010, -890, 2440, 0 },
+    { 590, -890, 2440, 0 },
+    { 590, 110, 2440, 0 },
+    { 7010, 110, 2440, 0 },
+    { -30, 110, 3200, 0 },
+    { -0x2B16, 0, 4180, 0 },
+    { 7040, 0, 4180, 0 },
+    { 7040, 0, -5210, 0 },
+    { -0x2B16, 0, -5210, 0 },
+    { -788, 500, 2000, 0 },
+    { -788, -500, 2000, 0 },
+    { -788, -500, 3000, 0 },
+    { -788, 500, 3000, 0 },
+    { -1989, 500, 3000, 0 },
+    { -1989, -500, 3000, 0 },
+    { -1989, -500, 2000, 0 },
+    { -1989, 500, 2000, 0 },
+    { 3, 0, 120, 0 },
+    { 3, -1700, 120, 0 },
+    { -1307, -1700, 100, 0 },
+    { -1307, 0, 100, 0 },
+    { -1307, -1700, -2000, 0 },
+    { -1307, 0, -2000, 0 },
+    { 3, -1700, -2000, 0 },
+    { -838, 500, 2050, 0 },
+    { -838, -2500, 2050, 0 },
+    { -838, -2500, 3100, 0 },
+    { -838, 500, 3100, 0 },
+    { -1939, 500, 3100, 0 },
+    { -1939, -2500, 3100, 0 },
+    { -1939, -2500, 2050, 0 },
+    { -1939, 500, 2050, 0 },
+    { -9995, -1550, -2048, 0 },
+    { -9997, -1550, -898, 0 },
+    { -9997, 0, -898, 0 },
+    { -9995, 0, -2048, 0 },
+    { -9995, -4100, -2048, 0 },
+    { -9997, -4100, -898, 0 },
+    { 6305, -2050, 22, 0 },
+    { 6303, -2050, 2982, 0 },
+    { 6303, -4100, 2982, 0 },
+    { 6305, -4100, 22, 0 },
+    { 6305, 0, 22, 0 },
+    { 6303, 0, 2982, 0 },
+};
+
+GpGridFace D_dryfield_driveway_8017EAD8[23] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 0, 4, 1, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 14, 12, 15 }, 4, 0 },
+    { { 17, 13, 16, 12 }, 3, 0 },
+    { { 19, 20, 18, 21 }, 5, 0 },
+    { { 21, 20, 22, 23 }, 3, 0 },
+    { { 22, 24, 21, 18 }, 6, 0 },
+    { { 26, 27, 25, 28 }, 5, 2 },
+    { { 30, 31, 29, 32 }, 4, 0 },
+    { { 34, 35, 33, 36 }, 7, 0 },
+    { { 35, 30, 36, 29 }, 3, 0 },
+    { { 38, 39, 37, 40 }, 8, 1 },
+    { { 39, 41, 40, 42 }, 7, 1 },
+    { { 43, 41, 38, 39 }, 5, 1 },
+    { { 45, 46, 44, 47 }, 4, 1 },
+    { { 49, 50, 48, 51 }, 7, 1 },
+    { { 50, 45, 51, 44 }, 3, 1 },
+    { { 53, 54, 52, 55 }, 9, 0 },
+    { { 52, 56, 53, 57 }, 10, 1 },
+    { { 59, 60, 58, 61 }, 11, 1 },
+    { { 58, 62, 59, 63 }, 12, 0 },
+};
+
+s16 D_dryfield_driveway_8017EBEC[6] = {
+    0,
+    5,
+    9,
+    19,
+    20,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EBF8[6] = {
+    0,
+    5,
+    9,
+    19,
+    20,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC04[2] = {
+    9,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC08[7] = {
+    0,
+    4,
+    5,
+    9,
+    14,
+    15,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC18[13] = {
+    0,
+    3,
+    4,
+    5,
+    9,
+    11,
+    12,
+    13,
+    14,
+    15,
+    17,
+    18,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC34[6] = {
+    3,
+    4,
+    9,
+    11,
+    17,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC40[10] = {
+    0,
+    1,
+    2,
+    4,
+    5,
+    9,
+    13,
+    14,
+    15,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC54[20] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC7C[13] = {
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    16,
+    17,
+    18,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017EC98[6] = {
+    0,
+    1,
+    2,
+    9,
+    15,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ECA4[17] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    15,
+    16,
+    18,
+    21,
+    22,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ECC8[8] = {
+    3,
+    6,
+    7,
+    8,
+    9,
+    21,
+    22,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ECD8[5] = {
+    2,
+    9,
+    21,
+    22,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ECE4[8] = {
+    2,
+    3,
+    6,
+    7,
+    9,
+    21,
+    22,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ECF4[7] = {
+    3,
+    6,
+    7,
+    9,
+    21,
+    22,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ED04[3] = {
+    2,
+    9,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ED0C[3] = {
+    2,
+    9,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ED14[2] = {
+    9,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ED18[2] = {
+    2,
+    -1,
+};
+
+s16 D_dryfield_driveway_8017ED1C[2] = {
+    2,
+    -1,
+};
+
+s16 * D_dryfield_driveway_8017ED20[21] = {
+    D_dryfield_driveway_8017EBEC,
+    D_dryfield_driveway_8017EBF8,
+    D_dryfield_driveway_8017EC04,
+    D_dryfield_driveway_8017EC08,
+    D_dryfield_driveway_8017EC18,
+    D_dryfield_driveway_8017EC34,
+    D_dryfield_driveway_8017EC40,
+    D_dryfield_driveway_8017EC54,
+    D_dryfield_driveway_8017EC7C,
+    D_dryfield_driveway_8017EC98,
+    D_dryfield_driveway_8017ECA4,
+    D_dryfield_driveway_8017ECC8,
+    D_dryfield_driveway_8017ECD8,
+    D_dryfield_driveway_8017ECE4,
+    D_dryfield_driveway_8017ECF4,
+    D_dryfield_driveway_8017ED04,
+    D_dryfield_driveway_8017ED0C,
+    D_dryfield_driveway_8017ED14,
+    D_dryfield_driveway_8017ED18,
+    D_dryfield_driveway_8017ED1C,
+    NULL,
+};
+
+GpGridParams D_dryfield_driveway_8017ED74[1] = {
+    { NULL, D_dryfield_driveway_8017E870, D_dryfield_driveway_8017E8D8, D_dryfield_driveway_8017EAD8, D_dryfield_driveway_8017ED20, 0x2B16, 5210, 7, 3, 4000, 23 },
+};
+
+GpAreaTmdRec D_dryfield_driveway_8017ED98[2] = {
+    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_driveway_8017EDB0[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_driveway_8017EDBC[2] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_dryfield_driveway_8017EDD4[11] = {
+    { NULL, NULL },
+    { D_map_dryfield_8017B7E4, D_dryfield_driveway_8017ED98 },
+    { D_map_dryfield_8017B984, D_dryfield_driveway_8017EDB0 },
+    { D_map_dryfield_8017B994, D_dryfield_driveway_8017EDBC },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpViewRec D_dryfield_driveway_8017EE2C[7] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1950, 0x7530, -2670 } }, 380 },
+    { { { { -651, 0, 4043 }, { -292, 4085, -47 }, { -4033, -296, -649 } }, { 4393, 820, 1267 } }, 230 },
+    { { { { -852, 0, 4006 }, { 449, 4070, 95 }, { -3980, 459, -846 } }, { 425, 1344, 1172 } }, 230 },
+    { { { { -1441, 0, 3833 }, { 939, 3971, 353 }, { -3717, 1003, -1397 } }, { -2544, 1724, -2548 } }, 230 },
+    { { { { -781, 0, -4020 }, { -1703, 3710, 331 }, { 3642, 1735, -707 } }, { 1820, 2220, -2312 } }, 230 },
+    { { { { 287, 0, 4085 }, { 2747, 3031, -193 }, { -3024, 2754, 213 } }, { 29, 1719, -2342 } }, 230 },
+    { { { { -1441, 0, 3833 }, { 939, 3971, 353 }, { -3717, 1003, -1397 } }, { -2544, 1724, -2548 } }, 230 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017EF28[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_driveway_8017EF38[9] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 112, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 88, 375, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 80, 375, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 88, 375, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 40, 978, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 88 } }, 64, 32, 131, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, 104, 40, 81, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, 128, 48, 62, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 152, 56, 54, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017EFEC[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 1, 0 } },
+    { 5, 4, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_driveway_8017F00C[17] = {
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 240, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 40 } }, -120, 80, 240, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 32 } }, -56, 88, 240, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 0, 96, 240, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 16 } }, 24, 104, 240, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 112, 206, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, 80, 500, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 64, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -24, 56, 500, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 72, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 104, 500, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 104, 500, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 40, 0, 900, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 903, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 0, 910, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 144 } }, 56, -120, 918, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 48, -48, 931, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017F160[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 0, 0 } },
+    { 6, 6, 0, 0, { 3, 0 } },
+    { 12, 1, 0, 0, { 2, 0 } },
+    { 13, 2, 0, 0, { 4, 0 } },
+    { 15, 2, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpDrawAreaRec D_dryfield_driveway_8017F198[2] = {
+    { { 0, 0, 231, 239 }, 925 },
+    { { 0, 0, 0, 0 }, 0xFFFF },
+};
+
+GpSprtElem D_dryfield_driveway_8017F1AC[50] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -80, -16, 1075, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -96, -24, 1025, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 48 } }, -160, -120, 835, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 72 } }, -160, -72, 885, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 64 } }, -160, 0, 910, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, -40, -120, 1800, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, -16, -120, 1825, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, 8, -120, 1850, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, -40, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -80, 1000, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 56, -96, 1000, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 96, -96, 1000, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 104, -80, 1000, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, -16, 1000, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 96, 0, 1000, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -88, 850, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 40, -16, 876, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 40, -104, 750, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, -104, 750, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 112, -88, 800, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 112, -64, 825, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, -16, 850, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 104, 0, 850, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 96, 48, 495, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 48, -104, 758, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 80, -104, 762, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 112, -104, 762, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 112, 575, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 112, 507, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 88, 48, 507, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 120, 56, 507, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 8, 908, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 16, 883, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 72, 16, 883, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 88, 16, 883, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, 104, 8, 883, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, 0, 1064, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, 0, 1064, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 72, 0, 1064, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 88, 0, 1064, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 104, 8, 1064, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, 80, -96, 885, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 40, 40, 871, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 48, 883, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, 56, 883, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 88, 48, 883, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 883, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017F594[14] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 7, 0 } },
+    { 5, 0, 0, 0, { 2, 0 } },
+    { 5, 3, 0, 0, { 6, 0 } },
+    { 8, 3, 0, 0, { 1, 0 } },
+    { 11, 7, 0, 0, { 9, 0 } },
+    { 18, 9, 0, 0, { 0, 0 } },
+    { 27, 3, 0, 0, { 10, 0 } },
+    { 30, 4, 0, 0, { 5, 0 } },
+    { 34, 5, 0, 0, { 8, 0 } },
+    { 39, 5, 0, 0, { 4, 0 } },
+    { 44, 1, 0, 0, { 11, 0 } },
+    { 45, 5, 0, 0, { 3, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_driveway_8017F604[12] = {
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 8, 948, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 16, 888, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 24, 895, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 0, 969, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 32, 890, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 40, 885, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 48, 880, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 56, 880, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 32, 650, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 80, 650, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -88, 32, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 72, 681, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017F6F4[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 1, 0 } },
+    { 8, 4, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_driveway_8017F714[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_driveway_8017F724[60] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -80, -16, 1075, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -96, -24, 1025, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 48 } }, -160, -120, 835, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 72 } }, -160, -72, 885, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 64 } }, -160, 0, 910, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, -40, -120, 1800, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, -16, -120, 1825, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 128 } }, 8, -120, 1664, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, -40, 1000, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -80, 1000, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 56, -96, 1000, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 96, -96, 1000, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 104, -80, 1000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, -16, 1000, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 96, 0, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -88, 850, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 40, -16, 875, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 40, -104, 750, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, -104, 750, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 112, -88, 800, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 112, -64, 825, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, -16, 850, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 104, 0, 850, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 96, 48, 850, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 48, -104, 758, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 80, -104, 762, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 112, -104, 762, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -80, 851, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -56, 837, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -96, 847, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, -64, 845, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -56, 837, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 80, -32, 837, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -56, 845, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, -40, 845, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, -24, 845, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -16, 1082, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 80, -16, 837, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 112, 507, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 112, 507, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 88, 48, 507, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 56, 507, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 8, 908, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 56, 16, 883, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, 16, 883, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 88, 16, 883, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 104, 8, 858, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, 0, 1064, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, 0, 1064, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 72, 0, 1064, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 88, 0, 1064, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 104, 8, 1064, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 40, 883, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 48, 883, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, 56, 883, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 88, 48, 883, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 883, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_driveway_8017FBD4[14] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 7, 0 } },
+    { 5, 0, 0, 0, { 2, 0 } },
+    { 5, 3, 0, 0, { 6, 0 } },
+    { 8, 3, 0, 0, { 1, 0 } },
+    { 11, 7, 0, 0, { 9, 0 } },
+    { 18, 9, 0, 0, { 0, 0 } },
+    { 27, 3, 0, 0, { 10, 0 } },
+    { 30, 11, 0, 0, { 5, 0 } },
+    { 41, 4, 0, 0, { 8, 0 } },
+    { 45, 5, 0, 0, { 4, 0 } },
+    { 50, 5, 0, 0, { 11, 0 } },
+    { 55, 5, 0, 0, { 3, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_dryfield_driveway_8017FC44[7] = {
+    { { .empty = D_dryfield_driveway_8017EF28 }, D_dryfield_driveway_8017EF28, NULL },
+    { { .elements = D_dryfield_driveway_8017EF38 }, D_dryfield_driveway_8017EFEC, NULL },
+    { { .elements = D_dryfield_driveway_8017F00C }, D_dryfield_driveway_8017F160, D_dryfield_driveway_8017F198 },
+    { { .elements = D_dryfield_driveway_8017F1AC }, D_dryfield_driveway_8017F594, NULL },
+    { { .elements = D_dryfield_driveway_8017F604 }, D_dryfield_driveway_8017F6F4, NULL },
+    { { .empty = D_dryfield_driveway_8017F714 }, D_dryfield_driveway_8017F714, NULL },
+    { { .elements = D_dryfield_driveway_8017F724 }, D_dryfield_driveway_8017FBD4, NULL },
+};
+
+GpObj4C D_dryfield_driveway_8017FC98[6] = {
+    { NULL, NULL, NULL, { -6369, -1536, -1504, 0 }, { { 0, -2560, 1024, 0 }, { 0, -2560, -1024, 0 }, { 0, 2560, 1024, 0 }, { 0, 2560, -1024, 0 } }, { -4095, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -6816, -1472, -1568, 0 }, { { 0, -2496, -1024, 0 }, { 0, -2496, 1024, 0 }, { 0, 2496, -1024, 0 }, { 0, 2496, 1024, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2697, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -2770, -1600, -856, 0 }, { { -1521, -2624, 0, 0 }, { 1522, -2624, 1, 0 }, { -1521, 2624, 0, 0 }, { 1522, 2624, 1, 0 } }, { 1, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -2675, -1376, -1017, 0 }, { { 1554, -2400, 1, 0 }, { -1553, -2400, 0, 0 }, { 1554, 2400, 1, 0 }, { -1553, 2400, 0, 0 } }, { -3, 0, 4097, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 294, -1520, 1474, 0 }, { { -435, -2544, 2215, 0 }, { 435, -2544, -2214, 0 }, { -435, 2544, 2215, 0 }, { 435, 2544, -2214, 0 } }, { -4034, 0, -793, 0 }, { 0, 0, 4096, 0 }, 3396, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { -26, -1488, 1301, 0 }, { { 435, -2512, -2213, 0 }, { -435, -2512, 2214, 0 }, { 435, 2512, -2213, 0 }, { -435, 2512, 2214, 0 } }, { 4031, 0, 792, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 5, 4, 129, 0 },
+};
+
+GpPointLight D_dryfield_driveway_8017FE60[12] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x28AE, -2000, 2764 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 1966, 2048, { 0, 0 } }, 0x61A7, 0x61A8 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4104, { 0, 0 } }, 499, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4098, 4107, { 0, 0 } }, 339, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4106, 4108, 4107, { 0, 0 } }, 438, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6892, -2000, 2764 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 1966, 2048, { 0, 0 } }, 0x61A7, 0x61A8 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4508, 4508, 4506, { 0, 0 } }, 737, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 0x2856, 8167, 7585, { 0, 0 } }, 1000, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 0x2856, 8167, 7585, { 0, 0 } }, 1000, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 0x2856, 8167, 7585, { 0, 0 } }, 1000, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4099, 4097, { 0, 0 } }, 499, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4106, 4122, 4158, { 0, 0 } }, 398, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4112, 4096, 4105, { 0, 0 } }, 498, 2000 },
+};
+
+GpRoomCoordSet D_dryfield_driveway_801802E0[1] = {
+    { 0, NULL, 12, D_dryfield_driveway_8017FE60, 0, NULL },
+};
+
+GpObj4C D_dryfield_driveway_801802F8[11] = {
+    { NULL, NULL, NULL, { -3680, -48, 480, 0 }, { { -352, 0, -640, 0 }, { 352, 0, -640, 0 }, { -352, 0, 640, 0 }, { 352, 0, 640, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 729, 0, 23, 17, 2, 0 },
+    { NULL, NULL, NULL, { -1488, -48, 2400, 0 }, { { -1104, 0, -1120, 0 }, { 1104, 0, -1120, 0 }, { -1104, 0, 1120, 0 }, { 1104, 0, 1120, 0 } }, { 0, 4117, 0, 0 }, { 4096, 0, 0, 0 }, 1567, 0, 32, 33, 4, 0 },
+    { NULL, NULL, NULL, { -9664, -48, -1440, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 497, 0, 2, 55, 2, 0 },
+    { NULL, NULL, NULL, { 5984, -64, 1296, 0 }, { { -352, 0, -1072, 0 }, { 352, 0, -1072, 0 }, { -352, 0, 1072, 0 }, { 352, 0, 1072, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1123, 2, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2208, -64, 2720, 0 }, { { -400, 0, -832, 0 }, { 400, 0, -832, 0 }, { -400, 0, 832, 0 }, { 400, 0, 832, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 923, 0, 32, 33, 2, 0 },
+    { NULL, NULL, NULL, { -768, -64, 2720, 0 }, { { -400, 0, -800, 0 }, { 400, 0, -800, 0 }, { -400, 0, 800, 0 }, { 400, 0, 800, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 893, 0, 32, 33, 2, 0 },
+    { NULL, NULL, NULL, { -1456, -64, 1648, 0 }, { { -672, 0, -400, 0 }, { 672, 0, -400, 0 }, { -672, 0, 400, 0 }, { 672, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 781, 0, 32, 33, 2, 0 },
+    { NULL, NULL, NULL, { -1504, -64, 1632, 0 }, { { -1072, 0, -1008, 0 }, { 1104, 0, -1008, 0 }, { -1104, 0, 400, 0 }, { 1072, 0, 400, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1492, 5, 255, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2208, -64, 2512, 0 }, { { -1040, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -1072, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1481, 5, 255, 0, 2, 0 },
+    { NULL, NULL, NULL, { -768, -64, 2464, 0 }, { { -400, 0, -1024, 0 }, { 912, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 912, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1366, 5, 255, 0, 2, 0 },
+    { NULL, NULL, NULL, { -1504, -64, 2400, 0 }, { { -1744, 0, -1760, 0 }, { 1712, 0, -1760, 0 }, { -1744, 0, 1120, 0 }, { 1712, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 2468, 5, 255, 0, 132, 0 },
+};
+
+s32 D_dryfield_driveway_8018063C[3] = {
+    0x1000001D,
+    0x1000001F,
+    0x1000001D,
+};
+
+GpRoomParamRec D_dryfield_driveway_80180648[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_driveway_80180650[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_driveway_80180658[1] = {
+    { 0, 0, 1, 0, D_dryfield_driveway_8018063C },
+};
+
+GpRoomParamRec * D_dryfield_driveway_80180660[8] = {
+    D_dryfield_driveway_80180648,
+    D_dryfield_driveway_80180650,
+    D_dryfield_driveway_80180658,
+    D_dryfield_driveway_80180648,
+    D_dryfield_driveway_80180648,
+    D_dryfield_driveway_80180648,
+    D_dryfield_driveway_80180648,
+    D_dryfield_driveway_80180648,
+};
+
+RoomFadeStorage D_dryfield_driveway_80180680 = { 0 };
+
+RoomEventMsg D_dryfield_driveway_80180688 = { 0 };
+
+u8 D_dryfield_driveway_80180690[4] = {
+    0,
+    2,
+    240,
+    207,
+};
+
+RoomLatchedEvent D_dryfield_driveway_80180694 = { 0 };
 
 /// The room's event task, spawned by its message handler for a latched event.
 /// State 0 runs the event's CAP command; state 1 waits for it and, when the
@@ -59,10 +958,10 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_dryfield_driveway_80180694.fade != 0) {
-                    D_dryfield_driveway_80180680.field_0 = 0;
-                    D_dryfield_driveway_80180680.field_1 = 0;
-                    D_dryfield_driveway_80180680.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_dryfield_driveway_80180680);
+                    D_dryfield_driveway_80180680.fade.field_0 = 0;
+                    D_dryfield_driveway_80180680.fade.field_1 = 0;
+                    D_dryfield_driveway_80180680.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_dryfield_driveway_80180680.fade);
                 }
                 arg0->state++;
             }
@@ -83,7 +982,7 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_driveway_80180688.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_driveway_80180688.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -98,32 +997,32 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
 /// message 0x20 reports nibbles 0x51 and 0x53 and, before nibble 0x3A reaches
 /// 2, either spawns the second cutscene task of `D_dryfield_driveway_8017E2FC`
 /// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
-s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomLatchedEvent  req;
     RoomLatchedEvent* p;
     s32               fl;
 
     *out = *in;
-    if (in->msgId == 0x17 && in->field_5 == 0) {
+    if (in->prefix.packed == 0x17 && in->field_5 == 0) {
         fl           = GameFlag_GetNibble(0x47) == 0;
         out->field_3 = fl ? 1 : 2;
     }
-    if (in->msgId == 0x20 && in->field_5 == 0) {
+    if (in->prefix.packed == 0x20 && in->field_5 == 0) {
         fl           = GameFlag_GetNibble(0x51) == 0;
         out->field_3 = fl ? 2 : 1;
         if (GameFlag_GetNibble(0x53) != 0) {
             out->field_3 = out->field_3 + 2;
         }
     }
-    if (in->msgId == 2 && GameFlag_GetNibble(0x61) != 0) {
+    if (in->prefix.packed == 2 && GameFlag_GetNibble(0x61) != 0) {
         if (in->field_5 == 0) {
             Gp_RunCapCmd1(6);
             Gp_SetNibbleIf(in->field_6, 2);
         }
         return 2;
     }
-    if (in->msgId == 0x20) {
+    if (in->prefix.packed == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->field_5 == 0) {
                 if (gGameSession->at4.loc.stage == 2) {
@@ -146,7 +1045,7 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
             GameFlag_SetNibble(0x4B, 2);
         }
     }
-    if (in->msgId == 0x17) {
+    if (in->prefix.packed == 0x17) {
         if (GameFlag_GetNibble(0x30) == 1) {
             if (in->field_5 == 0) {
                 Gp_SetNibbleIf(in->field_6, 2);
@@ -160,7 +1059,7 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
         req.flagId                   = 0x11C;
         req.fade                     = 0;
         p                            = &req;
-        D_dryfield_driveway_80180690 = 0;
+        D_dryfield_driveway_80180690_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->field_5 == 0) {
                 D_dryfield_driveway_80180688 = *out;
@@ -169,7 +1068,7 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
                     GameFlag_SetNibble(p->flagId, 1);
                 }
                 Task_SpawnFromTable(&D_dryfield_driveway_8017E2F0, 0, 0, 0);
-                D_dryfield_driveway_80180690 = 1;
+                D_dryfield_driveway_80180690_value = 1;
                 return 2;
             }
             return 2;
@@ -188,7 +1087,7 @@ void func_dryfield_driveway_8017DAD0(Task* arg0)
         D_80115768            = 1;
         SetDispMask(0);
         func_800E3FAC(0xA2, 0x10);
-        func_800E8634(&D_dryfield_driveway_8017E4FC, 0, &D_dryfield_driveway_8017E67C);
+        func_800E8634(D_dryfield_driveway_8017E4FC, 0, D_dryfield_driveway_8017E67C);
     } else {
         taskKill(arg0);
         Gp_ClearCollectedBit(0x114);
@@ -216,12 +1115,12 @@ void func_dryfield_driveway_8017DB68(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            func_800E8614((s32)&D_dryfield_driveway_8017E384, 0);
+            func_800E8614(D_dryfield_driveway_8017E384, 0);
             arg0->state += 1;
             /* fallthrough */
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4.loc);
+                Gp_ClearAreaFlag4(&gGameSession->at4.loc);
                 taskKill(arg0);
             }
             return;
@@ -344,7 +1243,7 @@ void func_dryfield_driveway_8017DE14(Task* task)
 }
 
 /// Sets the room effect mode to 2.
-static void func_dryfield_driveway_8017DE6C(void)
+void func_dryfield_driveway_8017DE6C(Task* unused)
 {
     Gp_State1C->roomEffectMode = 2;
 }

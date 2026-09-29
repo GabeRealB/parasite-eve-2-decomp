@@ -1,4 +1,5 @@
 #include "gameplay/companion_load.h"
+#include "rooms/acropolis_plaza.h"
 
 #include "common.h"
 
@@ -89,8 +90,6 @@ extern u8 D_80114564[36];
 static void Gp_ClearFlagBank(s32 arg0);
 
 void func_80724E2C(void);
-
-extern TaskDesc D_80183824[];
 
 GpNpcRoomRec D_80114198[11] = {
     { NULL, 0, { 0, 0, 0 } },
@@ -368,7 +367,7 @@ void Gp_LoadFinishTask(Task* task)
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
         if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
-            Task_SpawnFromTable(D_80183824, 0, 0, 0);
+            Task_SpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
             CdCmd_SetupMdecBuffers();
             CdCmd_SelectMdecBuffer();
         }

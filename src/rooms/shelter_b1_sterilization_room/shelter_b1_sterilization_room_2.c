@@ -1,3 +1,5 @@
+#include "shelter_b1_sterilization_room_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -30,10 +32,19 @@
 #include "main/text.h"
 #include "overlay.h"
 
-extern s32     D_shelter_b1_sterilization_room_80188C94;
-extern s32     D_shelter_b1_sterilization_room_80188E14;
-extern SVECTOR D_shelter_b1_sterilization_room_8018909C[];
-extern SVECTOR D_shelter_b1_sterilization_room_80189334[];
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area_flags.h"
+
+extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
+
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188C94[];
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188E14[];
 
 static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
@@ -41,6 +52,1371 @@ static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1,
 static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
+
+// Indexed views below share one contiguous table.
+extern GpRoomBoundVec D_shelter_b1_sterilization_room_8018C21C[25];
+extern GpRoomCoordSet D_shelter_b1_sterilization_room_8018B630[1];
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885FC;
+extern GpAnimArg D_shelter_b1_sterilization_room_80188610;
+extern GpXformArg D_shelter_b1_sterilization_room_80188650;
+extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
+void func_shelter_b1_sterilization_room_801814B0(void);
+void func_shelter_b1_sterilization_room_80181698(s32);
+
+extern GpGridParams D_shelter_b1_sterilization_room_80189E44;
+extern GpObj3A D_shelter_b1_sterilization_room_8018C1A4[2];
+extern GpObj4C D_shelter_b1_sterilization_room_8018B648[8];
+
+extern GpAnimArg D_shelter_b1_sterilization_room_801885AC;
+extern GpAnimArg D_shelter_b1_sterilization_room_801885C0;
+extern GpAnimArg D_shelter_b1_sterilization_room_801885D4;
+extern GpAnimArg D_shelter_b1_sterilization_room_801885E8;
+extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
+extern GpXformArg D_shelter_b1_sterilization_room_80188638;
+void func_shelter_b1_sterilization_room_801815EC(void);
+void func_shelter_b1_sterilization_room_80181658(void);
+
+GpU16Pair D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
+
+GpEvsCmd D_shelter_b1_sterilization_room_8018873C[37] = {
+    { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b1_sterilization_room_80188590 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885AC }, { .value = 0 } },
+    { 15, { .value = 0x54100005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54100007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885C0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b1_sterilization_room_80188638 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885E8 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54100006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885D4 }, { .value = 0 } },
+    { 15, { .value = 0x54100010 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_801815EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_80181658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_sterilization_room_80188AB4[20] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_80181658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x54100010 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_801815EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b1_sterilization_room_80188590 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b1_sterilization_room_80188638 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_sterilization_room_80188C94[16] = {
+    { 15, { .value = 0x54100008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b1_sterilization_room_80188590 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885FC }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b1_sterilization_room_80188650 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_80188610 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54100009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_801814B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_sterilization_room_80188E14[8] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b1_sterilization_room_80188650 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b1_sterilization_room_801814B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_sterilization_room_80188ED4[11] = {
+    { 13, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54100014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54100015 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_sterilization_room_80188FDC[8] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_shelter_b1_sterilization_room_8018909C[87] = {
+    { 4020, -2640, 6625, 0 },
+    { 4020, -2640, 6775, 0 },
+    { 4020, -2640, 6975, 0 },
+    { 4020, -2640, 7125, 0 },
+    { 4020, -2640, 7725, 0 },
+    { 4020, -2640, 7875, 0 },
+    { 4020, -2640, 8075, 0 },
+    { 4020, -2640, 8225, 0 },
+    { 4020, -2640, 8775, 0 },
+    { 4020, -2640, 8925, 0 },
+    { 4020, -2640, 9125, 0 },
+    { 4020, -2640, 9275, 0 },
+    { 4020, -2640, 9875, 0 },
+    { 4020, -2640, 10025, 0 },
+    { 4020, -2640, 10225, 0 },
+    { 4020, -2640, 10375, 0 },
+    { 6730, -2640, 6625, 0 },
+    { 6730, -2640, 6775, 0 },
+    { 6730, -2640, 6975, 0 },
+    { 6730, -2640, 7125, 0 },
+    { 6730, -2640, 7725, 0 },
+    { 6730, -2640, 7875, 0 },
+    { 6730, -2640, 8075, 0 },
+    { 6730, -2640, 8225, 0 },
+    { 6730, -2640, 8775, 0 },
+    { 6730, -2640, 8925, 0 },
+    { 6730, -2640, 9125, 0 },
+    { 6730, -2640, 9275, 0 },
+    { 6730, -2640, 9875, 0 },
+    { 6730, -2640, 10025, 0 },
+    { 6730, -2640, 10225, 0 },
+    { 6730, -2640, 10375, 0 },
+    { 4090, -150, 6625, 0 },
+    { 4090, -150, 6775, 0 },
+    { 4090, -150, 6975, 0 },
+    { 4090, -150, 7125, 0 },
+    { 4090, -150, 7725, 0 },
+    { 4090, -150, 7875, 0 },
+    { 4090, -150, 8075, 0 },
+    { 4090, -150, 8225, 0 },
+    { 4090, -150, 8775, 0 },
+    { 4090, -150, 8925, 0 },
+    { 4090, -150, 9125, 0 },
+    { 4090, -150, 9275, 0 },
+    { 4090, -150, 9875, 0 },
+    { 4090, -150, 10025, 0 },
+    { 4090, -150, 10225, 0 },
+    { 4090, -150, 10375, 0 },
+    { 6660, -150, 6625, 0 },
+    { 6660, -150, 6775, 0 },
+    { 6660, -150, 6975, 0 },
+    { 6660, -150, 7125, 0 },
+    { 6660, -150, 7725, 0 },
+    { 6660, -150, 7875, 0 },
+    { 6660, -150, 8075, 0 },
+    { 6660, -150, 8225, 0 },
+    { 6660, -150, 8775, 0 },
+    { 6660, -150, 8925, 0 },
+    { 6660, -150, 9125, 0 },
+    { 6660, -150, 9275, 0 },
+    { 6660, -150, 9875, 0 },
+    { 6660, -150, 10025, 0 },
+    { 6660, -150, 10225, 0 },
+    { 6660, -150, 10375, 0 },
+    { 4575, -2910, 10590, 0 },
+    { 4575, -2910, 6390, 0 },
+    { 6175, -2910, 10590, 0 },
+    { 6175, -2910, 6390, 0 },
+    { 910, -2150, 1270, 0 },
+    { 910, -2150, 1720, 0 },
+    { 910, -2150, 4270, 0 },
+    { 910, -2150, 4720, 0 },
+    { 910, -2150, 2270, 0 },
+    { 910, -2150, 2730, 0 },
+    { 910, -2150, 3270, 0 },
+    { 910, -2150, 3730, 0 },
+    { 5000, -2310, 10650, 0 },
+    { 5000, -2310, 6350, 0 },
+    { 6250, -1660, 6350, 0 },
+    { 1200, -1320, 12490, 0 },
+    { 1200, -1570, 12470, 0 },
+    { 1500, 0, 2500, 0 },
+    { 5250, 0, 2000, 0 },
+    { 4096, 4096, 0, 0 },
+    { -4096, 4096, 0, 0 },
+    { 4096, -4096, 0, 0 },
+    { -4096, -4096, 0, 0 },
+};
+
+GpRoomCoordRec D_shelter_b1_sterilization_room_80189354[3] = {
+    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
+    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
+    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
+};
+
+GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[3] = {
+    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
+    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
+    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
+};
+
+u8 D_shelter_b1_sterilization_room_8018939C[24] = {
+    1,
+    2,
+    3,
+    10,
+    11,
+    12,
+    13,
+    8,
+    9,
+    4,
+    5,
+    6,
+    7,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_sterilization_room_801893B4[24] = {
+    1,
+    23,
+    24,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 * D_shelter_b1_sterilization_room_801893CC[3] = {
+    D_8010CAF8,
+    D_shelter_b1_sterilization_room_8018939C,
+    D_shelter_b1_sterilization_room_801893B4,
+};
+
+GpViewCountRec D_shelter_b1_sterilization_room_801893D8[3] = {
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+};
+
+GpWarpRec D_shelter_b1_sterilization_room_801893E0[3] = {
+    { { .words = { 0, 3456, 0, 960 } }, { 0, 0, 0, 0 }, { .words = { 0, 3456, 0, 960 } }, { 0, 0, 0, 0 }, 0x54100002, 0x54100001, 0, 2, 0, 0 },
+    { { .words = { 2048, 3614, 0, 0x32C8 } }, { 0, 0, 0, 0 }, { .words = { 2048, 3614, 0, 0x32C8 } }, { 0, 0, 0, 0 }, 0x54100004, 0x54100003, 0, 8, 0, 0 },
+    { { .words = { 2048, 6184, 0, 0x27FB } }, { 0, 0, 0, 0 }, { .words = { 2048, 6184, 0, 0x27FB } }, { 0, 0, 0, 0 }, 0, 0, 0, 5, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_sterilization_room_80189488[14] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, 4096, 0, 0 },
+    { 2896, 0, 2896, 0 },
+    { -3061, 0, -2721, 0 },
+    { 3061, 0, -2721, 0 },
+    { -2896, 0, 2896, 0 },
+};
+
+SVECTOR D_shelter_b1_sterilization_room_801894F8[124] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 4875, 0, 0x34BC, 0 },
+    { 4875, -500, 0x34BC, 0 },
+    { 4875, -500, 0x324B, 0 },
+    { 4875, 0, 0x324B, 0 },
+    { 6000, -500, 0x324B, 0 },
+    { 6000, 0, 0x324B, 0 },
+    { 6000, -500, 0x34BC, 0 },
+    { 7000, -3500, 0x34BC, 0 },
+    { 7000, 0, 0x34BC, 0 },
+    { 0, 0, 0x34BC, 0 },
+    { 0, -3500, 0x34BC, 0 },
+    { 0, -3500, 500, 0 },
+    { 0, 0, 6250, 0 },
+    { 0, 0, 500, 0 },
+    { 7000, 0, 500, 0 },
+    { 7000, -3500, 500, 0 },
+    { 7000, 0, 0x29FE, 0 },
+    { 5750, 0, 6250, 0 },
+    { 7000, 0, 6250, 0 },
+    { 1250, 0, 0x29FE, 0 },
+    { 0, 0, 0x29FE, 0 },
+    { 1250, 0, 9950, 0 },
+    { 0, 0, 9950, 0 },
+    { 1250, 0, 7050, 0 },
+    { 0, 0, 7050, 0 },
+    { 1250, 0, 6250, 0 },
+    { 5750, 0, 9950, 0 },
+    { 5750, 0, 0x29FE, 0 },
+    { 7000, 0, 9950, 0 },
+    { 5750, 0, 7050, 0 },
+    { 7000, 0, 7050, 0 },
+    { 6000, -3500, 0x34BC, 0 },
+    { 7000, -3500, 0x2BF2, 0 },
+    { 6000, -3500, 0x2BF2, 0 },
+    { 6000, 0, 0x34BC, 0 },
+    { 6000, 0, 0x2BF2, 0 },
+    { 1000, -3500, 0x34BC, 0 },
+    { 1000, -3500, 0x2BF2, 0 },
+    { 0, -3500, 0x2BF2, 0 },
+    { 1000, 0, 0x2BF2, 0 },
+    { 1000, 0, 0x34BC, 0 },
+    { 4250, -3500, 0x29FE, 0 },
+    { 4250, -3500, 6250, 0 },
+    { 2750, -3500, 6250, 0 },
+    { 2750, -3500, 0x29FE, 0 },
+    { 2750, 0, 6250, 0 },
+    { 2750, 0, 0x29FE, 0 },
+    { 4250, 0, 0x29FE, 0 },
+    { 4250, 0, 6250, 0 },
+    { 1000, -3500, 5750, 0 },
+    { 1000, -3500, 500, 0 },
+    { 0, -3500, 5750, 0 },
+    { 1000, 0, 5750, 0 },
+    { 1000, 0, 500, 0 },
+    { 7000, -3500, 0x29FE, 0 },
+    { 7000, -3500, 6250, 0 },
+    { 6500, -3500, 6250, 0 },
+    { 6500, -3500, 0x29FE, 0 },
+    { 6500, 0, 6250, 0 },
+    { 6500, 0, 0x29FE, 0 },
+    { 7000, -3500, 5750, 0 },
+    { 6000, -3500, 500, 0 },
+    { 6000, -3500, 5750, 0 },
+    { 6000, 0, 500, 0 },
+    { 6000, 0, 5750, 0 },
+    { 500, -3500, 0x29FE, 0 },
+    { 500, -3500, 6250, 0 },
+    { 0, -3500, 6250, 0 },
+    { 0, -3500, 0x29FE, 0 },
+    { 500, 0, 0x29FE, 0 },
+    { 500, 0, 6250, 0 },
+    { 7000, 0, 5750, 0 },
+    { 0, 0, 5750, 0 },
+    { 0, 0, 0x2BF2, 0 },
+    { 7000, 0, 0x2BF2, 0 },
+    { 3250, 0, 0x2C56, 0 },
+    { 3250, -3500, 0x2C56, 0 },
+    { 3250, -3500, 0x2BF2, 0 },
+    { 3250, 0, 0x2BF2, 0 },
+    { 3650, 0, 0x2CBA, 0 },
+    { 3650, -3500, 0x2CBA, 0 },
+    { 3350, -3500, 0x2CBA, 0 },
+    { 3350, 0, 0x2CBA, 0 },
+    { 3750, 0, 0x2C56, 0 },
+    { 3750, -3500, 0x2C56, 0 },
+    { 2250, 0, 0x33E8, 0 },
+    { 2250, -3500, 0x33E8, 0 },
+    { 2350, -3500, 0x3377, 0 },
+    { 2350, 0, 0x3377, 0 },
+    { 2525, -3500, 0x3377, 0 },
+    { 2525, 0, 0x3377, 0 },
+    { 2625, 0, 0x33E8, 0 },
+    { 2625, -3500, 0x33E8, 0 },
+    { 2625, -3500, 0x34BC, 0 },
+    { 2625, 0, 0x34BC, 0 },
+    { 4375, 0, 0x33E8, 0 },
+    { 4375, -3500, 0x33E8, 0 },
+    { 4475, -3500, 0x3377, 0 },
+    { 4475, 0, 0x3377, 0 },
+    { 4875, -3500, 0x3377, 0 },
+    { 4875, 0, 0x3377, 0 },
+    { 4875, -3500, 0x34BC, 0 },
+    { 2250, 0, 0x34BC, 0 },
+    { 2250, -3500, 0x34BC, 0 },
+    { 4375, 0, 0x34BC, 0 },
+    { 4375, -3500, 0x34BC, 0 },
+    { 3750, 0, 0x2BF2, 0 },
+    { 3750, -3500, 0x2BF2, 0 },
+};
+
+GpGridFace D_shelter_b1_sterilization_room_801898D8[68] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 17, 18, 16, 19 }, 4, 0 },
+    { { 18, 20, 19, 21 }, 5, 0 },
+    { { 22, 20, 17, 18 }, 6, 0 },
+    { { 24, 25, 23, 26 }, 5, 0 },
+    { { 27, 28, 29, 0xFFFF }, 7, 0 },
+    { { 29, 30, 27, 31 }, 8, 0 },
+    { { 23, 32, 24, 0xFFFF }, 4, 0 },
+    { { 30, 33, 34, 0xFFFF }, 6, 1 },
+    { { 26, 27, 23, 31 }, 9, 0 },
+    { { 25, 35, 36, 0xFFFF }, 6, 1 },
+    { { 37, 38, 35, 36 }, 6, 2 },
+    { { 39, 40, 37, 38 }, 6, 2 },
+    { { 41, 28, 39, 40 }, 6, 2 },
+    { { 43, 32, 42, 44 }, 6, 2 },
+    { { 42, 37, 43, 35 }, 6, 1 },
+    { { 45, 46, 33, 34 }, 6, 2 },
+    { { 39, 45, 41, 33 }, 6, 1 },
+    { { 42, 44, 45, 46 }, 6, 2 },
+    { { 37, 42, 39, 45 }, 6, 2 },
+    { { 34, 31, 30, 0xFFFF }, 4, 0 },
+    { { 46, 31, 34, 0xFFFF }, 4, 0 },
+    { { 23, 31, 44, 46 }, 4, 0 },
+    { { 32, 23, 44, 0xFFFF }, 4, 0 },
+    { { 36, 26, 25, 0xFFFF }, 7, 0 },
+    { { 38, 26, 36, 0xFFFF }, 7, 0 },
+    { { 27, 26, 40, 38 }, 7, 0 },
+    { { 27, 40, 28, 0xFFFF }, 7, 0 },
+    { { 41, 29, 28, 0xFFFF }, 6, 1 },
+    { { 30, 29, 33, 41 }, 6, 1 },
+    { { 43, 24, 32, 0xFFFF }, 6, 1 },
+    { { 25, 24, 35, 43 }, 6, 1 },
+    { { 23, 48, 47, 49 }, 6, 0 },
+    { { 47, 49, 50, 51 }, 4, 0 },
+    { { 52, 53, 26, 54 }, 6, 0 },
+    { { 53, 52, 55, 56 }, 7, 0 },
+    { { 58, 59, 57, 60 }, 6, 0 },
+    { { 59, 61, 60, 62 }, 4, 0 },
+    { { 64, 58, 63, 57 }, 7, 0 },
+    { { 66, 27, 65, 67 }, 6, 0 },
+    { { 69, 66, 68, 65 }, 7, 0 },
+    { { 71, 72, 70, 73 }, 6, 0 },
+    { { 72, 74, 73, 75 }, 4, 0 },
+    { { 31, 77, 76, 78 }, 6, 0 },
+    { { 77, 79, 78, 80 }, 4, 0 },
+    { { 82, 83, 81, 84 }, 6, 0 },
+    { { 86, 82, 85, 81 }, 7, 0 },
+    { { 83, 28, 71, 34 }, 8, 0 },
+    { { 76, 87, 67, 88 }, 5, 0 },
+    { { 54, 89, 48, 90 }, 8, 0 },
+    { { 70, 32, 84, 36 }, 5, 0 },
+    { { 92, 93, 91, 94 }, 4, 0 },
+    { { 96, 97, 95, 98 }, 8, 0 },
+    { { 100, 96, 99, 95 }, 10, 0 },
+    { { 102, 103, 101, 104 }, 11, 0 },
+    { { 103, 105, 104, 106 }, 5, 0 },
+    { { 108, 109, 107, 110 }, 7, 0 },
+    { { 112, 113, 111, 114 }, 11, 0 },
+    { { 113, 115, 114, 116 }, 5, 0 },
+    { { 115, 117, 116, 16 }, 7, 0 },
+    { { 107, 106, 108, 105 }, 12, 0 },
+    { { 101, 118, 102, 119 }, 4, 0 },
+    { { 111, 120, 112, 121 }, 4, 0 },
+    { { 91, 98, 92, 97 }, 13, 0 },
+    { { 99, 122, 100, 123 }, 7, 0 },
+};
+
+s16 D_shelter_b1_sterilization_room_80189C08[24] = {
+    0,
+    1,
+    2,
+    3,
+    8,
+    9,
+    12,
+    16,
+    20,
+    29,
+    30,
+    31,
+    32,
+    39,
+    40,
+    42,
+    43,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189C38[32] = {
+    0,
+    1,
+    2,
+    3,
+    8,
+    11,
+    12,
+    14,
+    15,
+    16,
+    18,
+    19,
+    20,
+    21,
+    22,
+    28,
+    29,
+    30,
+    31,
+    32,
+    39,
+    40,
+    41,
+    42,
+    43,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189C78[50] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    27,
+    28,
+    29,
+    30,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    48,
+    49,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189CDC[39] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    12,
+    13,
+    14,
+    18,
+    27,
+    28,
+    29,
+    34,
+    37,
+    38,
+    39,
+    40,
+    48,
+    49,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189D2C[20] = {
+    0,
+    1,
+    2,
+    3,
+    9,
+    11,
+    12,
+    19,
+    20,
+    23,
+    24,
+    25,
+    32,
+    44,
+    45,
+    46,
+    47,
+    50,
+    51,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189D54[27] = {
+    0,
+    1,
+    2,
+    3,
+    11,
+    12,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    32,
+    39,
+    40,
+    41,
+    44,
+    45,
+    46,
+    47,
+    50,
+    51,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189D8C[40] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    10,
+    12,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    33,
+    34,
+    35,
+    36,
+    39,
+    40,
+    41,
+    44,
+    45,
+    52,
+    53,
+    54,
+    55,
+    56,
+    60,
+    61,
+    62,
+    65,
+    66,
+    67,
+    -1,
+};
+
+s16 D_shelter_b1_sterilization_room_80189DDC[36] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    10,
+    12,
+    17,
+    18,
+    25,
+    26,
+    33,
+    34,
+    35,
+    36,
+    44,
+    45,
+    52,
+    53,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    -1,
+};
+
+s16 * D_shelter_b1_sterilization_room_80189E24[8] = {
+    D_shelter_b1_sterilization_room_80189C08,
+    D_shelter_b1_sterilization_room_80189C38,
+    D_shelter_b1_sterilization_room_80189C78,
+    D_shelter_b1_sterilization_room_80189CDC,
+    D_shelter_b1_sterilization_room_80189D2C,
+    D_shelter_b1_sterilization_room_80189D54,
+    D_shelter_b1_sterilization_room_80189D8C,
+    D_shelter_b1_sterilization_room_80189DDC,
+};
+
+GpGridParams D_shelter_b1_sterilization_room_80189E44 = { NULL, D_shelter_b1_sterilization_room_80189488, D_shelter_b1_sterilization_room_801894F8, D_shelter_b1_sterilization_room_801898D8, D_shelter_b1_sterilization_room_80189E24, 0, -500, 2, 4, 4000, 68 };
+
+GpViewRec D_shelter_b1_sterilization_room_80189E68[24] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -7000 } }, 329 },
+    { { { { -4014, 0, 815 }, { 651, 2458, 3210 }, { -489, 3276, -2409 } }, { -4078, 4407, -4494 } }, 230 },
+    { { { { 4009, 0, 835 }, { 674, 2419, -3235 }, { -493, 3305, 2368 } }, { -4078, 4407, -1394 } }, 230 },
+    { { { { -3830, 0, 1450 }, { -422, 3918, -1115 }, { -1387, -1192, -3664 } }, { -6453, 407, -0x29C6 } }, 230 },
+    { { { { 3845, 0, 1410 }, { -375, 3948, 1023 }, { -1359, -1090, 3706 } }, { -6453, 457, -6319 } }, 230 },
+    { { { { -4068, 0, 473 }, { 206, 3686, 1773 }, { -425, 1785, -3661 } }, { -2059, 2735, -0x294C } }, 230 },
+    { { { { 4060, 0, 536 }, { 258, 3590, -1954 }, { -470, 1971, 3559 } }, { -1865, 2682, -6335 } }, 230 },
+    { { { { 916, 0, 3992 }, { 953, 3977, -219 }, { -3876, 978, 890 } }, { -6259, 1516, -0x2E4D } }, 230 },
+    { { { { 1007, 0, 3970 }, { 3716, 1439, -943 }, { -1394, 3834, 354 } }, { -5758, 3397, -0x2F43 } }, 230 },
+    { { { { -3830, 0, 1450 }, { -422, 3918, -1115 }, { -1387, -1192, -3664 } }, { -6453, 407, -0x29C6 } }, 230 },
+    { { { { 3845, 0, 1410 }, { -375, 3948, 1023 }, { -1359, -1090, 3706 } }, { -6453, 457, -6319 } }, 230 },
+    { { { { -4068, 0, 473 }, { 206, 3686, 1773 }, { -425, 1785, -3661 } }, { -2059, 2735, -0x294C } }, 230 },
+    { { { { 4060, 0, 536 }, { 258, 3590, -1954 }, { -470, 1971, 3559 } }, { -1865, 2682, -6335 } }, 230 },
+    { { { { 3420, 0, 2253 }, { -604, 3945, 917 }, { -2170, -1098, 3295 } }, { -6170, 740, -7020 } }, 289 },
+    { { { { 3451, 0, 2205 }, { -85, 4092, 134 }, { -2203, -159, 3449 } }, { -4630, 2480, -7460 } }, 289 },
+    { { { { 3448, 0, 2209 }, { 1712, 2588, -2672 }, { -1396, 3174, 2179 } }, { -5940, 2880, -7540 } }, 257 },
+    { { { { 612, 0, 4049 }, { 869, 4000, -131 }, { -3955, 879, 598 } }, { -8900, 1805, -9990 } }, 680 },
+    { { { { 3423, 0, 2248 }, { 495, 3995, -753 }, { -2193, 901, 3339 } }, { -7680, 1760, -8010 } }, 447 },
+    { { { { 1256, 0, 3898 }, { 1644, 3713, -529 }, { -3534, 1728, 1138 } }, { -2000, 1830, -0x2F26 } }, 329 },
+    { { { { 180, 0, 4092 }, { 115, 4094, -5 }, { -4090, 115, 180 } }, { -7570, 830, -3330 } }, 380 },
+    { { { { 488, 0, -4066 }, { -1621, 3756, -194 }, { 3729, 1632, 448 } }, { -1500, 2630, -3240 } }, 541 },
+    { { { { 3577, 0, 1993 }, { 149, 4084, -267 }, { -1988, 306, 3567 } }, { -6270, 1130, -1200 } }, 289 },
+    { { { { -4014, 0, 815 }, { 651, 2458, 3210 }, { -489, 3276, -2409 } }, { -4078, 4407, -4494 } }, 230 },
+    { { { { 4009, 0, 835 }, { 674, 2419, -3235 }, { -493, 3305, 2368 } }, { -4078, 4407, -1394 } }, 230 },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A1C8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A1D8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A1E8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A1F8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A208[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A218[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A228[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_sterilization_room_8018A238[89] = {
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -120, 800, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -88, 825, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 850, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -40, 875, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -16, 900, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 8, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 24, 925, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 48, 925, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 925, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 48, 925, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -56, 825, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -32, 825, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -8, 825, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 16, 825, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 40, 825, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 56, 825, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -120, 675, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -88, 675, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -56, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -24, 675, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 8, 675, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 40, 675, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -120, 625, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -88, 625, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -56, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, -24, 625, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 8, 625, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 32, 625, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -16, 994, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -8, 1025, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, 8, 1042, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, 8, 1046, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 1043, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -16, 1050, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, -16, 1015, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -40, 992, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -40, 992, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -64, 967, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -64, 962, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -88, 949, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -88, 932, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 72, 587, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 88, 568, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 104, 549, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 88, 544, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 72, 575, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 48, 575, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 72, 522, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 72, 468, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 48, 523, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 48, 528, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 48, 486, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 32, 552, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 16, 547, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 16, 510, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 16, 492, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 0, 535, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, -16, 526, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, -32, 523, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -32, 482, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -8, 497, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -32, 476, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -8, 479, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -48, 510, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -64, 501, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -80, 494, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -96, 492, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -120, 476, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -120, 443, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, -96, 453, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, -72, 464, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, -48, 475, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -96, 457, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -72, 462, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -48, 464, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -40, 598, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -40, 644, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -40, 650, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -32, 616, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -32, 626, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -32, 669, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -24, 621, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -24, 625, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -24, 637, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -24, 662, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -16, 620, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -16, 679, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -8, 624, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 657, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A92C[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 28, 0, 0, { 1, 0 } },
+    { 28, 47, 0, 0, { 2, 0 } },
+    { 75, 14, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A954[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A964[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A974[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A984[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A994[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A9A4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A9B4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A9C4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018A9D4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_sterilization_room_8018A9E4[42] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -32, 687, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -16, 875, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -56, 691, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -40, 696, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -56, 690, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -40, 695, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -56, 675, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -32, 681, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -8, 688, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 16, 695, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 40, 702, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 64, 712, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 88, 732, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -24, 700, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -24, 703, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -24, 669, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, -8, 706, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 16, 713, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 40, 720, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 64, 728, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, 88, 734, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -8, 712, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 8, 721, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 24, 729, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 40, 734, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 56, 739, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 72, 746, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -8, 677, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 8, 685, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 24, 694, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 40, 750, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 56, 755, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 756, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 72, 771, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 56, 767, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 40, 766, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 24, 675, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 8, 675, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 32, 675, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 48, 780, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 781, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -8, 675, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AD2C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 42, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AD44[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_sterilization_room_8018AD54[30] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 32, 645, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 40, 658, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 481, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 482, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 72, 551, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 48, 603, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 622, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 80, 621, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 64, 625, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 48, 630, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 104, 475, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 104, 475, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 104, 477, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 88, 652, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 72, 655, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 64, 676, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 80, 669, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -120, 431, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -120, 378, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, -96, 416, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -96, 418, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -72, 433, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -72, 436, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -48, 433, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -48, 452, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -24, 427, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -16, 428, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 0, 426, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 16, 424, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 32, 424, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AFAC[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 17, 0, 0, { 1, 0 } },
+    { 17, 13, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AFCC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AFDC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AFEC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_sterilization_room_8018AFFC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b1_sterilization_room_8018B00C[24] = {
+    { { .empty = D_shelter_b1_sterilization_room_8018A1C8 }, D_shelter_b1_sterilization_room_8018A1C8, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A1D8 }, D_shelter_b1_sterilization_room_8018A1D8, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A1E8 }, D_shelter_b1_sterilization_room_8018A1E8, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A1F8 }, D_shelter_b1_sterilization_room_8018A1F8, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A208 }, D_shelter_b1_sterilization_room_8018A208, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A218 }, D_shelter_b1_sterilization_room_8018A218, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A228 }, D_shelter_b1_sterilization_room_8018A228, NULL },
+    { { .elements = D_shelter_b1_sterilization_room_8018A238 }, D_shelter_b1_sterilization_room_8018A92C, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A954 }, D_shelter_b1_sterilization_room_8018A954, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A964 }, D_shelter_b1_sterilization_room_8018A964, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A974 }, D_shelter_b1_sterilization_room_8018A974, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A984 }, D_shelter_b1_sterilization_room_8018A984, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A994 }, D_shelter_b1_sterilization_room_8018A994, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A9A4 }, D_shelter_b1_sterilization_room_8018A9A4, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A9B4 }, D_shelter_b1_sterilization_room_8018A9B4, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A9C4 }, D_shelter_b1_sterilization_room_8018A9C4, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018A9D4 }, D_shelter_b1_sterilization_room_8018A9D4, NULL },
+    { { .elements = D_shelter_b1_sterilization_room_8018A9E4 }, D_shelter_b1_sterilization_room_8018AD2C, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018AD44 }, D_shelter_b1_sterilization_room_8018AD44, NULL },
+    { { .elements = D_shelter_b1_sterilization_room_8018AD54 }, D_shelter_b1_sterilization_room_8018AFAC, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018AFCC }, D_shelter_b1_sterilization_room_8018AFCC, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018AFDC }, D_shelter_b1_sterilization_room_8018AFDC, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018AFEC }, D_shelter_b1_sterilization_room_8018AFEC, NULL },
+    { { .empty = D_shelter_b1_sterilization_room_8018AFFC }, D_shelter_b1_sterilization_room_8018AFFC, NULL },
+};
+
+GpPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -2000, 0x30D4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2129, 3686, 3276, { 0, 0 } }, 3500, 3750 },
+};
+
+GpSpotLight D_shelter_b1_sterilization_room_8018B18C[11] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 1490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1625, -4500, 8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1638, 3276, 3522, { 0, 0 } }, { 0, 4096, 0, 0 }, 4500, 5250, 887 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5375, -4500, 8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1638, 3276, 3522, { 0, 0 } }, { 0, 4096, 0, 0 }, 4500, 5250, 887 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 2490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 3490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 4490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 1490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 2490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 3490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 4490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3031, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -4750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2048, 3686, 3276, { 0, 0 } }, { 0, 4096, 0, 0 }, 5500, 6000, 853 },
+};
+
+GpRoomCoordSet D_shelter_b1_sterilization_room_8018B630[1] = {
+    { 0, NULL, 1, D_shelter_b1_sterilization_room_8018B12C, 11, D_shelter_b1_sterilization_room_8018B18C },
+};
+
+GpObj4C D_shelter_b1_sterilization_room_8018B648[8] = {
+    { NULL, NULL, NULL, { 3633, -1968, 2960, 0 }, { { -3680, -2736, 32, 0 }, { 3680, -2736, -32, 0 }, { -3680, 2736, 32, 0 }, { 3680, 2736, -32, 0 } }, { -36, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 3505, -1984, 2752, 0 }, { { 3088, -2736, -32, 0 }, { -3088, -2736, 32, 0 }, { 3088, 2736, -32, 0 }, { -3088, 2736, 32, 0 } }, { 42, 0, 4125, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 5456, -1856, 8240, 0 }, { { 1904, -2736, -16, 0 }, { -1904, -2736, 16, 0 }, { 1904, 2736, -16, 0 }, { -1904, 2736, 16, 0 } }, { 33, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 5455, -1792, 8384, 0 }, { { -1920, -2736, 0, 0 }, { 1920, -2736, 0, 0 }, { -1920, 2736, 0, 0 }, { 1920, 2736, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3337, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 1568, -1888, 8256, 0 }, { { 1904, -2736, -16, 0 }, { -1904, -2736, 16, 0 }, { 1904, 2736, -16, 0 }, { -1904, 2736, 16, 0 } }, { 33, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { 1536, -1760, 8448, 0 }, { { -1920, -2736, 0, 0 }, { 1920, -2736, 0, 0 }, { -1920, 2736, 0, 0 }, { 1920, 2736, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3337, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { 4433, -1601, 0x3081, 0 }, { { -416, -2736, -1536, 0 }, { 416, -2736, 1536, 0 }, { -416, 2736, -1536, 0 }, { 416, 2736, 1536, 0 } }, { 3980, 0, -1079, 0 }, { 0, 0, 4096, 0 }, 3156, 0, 9, 8, 1, 0 },
+    { NULL, NULL, NULL, { 4591, -1472, 0x30D0, 0 }, { { 416, -2736, 1488, 0 }, { -416, -2736, -1488, 0 }, { 416, 2736, 1488, 0 }, { -416, 2736, -1488, 0 } }, { -3945, 0, 1102, 0 }, { 0, 0, 4096, 0 }, 3135, 0, 8, 9, 129, 0 },
+};
+
+GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28] = {
+    { NULL, NULL, NULL, { 5536, -64, 9200, 0 }, { { -1792, 0, -496, 0 }, { 1792, 0, -496, 0 }, { -1792, 0, 496, 0 }, { 1792, 0, 496, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 1859, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 6256, -64, 0x2840, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 801, 5, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4992, -64, 0x2980, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, 5, 3, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4992, -64, 0x2D60, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, 5, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { 2016, -64, 0x2900, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, 5, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { 1984, -64, 0x2D00, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, 5, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { 5056, -64, 5536, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, 5, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { 5024, -64, 6432, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, 5, 8, 0, 2, 0 },
+    { NULL, NULL, NULL, { 1984, -64, 5472, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, 5, 9, 0, 2, 0 },
+    { NULL, NULL, NULL, { 1920, -64, 6336, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, 5, 10, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3440, -80, 976, 0 }, { { -912, 0, -464, 0 }, { 912, 0, -464, 0 }, { -912, 0, 464, 0 }, { 912, 0, 464, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1021, 0, 15, 22, 2, 0 },
+    { NULL, NULL, NULL, { 3344, -80, 0x3380, 0 }, { { -912, 0, -320, 0 }, { 912, 0, -320, 0 }, { -912, 0, 320, 0 }, { 912, 0, 320, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 966, 0, 17, 33, 2, 0 },
+    { NULL, NULL, NULL, { 1088, -64, 3120, 0 }, { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, { 0, 4096, 0, 0 }, { 4076, 0, -401, 0 }, 2672, 2, 15, 0, 2, 0 },
+    { NULL, NULL, NULL, { 800, -64, 6624, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -202, 0, 4090, 0 }, 586, 2, 14, 0, 2, 0 },
+    { NULL, NULL, NULL, { 736, -64, 0x2900, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, -4093, 0 }, 586, 2, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6336, -64, 6560, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -402, 0, 4078, 0 }, 586, 2, 14, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3472, -64, 0x2D20, 0 }, { { -688, 0, -288, 0 }, { 688, 0, -288, 0 }, { -688, 0, 288, 0 }, { 688, 0, 288, 0 } }, { 0, 4102, 0, 0 }, { -1, 0, 4096, 0 }, 743, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1280, -64, 0x3100, 0 }, { { -368, 0, -640, 0 }, { 368, 0, -640, 0 }, { -368, 0, 640, 0 }, { 368, 0, 640, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 738, 2, 17, 255, 2, 0 },
+    { NULL, NULL, NULL, { 5712, -64, 0x30E0, 0 }, { { -1248, 0, -448, 0 }, { 1248, 0, -448, 0 }, { -1248, 0, 448, 0 }, { 1248, 0, 448, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 1324, 2, 16, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3536, -64, 5424, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4098, 0 }, 778, 2, 19, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1728, -64, 0x3380, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4098, 0 }, 778, 2, 18, 0, 2, 0 },
+    { NULL, NULL, NULL, { 5184, -64, 832, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4098, 0 }, 778, 2, 18, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6208, -64, 3936, 0 }, { { -1472, 0, -864, 0 }, { 352, 0, -864, 0 }, { -1472, 0, 864, 0 }, { 352, 0, 864, 0 } }, { 0, 4100, 0, 0 }, { -4052, 0, 600, 0 }, 1702, 6, 21, 255, 4, 0 },
+    { NULL, NULL, NULL, { 5984, -64, 3200, 0 }, { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, { 0, 4096, 0, 0 }, { -4091, 0, -202, 0 }, 2672, 2, 15, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4576, -64, 0x3300, 0 }, { { -352, 0, -448, 0 }, { 352, 0, -448, 0 }, { -352, 0, 448, 0 }, { 352, 0, 448, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 568, 2, 16, 1, 2, 0 },
+    { NULL, NULL, NULL, { 5248, -64, 1632, 0 }, { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1396, 2, 12, 255, 3, 0 },
+    { NULL, NULL, NULL, { 1952, -64, 2992, 0 }, { { -896, 0, -1408, 0 }, { 896, 0, -1408, 0 }, { -896, 0, 1408, 0 }, { 896, 0, 1408, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1668, 2, 13, 255, 3, 0 },
+    { NULL, NULL, NULL, { 6304, -64, 0x2840, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { -2276, 0, -3406, 0 }, 801, 5, 2, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_sterilization_room_8018C0F8[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_sterilization_room_8018C104[2] = {
+    { 117, 606, 0, 0, { 0, 0 }, D_8013DFA0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_sterilization_room_8018C11C[1] = {
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_sterilization_room_8018C12C[2] = {
+    { 117, 0, 0, 6080, 0, 4000, -967, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {
+    { NULL, NULL },
+    { D_shelter_b1_sterilization_room_8018C11C, D_shelter_b1_sterilization_room_8018C0F8 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_sterilization_room_8018C12C, D_shelter_b1_sterilization_room_8018C104 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpObj3A D_shelter_b1_sterilization_room_8018C1A4[2] = {
+    { NULL, NULL, { 3536, -1424, 6048, 0 }, { { -3888, 2448, 0, 0 }, { 3888, 2448, 0, 0 }, { -3888, -2448, 0, 0 }, { 3888, -2448, 0, 0 } }, { 0, 0, 4104, 0 }, { -29, 17 }, 1, 0 },
+    { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, { -58, 17 }, 129, 0 },
+};
+
+GpRoomBoundVec D_shelter_b1_sterilization_room_8018C21C[25] = {
+    { 24, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 1006, 1603, 1284, 1339 },
+    { 925, 1526, 1344, 1277 },
+    { 870, 965, 955, 928 },
+    { 866, 959, 962, 924 },
+    { 864, 966, 957, 926 },
+    { 862, 980, 978, 935 },
+    { 1300, 1806, 1517, 1580 },
+    { 1523, 2045, 1610, 1794 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_shelter_b1_sterilization_room_8018C2E4[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+s32 D_shelter_b1_sterilization_room_8018C2F0[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b1_sterilization_room_8018C2FC[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b1_sterilization_room_8018C304[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_sterilization_room_8018C2E4 },
+};
+
+GpRoomParamRec D_shelter_b1_sterilization_room_8018C30C[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_sterilization_room_8018C2F0 },
+};
+
+GpRoomParamRec * D_shelter_b1_sterilization_room_8018C314[8] = {
+    D_shelter_b1_sterilization_room_8018C2FC,
+    D_shelter_b1_sterilization_room_8018C304,
+    D_shelter_b1_sterilization_room_8018C30C,
+    D_shelter_b1_sterilization_room_8018C2FC,
+    D_shelter_b1_sterilization_room_8018C2FC,
+    D_shelter_b1_sterilization_room_8018C2FC,
+    D_shelter_b1_sterilization_room_8018C2FC,
+    D_shelter_b1_sterilization_room_8018C2FC,
+};
+
+GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
+    { 4, 20, 21, 0 },
+    { 255, 0, 0, 0 },
+};
+
+Task * D_shelter_b1_sterilization_room_8018C33C = NULL;
+
+s32 D_shelter_b1_sterilization_room_8018C340 = 0;
+
+RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
+
+#define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
 void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 {
@@ -59,7 +1435,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             return;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
-                func_800E8634(&D_shelter_b1_sterilization_room_80188C94, 0, &D_shelter_b1_sterilization_room_80188E14);
+                func_800E8634(D_shelter_b1_sterilization_room_80188C94, 0, D_shelter_b1_sterilization_room_80188E14);
                 GameFlag_SetNibble(0x77, 1);
                 gGameSession->restartMode = 0;
             } else {
@@ -221,7 +1597,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 /// angle draw. The last gives `hi` a first life that combine folds away after
 /// recording a use of it, so its reuse for the radius draw is a value combine
 /// cannot bound and the radius keeps its `s16` sign extension.
-static void func_shelter_b1_sterilization_room_8018188C(Task* task)
+void func_shelter_b1_sterilization_room_8018188C(Task* task)
 {
     GpCoord* coord;
 
@@ -490,7 +1866,7 @@ static void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// and adds `step` to `scale`; while an event is running the tick
 /// counter is held instead. The drawn frame advances every `index` ticks
 /// and the task is released once ten frames have passed.
-static void func_shelter_b1_sterilization_room_801823D8(Task* task)
+void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -875,7 +2251,7 @@ static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1,
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;

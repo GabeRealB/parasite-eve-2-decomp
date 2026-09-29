@@ -5,6 +5,9 @@
 
 #include "main/text.h"
 
+/// Text renderer installed by CAP event scripts.
+typedef void (*GpCapTextCb)(s16, s16, u16*, s16, s32);
+
 struct _GpCapCmd;
 
 /// File-relative byte offset before relocation; text pointer afterward.

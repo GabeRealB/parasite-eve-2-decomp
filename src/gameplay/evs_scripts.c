@@ -120,7 +120,7 @@ s32 D_801156EC;
 u8 D_801156F0;
 
 // EVS overlay selection, saved view and pause gate shared with CAP/room tasks.
-GpOverlayIds* D_801156F4;
+GpEvsOperand D_801156F4;
 
 u8 D_801156F8;
 
@@ -184,7 +184,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
     }
 
     if (Pad_CheckFlag800() != 0 && D_801156D0.address != 0 && gDisplayState.pendingMode == 0 && D_801156F0 == 0) {
-        if (D_801156F4 != NULL) {
+        if (D_801156F4.overlays != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }
         D_801156A4               = 0;
@@ -236,21 +236,21 @@ static void Gp_ScriptTaskState1(Task* arg0)
     while (1) {
         switch (st->pc->op) {
             case 1:
-                if (st->pc->arg0 == 4) {
+                if (st->pc->arg0.value == 4) {
                     slot = gameGetPtrSlot(4);
-                    if (st->pc->arg1 != -1) {
+                    if (st->pc->arg1.value != -1) {
                         Gp_DispatchMsgReply(slot, 0x7D0,
-                                            (st->pc->arg1 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area,
+                                            (st->pc->arg1.value << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area,
                                             &slot);
                     }
-                } else if (st->pc->arg0 == -1) {
+                } else if (st->pc->arg0.value == -1) {
                     slot = gameGetPtrSlot(4);
-                    Gp_DispatchMsgReply(slot, 0x7D8, st->pc->arg1, &slot);
+                    Gp_DispatchMsgReply(slot, 0x7D8, st->pc->arg1.value, &slot);
                 } else {
-                    slot = gameGetPtrSlot(st->pc->arg0);
+                    slot = gameGetPtrSlot(st->pc->arg0.value);
                 }
                 if (slot != NULL) {
-                    Gp_DispatchMsg(slot, st->pc->arg2, st->pc->arg3, st->pc->arg4);
+                    Gp_DispatchMsg(slot, st->pc->arg2.value, st->pc->arg3.message.value, st->pc->arg4.message.value);
                 }
                 break;
 
@@ -259,7 +259,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                D_801156F4               = NULL;
+                D_801156F4.overlays               = NULL;
                 gGameSession->eventState = 0;
                 if (arg0->spawnArg1.value == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
@@ -273,7 +273,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case 2:
-                st->msgTask = Task_Spawn(1, 0x19, st->pc->arg0, st->pc->arg1);
+                st->msgTask = Task_Spawn(1, 0x19, st->pc->arg0.value, st->pc->arg1.value);
                 break;
 
             case 48:
@@ -281,12 +281,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 /* fallthrough */
 
             case 3:
-                Mc_SaveData[0].state.at4.loc.view = (u8)st->pc->arg0;
+                Mc_SaveData[0].state.at4.loc.view = (u8)st->pc->arg0.value;
                 break;
 
             case 4:
                 D_801156CB = 1;
-                st->wait   = st->pc->arg0;
+                st->wait   = st->pc->arg0.value;
                 st->pc     = st->pc + 1;
                 return;
 
@@ -302,7 +302,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 7:
-                gGameSession->eventState = (u8)st->pc->arg0;
+                gGameSession->eventState = (u8)st->pc->arg0.value;
                 break;
 
             case 9:
@@ -312,27 +312,27 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case 8:
-                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->arg0), 0x3ED, 0, 0) == 0) {
+                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->arg0.value), 0x3ED, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case 29:
-                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->arg0), 0x3F0, 0, 0) == 0) {
+                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->arg0.value), 0x3F0, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case 10:
-                slot = gameGetPtrSlot(st->pc->arg0);
-                rec  = *(GpAnimArg*)st->pc->arg3;
-                if (st->pc->arg0 == 3) {
+                slot = gameGetPtrSlot(st->pc->arg0.value);
+                rec  = *st->pc->arg3.animation;
+                if (st->pc->arg0.value == 3) {
                     Gp_PlayerWeaponId(&rec.animBlock.index);
                 } else {
                     Gp_AllyAnimId(&rec.animBlock.index);
                 }
                 if (slot != NULL) {
-                    Gp_DispatchMsgPtr(slot, st->pc->arg2, &rec, st->pc->arg4);
+                    Gp_DispatchMsgPtr(slot, st->pc->arg2.value, &rec, st->pc->arg4.value);
                 }
                 break;
 
@@ -341,33 +341,32 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 12:
-                D_801156F4 = (GpOverlayIds*)st->pc->arg0;
-                /* The message ABI carries this object address in one 32-bit word. */
-                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA6, (s32)D_801156F4, 0);
-                if (D_801156F4 != NULL) {
+                D_801156F4.overlays = st->pc->arg0.overlays;
+                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA6, D_801156F4.value, 0);
+                if (D_801156F4.overlays != NULL) {
                     D_801156CA = 1;
                 }
                 break;
 
             case 13:
-                ((void (*)(s32))st->pc->arg0)(st->pc->arg1);
+                st->pc->arg0.callback(st->pc->arg1.value);
                 break;
 
             case 14:
-                Gp_SpawnScript18(st->pc->arg0, st->pc->arg1);
+                Gp_SpawnScript18(st->pc->arg0.padCommands, st->pc->arg1.padRecords);
                 break;
 
             case 15:
-                SndEvt_EnqueueType6(st->pc->arg0, (s8)st->pc->arg1, (s8)st->pc->arg2);
-                D_801156E0.field_4 = (u16)st->pc->arg2;
+                SndEvt_EnqueueType6(st->pc->arg0.value, (s8)st->pc->arg1.value, (s8)st->pc->arg2.value);
+                D_801156E0.field_4 = (u16)st->pc->arg2.value;
                 break;
 
             case 16:
-                SndEvt_EnqueueType7(st->pc->arg0, (u16)st->pc->arg1);
+                SndEvt_EnqueueType7(st->pc->arg0.value, (u16)st->pc->arg1.value);
                 break;
 
             case 17:
-                if (st->pc->arg0 != 0) {
+                if (st->pc->arg0.value != 0) {
                     D_8010FBE0 = Task_Spawn(1, 0x2D, 0, 0);
                 } else if (D_8010FBE0 != NULL) {
                     Task_CallExit(D_8010FBE0);
@@ -377,13 +376,13 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case 18:
                 if (D_801156C8 == 0) {
-                    Stage_RequestFromAreaTable((s16)st->pc->arg0);
+                    Stage_RequestFromAreaTable((s16)st->pc->arg0.value);
                     D_801156C8 = 1;
                 }
                 break;
 
             case 19:
-                Stage_RequestMidiFromMap((s16)st->pc->arg0);
+                Stage_RequestMidiFromMap((s16)st->pc->arg0.value);
                 break;
 
             case 20:
@@ -391,11 +390,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     break;
                 }
                 pair                      = &gStageMusicParams;
-                Mc_SaveData[0].state.sceneEvent = (u8)st->pc->arg0;
+                Mc_SaveData[0].state.sceneEvent = (u8)st->pc->arg0.value;
                 D_801156C9                = 1;
-                pair->fadeFrames             = (u16)st->pc->arg1;
+                pair->fadeFrames             = (u16)st->pc->arg1.value;
                 gStageMusicLoadState      = 0;
-                pair->unusedCommandArg             = (u16)st->pc->arg2;
+                pair->unusedCommandArg             = (u16)st->pc->arg2.value;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 
@@ -406,7 +405,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 22:
-                Task_Spawn(9, 0xC, 0, (st->pc->arg0 << 8) | st->pc->arg1);
+                Task_Spawn(9, 0xC, 0, (st->pc->arg0.value << 8) | st->pc->arg1.value);
                 break;
 
             case 23:
@@ -434,12 +433,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (st->msgTask != NULL) {
                     break;
                 }
-                D_801156D4.field_0 = (u8)st->pc->arg0;
+                D_801156D4.field_0 = (u8)st->pc->arg0.value;
                 D_801156D4.field_1 = 0;
-                if (st->pc->arg1 == 0) {
+                if (st->pc->arg1.value == 0) {
                     D_801156D4.field_2 = 7;
                 } else {
-                    D_801156D4.field_2 = (u16)st->pc->arg1;
+                    D_801156D4.field_2 = (u16)st->pc->arg1.value;
                 }
                 st->msgTask = Task_SpawnPtr(1, 0x31, 0, &D_801156D4);
                 break;
@@ -452,8 +451,8 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_8010FBE4 != NULL) {
                     taskKill(D_8010FBE4);
                 }
-                D_801156DC.field_0 = (u16)st->pc->arg0;
-                D_801156DC.field_2 = (u16)st->pc->arg1;
+                D_801156DC.field_0 = (u16)st->pc->arg0.value;
+                D_801156DC.field_2 = (u16)st->pc->arg1.value;
                 D_8010FBE4         = Task_SpawnPtr(9, 0xD, 0, &D_801156DC);
                 break;
 
@@ -461,9 +460,9 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_8010FBE8 != NULL) {
                     taskKill(D_8010FBE8);
                 }
-                D_801156E0.field_0 = st->pc->arg0;
-                D_801156E0.field_6 = (u16)st->pc->arg1;
-                D_801156E0.field_8 = (u16)st->pc->arg2;
+                D_801156E0.field_0 = st->pc->arg0.value;
+                D_801156E0.field_6 = (u16)st->pc->arg1.value;
+                D_801156E0.field_8 = (u16)st->pc->arg2.value;
                 D_8010FBE8         = Task_SpawnPtr(9, 0xE, 0, &D_801156E0);
                 break;
 
@@ -481,17 +480,17 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 32:
-                vec.vx = st->pc->arg0 * 16;
-                vec.vy = st->pc->arg1 * 16;
-                vec.vz = st->pc->arg2 * 16;
+                vec.vx = st->pc->arg0.value * 16;
+                vec.vy = st->pc->arg1.value * 16;
+                vec.vz = st->pc->arg2.value * 16;
                 Gp_SetOverrideVec(&vec);
                 break;
 
             case 40:
-                if (st->pc->arg0 != 0) {
-                    vec.vx = st->pc->arg0 * 16;
-                    vec.vy = st->pc->arg0 * 16;
-                    vec.vz = st->pc->arg0 * 16;
+                if (st->pc->arg0.value != 0) {
+                    vec.vx = st->pc->arg0.value * 16;
+                    vec.vy = st->pc->arg0.value * 16;
+                    vec.vz = st->pc->arg0.value * 16;
                     Gp_SetOverrideVec2(&vec);
                 } else {
                     Gp_SetOverrideVec2(NULL);
@@ -510,20 +509,20 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (st->fadeTask != NULL && D_801156D8.field_1 != 2) {
                     break;
                 }
-                D_801156D8.field_0 = (u8)st->pc->arg0;
+                D_801156D8.field_0 = (u8)st->pc->arg0.value;
                 D_801156D8.field_1 = 0;
-                if (st->pc->arg1 == 0) {
+                if (st->pc->arg1.value == 0) {
                     D_801156D8.field_2 = 7;
                 } else {
-                    D_801156D8.field_2 = (u16)st->pc->arg1;
+                    D_801156D8.field_2 = (u16)st->pc->arg1.value;
                 }
-                st->fadeTask = Task_SpawnPtr(1, 0x31, st->pc->arg2, &D_801156D8);
+                st->fadeTask = Task_SpawnPtr(1, 0x31, st->pc->arg2.value, &D_801156D8);
                 break;
 
             case 36:
                 D_801156D8.field_1 = 1;
-                if (st->pc->arg0 != 0) {
-                    D_801156D8.field_2 = (u16)st->pc->arg0;
+                if (st->pc->arg0.value != 0) {
+                    D_801156D8.field_2 = (u16)st->pc->arg0.value;
                 }
                 break;
 
@@ -538,7 +537,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 38:
-                mode = st->pc->arg0;
+                mode = st->pc->arg0.value;
                 if (mode == 0 || mode == 2) {
                     if (D_801156CD != 0) {
                         Player_Status.weapon = D_801156EC;
@@ -555,7 +554,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 39:
-                mode = st->pc->arg0;
+                mode = st->pc->arg0.value;
                 if (mode == 0 || mode == 2) {
                     D_801156CD = 1;
                     Gp_KillPlayerEffs();
@@ -572,22 +571,22 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 41:
-                D_8011569C = (u8)st->pc->arg0;
+                D_8011569C = (u8)st->pc->arg0.value;
                 break;
 
             case 42:
-                Gp_EnqueueStageSnd6(st->pc->arg0, (s8)st->pc->arg1, (s8)st->pc->arg2);
-                D_801156E0.field_4 = (u16)st->pc->arg2;
+                Gp_EnqueueStageSnd6(st->pc->arg0.value, (s8)st->pc->arg1.value, (s8)st->pc->arg2.value);
+                D_801156E0.field_4 = (u16)st->pc->arg2.value;
                 break;
 
             case 43:
-                st->pc = (GpEvsCmd*)st->pc->arg0 - 1;
+                st->pc = st->pc->arg0.commands - 1;
                 break;
 
             case 44:
                 st->stack[st->sp] = st->pc + 1;
                 st->sp            = st->sp + 1;
-                st->pc            = (GpEvsCmd*)st->pc->arg0 - 1;
+                st->pc            = st->pc->arg0.commands - 1;
                 break;
 
             case 45:
@@ -596,11 +595,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 46:
-                D_801156D0.address = st->pc->arg0;
+                D_801156D0.commands = st->pc->arg0.commands;
                 break;
 
             case 47:
-                D_801156CC = (u8)st->pc->arg0;
+                D_801156CC = (u8)st->pc->arg0.value;
                 break;
 
             case 49:
@@ -674,7 +673,7 @@ void Gp_SndFadeTask(Task* arg0)
     }
 }
 
-void func_800E8614(s32 arg0, s32 arg1)
+void func_800E8614(GpEvsAddress arg0, s32 arg1)
 {
     func_800E8634(arg0, arg1, 0);
 }
@@ -717,7 +716,7 @@ static void Gp_ScriptInit(Task* arg0)
         return;
     }
     D_801156F9 = 0;
-    D_801156F4 = 0;
+    D_801156F4.overlays = 0;
     Display_AcquireRef();
     script              = arg0->spawnArg2.pointer;
     D_801156A4          = 0;

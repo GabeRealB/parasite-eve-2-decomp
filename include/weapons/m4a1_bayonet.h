@@ -1,6 +1,8 @@
 #ifndef M4A1_BAYONET_H
 #define M4A1_BAYONET_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,5 +29,7 @@ typedef struct _M4a1BayonetBeamScratch {
     /* 0x28 */ s32     unused;
 } M4a1BayonetBeamScratch;
 STATIC_ASSERT_SIZEOF(M4a1BayonetBeamScratch, 0x2C);
+
+void func_m4a1_bayonet_8011D1E4(Task* task);
 
 #endif

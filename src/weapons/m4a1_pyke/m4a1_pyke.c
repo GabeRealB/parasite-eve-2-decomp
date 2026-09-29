@@ -59,7 +59,7 @@ static void func_m4a1_pyke_8011E4AC(Task* task);
 ///
 /// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
-static void func_m4a1_pyke_8011D1F8(Task* task)
+void func_m4a1_pyke_8011D1F8(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -136,7 +136,7 @@ static void func_m4a1_pyke_8011D1F8(Task* task)
                     if (work->scale < 0x180) {
                         work->scale = work->scale + 0x40;
                     }
-                    eff = Gp_SpawnEff(0x6017F, coord, work->scale, NULL);
+                    eff = Gp_SpawnEff(0x6017F, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
@@ -257,7 +257,7 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 ///   switches to state 2 with a fresh ricochet velocity.
 /// - State 2 coasts on that velocity with a fast-widening flare until the dart
 ///   is 0x15 frames old.
-static void func_m4a1_pyke_8011D7D4(Task* task)
+void func_m4a1_pyke_8011D7D4(Task* task)
 {
     GpCoord       ground;
     SVECTOR       after;

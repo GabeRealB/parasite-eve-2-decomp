@@ -1,6 +1,8 @@
 #ifndef PE_INFERNO_H
 #define PE_INFERNO_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 
@@ -42,5 +44,9 @@ typedef struct InfernoFanScratch {
     /* 0x6C */ s32     sxy3;
 } InfernoFanScratch;
 STATIC_ASSERT_SIZEOF(InfernoFanScratch, 0x70);
+
+void func_inferno_8012EF88(Task* arg0);
+
+void func_inferno_8012F530(Task* arg0);
 
 #endif /* PE_INFERNO_H */

@@ -42,8 +42,6 @@ typedef struct {
 static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
                                                s32 item);
 
-extern UiObject* D_80067634;
-
 GpRec10 Gp_IdParamLo[47] = {
     { { 0, 0, 0, 0, 0 } },
     { { 10, 0, 0, 1, 0 } },

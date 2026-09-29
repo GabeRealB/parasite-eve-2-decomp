@@ -195,7 +195,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     };
     u8** p;
     u8*  title;
-    s32  a0tmp;
+    UiObject* a0tmp;
     s32  i;
     s32  y;
     s32  x;
@@ -208,9 +208,9 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     s32  status;
 
     count = 4;
-    a0tmp = (s32)arg1;
+    a0tmp = arg1;
     title = D_options_801D5B78;
-    Text_DrawPrompt((UiObject*)a0tmp, arg1->panel.field_1C.s + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(a0tmp, arg1->panel.field_1C.s + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
     saved    = Mc_SaveData[0].state.musicVolume;

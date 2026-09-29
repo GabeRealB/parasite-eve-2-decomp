@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_savanna_zone.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -30,7 +32,18 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+extern SVECTOR D_neo_ark_savanna_zone_8017F9D4[2];
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
 extern GpSaveLoc        D_neo_ark_savanna_zone_80180990;
@@ -38,21 +51,433 @@ extern s8               D_neo_ark_savanna_zone_80180998;
 extern RoomLatchedEvent D_neo_ark_savanna_zone_8018099C;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern GpFadeWork D_neo_ark_savanna_zone_80180988;
+extern RoomFadeStorage D_neo_ark_savanna_zone_80180988;
 
 /// The room's message table, which the room setup task installs.
 extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];
 
 /// The coordinate trail's two spawn offsets: `[0]` places the object's own
-/// frame and `[1]` the second trail's frame. `D_neo_ark_savanna_zone_8017F9DC`
+/// frame and `[1]` the second trail's frame. `D_neo_ark_savanna_zone_8017F9D4[1]`
 /// is `[1]` under its own name, which the per-frame path reads directly.
-extern SVECTOR D_neo_ark_savanna_zone_8017F9D4[];
-extern SVECTOR D_neo_ark_savanna_zone_8017F9DC;
 
 static void func_neo_ark_savanna_zone_8017DCB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_neo_ark_savanna_zone_8017E0DC(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_savanna_zone_8017EFE0(GpCoord* arg0, s16 arg1, u8* arg2);
+
+extern GpGridParams D_neo_ark_savanna_zone_8017FBD0[1];
+extern GpObj3A D_neo_ark_savanna_zone_801808CC[1];
+extern GpObj4C D_neo_ark_savanna_zone_801804EC[4];
+extern GpObj4C D_neo_ark_savanna_zone_8018061C[5];
+extern GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5];
+extern GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1];
+extern TaskDesc D_8014D8A4;
+s32 func_neo_ark_savanna_zone_8017D77C(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_savanna_zone_8017D8F0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_savanna_zone_8017D8F8(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_savanna_zone_8017D900(Task *, s32, GpMessageArg, GpMessageArg);
+void func_neo_ark_savanna_zone_8017D5E4(Task *);
+
+TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, func_neo_ark_savanna_zone_8017D5E4, { .model = NULL } };
+
+GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
+    { 5102, func_neo_ark_savanna_zone_8017D77C },
+    { 5105, func_neo_ark_savanna_zone_8017D8F0 },
+    { 5103, func_neo_ark_savanna_zone_8017D900 },
+    { 5104, func_neo_ark_savanna_zone_8017D8F8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
+SVECTOR D_neo_ark_savanna_zone_8017F9D4[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_neo_ark_savanna_zone_8017F9E4[1] = {
+    { D_neo_ark_savanna_zone_8017FBD0, D_neo_ark_savanna_zone_801804EC, D_neo_ark_savanna_zone_8018061C, D_neo_ark_savanna_zone_801808CC },
+};
+
+GpRoomCoordRec D_neo_ark_savanna_zone_8017F9F4[1] = {
+    { D_neo_ark_savanna_zone_801804D4, D_neo_ark_savanna_zone_80180908 },
+};
+
+u8 * D_neo_ark_savanna_zone_8017F9FC[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_neo_ark_savanna_zone_8017FA00[1] = {
+    { { .bytes = { 4, 0 } } },
+};
+
+GpWarpRec D_neo_ark_savanna_zone_8017FA04[2] = {
+    { { .words = { 1024, 510, 0, 1500 } }, { 0, 0, 0, 0 }, { .words = { 1024, 510, 0, 1500 } }, { 0, 0, 0, 0 }, 0x55120002, 0x55120001, 0, 4, 0, 0 },
+    { { .words = { 3072, 0x34BC, 0, 1500 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x34BC, 0, 1500 } }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, 0, 2, 0, 0 },
+};
+
+SVECTOR D_neo_ark_savanna_zone_8017FA74[5] = {
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_neo_ark_savanna_zone_8017FA9C[12] = {
+    { -50, -3950, 2950, 0 },
+    { -50, 50, 2950, 0 },
+    { -50, 50, -50, 0 },
+    { -50, -3950, -50, 0 },
+    { 0x367E, -3950, -50, 0 },
+    { 0x2A8A, 50, -50, 0 },
+    { 0x367E, 50, -50, 0 },
+    { 0x367E, 50, 2950, 0 },
+    { 0x367E, -3950, 2950, 0 },
+    { 5710, 50, 2950, 0 },
+    { 0x29E0, 50, 2950, 0 },
+    { 5450, 50, -50, 0 },
+};
+
+GpGridFace D_neo_ark_savanna_zone_8017FAFC[11] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 4, 5, 6, 0xFFFF }, 1, 0 },
+    { { 6, 7, 4, 8 }, 2, 0 },
+    { { 0, 9, 1, 0xFFFF }, 3, 1 },
+    { { 10, 7, 5, 6 }, 4, 2 },
+    { { 0, 8, 9, 10 }, 3, 1 },
+    { { 11, 2, 9, 1 }, 4, 2 },
+    { { 9, 10, 11, 5 }, 4, 3 },
+    { { 10, 8, 7, 0xFFFF }, 3, 1 },
+    { { 11, 3, 2, 0xFFFF }, 1, 0 },
+    { { 11, 5, 3, 4 }, 1, 0 },
+};
+
+s16 D_neo_ark_savanna_zone_8017FB80[8] = {
+    0,
+    3,
+    5,
+    6,
+    7,
+    9,
+    10,
+    -1,
+};
+
+s16 D_neo_ark_savanna_zone_8017FB90[7] = {
+    3,
+    5,
+    6,
+    7,
+    9,
+    10,
+    -1,
+};
+
+s16 D_neo_ark_savanna_zone_8017FBA0[8] = {
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    -1,
+};
+
+s16 D_neo_ark_savanna_zone_8017FBB0[8] = {
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    -1,
+};
+
+s16 * D_neo_ark_savanna_zone_8017FBC0[4] = {
+    D_neo_ark_savanna_zone_8017FB80,
+    D_neo_ark_savanna_zone_8017FB90,
+    D_neo_ark_savanna_zone_8017FBA0,
+    D_neo_ark_savanna_zone_8017FBB0,
+};
+
+GpGridParams D_neo_ark_savanna_zone_8017FBD0[1] = {
+    { NULL, D_neo_ark_savanna_zone_8017FA74, D_neo_ark_savanna_zone_8017FA9C, D_neo_ark_savanna_zone_8017FAFC, D_neo_ark_savanna_zone_8017FBC0, 50, 50, 4, 1, 4000, 11 },
+};
+
+GpViewRec D_neo_ark_savanna_zone_8017FBF4[4] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -7500, 0x77D8, -1950 } }, 329 },
+    { { { { -676, 0, -4039 }, { -670, 4039, 112 }, { 3983, 679, -667 } }, { -6330, 1950, -2240 } }, 329 },
+    { { { { -365, 0, -4079 }, { -37, 4095, 3 }, { 4079, 38, -365 } }, { -1580, 1430, -2240 } }, 329 },
+    { { { { -753, 0, 4026 }, { 207, 4090, 38 }, { -4020, 211, -752 } }, { -9980, 1620, -2260 } }, 329 },
+};
+
+GpSprtCmd D_neo_ark_savanna_zone_8017FC84[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_savanna_zone_8017FC94[24] = {
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 825, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 16, 825, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -8, 875, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, -8, 875, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -32, 925, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, -8, 1237, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -40, 1237, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, -40, 1237, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, -24, 1237, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -72, 1237, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -128, -72, 1237, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, -96, 1237, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -104, 1237, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -152, 8, 1025, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -120, 8, 1025, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 8, 1025, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -144, -8, 1025, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 0, 1025, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 40, 962, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 48, 962, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 48, 962, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 962, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 16, 962, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 8, 962, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_savanna_zone_8017FE74[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 3, 0 } },
+    { 5, 8, 0, 0, { 0, 0 } },
+    { 13, 5, 0, 0, { 2, 0 } },
+    { 18, 6, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_savanna_zone_8017FEA4[35] = {
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 625, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 625, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 625, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -120, 625, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, -80, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -40, 625, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, -120, 0, 625, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -40, 625, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -80, -80, 625, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, -80, -120, 625, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, 0, -120, 625, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 40, -120, 625, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, -96, 625, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -112, 96, 712, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 56, 712, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 56, 712, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 16, 712, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 16, 712, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -24, 712, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -24, 712, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -64, 712, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -64, 712, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -64, 712, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -104, 712, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -88, 712, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -160, -120, 712, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, -120, -120, 712, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, -24, 1062, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -32, 1062, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 8, 1062, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 48, 1062, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -120, 48, 1062, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 8, 1062, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 32 } }, -120, -24, 1062, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -80, 24, 1062, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_savanna_zone_80180160[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 13, 0, 0, { 1, 0 } },
+    { 13, 14, 0, 0, { 2, 0 } },
+    { 27, 8, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_neo_ark_savanna_zone_80180188[29] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 0, 1312, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 1312, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 1312, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -40, 1312, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 0, 1312, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -120, 1312, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 1312, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -40, 1312, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -40, 1312, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -64, 1312, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 40, -120, 1312, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -96, 1312, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, -80, 1312, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 32, 1700, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -8, 1700, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -48, 1700, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -72, 1700, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, -72, 1700, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -48, 1700, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -8, 1700, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 32, 1700, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -32, 1700, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -64, 1700, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 1050, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 32, 1050, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -8, 1050, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -24, 1050, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 8, 1050, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, 40, 1050, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_neo_ark_savanna_zone_801803CC[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 13, 0, 0, { 1, 0 } },
+    { 13, 10, 0, 0, { 2, 0 } },
+    { 23, 6, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_neo_ark_savanna_zone_801803F4[4] = {
+    { { .empty = D_neo_ark_savanna_zone_8017FC84 }, D_neo_ark_savanna_zone_8017FC84, NULL },
+    { { .elements = D_neo_ark_savanna_zone_8017FC94 }, D_neo_ark_savanna_zone_8017FE74, NULL },
+    { { .elements = D_neo_ark_savanna_zone_8017FEA4 }, D_neo_ark_savanna_zone_80180160, NULL },
+    { { .elements = D_neo_ark_savanna_zone_80180188 }, D_neo_ark_savanna_zone_801803CC, NULL },
+};
+
+GpLight D_neo_ark_savanna_zone_80180424[2] = {
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 952, -472, 229 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 5837, 5715, 5574, { 0, 0 } },
+    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -834, -528, -362 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4243, 4202, 4138, { 0, 0 } },
+};
+
+GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1] = {
+    { 2, D_neo_ark_savanna_zone_80180424, 0, NULL, 0, NULL },
+};
+
+GpObj4C D_neo_ark_savanna_zone_801804EC[4] = {
+    { NULL, NULL, NULL, { 5503, -2305, 1552, 0 }, { { 55, -2608, -3196, 0 }, { -59, -2608, 3190, 0 }, { 55, 2609, -3196, 0 }, { -59, 2609, 3190, 0 } }, { 4098, 0, 73, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 5727, -2305, 1744, 0 }, { { -59, -2608, 3336, 0 }, { 53, -2608, -3342, 0 }, { -59, 2608, 3336, 0 }, { 53, 2608, -3342, 0 } }, { -4095, 0, -69, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x277F, -2256, 1727, 0 }, { { -55, -2688, 3339, 0 }, { 56, -2688, -3338, 0 }, { -55, 2688, 3339, 0 }, { 56, 2688, -3338, 0 } }, { -4103, 0, -69, 0 }, { 0, 0, 4096, 0 }, 4283, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 9951, -2224, 1695, 0 }, { { 57, -2688, -3193, 0 }, { -56, -2688, 3194, 0 }, { 57, 2688, -3193, 0 }, { -56, 2688, 3194, 0 } }, { 4095, 0, 72, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 2, 3, 129, 0 },
+};
+
+GpObj4C D_neo_ark_savanna_zone_8018061C[5] = {
+    { NULL, NULL, NULL, { 736, -48, 1376, 0 }, { { -672, 0, -736, 0 }, { 672, 0, -736, 0 }, { -672, 0, 736, 0 }, { 672, 0, 736, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 995, 0, 21, 18, 2, 0 },
+    { NULL, NULL, NULL, { 0x33C0, -48, 1440, 0 }, { { -672, 0, -1136, 0 }, { 672, 0, -1136, 0 }, { -672, 0, 1136, 0 }, { 672, 0, 1136, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 1317, 0, 19, 33, 2, 0 },
+    { NULL, NULL, NULL, { 7776, -64, 272, 0 }, { { -1440, 0, -432, 0 }, { 1440, 0, -432, 0 }, { -1440, 0, 432, 0 }, { 1440, 0, 432, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, 4096, 0 }, 1498, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6992, -64, 256, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 7001, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { 6976, -64, 2720, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 7001, 2, 4, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_80180798[3] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_801807BC[2] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_801807D4[3] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 26, 26, 2, 0, { 0, 0 }, D_8016A8D4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_801807F8[3] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_8018081C[3] = {
+    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+    { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_savanna_zone_80180840[3] = {
+    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_neo_ark_savanna_zone_80180864[13] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017BB70, D_neo_ark_savanna_zone_80180798 },
+    { D_map_neo_ark_8017BBF0, D_neo_ark_savanna_zone_801807BC },
+    { D_map_neo_ark_8017BC70, D_neo_ark_savanna_zone_801807D4 },
+    { D_map_neo_ark_8017BCE0, D_neo_ark_savanna_zone_801807F8 },
+    { D_map_neo_ark_8017BD50, D_neo_ark_savanna_zone_8018081C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_neo_ark_8017BD80, D_neo_ark_savanna_zone_80180840 },
+    { NULL, NULL },
+};
+
+GpObj3A D_neo_ark_savanna_zone_801808CC[1] = {
+    { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, { 126, 32 }, 129, 0 },
+};
+
+GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5] = {
+    { 4, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 422, 394, 324, 395 },
+    { 422, 394, 324, 395 },
+    { 422, 394, 324, 395 },
+};
+
+s32 D_neo_ark_savanna_zone_80180930[3] = {
+    0x10000039,
+    0x1000003B,
+    0x10000039,
+};
+
+s32 D_neo_ark_savanna_zone_8018093C[3] = {
+    0x10000031,
+    0x10000033,
+    0x10000031,
+};
+
+GpRoomParamRec D_neo_ark_savanna_zone_80180948[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_savanna_zone_80180950[1] = { 0 };
+
+GpRoomParamRec D_neo_ark_savanna_zone_80180958[1] = {
+    { 0, 0, 1, 0, D_neo_ark_savanna_zone_80180930 },
+};
+
+GpRoomParamRec D_neo_ark_savanna_zone_80180960[1] = {
+    { 0, 0, 1, 0, D_neo_ark_savanna_zone_8018093C },
+};
+
+GpRoomParamRec * D_neo_ark_savanna_zone_80180968[8] = {
+    D_neo_ark_savanna_zone_80180948,
+    D_neo_ark_savanna_zone_80180950,
+    D_neo_ark_savanna_zone_80180958,
+    D_neo_ark_savanna_zone_80180960,
+    D_neo_ark_savanna_zone_80180948,
+    D_neo_ark_savanna_zone_80180948,
+    D_neo_ark_savanna_zone_80180948,
+    D_neo_ark_savanna_zone_80180948,
+};
+
+RoomFadeStorage D_neo_ark_savanna_zone_80180988 = { 0 };
+
+GpSaveLoc D_neo_ark_savanna_zone_80180990 = { 0 };
+
+s8 D_neo_ark_savanna_zone_80180998 = 0;
+
+RoomLatchedEvent D_neo_ark_savanna_zone_8018099C = { 0 };
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event
@@ -72,10 +497,10 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_neo_ark_savanna_zone_8018099C.fade != 0) {
-                    D_neo_ark_savanna_zone_80180988.field_0 = 0;
-                    D_neo_ark_savanna_zone_80180988.field_1 = 0;
-                    D_neo_ark_savanna_zone_80180988.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_neo_ark_savanna_zone_80180988);
+                    D_neo_ark_savanna_zone_80180988.fade.field_0 = 0;
+                    D_neo_ark_savanna_zone_80180988.fade.field_1 = 0;
+                    D_neo_ark_savanna_zone_80180988.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_neo_ark_savanna_zone_80180988.fade);
                 }
                 arg0->state++;
             }
@@ -130,11 +555,11 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEv
 }
 
 /// Room handler for the save-location message: copies the incoming record onto
-/// the outgoing one and forwards both to `func_80179B14`. Messages 0x13 and
+/// the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Messages 0x13 and
 /// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
 /// flag 0x15E / 0x15F - and hand it to `NeoArkSavannaZone_StartEvent`; every
 /// other message is not consumed and answers 1.
-s32 func_neo_ark_savanna_zone_8017D77C(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     RoomLatchedEvent event;
     s32              cmd;
@@ -142,7 +567,7 @@ s32 func_neo_ark_savanna_zone_8017D77C(s32 arg0, s32 arg1, GpSaveLoc* in, GpSave
     s16              flag;
 
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     if (*(u16*)in != 0x13) {
         goto message15;
     }
@@ -166,17 +591,17 @@ message15:
     return 1;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F0(void)
+s32 func_neo_ark_savanna_zone_8017D8F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F8(void)
+s32 func_neo_ark_savanna_zone_8017D8F8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D900(void)
+s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -215,7 +640,7 @@ void func_neo_ark_savanna_zone_8017D954(Task* task)
 /// Room effect task: on its first run stores 0x601DD, 0x601F9 and 0x60215 in
 /// three gameplay globals - values of the form `Gp_SpawnEff` takes as effect
 /// ids - and sets `Gp_State1C->roomEffectMode` to 2.
-static void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
+void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758                 = 0x601DD;
@@ -233,7 +658,7 @@ static void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 /// State 2 draws a star glow at three times the radius while the level falls
 /// back to 0x10, then releases the work block. While the room's event state is
 /// set it draws nothing, and releases the block once that reaches 4.
-static void func_neo_ark_savanna_zone_8017DA0C(Task* task)
+void func_neo_ark_savanna_zone_8017DA0C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -411,7 +836,7 @@ static void func_neo_ark_savanna_zone_8017E0DC(GpCoord* arg0, s16 arg1, u8* rgb)
 /// frame, re-derives all sixteen against the view and draws them. The task
 /// frees itself once its age reaches the spawn argument, and idles while the
 /// room's event state is 2 or more.
-static void func_neo_ark_savanna_zone_8017E470(Task* task)
+void func_neo_ark_savanna_zone_8017E470(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -469,9 +894,12 @@ static void func_neo_ark_savanna_zone_8017E470(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_neo_ark_savanna_zone_8017F9DC.vx;
-                coord.coord.t[1] = D_neo_ark_savanna_zone_8017F9DC.vy;
-                coord.coord.t[2] = D_neo_ark_savanna_zone_8017F9DC.vz;
+                {
+                    SVECTOR* edge = &D_neo_ark_savanna_zone_8017F9D4[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -608,7 +1036,7 @@ static void func_neo_ark_savanna_zone_8017E960(GpCoord* arg0, GpCoord* arg1, s16
 /// of rings whose radius grows and brightness falls each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and releases its
 /// work block, or earlier once the room's event state reaches 4.
-static void func_neo_ark_savanna_zone_8017ED58(Task* task)
+void func_neo_ark_savanna_zone_8017ED58(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

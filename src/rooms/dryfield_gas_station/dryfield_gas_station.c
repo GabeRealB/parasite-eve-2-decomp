@@ -1,3 +1,4 @@
+#include "gameplay/message.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -5,6 +6,7 @@
 #include "rooms/dryfield_gas_station.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/area_transitions.h"
@@ -34,14 +36,11 @@
 extern RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 /// Saved `Mc_SaveData[0].state.at4.loc.view` (area id), restored when the cutscene ends.
 
 /// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
-
-extern GpAreaApplyRec D_80188888[];
 
 /// Prompt texts: "Save", "Play Data", "Weapon Data" and "PE Data".
 extern u8 D_dryfield_gas_station_80181AF8[];
@@ -94,9 +93,20 @@ extern UiObjectDesc D_dryfield_gas_station_80181DC8;
 /// The list shown by `func_dryfield_gas_station_8017EA90`.
 extern UiList D_dryfield_gas_station_80181DF4;
 
-extern TaskDesc D_dryfield_gas_station_80181E18;
+extern TaskDesc D_dryfield_gas_station_80181E18[];
 extern TaskDesc D_dryfield_gas_station_80181E3C[];
-extern s32      D_dryfield_gas_station_80181E54;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call2)(s32, s32, s32);
+    } handler;
+} DryfieldGasStationMessageEntry;
+STATIC_ASSERT_SIZEOF(DryfieldGasStationMessageEntry, 8);
+
+extern DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5];
 extern TaskDesc D_dryfield_gas_station_80181E7C[];
 extern Task*    D_dryfield_gas_station_80184BCC;
 extern Task*    D_dryfield_gas_station_80184BD0;
@@ -104,6 +114,196 @@ extern Task*    D_dryfield_gas_station_80184BD0;
 static void func_dryfield_gas_station_8017E2C0(UiList* list, UiObject* obj);
 static void func_dryfield_gas_station_8017E5BC(UiList* list, UiObject* obj);
 static void func_dryfield_gas_station_8017F478(Task* task);
+
+void func_dryfield_gas_station_8017D6F8(UiList *, UiObject *);
+void func_dryfield_gas_station_8017DEC4(UiList *, UiObject *);
+void func_dryfield_gas_station_8017E8DC(Task *);
+void func_dryfield_gas_station_8017ED88(Task *);
+void func_dryfield_gas_station_8017EF48(Task *);
+void func_dryfield_gas_station_8017F13C(UiList *, UiObject *);
+void func_dryfield_gas_station_8017F220(UiList *, UiObject *);
+void func_dryfield_gas_station_8017F2E8(UiList *, UiObject *);
+void func_dryfield_gas_station_8017F3B0(UiList *, UiObject *);
+void func_dryfield_gas_station_8017F4B4(Task *);
+
+void func_dryfield_gas_station_8017F4B4(Task *);
+void func_dryfield_gas_station_8017FCBC(Task *);
+
+void func_dryfield_gas_station_8017FE20(Task *);
+
+u8 D_dryfield_gas_station_80181AF8[8] = {
+    83, 97, 118, 101, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B00[12] = {
+    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B0C[12] = {
+    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_dryfield_gas_station_80181B18[8] = {
+    80, 69, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_dryfield_gas_station_80181B20[8] = {
+    84, 105, 109, 101, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B28[4] = {
+    87, 111, 110, 0,
+};
+
+u8 D_dryfield_gas_station_80181B2C[8] = {
+    69, 115, 99, 97, 112, 101, 100, 0,
+};
+
+u8 D_dryfield_gas_station_80181B34[12] = {
+    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
+};
+
+u8 D_dryfield_gas_station_80181B40[16] = {
+    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B50[8] = {
+    83, 97, 118, 101, 100, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B58[8] = {
+    67, 108, 101, 97, 114, 101, 100, 0,
+};
+
+u8 D_dryfield_gas_station_80181B60[8] = {
+    77, 97, 120, 32, 69, 88, 80, 0,
+};
+
+u8 D_dryfield_gas_station_80181B68[8] = {
+    77, 97, 120, 32, 66, 80, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B70[8] = {
+    32, 116, 105, 109, 101, 115, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B78[4] = {
+    37, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181B7C[44] = {
+    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
+    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
+    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181BA8[36] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
+    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181BCC[48] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
+    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181BFC[52] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
+    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
+    46, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181C30[52] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
+    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181C64[56] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
+    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
+    115, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_dryfield_gas_station_80181C9C[52] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
+    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
+    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
+    46, 0, 0, 0,
+};
+
+u8 D_dryfield_gas_station_80181CD0[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
+    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
+    101, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_dryfield_gas_station_80181D08[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
+    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
+    32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+UiListItemFunc D_dryfield_gas_station_80181D40[1] = {
+    func_dryfield_gas_station_8017D6F8,
+};
+
+UiList D_dryfield_gas_station_80181D44 = { D_dryfield_gas_station_80181D40, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_dryfield_gas_station_80181D68[1] = {
+    func_dryfield_gas_station_8017DEC4,
+};
+
+UiList D_dryfield_gas_station_80181D6C = { D_dryfield_gas_station_80181D68, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_dryfield_gas_station_80181D90 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_dryfield_gas_station_8017ED88, 0 };
+
+UiObjectDesc D_dryfield_gas_station_80181DAC = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_dryfield_gas_station_8017EF48, 0 };
+
+UiObjectDesc D_dryfield_gas_station_80181DC8 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_dryfield_gas_station_8017E8DC, 0 };
+
+UiListItemFunc D_dryfield_gas_station_80181DE4[4] = {
+    func_dryfield_gas_station_8017F13C,
+    func_dryfield_gas_station_8017F220,
+    func_dryfield_gas_station_8017F2E8,
+    func_dryfield_gas_station_8017F3B0,
+};
+
+UiList D_dryfield_gas_station_80181DF4 = { D_dryfield_gas_station_80181DE4, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+void func_dryfield_gas_station_8017F4B4(Task *);
+void func_dryfield_gas_station_8017FCBC(Task *);
+
+TaskDesc D_dryfield_gas_station_80181E18[3] = {
+    { 0, 32, func_dryfield_gas_station_8017F4B4, { .model = NULL } },
+    { 0, 32, func_dryfield_gas_station_8017FCBC, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+TaskDesc D_dryfield_gas_station_80181E3C[2] = {
+    { 0, 32, func_dryfield_gas_station_8017FE20, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 func_dryfield_gas_station_8017FA20(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_gas_station_8017FB94(s32, s32, s32);
+s32 func_dryfield_gas_station_8017FD4C(void);
+s32 func_dryfield_gas_station_8017FD54(s32, s32, s32);
+
+DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
+    { 5102, { .call1 = func_dryfield_gas_station_8017FA20 } },
+    { 5105, { .call0 = func_dryfield_gas_station_8017FD4C } },
+    { 5104, { .call2 = func_dryfield_gas_station_8017FD54 } },
+    { 5106, { .call2 = func_dryfield_gas_station_8017FB94 } },
+    { 2147483647, { .call0 = NULL } },
+};
 
 /// Draws one row of the "Play Data" statistics list: the label for row
 /// `arg0->field_8` and its value (play time, save count, battles won and
@@ -751,7 +951,7 @@ static const char D_dryfield_gas_station_8017D638[12] = "Telephone\0\0\x12";
 /// Task body of the "Telephone" menu: shows its list once the save has a
 /// clear or the demo scene flag set (otherwise it spawns the fallback panel),
 /// and turns a child's selection into an item prompt.
-static void func_dryfield_gas_station_8017EA90(Task* task)
+void func_dryfield_gas_station_8017EA90(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1138,7 +1338,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
             break;
         case 4:
             D_dryfield_gas_station_80184BD0 =
-                Task_SpawnFromTable(&D_dryfield_gas_station_80181E18, 1, 0, script->field_10);
+                Task_SpawnFromTable(D_dryfield_gas_station_80181E18, 1, 0, script->field_10);
             Gp_StartCapSlot(script->field_1, 0, 0x63);
             task->state++;
             break;
@@ -1183,7 +1383,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -1286,7 +1486,7 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
     s32 val;
 
     *out = *in;
-    if (in->msgId == 2 && in->field_5 == 0) {
+    if (in->prefix.packed == 2 && in->field_5 == 0) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
@@ -1295,8 +1495,8 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         }
         out->field_3 = val;
     }
-    if (in->msgId == 3) {
-        if ((gGameSession->at4.loc.stage == in->msgId) && (gGameSession->at4.loc.place == 1) &&
+    if (in->prefix.packed == 3) {
+        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.place == 1) &&
             (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
@@ -1311,7 +1511,7 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
             return 0;
         }
     }
-    if (in->msgId == 2) {
+    if (in->prefix.packed == 2) {
         if (GameFlag_GetNibble(0x45) == 1) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(8);
@@ -1401,6 +1601,8 @@ s32 func_dryfield_gas_station_8017FD4C(void)
 /// not 1, otherwise the spawned task.
 s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
 {
+    TaskSpawnArg result;
+
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x16B) == 0) {
             GameFlag_SetNibble(0x16B, 1);
@@ -1418,7 +1620,8 @@ s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_gas_station_80184BD8.field_8  = 0x52010007;
         D_dryfield_gas_station_80184BD8.field_10 = 0x52010008;
         D_dryfield_gas_station_80184BD8.field_C  = 0x52010010;
-        return (s32)Task_SpawnFromTable(&D_dryfield_gas_station_80181E18, 0, 2, &D_dryfield_gas_station_80184BD8);
+        result.pointer = Task_SpawnFromTable(D_dryfield_gas_station_80181E18, 0, 2, &D_dryfield_gas_station_80184BD8);
+        return result.value;
     }
     return 1;
 }
@@ -1452,7 +1655,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
 /// it advances to state 1 and raises the `D_80115598` flag.
 static void func_dryfield_gas_station_8017FEDC(Task* arg0)
 {
-    arg0->msgTable = &D_dryfield_gas_station_80181E54;
+    arg0->msgTable = D_dryfield_gas_station_80181E54;
     Game_SetPtrSlot(arg0, 7);
     if (Mc_SaveData[0].state.at4.loc.warp == 1) {
         Task_SpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that every declaration of a C symbol agrees with its definition.
 
-    check_decls.py [--root DIR] [--jobs N] [--strict] [PATH_PREFIX ...]
+    check_decls.py [--root DIR] [--jobs N] [--strict] [--across-images] [PATH_PREFIX ...]
 
 The linker matches symbols by name alone, and each translation unit is
 compiled on its own, so nothing ever compares a declaration in one file with
@@ -28,7 +28,10 @@ that is the only place a name has to mean one thing: placeholder and shared
 names are reused for different bodies in different overlays. A conflict found
 in several images is reported once. PATH_PREFIX restricts which translation
 units are scanned (`src/pe`). --strict exits non-zero on anything in
-the first two classes.
+the first two classes. With --across-images, each external spelling is also
+compared across the entire build. Use check_symbols.py alongside it to establish
+that imports and definitions name the same owned object; a shared load address
+alone does not establish symbol identity.
 """
 
 from __future__ import annotations
@@ -116,6 +119,8 @@ def main() -> int:
     ap.add_argument("--root", default=cref.repo_root(), help="repository to check (default: this one)")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 4)
     ap.add_argument("--strict", action="store_true", help="exit 1 on definition or declaration mismatches")
+    ap.add_argument("--across-images", action="store_true",
+                    help="also compare externally linked names across overlays; use check_symbols.py to verify their ownership")
     args = ap.parse_args()
 
     root = os.path.abspath(args.root)
@@ -124,6 +129,8 @@ def main() -> int:
                  (not args.prefixes or any(f.startswith(p.rstrip("/")) for p in args.prefixes)))
 
     images = _images(root)
+    if args.across_images:
+        images["<all images>"] = set(tus)
     per_tu = {}
     implicit: dict[str, set] = collections.defaultdict(set)
     with Pool(args.jobs, initializer=_init, initargs=(root, db)) as pool:

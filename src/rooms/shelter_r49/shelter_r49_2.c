@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_r49.h"
 
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
@@ -12,7 +13,182 @@
 #include "main/stream.h"
 #include "main/task.h"
 
-extern TaskDesc D_shelter_r49_8017DA00;
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+extern TaskDesc D_shelter_r49_8017DA00[];
+
+extern GpGridParams D_shelter_r49_8017DAAC[1];
+extern GpRoomCoordSet D_shelter_r49_8017DD24[1];
+void func_shelter_r49_8017D71C(Task *);
+void func_shelter_r49_8017D8D8(Task *);
+
+TaskDesc D_shelter_r49_8017DA00[2] = {
+    { 0, 192, func_shelter_r49_8017D8D8, { .model = NULL } },
+    { 0, 192, func_shelter_r49_8017D71C, { .model = NULL } },
+};
+
+GpRoomObjRec D_shelter_r49_8017DA18[1] = {
+    { D_shelter_r49_8017DAAC, NULL, NULL, NULL },
+};
+
+u8 * D_shelter_r49_8017DA28[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_r49_8017DA2C[1] = {
+    { { .bytes = { 3, 0 } } },
+};
+
+GpRoomCoordRec D_shelter_r49_8017DA30[1] = {
+    { D_shelter_r49_8017DD24, NULL },
+};
+
+GpWarpRec D_shelter_r49_8017DA38[1] = {
+    { { .words = { 1024, 0, -0x2710, 0 } }, { 0, 0, 0, 0 }, { .words = { 1024, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+};
+
+SVECTOR D_shelter_r49_8017DA70[1] = {
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_shelter_r49_8017DA78[4] = {
+    { -4000, 0, 4000, 0 },
+    { 4000, 0, 4000, 0 },
+    { 4000, 0, -4000, 0 },
+    { -4000, 0, -4000, 0 },
+};
+
+GpGridFace D_shelter_r49_8017DA98[1] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+};
+
+s16 D_shelter_r49_8017DAA4[2] = {
+    0,
+    -1,
+};
+
+s16 * D_shelter_r49_8017DAA8[1] = {
+    D_shelter_r49_8017DAA4,
+};
+
+GpGridParams D_shelter_r49_8017DAAC[1] = {
+    { NULL, D_shelter_r49_8017DA70, D_shelter_r49_8017DA78, D_shelter_r49_8017DA98, D_shelter_r49_8017DAA8, 4000, 4000, 1, 1, 0x7530, 1 },
+};
+
+GpViewRec D_shelter_r49_8017DAD0[3] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, 257 },
+    { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
+    { { { { 4057, 0, -561 }, { 28, 4090, 208 }, { 560, -210, 4051 } }, { 770, 1400, -190 } }, 541 },
+};
+
+GpSprtCmd D_shelter_r49_8017DB3C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_r49_8017DB4C[15] = {
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 0, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 40, 0, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 96, 0, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, -16, 24, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, 32, 961, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 8, 32, 1050, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 16, 40, 1150, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 40, 32, 1375, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 40, 1375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 48, 1250, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_r49_8017DC78[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 15, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_r49_8017DC90[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_r49_8017DCA0[3] = {
+    { { .empty = D_shelter_r49_8017DB3C }, D_shelter_r49_8017DB3C, NULL },
+    { { .elements = D_shelter_r49_8017DB4C }, D_shelter_r49_8017DC78, NULL },
+    { { .empty = D_shelter_r49_8017DC90 }, D_shelter_r49_8017DC90, NULL },
+};
+
+GpPointLight D_shelter_r49_8017DCC4[1] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 6000, 7000 },
+};
+
+GpRoomCoordSet D_shelter_r49_8017DD24[1] = {
+    { 0, NULL, 1, D_shelter_r49_8017DCC4, 0, NULL },
+};
+
+GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {
+    { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_r49_8017DD54[2] = {
+    { 111, 0, 0, 0, 0, 3210, 0, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_r49_8017DD74[13] = {
+    { NULL, NULL },
+    { D_shelter_r49_8017DD54, D_shelter_r49_8017DD3C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_shelter_r49_8017DDDC[3] = {
+    0x1000002D,
+    0x1000002F,
+    0x1000002D,
+};
+
+GpRoomParamRec D_shelter_r49_8017DDE8[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_r49_8017DDF0[1] = {
+    { 0, 0, 1, 0, D_shelter_r49_8017DDDC },
+};
+
+GpRoomParamRec * D_shelter_r49_8017DDF8[8] = {
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDF0,
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDE8,
+    D_shelter_r49_8017DDE8,
+};
 
 void func_shelter_r49_8017D71C(Task* arg0)
 {
@@ -102,7 +278,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Display_SpawnWithOt(&D_shelter_r49_8017DA00, 1, 0, 0);
+            Display_SpawnWithOt(D_shelter_r49_8017DA00, 1, 0, 0);
             gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             arg0->state = arg0->state + 1;
@@ -124,6 +300,6 @@ void func_shelter_r49_8017D8D8(Task* arg0)
     }
 }
 
-static void func_shelter_r49_8017D9D0(void)
+void func_shelter_r49_8017D9D0(Task* unused)
 {
 }

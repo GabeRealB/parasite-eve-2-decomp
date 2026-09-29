@@ -1,5 +1,6 @@
-#include "common.h"
 #include "pe/antibody.h"
+
+#include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -62,7 +63,7 @@ static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 /// `period` and moves to state 2, which shrinks `scale` by 0x10 a frame
 /// and redraws at the capped radius until it drops below 0x11.
 
-static void func_antibody_8012EF34(Task* arg0)
+void func_antibody_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -250,7 +251,7 @@ release:
 /// `func_antibody_80130428` pair. All three re-roll `scale` / `angle`
 /// from the row's `field_8` one frame in eight, and states 2 and 3 release the
 /// effect at tick 0x15.
-static void func_antibody_8012F734(Task* arg0)
+void func_antibody_8012F734(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;

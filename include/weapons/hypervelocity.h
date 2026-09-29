@@ -1,6 +1,8 @@
 #ifndef WEAPONS_HYPERVELOCITY_H
 #define WEAPONS_HYPERVELOCITY_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -81,5 +83,13 @@ STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
 /// Per-particle jitter of the hypervelocity trail, one 8-bit LCG roll each,
 /// re-rolled as a block when the round is fired.
 extern s16 D_hypervelocity_8012EF0C[16];
+
+void func_hypervelocity_8011F270(Task* arg0);
+
+void func_hypervelocity_8011D830(Task* task);
+
+void func_hypervelocity_8011F168(Task* arg0);
+
+void func_hypervelocity_8011D1E8(Task* task);
 
 #endif

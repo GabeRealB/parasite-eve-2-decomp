@@ -1,4 +1,23 @@
 #include "gameplay/items.h"
+#include "rooms/shelter_1f_tent.h"
+#include "rooms/shelter_b6_nursery.h"
+#include "rooms/shelter_r47.h"
+#include "rooms/shelter_b3_incinerator_control_room.h"
+#include "rooms/shelter_b2_laboratory.h"
+#include "rooms/shelter_b1_underground_parking.h"
+#include "rooms/shelter_b1_sterilization_room.h"
+#include "rooms/mine_refuge.h"
+#include "rooms/dryfield_night_motel_room_6.h"
+#include "rooms/dryfield_night_trailer_coach.h"
+#include "rooms/dryfield_night_motel_lobby.h"
+#include "rooms/dryfield_night_gas_station.h"
+#include "rooms/dryfield_motel_room_6.h"
+#include "rooms/dryfield_trailer_coach.h"
+#include "rooms/dryfield_motel_lobby.h"
+#include "rooms/dryfield_gas_station.h"
+#include "rooms/mist_parking.h"
+#include "rooms/acropolis_fire_escape.h"
+#include "rooms/acropolis_square.h"
 
 #include "types.h"
 
@@ -49,44 +68,6 @@ static inline s32 _gpHasItemSeenBit(s32 item);
 /// Empties the ammunition and attachment of weapon item `item`, the same clear
 /// `Gp_ClearEquipSlot` performs.
 static inline void _gpClearEquipSlot(s32 item);
-
-void func_80180804(void);
-
-void func_8017EA68(void);
-
-void func_80181468(void);
-
-void func_8017EA90(void);
-
-void func_8017E9E8(void);
-
-void func_80181364(void);
-
-void func_8017EA58(void);
-
-void func_8017E9F8(void);
-
-void func_8017EAE0(void);
-
-void func_8018138C(void);
-
-void func_8017EA74(void);
-
-void func_8017EA78(void);
-
-void func_8017EB2C(void);
-
-void func_8017EDE8(void);
-
-void func_8017EAB4(void);
-
-void func_8017EA64(void);
-
-void func_8017EC04(void);
-
-void func_8017EAC4(void);
-
-void func_8017EA60(void);
 
 u8 Gp_ItemSortKey0[72] = {
     0,
@@ -922,61 +903,61 @@ void func_800B92CC(Task* task)
 {
     switch (GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) {
         case GP_LOC_KEY(1, 1, 0, 0):
-            func_80180804();
+            func_acropolis_square_80180804(task);
             break;
         case GP_LOC_KEY(1, 15, 0, 0):
-            func_8017EA68();
+            func_acropolis_fire_escape_8017EA68(task);
             break;
         case GP_LOC_KEY(1, 19, 0, 0):
-            func_80181468();
+            func_mist_parking_80181468(task);
             break;
         case GP_LOC_KEY(2, 1, 0, 0):
-            func_8017EA90();
+            func_dryfield_gas_station_8017EA90(task);
             break;
         case GP_LOC_KEY(2, 17, 0, 0):
-            func_8017E9E8();
+            func_dryfield_motel_lobby_8017E9E8(task);
             break;
         case GP_LOC_KEY(2, 27, 0, 0):
-            func_80181364();
+            func_dryfield_trailer_coach_80181364(task);
             break;
         case GP_LOC_KEY(3, 1, 0, 0):
-            func_8017E9F8();
+            func_dryfield_night_gas_station_8017E9F8(task);
             break;
         case GP_LOC_KEY(3, 17, 0, 0):
-            func_8017EAE0();
+            func_dryfield_night_motel_lobby_8017EAE0(task);
             break;
         case GP_LOC_KEY(3, 27, 0, 0):
-            func_8018138C();
+            func_dryfield_night_trailer_coach_8018138C(task);
             break;
         case GP_LOC_KEY(4, 6, 0, 0):
-            func_8017EA78();
+            func_mine_refuge_8017EA78(task);
             break;
         case GP_LOC_KEY(4, 16, 0, 0):
-            func_8017EB2C();
+            func_shelter_b1_sterilization_room_8017EB2C(task);
             break;
         case GP_LOC_KEY(4, 20, 0, 0):
-            func_8017EDE8();
+            func_shelter_b1_underground_parking_8017EDE8(task);
             break;
         case GP_LOC_KEY(4, 31, 0, 0):
-            func_8017EAB4();
+            func_shelter_b2_laboratory_8017EAB4(task);
             break;
         case GP_LOC_KEY(4, 41, 0, 0):
-            func_8017EA64();
+            func_shelter_b3_incinerator_control_room_8017EA64(task);
             break;
         case GP_LOC_KEY(4, 47, 0, 0):
-            func_8017EC04();
+            func_shelter_r47_8017EC04(task);
             break;
         case GP_LOC_KEY(5, 22, 0, 0):
-            func_8017EAC4();
+            func_shelter_b6_nursery_8017EAC4(task);
             break;
         case GP_LOC_KEY(5, 28, 0, 0):
-            func_8017EA60();
+            func_shelter_1f_tent_8017EA60(task);
             break;
         case GP_LOC_KEY(2, 30, 0, 0):
-            func_8017EA58();
+            func_dryfield_motel_room_6_8017EA58(task);
             break;
         case GP_LOC_KEY(3, 30, 0, 0):
-            func_8017EA74();
+            func_dryfield_night_motel_room_6_8017EA74(task);
             break;
     }
 }

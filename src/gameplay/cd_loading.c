@@ -1,4 +1,155 @@
 #include "gameplay/loading.h"
+#include "rooms/dryfield_night_gas_station.h"
+#include "rooms/mist_parking.h"
+#include "rooms/acropolis_bridge.h"
+#include "rooms/shelter_1f_parking_garage.h"
+#include "rooms/dryfield_night_r08.h"
+#include "rooms/neo_ark_pyramid.h"
+#include "rooms/neo_ark_r31.h"
+#include "rooms/neo_ark_submarine_gallery.h"
+#include "rooms/neo_ark_woodland_path.h"
+#include "rooms/shelter_1f_tent.h"
+#include "rooms/neo_ark_bridge.h"
+#include "rooms/neo_ark_r26.h"
+#include "rooms/shelter_b6_training_room.h"
+#include "rooms/shelter_b6_corridor.h"
+#include "rooms/shelter_b6_growth_room.h"
+#include "rooms/shelter_b6_nursery.h"
+#include "rooms/neo_ark_shrine.h"
+#include "rooms/neo_ark_south_promenade.h"
+#include "rooms/neo_ark_savanna_zone.h"
+#include "rooms/neo_ark_power_plant_1.h"
+#include "rooms/neo_ark_power_plant_2.h"
+#include "rooms/neo_ark_garden.h"
+#include "rooms/neo_ark_island.h"
+#include "rooms/neo_ark_pavilion.h"
+#include "rooms/neo_ark_submarine_tunnel.h"
+#include "rooms/neo_ark_forest_zone.h"
+#include "rooms/neo_ark_north_promenade.h"
+#include "rooms/neo_ark_eve_access_tunnel.h"
+#include "rooms/neo_ark_observatory.h"
+#include "rooms/shelter_1f_airlock.h"
+#include "rooms/shelter_1f_heliport.h"
+#include "rooms/shelter_1f_bulwark.h"
+#include "rooms/shelter_1f_vehicular_airlock.h"
+#include "rooms/shelter_r49.h"
+#include "rooms/shelter_r48.h"
+#include "rooms/shelter_r47.h"
+#include "rooms/shelter_b4_water_supply.h"
+#include "rooms/shelter_b4_reservoir.h"
+#include "rooms/shelter_b4_upper_sewer.h"
+#include "rooms/shelter_b4_lower_sewer.h"
+#include "rooms/shelter_b3_elevator_hall.h"
+#include "rooms/shelter_b3_incinerator_control_room.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
+#include "rooms/shelter_b3_dumping_hole.h"
+#include "rooms/shelter_r36.h"
+#include "rooms/shelter_b2_pod_access_tunnel.h"
+#include "rooms/shelter_b2_septic_tank.h"
+#include "rooms/shelter_b2_main_corridor.h"
+#include "rooms/shelter_b2_laboratory.h"
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
+#include "rooms/shelter_b2_operating_room.h"
+#include "rooms/shelter_b2_south_maintenance_walkway.h"
+#include "rooms/shelter_b2_elevator_hall.h"
+#include "rooms/shelter_b2_elevator.h"
+#include "rooms/shelter_b1_control_room_access_tunnel.h"
+#include "rooms/shelter_b1_transfer_tunnel.h"
+#include "rooms/shelter_b1_pod_service_gantry.h"
+#include "rooms/shelter_b2_pod_bottom.h"
+#include "rooms/shelter_b1_golem_freezer_1.h"
+#include "rooms/shelter_b1_underground_parking.h"
+#include "rooms/shelter_b1_access_tunnel.h"
+#include "rooms/shelter_b1_control_room.h"
+#include "rooms/shelter_b1_pod_access_tunnel.h"
+#include "rooms/shelter_b1_sterilization_room.h"
+#include "rooms/shelter_b1_main_corridor.h"
+#include "rooms/shelter_b1_sleeping_quarters.h"
+#include "rooms/shelter_b1_armory.h"
+#include "rooms/shelter_b1_north_maintenance_walkway.h"
+#include "rooms/shelter_b1_storeroom.h"
+#include "rooms/shelter_b1_south_maintenance_walkway.h"
+#include "rooms/shelter_b1_elevator_hall.h"
+#include "rooms/mine_secret_passage.h"
+#include "rooms/mine_forked_tunnel.h"
+#include "rooms/mine_refuge.h"
+#include "rooms/mine_gorge.h"
+#include "rooms/mine_tunnel.h"
+#include "rooms/mine_tunnel_entrance.h"
+#include "rooms/mine_cavern.h"
+#include "rooms/mine_mesa.h"
+#include "rooms/dryfield_night_underpass.h"
+#include "rooms/dryfield_night_cellar.h"
+#include "rooms/dryfield_night_water_hole.h"
+#include "rooms/dryfield_night_motel_loft.h"
+#include "rooms/dryfield_night_motel_room_6.h"
+#include "rooms/dryfield_night_motel_balcony.h"
+#include "rooms/dryfield_night_motel_room_5.h"
+#include "rooms/dryfield_night_trailer_coach.h"
+#include "rooms/dryfield_night_junk_yard.h"
+#include "rooms/dryfield_night_driveway.h"
+#include "rooms/dryfield_night_garage.h"
+#include "rooms/dryfield_night_factory.h"
+#include "rooms/dryfield_night_breezeway.h"
+#include "rooms/dryfield_night_water_tank.h"
+#include "rooms/dryfield_night_water_tower.h"
+#include "rooms/dryfield_night_g_r_kitchen.h"
+#include "rooms/dryfield_night_saloon_g_r.h"
+#include "rooms/dryfield_night_motel_lobby.h"
+#include "rooms/dryfield_night_toilet.h"
+#include "rooms/dryfield_night_parking_lot.h"
+#include "rooms/dryfield_night_motel_room_4.h"
+#include "rooms/dryfield_night_motel_room_3.h"
+#include "rooms/dryfield_night_motel_room_2.h"
+#include "rooms/dryfield_night_motel_room_1.h"
+#include "rooms/dryfield_night_dilapidated_house.h"
+#include "rooms/dryfield_night_warehouse.h"
+#include "rooms/dryfield_night_souvenir_shop.h"
+#include "rooms/dryfield_night_back_street.h"
+#include "rooms/dryfield_night_general_store.h"
+#include "rooms/dryfield_night_main_street.h"
+#include "rooms/dryfield_underpass.h"
+#include "rooms/dryfield_cellar.h"
+#include "rooms/dryfield_water_hole.h"
+#include "rooms/dryfield_motel_room_6.h"
+#include "rooms/dryfield_motel_balcony.h"
+#include "rooms/dryfield_trailer_coach.h"
+#include "rooms/dryfield_junk_yard.h"
+#include "rooms/dryfield_driveway.h"
+#include "rooms/dryfield_garage.h"
+#include "rooms/dryfield_breezeway.h"
+#include "rooms/dryfield_water_tank.h"
+#include "rooms/dryfield_water_tower.h"
+#include "rooms/dryfield_g_r_kitchen.h"
+#include "rooms/dryfield_saloon_g_r.h"
+#include "rooms/dryfield_toilet.h"
+#include "rooms/dryfield_parking_lot.h"
+#include "rooms/dryfield_motel_room_2.h"
+#include "rooms/dryfield_motel_room_1.h"
+#include "rooms/dryfield_dilapidated_house.h"
+#include "rooms/dryfield_r08.h"
+#include "rooms/dryfield_warehouse.h"
+#include "rooms/dryfield_souvenir_shop.h"
+#include "rooms/dryfield_back_street.h"
+#include "rooms/dryfield_general_store.h"
+#include "rooms/dryfield_main_street.h"
+#include "rooms/dryfield_gas_station.h"
+#include "rooms/mist_shooting_gallery.h"
+#include "rooms/mist_r18.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
+#include "rooms/acropolis_fire_escape.h"
+#include "rooms/acropolis_roof_garden.h"
+#include "rooms/acropolis_sanctuary.h"
+#include "rooms/acropolis_promenade.h"
+#include "rooms/acropolis_observatory.h"
+#include "rooms/acropolis_forked_road.h"
+#include "rooms/acropolis_fountain.h"
+#include "rooms/acropolis_hallway.h"
+#include "rooms/acropolis_security_room.h"
+#include "rooms/acropolis_cafeteria.h"
+#include "rooms/acropolis_patio.h"
+#include "rooms/acropolis_east_elevator_hall.h"
+#include "rooms/acropolis_square.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -75,510 +226,210 @@ static void Gp_ReloadFromSave(void);
 
 static void Gp_ReloadAtLoc(s32 arg0);
 
-extern GpAreaVariant D_80185E50[];
+extern GpAreaVariant D_acropolis_plaza_80199390[];
 
-extern GpAreaVariant D_80186C50[];
-
-extern GpAreaVariant D_80184A90[];
-
-extern GpAreaVariant D_80189DCC[];
-
-extern GpAreaVariant D_80199390[];
-
-extern GpAreaVariant D_80184088[];
-
-extern GpAreaVariant D_8017EA3C[];
-
-extern GpAreaVariant D_8017FC9C[];
-
-extern GpAreaVariant D_801831C4[];
-
-extern GpAreaVariant D_80181264[];
-
-extern GpAreaVariant D_80183020[];
-
-extern GpAreaVariant D_8018402C[];
-
-extern GpAreaVariant D_80185934[];
-
-extern GpAreaVariant D_8019004C[];
-
-extern GpAreaVariant D_8018294C[];
-
-extern GpAreaVariant D_801861E8[];
-
-extern GpAreaVariant D_80186BFC[];
-
-extern GpAreaVariant D_801951B4[];
-
-extern GpAreaVariant D_8018DF74[];
-
-extern GpAreaVariant D_80184A38[];
-
-extern GpAreaVariant D_80184F20[];
-
-extern GpAreaVariant D_80185654[];
-
-extern GpAreaVariant D_80180A50[];
-
-extern GpAreaVariant D_8017F598[];
-
-extern GpAreaVariant D_80182100[];
-
-extern GpAreaVariant D_80180B88[];
-
-extern GpAreaVariant D_80189938[];
-
-extern GpAreaVariant D_801814DC[];
-
-extern GpAreaVariant D_80180410[];
-
-extern GpAreaVariant D_8017FA74[];
-
-extern GpAreaVariant D_80182918[];
-
-extern GpAreaVariant D_80181B1C[];
-
-extern GpAreaVariant D_8017F4B8[];
-
-extern GpAreaVariant D_8018757C[];
-
-extern GpAreaVariant D_80188BF0[];
-
-extern GpAreaVariant D_801842F8[];
-
-extern GpAreaVariant D_801800E0[];
-
-extern GpAreaVariant D_8017EDD4[];
-
-extern GpAreaVariant D_8017F558[];
-
-extern GpAreaVariant D_801876F0[];
-
-extern GpAreaVariant D_80186220[];
-
-extern GpAreaVariant D_80186764[];
-
-extern GpAreaVariant D_801827BC[];
-
-extern GpAreaVariant D_80180ACC[];
-
-extern GpAreaVariant D_8017F868[];
-
-extern GpAreaVariant D_80190624[];
-
-extern GpAreaVariant D_80188A08[];
-
-extern GpAreaVariant D_8018572C[];
-
-extern GpAreaVariant D_80181518[];
-
-extern GpAreaVariant D_8017F62C[];
-
-extern GpAreaVariant D_8017FB98[];
-
-extern GpAreaVariant D_801818D8[];
-
-extern GpAreaVariant D_80189FA4[];
-
-extern GpAreaVariant D_8018075C[];
-
-extern GpAreaVariant D_801809A0[];
-
-extern GpAreaVariant D_80180D24[];
-
-extern GpAreaVariant D_801802FC[];
-
-extern GpAreaVariant D_80181438[];
-
-extern GpAreaVariant D_8017F354[];
-
-extern GpAreaVariant D_801843C4[];
-
-extern GpAreaVariant D_80188EE4[];
-
-extern GpAreaVariant D_8017EB88[];
-
-extern GpAreaVariant D_80182B5C[];
-
-extern GpAreaVariant D_80180764[];
-
-extern GpAreaVariant D_801803E4[];
-
-extern GpAreaVariant D_8018A70C[];
-
-extern GpAreaVariant D_801874BC[];
-
-extern GpAreaVariant D_80181F4C[];
-
-extern GpAreaVariant D_801843F0[];
-
-extern GpAreaVariant D_8018C15C[];
-
-extern GpAreaVariant D_80181190[];
-
-extern GpAreaVariant D_8018EA94[];
-
-extern GpAreaVariant D_801861B4[];
-
-extern GpAreaVariant D_80180888[];
-
-extern GpAreaVariant D_80183418[];
-
-extern GpAreaVariant D_80180780[];
-
-extern GpAreaVariant D_801802DC[];
-
-extern GpAreaVariant D_801898F4[];
-
-extern GpAreaVariant D_8018E238[];
-
-extern GpAreaVariant D_8017F32C[];
-
-extern GpAreaVariant D_801801CC[];
-
-extern GpAreaVariant D_80183544[];
-
-extern GpAreaVariant D_80182A00[];
-
-extern GpAreaVariant D_80185504[];
-
-extern GpAreaVariant D_80183340[];
-
-extern GpAreaVariant D_80184940[];
-
-extern GpAreaVariant D_80183598[];
-
-extern GpAreaVariant D_80186C9C[];
-
-extern GpAreaVariant D_80185A38[];
-
-extern GpAreaVariant D_801854E0[];
-
-extern GpAreaVariant D_80183FDC[];
-
-extern GpAreaVariant D_80185C30[];
-
-extern GpAreaVariant D_8018C14C[];
-
-extern GpAreaVariant D_80184C00[];
-
-extern GpAreaVariant D_80183A98[];
-
-extern GpAreaVariant D_8017FE50[];
-
-extern GpAreaVariant D_8018B5C4[];
-
-extern GpAreaVariant D_8017F17C[];
-
-extern GpAreaVariant D_80187678[];
-
-extern GpAreaVariant D_8017FBF8[];
-
-extern GpAreaVariant D_801830B8[];
-
-extern GpAreaVariant D_801825AC[];
-
-extern GpAreaVariant D_8017E964[];
-
-extern GpAreaVariant D_80184C7C[];
-
-extern GpAreaVariant D_801837AC[];
-
-extern GpAreaVariant D_80184124[];
-
-extern GpAreaVariant D_80186258[];
-
-extern GpAreaVariant D_80186360[];
-
-extern GpAreaVariant D_80183EEC[];
-
-extern GpAreaVariant D_8018933C[];
-
-extern GpAreaVariant D_80186F40[];
-
-extern GpAreaVariant D_801855AC[];
-
-extern GpAreaVariant D_8017FA40[];
-
-extern GpAreaVariant D_8018EC3C[];
-
-extern GpAreaVariant D_8018FA58[];
-
-extern GpAreaVariant D_80182610[];
-
-extern GpAreaVariant D_8018477C[];
-
-extern GpAreaVariant D_80183D48[];
-
-extern GpAreaVariant D_80188B9C[];
-
-extern GpAreaVariant D_80187350[];
-
-extern GpAreaVariant D_80184CA4[];
-
-extern GpAreaVariant D_80187CB8[];
-
-extern GpAreaVariant D_8018BC10[];
-
-extern GpAreaVariant D_8017DD74[];
-
-extern GpAreaVariant D_80182A04[];
-
-extern GpAreaVariant D_80180DA8[];
-
-extern GpAreaVariant D_80182BF4[];
-
-extern GpAreaVariant D_8017F758[];
-
-extern GpAreaVariant D_8018786C[];
-
-extern GpAreaVariant D_801806B8[];
-
-extern GpAreaVariant D_8018305C[];
-
-extern GpAreaVariant D_80182968[];
-
-extern GpAreaVariant D_80187470[];
-
-extern GpAreaVariant D_801876C4[];
-
-extern GpAreaVariant D_80183F48[];
-
-extern GpAreaVariant D_80182B54[];
-
-extern GpAreaVariant D_80182DE0[];
-
-extern GpAreaVariant D_80181AF8[];
-
-extern GpAreaVariant D_80180864[];
-
-extern GpAreaVariant D_801808E4[];
-
-extern GpAreaVariant D_801866C8[];
-
-extern GpAreaVariant D_801874A4[];
-
-extern GpAreaVariant D_80180338[];
-
-extern GpAreaVariant D_80180304[];
-
-extern GpAreaVariant D_801859DC[];
-
-extern GpAreaVariant D_8017E994[];
-
-extern GpAreaVariant D_80184A50[];
-
-extern GpAreaVariant D_80184230[];
-
-extern GpAreaVariant D_8018471C[];
-
-extern GpAreaVariant D_80185860[];
-
-extern GpAreaVariant D_8017DBB8[];
-
-extern GpAreaVariant D_80181728[];
+extern GpAreaVariant D_shelter_b2_breeding_room_80183EEC[];
 
 GpAreaRec* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
 GpAreaRec  D_8010CBE4[21]   = {
     { NULL, NULL },
-    { D_80185E50, &GameFlag_AcropolisBanks[0].areas[0].state },
-    { D_80186C50, &GameFlag_AcropolisBanks[0].areas[1].state },
-    { D_80184A90, &GameFlag_AcropolisBanks[0].areas[2].state },
-    { D_80189DCC, &GameFlag_AcropolisBanks[0].areas[3].state },
-    { D_80199390, &GameFlag_AcropolisBanks[0].areas[4].state },
-    { D_80184088, &GameFlag_AcropolisBanks[0].areas[5].state },
-    { D_8017EA3C, &GameFlag_AcropolisBanks[0].areas[6].state },
-    { D_8017FC9C, &GameFlag_AcropolisBanks[0].areas[7].state },
-    { D_801831C4, &GameFlag_AcropolisBanks[0].areas[8].state },
-    { D_80181264, &GameFlag_AcropolisBanks[0].areas[9].state },
-    { D_80183020, &GameFlag_AcropolisBanks[0].areas[10].state },
-    { D_8018402C, &GameFlag_AcropolisBanks[0].areas[11].state },
-    { D_80185934, &GameFlag_AcropolisBanks[0].areas[12].state },
-    { D_8019004C, &GameFlag_AcropolisBanks[0].areas[13].state },
-    { D_8018294C, &GameFlag_AcropolisBanks[0].areas[14].state },
-    { D_801861E8, &GameFlag_AcropolisBanks[0].areas[15].state },
+    { D_acropolis_square_80185E50, &GameFlag_AcropolisBanks[0].areas[0].state },
+    { D_acropolis_east_elevator_hall_80186C50, &GameFlag_AcropolisBanks[0].areas[1].state },
+    { D_acropolis_patio_80184A90, &GameFlag_AcropolisBanks[0].areas[2].state },
+    { D_acropolis_cafeteria_80189DCC, &GameFlag_AcropolisBanks[0].areas[3].state },
+    { D_acropolis_plaza_80199390, &GameFlag_AcropolisBanks[0].areas[4].state },
+    { D_acropolis_security_room_80184088, &GameFlag_AcropolisBanks[0].areas[5].state },
+    { D_acropolis_hallway_8017EA3C, &GameFlag_AcropolisBanks[0].areas[6].state },
+    { D_acropolis_fountain_8017FC9C, &GameFlag_AcropolisBanks[0].areas[7].state },
+    { D_acropolis_forked_road_801831C4, &GameFlag_AcropolisBanks[0].areas[8].state },
+    { D_acropolis_observatory_80181264, &GameFlag_AcropolisBanks[0].areas[9].state },
+    { D_acropolis_promenade_80183020, &GameFlag_AcropolisBanks[0].areas[10].state },
+    { D_acropolis_sanctuary_8018402C, &GameFlag_AcropolisBanks[0].areas[11].state },
+    { D_acropolis_roof_garden_80185934, &GameFlag_AcropolisBanks[0].areas[12].state },
+    { D_acropolis_bridge_8019004C, &GameFlag_AcropolisBanks[0].areas[13].state },
+    { D_acropolis_fire_escape_8018294C, &GameFlag_AcropolisBanks[0].areas[14].state },
+    { D_acropolis_helicopter_landing_pad_801861E8, &GameFlag_AcropolisBanks[0].areas[15].state },
     { NULL, NULL },
-    { D_80186BFC, &GameFlag_AcropolisBanks[0].areas[16].state },
-    { D_801951B4, &GameFlag_AcropolisBanks[0].areas[17].state },
-    { D_8018DF74, &GameFlag_DryfieldBanks[0].areas[29].state },
+    { D_mist_r18_80186BFC, &GameFlag_AcropolisBanks[0].areas[16].state },
+    { D_mist_parking_801951B4, &GameFlag_AcropolisBanks[0].areas[17].state },
+    { D_mist_shooting_gallery_8018DF74, &GameFlag_DryfieldBanks[0].areas[29].state },
 };
 /// End marker following the stage 1 room table.
 u32       D_8010CC8C[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CC94[39] = {
     { NULL, NULL },
-    { D_80184A38, &GameFlag_DryfieldBanks[0].areas[0].state },
-    { D_80184F20, &GameFlag_DryfieldBanks[0].areas[1].state },
-    { D_80185654, &GameFlag_DryfieldBanks[0].areas[2].state },
+    { D_dryfield_gas_station_80184A38, &GameFlag_DryfieldBanks[0].areas[0].state },
+    { D_dryfield_main_street_80184F20, &GameFlag_DryfieldBanks[0].areas[1].state },
+    { D_dryfield_general_store_80185654, &GameFlag_DryfieldBanks[0].areas[2].state },
     { NULL, NULL },
-    { D_80180A50, &GameFlag_DryfieldBanks[0].areas[3].state },
-    { D_8017F598, &GameFlag_DryfieldBanks[0].areas[4].state },
-    { D_80182100, &GameFlag_DryfieldBanks[0].areas[5].state },
-    { D_80180B88, &GameFlag_DryfieldBanks[0].areas[33].state },
-    { D_80189938, &GameFlag_DryfieldBanks[0].areas[6].state },
+    { D_dryfield_back_street_80180A50, &GameFlag_DryfieldBanks[0].areas[3].state },
+    { D_dryfield_souvenir_shop_8017F598, &GameFlag_DryfieldBanks[0].areas[4].state },
+    { D_dryfield_warehouse_80182100, &GameFlag_DryfieldBanks[0].areas[5].state },
+    { D_dryfield_r08_80180B88, &GameFlag_DryfieldBanks[0].areas[33].state },
+    { D_dryfield_dilapidated_house_80189938, &GameFlag_DryfieldBanks[0].areas[6].state },
     { NULL, NULL },
-    { D_801814DC, &GameFlag_DryfieldBanks[0].areas[7].state },
-    { D_80180410, &GameFlag_DryfieldBanks[0].areas[8].state },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_8017FA74, &GameFlag_DryfieldBanks[0].areas[11].state },
-    { D_80182918, &GameFlag_DryfieldBanks[0].areas[12].state },
-    { NULL, NULL },
-    { D_80181B1C, &GameFlag_DryfieldBanks[0].areas[13].state },
-    { D_8017F4B8, &GameFlag_DryfieldBanks[0].areas[14].state },
-    { D_8018757C, &GameFlag_DryfieldBanks[0].areas[15].state },
-    { D_80188BF0, &GameFlag_DryfieldBanks[0].areas[16].state },
-    { D_801842F8, &GameFlag_DryfieldBanks[0].areas[17].state },
-    { NULL, NULL },
-    { D_801800E0, &GameFlag_DryfieldBanks[0].areas[18].state },
-    { D_8017EDD4, &GameFlag_DryfieldBanks[0].areas[19].state },
-    { D_8017F558, &GameFlag_DryfieldBanks[0].areas[20].state },
-    { D_801876F0, &GameFlag_DryfieldBanks[0].areas[21].state },
-    { NULL, NULL },
-    { D_80186220, &GameFlag_DryfieldBanks[0].areas[23].state },
-    { D_80186764, &GameFlag_DryfieldBanks[0].areas[24].state },
-    { NULL, NULL },
-    { D_801827BC, &GameFlag_DryfieldBanks[0].areas[26].state },
-    { NULL, NULL },
-    { D_80180ACC, &GameFlag_DryfieldBanks[0].areas[27].state },
+    { D_dryfield_motel_room_1_801814DC, &GameFlag_DryfieldBanks[0].areas[7].state },
+    { D_dryfield_motel_room_2_80180410, &GameFlag_DryfieldBanks[0].areas[8].state },
     { NULL, NULL },
     { NULL, NULL },
+    { D_dryfield_parking_lot_8017FA74, &GameFlag_DryfieldBanks[0].areas[11].state },
+    { D_dryfield_toilet_80182918, &GameFlag_DryfieldBanks[0].areas[12].state },
     { NULL, NULL },
-    { D_8017F868, &GameFlag_DryfieldBanks[0].areas[28].state },
+    { D_dryfield_saloon_g_r_80181B1C, &GameFlag_DryfieldBanks[0].areas[13].state },
+    { D_dryfield_g_r_kitchen_8017F4B8, &GameFlag_DryfieldBanks[0].areas[14].state },
+    { D_dryfield_water_tower_8018757C, &GameFlag_DryfieldBanks[0].areas[15].state },
+    { D_dryfield_water_tank_80188BF0, &GameFlag_DryfieldBanks[0].areas[16].state },
+    { D_dryfield_breezeway_801842F8, &GameFlag_DryfieldBanks[0].areas[17].state },
+    { NULL, NULL },
+    { D_dryfield_garage_801800E0, &GameFlag_DryfieldBanks[0].areas[18].state },
+    { D_dryfield_driveway_8017EDD4, &GameFlag_DryfieldBanks[0].areas[19].state },
+    { D_dryfield_junk_yard_8017F558, &GameFlag_DryfieldBanks[0].areas[20].state },
+    { D_dryfield_trailer_coach_801876F0, &GameFlag_DryfieldBanks[0].areas[21].state },
+    { NULL, NULL },
+    { D_dryfield_motel_balcony_80186220, &GameFlag_DryfieldBanks[0].areas[23].state },
+    { D_dryfield_motel_room_6_80186764, &GameFlag_DryfieldBanks[0].areas[24].state },
+    { NULL, NULL },
+    { D_dryfield_water_hole_801827BC, &GameFlag_DryfieldBanks[0].areas[26].state },
+    { NULL, NULL },
+    { D_dryfield_cellar_80180ACC, &GameFlag_DryfieldBanks[0].areas[27].state },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_dryfield_underpass_8017F868, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 2 room table.
 u32       D_8010CDCC[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CDD4[39] = {
     { NULL, NULL },
-    { D_80190624, &GameFlag_DryfieldBanks[0].areas[0].state },
-    { D_80188A08, &GameFlag_DryfieldBanks[0].areas[1].state },
-    { D_8018572C, &GameFlag_DryfieldBanks[0].areas[2].state },
+    { D_dryfield_night_gas_station_80190624, &GameFlag_DryfieldBanks[0].areas[0].state },
+    { D_dryfield_night_main_street_80188A08, &GameFlag_DryfieldBanks[0].areas[1].state },
+    { D_dryfield_night_general_store_8018572C, &GameFlag_DryfieldBanks[0].areas[2].state },
     { NULL, NULL },
-    { D_80181518, &GameFlag_DryfieldBanks[0].areas[3].state },
-    { D_8017F62C, &GameFlag_DryfieldBanks[0].areas[4].state },
-    { D_8017FB98, &GameFlag_DryfieldBanks[0].areas[5].state },
-    { D_801818D8, &GameFlag_DryfieldBanks[0].areas[33].state },
-    { D_80189FA4, &GameFlag_DryfieldBanks[0].areas[6].state },
+    { D_dryfield_night_back_street_80181518, &GameFlag_DryfieldBanks[0].areas[3].state },
+    { D_dryfield_night_souvenir_shop_8017F62C, &GameFlag_DryfieldBanks[0].areas[4].state },
+    { D_dryfield_night_warehouse_8017FB98, &GameFlag_DryfieldBanks[0].areas[5].state },
+    { D_dryfield_night_r08_801818D8, &GameFlag_DryfieldBanks[0].areas[33].state },
+    { D_dryfield_night_dilapidated_house_80189FA4, &GameFlag_DryfieldBanks[0].areas[6].state },
     { NULL, NULL },
-    { D_8018075C, &GameFlag_DryfieldBanks[0].areas[7].state },
-    { D_801809A0, &GameFlag_DryfieldBanks[0].areas[8].state },
-    { D_80180D24, &GameFlag_DryfieldBanks[0].areas[9].state },
-    { D_801802FC, &GameFlag_DryfieldBanks[0].areas[10].state },
-    { D_80181438, &GameFlag_DryfieldBanks[0].areas[11].state },
-    { D_8017F354, &GameFlag_DryfieldBanks[0].areas[12].state },
-    { D_801843C4, &GameFlag_DryfieldBanks[0].areas[34].state },
-    { D_80188EE4, &GameFlag_DryfieldBanks[0].areas[13].state },
-    { D_8017EB88, &GameFlag_DryfieldBanks[0].areas[14].state },
-    { D_80182B5C, &GameFlag_DryfieldBanks[0].areas[15].state },
-    { D_80180764, &GameFlag_DryfieldBanks[0].areas[16].state },
-    { D_801803E4, &GameFlag_DryfieldBanks[0].areas[17].state },
-    { D_8018A70C, &GameFlag_DryfieldBanks[0].areas[35].state },
-    { D_801874BC, &GameFlag_DryfieldBanks[0].areas[18].state },
-    { D_80181F4C, &GameFlag_DryfieldBanks[0].areas[19].state },
-    { D_801843F0, &GameFlag_DryfieldBanks[0].areas[20].state },
-    { D_8018C15C, &GameFlag_DryfieldBanks[0].areas[21].state },
-    { D_80181190, &GameFlag_DryfieldBanks[0].areas[22].state },
-    { D_8018EA94, &GameFlag_DryfieldBanks[0].areas[23].state },
-    { D_801861B4, &GameFlag_DryfieldBanks[0].areas[24].state },
-    { D_80180888, &GameFlag_DryfieldBanks[0].areas[25].state },
-    { D_80183418, &GameFlag_DryfieldBanks[0].areas[26].state },
+    { D_dryfield_night_motel_room_1_8018075C, &GameFlag_DryfieldBanks[0].areas[7].state },
+    { D_dryfield_night_motel_room_2_801809A0, &GameFlag_DryfieldBanks[0].areas[8].state },
+    { D_dryfield_night_motel_room_3_80180D24, &GameFlag_DryfieldBanks[0].areas[9].state },
+    { D_dryfield_night_motel_room_4_801802FC, &GameFlag_DryfieldBanks[0].areas[10].state },
+    { D_dryfield_night_parking_lot_80181438, &GameFlag_DryfieldBanks[0].areas[11].state },
+    { D_dryfield_night_toilet_8017F354, &GameFlag_DryfieldBanks[0].areas[12].state },
+    { D_dryfield_night_motel_lobby_801843C4, &GameFlag_DryfieldBanks[0].areas[34].state },
+    { D_dryfield_night_saloon_g_r_80188EE4, &GameFlag_DryfieldBanks[0].areas[13].state },
+    { D_dryfield_night_g_r_kitchen_8017EB88, &GameFlag_DryfieldBanks[0].areas[14].state },
+    { D_dryfield_night_water_tower_80182B5C, &GameFlag_DryfieldBanks[0].areas[15].state },
+    { D_dryfield_night_water_tank_80180764, &GameFlag_DryfieldBanks[0].areas[16].state },
+    { D_dryfield_night_breezeway_801803E4, &GameFlag_DryfieldBanks[0].areas[17].state },
+    { D_dryfield_night_factory_8018A70C, &GameFlag_DryfieldBanks[0].areas[35].state },
+    { D_dryfield_night_garage_801874BC, &GameFlag_DryfieldBanks[0].areas[18].state },
+    { D_dryfield_night_driveway_80181F4C, &GameFlag_DryfieldBanks[0].areas[19].state },
+    { D_dryfield_night_junk_yard_801843F0, &GameFlag_DryfieldBanks[0].areas[20].state },
+    { D_dryfield_night_trailer_coach_8018C15C, &GameFlag_DryfieldBanks[0].areas[21].state },
+    { D_dryfield_night_motel_room_5_80181190, &GameFlag_DryfieldBanks[0].areas[22].state },
+    { D_dryfield_night_motel_balcony_8018EA94, &GameFlag_DryfieldBanks[0].areas[23].state },
+    { D_dryfield_night_motel_room_6_801861B4, &GameFlag_DryfieldBanks[0].areas[24].state },
+    { D_dryfield_night_motel_loft_80180888, &GameFlag_DryfieldBanks[0].areas[25].state },
+    { D_dryfield_night_water_hole_80183418, &GameFlag_DryfieldBanks[0].areas[26].state },
     { NULL, NULL },
-    { D_80180780, &GameFlag_DryfieldBanks[0].areas[27].state },
+    { D_dryfield_night_cellar_80180780, &GameFlag_DryfieldBanks[0].areas[27].state },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_801802DC, &GameFlag_DryfieldBanks[0].areas[28].state },
+    { D_dryfield_night_underpass_801802DC, &GameFlag_DryfieldBanks[0].areas[28].state },
 };
 /// End marker following the stage 3 room table.
 u32       D_8010CF0C[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010CF14[50] = {
     { NULL, NULL },
-    { D_801898F4, &GameFlag_ShelterBanks[0].areas[0].state },
-    { D_8018E238, &GameFlag_ShelterBanks[0].areas[1].state },
-    { D_8017F32C, &GameFlag_ShelterBanks[0].areas[2].state },
-    { D_801801CC, &GameFlag_ShelterBanks[0].areas[3].state },
-    { D_80183544, &GameFlag_ShelterBanks[0].areas[4].state },
-    { D_80182A00, &GameFlag_ShelterBanks[0].areas[5].state },
-    { D_80185504, &GameFlag_ShelterBanks[0].areas[6].state },
-    { D_80183340, &GameFlag_ShelterBanks[0].areas[7].state },
-    { D_80184940, &GameFlag_ShelterBanks[0].areas[8].state },
-    { D_80183598, &GameFlag_ShelterBanks[0].areas[9].state },
-    { D_80186C9C, &GameFlag_ShelterBanks[0].areas[10].state },
-    { D_80185A38, &GameFlag_ShelterBanks[0].areas[11].state },
-    { D_801854E0, &GameFlag_ShelterBanks[0].areas[12].state },
-    { D_80183FDC, &GameFlag_ShelterBanks[0].areas[13].state },
-    { D_80185C30, &GameFlag_ShelterBanks[0].areas[14].state },
-    { D_8018C14C, &GameFlag_ShelterBanks[0].areas[15].state },
-    { D_80184C00, &GameFlag_ShelterBanks[0].areas[16].state },
-    { D_80183A98, &GameFlag_ShelterBanks[0].areas[17].state },
-    { D_8017FE50, &GameFlag_ShelterBanks[0].areas[18].state },
-    { D_8018B5C4, &GameFlag_ShelterBanks[0].areas[19].state },
-    { D_8017F17C, &GameFlag_ShelterBanks[0].areas[20].state },
-    { D_80187678, &GameFlag_ShelterBanks[0].areas[21].state },
-    { D_8017FBF8, &GameFlag_ShelterBanks[0].areas[22].state },
-    { D_801830B8, &GameFlag_ShelterBanks[0].areas[23].state },
-    { D_801825AC, &GameFlag_ShelterBanks[0].areas[24].state },
-    { D_8017E964, &GameFlag_ShelterBanks[0].areas[25].state },
-    { D_80184C7C, &GameFlag_ShelterBanks[0].areas[26].state },
-    { D_801837AC, &GameFlag_ShelterBanks[0].areas[27].state },
-    { D_80184124, &GameFlag_ShelterBanks[0].areas[28].state },
-    { D_80186258, &GameFlag_ShelterBanks[0].areas[29].state },
-    { D_80186360, &GameFlag_ShelterBanks[0].areas[30].state },
-    { D_80183EEC, &GameFlag_ShelterBanks[0].areas[31].state },
-    { D_8018933C, &GameFlag_ShelterBanks[0].areas[32].state },
-    { D_80186F40, &GameFlag_ShelterBanks[0].areas[33].state },
-    { D_801855AC, &GameFlag_ShelterBanks[0].areas[34].state },
-    { D_8017FA40, &GameFlag_ShelterBanks[0].areas[35].state },
+    { D_mine_mesa_801898F4, &GameFlag_ShelterBanks[0].areas[0].state },
+    { D_mine_cavern_8018E238, &GameFlag_ShelterBanks[0].areas[1].state },
+    { D_mine_tunnel_entrance_8017F32C, &GameFlag_ShelterBanks[0].areas[2].state },
+    { D_mine_tunnel_801801CC, &GameFlag_ShelterBanks[0].areas[3].state },
+    { D_mine_gorge_80183544, &GameFlag_ShelterBanks[0].areas[4].state },
+    { D_mine_refuge_80182A00, &GameFlag_ShelterBanks[0].areas[5].state },
+    { D_mine_forked_tunnel_80185504, &GameFlag_ShelterBanks[0].areas[6].state },
+    { D_mine_secret_passage_80183340, &GameFlag_ShelterBanks[0].areas[7].state },
+    { D_shelter_b1_elevator_hall_80184940, &GameFlag_ShelterBanks[0].areas[8].state },
+    { D_shelter_b1_south_maintenance_walkway_80183598, &GameFlag_ShelterBanks[0].areas[9].state },
+    { D_shelter_b1_storeroom_80186C9C, &GameFlag_ShelterBanks[0].areas[10].state },
+    { D_shelter_b1_north_maintenance_walkway_80185A38, &GameFlag_ShelterBanks[0].areas[11].state },
+    { D_shelter_b1_armory_801854E0, &GameFlag_ShelterBanks[0].areas[12].state },
+    { D_shelter_b1_sleeping_quarters_80183FDC, &GameFlag_ShelterBanks[0].areas[13].state },
+    { D_shelter_b1_main_corridor_80185C30, &GameFlag_ShelterBanks[0].areas[14].state },
+    { D_shelter_b1_sterilization_room_8018C14C, &GameFlag_ShelterBanks[0].areas[15].state },
+    { D_shelter_b1_pod_access_tunnel_80184C00, &GameFlag_ShelterBanks[0].areas[16].state },
+    { D_shelter_b1_control_room_80183A98, &GameFlag_ShelterBanks[0].areas[17].state },
+    { D_shelter_b1_access_tunnel_8017FE50, &GameFlag_ShelterBanks[0].areas[18].state },
+    { D_shelter_b1_underground_parking_8018B5C4, &GameFlag_ShelterBanks[0].areas[19].state },
+    { D_shelter_b1_golem_freezer_1_8017F17C, &GameFlag_ShelterBanks[0].areas[20].state },
+    { D_shelter_b2_pod_bottom_80187678, &GameFlag_ShelterBanks[0].areas[21].state },
+    { D_shelter_b1_pod_service_gantry_8017FBF8, &GameFlag_ShelterBanks[0].areas[22].state },
+    { D_shelter_b1_transfer_tunnel_801830B8, &GameFlag_ShelterBanks[0].areas[23].state },
+    { D_shelter_b1_control_room_access_tunnel_801825AC, &GameFlag_ShelterBanks[0].areas[24].state },
+    { D_shelter_b2_elevator_8017E964, &GameFlag_ShelterBanks[0].areas[25].state },
+    { D_shelter_b2_elevator_hall_80184C7C, &GameFlag_ShelterBanks[0].areas[26].state },
+    { D_shelter_b2_south_maintenance_walkway_801837AC, &GameFlag_ShelterBanks[0].areas[27].state },
+    { D_shelter_b2_operating_room_80184124, &GameFlag_ShelterBanks[0].areas[28].state },
+    { D_shelter_b2_north_maintenance_walkway_80186258, &GameFlag_ShelterBanks[0].areas[29].state },
+    { D_shelter_b2_laboratory_80186360, &GameFlag_ShelterBanks[0].areas[30].state },
+    { D_shelter_b2_breeding_room_80183EEC, &GameFlag_ShelterBanks[0].areas[31].state },
+    { D_shelter_b2_main_corridor_8018933C, &GameFlag_ShelterBanks[0].areas[32].state },
+    { D_shelter_b2_septic_tank_80186F40, &GameFlag_ShelterBanks[0].areas[33].state },
+    { D_shelter_b2_pod_access_tunnel_801855AC, &GameFlag_ShelterBanks[0].areas[34].state },
+    { D_shelter_r36_8017FA40, &GameFlag_ShelterBanks[0].areas[35].state },
     { NULL, NULL },
     { NULL, NULL },
-    { D_8018EC3C, &GameFlag_ShelterBanks[0].areas[38].state },
-    { D_8018FA58, &GameFlag_ShelterBanks[0].areas[39].state },
-    { D_80182610, &GameFlag_ShelterBanks[0].areas[40].state },
-    { D_8018477C, &GameFlag_ShelterBanks[0].areas[41].state },
-    { D_80183D48, &GameFlag_ShelterBanks[0].areas[42].state },
-    { D_80188B9C, &GameFlag_ShelterBanks[0].areas[43].state },
-    { D_80187350, &GameFlag_ShelterBanks[0].areas[44].state },
-    { D_80184CA4, &GameFlag_ShelterBanks[0].areas[45].state },
-    { D_80187CB8, &GameFlag_ShelterBanks[0].areas[46].state },
-    { D_8018BC10, &GameFlag_ShelterBanks[0].areas[47].state },
-    { D_8017DD74, &GameFlag_ShelterBanks[0].areas[5].state },
+    { D_shelter_b3_dumping_hole_8018EC3C, &GameFlag_ShelterBanks[0].areas[38].state },
+    { D_shelter_b3_garbage_incinerator_8018FA58, &GameFlag_ShelterBanks[0].areas[39].state },
+    { D_shelter_b3_incinerator_control_room_80182610, &GameFlag_ShelterBanks[0].areas[40].state },
+    { D_shelter_b3_elevator_hall_8018477C, &GameFlag_ShelterBanks[0].areas[41].state },
+    { D_shelter_b4_lower_sewer_80183D48, &GameFlag_ShelterBanks[0].areas[42].state },
+    { D_shelter_b4_upper_sewer_80188B9C, &GameFlag_ShelterBanks[0].areas[43].state },
+    { D_shelter_b4_reservoir_80187350, &GameFlag_ShelterBanks[0].areas[44].state },
+    { D_shelter_b4_water_supply_80184CA4, &GameFlag_ShelterBanks[0].areas[45].state },
+    { D_shelter_r47_80187CB8, &GameFlag_ShelterBanks[0].areas[46].state },
+    { D_shelter_r48_8018BC10, &GameFlag_ShelterBanks[0].areas[47].state },
+    { D_shelter_r49_8017DD74, &GameFlag_ShelterBanks[0].areas[5].state },
 };
 /// End marker following the stage 4 room table.
 u32       D_8010D0A4[2]  = { 0xFFFF, 0 };
 GpAreaRec D_8010D0AC[34] = {
     { NULL, NULL },
-    { D_801818D8, &GameFlag_NeoArkBanks[0].areas[0].state },
-    { D_80182A04, &GameFlag_NeoArkBanks[0].areas[1].state },
-    { D_80180DA8, &GameFlag_NeoArkBanks[0].areas[2].state },
-    { D_80182BF4, &GameFlag_NeoArkBanks[0].areas[3].state },
-    { D_8017F758, &GameFlag_NeoArkBanks[0].areas[4].state },
+    { D_shelter_1f_parking_garage_801818D8, &GameFlag_NeoArkBanks[0].areas[0].state },
+    { D_shelter_1f_vehicular_airlock_80182A04, &GameFlag_NeoArkBanks[0].areas[1].state },
+    { D_shelter_1f_bulwark_80180DA8, &GameFlag_NeoArkBanks[0].areas[2].state },
+    { D_shelter_1f_heliport_80182BF4, &GameFlag_NeoArkBanks[0].areas[3].state },
+    { D_shelter_1f_airlock_8017F758, &GameFlag_NeoArkBanks[0].areas[4].state },
     { NULL, NULL },
-    { D_8018786C, &GameFlag_NeoArkBanks[0].areas[6].state },
-    { D_801806B8, &GameFlag_NeoArkBanks[0].areas[7].state },
+    { D_neo_ark_observatory_8018786C, &GameFlag_NeoArkBanks[0].areas[6].state },
+    { D_neo_ark_eve_access_tunnel_801806B8, &GameFlag_NeoArkBanks[0].areas[7].state },
     { NULL, NULL },
-    { D_8018305C, &GameFlag_NeoArkBanks[0].areas[9].state },
-    { D_80182968, &GameFlag_NeoArkBanks[0].areas[10].state },
-    { D_80187470, &GameFlag_NeoArkBanks[0].areas[11].state },
-    { D_801876C4, &GameFlag_NeoArkBanks[0].areas[12].state },
-    { D_80183F48, &GameFlag_NeoArkBanks[0].areas[13].state },
-    { D_80182B54, &GameFlag_NeoArkBanks[0].areas[14].state },
-    { D_80182DE0, &GameFlag_NeoArkBanks[0].areas[15].state },
-    { D_80181AF8, &GameFlag_NeoArkBanks[0].areas[16].state },
-    { D_80180864, &GameFlag_NeoArkBanks[0].areas[17].state },
-    { D_801808E4, &GameFlag_NeoArkBanks[0].areas[18].state },
+    { D_neo_ark_north_promenade_8018305C, &GameFlag_NeoArkBanks[0].areas[9].state },
+    { D_neo_ark_forest_zone_80182968, &GameFlag_NeoArkBanks[0].areas[10].state },
+    { D_neo_ark_submarine_tunnel_80187470, &GameFlag_NeoArkBanks[0].areas[11].state },
+    { D_neo_ark_pavilion_801876C4, &GameFlag_NeoArkBanks[0].areas[12].state },
+    { D_neo_ark_island_80183F48, &GameFlag_NeoArkBanks[0].areas[13].state },
+    { D_neo_ark_garden_80182B54, &GameFlag_NeoArkBanks[0].areas[14].state },
+    { D_neo_ark_power_plant_2_80182DE0, &GameFlag_NeoArkBanks[0].areas[15].state },
+    { D_neo_ark_power_plant_1_80181AF8, &GameFlag_NeoArkBanks[0].areas[16].state },
+    { D_neo_ark_savanna_zone_80180864, &GameFlag_NeoArkBanks[0].areas[17].state },
+    { D_neo_ark_south_promenade_801808E4, &GameFlag_NeoArkBanks[0].areas[18].state },
     { NULL, NULL },
-    { D_801866C8, &GameFlag_NeoArkBanks[0].areas[20].state },
-    { D_801874A4, &GameFlag_NeoArkBanks[0].areas[21].state },
-    { D_80180338, &GameFlag_NeoArkBanks[0].areas[21].state },
-    { D_80180304, &GameFlag_NeoArkBanks[0].areas[23].state },
-    { D_801859DC, &GameFlag_NeoArkBanks[0].areas[24].state },
-    { D_8017E994, &GameFlag_NeoArkBanks[0].areas[25].state },
-    { D_80184A50, &GameFlag_NeoArkBanks[0].areas[26].state },
-    { D_80184230, &GameFlag_NeoArkBanks[0].areas[27].state },
-    { D_8018471C, &GameFlag_NeoArkBanks[0].areas[28].state },
-    { D_80185860, &GameFlag_NeoArkBanks[0].areas[29].state },
-    { D_8017DBB8, &GameFlag_NeoArkBanks[0].areas[30].state },
-    { D_80181728, &GameFlag_NeoArkBanks[0].areas[31].state },
+    { D_neo_ark_shrine_801866C8, &GameFlag_NeoArkBanks[0].areas[20].state },
+    { D_shelter_b6_nursery_801874A4, &GameFlag_NeoArkBanks[0].areas[21].state },
+    { D_shelter_b6_growth_room_80180338, &GameFlag_NeoArkBanks[0].areas[21].state },
+    { D_shelter_b6_corridor_80180304, &GameFlag_NeoArkBanks[0].areas[23].state },
+    { D_shelter_b6_training_room_801859DC, &GameFlag_NeoArkBanks[0].areas[24].state },
+    { D_neo_ark_r26_8017E994, &GameFlag_NeoArkBanks[0].areas[25].state },
+    { D_neo_ark_bridge_80184A50, &GameFlag_NeoArkBanks[0].areas[26].state },
+    { D_shelter_1f_tent_80184230, &GameFlag_NeoArkBanks[0].areas[27].state },
+    { D_neo_ark_woodland_path_8018471C, &GameFlag_NeoArkBanks[0].areas[28].state },
+    { D_neo_ark_submarine_gallery_80185860, &GameFlag_NeoArkBanks[0].areas[29].state },
+    { D_neo_ark_r31_8017DBB8, &GameFlag_NeoArkBanks[0].areas[30].state },
+    { D_neo_ark_pyramid_80181728, &GameFlag_NeoArkBanks[0].areas[31].state },
     { NULL, NULL },
 };
 /// End marker following the stage 5 room table.

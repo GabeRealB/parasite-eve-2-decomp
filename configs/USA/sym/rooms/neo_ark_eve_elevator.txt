@@ -1,1 +1,28 @@
 // Overlay-local symbols for neo_ark_eve_elevator.
+D_neo_ark_eve_elevator_8017D724 = 0x8017D724; // size:0x28 defined:True
+D_neo_ark_eve_elevator_8017D74C = 0x8017D74C; // size:0x10 defined:True
+D_neo_ark_eve_elevator_8017D75C = 0x8017D75C; // size:0x8 defined:True
+D_neo_ark_eve_elevator_8017D764 = 0x8017D764; // size:0x4 defined:True
+D_neo_ark_eve_elevator_8017D768 = 0x8017D768; // size:0x2 defined:True
+D_neo_ark_eve_elevator_8017D76C = 0x8017D76C; // size:0x38 defined:True
+D_neo_ark_eve_elevator_8017D7A4 = 0x8017D7A4; // size:0x70 defined:True
+D_neo_ark_eve_elevator_8017D814 = 0x8017D814; // size:0xC0 defined:True
+D_neo_ark_eve_elevator_8017D8D4 = 0x8017D8D4; // size:0x120 defined:True
+D_neo_ark_eve_elevator_8017D9F4 = 0x8017D9F4; // size:0x32 defined:True
+D_neo_ark_eve_elevator_8017DA28 = 0x8017DA28; // size:0x4 defined:True
+D_neo_ark_eve_elevator_8017DA2C = 0x8017DA2C; // size:0x24 defined:True
+D_neo_ark_eve_elevator_8017DA50 = 0x8017DA50; // size:0x90 defined:True
+D_neo_ark_eve_elevator_8017DAE0 = 0x8017DAE0; // size:0x10 defined:True
+D_neo_ark_eve_elevator_8017DAF0 = 0x8017DAF0; // size:0x10 defined:True
+D_neo_ark_eve_elevator_8017DB00 = 0x8017DB00; // size:0x10 defined:True
+D_neo_ark_eve_elevator_8017DB10 = 0x8017DB10; // size:0x10 defined:True
+D_neo_ark_eve_elevator_8017DB20 = 0x8017DB20; // size:0x30 defined:True
+D_neo_ark_eve_elevator_8017DB50 = 0x8017DB50; // size:0x60 defined:True
+D_neo_ark_eve_elevator_8017DBB0 = 0x8017DBB0; // size:0x18 defined:True
+D_neo_ark_eve_elevator_8017DBC8 = 0x8017DBC8; // size:0x4C defined:True
+D_neo_ark_eve_elevator_8017DC14 = 0x8017DC14; // size:0xC defined:True
+D_neo_ark_eve_elevator_8017DC20 = 0x8017DC20; // size:0x8 defined:True
+D_neo_ark_eve_elevator_8017DC28 = 0x8017DC28; // size:0x8 defined:True
+D_neo_ark_eve_elevator_8017DC30 = 0x8017DC30; // size:0x20 defined:True
+
+func_neo_ark_eve_elevator_8017D71C = 0x8017D71C; // type:func

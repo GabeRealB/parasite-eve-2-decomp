@@ -31,6 +31,9 @@ typedef struct _GlyphUvwh {
 } GlyphUvwh;
 STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
 
+/// Caption font cells shared with room title sequences.
+extern GlyphUvwh Caption_Glyphs[];
+
 void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1);
 
 u8* Text_SkipLines(u8* arg0, s32 arg1);

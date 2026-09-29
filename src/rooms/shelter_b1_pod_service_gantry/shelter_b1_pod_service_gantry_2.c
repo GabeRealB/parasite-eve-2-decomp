@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b1_pod_service_gantry.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -17,6 +18,10 @@
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+
+#include "gameplay/area_flags.h"
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
 
 /// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
 /// and zeroes before use. `vec` is the coordinate's translation, projected
@@ -43,6 +48,43 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1,
 static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2);
 
+s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
+    0x10000011,
+    0x10000013,
+    0x10000011,
+};
+
+GpRoomParamRec D_shelter_b1_pod_service_gantry_80182518[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec * D_shelter_b1_pod_service_gantry_80182520[8] = {
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+    D_shelter_b1_pod_service_gantry_80182518,
+};
+
+GpAreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
+    { 4, 17, 22, 0 },
+    { 4, 25, 1, 0 },
+    { 4, 27, 1, 0 },
+    { 4, 28, 1, 0 },
+    { 4, 29, 1, 0 },
+    { 4, 30, 1, 0 },
+    { 4, 32, 1, 0 },
+    { 4, 33, 1, 0 },
+    { 4, 34, 1, 0 },
+    { 4, 35, 22, 0 },
+    { 255, 0, 0, 0 },
+};
+
+s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
+
 /// Per-frame driver of an animated sprite effect, a `Gp_State1C` effect task
 /// drawn through `func_shelter_b1_pod_service_gantry_8017DF70` (state 1) or,
 /// when the spawn argument is negative,
@@ -58,7 +100,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1,
 /// count / 10, otherwise upwards by a constant) and releases the work block
 /// after the drawer's last cell (12 cells in state 1, 10 in state 2). During
 /// an event it only draws, and releases once the event state reaches 4.
-static void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
+void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -356,7 +398,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1,
 /// the vertical component, and releases the block after animation frame 7.
 /// During an event it only draws, releasing the block once the event state
 /// reaches 4.
-static void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
+void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -614,7 +656,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1,
 /// flicker, taken from the global at 0x801752EC plus the per-slot byte
 /// `arg1 & 7` of this room's random table, is shifted left by `arg3`'s top
 /// nibble and added to every channel.
-static void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
+void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;
@@ -700,7 +742,7 @@ static void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1,
 /// every fourth tick, releasing the effect after frame 7. During an event of
 /// state 1-3 it keeps drawing without moving or animating; state 4 or above
 /// releases it. Each draw picks one of six sprite CLUTs at random.
-static void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
+void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -743,7 +785,7 @@ static void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-static void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
+void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
 {
     s32 i;
 

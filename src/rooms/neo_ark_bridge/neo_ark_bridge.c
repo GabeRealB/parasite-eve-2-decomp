@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_bridge.h"
+#include "mapui/map_neo_ark.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -26,10 +28,28 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
-
 /// The room's message table.
 extern GpMsgEntry D_neo_ark_bridge_80181F30[];
+
+s32 func_neo_ark_bridge_8017E82C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_bridge_8017E834(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_bridge_8017E878(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_bridge_8017E880(Task *, s32, GpMessageArg, GpMessageArg);
+
+void func_neo_ark_bridge_8017D638(Task *);
+void func_neo_ark_bridge_8017E28C(Task *);
+
+TaskDesc D_neo_ark_bridge_80181F18 = { 0, 192, func_neo_ark_bridge_8017D638, { .model = NULL } };
+
+TaskDesc D_neo_ark_bridge_80181F24 = { 0, 192, func_neo_ark_bridge_8017E28C, { .model = NULL } };
+
+GpMsgEntry D_neo_ark_bridge_80181F30[5] = {
+    { 5102, func_neo_ark_bridge_8017E834 },
+    { 5105, func_neo_ark_bridge_8017E82C },
+    { 5103, func_neo_ark_bridge_8017E880 },
+    { 5104, func_neo_ark_bridge_8017E878 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row
@@ -739,27 +759,27 @@ void func_neo_ark_bridge_8017E28C(Task* task)
     SCRATCH_POP_BYTES(0x40);
 }
 
-s32 func_neo_ark_bridge_8017E82C(void)
+s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Room message handler for the bridge's save location: copies the incoming
-/// record onto the outgoing one and forwards both to `func_80179B14`. Always
+/// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
 /// answers 1.
-s32 func_neo_ark_bridge_8017E834(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
-s32 func_neo_ark_bridge_8017E878(void)
+s32 func_neo_ark_bridge_8017E878(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_bridge_8017E880(void)
+s32 func_neo_ark_bridge_8017E880(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

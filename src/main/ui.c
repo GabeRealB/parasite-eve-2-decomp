@@ -437,8 +437,10 @@ u8* Mc_LocationTitleLabels[] = {
     McTitleLocation_Tent,
     McTitleLocation_Opening,
     McTitleLocation_MotelRoom6,
-    NULL,
 };
+
+/// Current item-information panel; separate from the 17 save-point titles.
+UiObject* D_80067634 = NULL;
 /// Unreferenced.
 static s32 D_80067638    = 0x001C2824;
 static s32 D_8006763C[1] = { 0x000D287F };

@@ -8,11 +8,54 @@
 
 #include "main/task_types.h"
 
+/// 8-byte room destination record the message handlers receive alongside the
+/// request. Handlers registered in a room's `(msgId, handler)` dispatch table
+/// are passed the incoming record and an outgoing copy of it, and answer by
+/// editing `field_3` of the copy. `field_5` non-zero suppresses the side
+/// effects (the handler only reports what *would* happen); `field_6` is the
+/// nibble index passed to `Gp_SetNibbleIf`. Alignment is 2, which is why the
+/// whole-record copies compile to `lwl`/`lwr` pairs.
+typedef struct _RoomEventMsg {
+    union {
+        struct { u8 field_0, field_1; } bytes;
+        u16 packed;
+    } prefix; // Destination identifier; the warp code also addresses its bytes.
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ s8  field_3;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  field_5;
+    /* 0x6 */ u16 field_6;
+} RoomEventMsg;
+STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
+
+struct GpXformArg;
+struct GpAnimArg;
+struct GpCmdArg;
+
+struct _GpMsg13EF;
+
+/// One payload word in the PS1 message ABI. A message id determines whether
+/// the recipient interprets the word as an integer or as an object address.
+typedef union GpMessageArg {
+    s32         value;
+    const void* pointer;
+    void*       storage;
+    u8*         bytes;
+    VECTOR*     vector;
+    struct GpXformArg* transform;
+    struct GpAnimArg* animation;
+    struct GpCmdArg* command;
+    RoomEventMsg* location;
+    struct _GpMsg13EF* direction;
+    RoomEventMsg* roomEvent;
+} GpMessageArg __attribute__((transparent_union));
+STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
+
 /// 8-byte id/handler record. `Task::msgTable` points at a table of these
 /// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
 /// matching handler with the same four arguments. Terminator id is
 /// `0x7FFFFFFF`.
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
 
 typedef struct _GpMsgEntry {
     /* 0x0 */ s32          id;
@@ -31,14 +74,6 @@ typedef struct _GpActorArg {
     /* 0xC */ s32  field_C;
 } GpActorArg;
 STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
-
-/// One payload word in the PS1 message ABI. A message id determines whether
-/// the recipient interprets the word as an integer or as an object address.
-typedef union GpMessageArg {
-    s32         value;
-    const void* pointer;
-} GpMessageArg;
-STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
 
 /// A position and a set of Euler angles, the payload of the messages that put
 /// a task somewhere. The player takes it to be placed or warped, and as the
@@ -74,9 +109,15 @@ typedef struct GpAnimArg {
 STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 
 /// The payload of the message that copies animation parameters onto a
-/// task's current animation block: `count` words from `words`, at most 0x20.
+/// task's current animation block: `count` words, at most 0x20. The source
+/// is usually an array of animation-set pointers; the receiver copies words.
+struct GpAnimSet;
+
 typedef struct GpCopyArg {
-    s32* words;
+    union {
+        s32* words;
+        struct GpAnimSet** sets;
+    } source;
     s32  count;
 } GpCopyArg;
 STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
@@ -144,6 +185,15 @@ typedef struct GpOverrideArg {
     s32 field_4;
 } GpOverrideArg;
 STATIC_ASSERT_SIZEOF(GpOverrideArg, 8);
+
+/// Optional animation for message 0x7DD's placement-and-approach handlers.
+/// The first word selects the animation; the byte selects the next animation
+/// id kept by the actor. A null payload uses the receiver's own defaults.
+typedef struct GpSpawnAnimArg {
+    s32 field_0;
+    u8  field_4;
+} GpSpawnAnimArg;
+STATIC_ASSERT_SIZEOF(GpSpawnAnimArg, 8);
 
 s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 

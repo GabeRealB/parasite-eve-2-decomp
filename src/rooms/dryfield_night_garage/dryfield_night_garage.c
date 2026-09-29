@@ -1,3 +1,6 @@
+#include "dryfield_night_garage_private.h"
+#include "mapui/map_dryfield_full.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -33,9 +36,9 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern s32 func_80179954(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/animation.h"
 
-extern UiObject* D_80067634;
+extern GpObj4C D_dryfield_night_garage_80186D7C[16];
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
@@ -153,10 +156,10 @@ extern GpMsgEntry D_dryfield_night_garage_80181C38[];
 
 /// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
 /// payload of the 0x3E8 message.
-extern s32 D_dryfield_night_garage_80181C68;
+extern GpAnimArg D_dryfield_night_garage_80181C68;
 
 /// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
-extern s32 D_dryfield_night_garage_80181C7C;
+extern GpEvsCmd D_dryfield_night_garage_80181C7C[];
 
 /// Two layout templates and the live copy the resets restore from them.
 extern GpGridParams D_dryfield_night_garage_80181D7C;
@@ -166,11 +169,10 @@ extern GpGridParams D_dryfield_night_garage_80183DD4;
 extern TaskDesc D_dryfield_night_garage_80182C98[];
 extern s32      D_dryfield_night_garage_80182DE0;
 extern s32      D_dryfield_night_garage_80182DE4;
-extern s32      D_dryfield_night_garage_80182DF8;
-extern s32      D_dryfield_night_garage_801831B8;
+extern GpEvsCmd D_dryfield_night_garage_80182DF8[];
+extern GpEvsCmd D_dryfield_night_garage_801831B8[];
 /// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
 /// room toggles the first node and the third.
-extern GpObj4A D_dryfield_night_garage_80186E60[];
 
 /// Work pair of the charge panel `func_dryfield_night_garage_8017F2F8`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
@@ -179,6 +181,621 @@ extern s32        D_dryfield_night_garage_80187628;
 extern GpItemMap* D_dryfield_night_garage_8018762C;
 
 static void func_dryfield_night_garage_80180604(s32 arg0);
+
+void func_dryfield_night_garage_8017DDC4(UiList *, UiObject *);
+
+void func_dryfield_night_garage_8017E768(Task *);
+void func_dryfield_night_garage_8017E9B8(UiList *, UiObject *);
+void func_dryfield_night_garage_8017EBD8(Task *);
+void func_dryfield_night_garage_8017ED80(Task *);
+void func_dryfield_night_garage_8017EF64(UiList *, UiObject *);
+void func_dryfield_night_garage_8017F178(Task *);
+void func_dryfield_night_garage_8017FC14(UiList *, UiObject *);
+void func_dryfield_night_garage_8017FCD0(Task *);
+
+s32 func_dryfield_night_garage_801800C8(Task *, s32, GpMsg13EF *, s32);
+s32 func_dryfield_night_garage_80180300(Task *, s32, s32, GpMessageArg);
+s32 func_dryfield_night_garage_80180358(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_garage_80180360(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_garage_801803A4(Task *, s32, GpMessageArg, GpMessageArg);
+void func_dryfield_night_garage_8017E768(Task *);
+void func_dryfield_night_garage_8017F2F8(Task *);
+void func_dryfield_night_garage_8017F5C0(Task *);
+void func_dryfield_night_garage_8017F794(Task *);
+void func_dryfield_night_garage_8017FDF8(Task *);
+
+u16 D_dryfield_night_garage_801815F8[4] = {
+    140, 143, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181600[4] = {
+    172, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181608[4] = {
+    103, 98, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181610[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181620[8] = {
+    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181630[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181640[4] = {
+    108, 100, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181648[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181658[8] = {
+    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181668[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181678[4] = {
+    98, 105, 106, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181680[10] = {
+    65, 59, 58, 1, 2, 6, 8, 4,
+    0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181694[12] = {
+    131, 157, 140, 142, 143, 10, 70, 69,
+    67, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801816AC[10] = {
+    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
+    0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801816C0[4] = {
+    108, 100, 102, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801816C8[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801816D8[12] = {
+    157, 9, 140, 142, 138, 143, 10, 70,
+    69, 66, 67, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801816F0[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181704[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_8018170C[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181720[14] = {
+    157, 9, 140, 142, 143, 10, 70, 69,
+    66, 67, 68, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_8018173C[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_8018174C[6] = {
+    103, 98, 100, 97, 107, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181758[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181770[14] = {
+    140, 142, 138, 143, 10, 70, 69, 66,
+    67, 68, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_8018178C[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801817A0[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801817A8[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801817BC[16] = {
+    140, 142, 138, 139, 143, 10, 70, 69,
+    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801817DC[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801817EC[6] = {
+    100, 98, 97, 103, 107, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801817F8[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181810[2] = {
+    139, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181814[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181818[4] = {
+    108, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181820[8] = {
+    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181830[4] = {
+    131, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181838[4] = {
+    160, 171, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181840[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181848[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181854[4] = {
+    140, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_8018185C[6] = {
+    160, 172, 171, 175, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181868[4] = {
+    98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181870[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_8018187C[6] = {
+    131, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181888[4] = {
+    160, 171, 175, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181890[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181898[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801818A4[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801818B0[4] = {
+    171, 175, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801818B8[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801818C4[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801818D0[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_801818DC[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801818E0[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801818EC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_801818F8[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181904[4] = {
+    171, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_8018190C[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181918[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181924[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181930[4] = {
+    171, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_garage_80181938[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_garage_80181944[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+RoomShopTier D_dryfield_night_garage_80181950[13] = {
+    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
+    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
+    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
+    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
+    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
+    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
+    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
+    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
+    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
+    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
+    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
+    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
+    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
+};
+
+s32 D_dryfield_night_garage_801819EC = -1;
+
+u8 D_dryfield_night_garage_801819F0[20] = {
+    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A04[8] = {
+    80, 97, 115, 115, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A0C[16] = {
+    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A1C[4] = { 0 };
+
+u8 D_dryfield_night_garage_80181A20[60] = {
+    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
+    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
+    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
+    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A5C[8] = {
+    87, 101, 97, 112, 111, 110, 115, 0,
+};
+
+u8 D_dryfield_night_garage_80181A64[12] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A70[8] = {
+    65, 114, 109, 111, 114, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A78[8] = {
+    73, 116, 101, 109, 115, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A80[20] = {
+    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
+    0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181A94[16] = {
+    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
+};
+
+u8 D_dryfield_night_garage_80181AA4[32] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
+    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181AC4[12] = {
+    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_garage_80181AD0[4] = {
+    120, 0, 0, 0,
+};
+
+u16 D_dryfield_night_garage_80181AD4[2] = {
+    0xFFFF, 0,
+};
+
+UiListItemFunc D_dryfield_night_garage_80181AD8[1] = {
+    func_dryfield_night_garage_8017DDC4,
+};
+
+UiListItemFunc D_dryfield_night_garage_80181ADC[1] = {
+    func_dryfield_night_garage_8017E9B8,
+};
+
+UiList D_dryfield_night_garage_80181AE0 = { D_dryfield_night_garage_80181ADC, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_dryfield_night_garage_80181B04[2] = {
+    func_dryfield_night_garage_8017EF64,
+    func_dryfield_night_garage_8017FC14,
+};
+
+UiList D_dryfield_night_garage_80181B0C = { D_dryfield_night_garage_80181B04, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181B30 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_dryfield_night_garage_8017EBD8, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181B4C = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_dryfield_night_garage_8017E768, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181B68 = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_dryfield_night_garage_8017ED80, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181B84 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_dryfield_night_garage_8017FCD0, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181BA0 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_dryfield_night_garage_8017F178, 0 };
+
+// Retained data: Complete UI descriptor follows the adjacent UI descriptors. Its last 12 bytes also resemble a TaskDesc, which is its embedded task seed.
+UiObjectDesc D_dryfield_night_garage_80181BBC = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_dryfield_night_garage_8017E768, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181BD8 = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_dryfield_night_garage_8017F2F8, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181BF4 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_dryfield_night_garage_8017F5C0, 0 };
+
+UiObjectDesc D_dryfield_night_garage_80181C10 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_dryfield_night_garage_8017F794, 0 };
+
+TaskDesc D_dryfield_night_garage_80181C2C = { 0, 192, func_dryfield_night_garage_8017FDF8, { .model = NULL } };
+
+GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
+    { 5102, func_dryfield_night_garage_80180360 },
+    { 5105, func_dryfield_night_garage_80180358 },
+    { 5103, func_dryfield_night_garage_801800C8 },
+    { 5104, func_dryfield_night_garage_801803A4 },
+    { 5106, func_dryfield_night_garage_80180300 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpAnimArg D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpEvsCmd D_dryfield_night_garage_80181C7C[4] = {
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_8013B570 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80181C68 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_dryfield_night_garage_80181CDC[4] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_dryfield_night_garage_80181CFC[8] = {
+    { -722, 250, 250, 0 },
+    { -722, -250, 250, 0 },
+    { -722, -250, -250, 0 },
+    { -722, 250, -250, 0 },
+    { 1002, -250, -250, 0 },
+    { 1002, 250, -250, 0 },
+    { 1002, -250, 250, 0 },
+    { 1002, 250, 250, 0 },
+};
+
+GpGridFace D_dryfield_night_garage_80181D3C[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_dryfield_night_garage_80181D6C[5] = {
+    0,
+    1,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_dryfield_night_garage_80181D78[1] = {
+    D_dryfield_night_garage_80181D6C,
+};
+
+GpGridParams D_dryfield_night_garage_80181D7C = { NULL, D_dryfield_night_garage_80181CDC, D_dryfield_night_garage_80181CFC, D_dryfield_night_garage_80181D3C, D_dryfield_night_garage_80181D78, 722, 250, 1, 1, 4000, 4 };
+
+SVECTOR D_dryfield_night_garage_80181DA0[4] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_dryfield_night_garage_80181DC0[8] = {
+    { 1900, 33, 5590, 0 },
+    { 1900, -1726, 5590, 0 },
+    { 1900, -1726, 4890, 0 },
+    { 1900, 33, 4890, 0 },
+    { 2560, -1726, 4890, 0 },
+    { 2560, 33, 4890, 0 },
+    { 2560, -1726, 5590, 0 },
+    { 2560, 33, 5590, 0 },
+};
+
+GpGridFace D_dryfield_night_garage_80181E00[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_dryfield_night_garage_80181E30[5] = {
+    0,
+    1,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_dryfield_night_garage_80181E3C[1] = {
+    D_dryfield_night_garage_80181E30,
+};
+
+GpGridParams D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} DryfieldNightGaragePoseBank48A4;
+
+DryfieldNightGaragePoseBank48A4 D_dryfield_night_garage_80181E64 = { .poses = {
+#include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_garage_80181EAC[46] = {
+#include "assets/dryfield_night_garage_animation_04B80_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_garage_80181F64[109] = {
+#include "assets/dryfield_night_garage_animation_04B80_records.inc"
+};
+
+u16 D_dryfield_night_garage_80182118[20] = {
+#include "assets/dryfield_night_garage_animation_04B80_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_garage_80182140 = {
+    D_dryfield_night_garage_80181F64, D_dryfield_night_garage_80182118,
+    { NULL, D_dryfield_night_garage_80181E64.words, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} DryfieldNightGaragePoseBank4BA8;
+
+DryfieldNightGaragePoseBank4BA8 D_dryfield_night_garage_80182168 = { .poses = {
+#include "assets/dryfield_night_garage_animation_04F54_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_garage_801821C8[84] = {
+#include "assets/dryfield_night_garage_animation_04F54_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_garage_80182318[117] = {
+#include "assets/dryfield_night_garage_animation_04F54_records.inc"
+};
+
+u16 D_dryfield_night_garage_801824EC[20] = {
+#include "assets/dryfield_night_garage_animation_04F54_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_garage_80182514 = {
+    D_dryfield_night_garage_80182318, D_dryfield_night_garage_801824EC,
+    { NULL, D_dryfield_night_garage_80182168.words, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldNightGaragePoseBank4F7C;
+
+DryfieldNightGaragePoseBank4F7C D_dryfield_night_garage_8018253C = { .poses = {
+#include "assets/dryfield_night_garage_animation_05344_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_garage_80182590[62] = {
+#include "assets/dryfield_night_garage_animation_05344_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_garage_80182688[149] = {
+#include "assets/dryfield_night_garage_animation_05344_records.inc"
+};
+
+u16 D_dryfield_night_garage_801828DC[20] = {
+#include "assets/dryfield_night_garage_animation_05344_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_garage_80182904 = {
+    D_dryfield_night_garage_80182688, D_dryfield_night_garage_801828DC,
+    { NULL, D_dryfield_night_garage_8018253C.words, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldNightGaragePoseBank536C;
+
+DryfieldNightGaragePoseBank536C D_dryfield_night_garage_8018292C = { .poses = {
+#include "assets/dryfield_night_garage_animation_056B0_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_garage_80182980[74] = {
+#include "assets/dryfield_night_garage_animation_056B0_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_garage_80182AA8[104] = {
+#include "assets/dryfield_night_garage_animation_056B0_records.inc"
+};
+
+u16 D_dryfield_night_garage_80182C48[20] = {
+#include "assets/dryfield_night_garage_animation_056B0_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_garage_80182C70 = {
+    D_dryfield_night_garage_80182AA8, D_dryfield_night_garage_80182C48,
+    { NULL, D_dryfield_night_garage_8018292C.words, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },
+};
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -1212,7 +1829,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
     price  = Gp_ItemDescs[itemId].price;
 
     if (task->state == 0) {
-        task->extraState = 1;
+        task->extraState.value = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
         task->state = task->state + 1;
     }
@@ -1251,7 +1868,7 @@ void func_dryfield_night_garage_8017F794(Task* task)
         Gp_DrawQty(obj, x, y, stock->perBuy, 0x606060);
     }
 
-    count = task->extraState;
+    count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, D_dryfield_night_garage_80181AD0, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
@@ -1271,18 +1888,18 @@ void func_dryfield_night_garage_8017F794(Task* task)
     if (obj->panel.field_0.w == 1) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState < maxQty) {
-                task->extraState = task->extraState + 1;
+            if (task->extraState.value < maxQty) {
+                task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState >= 2) {
-                task->extraState = task->extraState - 1;
+            if (task->extraState.value >= 2) {
+                task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState;
-            for (i = 0; i < task->extraState; i++) {
+            Player_Status.bp -= price * task->extraState.value;
+            for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1411,11 +2028,11 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
 
     task->msgTable = D_dryfield_night_garage_80181C38;
     Game_SetPtrSlot(task, 7);
-    D_dryfield_night_garage_80186E60->field_4A &= 0xBF;
+    (D_dryfield_night_garage_80186D7C + 3)->field_4A &= 0xBF;
     player                                      = gameGetPtrSlot(0xA);
     if (gGameSession->at4.loc.place == 3 && player != NULL) {
         Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
-        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68);
+        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.animBlock.index);
         Gp_DispatchMsgPtr(player, 0x3E8, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
         Gp_EndPlayerActorTask(player);
@@ -1424,14 +2041,14 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
             GameFlag_SetNibble(0x8E, 1);
             func_800E8634(&D_8013B590, 0, &D_8013C388);
         } else {
-            func_800E8614((s32)&D_dryfield_night_garage_80181C7C, 1);
+            func_800E8614(D_dryfield_night_garage_80181C7C, 1);
         }
     }
     if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0x6C) > 0) {
         if (GameFlag_GetNibble(0x6C) == 1) {
             GameFlag_SetNibble(0x6C, 2);
         }
-        base            = D_dryfield_night_garage_80186E60;
+        base            = (D_dryfield_night_garage_80186D7C + 3);
         obj             = base + 2;
         base->field_4A |= 0x40;
         obj->field_4A  &= 0xBF;
@@ -1439,7 +2056,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF * msg, s32 arg3)
 {
     GpObj4A* base;
     GpObj4A* obj;
@@ -1457,12 +2074,12 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
                     Gp_MsgPlayerWeapon(0);
                     Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (GameFlag_GetNibble(0x6C) == 0) {
-                    base            = D_dryfield_night_garage_80186E60;
+                    base            = (D_dryfield_night_garage_80186D7C + 3);
                     obj             = base + 2;
                     base->field_4A |= 0x40;
                     obj->field_4A  &= 0xBF;
-                    func_800E8634(&D_dryfield_night_garage_80182DF8, 0,
-                                  &D_dryfield_night_garage_801831B8);
+                    func_800E8634(D_dryfield_night_garage_80182DF8, 0,
+                                  D_dryfield_night_garage_801831B8);
                     GameFlag_SetNibble(0x6C, 1);
                     func_800E3FAC(0xA2, 0x17);
                     Gp_ClearCollectedBit(0x118);
@@ -1493,7 +2110,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
 
 /// Room event callback: event 9 plays stage sound 0x52030009 and event 0x6C
 /// reads the caption event key. Always returns 0.
-s32 func_dryfield_night_garage_80180300(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_garage_80180300(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 0x9:
@@ -1506,21 +2123,21 @@ s32 func_dryfield_night_garage_80180300(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_dryfield_night_garage_80180358(void)
+s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `func_80179954`. Always returns 1.
-s32 func_dryfield_night_garage_80180360(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// forwards both to `func_map_dryfield_full_80179954`. Always returns 1.
+s32 func_dryfield_night_garage_80180360(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179954(in, out);
+    func_map_dryfield_full_80179954(in, out);
     return 1;
 }
 
-s32 func_dryfield_night_garage_801803A4(void)
+s32 func_dryfield_night_garage_801803A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

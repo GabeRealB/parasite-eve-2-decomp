@@ -46,7 +46,7 @@ static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, Infe
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
 /// the player is dying (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-static void func_inferno_8012EF88(Task* arg0)
+void func_inferno_8012EF88(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -193,7 +193,7 @@ static void func_inferno_8012F3EC(s16 arg0)
 /// State 3 also walks the effect coordinate by `move`. Releases if the
 /// player is dying, the room is fading, or the state's brightness floor is
 /// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
-static void func_inferno_8012F530(Task* arg0)
+void func_inferno_8012F530(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;

@@ -231,7 +231,7 @@ void func_800AA548(s32 arg0)
         Task_Spawn((s32)Mc_SaveData[0].state.demoScene, 1, 0, 0);
     }
     Gp_SpawnPlaces(sess);
-    Gp_SpawnArea((GpAreaKey*)sess);
+    Gp_SpawnArea(sess);
     Gp_InitStateF0();
     Task_Spawn(1, 0xF, 0, 0);
     Task_Spawn(1, 0x10, 0, 0);
@@ -561,7 +561,7 @@ void Gp_LoadWaitSave(Task* task)
         }
         sess = gGameSession;
         if (sess->applySavePlace == 1) {
-            Gp_SetAreaObjId((GpAreaKey*)&sess->at4.loc, Mc_SaveData[0].state.at4.loc.place, -1);
+            Gp_SetAreaObjId(&sess->at4.loc, Mc_SaveData[0].state.at4.loc.place, -1);
             gGameSession->applySavePlace = 0;
         }
         saveKey = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;

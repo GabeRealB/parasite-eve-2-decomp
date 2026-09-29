@@ -1985,7 +1985,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
         } else {
         read_header:
             if (CdGetSector(&D_800827F8, 3) == 0) {
-                *((volatile u8*)&D_80068B64 + 1) = (u8)(*((volatile u8*)&D_80068B64 + 1) + 1);
+                *(&D_80068B64 + 1) = (u8)(*(&D_80068B64 + 1) + 1);
                 if (CdStream_ErrorCode == 0) {
                     CdStream_ErrorCode = 2;
                 }
@@ -2028,7 +2028,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                     }
                 } else {
                     if (CdGetSector(CdStream_Runtime.state.sector, 0x200) == 0) {
-                        *((volatile u8*)&D_80068B64 + 1) = (u8)(*((volatile u8*)&D_80068B64 + 1) + 1);
+                        *(&D_80068B64 + 1) = (u8)(*(&D_80068B64 + 1) + 1);
                         if (CdStream_ErrorCode == 0) {
                             CdStream_ErrorCode = 2;
                         }
@@ -2178,7 +2178,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             CdStream_Runtime.state.flags    |= 1;
             CdStream_Runtime.state.field_4C  = 3;
             CdStream_Runtime.state.flags2   |= 2;
-            *((volatile u8*)&D_80068B5C + 1) = (u8)(*((volatile u8*)&D_80068B5C + 1) + 1);
+            *(&D_80068B5C + 1) = (u8)(*(&D_80068B5C + 1) + 1);
         } else if ((u16)CdStream_Runtime.state.field_4C != 0) {
             if ((s16)(u16)CdStream_Runtime.state.field_4C != 4) {
                 CdStream_Runtime.state.field_4C = 3;

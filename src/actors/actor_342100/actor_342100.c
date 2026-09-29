@@ -1,3 +1,5 @@
+#include "gameplay/evs.h"
+#include "rooms/shelter_b3_dumping_hole.h"
 #include "common.h"
 
 #include <psyq/abs.h>
@@ -36,6 +38,19 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
+#include "gameplay/animation.h"
+
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *, s32, s32);
+    } handler;
+} Actor342100MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor342100MessageEntry, 8);
+
+extern Actor342100MessageEntry D_actor_342100_801648F8[1];
+
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the base
@@ -45,12 +60,12 @@
 /// Single-entry spawn table of the screen-wave task
 /// `func_actor_342100_80161E70`: `func_actor_342100_80163408` starts entry 0
 /// and hands it the address of `Actor342100Work::wave` as its ramp.
-extern TaskDesc D_actor_342100_801648DC;
+extern TaskDesc D_actor_342100_801648DC[];
 
 /// Null-terminated table of the overlay's per-state message tables, counted
 /// and reported by `func_actor_342100_80162F54` when it arms the encounter:
 /// three live entries and the null word that ends them.
-extern s32 D_actor_342100_80164900[];
+extern GpAnimSet* D_actor_342100_80164900[4];
 
 /// Animation step table `func_actor_342100_801629B8` walks: `s16` entries
 /// holding the anim id one step on from `field_3C`, sent as the message's
@@ -75,7 +90,7 @@ extern SVECTOR D_actor_342100_80164980[];
 
 /// Model/animation set `func_actor_342100_80162F54` installs with
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
-extern u8 D_actor_342100_801649C8[];
+extern GpEvsCmd D_actor_342100_801649C8[];
 
 /// Effect record `func_actor_342100_80162DDC` hands `func_800FDB18` together
 /// with one part of the player's model: `field_0` is that part's coordinate
@@ -95,9 +110,6 @@ extern u16 D_actor_342100_801649A8[];
 /// gated on: it aims the effect only on the frames where the low nibble (or,
 /// for the other arm, the low three bits) of this global is clear.
 
-extern TaskDesc D_8018B57C;
-extern TaskDesc D_8018B83C;
-
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running ramp, recomputed every frame.
 extern s32 D_actor_342100_801648F4;
@@ -109,12 +121,209 @@ extern OverlayWaveCtx* D_actor_342100_80164BB4;
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed on every frame
 /// `Gp_StateF0.field_4` is clear.
-extern OverlayWaveRec D_actor_342100_80164BBC[9];
+extern OverlayWaveRec D_actor_342100_80164BBC[10];
 extern OverlayWaveRec D_actor_342100_80164C0C[30];
 
 /// The two frame buffers' 8 by 30 meshes of textured quads, one grid per
 /// buffer, indexed by the current buffer.
-extern POLY_FT4 D_actor_342100_80164E3C[][30][8];
+// The task starts at row 1 and draws rows -1 through 28.
+extern POLY_FT4 D_actor_342100_80164CFC[2][30][8];
+
+void func_actor_342100_80162748(Task *);
+void func_actor_342100_80162AB0(Task *);
+void func_actor_342100_80162C88(void);
+void func_actor_342100_80162DDC(Task *);
+void func_actor_342100_801630A4(Task *);
+void func_actor_342100_8016334C(s32);
+void func_actor_342100_801633D0(s32);
+void func_actor_342100_80163408(void);
+void func_actor_342100_80163454(s32);
+void func_actor_342100_80163518(void);
+
+void func_actor_342100_80161E70(Task *);
+void func_actor_342100_80163344(Task *, s32, s32);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor342100PoseBank1714;
+
+Actor342100PoseBank1714 D_actor_342100_80163534 = { .poses = {
+#include "assets/actor_342100_animation_019F0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_342100_8016357C[46] = {
+#include "assets/actor_342100_animation_019F0_bank4.inc"
+};
+
+GpAnimRec D_actor_342100_80163634[109] = {
+#include "assets/actor_342100_animation_019F0_records.inc"
+};
+
+u16 D_actor_342100_801637E8[20] = {
+#include "assets/actor_342100_animation_019F0_indices.inc"
+};
+
+GpAnimSet D_actor_342100_80163810 = {
+    D_actor_342100_80163634, D_actor_342100_801637E8,
+    { NULL, D_actor_342100_80163534.words, NULL, NULL, D_actor_342100_8016357C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} Actor342100PoseBank1A18;
+
+Actor342100PoseBank1A18 D_actor_342100_80163838 = { .poses = {
+#include "assets/actor_342100_animation_0242C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_342100_801638F8[246] = {
+#include "assets/actor_342100_animation_0242C_bank4.inc"
+};
+
+GpAnimRec D_actor_342100_80163CD0[341] = {
+#include "assets/actor_342100_animation_0242C_records.inc"
+};
+
+u16 D_actor_342100_80164224[20] = {
+#include "assets/actor_342100_animation_0242C_indices.inc"
+};
+
+GpAnimSet D_actor_342100_8016424C = {
+    D_actor_342100_80163CD0, D_actor_342100_80164224,
+    { NULL, D_actor_342100_80163838.words, NULL, NULL, D_actor_342100_801638F8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} Actor342100PoseBank2454;
+
+Actor342100PoseBank2454 D_actor_342100_80164274 = { .poses = {
+#include "assets/actor_342100_animation_02A94_bank1.inc"
+} };
+
+GpPackedSvec D_actor_342100_8016431C[148] = {
+#include "assets/actor_342100_animation_02A94_bank4.inc"
+};
+
+GpAnimRec D_actor_342100_8016456C[200] = {
+#include "assets/actor_342100_animation_02A94_records.inc"
+};
+
+u16 D_actor_342100_8016488C[20] = {
+#include "assets/actor_342100_animation_02A94_indices.inc"
+};
+
+GpAnimSet D_actor_342100_801648B4 = {
+    D_actor_342100_8016456C, D_actor_342100_8016488C,
+    { NULL, D_actor_342100_80164274.words, NULL, NULL, D_actor_342100_8016431C, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_342100_801648DC[2] = {
+    { 0, 192, func_actor_342100_80161E70, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_actor_342100_801648F4 = 256;
+
+Actor342100MessageEntry D_actor_342100_801648F8[1] = {
+    { 2011, { .call0 = func_actor_342100_80163344 } },
+};
+
+GpAnimSet * D_actor_342100_80164900[4] = {
+    &D_actor_342100_80163810,
+    &D_actor_342100_801648B4,
+    &D_actor_342100_8016424C,
+    NULL,
+};
+
+s16 D_actor_342100_80164910[4] = {
+    -1, -1, -1, 0,
+};
+
+SVECTOR D_actor_342100_80164918[3] = {
+    { 0x4650, -100, -2500, 0 },
+    { 0x4650, -700, -8700, 0 },
+    { 0, 0, 0, 0 },
+};
+
+SVECTOR D_actor_342100_80164930[3] = {
+    { 0x4268, -600, -1500, 0 },
+    { 0x4268, -100, -0x2710, 0 },
+    { 0, 0, 0, 0 },
+};
+
+SVECTOR D_actor_342100_80164948[3] = {
+    { 9000, -100, -2500, 0 },
+    { 5000, -100, -2500, 0 },
+    { 0x2710, 0, -0x2710, 0 },
+};
+
+SVECTOR D_actor_342100_80164960[4] = {
+    { 0x2710, -200, -9000, 0 },
+    { 0x2710, -200, -2000, 0 },
+    { 6000, -200, -3000, 0 },
+    { 0, 0, 0, 0 },
+};
+
+SVECTOR D_actor_342100_80164980[4] = {
+    { 3000, -200, -5000, 0 },
+    { 5000, -200, -7500, 0 },
+    { 3000, -200, -8000, 0 },
+    { 0, 0, 0, 0 },
+};
+
+GpEffArg D_actor_342100_801649A0 = { NULL, 0, 1 };
+
+u16 D_actor_342100_801649A8[16] = {
+    2, 4, 6, 10, 1, 3, 5, 7,
+    8, 9, 11, 12, 13, 15, 16, 18,
+};
+
+GpEvsCmd D_actor_342100_801649C8[18] = {
+    { 13, { .callback = func_actor_342100_8016334C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_80163454 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_8016334C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_342100_80163408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_8016334C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_actor_342100_80163518 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_actor_342100_80164B78[5] = {
+    { 0, 192, func_actor_342100_801630A4, { .model = NULL } },
+    { 0, 192, taskKill, { .model = NULL } },
+    { 0, 192, func_actor_342100_80162748, { .model = NULL } },
+    { 0, 192, func_actor_342100_80162DDC, { .model = NULL } },
+    { 2, 192, func_actor_342100_80162AB0, { .model = NULL } },
+};
+
+OverlayWaveCtx * D_actor_342100_80164BB4 = NULL;
+
+Task * D_actor_342100_80164BB8 = NULL;
+
+// Nine active columns and one retained zero entry.
+OverlayWaveRec D_actor_342100_80164BBC[10] = { 0 };
+
+OverlayWaveRec D_actor_342100_80164C0C[30] = { 0 };
+
+POLY_FT4 D_actor_342100_80164CFC[2][30][8] = { 0 };
 
 /// Screen-wave task spawned from `D_actor_342100_801648DC` with the ramp at
 /// the event task's `Actor342100Work::wave` as its argument. State 0 seeds the
@@ -181,7 +390,7 @@ void func_actor_342100_80161E70(Task* arg0)
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = D_actor_342100_80164E3C[i];
+                grid   = &D_actor_342100_80164CFC[i][1];
                 for (j = -1; j < 29; j++) {
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
@@ -267,7 +476,7 @@ void func_actor_342100_80161E70(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_actor_342100_80164E3C[gDisplayState.drawBuffer];
+                grid    = &D_actor_342100_80164CFC[gDisplayState.drawBuffer][1];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -348,7 +557,7 @@ void func_actor_342100_80162748(Task* arg0)
             work->b        = 0;
             work->g        = 0;
             work->r        = 0;
-            arg0->msgTable = &D_actor_342100_801648F8;
+            arg0->msgTable = D_actor_342100_801648F8;
             arg0->state   += 1;
             break;
         case 2:
@@ -569,7 +778,7 @@ void func_actor_342100_80162C88(void)
     while (pos->vx != 0) {
         rng               = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState       = rng;
-        task              = Task_SpawnFromTable(&D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
+        task              = Task_SpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = task->extra.tmd->coords;
         rot               = (GpMtxWords*)&coord->coord;
         rot->m00_m01      = 0x1000;
@@ -666,14 +875,14 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             while (D_actor_342100_80164900[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.words = &D_actor_342100_80164900[0];
+            msg.source.sets = &D_actor_342100_80164900[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
-            func_800E8614((s32)&D_actor_342100_801649C8, 0);
+            func_800E8614(D_actor_342100_801649C8, 0);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            work->field_34 = Task_SpawnFromTable(&D_actor_342100_80164B78, 2, 0, arg0);
+            work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->field_3E = work->field_3E + 1;
             break;
         case 1:
@@ -724,14 +933,14 @@ void func_actor_342100_801630A4(Task* arg0)
                 newWork->field_2C       = gameGetPtrSlot(3);
                 D_actor_342100_80164BB8 = arg0;
             }
-            Task_SpawnFromTable(&D_8018B57C, 0, 0xD0, 0);
+            Task_SpawnFromTable((TaskDesc*)&D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
             SndEvt_EnqueueType6(0x54270007, 0, 0);
             switch ((u8)gGameSession->spawnPhase[0]) {
                 case 0:
                     arg0->state++;
                     break;
                 case 1:
-                    work->field_30 = Task_SpawnFromTable(&D_8018B83C, 0, 1, 0);
+                    work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
                 default:
                     arg0->state = 2;
                     break;
@@ -740,7 +949,7 @@ void func_actor_342100_801630A4(Task* arg0)
         case 1:
             if (GameFlag_GetNibble(0x11E) != 0) {
                 if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & 0x7FFF) == 5 && kind == 1) {
-                    work->field_30 = Task_SpawnFromTable(&D_8018B83C, 0, 0, 0);
+                    work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;
                 }
             }
@@ -821,7 +1030,7 @@ void func_actor_342100_80163408(void)
 
     work->wave.span  = 0x258;
     work->wave.scale = 0x100;
-    Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, &work->wave);
+    Task_SpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->wave);
 }
 
 /// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
@@ -845,7 +1054,7 @@ void func_actor_342100_80163454(s32 arg0)
         if (work->field_30 != NULL) {
             Gp_DispatchMsgPtr(work->field_30, 0x7DB, &msg, 0);
         }
-        work->field_38 = Task_SpawnFromTable(&D_actor_342100_80164B78, 3, 0, 0);
+        work->field_38 = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;
     }
     work->field_38->spawnArg1.value = 1;

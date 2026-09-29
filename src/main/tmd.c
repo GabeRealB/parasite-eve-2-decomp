@@ -360,7 +360,7 @@ void tmdProcessStream(TmdObject* obj)
         ws->primWrite = (u8*)buf + obj->halfSize;
     }
     ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = (u8*)ws->primWrite + src->firstRegionSize;
+    ws->primWrite     = ws->primWrite + src->firstRegionSize;
     obj->bufferIndex ^= 1;
     ws->verts         = obj->source->verts;
     ws->normals       = obj->source->normals;
@@ -593,7 +593,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
         ws->primWrite = (u8*)bufptr + obj->halfSize;
     }
     ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = (u8*)ws->primWrite + obj->source->firstRegionSize;
+    ws->primWrite     = ws->primWrite + obj->source->firstRegionSize;
     obj->bufferIndex ^= 1;
     ws->verts         = obj->source->verts;
     ot                = gGpuCurrentOt;

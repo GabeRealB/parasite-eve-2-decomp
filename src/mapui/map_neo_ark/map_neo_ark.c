@@ -83,10 +83,10 @@ static void func_map_neo_ark_801799BC(u8* arg0)
 /// Fills in the marker state for one Neo Ark map room. Most rooms have no
 /// marker; the five that do read a GameFlag nibble, either straight (plus one,
 /// rooms 7 / 13 / 32) or folded into a fixed set of states (rooms 20 and 21).
-static s32 func_map_neo_ark_80179B14(MapNeoArkRec* arg0, MapNeoArkOut* arg1)
+s32 func_map_neo_ark_80179B14(RoomEventMsg* arg0, RoomEventMsg* arg1)
 {
     if (arg0->field_5 == 0) {
-        switch (arg0->field_0) {
+        switch (arg0->prefix.packed) {
             case 7:
                 arg1->field_3 = GameFlag_GetNibble(0xE1) + 1;
                 break;
@@ -407,41 +407,41 @@ static GpEnemyDesc D_map_neo_ark_8017A6DC[1] = {
 };
 
 GpBit2List D_map_neo_ark_8017A6EC[35] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C790, D_map_neo_ark_8017A6BC },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C7B0, D_map_neo_ark_8017A6DC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C890, D_map_neo_ark_8017A6AC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C8B0, D_map_neo_ark_8017A6AC },
-    { D_map_neo_ark_8017C8D0, D_map_neo_ark_8017A6AC },
-    { D_map_neo_ark_8017C910, D_map_neo_ark_8017A6AC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C930, D_map_neo_ark_8017A6AC },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C970, D_map_neo_ark_8017A6AC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_neo_ark_8017C990, D_map_neo_ark_8017A6AC },
-    { (GpBit2Rec*)-1, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C790 }, D_map_neo_ark_8017A6BC },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C7B0 }, D_map_neo_ark_8017A6DC },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C890 }, D_map_neo_ark_8017A6AC },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C8B0 }, D_map_neo_ark_8017A6AC },
+    { { D_map_neo_ark_8017C8D0 }, D_map_neo_ark_8017A6AC },
+    { { D_map_neo_ark_8017C910 }, D_map_neo_ark_8017A6AC },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C930 }, D_map_neo_ark_8017A6AC },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C970 }, D_map_neo_ark_8017A6AC },
+    { { NULL }, NULL },
+    { { NULL }, NULL },
+    { { D_map_neo_ark_8017C990 }, D_map_neo_ark_8017A6AC },
+    { { .sentinel = -1 }, NULL },
 };
 
 GpTaskDesc D_map_neo_ark_8017A804[] = {

@@ -1,4 +1,7 @@
 #include "common.h"
+#include "rooms/shelter_b6_corridor.h"
+#include "rooms/shelter_b6_training_room.h"
+#include "rooms/neo_ark_eve_access_tunnel.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -81,14 +84,24 @@ STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
 extern s32             D_actor_205200_8014CA5C;
 extern OverlayWaveCtx* D_actor_205200_80156814;
-extern OverlayWaveRec  D_actor_205200_80156818[9];
+extern OverlayWaveRec  D_actor_205200_80156818[10];
 extern OverlayWaveRec  D_actor_205200_80156868[30];
-extern POLY_FT4        D_actor_205200_80156A98[][30][8];
+// The task starts at row 1 and draws rows -1 through 28.
+extern POLY_FT4 D_actor_205200_80156958[2][30][8];
 extern u16             D_actor_205200_8014C9CC[];
 extern s16             D_actor_205200_8014CA1C[];
-extern TaskDesc        D_actor_205200_8014CA60;
-extern u8              D_actor_205200_8014CA78[];
-extern TaskDesc        D_actor_205200_8014CA44;
+extern TaskDesc        D_actor_205200_8014CA60[];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpCmdArg *);
+    } handler;
+} Actor205200MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor205200MessageEntry, 8);
+
+extern Actor205200MessageEntry D_actor_205200_8014CA78[2];
+extern TaskDesc        D_actor_205200_8014CA44[];
 /// Context of the screen-wave task: `func_actor_205200_8014AB98` sets its
 /// length and peak and spawns the task with it, and the controller's state
 /// handlers drive its ramp `state` - 2 while idle, 1 to ramp the wave down.
@@ -97,15 +110,122 @@ extern GpPairSrcE     D_actor_205200_8014C9BC;
 extern SVECTOR*       D_actor_205200_8014CA24[];
 extern u16*           D_actor_205200_8014CA34[];
 
-void func_8017E090(s32, s32);
-void func_8017EE08(s32, s32);
-void func_80182A14(s32, s32);
-
 static void func_actor_205200_8014AB98(Task* arg0);
 static void func_actor_205200_8014ACD4(Task* arg0);
 static s32  func_actor_205200_8014B914(s32 arg0);
 static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
 static void func_actor_205200_8014BA94(Task* arg0);
+
+void func_actor_205200_80149E54(Task *);
+
+void func_actor_205200_80149E54(Task *);
+
+void func_actor_205200_8014B8C0(Task *);
+void func_actor_205200_8014B978(Task *);
+
+s32 func_actor_205200_8014B94C(Task *, s32, GpCmdArg *);
+
+GpPairSrcE D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0, 0 };
+
+u16 D_actor_205200_8014C9CC[4] = {
+    0, 60, 40, 20,
+};
+
+SVECTOR D_actor_205200_8014C9D4[2] = {
+    { -4550, -1100, 1030, 0 },
+    { -1260, -1100, 7420, 0 },
+};
+
+u16 D_actor_205200_8014C9E4[2] = {
+    1024,
+    2048,
+};
+
+SVECTOR D_actor_205200_8014C9E8[3] = {
+    { 3000, -1500, 1600, 0 },
+    { 5000, -1500, -1600, 0 },
+    { 7000, -1500, 1600, 0 },
+};
+
+u16 D_actor_205200_8014CA00[4] = {
+    0,
+    2048,
+    2048,
+    0,
+};
+
+SVECTOR D_actor_205200_8014CA08[2] = {
+    { -150, -1200, 4000, 0 },
+    { 5150, -1200, 4000, 0 },
+};
+
+u16 D_actor_205200_8014CA18[2] = {
+    3072,
+    1024,
+};
+
+s16 D_actor_205200_8014CA1C[4] = {
+    0,
+    2,
+    3,
+    2,
+};
+
+SVECTOR * D_actor_205200_8014CA24[4] = {
+    NULL,
+    D_actor_205200_8014C9D4,
+    D_actor_205200_8014C9E8,
+    D_actor_205200_8014CA08,
+};
+
+u16 * D_actor_205200_8014CA34[4] = {
+    NULL,
+    D_actor_205200_8014C9E4,
+    D_actor_205200_8014CA00,
+    D_actor_205200_8014CA18,
+};
+
+TaskDesc D_actor_205200_8014CA44[2] = {
+    { 0, 192, func_actor_205200_80149E54, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_actor_205200_8014CA5C = 256;
+
+TaskDesc D_actor_205200_8014CA60[2] = {
+    { 2, 96, func_actor_205200_8014B8C0, { .model = NULL } },
+    { 2, 96, func_actor_205200_8014B978, { .model = NULL } },
+};
+
+Actor205200MessageEntry D_actor_205200_8014CA78[2] = {
+    { 2011, { .call0 = func_actor_205200_8014B94C } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TmdBone D_actor_205200_8014CA88[19] = {
+#include "assets/actor_205200_model_079CC_skeleton.inc"
+};
+
+u32 D_actor_205200_8014CD34[19] = {
+#include "assets/actor_205200_model_079CC_partVerts.inc"
+};
+
+SVECTOR D_actor_205200_8014CD80[312] = {
+#include "assets/actor_205200_model_079CC_verts.inc"
+};
+
+SVECTOR D_actor_205200_8014D740[338] = {
+#include "assets/actor_205200_model_079CC_normals.inc"
+};
+
+u32 D_actor_205200_8014E1D0[3463] = {
+#include "assets/actor_205200_model_079CC_stream.inc"
+};
+
+TmdSource D_actor_205200_801517EC = {
+    0, 18392, 6232, 19,
+    D_actor_205200_8014CD34, D_actor_205200_8014CD80, D_actor_205200_8014D740, D_actor_205200_8014CA88, D_actor_205200_8014E1D0,
+};
 
 /// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
@@ -170,7 +290,7 @@ void func_actor_205200_80149E54(Task* arg0)
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = D_actor_205200_80156A98[i];
+                grid   = &D_actor_205200_80156958[i][1];
                 for (j = -1; j < 29; j++) {
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
@@ -256,7 +376,7 @@ void func_actor_205200_80149E54(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_actor_205200_80156A98[gDisplayState.drawBuffer];
+                grid    = &D_actor_205200_80156958[gDisplayState.drawBuffer][1];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -323,7 +443,7 @@ static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
     work->field_1E                = kind;
     D_actor_205200_8015B458.state = 2;
     for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {
-        Gp_SpawnEnemyFromTable(&D_actor_205200_8014CA60, 1, 0, enemy);
+        Gp_SpawnEnemyFromTable(D_actor_205200_8014CA60, 1, 0, enemy);
     }
     timer          = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->field_1E]];
     work->field_2A = 5;
@@ -332,21 +452,21 @@ static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
        the decision tree at 1 (`beq 1; slti <2`) instead of at 2. */
     switch (work->field_1E) {
         case 1:
-            func_8017E090(0, 0);
-            func_8017E090(1, 0);
+            func_neo_ark_eve_access_tunnel_8017E090(0, 0);
+            func_neo_ark_eve_access_tunnel_8017E090(1, 0);
             GameFlag_SetNibble(0x142, 0);
             GameFlag_SetNibble(0x143, 0);
             break;
         case 2:
-            func_8017EE08(0, 0);
-            func_8017EE08(1, 0);
-            func_8017EE08(2, 0);
+            func_shelter_b6_corridor_8017EE08(0, 0);
+            func_shelter_b6_corridor_8017EE08(1, 0);
+            func_shelter_b6_corridor_8017EE08(2, 0);
             GameFlag_SetNibble(0x144, 0);
             GameFlag_SetNibble(0x145, 0);
             break;
         case 3:
-            func_80182A14(0, 0);
-            func_80182A14(1, 0);
+            func_shelter_b6_training_room_80182A14(0, 0);
+            func_shelter_b6_training_room_80182A14(1, 0);
             GameFlag_SetNibble(0x153, 0);
             GameFlag_SetNibble(0x154, 0);
             break;
@@ -434,7 +554,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                 if (D_actor_205200_8015B458.state == 2) {
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
-                    Task_SpawnFromTable(&D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
+                    Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->field_28 = 1;
                     SndEvt_EnqueueType6(((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40340002, 0, 0);
@@ -526,7 +646,7 @@ static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
     arg0->param      = &D_actor_205200_8014C9BC;
     arg0->recs       = part->recs;
     arg0->hp         = D_actor_205200_8014C9BC.hpMax;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     part->field_68.spawnArgLo = 0x400;
     part->field_68.spawnArgHi = 3;
     part->field_68.coord      = coord;
@@ -667,15 +787,15 @@ static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
             Gp_StateF0.field_1D |= 1;
             switch (work->field_1E) {
                 case 1:
-                    func_8017E090((u8)part->field_78, 1);
+                    func_neo_ark_eve_access_tunnel_8017E090((u8)part->field_78, 1);
                     GameFlag_SetNibble(part->field_78 + 0x142, 1);
                     break;
                 case 2:
-                    func_8017EE08((u8)part->field_78, 1);
+                    func_shelter_b6_corridor_8017EE08((u8)part->field_78, 1);
                     GameFlag_SetNibble(part->field_78 + 0x144, 1);
                     break;
                 case 3:
-                    func_80182A14((u8)part->field_78, 1);
+                    func_shelter_b6_training_room_80182A14((u8)part->field_78, 1);
                     GameFlag_SetNibble(part->field_78 + 0x153, 1);
                     break;
                 case 0:
@@ -715,7 +835,7 @@ static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            ((void (*)(Task*, s32))Gp_ReleaseStateF0)(arg1, 0x34);
+            (Gp_ReleaseStateF0)(arg1, 0x34);
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&part->obj);
             part->field_72 = 3;

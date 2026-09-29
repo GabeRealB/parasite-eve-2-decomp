@@ -1,3 +1,6 @@
+#include "neo_ark_island_private.h"
+#include "rooms/neo_ark_island.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -20,6 +23,14 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "gameplay/message.h"
+
 static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2);
@@ -30,9 +41,53 @@ static void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* rgb);
 
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_island_80180600` records.
-extern SVECTOR D_neo_ark_island_80181B84[];
 /// The second of those offsets, which the recording frames read by name.
-extern SVECTOR D_neo_ark_island_80181B8C;
+
+extern GpGridParams D_neo_ark_island_801826C8[1];
+extern GpObj4C D_neo_ark_island_80183CC8[4];
+extern GpObj4C D_neo_ark_island_80183DF8[3];
+extern GpRoomCoordSet D_neo_ark_island_80183CB0[1];
+
+TaskDesc D_neo_ark_island_80181B30 = { 0, 192, func_neo_ark_island_8017D650, { .model = NULL } };
+
+TaskDesc D_neo_ark_island_80181B3C = { 0, 192, func_neo_ark_island_8017E2A4, { .model = NULL } };
+
+GpMsgEntry D_neo_ark_island_80181B48[6] = {
+    { 5102, func_neo_ark_island_8017E968 },
+    { 5105, func_neo_ark_island_8017E960 },
+    { 5103, func_neo_ark_island_8017EA2C },
+    { 5104, func_neo_ark_island_8017EA24 },
+    { 5106, func_neo_ark_island_8017EA34 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_neo_ark_island_80181B78 = { 0, 32, func_neo_ark_island_8017E844, { .model = NULL } };
+
+SVECTOR D_neo_ark_island_80181B84[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_neo_ark_island_80181B94[1] = {
+    { D_neo_ark_island_801826C8, D_neo_ark_island_80183CC8, D_neo_ark_island_80183DF8, NULL },
+};
+
+GpRoomCoordRec D_neo_ark_island_80181BA4[1] = {
+    { D_neo_ark_island_80183CB0, NULL },
+};
+
+u8 * D_neo_ark_island_80181BAC[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_neo_ark_island_80181BB0[1] = {
+    { { .bytes = { 5, 0 } } },
+};
+
+GpWarpRec D_neo_ark_island_80181BB4[2] = {
+    { { .words = { 2048, 3100, 0, 6464 } }, { 0, 0, 0, 0 }, { .words = { 2048, 3100, 0, 6464 } }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, 0, 2, 0, 0 },
+    { { .words = { 0x7FFE, 5300, 0, -1900 } }, { 0, 0, 0, 0 }, { .words = { 0x7FFE, 5300, 0, -1900 } }, { 0, 0, 0, 0 }, 0x550E0004, 0, 0, 4, 2, 0 },
+};
 
 /// `Gp_State1C` effect task drawing a growing, fading quad through
 /// `func_neo_ark_island_8017ECB4`. The first frame sets the brightness to
@@ -42,7 +97,7 @@ extern SVECTOR D_neo_ark_island_80181B8C;
 /// under 2. The coordinate is never rebuilt, so it keeps the frame the spawner
 /// left. Once the room's event state leaves zero it only draws, and releases
 /// at state 4.
-static void func_neo_ark_island_8017EB68(Task* task)
+void func_neo_ark_island_8017EB68(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -161,7 +216,7 @@ static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2)
 /// constant downward pull while the speed is non-zero, and advances the frame
 /// every `step` ticks, releasing the effect after the eighth. Once the room's
 /// event state leaves zero it only draws, and releases at state 4.
-static void func_neo_ark_island_8017EFE8(Task* task)
+void func_neo_ark_island_8017EFE8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -400,7 +455,7 @@ static void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2)
     SCRATCH_POP(GpRingScratch);
 }
 
-static void func_neo_ark_island_8017FB2C(Task* arg0)
+void func_neo_ark_island_8017FB2C(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758  = 0x601DB;
@@ -419,7 +474,7 @@ static void func_neo_ark_island_8017FB2C(Task* arg0)
 /// while dimming by 0x10 a frame, and releases the effect once the brightness
 /// is spent. Once the room's event state leaves zero it only waits for state 4
 /// to release.
-static void func_neo_ark_island_8017FB9C(Task* task)
+void func_neo_ark_island_8017FB9C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -600,7 +655,7 @@ static void func_neo_ark_island_8018026C(GpCoord* arg0, s16 arg1, u8* rgb)
 /// draws the ribbon through `func_neo_ark_island_80180AF0` and releases the
 /// effect once its age reaches `spawnArg1`. It stops advancing once the room's
 /// event state reaches 2.
-static void func_neo_ark_island_80180600(Task* task)
+void func_neo_ark_island_80180600(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -658,9 +713,12 @@ static void func_neo_ark_island_80180600(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_neo_ark_island_80181B8C.vx;
-                coord.coord.t[1] = D_neo_ark_island_80181B8C.vy;
-                coord.coord.t[2] = D_neo_ark_island_80181B8C.vz;
+                {
+                    SVECTOR* edge = &D_neo_ark_island_80181B84[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -799,7 +857,7 @@ static void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2,
 /// rings in a fading `(a, a/2, a/4)` colour. The effect is then released.
 /// Once the room's event state leaves zero it only waits for state 4 to
 /// release.
-static void func_neo_ark_island_80180EE8(Task* task)
+void func_neo_ark_island_80180EE8(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

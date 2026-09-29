@@ -1,6 +1,8 @@
 #ifndef PE_APOBIOSIS_H
 #define PE_APOBIOSIS_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -47,5 +49,9 @@ typedef struct ApobiosisStep {
     /* 0x6 */ u16 field_6;
 } ApobiosisStep;
 STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
+
+void func_apobiosis_8012EF4C(Task* arg0);
+
+void func_apobiosis_8012FE10(Task* arg0);
 
 #endif /* PE_APOBIOSIS_H */

@@ -1,3 +1,4 @@
+#include "actors/actor_511000.h"
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -37,6 +38,14 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/animation.h"
+
+extern GpImgRec D_actor_511000_80146F94[2];
+
+extern GpImgRec D_actor_511000_80146C74[2];
+
+extern GpImgRec D_actor_511000_801472B4[2];
+
 /// Work block of the enemy task, reached by its model-attach children through
 /// the parent task's `Task::work`. The spawn handler
 /// `func_actor_511000_80133958` allocates it (`memCalloc(0x488, 0)`), hands
@@ -60,14 +69,17 @@ STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
 /// `light` / `color` are the matrices the model's `lightMtx` / `colorMtx`
 /// point at. `field_8` is the `Tmd_FreeBuffers` countdown (-1 disables it);
 /// `field_C` is the 16-colour CLUT published through
-/// `D_actor_511000_80147EB0`, written byte by byte as little-endian 15-bit
+/// `D_actor_511000_80147EA4[0].data`, written byte by byte as little-endian 15-bit
 /// colours by the palette fade `func_actor_511000_80132E6C`, which steps
 /// `field_2C` and holds on `field_2E`. `field_2F` latches once the message-1
 /// children have been spawned.
 typedef struct Actor511000Work {
     /* 0x00 */ byte   pad_0[8];
     /* 0x08 */ s32    field_8;
-    /* 0x0C */ u8     field_C[0x20];
+    /* 0x0C */ union {
+        u8 bytes[0x20];
+        u_long words[8];
+    } field_C;
     /* 0x2C */ s16    field_2C;
     /* 0x2E */ s8     field_2E;
     /* 0x2F */ s8     field_2F;
@@ -152,7 +164,7 @@ static const TaskFuncTable3 D_actor_511000_80131E30 = {
 /// state, the per-frame tick and the enemy task exit.
 static const TaskFuncTable3 D_actor_511000_80131E3C = {
     func_actor_511000_80132480,
-    (TaskFunc)func_actor_511000_80131E78,
+    func_actor_511000_80131E78,
     Gp_EnemyTaskExit,
 };
 
@@ -199,17 +211,28 @@ extern GpViewRec D_actor_511000_80147EE4[];
 /// message-0x7E0 handler post. Each is a lone `GpImgRec` whose 0x18x0x10
 /// source rect repeats the size the users' scratch `RECT` carries and whose
 /// `data` points at its pixel blob.
-extern GpImgRec D_actor_511000_80146C74;
-extern GpImgRec D_actor_511000_80146F94;
-extern GpImgRec D_actor_511000_801472B4;
 
 /// Animation sources the animation message handler selects by index.
-extern void* D_actor_511000_801472E4[];
+extern GpAnimSet* D_actor_511000_801472D4[4];
+extern GpAnimSet** D_actor_511000_801472E4[1];
 
 /// Spawn table `func_actor_511000_80132480` starts its two child tasks from,
 /// and the message table it parks in `Task::msgTable`.
-extern TaskDesc D_actor_511000_801472E8;
-extern u8       D_actor_511000_8014730C[];
+extern TaskDesc D_actor_511000_801472E8[];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpAnimArg *);
+        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
+        s32 (*call2)(Task *, s32, GpCmdArg *);
+        s32 (*call3)(Task *, s32, GpXformArg *);
+        s32 (*call4)(Task *, s32, s32);
+    } handler;
+} Actor511000MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor511000MessageEntry, 8);
+
+extern Actor511000MessageEntry D_actor_511000_8014730C[6];
 
 /// Offset `Gp_SpawnEff` places the tick state's effect at.
 extern SVECTOR D_actor_511000_8014733C;
@@ -217,11 +240,28 @@ extern SVECTOR D_actor_511000_8014733C;
 extern SVECTOR    D_actor_511000_80147344[];
 extern SVECTOR    D_actor_511000_80147704[];
 extern SVECTOR    D_actor_511000_80147AC4[];
-extern u8         D_actor_511000_80147E84[];
-extern GpImgRec   D_actor_511000_80147EA4;
-extern u16*       D_actor_511000_80147EB0;
+// Color/byte updates and the GPU upload share the same backing storage.
+typedef union {
+    u8 bytes[32];
+    u_long words[8];
+} Actor511000Palette;
+STATIC_ASSERT_SIZEOF(Actor511000Palette, 32);
+
+extern Actor511000Palette D_actor_511000_80147E84;
 extern u8         D_actor_511000_80147EC4[];
-extern GpMsgEntry D_actor_511000_80148FC4[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *);
+        s32 (*call1)(Task *, s32, GpXformArg *, s32);
+        s32 (*call2)(Task *, s32, s32);
+    } handler;
+} Actor511000MsgEntry;
+STATIC_ASSERT_SIZEOF(Actor511000MsgEntry, 8);
+
+extern Actor511000MsgEntry D_actor_511000_80148FC4[];
 
 /// Translation presets `func_actor_511000_80133760` copies onto the root
 /// coordinate; `Task::spawnArg1` selects the entry.
@@ -231,14 +271,1777 @@ extern CVECTOR D_actor_511000_80149004[];
 extern DVECTOR D_actor_511000_80149014[];
 
 /// Spawn table and per-child args for the children spawned on message 1.
-extern TaskDesc D_actor_511000_80139924;
+extern TaskDesc D_actor_511000_80139924[];
 extern s32      D_actor_511000_80149054[];
 
 /// Spawn table for the three children `func_actor_511000_80133958` creates.
 extern TaskDesc D_actor_511000_80155070[];
 /// Message table and animation data `func_actor_511000_80133958` installs.
-extern void* D_actor_511000_801550A0;
-extern void* D_actor_511000_801550C0;
+extern Actor511000MessageEntry D_actor_511000_801550A0[4];
+extern GpAnimSet* D_actor_511000_801550C0[4];
+
+extern TmdSource D_actor_511000_80142554;
+extern TmdSource D_actor_511000_80142AAC;
+extern TmdSource D_actor_511000_80142C90;
+s32 func_actor_511000_80132604(Task *, s32, GpAnimArg *, s32);
+s32 func_actor_511000_80132724(Task *, s32, GpXformArg *);
+s32 func_actor_511000_801327A0(Task *, s32, s32);
+s32 func_actor_511000_8013287C(Task *, s32, GpCmdArg *);
+s32 func_actor_511000_80132904(Task *, s32, s32);
+void func_actor_511000_80132150(Task *);
+void func_actor_511000_8013222C(Task *);
+void func_actor_511000_80132428(Task *);
+
+extern GpAnimSet D_actor_511000_8014303C;
+extern GpAnimSet D_actor_511000_80144EF4;
+extern GpAnimSet D_actor_511000_8014694C;
+
+extern Actor511000Palette D_actor_511000_80147E84;
+
+s32 func_actor_511000_801334B8(Task *);
+s32 func_actor_511000_801334C4(Task *, s32, GpXformArg *, s32);
+s32 func_actor_511000_80133554(Task *, s32, s32);
+s32 func_actor_511000_80133DEC(Task *, s32, GpAnimArg *);
+s32 func_actor_511000_80133E48(Task *, s32, GpXformArg *);
+s32 func_actor_511000_80133EAC(Task *, s32, s32);
+void func_actor_511000_80133D90(Task *);
+void func_actor_511000_80133EF4(Task *);
+void func_actor_511000_80133FC8(Task *);
+void func_actor_511000_8013409C(Task *);
+
+extern TmdSource D_actor_511000_8013BB10;
+extern TmdSource D_actor_511000_8013BEF8;
+extern TmdSource D_actor_511000_8013C058;
+extern TmdSource D_actor_511000_8013C65C;
+void func_actor_511000_80133850(Task *);
+void func_actor_511000_801338A8(Task *);
+void func_actor_511000_80133900(Task *);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[84];
+    GpPackedSvec words[252];
+} Actor511000PoseBank2350;
+
+Actor511000PoseBank2350 D_actor_511000_80134170 = { .poses = {
+#include "assets/actor_511000_animation_04CC8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_80134560[1028] = {
+#include "assets/actor_511000_animation_04CC8_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80135570[1364] = {
+#include "assets/actor_511000_animation_04CC8_records.inc"
+};
+
+u16 D_actor_511000_80136AC0[20] = {
+#include "assets/actor_511000_animation_04CC8_indices.inc"
+};
+
+GpAnimSet D_actor_511000_80136AE8 = {
+    D_actor_511000_80135570, D_actor_511000_80136AC0,
+    { NULL, D_actor_511000_80134170.words, NULL, NULL, D_actor_511000_80134560, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[75];
+    GpPackedSvec words[225];
+} Actor511000PoseBank4CF0;
+
+Actor511000PoseBank4CF0 D_actor_511000_80136B10 = { .poses = {
+#include "assets/actor_511000_animation_07ADC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_80136E94[1201] = {
+#include "assets/actor_511000_animation_07ADC_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80138158[1503] = {
+#include "assets/actor_511000_animation_07ADC_records.inc"
+};
+
+u16 D_actor_511000_801398D4[20] = {
+#include "assets/actor_511000_animation_07ADC_indices.inc"
+};
+
+GpAnimSet D_actor_511000_801398FC = {
+    D_actor_511000_80138158, D_actor_511000_801398D4,
+    { NULL, D_actor_511000_80136B10.words, NULL, NULL, D_actor_511000_80136E94, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_511000_80139924[4] = {
+    { 257, 192, func_actor_511000_80133850, { .model = &D_actor_511000_8013BB10 } },
+    { 257, 192, func_actor_511000_801338A8, { .model = &D_actor_511000_8013BEF8 } },
+    { 257, 192, func_actor_511000_801338A8, { .model = &D_actor_511000_8013C058 } },
+    { 257, 192, func_actor_511000_80133900, { .model = &D_actor_511000_8013C65C } },
+};
+
+TmdBone D_actor_511000_80139954[1] = {
+#include "assets/actor_511000_model_09CF0_skeleton.inc"
+};
+
+u32 D_actor_511000_80139978[1] = {
+#include "assets/actor_511000_model_09CF0_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8013997C[262] = {
+#include "assets/actor_511000_model_09CF0_verts.inc"
+};
+
+SVECTOR D_actor_511000_8013A1AC[163] = {
+#include "assets/actor_511000_model_09CF0_normals.inc"
+};
+
+u32 D_actor_511000_8013A6C4[1299] = {
+#include "assets/actor_511000_model_09CF0_stream.inc"
+};
+
+TmdSource D_actor_511000_8013BB10 = {
+    0, 9368, 0, 1,
+    D_actor_511000_80139978, D_actor_511000_8013997C, D_actor_511000_8013A1AC, D_actor_511000_80139954, D_actor_511000_8013A6C4,
+};
+
+TmdBone D_actor_511000_8013BB34[1] = {
+#include "assets/actor_511000_model_0A0D8_skeleton.inc"
+};
+
+u32 D_actor_511000_8013BB58[1] = {
+#include "assets/actor_511000_model_0A0D8_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8013BB5C[59] = {
+#include "assets/actor_511000_model_0A0D8_verts.inc"
+};
+
+SVECTOR D_actor_511000_8013BD34[1] = {
+#include "assets/actor_511000_model_0A0D8_normals.inc"
+};
+
+u32 D_actor_511000_8013BD3C[111] = {
+#include "assets/actor_511000_model_0A0D8_stream.inc"
+};
+
+TmdSource D_actor_511000_8013BEF8 = {
+    0, 840, 0, 1,
+    D_actor_511000_8013BB58, D_actor_511000_8013BB5C, D_actor_511000_8013BD34, D_actor_511000_8013BB34, D_actor_511000_8013BD3C,
+};
+
+TmdBone D_actor_511000_8013BF1C[1] = {
+#include "assets/actor_511000_model_0A238_skeleton.inc"
+};
+
+u32 D_actor_511000_8013BF40[1] = {
+#include "assets/actor_511000_model_0A238_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8013BF44[12] = {
+#include "assets/actor_511000_model_0A238_verts.inc"
+};
+
+SVECTOR D_actor_511000_8013BFA4[2] = {
+#include "assets/actor_511000_model_0A238_normals.inc"
+};
+
+u32 D_actor_511000_8013BFB4[41] = {
+#include "assets/actor_511000_model_0A238_stream.inc"
+};
+
+TmdSource D_actor_511000_8013C058 = {
+    0, 280, 0, 1,
+    D_actor_511000_8013BF40, D_actor_511000_8013BF44, D_actor_511000_8013BFA4, D_actor_511000_8013BF1C, D_actor_511000_8013BFB4,
+};
+
+TmdBone D_actor_511000_8013C07C[1] = {
+#include "assets/actor_511000_model_0A83C_skeleton.inc"
+};
+
+u32 D_actor_511000_8013C0A0[1] = {
+#include "assets/actor_511000_model_0A83C_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8013C0A4[36] = {
+#include "assets/actor_511000_model_0A83C_verts.inc"
+};
+
+SVECTOR D_actor_511000_8013C1C4[15] = {
+#include "assets/actor_511000_model_0A83C_normals.inc"
+};
+
+u32 D_actor_511000_8013C23C[264] = {
+#include "assets/actor_511000_model_0A83C_stream.inc"
+};
+
+TmdSource D_actor_511000_8013C65C = {
+    0, 1576, 0, 1,
+    D_actor_511000_8013C0A0, D_actor_511000_8013C0A4, D_actor_511000_8013C1C4, D_actor_511000_8013C07C, D_actor_511000_8013C23C,
+};
+
+TmdBone D_actor_511000_8013C680[20] = {
+#include "assets/actor_511000_model_10734_skeleton.inc"
+};
+
+u32 D_actor_511000_8013C950[20] = {
+#include "assets/actor_511000_model_10734_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8013C9A0[386] = {
+#include "assets/actor_511000_model_10734_verts.inc"
+};
+
+SVECTOR D_actor_511000_8013D5B0[385] = {
+#include "assets/actor_511000_model_10734_normals.inc"
+};
+
+u32 D_actor_511000_8013E1B8[4327] = {
+#include "assets/actor_511000_model_10734_stream.inc"
+};
+
+TmdSource D_actor_511000_80142554 = {
+    0, 23980, 6012, 20,
+    D_actor_511000_8013C950, D_actor_511000_8013C9A0, D_actor_511000_8013D5B0, D_actor_511000_8013C680, D_actor_511000_8013E1B8,
+};
+
+TmdBone D_actor_511000_80142578[1] = {
+#include "assets/actor_511000_model_10C8C_skeleton.inc"
+};
+
+u32 D_actor_511000_8014259C[1] = {
+#include "assets/actor_511000_model_10C8C_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_801425A0[28] = {
+#include "assets/actor_511000_model_10C8C_verts.inc"
+};
+
+SVECTOR D_actor_511000_80142680[28] = {
+#include "assets/actor_511000_model_10C8C_normals.inc"
+};
+
+u32 D_actor_511000_80142760[211] = {
+#include "assets/actor_511000_model_10C8C_stream.inc"
+};
+
+TmdSource D_actor_511000_80142AAC = {
+    0, 1464, 0, 1,
+    D_actor_511000_8014259C, D_actor_511000_801425A0, D_actor_511000_80142680, D_actor_511000_80142578, D_actor_511000_80142760,
+};
+
+TmdBone D_actor_511000_80142AD0[1] = {
+#include "assets/actor_511000_model_10E70_skeleton.inc"
+};
+
+u32 D_actor_511000_80142AF4[1] = {
+#include "assets/actor_511000_model_10E70_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_80142AF8[14] = {
+#include "assets/actor_511000_model_10E70_verts.inc"
+};
+
+u32 D_actor_511000_80142B68[74] = {
+#include "assets/actor_511000_model_10E70_stream.inc"
+};
+
+TmdSource D_actor_511000_80142C90 = {
+    0, 504, 0, 1,
+    D_actor_511000_80142AF4, D_actor_511000_80142AF8, &D_actor_511000_80142AF8[14], D_actor_511000_80142AD0, D_actor_511000_80142B68,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor511000PoseBank10E94;
+
+Actor511000PoseBank10E94 D_actor_511000_80142CB4 = { .poses = {
+#include "assets/actor_511000_animation_1121C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_80142CF0[80] = {
+#include "assets/actor_511000_animation_1121C_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80142E30[121] = {
+#include "assets/actor_511000_animation_1121C_records.inc"
+};
+
+u16 D_actor_511000_80143014[20] = {
+#include "assets/actor_511000_animation_1121C_indices.inc"
+};
+
+GpAnimSet D_actor_511000_8014303C = {
+    D_actor_511000_80142E30, D_actor_511000_80143014,
+    { NULL, D_actor_511000_80142CB4.words, NULL, NULL, D_actor_511000_80142CF0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[118];
+    GpPackedSvec words[354];
+} Actor511000PoseBank11244;
+
+Actor511000PoseBank11244 D_actor_511000_80143064 = { .poses = {
+#include "assets/actor_511000_animation_130D4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_801435EC[422] = {
+#include "assets/actor_511000_animation_130D4_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80143C84[1170] = {
+#include "assets/actor_511000_animation_130D4_records.inc"
+};
+
+u16 D_actor_511000_80144ECC[20] = {
+#include "assets/actor_511000_animation_130D4_indices.inc"
+};
+
+GpAnimSet D_actor_511000_80144EF4 = {
+    D_actor_511000_80143C84, D_actor_511000_80144ECC,
+    { NULL, D_actor_511000_80143064.words, NULL, NULL, D_actor_511000_801435EC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[19];
+    GpPackedSvec words[57];
+} Actor511000PoseBank130FC;
+
+Actor511000PoseBank130FC D_actor_511000_80144F1C = { .poses = {
+#include "assets/actor_511000_animation_14B2C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_80145000[703] = {
+#include "assets/actor_511000_animation_14B2C_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80145AFC[906] = {
+#include "assets/actor_511000_animation_14B2C_records.inc"
+};
+
+u16 D_actor_511000_80146924[20] = {
+#include "assets/actor_511000_animation_14B2C_indices.inc"
+};
+
+GpAnimSet D_actor_511000_8014694C = {
+    D_actor_511000_80145AFC, D_actor_511000_80146924,
+    { NULL, D_actor_511000_80144F1C.words, NULL, NULL, D_actor_511000_80145000, NULL, NULL, NULL },
+};
+
+u_long D_actor_511000_80146974[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA6A2A28D,
+    0xADA5ADA5,
+    0xB1B1B1AE,
+    0xAEAEADAE,
+    0x65929AA9,
+    0xADA68766,
+    0xADA5A5AD,
+    0xADADADAD,
+    0x8B969EA5,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0xA5958C8D,
+    0xFFB9C29C,
+    0xAE61B5FF,
+    0xA9A9A9A5,
+    0x7C788F95,
+    0xA7958785,
+    0x9FA5A68B,
+    0xFFFFB561,
+    0x9890C5BF,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0x9B8C828D,
+    0xFFB21716,
+    0xCECCFFFF,
+    0x9595A890,
+    0x7B65864E,
+    0x998D8665,
+    0xCEACA997,
+    0xB7FFFFC4,
+    0x9BCCD5D0,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9894028A,
+    0x1CCB0B1,
+    0x81958B9B,
+    0x72677882,
+    0x998E8568,
+    0xCC9B95A2,
+    0x98AE7EC6,
+    0x87891601,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x87879A9B,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_511000_80146C74[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146974 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_511000_80146C94[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA2A2A28D,
+    0x8C8C8C8C,
+    0xA9A9A68C,
+    0xAEAEA9A9,
+    0x65929AA9,
+    0xADA68766,
+    0xA9A9A5AD,
+    0x9595A9A9,
+    0x95959595,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0x95958C8D,
+    0xB0C2A995,
+    0xC2C2B0B0,
+    0xA9A9A9A9,
+    0x7C788F95,
+    0xA7958785,
+    0xA9A9A68B,
+    0xC2B0B0C2,
+    0x959595C2,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0xC28C828D,
+    0xB0B0B0B0,
+    0xB0B0B0B0,
+    0x9595A8B0,
+    0x7B65864E,
+    0x998D8665,
+    0xB0B0A997,
+    0xB0B0B0B0,
+    0x9BC2B0B0,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9894028A,
+    0x1CCB0B1,
+    0x81958B9B,
+    0x72677882,
+    0x998E8568,
+    0xCC9B95A2,
+    0x98AE7EC6,
+    0x87891601,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x879A9A9A,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_511000_80146F94[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146C94 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_511000_80146FB4[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA2A2A28D,
+    0xA2A2A2A2,
+    0xB19898A2,
+    0xAEAEADAE,
+    0x65929AA9,
+    0xADA68766,
+    0xADA5A5AD,
+    0x8B8B9898,
+    0xA2A2A2A2,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0xA2958C8D,
+    0x788FA2A2,
+    0xA2A28F8F,
+    0xA9A9A9A6,
+    0x7C788F95,
+    0xA7958785,
+    0xA2A2A7A7,
+    0x8F788F8F,
+    0x959595A2,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0x958C828D,
+    0x61ADADA9,
+    0xAD616161,
+    0xA9A99898,
+    0x7B65864E,
+    0x998D8665,
+    0x61AD9897,
+    0x61616161,
+    0x95A9ADAD,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9898ADAD,
+    0x98A9A9A9,
+    0x818198AD,
+    0x72677882,
+    0x998E8568,
+    0x98AD9898,
+    0x98A9A9A9,
+    0x87ADADAD,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x87879A9B,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_511000_801472B4[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_511000_80146FB4 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+GpAnimSet * D_actor_511000_801472D4[4] = {
+    NULL,
+    &D_actor_511000_8014303C,
+    &D_actor_511000_80144EF4,
+    &D_actor_511000_8014694C,
+};
+
+GpAnimSet ** D_actor_511000_801472E4[1] = {
+    D_actor_511000_801472D4,
+};
+
+TaskDesc D_actor_511000_801472E8[3] = {
+    { 257, 192, func_actor_511000_80132428, { .model = &D_actor_511000_80142554 } },
+    { 1, 192, func_actor_511000_80132150, { .model = &D_actor_511000_80142AAC } },
+    { 1, 192, func_actor_511000_8013222C, { .model = &D_actor_511000_80142C90 } },
+};
+
+Actor511000MessageEntry D_actor_511000_8014730C[6] = {
+    { 2003, { .call1 = func_actor_511000_80132604 } },
+    { 2004, { .call3 = func_actor_511000_80132724 } },
+    { 2005, { .call4 = func_actor_511000_801327A0 } },
+    { 2011, { .call2 = func_actor_511000_8013287C } },
+    { 2016, { .call4 = func_actor_511000_80132904 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+SVECTOR D_actor_511000_8014733C = { -30, 440, 140, 0 };
+
+SVECTOR D_actor_511000_80147344[120] = {
+    { 0, 0, 0, 0 },
+    { 0, -9, 0, 0 },
+    { 0, -19, 0, 0 },
+    { 0, -30, 0, 0 },
+    { 0, -41, 0, 0 },
+    { 0, -52, 0, 0 },
+    { 0, -64, 0, 0 },
+    { 0, -77, 0, 0 },
+    { 0, -89, 0, 0 },
+    { 0, -102, 0, 0 },
+    { 0, -116, 0, 0 },
+    { 0, -130, 0, 0 },
+    { 0, -144, 0, 0 },
+    { 0, -158, 0, 0 },
+    { 0, -172, 0, 0 },
+    { 0, -187, 0, 0 },
+    { 0, -202, 0, 0 },
+    { 0, -217, 0, 0 },
+    { 0, -232, 0, 0 },
+    { 0, -248, 0, 0 },
+    { 0, -263, 0, 0 },
+    { 0, -279, 0, 0 },
+    { 0, -294, 0, 0 },
+    { 0, -310, 0, 0 },
+    { 0, -325, 0, 0 },
+    { 0, -341, 0, 0 },
+    { 0, -356, 0, 0 },
+    { 0, -372, 0, 0 },
+    { 0, -387, 0, 0 },
+    { 0, -402, 0, 0 },
+    { 0, -417, 0, 0 },
+    { 0, -432, 0, 0 },
+    { 0, -447, 0, 0 },
+    { 0, -461, 0, 0 },
+    { 0, -475, 0, 0 },
+    { 0, -489, 0, 0 },
+    { 0, -503, 0, 0 },
+    { 0, -516, 0, 0 },
+    { 0, -529, 0, 0 },
+    { 0, -542, 0, 0 },
+    { 0, -554, 0, 0 },
+    { 0, -566, 0, 0 },
+    { 0, -577, 0, 0 },
+    { 0, -588, 0, 0 },
+    { 0, -599, 0, 0 },
+    { 0, -609, 0, 0 },
+    { 0, -618, 0, 0 },
+    { 0, -627, 0, 0 },
+    { 0, -635, 0, 0 },
+    { 0, -643, 0, 0 },
+    { 0, -650, 0, 0 },
+    { 0, -657, 0, 0 },
+    { 0, -662, 0, 0 },
+    { 0, -668, 0, 0 },
+    { 0, -672, 0, 0 },
+    { 0, -676, 0, 0 },
+    { 0, -678, 0, 0 },
+    { 0, -680, 0, 0 },
+    { 0, -682, 0, 0 },
+    { 0, -682, 0, 0 },
+    { 0, -682, 0, 0 },
+    { 0, -682, 0, 0 },
+    { 0, -682, 0, 0 },
+    { 0, -681, 0, 0 },
+    { 0, -681, 0, 0 },
+    { 0, -681, 0, 0 },
+    { 0, -680, 0, 0 },
+    { 0, -679, 0, 0 },
+    { 0, -679, 0, 0 },
+    { 0, -678, 0, 0 },
+    { 0, -677, 0, 0 },
+    { 0, -676, 0, 0 },
+    { 0, -675, 0, 0 },
+    { 0, -674, 0, 0 },
+    { 0, -673, 0, 0 },
+    { 0, -672, 0, 0 },
+    { 0, -671, 0, 0 },
+    { 0, -670, 0, 0 },
+    { 0, -669, 0, 0 },
+    { 0, -667, 0, 0 },
+    { 0, -666, 0, 0 },
+    { 0, -665, 0, 0 },
+    { 0, -663, 0, 0 },
+    { 0, -662, 0, 0 },
+    { 0, -661, 0, 0 },
+    { 0, -659, 0, 0 },
+    { 0, -658, 0, 0 },
+    { 0, -657, 0, 0 },
+    { 0, -655, 0, 0 },
+    { 0, -654, 0, 0 },
+    { 0, -652, 0, 0 },
+    { 0, -651, 0, 0 },
+    { 0, -649, 0, 0 },
+    { 0, -648, 0, 0 },
+    { 0, -647, 0, 0 },
+    { 0, -645, 0, 0 },
+    { 0, -644, 0, 0 },
+    { 0, -643, 0, 0 },
+    { 0, -641, 0, 0 },
+    { 0, -640, 0, 0 },
+    { 0, -639, 0, 0 },
+    { 0, -638, 0, 0 },
+    { 0, -636, 0, 0 },
+    { 0, -635, 0, 0 },
+    { 0, -634, 0, 0 },
+    { 0, -633, 0, 0 },
+    { 0, -632, 0, 0 },
+    { 0, -631, 0, 0 },
+    { 0, -630, 0, 0 },
+    { 0, -629, 0, 0 },
+    { 0, -629, 0, 0 },
+    { 0, -628, 0, 0 },
+    { 0, -627, 0, 0 },
+    { 0, -627, 0, 0 },
+    { 0, -626, 0, 0 },
+    { 0, -626, 0, 0 },
+    { 0, -626, 0, 0 },
+    { 0, -625, 0, 0 },
+    { 0, -625, 0, 0 },
+    { 0, -625, 0, 0 },
+};
+
+SVECTOR D_actor_511000_80147704[120] = {
+    { 0, -0x6284, 0, 0 },
+    { 0, -0x6284, 0, 0 },
+    { 0, -0x6284, 0, 0 },
+    { 0, -0x6286, 0, 0 },
+    { 0, -0x6287, 0, 0 },
+    { 0, -0x628A, 0, 0 },
+    { 0, -0x628D, 0, 0 },
+    { 0, -0x6290, 0, 0 },
+    { 0, -0x6294, 0, 0 },
+    { 0, -0x6299, 0, 0 },
+    { 0, -0x629E, 0, 0 },
+    { 0, -0x62A4, 0, 0 },
+    { 0, -0x62AA, 0, 0 },
+    { 0, -0x62B1, 0, 0 },
+    { 0, -0x62B9, 0, 0 },
+    { 0, -0x62C2, 0, 0 },
+    { 0, -0x62CB, 0, 0 },
+    { 0, -0x62D5, 0, 0 },
+    { 0, -0x62E0, 0, 0 },
+    { 0, -0x62EC, 0, 0 },
+    { 0, -0x62F8, 0, 0 },
+    { 0, -0x6306, 0, 0 },
+    { 0, -0x6314, 0, 0 },
+    { 0, -0x6323, 0, 0 },
+    { 0, -0x6332, 0, 0 },
+    { 0, -0x6343, 0, 0 },
+    { 0, -0x6355, 0, 0 },
+    { 0, -0x6367, 0, 0 },
+    { 0, -0x637B, 0, 0 },
+    { 0, -0x638F, 0, 0 },
+    { 0, -0x63A4, 0, 0 },
+    { 0, -0x63BB, 0, 0 },
+    { 0, -0x63D2, 0, 0 },
+    { 0, -0x63EA, 0, 0 },
+    { 0, -0x6404, 0, 0 },
+    { 0, -0x641E, 0, 0 },
+    { 0, -0x643A, 0, 0 },
+    { 0, -0x6456, 0, 0 },
+    { 0, -0x6474, 0, 0 },
+    { 0, -0x6493, 0, 0 },
+    { 0, -0x64A8, 0, 0 },
+    { 0, -0x6487, 0, 0 },
+    { 0, -0x6464, 0, 0 },
+    { 0, -0x6441, 0, 0 },
+    { 0, -0x641C, 0, 0 },
+    { 0, -0x63F6, 0, 0 },
+    { 0, -0x63CF, 0, 0 },
+    { 0, -0x63A6, 0, 0 },
+    { 0, -0x637D, 0, 0 },
+    { 0, -0x6352, 0, 0 },
+    { 0, -0x6325, 0, 0 },
+    { 0, -0x62F7, 0, 0 },
+    { 0, -0x62C8, 0, 0 },
+    { 0, -0x6298, 0, 0 },
+    { 0, -0x6266, 0, 0 },
+    { 0, -0x6233, 0, 0 },
+    { 0, -0x61FE, 0, 0 },
+    { 0, -0x61C8, 0, 0 },
+    { 0, -0x6191, 0, 0 },
+    { 0, -0x6158, 0, 0 },
+    { 0, -0x611D, 0, 0 },
+    { 0, -0x60E2, 0, 0 },
+    { 0, -0x60A6, 0, 0 },
+    { 0, -0x606A, 0, 0 },
+    { 0, -0x602C, 0, 0 },
+    { 0, -0x5FED, 0, 0 },
+    { 0, -0x5FAD, 0, 0 },
+    { 0, -0x5F6D, 0, 0 },
+    { 0, -0x5F2B, 0, 0 },
+    { 0, -0x5EE8, 0, 0 },
+    { 0, -0x5EA5, 0, 0 },
+    { 0, -0x5E60, 0, 0 },
+    { 0, -0x5E1A, 0, 0 },
+    { 0, -0x5DD3, 0, 0 },
+    { 0, -0x5D8B, 0, 0 },
+    { 0, -0x5D42, 0, 0 },
+    { 0, -0x5CF7, 0, 0 },
+    { 0, -0x5CAC, 0, 0 },
+    { 0, -0x5C5F, 0, 0 },
+    { 0, -0x5C11, 0, 0 },
+    { 0, -0x5BC2, 0, 0 },
+    { 0, -0x5B71, 0, 0 },
+    { 0, -0x5B1F, 0, 0 },
+    { 0, -0x5ACC, 0, 0 },
+    { 0, -0x5A78, 0, 0 },
+    { 0, -0x5A22, 0, 0 },
+    { 0, -0x59CB, 0, 0 },
+    { 0, -0x5973, 0, 0 },
+    { 0, -0x5919, 0, 0 },
+    { 0, -0x58BD, 0, 0 },
+    { 0, -0x5861, 0, 0 },
+    { 0, -0x5803, 0, 0 },
+    { 0, -0x57A3, 0, 0 },
+    { 0, -0x5742, 0, 0 },
+    { 0, -0x56DF, 0, 0 },
+    { 0, -0x567B, 0, 0 },
+    { 0, -0x5615, 0, 0 },
+    { 0, -0x55AD, 0, 0 },
+    { 0, -0x5545, 0, 0 },
+    { 0, -0x54DA, 0, 0 },
+    { 0, -0x546E, 0, 0 },
+    { 0, -0x5400, 0, 0 },
+    { 0, -0x5390, 0, 0 },
+    { 0, -0x531F, 0, 0 },
+    { 0, -0x52AC, 0, 0 },
+    { 0, -0x5237, 0, 0 },
+    { 0, -0x51C1, 0, 0 },
+    { 0, -0x5148, 0, 0 },
+    { 0, -0x50CE, 0, 0 },
+    { 0, -0x5053, 0, 0 },
+    { 0, -0x4FD5, 0, 0 },
+    { 0, -0x4F55, 0, 0 },
+    { 0, -0x4ED4, 0, 0 },
+    { 0, -0x4E50, 0, 0 },
+    { 0, -0x4DCB, 0, 0 },
+    { 0, -0x4D44, 0, 0 },
+    { 0, -0x4CBB, 0, 0 },
+    { 0, -0x4C30, 0, 0 },
+    { 0, -0x4BA3, 0, 0 },
+    { 0, -0x4B14, 0, 0 },
+};
+
+SVECTOR D_actor_511000_80147AC4[120] = {
+    { -1027, 0, -245, 0 },
+    { -1028, 0, -244, 0 },
+    { -1029, 0, -243, 0 },
+    { -1031, 0, -241, 0 },
+    { -1033, 0, -238, 0 },
+    { -1036, 0, -235, 0 },
+    { -1040, 0, -231, 0 },
+    { -1044, 0, -227, 0 },
+    { -1048, 0, -222, 0 },
+    { -1053, 0, -216, 0 },
+    { -1059, 0, -210, 0 },
+    { -1065, 0, -203, 0 },
+    { -1072, 0, -196, 0 },
+    { -1079, 0, -188, 0 },
+    { -1086, 0, -180, 0 },
+    { -1094, 0, -171, 0 },
+    { -1103, 0, -162, 0 },
+    { -1112, 0, -152, 0 },
+    { -1121, 0, -142, 0 },
+    { -1131, 0, -131, 0 },
+    { -1141, 0, -120, 0 },
+    { -1151, 0, -109, 0 },
+    { -1162, 0, -97, 0 },
+    { -1173, 0, -84, 0 },
+    { -1185, 0, -72, 0 },
+    { -1196, 0, -58, 0 },
+    { -1209, 0, -45, 0 },
+    { -1221, 0, -31, 0 },
+    { -1234, 0, -17, 0 },
+    { -1247, 0, -2, 0 },
+    { -1260, 0, 12, 0 },
+    { -1273, 0, 27, 0 },
+    { -1287, 0, 43, 0 },
+    { -1301, 0, 59, 0 },
+    { -1315, 0, 75, 0 },
+    { -1330, 0, 92, 0 },
+    { -1344, 0, 109, 0 },
+    { -1359, 0, 126, 0 },
+    { -1374, 0, 143, 0 },
+    { -1389, 0, 160, 0 },
+    { -1404, 0, 178, 0 },
+    { -1420, 0, 196, 0 },
+    { -1435, 0, 214, 0 },
+    { -1451, 0, 233, 0 },
+    { -1466, 0, 251, 0 },
+    { -1481, 0, 269, 0 },
+    { -1495, 0, 286, 0 },
+    { -1506, 0, 302, 0 },
+    { -1517, 0, 317, 0 },
+    { -1525, 0, 330, 0 },
+    { -1533, 0, 343, 0 },
+    { -1538, 0, 355, 0 },
+    { -1543, 0, 365, 0 },
+    { -1546, 0, 374, 0 },
+    { -1547, 0, 383, 0 },
+    { -1547, 0, 390, 0 },
+    { -1546, 0, 396, 0 },
+    { -1543, 0, 401, 0 },
+    { -1539, 0, 405, 0 },
+    { -1534, 0, 408, 0 },
+    { -1527, 0, 411, 0 },
+    { -1519, 0, 412, 0 },
+    { -1510, 0, 411, 0 },
+    { -1499, 0, 410, 0 },
+    { -1488, 0, 408, 0 },
+    { -1474, 0, 405, 0 },
+    { -1460, 0, 401, 0 },
+    { -1445, 0, 396, 0 },
+    { -1428, 0, 390, 0 },
+    { -1410, 0, 383, 0 },
+    { -1391, 0, 375, 0 },
+    { -1371, 0, 366, 0 },
+    { -1350, 0, 356, 0 },
+    { -1328, 0, 345, 0 },
+    { -1305, 0, 333, 0 },
+    { -1280, 0, 320, 0 },
+    { -1255, 0, 307, 0 },
+    { -1228, 0, 292, 0 },
+    { -1201, 0, 276, 0 },
+    { -1172, 0, 259, 0 },
+    { -1143, 0, 242, 0 },
+    { -1112, 0, 223, 0 },
+    { -1081, 0, 204, 0 },
+    { -1049, 0, 184, 0 },
+    { -1015, 0, 162, 0 },
+    { -981, 0, 140, 0 },
+    { -946, 0, 117, 0 },
+    { -911, 0, 93, 0 },
+    { -874, 0, 68, 0 },
+    { -837, 0, 43, 0 },
+    { -801, 0, 17, 0 },
+    { -769, 0, -5, 0 },
+    { -742, 0, -26, 0 },
+    { -718, 0, -45, 0 },
+    { -698, 0, -62, 0 },
+    { -681, 0, -78, 0 },
+    { -667, 0, -92, 0 },
+    { -656, 0, -105, 0 },
+    { -648, 0, -116, 0 },
+    { -642, 0, -125, 0 },
+    { -639, 0, -134, 0 },
+    { -637, 0, -141, 0 },
+    { -638, 0, -147, 0 },
+    { -640, 0, -152, 0 },
+    { -644, 0, -156, 0 },
+    { -649, 0, -159, 0 },
+    { -655, 0, -161, 0 },
+    { -662, 0, -163, 0 },
+    { -669, 0, -164, 0 },
+    { -677, 0, -165, 0 },
+    { -685, 0, -165, 0 },
+    { -694, 0, -164, 0 },
+    { -702, 0, -164, 0 },
+    { -709, 0, -163, 0 },
+    { -716, 0, -162, 0 },
+    { -722, 0, -161, 0 },
+    { -728, 0, -160, 0 },
+    { -732, 0, -159, 0 },
+    { -734, 0, -159, 0 },
+    { -735, 0, -159, 0 },
+};
+
+Actor511000Palette D_actor_511000_80147E84 = { .bytes = {
+    255, 255, 2, 128, 3, 128, 6, 128, 9, 128, 13, 128, 16, 128, 127, 148,
+    127, 177, 18, 132, 63, 169, 223, 156, 23, 132, 27, 132, 29, 132, 0, 128,
+} };
+
+GpImgRec D_actor_511000_80147EA4[2] = {
+    { 0, 0, { 0, 264, 16, 1 }, D_actor_511000_80147E84.words },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u8 D_actor_511000_80147EC4[32] = {
+    255,
+    255,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    33,
+    132,
+    0,
+    128,
+};
+
+GpViewRec D_actor_511000_80147EE4[120] = {
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5601, 5927, 110 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5602, 5927, 100 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5605, 5928, 86 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5607, 5930, 70 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5610, 5931, 52 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5614, 5933, 30 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5617, 5934, 6 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5622, 5936, -19 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5626, 5938, -47 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5630, 5940, -78 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5635, 5943, -111 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5640, 5945, -146 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5645, 5947, -184 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5651, 5950, -223 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5656, 5953, -264 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5661, 5955, -306 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5667, 5958, -351 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5672, 5961, -397 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5677, 5963, -444 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5682, 5966, -493 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5688, 5969, -543 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5693, 5972, -595 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5697, 5975, -648 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5702, 5977, -702 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5707, 5980, -756 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5711, 5983, -812 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5715, 5985, -869 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 5988, -926 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5722, 5990, -985 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5725, 5993, -1043 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5728, 5995, -1103 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 5997, -1162 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 5999, -1222 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6001, -1282 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6003, -1343 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6005, -1403 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6006, -1464 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6008, -1524 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6009, -1585 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6010, -1644 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 6011, -1704 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 6012, -1763 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5727, 6012, -1822 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5724, 6013, -1880 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 6013, -1937 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5714, 6012, -1993 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5708, 6012, -2048 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5701, 6011, -2103 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5694, 6010, -2156 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5685, 6009, -2207 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5675, 6007, -2258 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5663, 6005, -2306 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5650, 6002, -2353 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5634, 5998, -2397 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5616, 5993, -2439 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5593, 5987, -2476 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5564, 5979, -2505 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5527, 5968, -2521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5486, 5956, -2521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5446, 5944, -2510 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5407, 5931, -2492 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5370, 5919, -2469 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5334, 5908, -2443 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5299, 5897, -2414 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5265, 5885, -2383 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5232, 5875, -2350 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5199, 5864, -2316 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5167, 5853, -2281 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5136, 5843, -2245 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5105, 5833, -2207 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5074, 5822, -2169 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5045, 5812, -2131 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5015, 5802, -2091 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4986, 5793, -2051 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4958, 5783, -2011 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4930, 5774, -1971 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4902, 5764, -1930 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4875, 5755, -1889 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4849, 5746, -1847 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4823, 5737, -1806 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4797, 5728, -1765 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4772, 5720, -1724 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4748, 5711, -1683 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4724, 5703, -1642 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4701, 5695, -1601 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4678, 5687, -1561 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4656, 5679, -1521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4634, 5672, -1481 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4614, 5665, -1442 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4593, 5657, -1404 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4573, 5651, -1366 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4554, 5644, -1329 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4536, 5637, -1292 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4518, 5631, -1257 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4501, 5625, -1222 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4485, 5619, -1188 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4469, 5614, -1155 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4454, 5608, -1123 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4440, 5603, -1092 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4426, 5598, -1063 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4413, 5594, -1034 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4401, 5589, -1007 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4389, 5585, -981 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4379, 5581, -957 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4368, 5578, -934 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4359, 5574, -913 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4351, 5571, -893 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4343, 5568, -874 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4336, 5566, -858 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4330, 5564, -843 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4324, 5562, -830 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4320, 5560, -819 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4316, 5559, -810 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4313, 5558, -802 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4311, 5557, -797 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -794 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -793 } }, 447 },
+};
+
+Actor511000MsgEntry D_actor_511000_80148FC4[4] = {
+    { 2003, { .call0 = func_actor_511000_801334B8 } },
+    { 2004, { .call1 = func_actor_511000_801334C4 } },
+    { 2005, { .call2 = func_actor_511000_80133554 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+SVECTOR D_actor_511000_80148FE4[4] = {
+    { 0, -0x3A98, 0, 0 },
+    { 0, -1350, 1360, 0 },
+    { 340, -230, -5790, 0 },
+    { 0, 1520, 50, 0 },
+};
+
+CVECTOR D_actor_511000_80149004[4] = {
+    { 255, 255, 255, 0 },
+    { 200, 200, 200, 0 },
+    { 150, 150, 150, 0 },
+    { 60, 60, 60, 0 },
+};
+
+DVECTOR D_actor_511000_80149014[16] = {
+    { 4096, 0 },
+    { 3784, 1567 },
+    { 2896, 2896 },
+    { 1567, 3784 },
+    { 0, 4096 },
+    { -1567, 3784 },
+    { -2896, 2896 },
+    { -3784, 1567 },
+    { -4096, 0 },
+    { -3784, -1567 },
+    { -2896, -2896 },
+    { -1567, -3784 },
+    { 0, -4096 },
+    { 1567, -3784 },
+    { 2896, -2896 },
+    { 3784, -1567 },
+};
+
+s32 D_actor_511000_80149054[3] = {
+    1,
+    2,
+    3,
+};
+
+TmdBone D_actor_511000_80149060[19] = {
+#include "assets/actor_511000_model_1C8E8_skeleton.inc"
+};
+
+u32 D_actor_511000_8014930C[19] = {
+#include "assets/actor_511000_model_1C8E8_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_80149358[358] = {
+#include "assets/actor_511000_model_1C8E8_verts.inc"
+};
+
+SVECTOR D_actor_511000_80149E88[356] = {
+#include "assets/actor_511000_model_1C8E8_normals.inc"
+};
+
+u32 D_actor_511000_8014A9A8[3928] = {
+#include "assets/actor_511000_model_1C8E8_stream.inc"
+};
+
+TmdSource D_actor_511000_8014E708 = {
+    0, 21588, 5944, 19,
+    D_actor_511000_8014930C, D_actor_511000_80149358, D_actor_511000_80149E88, D_actor_511000_80149060, D_actor_511000_8014A9A8,
+};
+
+TmdBone D_actor_511000_8014E72C[1] = {
+#include "assets/actor_511000_model_1CB8C_skeleton.inc"
+};
+
+u32 D_actor_511000_8014E750[1] = {
+#include "assets/actor_511000_model_1CB8C_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8014E754[14] = {
+#include "assets/actor_511000_model_1CB8C_verts.inc"
+};
+
+SVECTOR D_actor_511000_8014E7C4[12] = {
+#include "assets/actor_511000_model_1CB8C_normals.inc"
+};
+
+u32 D_actor_511000_8014E824[98] = {
+#include "assets/actor_511000_model_1CB8C_stream.inc"
+};
+
+TmdSource D_actor_511000_8014E9AC = {
+    0, 652, 0, 1,
+    D_actor_511000_8014E750, D_actor_511000_8014E754, D_actor_511000_8014E7C4, D_actor_511000_8014E72C, D_actor_511000_8014E824,
+};
+
+TmdBone D_actor_511000_8014E9D0[1] = {
+#include "assets/actor_511000_model_1CEA8_skeleton.inc"
+};
+
+u32 D_actor_511000_8014E9F4[1] = {
+#include "assets/actor_511000_model_1CEA8_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8014E9F8[14] = {
+#include "assets/actor_511000_model_1CEA8_verts.inc"
+};
+
+SVECTOR D_actor_511000_8014EA68[19] = {
+#include "assets/actor_511000_model_1CEA8_normals.inc"
+};
+
+u32 D_actor_511000_8014EB00[114] = {
+#include "assets/actor_511000_model_1CEA8_stream.inc"
+};
+
+TmdSource D_actor_511000_8014ECC8 = {
+    0, 724, 0, 1,
+    D_actor_511000_8014E9F4, D_actor_511000_8014E9F8, D_actor_511000_8014EA68, D_actor_511000_8014E9D0, D_actor_511000_8014EB00,
+};
+
+TmdBone D_actor_511000_8014ECEC[1] = {
+#include "assets/actor_511000_model_1D204_skeleton.inc"
+};
+
+u32 D_actor_511000_8014ED10[1] = {
+#include "assets/actor_511000_model_1D204_partVerts.inc"
+};
+
+SVECTOR D_actor_511000_8014ED14[18] = {
+#include "assets/actor_511000_model_1D204_verts.inc"
+};
+
+SVECTOR D_actor_511000_8014EDA4[17] = {
+#include "assets/actor_511000_model_1D204_normals.inc"
+};
+
+u32 D_actor_511000_8014EE2C[126] = {
+#include "assets/actor_511000_model_1D204_stream.inc"
+};
+
+TmdSource D_actor_511000_8014F024 = {
+    0, 860, 0, 1,
+    D_actor_511000_8014ED10, D_actor_511000_8014ED14, D_actor_511000_8014EDA4, D_actor_511000_8014ECEC, D_actor_511000_8014EE2C,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[95];
+    GpPackedSvec words[285];
+} Actor511000PoseBank1D228;
+
+Actor511000PoseBank1D228 D_actor_511000_8014F048 = { .poses = {
+#include "assets/actor_511000_animation_208EC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_8014F4BC[1397] = {
+#include "assets/actor_511000_animation_208EC_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_80150A90[1813] = {
+#include "assets/actor_511000_animation_208EC_records.inc"
+};
+
+u16 D_actor_511000_801526E4[20] = {
+#include "assets/actor_511000_animation_208EC_indices.inc"
+};
+
+GpAnimSet D_actor_511000_8015270C = {
+    D_actor_511000_80150A90, D_actor_511000_801526E4,
+    { NULL, D_actor_511000_8014F048.words, NULL, NULL, D_actor_511000_8014F4BC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[38];
+    GpPackedSvec words[114];
+} Actor511000PoseBank20914;
+
+Actor511000PoseBank20914 D_actor_511000_80152734 = { .poses = {
+#include "assets/actor_511000_animation_21EBC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_801528FC[559] = {
+#include "assets/actor_511000_animation_21EBC_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_801531B8[703] = {
+#include "assets/actor_511000_animation_21EBC_records.inc"
+};
+
+u16 D_actor_511000_80153CB4[20] = {
+#include "assets/actor_511000_animation_21EBC_indices.inc"
+};
+
+GpAnimSet D_actor_511000_80153CDC = {
+    D_actor_511000_801531B8, D_actor_511000_80153CB4,
+    { NULL, D_actor_511000_80152734.words, NULL, NULL, D_actor_511000_801528FC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[109];
+    GpPackedSvec words[327];
+} Actor511000PoseBank21EE4;
+
+Actor511000PoseBank21EE4 D_actor_511000_80153D04 = { .poses = {
+#include "assets/actor_511000_animation_23228_bank1.inc"
+} };
+
+GpPackedSvec D_actor_511000_80154220[368] = {
+#include "assets/actor_511000_animation_23228_bank4.inc"
+};
+
+GpAnimRec D_actor_511000_801547E0[528] = {
+#include "assets/actor_511000_animation_23228_records.inc"
+};
+
+u16 D_actor_511000_80155020[20] = {
+#include "assets/actor_511000_animation_23228_indices.inc"
+};
+
+GpAnimSet D_actor_511000_80155048 = {
+    D_actor_511000_801547E0, D_actor_511000_80155020,
+    { NULL, D_actor_511000_80153D04.words, NULL, NULL, D_actor_511000_80154220, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_511000_80155070[4] = {
+    { 1, 96, func_actor_511000_80133D90, { .model = &D_actor_511000_8014E708 } },
+    { 1, 96, func_actor_511000_80133EF4, { .model = &D_actor_511000_8014E9AC } },
+    { 1, 96, func_actor_511000_80133FC8, { .model = &D_actor_511000_8014F024 } },
+    { 1, 96, func_actor_511000_8013409C, { .model = &D_actor_511000_8014ECC8 } },
+};
+
+Actor511000MessageEntry D_actor_511000_801550A0[4] = {
+    { 2003, { .call0 = func_actor_511000_80133DEC } },
+    { 2004, { .call3 = func_actor_511000_80133E48 } },
+    { 2005, { .call4 = func_actor_511000_80133EAC } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+GpAnimSet * D_actor_511000_801550C0[4] = {
+    NULL,
+    &D_actor_511000_8015270C,
+    &D_actor_511000_80153CDC,
+    &D_actor_511000_80155048,
+};
 
 /// Tick state: while `field_474` is set, steps animation slots 1..19; in
 /// mode 1 counts `field_4D2` up and, on frame 0x10, plays the sound and spawns
@@ -314,7 +2117,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case 1:
             work->field_4CE = work->field_4CE - 1;
             if ((s16)work->field_4CE < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_801472B4, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_511000_801472B4[0], &rect);
                 work->field_4CE = work->field_4CC;
                 work->field_4D0 = work->field_4D0 + 1;
             }
@@ -322,7 +2125,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case 2:
             work->field_4CE = work->field_4CE - 1;
             if ((s16)work->field_4CE < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_80146F94, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_511000_80146F94[0], &rect);
                 work->field_4CE = work->field_4CC;
                 work->field_4D0 = work->field_4D0 + 1;
             }
@@ -330,7 +2133,7 @@ static void func_actor_511000_80132048(Task* arg0)
         case 3:
             work->field_4CE = work->field_4CE - 1;
             if ((s16)work->field_4CE < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_511000_80146C74, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_511000_80146C74[0], &rect);
                 work->field_4D0 = 0;
             }
             break;
@@ -481,8 +2284,8 @@ static void func_actor_511000_80132480(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
     }
-    work->field_4C4 = Task_SpawnFromTable(&D_actor_511000_801472E8, 1, 8, task);
-    work->field_4C8 = Task_SpawnFromTable(&D_actor_511000_801472E8, 2, 0xC, task);
+    work->field_4C4 = Task_SpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
+    work->field_4C8 = Task_SpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
     func_actor_511000_801325A4(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = Gp_EnemyTaskExit;
@@ -652,8 +2455,8 @@ out:
 }
 
 /// Message-0x7E0 handler: uploads one of the actor's three texture records
-/// over the 0x18x0x10 rect at y 0x28 -- `D_actor_511000_801472B4` for mode 1,
-/// `D_actor_511000_80146C74` for modes 0 and 2, and `D_actor_511000_80146F94`
+/// over the 0x18x0x10 rect at y 0x28 -- `D_actor_511000_801472B4[0]` for mode 1,
+/// `D_actor_511000_80146C74[0]` for modes 0 and 2, and `D_actor_511000_80146F94[0]`
 /// for mode 3, which sets the work block's `field_4D0` / `field_4CC` to 1
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
@@ -672,16 +2475,16 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 1:
-            img = &D_actor_511000_801472B4;
+            img = &D_actor_511000_801472B4[0];
             break;
         case 0:
         case 2:
-            img = &D_actor_511000_80146C74;
+            img = &D_actor_511000_80146C74[0];
             break;
         case 3:
             ((Actor511000Work2*)((GameActor*)arg0->work))->field_4D0 = 1;
             ((Actor511000Work2*)((GameActor*)arg0->work))->field_4CC = 1;
-            img                                                      = &D_actor_511000_80146F94;
+            img                                                      = &D_actor_511000_80146F94[0];
             break;
         default:
             img = NULL;
@@ -757,9 +2560,9 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     SVECTOR   pos;
     DVECTOR   pts[16];
     MATRIX    mtx;
-    s32       sxy;
-    s32       p;
-    s32       flag;
+    long      sxy;
+    long      p;
+    long      flag;
     s32       otz;
     POLY_G3*  prim;
     DR_TPAGE* dr;
@@ -774,7 +2577,7 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     Gp_ComposeParentWorld(task->extra.tmd->coords, &mtx, &pos);
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
-    otz   = RotTransPers(&pos, &sxy, (long*)&p, (long*)&flag);
+    otz   = RotTransPers(&pos, &sxy, &p, &flag);
     x     = sxy;
     y     = sxy >> 16;
     src   = D_actor_511000_80149014;
@@ -786,7 +2589,7 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
         pt++;
         src++;
     }
-    ot = (u32*)((u32)gGpuCurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 30;
+    ot = (u32*)((u8*)gGpuCurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) - 30;
     pt = pts;
     for (i = 0; i < 15; i++, pt++) {
         prim           = (POLY_G3*)gGpuPrimCursor;
@@ -840,8 +2643,8 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
 /// `field_2E` hold counter is live (counting it down once the blend saturates
 /// at 0x1000), otherwise snaps it back to 0 and re-arms the hold at 0x1E. Each
 /// of the 16 little-endian 15-bit colours is then blended between
-/// `D_actor_511000_80147E84` and `D_actor_511000_80147EC4` by that weight into
-/// the `field_C` CLUT, which `D_actor_511000_80147EA4` uploads.
+/// `D_actor_511000_80147E84.bytes` and `D_actor_511000_80147EC4` by that weight into
+/// the `field_C` CLUT, which `D_actor_511000_80147EA4[0]` uploads.
 /// The destination is formed as `work + i` before the field offset so the
 /// `addu` keeps the index first and CSE cannot fold the 0xC into a store.
 static void func_actor_511000_80132E6C(Actor511000Work* work)
@@ -876,8 +2679,8 @@ static void func_actor_511000_80132E6C(Actor511000Work* work)
     fade = work->field_2C;
     do {
         dst      = (u8*)(i + (s32)work);
-        dst      = ((Actor511000Work*)dst)->field_C;
-        src0     = &D_actor_511000_80147E84[i];
+        dst      = ((Actor511000Work*)dst)->field_C.bytes;
+        src0     = &D_actor_511000_80147E84.bytes[i];
         src1     = &D_actor_511000_80147EC4[i];
         c        = src0[0] | (src0[1] << 8);
         col[0].r = ((u16)c >> 10) & 0x1F;
@@ -893,14 +2696,14 @@ static void func_actor_511000_80132E6C(Actor511000Work* work)
         i     += 2;
         dst[0] = c;
     } while (i < 0x20);
-    Gp_LoadImages(&D_actor_511000_80147EA4);
+    Gp_LoadImages(&D_actor_511000_80147EA4[0]);
 }
 
 /// Spawn/setup state: allocates the 0x70 work block, parks it in `work`,
 /// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
 /// 0x80), places it at rot/trans index 0, binds light/color, installs the
 /// message table, and publishes `work->field_C` through
-/// `D_actor_511000_80147EB0` before advancing to the per-frame state.
+/// `D_actor_511000_80147EA4[0].data` before advancing to the per-frame state.
 static void func_actor_511000_80133034(Task* task)
 {
     Actor511000Work* work;
@@ -919,7 +2722,7 @@ static void func_actor_511000_80133034(Task* task)
     func_actor_511000_801337F0(task);
     do {
         task->msgTable          = D_actor_511000_80148FC4;
-        D_actor_511000_80147EB0 = (u16*)work->field_C;
+        D_actor_511000_80147EA4[0].data = work->field_C.words;
     } while (0);
     task->state += 1;
 }
@@ -955,7 +2758,7 @@ static void func_actor_511000_801330F0(Task* task)
         if (frame >= 0x78) {
             task->killCountdown = 0x77;
         }
-        Gp_TrySpawnViewTask((s32)&D_actor_511000_80147EE4[task->killCountdown]);
+        Gp_TrySpawnViewTask(&D_actor_511000_80147EE4[task->killCountdown]);
         func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
         coord->flg = 0;
     }
@@ -1146,7 +2949,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     }
     if (msg == 1 && work->field_2F == 0) {
         for (i = 1; i < 4; i++) {
-            child = Task_SpawnFromTable(&D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
+            child = Task_SpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~0x84;
             }
@@ -1273,9 +3076,9 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     model->flags    = 0x80;
     model->lightMtx = &work->field_45C;
     model->colorMtx = &work->field_43C;
-    func_800B3F84(&work->anim, &D_actor_511000_801550C0, model, work->field_30C, work->slots);
+    func_800B3F84(&work->anim, D_actor_511000_801550C0, model, work->field_30C, work->slots);
     work->field_47C = 0;
-    task->msgTable  = &D_actor_511000_801550A0;
+    task->msgTable  = D_actor_511000_801550A0;
     coord->flg      = 0;
 
     table   = D_actor_511000_80155070;
@@ -1284,7 +3087,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     /* Reusing `spawned` for the task, rather than a new local, keeps the
        spawn result's v0 preference off the byte copied into a0. */
     spawned    = (GpEnemy*)spawned->task;
-    sessionKey = (GpAreaKey*)&session->at4.loc;
+    sessionKey = &session->at4.loc;
     idx        = enemy->placeKey;
     areaByte3  = sessionKey->stage;
     model      = ((Task*)spawned)->extra.tmd;
@@ -1307,7 +3110,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     spawned    = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session    = gGameSession;
     spawned    = (GpEnemy*)spawned->task;
-    sessionKey = (GpAreaKey*)&session->at4.loc;
+    sessionKey = &session->at4.loc;
     idx        = enemy->placeKey;
     areaByte3  = sessionKey->stage;
     model      = ((Task*)spawned)->extra.tmd;

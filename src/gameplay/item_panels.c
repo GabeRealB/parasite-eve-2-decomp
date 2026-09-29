@@ -1010,9 +1010,9 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
         temp  = slot + idx * 3;
         slot  = save2->state.attachLevels[temp] + temp * 3 + 0xF;
     store:
-        arg1->extraState = slot;
+        arg1->extraState.value = slot;
     }
-    Gp_InvokePeItemPanel(arg0, arg1, arg1->extraState);
+    Gp_InvokePeItemPanel(arg0, arg1, arg1->extraState.value);
 }
 
 void Gp_YesNoMenuTask(Task* arg0)
@@ -1779,7 +1779,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
         }
         obj = Ui_SpawnFromDesc(desc, 0, 0, 0, NULL);
         if (obj != NULL) {
-            arg0->spawnArg1.value      = (s32)obj;
+            arg0->spawnArg1.pointer    = obj;
             gGameSession->uiOpen = 1;
             arg0->state          = arg0->state + 1;
         }
@@ -1791,7 +1791,7 @@ void Gp_PickupResultTask(Task* arg0)
     UiObject*   obj;
     GpItemObj8* work;
 
-    obj  = (UiObject*)arg0->spawnArg1.value;
+    obj  = arg0->spawnArg1.pointer;
     work = arg0->spawnArg2.pointer;
     switch (obj->field_2E) {
         case -1:

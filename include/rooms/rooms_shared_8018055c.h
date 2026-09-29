@@ -11,7 +11,7 @@
 /// restart the load) and the title drawn beside it ("1. Crazy King", ...).
 typedef struct RoomsShared8018055cCourse {
     /* 0x0 */ s32 id;
-    /* 0x4 */ u8* name;
+    /* 0x4 */ const char* name;
 } RoomsShared8018055cCourse;
 STATIC_ASSERT_SIZEOF(RoomsShared8018055cCourse, 0x8);
 

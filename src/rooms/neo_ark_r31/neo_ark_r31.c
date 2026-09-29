@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_r31.h"
+#include "mapui/map_neo_ark.h"
 #include "rooms/room.h"
 
 #include "gameplay/direction.h"
@@ -11,6 +13,14 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "gameplay/direction_input.h"
+#include "mapui/stage_tables.h"
+
 extern s32 D_neo_ark_r31_8017DC54;
 
 /// Room message handler table installed into `Task::msgTable`.
@@ -18,7 +28,111 @@ extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
 extern s32        D_80133F90;
 extern s32        D_80134470;
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+s32 func_neo_ark_r31_8017D8B0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r31_8017D8B8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_r31_8017D8FC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r31_8017D904(Task *, s32, GpMessageArg, GpMessageArg);
+void func_neo_ark_r31_8017D5D0(Task *);
+
+TaskDesc D_neo_ark_r31_8017D9E8 = { 0, 192, func_neo_ark_r31_8017D5D0, { .model = NULL } };
+
+GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
+    { 5102, func_neo_ark_r31_8017D8B8 },
+    { 5105, func_neo_ark_r31_8017D8B0 },
+    { 5103, func_neo_ark_r31_8017D904 },
+    { 5104, func_neo_ark_r31_8017D8FC },
+    { 0x7FFFFFFF, NULL },
+};
+
+u8 * D_neo_ark_r31_8017DA1C[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_neo_ark_r31_8017DA20[1] = {
+    { { .bytes = { 3, 0 } } },
+};
+
+GpWarpRec D_neo_ark_r31_8017DA24[1] = {
+    { { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },
+};
+
+GpViewRec D_neo_ark_r31_8017DA5C[3] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7510, 0x61A8, -6980 } }, 329 },
+    { { { { 2889, 0, -2903 }, { 2898, 236, 2884 }, { 167, -4089, 167 } }, { -8000, -1000, -7000 } }, 289 },
+    { { { { -3243, 0, 2501 }, { 1904, 2655, 2469 }, { -1621, 3118, -2102 } }, { -8340, 1050, -7830 } }, 289 },
+};
+
+GpSprtCmd D_neo_ark_r31_8017DAC8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_r31_8017DAD8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_neo_ark_r31_8017DAE8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_neo_ark_r31_8017DAF8[3] = {
+    { { .empty = D_neo_ark_r31_8017DAC8 }, D_neo_ark_r31_8017DAC8, NULL },
+    { { .empty = D_neo_ark_r31_8017DAD8 }, D_neo_ark_r31_8017DAD8, NULL },
+    { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },
+};
+
+GpPointLight D_neo_ark_r31_8017DB1C[1] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x2710, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 0x186A0, 0x186A0 },
+};
+
+GpRoomCoordSet D_neo_ark_r31_8017DB7C = { 0, NULL, 1, D_neo_ark_r31_8017DB1C, 0, NULL };
+
+GpAreaTmdRec D_neo_ark_r31_8017DB94[3] = {
+    { 101, 618, 3, 0, { 0, 0 }, D_80139F8C },
+    { 132, 618, 5, 0, { 0, 0 }, D_801437EC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_neo_ark_r31_8017DBB8[13] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017C550, D_neo_ark_r31_8017DB94 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_neo_ark_r31_8017DC20[3] = {
+    0x10000011,
+    0x10000013,
+    0x10000011,
+};
+
+GpRoomParamRec D_neo_ark_r31_8017DC2C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec * D_neo_ark_r31_8017DC34[8] = {
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+    D_neo_ark_r31_8017DC2C,
+};
+
+s32 D_neo_ark_r31_8017DC54 = 0;
 
 void func_neo_ark_r31_8017D5D0(Task* task)
 {
@@ -85,26 +199,26 @@ void func_neo_ark_r31_8017D5D0(Task* task)
     addPrim(gGpuCurrentOt + 0x3FF, stp);
 }
 
-s32 func_neo_ark_r31_8017D8B0(void)
+s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler for the save location: copies the incoming `GpSaveLoc`
-/// onto the outgoing one and passes both to `func_80179B14`. Returns 1.
-s32 func_neo_ark_r31_8017D8B8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
+s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
-s32 func_neo_ark_r31_8017D8FC(void)
+s32 func_neo_ark_r31_8017D8FC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_r31_8017D904(void)
+s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

@@ -3077,7 +3077,7 @@ if (skip == 0) {
 
 ## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
 
-`func_8004BFF8` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
+`RotMatrixY` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
 Passing `-work->field_94A` (an `s16`) then emits
 
 ```
@@ -3085,7 +3085,7 @@ lhu    a0, 0x94A(s1)
 move   a1, s0
 negu   a0, a0
 sll    a0, a0, 16
-jal    func_8004BFF8
+jal    RotMatrixY
 sra    a0, a0, 16
 ```
 
@@ -3096,7 +3096,7 @@ The `sll`/`sra` is `PROMOTE_PROTOTYPES` re-extending the negated value as a
 ```
 lh     a0, 0x94A(s1)
 move   a1, s0
-jal    func_8004BFF8
+jal    RotMatrixY
 negu   a0, a0
 ```
 
@@ -3105,7 +3105,7 @@ A memory barrier before the load does not drop the promote. Call through an
 
 ```c
 heading = work->field_94A;
-((void (*)(s32, MATRIX*))func_8004BFF8)(-heading, &src->mat);
+((void (*)(s32, MATRIX*))RotMatrixY)(-heading, &src->mat);
 ```
 
 Do not change the global prototype: other matched callers (`lhu` of a `u16`
@@ -4169,10 +4169,10 @@ pointer chase needs an `s32` temporary:
 child = work->child;
 angle = work->heading; /* lhu, before any store through child */
 ((TmdObject*)child->extra)->flags = 0;
-func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
+RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `func_8004BFF8(work->field_A26, …)` is `lh`
+`func_actor_400500_8013BEC4` with `RotMatrixY(work->field_A26, …)` is `lh`
 at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
@@ -50785,7 +50785,7 @@ matched.
 
 `func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
 Cases 2 and 3 each seed a matrix through `m = (GpMtxWords*)&work->field_9C`
-and then call `func_8004BFF8(angle, &work->field_9C)`. The target computes
+and then call `RotMatrixY(angle, &work->field_9C)`. The target computes
 `addiu a1, s1, 0x9c` *after* the `field_C0` / `field_BC` adds, so the case-2
 `step` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
 `addiu` to the top of the block, and `step` moved to `a2`.
@@ -70453,7 +70453,7 @@ In the same function, two matrix-pointer fixes were needed:
   quantity, which gets `$s0` before global alloc runs. jump2 merges the
   repeated calls again. This is the same mechanism as "State-change tails
   merged by cross-jumping: one pointer local per arm".
-- **Prototype.** `func_8004BFF8` is Psy-Q `RotMatrixY` and takes a `long`.
+- **Prototype.** `RotMatrixY` is Psy-Q `RotMatrixY` and takes a `long`.
   With an `s16` prototype, `-(s16)x` gets an extra `sll`/`sra` after the
   `negu`.
 
@@ -70959,7 +70959,7 @@ if (skip == 0) {
 
 ## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
 
-`func_8004BFF8` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
+`RotMatrixY` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
 Passing `-work->field_94A` (an `s16`) then emits
 
 ```
@@ -70967,7 +70967,7 @@ lhu    a0, 0x94A(s1)
 move   a1, s0
 negu   a0, a0
 sll    a0, a0, 16
-jal    func_8004BFF8
+jal    RotMatrixY
 sra    a0, a0, 16
 ```
 
@@ -70978,7 +70978,7 @@ The `sll`/`sra` is `PROMOTE_PROTOTYPES` re-extending the negated value as a
 ```
 lh     a0, 0x94A(s1)
 move   a1, s0
-jal    func_8004BFF8
+jal    RotMatrixY
 negu   a0, a0
 ```
 
@@ -70987,7 +70987,7 @@ A memory barrier before the load does not drop the promote. Call through an
 
 ```c
 heading = work->field_94A;
-((void (*)(s32, MATRIX*))func_8004BFF8)(-heading, &src->mat);
+((void (*)(s32, MATRIX*))RotMatrixY)(-heading, &src->mat);
 ```
 
 Do not change the global prototype: other matched callers (`lhu` of a `u16`
@@ -71479,10 +71479,10 @@ pointer chase needs an `s32` temporary:
 child = work->child;
 angle = work->heading; /* lhu, before any store through child */
 ((TmdObject*)child->extra)->flags = 0;
-func_8004BFF8(angle, &src->mat); /* sll/sra of the s32 */
+RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `func_8004BFF8(work->field_A26, …)` is `lh`
+`func_actor_400500_8013BEC4` with `RotMatrixY(work->field_A26, …)` is `lh`
 at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
@@ -104843,7 +104843,7 @@ two builds, no pins, no search. Scratch
 ## The named-`&local` tell can present as `insert`/`delete` and a short frame (Actor04400_Fn07404, 2026-09-16)
 
 `Actor04400_Fn07404` is `ActorsShared8016a538` retyped onto `Actor104400Work`:
-the same 75-instruction body (identity splat, `RotMatrixX` + `func_8004BFF8`,
+the same 75-instruction body (identity splat, `RotMatrixX` + `RotMatrixY`,
 copy the 3x3, the `field_41E` latch). Porting that body verbatim matched on the
 second build, and the failed first build is the useful part - the m2c seed's
 statements were already right, so the whole difference was whether `&rot` was
@@ -117178,7 +117178,7 @@ variable and so a third pseudo -- it builds to the same 100.000%.
 ## A pointer local is what makes a *local* struct's stores register-relative (func_actor_206100_8014DA28, 2026-09-16)
 
 The pose block of `func_actor_206100_8014DA28` builds an identity matrix in a
-frame local, hands it to `RotMatrixZ` / `func_8004BFF8`, copies the result onto
+frame local, hands it to `RotMatrixZ` / `RotMatrixY`, copies the result onto
 the model's root coordinate, and scales a second local the same way. The two
 initialisers write the same five words, and the target emits them split:
 
@@ -125084,7 +125084,7 @@ $v0,0x1000` of the identity splat), which puts `$v0` in its conflict set, and it
 lands in `$a0` -- where the target has it -- leaving `$v0` to the conversion
 temporary. Concretely, `u16 yaw = work->field_53A;` is reused as
 `yaw = angle16 ± 0x40` in the turn arm and as `(s16)yaw` at both
-`func_8004BFF8` call sites. This is the conflict-forming counterpart of "Mirror
+`RotMatrixY` call sites. This is the conflict-forming counterpart of "Mirror
 the target's register reuse with one variable per hard register": read the
 target's dump as a register-to-role map and check whether two values that share
 a register at *different* points on the same path are one local rather than two.
@@ -126821,7 +126821,7 @@ set* is the thing being matched, and merge rather than split.
 ## A load written after a call cannot be scheduled before it -- calls clobber memory, so the ROM's order is the source's order (func_actor_135400_80131EB4, 2026-09-17)
 
 The target opens the shared body of a `switch` with the coordinate load, then the
-identity splat, then the `func_8004BFF8` call:
+identity splat, then the `RotMatrixY` call:
 
 ```
 	lw	$v0,0x2C($s1)      # TmdObject* = task->extra
@@ -126830,7 +126830,7 @@ identity splat, then the `func_8004BFF8` call:
 	li	$v0,0x1000
 	sw	$v0,0x10($sp)
 	...
-	jal	func_8004BFF8
+	jal	RotMatrixY
 ```
 
 Writing `coord = ((TmdObject*)task->extra)->coords;` *after* the identity

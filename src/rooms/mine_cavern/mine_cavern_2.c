@@ -1,3 +1,5 @@
+#include "mine_cavern_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -44,6 +46,50 @@
 #include "overlay.h"
 #include <psyq/stdio.h>
 
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area_flags.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+
+typedef struct {
+    u8 center[3];
+    u8 rim[3];
+    u16 retained;
+} MineCavernGlowPalette;
+extern MineCavernGlowPalette D_mine_cavern_8018E350;
+extern MineCavernGlowPalette D_mine_cavern_8018E358;
+
+// Bounded byte views preserve the legacy per-channel loads.
+extern u8 MineCavernGlowByte8018E350[1] __asm__("D_mine_cavern_8018E350");
+extern u8 MineCavernGlowByte8018E351[1] __asm__("D_mine_cavern_8018E350+1");
+extern u8 MineCavernGlowByte8018E352[1] __asm__("D_mine_cavern_8018E350+2");
+extern u8 MineCavernGlowByte8018E353[1] __asm__("D_mine_cavern_8018E350+3");
+extern u8 MineCavernGlowByte8018E354[1] __asm__("D_mine_cavern_8018E350+4");
+extern u8 MineCavernGlowByte8018E355[1] __asm__("D_mine_cavern_8018E350+5");
+extern u8 MineCavernGlowByte8018E358[1] __asm__("D_mine_cavern_8018E358");
+extern u8 MineCavernGlowByte8018E359[1] __asm__("D_mine_cavern_8018E358+1");
+extern u8 MineCavernGlowByte8018E35A[1] __asm__("D_mine_cavern_8018E358+2");
+extern u8 MineCavernGlowByte8018E35B[1] __asm__("D_mine_cavern_8018E358+3");
+extern u8 MineCavernGlowByte8018E35C[1] __asm__("D_mine_cavern_8018E358+4");
+extern u8 MineCavernGlowByte8018E35D[1] __asm__("D_mine_cavern_8018E358+5");
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16 retained;
+} MineCavernHaloStorage;
+STATIC_ASSERT_SIZEOF(MineCavernHaloStorage, 20);
+extern MineCavernHaloStorage D_mine_cavern_80188FCC;
+
 extern SVECTOR D_mine_cavern_80188F64[];
 extern SVECTOR D_mine_cavern_80188F7C[];
 extern SVECTOR D_mine_cavern_80188F84[];
@@ -53,8 +99,6 @@ extern SVECTOR D_mine_cavern_80188F9C[];
 extern SVECTOR D_mine_cavern_80188FB4[];
 extern SVECTOR D_mine_cavern_80188FBC;
 extern SVECTOR D_mine_cavern_80188FC4[];
-
-extern RoomHaloShade D_mine_cavern_80188FCC[];
 
 static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
 static void func_mine_cavern_801804CC(GpCoord* coord, s16 size);
@@ -88,7 +132,7 @@ extern SVECTOR D_mine_cavern_8018EB18[4];
 
 /// Enemy spawn table the cavern's ambush draws from, on the `GameFlag_GetNibble(0xE2)`
 /// bits.
-extern TaskDesc D_mine_cavern_8018EB38;
+extern TaskDesc D_mine_cavern_8018EB38[];
 
 /// Parameter record of the cavern enemy's kind.
 extern GpPairSrcE D_mine_cavern_8018EAE4;
@@ -102,25 +146,13 @@ static void func_mine_cavern_80183860(Task* arg0);
 /// aggregate memory: the scheduler treats a halfword store into the primitive
 /// and a load from a plain scalar global as independent, but not a load from an
 /// array element.
-extern u8 D_mine_cavern_8018E358[];
-extern u8 D_mine_cavern_8018E359[];
-extern u8 D_mine_cavern_8018E35A[];
 
 /// Colour of the glow fan's two rim vertices, declared as the centre colour is.
-extern u8 D_mine_cavern_8018E35B[];
-extern u8 D_mine_cavern_8018E35C[];
-extern u8 D_mine_cavern_8018E35D[];
 
 /// Colour of the point glow fans' centre vertex, one channel per symbol and
 /// declared as arrays for the same reason as the cavern glow's colours.
-extern u8 D_mine_cavern_8018E350[];
-extern u8 D_mine_cavern_8018E351[];
-extern u8 D_mine_cavern_8018E352[];
 
 /// Colour of the point glow fans' two rim vertices.
-extern u8 D_mine_cavern_8018E353[];
-extern u8 D_mine_cavern_8018E354[];
-extern u8 D_mine_cavern_8018E355[];
 
 /// The six points `func_mine_cavern_80181864` draws a glow at.
 extern SVECTOR D_mine_cavern_8018E36C[6];
@@ -165,6 +197,2444 @@ static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
 static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
+
+extern GpGridParams D_mine_cavern_8018981C[1];
+extern GpObj3A D_mine_cavern_8018E078[2];
+extern GpObj4C D_mine_cavern_8018D154[20];
+extern GpObj4C D_mine_cavern_8018D744[18];
+extern GpObj4C D_mine_cavern_8018DC9C[13];
+extern GpRoomCoordSet D_mine_cavern_8018D13C[1];
+
+extern GpSprtCmd D_mine_cavern_80189BC4[2];
+extern GpSprtCmd D_mine_cavern_80189FA8[4];
+extern GpSprtCmd D_mine_cavern_8018A4C8[7];
+extern GpSprtCmd D_mine_cavern_8018A8D4[7];
+extern GpSprtCmd D_mine_cavern_8018AD94[8];
+extern GpSprtCmd D_mine_cavern_8018B108[3];
+extern GpSprtCmd D_mine_cavern_8018B42C[3];
+extern GpSprtCmd D_mine_cavern_8018B660[3];
+extern GpSprtCmd D_mine_cavern_8018B754[3];
+extern GpSprtCmd D_mine_cavern_8018B7A8[3];
+extern GpSprtCmd D_mine_cavern_8018B7C0[2];
+extern GpSprtCmd D_mine_cavern_8018B7D0[2];
+extern GpSprtCmd D_mine_cavern_8018B7E0[2];
+extern GpSprtCmd D_mine_cavern_8018B7F0[2];
+extern GpSprtCmd D_mine_cavern_8018B800[2];
+extern GpSprtCmd D_mine_cavern_8018B810[2];
+extern GpSprtCmd D_mine_cavern_8018B820[2];
+extern GpSprtCmd D_mine_cavern_8018B830[2];
+extern GpSprtCmd D_mine_cavern_8018B840[2];
+extern GpSprtCmd D_mine_cavern_8018BC10[5];
+extern GpSprtCmd D_mine_cavern_8018C048[4];
+extern GpSprtCmd D_mine_cavern_8018C504[7];
+extern GpSprtCmd D_mine_cavern_8018C8E8[5];
+extern GpSprtCmd D_mine_cavern_8018CCD0[6];
+extern GpSprtElem D_mine_cavern_80189BD4[49];
+extern GpSprtElem D_mine_cavern_80189FC8[64];
+extern GpSprtElem D_mine_cavern_8018A500[49];
+extern GpSprtElem D_mine_cavern_8018A90C[58];
+extern GpSprtElem D_mine_cavern_8018ADD4[41];
+extern GpSprtElem D_mine_cavern_8018B120[39];
+extern GpSprtElem D_mine_cavern_8018B444[27];
+extern GpSprtElem D_mine_cavern_8018B678[11];
+extern GpSprtElem D_mine_cavern_8018B76C[3];
+extern GpSprtElem D_mine_cavern_8018B850[48];
+extern GpSprtElem D_mine_cavern_8018BC38[52];
+extern GpSprtElem D_mine_cavern_8018C068[59];
+extern GpSprtElem D_mine_cavern_8018C53C[47];
+extern GpSprtElem D_mine_cavern_8018C910[48];
+
+void func_mine_cavern_8017E330(void);
+void func_mine_cavern_8017E358(void);
+void func_mine_cavern_8017E360(void);
+
+MineCavernMessageEntry D_mine_cavern_80183C6C[7] = {
+    { 5102, { .call3 = func_mine_cavern_8017D908 } },
+    { 5105, { .call0 = func_mine_cavern_8017DC50 } },
+    { 5103, { .call1 = func_mine_cavern_8017DC58 } },
+    { 5104, { .call2 = func_mine_cavern_8017DAA0 } },
+    { 5108, { .call0 = func_mine_cavern_8017DC9C } },
+    { 5106, { .call4 = func_mine_cavern_8017DD38 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_mine_cavern_80183CA4[2] = {
+    { 0, 32, func_mine_cavern_8017DD6C, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MineCavernPoseBank66FC;
+
+MineCavernPoseBank66FC D_mine_cavern_80183CBC = { .poses = {
+#include "assets/mine_cavern_animation_069D8_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80183D04[46] = {
+#include "assets/mine_cavern_animation_069D8_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80183DBC[109] = {
+#include "assets/mine_cavern_animation_069D8_records.inc"
+};
+
+u16 D_mine_cavern_80183F70[20] = {
+#include "assets/mine_cavern_animation_069D8_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80183F98 = {
+    D_mine_cavern_80183DBC, D_mine_cavern_80183F70,
+    { NULL, D_mine_cavern_80183CBC.words, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} MineCavernPoseBank6A00;
+
+MineCavernPoseBank6A00 D_mine_cavern_80183FC0 = { .poses = {
+#include "assets/mine_cavern_animation_07178_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_8018405C[179] = {
+#include "assets/mine_cavern_animation_07178_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80184328[250] = {
+#include "assets/mine_cavern_animation_07178_records.inc"
+};
+
+u16 D_mine_cavern_80184710[20] = {
+#include "assets/mine_cavern_animation_07178_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80184738 = {
+    D_mine_cavern_80184328, D_mine_cavern_80184710,
+    { NULL, D_mine_cavern_80183FC0.words, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MineCavernPoseBank71A0;
+
+MineCavernPoseBank71A0 D_mine_cavern_80184760 = { .poses = {
+#include "assets/mine_cavern_animation_07544_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_801847A8[64] = {
+#include "assets/mine_cavern_animation_07544_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_801848A8[141] = {
+#include "assets/mine_cavern_animation_07544_records.inc"
+};
+
+u16 D_mine_cavern_80184ADC[20] = {
+#include "assets/mine_cavern_animation_07544_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80184B04 = {
+    D_mine_cavern_801848A8, D_mine_cavern_80184ADC,
+    { NULL, D_mine_cavern_80184760.words, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineCavernPoseBank756C;
+
+MineCavernPoseBank756C D_mine_cavern_80184B2C = { .poses = {
+#include "assets/mine_cavern_animation_07784_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80184B5C[42] = {
+#include "assets/mine_cavern_animation_07784_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80184C04[70] = {
+#include "assets/mine_cavern_animation_07784_records.inc"
+};
+
+u16 D_mine_cavern_80184D1C[20] = {
+#include "assets/mine_cavern_animation_07784_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80184D44 = {
+    D_mine_cavern_80184C04, D_mine_cavern_80184D1C,
+    { NULL, D_mine_cavern_80184B2C.words, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MineCavernPoseBank77AC;
+
+MineCavernPoseBank77AC D_mine_cavern_80184D6C = { .poses = {
+#include "assets/mine_cavern_animation_07958_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80184D90[31] = {
+#include "assets/mine_cavern_animation_07958_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80184E0C[57] = {
+#include "assets/mine_cavern_animation_07958_records.inc"
+};
+
+u16 D_mine_cavern_80184EF0[20] = {
+#include "assets/mine_cavern_animation_07958_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80184F18 = {
+    D_mine_cavern_80184E0C, D_mine_cavern_80184EF0,
+    { NULL, D_mine_cavern_80184D6C.words, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MineCavernPoseBank7980;
+
+MineCavernPoseBank7980 D_mine_cavern_80184F40 = { .poses = {
+#include "assets/mine_cavern_animation_07BA4_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80184F64[29] = {
+#include "assets/mine_cavern_animation_07BA4_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80184FD8[89] = {
+#include "assets/mine_cavern_animation_07BA4_records.inc"
+};
+
+u16 D_mine_cavern_8018513C[20] = {
+#include "assets/mine_cavern_animation_07BA4_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80185164 = {
+    D_mine_cavern_80184FD8, D_mine_cavern_8018513C,
+    { NULL, D_mine_cavern_80184F40.words, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} MineCavernPoseBank7BCC;
+
+MineCavernPoseBank7BCC D_mine_cavern_8018518C = { .poses = {
+#include "assets/mine_cavern_animation_08178_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_801851EC[117] = {
+#include "assets/mine_cavern_animation_08178_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_801853C0[212] = {
+#include "assets/mine_cavern_animation_08178_records.inc"
+};
+
+u16 D_mine_cavern_80185710[20] = {
+#include "assets/mine_cavern_animation_08178_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80185738 = {
+    D_mine_cavern_801853C0, D_mine_cavern_80185710,
+    { NULL, D_mine_cavern_8018518C.words, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineCavernPoseBank81A0;
+
+MineCavernPoseBank81A0 D_mine_cavern_80185760 = { .poses = {
+#include "assets/mine_cavern_animation_08420_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80185790[46] = {
+#include "assets/mine_cavern_animation_08420_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80185848[92] = {
+#include "assets/mine_cavern_animation_08420_records.inc"
+};
+
+u16 D_mine_cavern_801859B8[20] = {
+#include "assets/mine_cavern_animation_08420_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_801859E0 = {
+    D_mine_cavern_80185848, D_mine_cavern_801859B8,
+    { NULL, D_mine_cavern_80185760.words, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} MineCavernPoseBank8448;
+
+MineCavernPoseBank8448 D_mine_cavern_80185A08 = { .poses = {
+#include "assets/mine_cavern_animation_08AC0_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80185A98[164] = {
+#include "assets/mine_cavern_animation_08AC0_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80185D28[204] = {
+#include "assets/mine_cavern_animation_08AC0_records.inc"
+};
+
+u16 D_mine_cavern_80186058[20] = {
+#include "assets/mine_cavern_animation_08AC0_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80186080 = {
+    D_mine_cavern_80185D28, D_mine_cavern_80186058,
+    { NULL, D_mine_cavern_80185A08.words, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MineCavernPoseBank8AE8;
+
+MineCavernPoseBank8AE8 D_mine_cavern_801860A8 = { .poses = {
+#include "assets/mine_cavern_animation_08CB4_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_801860C0[20] = {
+#include "assets/mine_cavern_animation_08CB4_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80186110[79] = {
+#include "assets/mine_cavern_animation_08CB4_records.inc"
+};
+
+u16 D_mine_cavern_8018624C[20] = {
+#include "assets/mine_cavern_animation_08CB4_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80186274 = {
+    D_mine_cavern_80186110, D_mine_cavern_8018624C,
+    { NULL, D_mine_cavern_801860A8.words, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} MineCavernPoseBank8CDC;
+
+MineCavernPoseBank8CDC D_mine_cavern_8018629C = { .poses = {
+#include "assets/mine_cavern_animation_092C4_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80186320[150] = {
+#include "assets/mine_cavern_animation_092C4_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80186578[185] = {
+#include "assets/mine_cavern_animation_092C4_records.inc"
+};
+
+u16 D_mine_cavern_8018685C[20] = {
+#include "assets/mine_cavern_animation_092C4_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80186884 = {
+    D_mine_cavern_80186578, D_mine_cavern_8018685C,
+    { NULL, D_mine_cavern_8018629C.words, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} MineCavernPoseBank92EC;
+
+MineCavernPoseBank92EC D_mine_cavern_801868AC = { .poses = {
+#include "assets/mine_cavern_animation_096E4_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_8018690C[88] = {
+#include "assets/mine_cavern_animation_096E4_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80186A6C[132] = {
+#include "assets/mine_cavern_animation_096E4_records.inc"
+};
+
+u16 D_mine_cavern_80186C7C[20] = {
+#include "assets/mine_cavern_animation_096E4_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80186CA4 = {
+    D_mine_cavern_80186A6C, D_mine_cavern_80186C7C,
+    { NULL, D_mine_cavern_801868AC.words, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MineCavernPoseBank970C;
+
+MineCavernPoseBank970C D_mine_cavern_80186CCC = { .poses = {
+#include "assets/mine_cavern_animation_099C8_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80186D08[58] = {
+#include "assets/mine_cavern_animation_099C8_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80186DF0[92] = {
+#include "assets/mine_cavern_animation_099C8_records.inc"
+};
+
+u16 D_mine_cavern_80186F60[20] = {
+#include "assets/mine_cavern_animation_099C8_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_80186F88 = {
+    D_mine_cavern_80186DF0, D_mine_cavern_80186F60,
+    { NULL, D_mine_cavern_80186CCC.words, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MineCavernPoseBank99F0;
+
+MineCavernPoseBank99F0 D_mine_cavern_80186FB0 = { .poses = {
+#include "assets/mine_cavern_animation_09C2C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80186FC8[22] = {
+#include "assets/mine_cavern_animation_09C2C_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_80187020[105] = {
+#include "assets/mine_cavern_animation_09C2C_records.inc"
+};
+
+u16 D_mine_cavern_801871C4[20] = {
+#include "assets/mine_cavern_animation_09C2C_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_801871EC = {
+    D_mine_cavern_80187020, D_mine_cavern_801871C4,
+    { NULL, D_mine_cavern_80186FB0.words, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineCavernPoseBank9C54;
+
+MineCavernPoseBank9C54 D_mine_cavern_80187214 = { .poses = {
+#include "assets/mine_cavern_animation_09F1C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_80187244[40] = {
+#include "assets/mine_cavern_animation_09F1C_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_801872E4[116] = {
+#include "assets/mine_cavern_animation_09F1C_records.inc"
+};
+
+u16 D_mine_cavern_801874B4[20] = {
+#include "assets/mine_cavern_animation_09F1C_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_801874DC = {
+    D_mine_cavern_801872E4, D_mine_cavern_801874B4,
+    { NULL, D_mine_cavern_80187214.words, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} MineCavernPoseBank9F44;
+
+MineCavernPoseBank9F44 D_mine_cavern_80187504 = { .poses = {
+#include "assets/mine_cavern_animation_0A38C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_cavern_8018757C[95] = {
+#include "assets/mine_cavern_animation_0A38C_bank4.inc"
+};
+
+GpAnimRec D_mine_cavern_801876F8[139] = {
+#include "assets/mine_cavern_animation_0A38C_records.inc"
+};
+
+u16 D_mine_cavern_80187924[20] = {
+#include "assets/mine_cavern_animation_0A38C_indices.inc"
+};
+
+GpAnimSet D_mine_cavern_8018794C = {
+    D_mine_cavern_801876F8, D_mine_cavern_80187924,
+    { NULL, D_mine_cavern_80187504.words, NULL, NULL, D_mine_cavern_8018757C, NULL, NULL, NULL },
+};
+
+TaskDesc D_mine_cavern_80187974 = { 0, 192, func_mine_cavern_8017E18C, { .model = NULL } };
+
+GpAnimSet * D_mine_cavern_80187980[17] = {
+    NULL,
+    &D_mine_cavern_80183F98,
+    &D_mine_cavern_80184B04,
+    &D_mine_cavern_80184D44,
+    &D_mine_cavern_80184F18,
+    &D_mine_cavern_80185164,
+    &D_mine_cavern_80185738,
+    &D_mine_cavern_801859E0,
+    &D_mine_cavern_80184738,
+    &D_mine_cavern_80186080,
+    &D_mine_cavern_80186274,
+    &D_mine_cavern_80186884,
+    &D_mine_cavern_80186CA4,
+    &D_mine_cavern_80186F88,
+    &D_mine_cavern_801871EC,
+    &D_mine_cavern_801874DC,
+    &D_mine_cavern_8018794C,
+};
+
+GpCopyArg D_mine_cavern_801879C4 = { { .sets = D_mine_cavern_80187980 }, 17 };
+
+GpAnimArg D_mine_cavern_801879CC = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mine_cavern_801879E0 = { { .index = 1 }, 48, 1, 30, 0 };
+
+GpAnimArg D_mine_cavern_801879F4 = { { .index = 1 }, 49, 1, 30, 0 };
+
+GpAnimArg D_mine_cavern_80187A08 = { { .index = 1 }, 50, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187A1C = { { .index = 1 }, 51, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187A30 = { { .index = 1 }, 52, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187A44 = { { .index = 1 }, 53, 1, 20, 0 };
+
+GpAnimArg D_mine_cavern_80187A58 = { { .index = 1 }, 54, 1, 20, 0 };
+
+GpAnimArg D_mine_cavern_80187A6C = { { .index = 1 }, 55, 1, 30, 0 };
+
+GpAnimArg D_mine_cavern_80187A80 = { { .index = 1 }, 56, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187A94 = { { .index = 1 }, 57, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187AA8 = { { .index = 1 }, 58, 1, 5, 0 };
+
+GpAnimArg D_mine_cavern_80187ABC[3] = {
+    { { .index = 1 }, 59, 1, 5, 0 },
+    { { .index = 1 }, 60, 1, 2, 0 },
+    { { .index = 1 }, 61, 0, 0, 0 },
+};
+
+GpAnimArg D_mine_cavern_80187AF8 = { { .index = 1 }, 62, 0, 0, 0 };
+
+GpAnimArg D_mine_cavern_80187B0C = { { .index = 1 }, 63, 0, 0, 0 };
+
+GpAnimArg D_mine_cavern_80187B20 = { { .index = 1 }, 9, 1, 30, 1 };
+
+GpXformArg D_mine_cavern_80187B34 = { { 0x4402, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187B4C = { { 0x31A6, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187B64 = { { 6660, 0, 7200, 0 }, { 0, 569, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187B7C = { { 6550, 0, 7100, 0 }, { 0, 910, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187B94 = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187BAC = { { 1900, 0, 160, 0 }, { 0, -114, 0, 0 } };
+
+GpOverrideArg D_mine_cavern_80187BC4 = { 55, 48 };
+
+GpXformArg D_mine_cavern_80187BCC = { { 7400, 0, 1750, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187BE4 = { { 9250, 0, 1300, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187BFC = { { 9250, 0, 1800, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187C14 = { { 7550, 0, 7360, 0 }, { 0, -455, 0, 0 } };
+
+GpXformArg D_mine_cavern_80187C2C = { { 1410, 0, 3000, 0 }, { 0, 910, 0, 0 } };
+
+GpCmdArg D_mine_cavern_80187C44 = { { .loc = { 4, 2 } }, 0 };
+
+GpCmdArg D_mine_cavern_80187C48 = { { .loc = { 4, 2 } }, 1 };
+
+GpCmdArg D_mine_cavern_80187C4C = { { .loc = { 4, 2 } }, 2 };
+
+GpCmdArg D_mine_cavern_80187C50 = { { .loc = { 4, 2 } }, 3 };
+
+GpCmdArg D_mine_cavern_80187C54 = { { .loc = { 4, 2 } }, 4 };
+
+GpCmdArg D_mine_cavern_80187C58 = { { .loc = { 4, 2 } }, 5 };
+
+GpCmdArg D_mine_cavern_80187C5C = { { .loc = { 4, 2 } }, 6 };
+
+GpCmdArg D_mine_cavern_80187C60 = { { .loc = { 4, 2 } }, 7 };
+
+GpCmdArg D_mine_cavern_80187C64 = { { .loc = { 4, 2 } }, 10 };
+
+GpCmdArg D_mine_cavern_80187C68 = { { .loc = { 4, 2 } }, 11 };
+
+GpCmdArg D_mine_cavern_80187C6C = { { .loc = { 4, 2 } }, 12 };
+
+GpCmdArg D_mine_cavern_80187C70 = { { .loc = { 4, 2 } }, 13 };
+
+GpEvsCmd D_mine_cavern_80187C74[41] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B34 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C44 }, { .value = 0 } },
+    { 3, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_mine_cavern_80187B4C }, { .storage = &D_mine_cavern_80187BC4 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879F4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A58 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A08 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A1C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C64 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BCC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A30 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C48 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BE4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C4C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_cavern_8018804C[19] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B4C }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C4C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187BFC }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_cavern_80188214[60] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B64 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C58 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A80 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C50 }, { .value = 0 } },
+    { 15, { .value = 0x401E0013 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187AA8 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B0C }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B7C }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54020013 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B94 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C54 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x401E0014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x401E0015 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x401E0015 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x401E0014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x401E0016 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS8 = func_mine_cavern_8017E150 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_cavern_801887B4[27] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187B94 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C58 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C50 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C54 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C68 }, { .value = 0 } },
+    { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_mine_cavern_8017E088 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS8 = func_mine_cavern_8017E150 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_cavern_80188A3C[31] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187BAC }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C2C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C70 }, { .value = 0 } },
+    { 3, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187AF8 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 95 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E15C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C60 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_cavern_80188D24[24] = {
+    { 13, { .callback = func_mine_cavern_8017E0F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_cavern_80187BAC }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_cavern_801879C4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879E0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mine_cavern_80187C2C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C70 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mine_cavern_80187C60 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_cavern_8017DFAC }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_cavern_8017E15C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_mine_cavern_80188F64[3] = {
+    { 970, -2060, -950, 0 },
+    { 830, -1100, -1260, 0 },
+    { 1080, -70, -710, 0 },
+};
+
+SVECTOR D_mine_cavern_80188F7C[1] = {
+    { 4550, -2090, 280, 0 },
+};
+
+SVECTOR D_mine_cavern_80188F84[1] = {
+    { 0x36B0, -2060, 290, 0 },
+};
+
+SVECTOR D_mine_cavern_80188F8C[1] = {
+    { 200, -2060, 5160, 0 },
+};
+
+SVECTOR D_mine_cavern_80188F94[1] = {
+    { 0x4560, -2060, 5000, 0 },
+};
+
+SVECTOR D_mine_cavern_80188F9C[3] = {
+    { 9000, -2040, 8710, 0 },
+    { 6910, -2780, 3700, 0 },
+    { 6890, -1500, 4690, 0 },
+};
+
+SVECTOR D_mine_cavern_80188FB4[1] = {
+    { 0x2E86, -1890, 5620, 0 },
+};
+
+SVECTOR D_mine_cavern_80188FBC = { 5990, -1460, -330, 0 };
+
+SVECTOR D_mine_cavern_80188FC4[1] = {
+    { 900, -1730, -0x36CE, 0 },
+};
+
+MineCavernHaloStorage D_mine_cavern_80188FCC = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x3C95 };
+
+GpRoomObjRec D_mine_cavern_80188FE0[3] = {
+    { D_mine_cavern_8018981C, D_mine_cavern_8018D154, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
+    { D_mine_cavern_8018981C, D_mine_cavern_8018D744, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
+    { D_mine_cavern_8018981C, D_mine_cavern_8018D744, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
+};
+
+GpRoomCoordRec D_mine_cavern_80189010[3] = {
+    { D_mine_cavern_8018D13C, NULL },
+    { D_mine_cavern_8018D13C, NULL },
+    { D_mine_cavern_8018D13C, NULL },
+};
+
+u8 D_mine_cavern_80189028[28] = {
+    1,
+    3,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    0,
+    0,
+    0,
+};
+
+u8 D_mine_cavern_80189044[28] = {
+    1,
+    3,
+    2,
+    4,
+    25,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    24,
+    23,
+    5,
+    0,
+    0,
+    0,
+};
+
+u8 * D_mine_cavern_80189060[3] = {
+    D_8010CAF8,
+    D_mine_cavern_80189028,
+    D_mine_cavern_80189044,
+};
+
+GpViewCountRec D_mine_cavern_8018906C[3] = {
+    { { .bytes = { 25, 0 } } },
+    { { .bytes = { 25, 0 } } },
+    { { .bytes = { 25, 0 } } },
+};
+
+GpWarpRec D_mine_cavern_80189074[2] = {
+    { { .words = { 3072, 0x4524, 0, 2500 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x4524, 0, 2500 } }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, 0, 2, 0, 448 },
+    { { .words = { 0, 2840, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 0, 2840, 0, 0 } }, { 0, 0, 0, 0 }, 0x54020004, 0x54020003, 0x54020012, 23, 0, 441 },
+};
+
+SVECTOR D_mine_cavern_801890E4[30] = {
+    { 3109, 0, 2667, 0 },
+    { 4070, 0, 459, 0 },
+    { 3774, 0, 1592, 0 },
+    { -3949, 0, 1089, 0 },
+    { -479, 0, 4068, 0 },
+    { 3369, 0, 2329, 0 },
+    { 0, 0, 4096, 0 },
+    { -3904, 0, 1240, 0 },
+    { -3901, 0, -1250, 0 },
+    { 0, 0, -4096, 0 },
+    { 3843, 0, -1418, 0 },
+    { 3958, 0, -1053, 0 },
+    { -3824, 0, -1467, 0 },
+    { 85, 0, -4095, 0 },
+    { 2955, 0, -2837, 0 },
+    { 2272, 0, 3408, 0 },
+    { -4096, 0, 0, 0 },
+    { 4092, 0, 176, 0 },
+    { -2762, 0, -3025, 0 },
+    { -27, 0, -4096, 0 },
+    { 4077, 0, -390, 0 },
+    { 743, 0, -4028, 0 },
+    { 4096, 0, 0, 0 },
+    { 205, 0, 4091, 0 },
+    { -1197, 0, 3917, 0 },
+    { 0, -4096, 0, 0 },
+    { -135, 0, -4094, 0 },
+    { -2644, 0, 3128, 0 },
+    { -3539, 0, -2062, 0 },
+    { -4096, 0, 15, 0 },
+};
+
+SVECTOR D_mine_cavern_801891D4[88] = {
+    { -580, -1330, 2510, 0 },
+    { -580, 100, 2510, 0 },
+    { 930, 100, 750, 0 },
+    { 930, -1330, 750, 0 },
+    { 1150, 100, -1200, 0 },
+    { 1150, -1330, -1200, 0 },
+    { 0x3656, -1050, 690, 0 },
+    { 0x3656, 100, 690, 0 },
+    { 0x37B4, 100, -140, 0 },
+    { 0x37B4, -1050, -140, 0 },
+    { 3930, -1050, -530, 0 },
+    { 3930, 100, -530, 0 },
+    { 4250, 100, 630, 0 },
+    { 4250, -1050, 630, 0 },
+    { 4760, 100, 690, 0 },
+    { 4760, -1050, 690, 0 },
+    { 5320, 100, -120, 0 },
+    { 5320, -1050, -120, 0 },
+    { 0x3458, -1050, 690, 0 },
+    { 0x3458, 100, 690, 0 },
+    { 0x334A, -1050, -160, 0 },
+    { 0x334A, 100, -160, 0 },
+    { 3730, 100, 9380, 0 },
+    { 3730, -1050, 9380, 0 },
+    { 4060, -1050, 8350, 0 },
+    { 4060, 100, 8350, 0 },
+    { 4600, -1050, 8350, 0 },
+    { 4600, 100, 8350, 0 },
+    { 4980, -1050, 9380, 0 },
+    { 4980, 100, 9380, 0 },
+    { 0x366A, 100, 8320, 0 },
+    { 0x366A, -1050, 8320, 0 },
+    { 0x3764, -1050, 9260, 0 },
+    { 0x3764, 100, 9260, 0 },
+    { 0x3304, 100, 9180, 0 },
+    { 0x3304, -1050, 9180, 0 },
+    { 0x344E, -1050, 8320, 0 },
+    { 0x344E, 100, 8320, 0 },
+    { 6920, 100, 2690, 0 },
+    { 6920, -2500, 2690, 0 },
+    { 0x3B2E, -2500, 2860, 0 },
+    { 0x3B2E, 100, 2860, 0 },
+    { 0x3D0E, -2500, 3360, 0 },
+    { 0x3D0E, 100, 3360, 0 },
+    { 0x3D0E, 100, 5390, 0 },
+    { 0x3D0E, -2500, 5390, 0 },
+    { 0x39A8, -2500, 5970, 0 },
+    { 0x39A8, 100, 5970, 0 },
+    { 0x2B20, -2500, 5970, 0 },
+    { 0x2B20, 100, 5970, 0 },
+    { 0x2B20, -2500, 5070, 0 },
+    { 0x2B20, 100, 5070, 0 },
+    { 6640, -2500, 5070, 0 },
+    { 6640, 100, 5070, 0 },
+    { 6600, -2500, 6000, 0 },
+    { 6600, 100, 6000, 0 },
+    { 2970, -2500, 6000, 0 },
+    { 2970, 100, 6000, 0 },
+    { 2970, -2500, 2820, 0 },
+    { 2970, 100, 2820, 0 },
+    { 4730, -5000, 110, 0 },
+    { 4730, 100, 110, 0 },
+    { 0x44C0, 100, 110, 0 },
+    { 0x44C0, -5000, 110, 0 },
+    { 0x45BA, -5000, 4570, 0 },
+    { 0x45BA, 100, 4570, 0 },
+    { 0x45BA, 100, 7410, 0 },
+    { 0x45BA, -5000, 7410, 0 },
+    { 0x3F70, 100, 8880, 0 },
+    { 0x3F70, -5000, 8880, 0 },
+    { 1220, -5000, 8980, 0 },
+    { 1220, 100, 8980, 0 },
+    { 1070, 100, 7410, 0 },
+    { 1070, -5000, 7410, 0 },
+    { 40, 100, 7220, 0 },
+    { 40, -5000, 7220, 0 },
+    { 40, 100, -470, 0 },
+    { 40, -5000, -470, 0 },
+    { 2440, -5000, -590, 0 },
+    { 2440, 100, -590, 0 },
+    { -1000, 0, 0x2710, 0 },
+    { 0x4A38, 0, 0x2710, 0 },
+    { 0x4A38, 0, -1000, 0 },
+    { -1000, 0, -1000, 0 },
+    { 0x4808, 100, 820, 0 },
+    { 0x4808, -5000, 820, 0 },
+    { 0x4812, -5000, 3540, 0 },
+    { 0x4812, 100, 3540, 0 },
+};
+
+GpGridFace D_mine_cavern_80189494[38] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 7, 8, 6, 9 }, 2, 2 },
+    { { 11, 12, 10, 13 }, 3, 2 },
+    { { 12, 14, 13, 15 }, 4, 2 },
+    { { 14, 16, 15, 17 }, 5, 2 },
+    { { 19, 7, 18, 6 }, 6, 2 },
+    { { 21, 19, 20, 18 }, 7, 2 },
+    { { 23, 24, 22, 25 }, 8, 2 },
+    { { 24, 26, 25, 27 }, 9, 2 },
+    { { 26, 28, 27, 29 }, 10, 2 },
+    { { 31, 32, 30, 33 }, 11, 2 },
+    { { 35, 36, 34, 37 }, 12, 2 },
+    { { 36, 31, 37, 30 }, 9, 2 },
+    { { 39, 40, 38, 41 }, 13, 0 },
+    { { 40, 42, 41, 43 }, 14, 0 },
+    { { 45, 46, 44, 47 }, 15, 0 },
+    { { 46, 48, 47, 49 }, 6, 0 },
+    { { 48, 50, 49, 51 }, 16, 0 },
+    { { 50, 52, 51, 53 }, 6, 0 },
+    { { 52, 54, 53, 55 }, 17, 0 },
+    { { 54, 56, 55, 57 }, 6, 0 },
+    { { 56, 58, 57, 59 }, 16, 0 },
+    { { 61, 62, 60, 63 }, 6, 0 },
+    { { 65, 66, 64, 67 }, 16, 0 },
+    { { 66, 68, 67, 69 }, 18, 0 },
+    { { 69, 68, 70, 71 }, 19, 0 },
+    { { 71, 72, 70, 73 }, 20, 0 },
+    { { 72, 74, 73, 75 }, 21, 0 },
+    { { 74, 76, 75, 77 }, 22, 0 },
+    { { 77, 76, 78, 79 }, 23, 0 },
+    { { 78, 79, 60, 61 }, 24, 0 },
+    { { 81, 82, 80, 83 }, 25, 1 },
+    { { 38, 59, 39, 58 }, 26, 0 },
+    { { 44, 43, 45, 42 }, 22, 0 },
+    { { 85, 63, 84, 62 }, 27, 0 },
+    { { 87, 65, 86, 64 }, 28, 0 },
+    { { 84, 87, 85, 86 }, 29, 0 },
+};
+
+s16 D_mine_cavern_8018965C[13] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    22,
+    23,
+    29,
+    30,
+    31,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_80189678[10] = {
+    0,
+    1,
+    21,
+    22,
+    27,
+    28,
+    29,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_8018968C[11] = {
+    8,
+    9,
+    10,
+    21,
+    22,
+    26,
+    27,
+    28,
+    29,
+    32,
+    -1,
+};
+
+s16 D_mine_cavern_801896A4[13] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    14,
+    22,
+    23,
+    30,
+    31,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_801896C0[11] = {
+    8,
+    9,
+    10,
+    14,
+    19,
+    20,
+    21,
+    22,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_801896D8[11] = {
+    8,
+    9,
+    10,
+    19,
+    20,
+    21,
+    22,
+    26,
+    27,
+    32,
+    -1,
+};
+
+s16 D_mine_cavern_801896F0[6] = {
+    5,
+    14,
+    23,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_801896FC[9] = {
+    14,
+    17,
+    18,
+    19,
+    20,
+    21,
+    32,
+    33,
+    -1,
+};
+
+s16 D_mine_cavern_80189710[10] = {
+    10,
+    12,
+    17,
+    18,
+    19,
+    20,
+    21,
+    26,
+    32,
+    -1,
+};
+
+s16 D_mine_cavern_80189724[9] = {
+    2,
+    6,
+    7,
+    14,
+    15,
+    23,
+    32,
+    34,
+    -1,
+};
+
+s16 D_mine_cavern_80189738[13] = {
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    26,
+    32,
+    34,
+    -1,
+};
+
+s16 D_mine_cavern_80189754[10] = {
+    11,
+    12,
+    13,
+    16,
+    17,
+    18,
+    25,
+    26,
+    32,
+    -1,
+};
+
+s16 D_mine_cavern_80189768[13] = {
+    2,
+    6,
+    7,
+    14,
+    15,
+    23,
+    24,
+    32,
+    34,
+    35,
+    36,
+    37,
+    -1,
+};
+
+s16 D_mine_cavern_80189784[11] = {
+    14,
+    15,
+    16,
+    17,
+    24,
+    25,
+    32,
+    34,
+    36,
+    37,
+    -1,
+};
+
+s16 D_mine_cavern_8018979C[11] = {
+    11,
+    12,
+    13,
+    16,
+    17,
+    24,
+    25,
+    26,
+    32,
+    34,
+    -1,
+};
+
+s16 D_mine_cavern_801897B4[6] = {
+    23,
+    32,
+    35,
+    36,
+    37,
+    -1,
+};
+
+s16 D_mine_cavern_801897C0[6] = {
+    24,
+    25,
+    32,
+    36,
+    37,
+    -1,
+};
+
+s16 D_mine_cavern_801897CC[4] = {
+    24,
+    25,
+    32,
+    -1,
+};
+
+s16 * D_mine_cavern_801897D4[18] = {
+    D_mine_cavern_8018965C,
+    D_mine_cavern_80189678,
+    D_mine_cavern_8018968C,
+    D_mine_cavern_801896A4,
+    D_mine_cavern_801896C0,
+    D_mine_cavern_801896D8,
+    D_mine_cavern_801896F0,
+    D_mine_cavern_801896FC,
+    D_mine_cavern_80189710,
+    D_mine_cavern_80189724,
+    D_mine_cavern_80189738,
+    D_mine_cavern_80189754,
+    D_mine_cavern_80189768,
+    D_mine_cavern_80189784,
+    D_mine_cavern_8018979C,
+    D_mine_cavern_801897B4,
+    D_mine_cavern_801897C0,
+    D_mine_cavern_801897CC,
+};
+
+GpGridParams D_mine_cavern_8018981C[1] = {
+    { NULL, D_mine_cavern_801890E4, D_mine_cavern_801891D4, D_mine_cavern_80189494, D_mine_cavern_801897D4, 1000, 1200, 6, 3, 4000, 38 },
+};
+
+GpViewRec D_mine_cavern_80189840[25] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -9000, 0x541A, -4500 } }, 269 },
+    { { { { -4078, 0, -376 }, { -147, 3767, 1601 }, { 346, 1607, -3751 } }, { -0x3C2B, 3769, -9847 } }, 282 },
+    { { { { 760, 0, -4024 }, { -1190, 3912, -224 }, { 3844, 1211, 726 } }, { -7741, 2840, -961 } }, 257 },
+    { { { { 1072, 0, 3953 }, { 1176, 3910, -319 }, { -3774, 1219, 1023 } }, { -0x3909, 2740, -561 } }, 257 },
+    { { { { -4077, 0, 384 }, { 137, 3822, 1464 }, { -358, 1470, -3806 } }, { -2391, 3550, -9951 } }, 257 },
+    { { { { -688, 0, 4037 }, { 1013, 3964, 172 }, { -3908, 1028, -666 } }, { -0x3002, 3145, -8160 } }, 289 },
+    { { { { -1126, 0, -3938 }, { -1263, 3879, 361 }, { 3729, 1314, -1066 } }, { -3683, 3259, -8447 } }, 282 },
+    { { { { -945, 0, -3985 }, { -1292, 3874, 306 }, { 3770, 1328, -894 } }, { -8013, 3259, -8447 } }, 282 },
+    { { { { 3340, 0, -2370 }, { -15, 4095, -21 }, { 2370, 26, 3339 } }, { -0x30EC, 1602, 1567 } }, 257 },
+    { { { { 3539, 0, 2061 }, { 130, 4087, -223 }, { -2057, 258, 3532 } }, { -0x3825, 1489, 1491 } }, 551 },
+    { { { { -6, 0, 4095 }, { 313, 4083, 0 }, { -4083, 313, -6 } }, { -0x30DE, 1598, -1721 } }, 257 },
+    { { { { 2476, 0, -3262 }, { -2253, 2962, -1710 }, { 2359, 2828, 1791 } }, { -0x28A8, 3082, -638 } }, 197 },
+    { { { { 1289, 0, 3887 }, { -518, 4059, 171 }, { -3853, -545, 1278 } }, { -0x3974, 602, -808 } }, 246 },
+    { { { { -1648, 0, 3749 }, { 215, 4089, 94 }, { -3743, 235, -1645 } }, { -9183, 1059, -8459 } }, 269 },
+    { { { { 3593, 0, -1965 }, { -1404, 2863, -2569 }, { 1373, 2928, 2512 } }, { -6222, 3044, -5668 } }, 254 },
+    { { { { 841, 0, 4008 }, { -456, 4069, 95 }, { -3982, -466, 835 } }, { -7616, 1152, -6716 } }, 282 },
+    { { { { 1753, 0, -3701 }, { 533, 4053, 252 }, { 3663, -590, 1735 } }, { -2707, 799, -5551 } }, 278 },
+    { { { { 2645, 0, -3126 }, { -2616, 2242, -2214 }, { 1711, 3427, 1448 } }, { -12, 4448, 151 } }, 282 },
+    { { { { -2728, 0, -3055 }, { -283, 4078, 253 }, { 3042, 380, -2716 } }, { -1023, 1439, -1057 } }, 285 },
+    { { { { 4090, 0, -212 }, { -77, 3810, -1499 }, { 197, 1501, 3805 } }, { -0x3F71, 3033, 838 } }, 257 },
+    { { { { 4068, 0, 476 }, { 189, 3756, -1621 }, { -436, 1632, 3731 } }, { -2741, 3275, 638 } }, 257 },
+    { { { { 1072, 0, 3953 }, { 1176, 3910, -319 }, { -3774, 1219, 1023 } }, { -9591, 2740, -561 } }, 257 },
+    { { { { -4084, 0, -300 }, { -69, 3985, 942 }, { 292, 944, -3974 } }, { -1641, 2934, -7401 } }, 257 },
+    { { { { -4084, 0, -300 }, { -69, 3985, 942 }, { 292, 944, -3974 } }, { -1641, 2934, -7401 } }, 257 },
+    { { { { -4077, 0, 384 }, { 137, 3822, 1464 }, { -358, 1470, -3806 } }, { -2391, 3550, -9951 } }, 257 },
+};
+
+GpSprtCmd D_mine_cavern_80189BC4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_80189BD4[49] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -16, 1376, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -152, -104, 1264, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, -72, 1343, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, -32, 1240, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -32, 1207, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, 8, 1422, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, -16, 1421, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 32, 1485, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 56, 1483, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 56, 1516, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, 56, 1486, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 32, 1483, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, -16, 1404, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, -48, 1344, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, -48, 1307, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, -104, 1221, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, -120, 1171, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -120, -120, 1187, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, -40, 1278, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, -40, 1258, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, -64, 1271, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 80, 16 } }, 80, -48, 1317, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, 8, 1516, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 0, 1533, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, 8, 1375, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -24, 1220, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -8, 1166, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 16, 1149, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 48, 1190, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 80, 1247, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 104, 1223, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -24, 1660, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -24, 1355, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 40, 8, 1357, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, 96, 1241, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, 72, 1399, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, -32, 1317, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 16, 64, 1372, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 88, 1361, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 16, 48, 1350, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 16, 32, 1366, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 32, 1407, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 56, 1393, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 80, 1319, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 16 } }, 88, -24, 1317, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 24 } }, 88, -8, 1224, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 24 } }, 88, 16, 1197, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 64, 1316, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 24 } }, 88, 40, 1223, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_80189FA8[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 21, 0, 0, { 1, 0 } },
+    { 21, 28, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_80189FC8[64] = {
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, -24, 519, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, 32, 591, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 599, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 80, -120, 519, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 120, -120, 506, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 48, -120, 531, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 48, -104, 564, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, -104, 584, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 88, -88, 569, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 104, -80, 554, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 120, -72, 553, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -64, 549, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 152, -80, 519, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -48, 533, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 48, -96, 1121, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, 80, -96, 1116, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, 104, -120, 1058, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, -64, 1123, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, 88, -16, 1195, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 40, 1294, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 96, 40, 1176, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 88, -120, 1611, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, 48, -96, 1705, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 80, -96, 1688, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, 72, -32, 1767, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 72, -88, 1462, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, -88, 791, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -160, -40, 803, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -24, 0, 1917, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -40, -40, 1950, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -16, 1924, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 0, 1693, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -16, 1706, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -80, -64, 1699, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, -40, 1465, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, -48, 1504, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -96, -48, 1654, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -72, -48, 1673, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, -32, 1791, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 0, 1697, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 32, 1467, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -136, -32, 799, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -160, -16, 785, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, -160, 48, 866, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -136, -16, 810, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -136, 48, 864, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, -16, 845, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, 48, 861, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, -32, 1436, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -96, -32, 1514, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -32, 1722, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -112, 40, 969, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -112, 80, 1084, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 104, 956, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -112, -16, 1446, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 16, 1197, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -16, 1515, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 24, 1379, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -88, 56, 1095, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -72, -16, 1689, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -72, 16, 1409, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, 48, 1245, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -96, -56, 1691, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, -120, -56, 1631, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018A4C8[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 14, 0, 0, { 0, 0 } },
+    { 14, 7, 0, 0, { 3, 0 } },
+    { 21, 4, 0, 0, { 2, 0 } },
+    { 25, 1, 0, 0, { 4, 0 } },
+    { 26, 38, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018A500[49] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -24, 2965, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 144, -40, 1045, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 96, -88, 1093, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, -72, 1107, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -88, 2170, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 64, -96, 2174, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 48, -96, 2137, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, -96, 2093, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 16, -96, 2239, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 16, -64, 2297, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, -96, 2037, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, -40, 2003, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -8, -48, 2384, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -48, 2936, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, -8, -88, 2379, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, 48, 913, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, -24, 982, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, 104, -56, 1274, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, 104, 32, 997, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 88, 24, 1051, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 88, -56, 1089, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 72, -64, 1116, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 72, 8, 1193, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 24, -64, 2661, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 24, -16, 1737, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 40, -16, 1554, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, 40, -64, 2681, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, -64, 2178, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 56, 0, 1301, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, -88, 1250, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -128, -120, 2187, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -72, -96, 2175, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, -104, -96, 2175, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -104, -48, 1919, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -64, -120, 453, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -96, -104, 447, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -120, -88, 445, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -72, 445, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -160, -88, 444, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, -120, 424, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -160, -32, 454, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, -160, 24, 460, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 48 } }, -160, 72, 488, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -120, -120, 1546, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -120, -96, 1575, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -88, -96, 1598, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -104, -16, 1713, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 56 } }, -112, -72, 1600, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 48, 32 } }, -88, -56, 4500, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018A8D4[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 30, 0, 0, { 0, 0 } },
+    { 30, 4, 0, 0, { 3, 0 } },
+    { 34, 9, 0, 0, { 2, 0 } },
+    { 43, 5, 0, 0, { 4, 0 } },
+    { 48, 1, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018A90C[58] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -72, 2490, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -120, 1149, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -80, 1208, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -48, 1213, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, -40, 963, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, -32, 877, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, -80, 1231, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -56, 1200, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 80, -56, 1370, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 56, -120, 1764, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -72, 1567, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -72, 1726, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 40, -72, 2111, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, -16, 1314, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -24, 1302, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 8, 1368, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 80, 40, 1427, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 88, 64, 1427, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 48, -40, 2005, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 136, 0, 650, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 96, 0, 686, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 112, 0, 625, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, 16, 552, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, 16, 621, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, 40, 750, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 72, 803, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 80, 1070, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 16 } }, 96, 104, 836, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, -120, 1134, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, -96, 1185, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 32, -120, 1736, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -96, 1800, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -40, 1300, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, -80, 1200, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, -80, 1432, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -32, 1464, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -32, 1325, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, 8, 1243, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 8, 1213, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 96 } }, -120, -72, 1677, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -120, 24, 1337, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -104, -24, 1737, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -88, -8, 1613, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -96, 8, 1387, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, -8, 1804, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 8, 1904, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, 24, 1717, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, 40, 1563, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, 56, 1450, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -56, 72, 1293, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -56, 88, 1235, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 32 } }, -104, 24, 1292, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, -112, 56, 1255, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, -112, 80, 1209, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -160, 56, 1237, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, 80, 1188, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 48, 56 } }, 8, -48, 3000, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 8, 24 } }, 64, -16, 2500, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018AD94[8] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 19, 0, 0, { 3, 0 } },
+    { 19, 8, 0, 0, { 0, 0 } },
+    { 27, 1, 0, 0, { 5, 0 } },
+    { 28, 5, 0, 0, { 1, 0 } },
+    { 33, 23, 0, 0, { 4, 0 } },
+    { 56, 2, 0, 0, { 2, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018ADD4[41] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 0, 2417, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 88, 1195, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -72, 1599, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -136, -80, 1569, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -80, 1466, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, -32, 1502, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -120, -8, 1601, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -8, 1299, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, -8, 1469, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -32, 1641, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, -32, 1698, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 96, 1187, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, 88, 1235, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, 80, 1287, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 72, 1343, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 64, 1406, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 56, 1471, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 80, 1255, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 72, 1320, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, 64, 1394, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 56, 1458, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -160, 16, 1445, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -152, 16, 1453, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, 16, 1639, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 56, 1546, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -104, -80, 1535, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -104, -32, 1620, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -104, 24, 1731, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, 40, 1654, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, 32, 1696, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 24, 1829, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 16, 1985, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -32, 8, 2198, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 8, 2416, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -72, -80, 1694, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -72, -16, 1712, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, -80, 1878, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, -72, 1977, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, -24, 2052, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, -24, 2065, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, -8, 2300, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018B108[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 41, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018B120[39] = {
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -16, -56, 2855, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -8, -64, 2755, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, -72, 2761, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 32, -72, 2137, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, 96, 993, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, 48, 995, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, 8, 949, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, -64, 896, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 64, 1307, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 56, 1408, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 48, 1520, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 32, 1690, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 16, -24, 2109, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, -24, 2185, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, -56, 2470, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 16, -56, 2041, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 16, 1921, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -8, 2127, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -56, 2105, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, -24, 1939, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 24, 1573, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 32, 1484, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 40, 1404, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, -16, 1225, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, -32, 1495, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, 88, -32, 1835, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 104, -24, 1396, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 120, -16, 1314, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, -8, 1266, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -56, 2121, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 72, -32, 1853, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -56, 2146, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, -80, 1792, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, -80, 1969, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -56, 1972, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, -56, 1943, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -24, 2046, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -16, 1734, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, 0, 1555, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018B42C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 39, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018B444[27] = {
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 16, 1874, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -32, 1803, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -48, 1732, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 64, -56, 1739, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, -48, 1761, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -56, 1760, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, -56, 1645, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -56, 1495, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -32, 1809, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 0, 1896, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, 40, 1407, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 120, 32, 1084, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 120, 88, 1119, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 1146, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 120, -32, 1091, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -32, 1018, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 32, 1109, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, -40, 1645, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, -40, 1535, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -32, 1579, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 72, -16, 1478, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 80, 40, 1259, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -32, 1480, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -32, 1436, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, -16, 1445, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 104, -16, 1148, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, 96, 40, 1116, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018B660[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 27, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018B678[11] = {
+    { 143, 0x3FC0, { .fields = { 40, 120 } }, -160, -120, 276, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 120 } }, -160, 0, 275, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 48 } }, -120, 72, 296, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 32 } }, -64, 80, 340, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 48 } }, 0, 72, 375, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 40, 64, 434, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 72, 56, 487, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 48 } }, 88, -120, 638, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 96 } }, 104, -72, 630, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 96 } }, 104, 24, 623, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, 0, -120, 558, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018B754[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 11, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018B76C[3] = {
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, 80, 375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, 104, 375, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, 112, 375, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018B7A8[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 3, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B7C0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B7D0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B7E0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B7F0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B800[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B810[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B820[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B830[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018B840[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018B850[48] = {
+    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, -120, 250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, -104, 250, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -72, -120, 250, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -120, 250, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 8 } }, -16, -120, 250, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, -120, 250, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 8, 1549, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, -72, 1458, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -72, 1446, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 56, -40, 1541, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 16, 1549, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, 16, 1532, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 64, 32, 1460, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 56, -120, 1339, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -104, 1383, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, -64, 1157, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -24, 1399, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 0, 1529, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 24, 1458, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, -24, 1402, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, -24, 1375, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 0, 1470, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 24, 1296, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 0, 1379, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 24, 1280, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -120, 56, 1105, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 56, 1096, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, 48, 1131, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 32, 1361, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 48, 1275, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 32, 1113, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, 32, 1127, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 32, 1105, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 32, 1101, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -48, 1189, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, -48, 1266, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, 8, 1076, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, -24, 1170, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 8, 1077, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, 8, 1089, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -24, 1380, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -8, 1396, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 8, 1374, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -24, 1225, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -64, 1289, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, -64, 1369, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -64, 1470, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, -48, 1579, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018BC10[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 1, 0 } },
+    { 6, 9, 0, 0, { 2, 0 } },
+    { 15, 33, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018BC38[52] = {
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 1006, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, 80, 1067, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 1062, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 48, 1030, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 56, 1099, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -120, 1412, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, -120, 1401, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 16, 1621, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 24, 1582, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 32, 1525, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, -96, 1459, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -56, 1575, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, -40, 1559, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -16, 1674, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, -16, 1669, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -64, 1505, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, -48, 1574, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -72, 1472, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, -72, 1472, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 8 } }, 56, 96, 1071, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 96, 1052, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, 48, 56, 1115, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 48 } }, 48, 8, 1089, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, -8, 1282, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, -16, 1435, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 48, -24, 1480, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -8, 1537, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -24, 1250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -104, 1394, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -104, 1180, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, -104, 989, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 104, -64, 1492, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, -64, 1353, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -64, 1031, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 104, 48, 1278, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 104, 64, 1179, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 40, 1206, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 48, 1049, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 32, 1217, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 16, 1299, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, 0, 1341, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 104, -16, 1443, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 0, 1749, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1557, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 32, 1408, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 48, 1285, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 64, 1181, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 80, 1114, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 48, 80, 1089, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 96, 80, 1085, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 144, 0, 954, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, -16, 1074, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018C048[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 19, 0, 0, { 1, 0 } },
+    { 19, 33, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018C068[59] = {
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 421, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, -80, 430, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -72, 437, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -120, -88, 440, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -96, -104, 441, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -64, -120, 449, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -32, 468, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 32, 459, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 485, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -144, -120, 937, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -144, -112, 966, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, -96, -112, 982, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -88, -96, 998, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -144, -96, 966, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, -136, -80, 982, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -64, 986, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -136, -40, 1039, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, -24, 1028, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, -8, 1045, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 8, 1080, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1108, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -120, 40, 1116, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 72, 1150, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -120, 56, 1149, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -112, -112, 1187, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -96, -88, 1187, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -64, 1336, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, -112, 910, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, 8, 1795, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 24, -16, 1748, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, 8, 1699, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 24, 24, 1601, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -32, 1486, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, -88, 1330, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -8, 1451, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 56, -8, 1217, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 112 } }, 72, -8, 1097, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, -8, 950, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 112, -8, 1194, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 32, 1173, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 112, 32, 872, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, 80, 1048, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 80, 957, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, 64, 825, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 64, 933, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, 0, 1027, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, 0, 1140, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -64, 951, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, -64, 1098, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 128, -104, 995, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 120, -56, 1183, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, -56, 888, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 64, -64, 1187, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, -56, 1032, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, -56, 930, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 72, -96, 1342, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -104, 1241, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 104, -104, 853, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 72, 48 } }, -96, -40, 2750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018C504[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 9, 0, 0, { 0, 0 } },
+    { 9, 15, 0, 0, { 3, 0 } },
+    { 24, 2, 0, 0, { 2, 0 } },
+    { 26, 32, 0, 0, { 4, 0 } },
+    { 58, 1, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018C53C[47] = {
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018C8E8[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 1, 0 } },
+    { 8, 37, 0, 0, { 2, 0 } },
+    { 45, 2, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_cavern_8018C910[48] = {
+    { 143, 0x3FC0, { .fields = { 72, 80 } }, -8, -96, 2250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 669, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 80, 755, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 144 } }, -160, -64, 1145, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 144 } }, -152, -64, 1125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 16, 1125, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -120, 24, 1125, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 40, 1060, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 56, 902, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 72, 855, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 88, 759, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 88, 829, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, -120, 40, 1049, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, 56, 943, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 56, 1004, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 56, 1062, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 56, 1173, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, 72, 872, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 1075, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 1075, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 104, 1015, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 104, 1056, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 104, 1106, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 72, 930, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 88, 991, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 72, 1083, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1080, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 72, 1105, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 72, 1191, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 72, 1244, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 88, 991, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 1012, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 88, 1089, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 88, 1118, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 88, 1162, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 88, 1225, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 104, -48, 1173, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 96, 24, 1242, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 1271, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, 72, 1274, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, 80, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 72, 80 } }, 32, -8, 2250, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 24 } }, 120, 40, 1750, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_cavern_8018CCD0[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 3, 0 } },
+    { 1, 37, 0, 0, { 0, 0 } },
+    { 38, 8, 0, 0, { 2, 0 } },
+    { 46, 2, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_cavern_8018CD00[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_mine_cavern_8018CD10[25] = {
+    { { .empty = D_mine_cavern_80189BC4 }, D_mine_cavern_80189BC4, NULL },
+    { { .elements = D_mine_cavern_80189BD4 }, D_mine_cavern_80189FA8, NULL },
+    { { .elements = D_mine_cavern_80189FC8 }, D_mine_cavern_8018A4C8, NULL },
+    { { .elements = D_mine_cavern_8018A500 }, D_mine_cavern_8018A8D4, NULL },
+    { { .elements = D_mine_cavern_8018A90C }, D_mine_cavern_8018AD94, NULL },
+    { { .elements = D_mine_cavern_8018ADD4 }, D_mine_cavern_8018B108, NULL },
+    { { .elements = D_mine_cavern_8018B120 }, D_mine_cavern_8018B42C, NULL },
+    { { .elements = D_mine_cavern_8018B444 }, D_mine_cavern_8018B660, NULL },
+    { { .elements = D_mine_cavern_8018B678 }, D_mine_cavern_8018B754, NULL },
+    { { .elements = D_mine_cavern_8018B76C }, D_mine_cavern_8018B7A8, NULL },
+    { { .empty = D_mine_cavern_8018B7C0 }, D_mine_cavern_8018B7C0, NULL },
+    { { .empty = D_mine_cavern_8018B7D0 }, D_mine_cavern_8018B7D0, NULL },
+    { { .empty = D_mine_cavern_8018B7E0 }, D_mine_cavern_8018B7E0, NULL },
+    { { .empty = D_mine_cavern_8018B7F0 }, D_mine_cavern_8018B7F0, NULL },
+    { { .empty = D_mine_cavern_8018B800 }, D_mine_cavern_8018B800, NULL },
+    { { .empty = D_mine_cavern_8018B810 }, D_mine_cavern_8018B810, NULL },
+    { { .empty = D_mine_cavern_8018B820 }, D_mine_cavern_8018B820, NULL },
+    { { .empty = D_mine_cavern_8018B830 }, D_mine_cavern_8018B830, NULL },
+    { { .empty = D_mine_cavern_8018B840 }, D_mine_cavern_8018B840, NULL },
+    { { .elements = D_mine_cavern_8018B850 }, D_mine_cavern_8018BC10, NULL },
+    { { .elements = D_mine_cavern_8018BC38 }, D_mine_cavern_8018C048, NULL },
+    { { .elements = D_mine_cavern_8018C068 }, D_mine_cavern_8018C504, NULL },
+    { { .elements = D_mine_cavern_8018C53C }, D_mine_cavern_8018C8E8, NULL },
+    { { .elements = D_mine_cavern_8018C910 }, D_mine_cavern_8018CCD0, NULL },
+    { { .elements = D_mine_cavern_8018A90C }, D_mine_cavern_8018AD94, NULL },
+};
+
+GpPointLight D_mine_cavern_8018CE3C[8] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8770, -2001, 8760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3799, 3112, { 0, 0 } }, 0, 7000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 240, -2001, 4380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3799, 3112, { 0, 0 } }, 0, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4560, -2001, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3799, 3112, { 0, 0 } }, 0, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36E2, -2001, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3799, 3112, { 0, 0 } }, 0, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4530, -2001, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3799, 3112, { 0, 0 } }, 0, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9080, -2001, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1324, 1594, 1648, { 0, 0 } }, 0, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3581, -2001, 8980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1324, 1495, 1416, { 0, 0 } }, 0, 5261 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3C5B, -2001, 8800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1324, 1676, 1723, { 0, 0 } }, 0, 4299 },
+};
+
+GpRoomCoordSet D_mine_cavern_8018D13C[1] = {
+    { 0, NULL, 8, D_mine_cavern_8018CE3C, 0, NULL },
+};
+
+GpObj4C D_mine_cavern_8018D154[20] = {
+    { NULL, NULL, NULL, { 1520, -2688, 6880, 0 }, { { -2544, -3456, 1376, 0 }, { 2544, -3456, -1376, 0 }, { -2544, 3456, 1376, 0 }, { 2544, 3456, -1376, 0 } }, { -1959, 0, -3621, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 6, 1, 0 },
+    { NULL, NULL, NULL, { 1377, -2496, 6754, 0 }, { { 2656, -3456, -1408, 0 }, { -2656, -3456, 1408, 0 }, { 2656, 3456, -1408, 0 }, { -2656, 3456, 1408, 0 } }, { 1920, 0, 3621, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 6, 5, 1, 0 },
+    { NULL, NULL, NULL, { 7890, -2528, 7376, 0 }, { { 144, -3456, 2947, 0 }, { -147, -3456, -2950, 0 }, { 144, 3456, 2947, 0 }, { -147, 3456, -2950, 0 } }, { -4105, 0, 202, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { 7376, -2528, 7407, 0 }, { { -560, -3456, -2880, 0 }, { 560, -3456, 2880, 0 }, { -560, 3456, -2880, 0 }, { 560, 3456, 2880, 0 } }, { 4030, 0, -784, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { 0x41B0, -2464, 6368, 0 }, { { -2640, -3456, -393, 0 }, { 2605, -3456, 379, 0 }, { -2640, 3456, -393, 0 }, { 2605, 3456, 379, 0 } }, { 597, 0, -4061, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 2, 8, 1, 0 },
+    { NULL, NULL, NULL, { 0x4210, -2529, 6176, 0 }, { { 3083, -3456, 279, 0 }, { -3125, -3456, -286, 0 }, { 3083, 3456, 279, 0 }, { -3125, 3456, -286, 0 } }, { -373, 0, 4088, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 8, 2, 1, 0 },
+    { NULL, NULL, NULL, { 0x41D1, -2528, 2944, 0 }, { { -2555, -3456, 655, 0 }, { 2554, -3456, -720, 0 }, { -2555, 3456, 655, 0 }, { 2554, 3456, -720, 0 } }, { -1065, 0, -3956, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 20, 1, 0 },
+    { NULL, NULL, NULL, { 0x40A1, -2817, 2720, 0 }, { { 2333, -3456, -816, 0 }, { -2346, -3456, 754, 0 }, { 2333, 3456, -816, 0 }, { -2346, 3456, 754, 0 } }, { 1304, 0, 3886, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 1568, -2656, 3184, 0 }, { { -2723, -3456, -593, 0 }, { 2711, -3456, 583, 0 }, { -2723, 3456, -593, 0 }, { 2711, 3456, 583, 0 } }, { 870, 0, -4026, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 22, 21, 1, 0 },
+    { NULL, NULL, NULL, { 1520, -2656, 2896, 0 }, { { 2712, -3456, 458, 0 }, { -2732, -3456, -469, 0 }, { 2712, 3456, 458, 0 }, { -2732, 3456, -469, 0 } }, { -692, 0, 4057, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 5, 22, 1, 0 },
+    { NULL, NULL, NULL, { 0x2CC0, -2561, 1184, 0 }, { { -16, -3456, 2640, 0 }, { 16, -3456, -2640, 0 }, { -16, 3456, 2640, 0 }, { 16, 3456, -2640, 0 } }, { -4115, 0, -25, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x2A81, -2497, 1072, 0 }, { { 0, -3456, -2672, 0 }, { 1, -3456, 2672, 0 }, { 0, 3456, -2672, 0 }, { 1, 3456, 2672, 0 } }, { 4110, 0, -1, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 0x40BE, -2656, 2653, 0 }, { { 2335, -3456, -804, 0 }, { -2352, -3456, 764, 0 }, { 2335, 3456, -804, 0 }, { -2352, 3456, 764, 0 } }, { 1302, 0, 3893, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 20, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x4240, -2464, 6463, 0 }, { { -2470, -3456, -299, 0 }, { 2437, -3456, 288, 0 }, { -2470, 3456, -299, 0 }, { 2437, 3456, 288, 0 } }, { 487, 0, -4077, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 20, 8, 1, 0 },
+    { NULL, NULL, NULL, { 2176, -2432, 6880, 0 }, { { -2544, -3456, 1376, 0 }, { 2544, -3456, -1376, 0 }, { -2544, 3456, 1376, 0 }, { 2544, 3456, -1376, 0 } }, { -1959, 0, -3621, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 21, 6, 1, 0 },
+    { NULL, NULL, NULL, { 1535, -2400, 2847, 0 }, { { 2824, -3456, 537, 0 }, { -2853, -3456, -561, 0 }, { 2824, 3456, 537, 0 }, { -2853, 3456, -561, 0 } }, { -782, 0, 4038, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 21, 22, 1, 0 },
+    { NULL, NULL, NULL, { 0x2FDF, -2496, 7423, 0 }, { { 438, -3456, 2858, 0 }, { -439, -3456, -2859, 0 }, { 438, 3456, 2858, 0 }, { -439, 3456, -2859, 0 } }, { -4068, 0, 623, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 7, 8, 1, 0 },
+    { NULL, NULL, NULL, { 0x2DFE, -2560, 7486, 0 }, { { -441, -3456, -2860, 0 }, { 436, -3456, 2855, 0 }, { -441, 3456, -2860, 0 }, { 436, 3456, 2855, 0 } }, { 4066, 0, -625, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { 6079, -2464, 1343, 0 }, { { -439, -3456, -2859, 0 }, { 438, -3456, 2858, 0 }, { -439, 3456, -2859, 0 }, { 438, 3456, 2858, 0 } }, { 4067, 0, -625, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 4, 22, 1, 0 },
+    { NULL, NULL, NULL, { 6559, -2560, 1343, 0 }, { { 438, -3456, 2858, 0 }, { -439, -3456, -2859, 0 }, { 438, 3456, 2858, 0 }, { -439, 3456, -2859, 0 } }, { -4068, 0, 623, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 22, 4, 129, 0 },
+};
+
+GpObj4C D_mine_cavern_8018D744[18] = {
+    { NULL, NULL, NULL, { 1520, -2688, 6880, 0 }, { { -2544, -3456, 1376, 0 }, { 2544, -3456, -1376, 0 }, { -2544, 3456, 1376, 0 }, { 2544, 3456, -1376, 0 } }, { -1959, 0, -3621, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 6, 1, 0 },
+    { NULL, NULL, NULL, { 1377, -2496, 6754, 0 }, { { 2656, -3456, -1408, 0 }, { -2656, -3456, 1408, 0 }, { 2656, 3456, -1408, 0 }, { -2656, 3456, 1408, 0 } }, { 1920, 0, 3621, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 6, 5, 1, 0 },
+    { NULL, NULL, NULL, { 7890, -2528, 7376, 0 }, { { 144, -3456, 2947, 0 }, { -147, -3456, -2950, 0 }, { 144, 3456, 2947, 0 }, { -147, 3456, -2950, 0 } }, { -4105, 0, 202, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { 7376, -2528, 7407, 0 }, { { -560, -3456, -2880, 0 }, { 560, -3456, 2880, 0 }, { -560, 3456, -2880, 0 }, { 560, 3456, 2880, 0 } }, { 4030, 0, -784, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { 0x4210, -2529, 6176, 0 }, { { 3083, -3456, 279, 0 }, { -3125, -3456, -286, 0 }, { 3083, 3456, 279, 0 }, { -3125, 3456, -286, 0 } }, { -373, 0, 4088, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 8, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x41D1, -2528, 2944, 0 }, { { -2555, -3456, 655, 0 }, { 2554, -3456, -720, 0 }, { -2555, 3456, 655, 0 }, { 2554, 3456, -720, 0 } }, { -1065, 0, -3956, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 0x40A1, -2817, 2720, 0 }, { { 2333, -3456, -816, 0 }, { -2346, -3456, 754, 0 }, { 2333, 3456, -816, 0 }, { -2346, 3456, 754, 0 } }, { 1304, 0, 3886, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 1568, -2656, 3184, 0 }, { { -2723, -3456, -593, 0 }, { 2711, -3456, 583, 0 }, { -2723, 3456, -593, 0 }, { 2711, 3456, 583, 0 } }, { 870, 0, -4026, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 23, 5, 1, 0 },
+    { NULL, NULL, NULL, { 1520, -2656, 2896, 0 }, { { 2712, -3456, 458, 0 }, { -2732, -3456, -469, 0 }, { 2712, 3456, 458, 0 }, { -2732, 3456, -469, 0 } }, { -692, 0, 4057, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 5, 23, 1, 0 },
+    { NULL, NULL, NULL, { 0x2CC0, -2561, 1184, 0 }, { { -16, -3456, 2640, 0 }, { 16, -3456, -2640, 0 }, { -16, 3456, 2640, 0 }, { 16, 3456, -2640, 0 } }, { -4115, 0, -25, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 4, 2, 1, 0 },
+    { NULL, NULL, NULL, { 0x2A81, -2497, 1072, 0 }, { { 0, -3456, -2672, 0 }, { 1, -3456, 2672, 0 }, { 0, 3456, -2672, 0 }, { 1, 3456, 2672, 0 } }, { 4110, 0, -1, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 2, 4, 1, 0 },
+    { NULL, NULL, NULL, { 0x4240, -2464, 6463, 0 }, { { -2470, -3456, -299, 0 }, { 2437, -3456, 288, 0 }, { -2470, 3456, -299, 0 }, { 2437, 3456, 288, 0 } }, { 487, 0, -4077, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 3, 8, 1, 0 },
+    { NULL, NULL, NULL, { 0x2FDF, -2496, 7423, 0 }, { { 438, -3456, 2858, 0 }, { -439, -3456, -2859, 0 }, { 438, 3456, 2858, 0 }, { -439, 3456, -2859, 0 } }, { -4068, 0, 623, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 7, 8, 1, 0 },
+    { NULL, NULL, NULL, { 0x2DFE, -2560, 7486, 0 }, { { -441, -3456, -2860, 0 }, { 436, -3456, 2855, 0 }, { -441, 3456, -2860, 0 }, { 436, 3456, 2855, 0 } }, { 4066, 0, -625, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { 6079, -2464, 1343, 0 }, { { -439, -3456, -2859, 0 }, { 438, -3456, 2858, 0 }, { -439, 3456, -2859, 0 }, { 438, 3456, 2858, 0 } }, { 4067, 0, -625, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 4, 22, 1, 0 },
+    { NULL, NULL, NULL, { 6559, -2560, 1343, 0 }, { { 438, -3456, 2858, 0 }, { -439, -3456, -2859, 0 }, { 438, 3456, 2858, 0 }, { -439, 3456, -2859, 0 } }, { -4068, 0, 623, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 22, 4, 1, 0 },
+    { NULL, NULL, NULL, { 2815, -2368, 1055, 0 }, { { -438, -3456, -2858, 0 }, { 439, -3456, 2859, 0 }, { -438, 3456, -2858, 0 }, { 439, 3456, 2859, 0 } }, { 4067, 0, -625, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 22, 23, 1, 0 },
+    { NULL, NULL, NULL, { 3263, -2464, 1151, 0 }, { { 298, -3456, 2877, 0 }, { -298, -3456, -2877, 0 }, { 298, 3456, 2877, 0 }, { -298, 3456, -2877, 0 } }, { -4095, 0, 423, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 23, 22, 129, 0 },
+};
+
+GpObj4C D_mine_cavern_8018DC9C[13] = {
+    { NULL, NULL, NULL, { 0x4740, -48, 1888, 0 }, { { -544, 0, -1824, 0 }, { 544, 0, -1824, 0 }, { -544, 0, 1824, 0 }, { 544, 0, 1824, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1902, 0, 5, 19, 2, 0 },
+    { NULL, NULL, NULL, { 1792, -48, -352, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1159, 0, 8, 33, 2, 0 },
+    { NULL, NULL, NULL, { 896, -64, 1440, 0 }, { { -1056, 0, -864, 0 }, { 1088, 0, -864, 0 }, { -1056, 0, 1920, 0 }, { 1024, 0, -192, 0 } }, { 0, 4104, 0, 0 }, { 2275, 0, 3405, 0 }, 2187, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 6880, -64, 832, 0 }, { { -1344, 0, -864, 0 }, { 1344, 0, -864, 0 }, { -1344, 0, 864, 0 }, { 1344, 0, 864, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1593, 0x4005, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { 1360, -64, 32, 0 }, { { -560, 0, -1216, 0 }, { 592, 0, -1216, 0 }, { -560, 0, 1216, 0 }, { 528, 0, 1216, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1348, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4512, -64, 224, 0 }, { { -1514, 0, -997, 0 }, { 166, 0, -99, 0 }, { -455, 0, 1954, 0 }, { 2505, 0, -316, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2521, 2, 8, 255, 4, 0 },
+    { NULL, NULL, NULL, { 4320, -64, 8864, 0 }, { { 1906, 0, 290, 0 }, { -66, 0, 293, 0 }, { -19, 0, -1958, 0 }, { -1910, 0, 269, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1958, 2, 15, 255, 4, 0 },
+    { NULL, NULL, NULL, { 0x3580, -64, 8832, 0 }, { { 1906, 0, 226, 0 }, { -66, 0, 229, 0 }, { -19, 0, -1670, 0 }, { -1846, 0, 173, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1915, 2, 16, 255, 4, 0 },
+    { NULL, NULL, NULL, { 0x3546, -64, 356, 0 }, { { -1912, 0, -262, 0 }, { 60, 0, -265, 0 }, { 13, 0, 1570, 0 }, { 1840, 0, -305, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1928, 2, 14, 255, 4, 0 },
+    { NULL, NULL, NULL, { 8848, -64, 5312, 0 }, { { -2576, 0, -448, 0 }, { 2576, 0, -448, 0 }, { -2576, 0, 448, 0 }, { 2576, 0, 448, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 2610, 2, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 9200, -64, 2432, 0 }, { { -5504, 0, -448, 0 }, { 5504, 0, -448, 0 }, { -5504, 0, 448, 0 }, { 5504, 0, 448, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 5514, 2, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4784, -64, 6048, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, 2, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 0x3300, -64, 6112, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, 2, 12, 0, 130, 0 },
+};
+
+GpObj3A D_mine_cavern_8018E078[2] = {
+    { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, { -62, 26 }, 1, 0 },
+    { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, { -62, 26 }, 129, 0 },
+};
+
+GpAreaTmdRec D_mine_cavern_8018E0F0[2] = {
+    { 30, 30, 3, 0, { 0, 0 }, D_80158D58 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_cavern_8018E108[2] = {
+    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_cavern_8018E120[2] = {
+    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_cavern_8018E138[2] = {
+    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_cavern_8018E150[2] = {
+    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_mine_cavern_8018E168[2] = {
+    { 30, 0, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_cavern_8018E188[3] = {
+    { 6, 0, 1, 0x2C24, 0, 1750, 900, 0, 0, 2, 0 },
+    { 6, 0, 1, 6700, 0, 1500, 3000, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_cavern_8018E1B8[3] = {
+    { 6, 0, 1, 2272, 0, 1792, 1536, 0, 0, 2, 0 },
+    { 6, 0, 1, 0x2920, 0, 7296, 0, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_cavern_8018E1E8[3] = {
+    { 3, 0, 0, 5500, 0, 1500, 1024, 0, 0, 2, 0 },
+    { 3, 0, 1, 8500, 0, 7500, 2048, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_cavern_8018E218[2] = {
+    { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_mine_cavern_8018E238[22] = {
+    { NULL, NULL },
+    { D_mine_cavern_8018E168, D_mine_cavern_8018E0F0 },
+    { D_mine_cavern_8018E188, D_mine_cavern_8018E108 },
+    { D_mine_cavern_8018E1B8, D_mine_cavern_8018E120 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_mine_cavern_8018E1E8, D_mine_cavern_8018E138 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_mine_cavern_8018E218, D_mine_cavern_8018E150 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_mine_cavern_8018E2E8[3] = {
+    0x10000049,
+    0x1000004B,
+    0x10000049,
+};
+
+GpRoomParamRec D_mine_cavern_8018E2F4[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_mine_cavern_8018E2FC[1] = {
+    { 0, 0, 1, 0, D_mine_cavern_8018E2E8 },
+};
+
+GpRoomParamRec D_mine_cavern_8018E304[1] = {
+    { 0, 1, 1, 0, D_mine_cavern_8018E2E8 },
+};
+
+GpRoomParamRec * D_mine_cavern_8018E30C[8] = {
+    D_mine_cavern_8018E2F4,
+    D_mine_cavern_8018E2FC,
+    D_mine_cavern_8018E304,
+    D_mine_cavern_8018E2F4,
+    D_mine_cavern_8018E2F4,
+    D_mine_cavern_8018E2F4,
+    D_mine_cavern_8018E2F4,
+    D_mine_cavern_8018E2F4,
+};
+
+GpAreaApplyRec D_mine_cavern_8018E32C[9] = {
+    { 4, 1, 2, 1 },
+    { 4, 2, 4, 0 },
+    { 4, 3, 4, 1 },
+    { 4, 4, 4, 1 },
+    { 4, 5, 2, 1 },
+    { 4, 7, 2, 1 },
+    { 4, 11, 11, 33 },
+    { 4, 15, 11, 33 },
+    { 255, 0, 0, 0 },
+};
+
+MineCavernGlowPalette D_mine_cavern_8018E350 = { { 48, 32, 0 }, { 0, 0, 0 }, 1128 };
+
+MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 1960 };
 
 void func_mine_cavern_8017E330(void)
 {
@@ -220,7 +2690,7 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     }
 }
 
-static void func_mine_cavern_8017E474(Task* arg0)
+void func_mine_cavern_8017E474(Task* arg0)
 {
     u32 rnd;
 
@@ -512,7 +2982,7 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// 1 brightens while young, state 2 holds its brightness; both fade over their
 /// last eight ticks of lifetime and release the work block once dark, or as
 /// soon as the room's event state reaches 4.
-static void func_mine_cavern_8017F240(Task* task)
+void func_mine_cavern_8017F240(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -774,8 +3244,8 @@ static void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb)
 /// `func_mine_cavern_8017FBF4` wedge ring (with a half-bright echo on odd
 /// ticks) and a `func_mine_cavern_8017F7D0` ring; state 2 fades it out through
 /// `func_mine_cavern_80180D70` and then releases the work block. The shade row
-/// `D_mine_cavern_80188FCC[index]` tints each channel.
-static void func_mine_cavern_8017FF88(Task* arg0)
+/// `D_mine_cavern_80188FCC.entries[index]` tints each channel.
+void func_mine_cavern_8017FF88(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -819,9 +3289,9 @@ static void func_mine_cavern_8017FF88(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].r;
-                rgb[1]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].g;
-                rgb[2]           = mem->scale >> D_mine_cavern_80188FCC[mem->index].b;
+                rgb[0]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
+                rgb[1]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
+                rgb[2]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
                 func_mine_cavern_8017FBF4(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -839,9 +3309,9 @@ static void func_mine_cavern_8017FF88(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_mine_cavern_80188FCC[mem->index].r;
-                    rgb[1] = mem->scale >> D_mine_cavern_80188FCC[mem->index].g;
-                    rgb[2] = mem->scale >> D_mine_cavern_80188FCC[mem->index].b;
+                    rgb[0] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
+                    rgb[1] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
+                    rgb[2] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
                     func_mine_cavern_80180D70(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
@@ -869,7 +3339,7 @@ kill:
 /// then `period` shrinks by 0x18 and `step` grows by 0x30 - and the effect
 /// otherwise fades `scale` by 0x18 a frame until it drops under 0x18 and the
 /// work block is handed back with `Gp_ReleaseState1CMem`.
-static void func_mine_cavern_80180320(Task* task)
+void func_mine_cavern_80180320(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1248,7 +3718,7 @@ static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
 /// an upward Y that grows with age, and spawns the `D_80115728` effect at the
 /// task's coordinate. Releases the work block after 0x15 ticks, or as soon as
 /// the room's event state reaches 4.
-static void func_mine_cavern_80181730(Task* arg0)
+void func_mine_cavern_80181730(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1360,17 +3830,17 @@ static void func_mine_cavern_80181864(void)
             prim           = (POLY_G3*)gGpuPrimCursor;
             gGpuPrimCursor = (POLY_GT3*)prim + 1;
             setPolyG3(prim);
-            prim->r0 = D_mine_cavern_8018E350[0];
-            prim->g0 = D_mine_cavern_8018E351[0];
-            prim->b0 = D_mine_cavern_8018E352[0];
+            prim->r0 = MineCavernGlowByte8018E350[0];
+            prim->g0 = MineCavernGlowByte8018E351[0];
+            prim->b0 = MineCavernGlowByte8018E352[0];
             prim->x0 = x;
             prim->y0 = y;
-            prim->r1 = D_mine_cavern_8018E353[0];
-            prim->g1 = D_mine_cavern_8018E354[0];
-            prim->b1 = D_mine_cavern_8018E355[0];
-            prim->r2 = D_mine_cavern_8018E353[0];
-            prim->g2 = D_mine_cavern_8018E354[0];
-            prim->b2 = D_mine_cavern_8018E355[0];
+            prim->r1 = MineCavernGlowByte8018E353[0];
+            prim->g1 = MineCavernGlowByte8018E354[0];
+            prim->b1 = MineCavernGlowByte8018E355[0];
+            prim->r2 = MineCavernGlowByte8018E353[0];
+            prim->g2 = MineCavernGlowByte8018E354[0];
+            prim->b2 = MineCavernGlowByte8018E355[0];
             setSemiTrans(prim, 1);
             prim->x1 = x + ((rsin(i << 9) * radius) >> shift);
             prim->y1 = y + ((rcos(i << 9) * radius) >> shift);
@@ -1472,17 +3942,17 @@ static void func_mine_cavern_80181D80(s16 point)
             prim           = (POLY_G3*)gGpuPrimCursor;
             gGpuPrimCursor = (POLY_GT3*)prim + 1;
             setPolyG3(prim);
-            prim->r0 = D_mine_cavern_8018E358[0];
-            prim->g0 = D_mine_cavern_8018E359[0];
-            prim->b0 = D_mine_cavern_8018E35A[0];
+            prim->r0 = MineCavernGlowByte8018E358[0];
+            prim->g0 = MineCavernGlowByte8018E359[0];
+            prim->b0 = MineCavernGlowByte8018E35A[0];
             prim->x0 = x;
             prim->y0 = y;
-            prim->r1 = D_mine_cavern_8018E35B[0];
-            prim->g1 = D_mine_cavern_8018E35C[0];
-            prim->b1 = D_mine_cavern_8018E35D[0];
-            prim->r2 = D_mine_cavern_8018E35B[0];
-            prim->g2 = D_mine_cavern_8018E35C[0];
-            prim->b2 = D_mine_cavern_8018E35D[0];
+            prim->r1 = MineCavernGlowByte8018E35B[0];
+            prim->g1 = MineCavernGlowByte8018E35C[0];
+            prim->b1 = MineCavernGlowByte8018E35D[0];
+            prim->r2 = MineCavernGlowByte8018E35B[0];
+            prim->g2 = MineCavernGlowByte8018E35C[0];
+            prim->b2 = MineCavernGlowByte8018E35D[0];
             setSemiTrans(prim, 1);
             prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
             prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
@@ -1839,9 +4309,9 @@ static void func_mine_cavern_80182CEC(Task* arg0)
     flags = GameFlag_GetNibble(0xE2);
     for (i = 0; i < 4; i++) {
         if (!((flags >> i) & 1)) {
-            Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
+            Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
         }
-        Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
+        Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 1, i, NULL);
     }
     arg0->state++;
 }

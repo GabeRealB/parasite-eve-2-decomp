@@ -1,6 +1,8 @@
 #ifndef PE_PYROKINESIS_H
 #define PE_PYROKINESIS_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include "gameplay/actor.h"
@@ -21,5 +23,15 @@ STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 
 /// Pyrokinesis uses the first three attachment rows (indices 1..3).
 /// Their dispatch.field_4 values (65, 90, 200) are the flame duration budgets.
+
+void func_pyrokinesis_8012EF48(Task* arg0);
+
+void func_pyrokinesis_80131CE4(Task* arg0);
+
+void func_pyrokinesis_80130C54(Task* arg0);
+
+void func_pyrokinesis_801311B8(Task* arg0);
+
+void func_pyrokinesis_8012FAC8(Task* arg0);
 
 #endif /* PE_PYROKINESIS_H */

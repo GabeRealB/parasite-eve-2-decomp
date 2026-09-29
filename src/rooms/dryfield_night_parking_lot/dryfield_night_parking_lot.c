@@ -1,3 +1,7 @@
+#include "gameplay/evs.h"
+#include "rooms/dryfield_night_parking_lot.h"
+#include "dryfield_night_parking_lot_private.h"
+
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -18,6 +22,10 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_dryfield_night_parking_lot_8018156C[4];
+
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
 
@@ -26,10 +34,9 @@ extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
 extern GpMsgEntry D_dryfield_night_parking_lot_8017EC60[];
 
 /// Argument the 0x13EF handler passes to `func_800E8614`.
-extern s32 D_dryfield_night_parking_lot_8017ECB4;
+extern GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[];
 
 /// The `GpAreaApplyRec` list the 0x11 event applies when it fires.
-extern GpAreaApplyRec D_dryfield_night_parking_lot_8018155C[];
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg D_dryfield_night_parking_lot_80181564;
@@ -37,7 +44,22 @@ extern RoomEventReq D_dryfield_night_parking_lot_80181570;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-extern u8 D_dryfield_night_parking_lot_8018156C;
+
+GpAreaApplyRec D_dryfield_night_parking_lot_8018155C[2] = {
+    { 3, 24, 2, 0 },
+    { 255, 0, 0, 0 },
+};
+
+RoomEventMsg D_dryfield_night_parking_lot_80181564 = { 0 };
+
+u8 D_dryfield_night_parking_lot_8018156C[4] = {
+    0,
+    63,
+    252,
+    16,
+};
+
+RoomEventReq D_dryfield_night_parking_lot_80181570 = { 0 };
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
@@ -55,7 +77,7 @@ static s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEvent
     s32 neg;
 
     flag                                  = req->flagId;
-    D_dryfield_night_parking_lot_8018156C = 0;
+    D_dryfield_night_parking_lot_8018156C[0] = 0;
     neg                                   = flag < 0;
     got                                   = (s16)flag;
     if (neg) {
@@ -79,7 +101,7 @@ static s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEvent
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_dryfield_night_parking_lot_8017EC54, 0, 0, 0);
-                D_dryfield_night_parking_lot_8018156C = 1;
+                D_dryfield_night_parking_lot_8018156C[0] = 1;
                 return 2;
             }
             return ret;
@@ -138,7 +160,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_parking_lot_80181564.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_parking_lot_80181564.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_parking_lot_80181564.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_parking_lot_80181564.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -161,7 +183,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `D_dryfield_night_parking_lot_8018155C` and sets nibbles 0x46 and 0x97,
 /// while 0x12 sets item-seen bit 0x110. Any other message returns 1.
-s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
+s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
 {
     RoomEventReq req;
     s32          ret;
@@ -169,7 +191,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
     s32          n;
 
     *out = *msg;
-    if ((msg->msgId == 2) && (msg->field_5 == 0)) {
+    if ((msg->prefix.packed == 2) && (msg->field_5 == 0)) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
@@ -178,7 +200,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         }
         out->field_3 = val;
     }
-    if ((msg->msgId == 0x1D) && (msg->field_5 == 0)) {
+    if ((msg->prefix.packed == 0x1D) && (msg->field_5 == 0)) {
         n = GameFlag_GetNibble(0x61);
         if (n == 0) {
             n = 1;
@@ -187,7 +209,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         }
         out->field_3 = n;
     }
-    if (msg->msgId == 0x11) {
+    if (msg->prefix.packed == 0x11) {
         req.field_0 = 6;
         req.field_4 = 1;
         req.field_8 = Gp_PackStageSndId(0x520F000B);
@@ -198,12 +220,12 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_night_parking_lot_8018156C != 0) {
+        if (D_dryfield_night_parking_lot_8018156C[0] != 0) {
             Gp_ApplyAreaRecs(D_dryfield_night_parking_lot_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
         }
-    } else if (msg->msgId == 0x12) {
+    } else if (msg->prefix.packed == 0x12) {
         req.field_0 = 3;
         req.field_4 = 2;
         req.field_8 = Gp_PackStageSndId(0x520F000B);
@@ -211,7 +233,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         req.flagId  = 0x35;
         req.itemId  = 0x10;
         ret         = func_dryfield_night_parking_lot_8017D5FC(&req, out);
-        if (D_dryfield_night_parking_lot_8018156C != 0) {
+        if (D_dryfield_night_parking_lot_8018156C[0] != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {
@@ -223,7 +245,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
 /// Handler for message 0x13F2 in the room's message table, keyed by `arg2`:
 /// point 9 plays stage sound 0x520F0009 and point 10 plays 0x520F000A. Always
 /// returns 0.
-s32 func_dryfield_night_parking_lot_8017DAB4(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_parking_lot_8017DAB4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 9:
@@ -238,14 +260,14 @@ s32 func_dryfield_night_parking_lot_8017DAB4(s32 arg0, s32 arg1, s32 arg2)
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_night_parking_lot_8017DB04(void)
+s32 func_dryfield_night_parking_lot_8017DB04(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: point 4 runs CAP
 /// command 4. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB0C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(4);
@@ -257,12 +279,12 @@ s32 func_dryfield_night_parking_lot_8017DB0C(s32 arg0, s32 arg1, s32 arg2)
 /// `field_2` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
 /// sends the player-weapon message and passes
 /// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (gGameSession->at4.loc.place == 3) && (GameFlag_GetNibble(0x79) == 0)) {
         GameFlag_SetNibble(0x79, 1);
         Gp_MsgPlayerWeapon(0);
-        func_800E8614((s32)&D_dryfield_night_parking_lot_8017ECB4, 1);
+        func_800E8614(D_dryfield_night_parking_lot_8017ECB4, 1);
     }
     return 0;
 }

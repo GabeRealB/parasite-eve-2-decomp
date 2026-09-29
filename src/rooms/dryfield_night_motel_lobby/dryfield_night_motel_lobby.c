@@ -1,3 +1,4 @@
+#include "gameplay/message.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -5,6 +6,7 @@
 #include "rooms/dryfield_night_motel_lobby.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
@@ -30,15 +32,15 @@
 #include "main/ui.h"
 #include "overlay.h"
 
-extern UiObject*    D_80067634;
+void func_dryfield_night_motel_lobby_8017FD10(Task* task);
+
+
 extern UiObjectDesc D_800611E4;
 
 /// Saved `Mc_SaveData[0].state.at4.loc.view` (area id), restored when the cutscene ends.
 
 /// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `Mc_SaveData` address with case 0.
-
-extern GpAreaApplyRec D_80188888[];
 
 /// Row labels of the play-data statistics panel, one per row
 /// `func_dryfield_night_motel_lobby_8017D748` draws.
@@ -92,13 +94,25 @@ extern UiObjectDesc D_dryfield_night_motel_lobby_80182758;
 
 /// The room's task descriptor table: entry 0 is the cap (cutscene) task,
 /// entry 1 the sound-event task it runs alongside.
-extern TaskDesc D_dryfield_night_motel_lobby_801827A8;
+extern TaskDesc D_dryfield_night_motel_lobby_801827A8[];
 
 /// The room's message table, which `func_dryfield_night_motel_lobby_8017FD9C`
 /// installs on its task.
-extern s32 D_dryfield_night_motel_lobby_801827CC;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, GpMsg13EF *);
+        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call3)(s32, s32, s32);
+    } handler;
+} DryfieldNightMotelLobbyMessageEntry;
+STATIC_ASSERT_SIZEOF(DryfieldNightMotelLobbyMessageEntry, 8);
 
-extern TaskDesc D_dryfield_night_motel_lobby_801827FC;
+extern DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
+
+extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
 extern TaskDesc D_dryfield_night_motel_lobby_801828D4;
 
 extern Task* D_dryfield_night_motel_lobby_801844CC;
@@ -119,6 +133,196 @@ extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 static void func_dryfield_night_motel_lobby_8017E310(UiList* list, UiObject* obj);
 static void func_dryfield_night_motel_lobby_8017E60C(UiList* list, UiObject* obj);
 static void func_dryfield_night_motel_lobby_8017F4C8(Task* task);
+
+void func_dryfield_night_motel_lobby_8017D748(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017DF14(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017E92C(Task *);
+void func_dryfield_night_motel_lobby_8017EDD8(Task *);
+void func_dryfield_night_motel_lobby_8017EF98(Task *);
+void func_dryfield_night_motel_lobby_8017F18C(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017F270(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017F338(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017F400(UiList *, UiObject *);
+void func_dryfield_night_motel_lobby_8017F504(Task *);
+
+void func_dryfield_night_motel_lobby_8017F504(Task *);
+void func_dryfield_night_motel_lobby_8017FA70(Task *);
+
+u8 D_dryfield_night_motel_lobby_80182488[8] = {
+    83, 97, 118, 101, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182490[12] = {
+    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_8018249C[12] = {
+    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824A8[8] = {
+    80, 69, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824B0[8] = {
+    84, 105, 109, 101, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824B8[4] = {
+    87, 111, 110, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824BC[8] = {
+    69, 115, 99, 97, 112, 101, 100, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824C4[12] = {
+    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824D0[16] = {
+    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824E0[8] = {
+    83, 97, 118, 101, 100, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824E8[8] = {
+    67, 108, 101, 97, 114, 101, 100, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824F0[8] = {
+    77, 97, 120, 32, 69, 88, 80, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801824F8[8] = {
+    77, 97, 120, 32, 66, 80, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182500[8] = {
+    32, 116, 105, 109, 101, 115, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182508[4] = {
+    37, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_8018250C[44] = {
+    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
+    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
+    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182538[36] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
+    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_8018255C[48] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
+    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_8018258C[52] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
+    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
+    46, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801825C0[52] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
+    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_801825F4[56] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
+    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
+    115, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_8018262C[52] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
+    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
+    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
+    46, 0, 0, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182660[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
+    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
+    101, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_dryfield_night_motel_lobby_80182698[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
+    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
+    32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+UiListItemFunc D_dryfield_night_motel_lobby_801826D0[1] = {
+    func_dryfield_night_motel_lobby_8017D748,
+};
+
+UiList D_dryfield_night_motel_lobby_801826D4 = { D_dryfield_night_motel_lobby_801826D0, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_dryfield_night_motel_lobby_801826F8[1] = {
+    func_dryfield_night_motel_lobby_8017DF14,
+};
+
+UiList D_dryfield_night_motel_lobby_801826FC = { D_dryfield_night_motel_lobby_801826F8, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_dryfield_night_motel_lobby_80182720 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_dryfield_night_motel_lobby_8017EDD8, 0 };
+
+UiObjectDesc D_dryfield_night_motel_lobby_8018273C = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_dryfield_night_motel_lobby_8017EF98, 0 };
+
+UiObjectDesc D_dryfield_night_motel_lobby_80182758 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_dryfield_night_motel_lobby_8017E92C, 0 };
+
+UiListItemFunc D_dryfield_night_motel_lobby_80182774[4] = {
+    func_dryfield_night_motel_lobby_8017F18C,
+    func_dryfield_night_motel_lobby_8017F270,
+    func_dryfield_night_motel_lobby_8017F338,
+    func_dryfield_night_motel_lobby_8017F400,
+};
+
+UiList D_dryfield_night_motel_lobby_80182784 = { D_dryfield_night_motel_lobby_80182774, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+void func_dryfield_night_motel_lobby_8017F504(Task *);
+void func_dryfield_night_motel_lobby_8017FA70(Task *);
+
+TaskDesc D_dryfield_night_motel_lobby_801827A8[3] = {
+    { 0, 32, func_dryfield_night_motel_lobby_8017F504, { .model = NULL } },
+    { 0, 32, func_dryfield_night_motel_lobby_8017FA70, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 func_dryfield_night_motel_lobby_8017FB00(void);
+s32 func_dryfield_night_motel_lobby_8017FB08(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_motel_lobby_8017FB7C(s32, s32, s32);
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task *, s32, GpMsg13EF *);
+s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
+
+DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
+    { 5102, { .call2 = func_dryfield_night_motel_lobby_8017FB08 } },
+    { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
+    { 5103, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
+    { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
+    { 5106, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
+    { 2147483647, { .call0 = NULL } },
+};
+
+TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
+    { 0, 32, func_dryfield_night_motel_lobby_8017FD10, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
 
 /// Draws one row of the play-data statistics panel: the row label, then the
 /// statistic `arg0->field_8` selects - play time, several save counters, and
@@ -762,7 +966,7 @@ void func_dryfield_night_motel_lobby_8017E92C(Task* task)
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_dryfield_night_motel_lobby_8017D638[12] = "Telephone\0\1\x0E";
 
-static void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
+void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1133,7 +1337,7 @@ void func_dryfield_night_motel_lobby_8017F504(Task* task)
             break;
         case 4:
             D_dryfield_night_motel_lobby_801844D0 =
-                Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801827A8, 1, 0, script->field_10);
+                Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827A8, 1, 0, script->field_10);
             Gp_StartCapSlot(script->field_1, 0, 0x63);
             task->state++;
             break;
@@ -1178,7 +1382,7 @@ void func_dryfield_night_motel_lobby_8017F504(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -1296,7 +1500,7 @@ s32 func_dryfield_night_motel_lobby_8017FB00(void)
 s32 func_dryfield_night_motel_lobby_8017FB08(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    if (in->msgId == 0xF && in->field_5 == 0) {
+    if (in->prefix.packed == 0xF && in->field_5 == 0) {
         out->field_3 = GameFlag_GetNibble(0x61) + 1;
     }
     return 1;
@@ -1327,7 +1531,7 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_night_motel_lobby_801844E0.field_8  = 0x53110004;
         D_dryfield_night_motel_lobby_801844E0.field_10 = 0x53110005;
         D_dryfield_night_motel_lobby_801844E0.field_C  = 0x53110006;
-        Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801827A8, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
+        Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827A8, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
     }
     return 0;
 }
@@ -1338,7 +1542,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, GpMsg13EF* a
         if (GameFlag_GetNibble(0x74) == 0) {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            Task_SpawnFromTable(&D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
+            Task_SpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(8);
         }
@@ -1373,7 +1577,7 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
 
 static void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
 {
-    task->msgTable = &D_dryfield_night_motel_lobby_801827CC;
+    task->msgTable = D_dryfield_night_motel_lobby_801827CC;
     Game_SetPtrSlot(task, 7);
     D_dryfield_night_motel_lobby_801844D4 = 1;
     task->state                           = (s32)(task->state + 1);

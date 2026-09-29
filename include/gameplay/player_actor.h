@@ -16,6 +16,15 @@
 
 struct GpCoord;
 
+/// Argument for `func_801052B8`. `field_0` is copied onto
+/// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
+typedef struct _GpCountArg {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ byte pad_2[2];
+    /* 0x4 */ s32  field_4;
+} GpCountArg;
+STATIC_ASSERT_SIZEOF(GpCountArg, 8);
+
 /// 2-wide rows indexed by `Mc_SaveData[0].state.characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
@@ -46,7 +55,7 @@ void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 Gp_SpawnWeaponEff(void);
+Task* Gp_SpawnWeaponEff(void);
 
 void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 
@@ -117,5 +126,14 @@ void Gp_PlayerMode2State1(Task* arg0);
 void Gp_PlayerMode2State2(Task* arg0);
 
 void Gp_PlayerMode2State6(Task* arg0);
+
+s32 func_80104684(Task* arg0, s32 arg1, s32 arg2);
+s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2);
+s32 func_80105828(Task* arg0);
+s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2);
+s32 func_80105A60(Task* arg0, s32 arg1, GpCoord* arg2);
+s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2);
 
 #endif // GAMEPLAY_PLAYER_ACTOR_H

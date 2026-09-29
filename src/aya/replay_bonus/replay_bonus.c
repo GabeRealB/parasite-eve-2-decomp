@@ -28,7 +28,6 @@ extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
-extern s32          D_replay_bonus_8011928C;
 extern u8           D_replay_bonus_801192AC;
 extern s32          D_replay_bonus_80119284;
 
@@ -729,10 +728,10 @@ void func_replay_bonus_80116AC0(Task* arg0)
             obj->field_2E = 6;
             return;
         }
-        arg0->extraState    = arg0->spawnArg1.value;
+        arg0->extraState.value    = arg0->spawnArg1.value;
         arg0->killCountdown = 0xBC;
-        Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState), 0);
-        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState) + 0x20000;
+        Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState.value), 0);
+        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + 0x20000;
     }
     func_800C5F70(arg0);
     dt                  = gDisplayState.frameTicks;

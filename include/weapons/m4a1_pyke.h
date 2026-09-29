@@ -1,6 +1,8 @@
 #ifndef M4A1_PYKE_H
 #define M4A1_PYKE_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 
@@ -32,5 +34,9 @@ typedef struct M4a1PykeSplashScratch {
     /* 0x20 */ DVECTOR sxy[4];
 } M4a1PykeSplashScratch;
 STATIC_ASSERT_SIZEOF(M4a1PykeSplashScratch, 0x30);
+
+void func_m4a1_pyke_8011D1F8(Task* task);
+
+void func_m4a1_pyke_8011D7D4(Task* task);
 
 #endif

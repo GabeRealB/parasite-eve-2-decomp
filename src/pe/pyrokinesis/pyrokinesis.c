@@ -67,7 +67,7 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
 /// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-static void func_pyrokinesis_8012EF48(Task* arg0)
+void func_pyrokinesis_8012EF48(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;
@@ -375,7 +375,7 @@ static void func_pyrokinesis_8012EF48(Task* arg0)
     }
 }
 
-static void func_pyrokinesis_8012FAC8(Task* arg0)
+void func_pyrokinesis_8012FAC8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -721,7 +721,7 @@ static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_pyrokinesis_80130C54(Task* arg0)
+void func_pyrokinesis_80130C54(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -830,7 +830,7 @@ static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_pyrokinesis_801311B8(Task* arg0)
+void func_pyrokinesis_801311B8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1050,7 +1050,7 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
     SCRATCH_POP(GpBandScratch);
 }
 
-static void func_pyrokinesis_80131CE4(Task* arg0)
+void func_pyrokinesis_80131CE4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

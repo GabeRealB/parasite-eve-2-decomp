@@ -39,14 +39,17 @@ typedef struct _GpEnemyDesc {
 STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 
 /// 8-byte list node walked by `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` /
-/// `Gp_LookupBit2Item`. field_0 is a `GpBit2Rec` list (NULL skips;
-/// `(GpBit2Rec*)-1` ends in `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank`;
-/// `(GpBit2Rec*)0x7FFFFFFF` ends in `Gp_LookupBit2Item`).
+/// `Gp_LookupBit2Item`. The first word holds either a `GpBit2Rec` list
+/// (NULL skips) or an integer sentinel: -1 for `Gp_ApplyBit2List` /
+/// `Gp_ApplyBit2Bank`, 0x7FFFFFFF for `Gp_LookupBit2Item`.
 /// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` read field_4 as the room's
 /// 0xFFFF-terminated `GpEnemyDesc` table.
 /// `Gp_Bit2Banks[i].field_0` points at a table of these.
 typedef struct _GpBit2List {
-    /* 0x00 */ GpBit2Rec*   field_0;
+    /* 0x00 */ union {
+        GpBit2Rec* records;
+        s32        sentinel;
+    } field_0;
     /* 0x04 */ GpEnemyDesc* field_4;
 } GpBit2List;
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);

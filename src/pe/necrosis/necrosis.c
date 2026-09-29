@@ -1,8 +1,9 @@
+#include "pe/necrosis.h"
+
 #include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "pe/necrosis.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -49,7 +50,7 @@ static void func_necrosis_80130288(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// on `obj2` zeros the offset and unlinks the list-7 object. State 2 waits
 /// `field_2 + 0x10` ticks. Any state releases if the player is dying
 /// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
-static void func_necrosis_8012EF34(Task* arg0)
+void func_necrosis_8012EF34(Task* arg0)
 {
     NecrosisWork* work;
     GpEffWork*    mem;
@@ -186,7 +187,7 @@ static void func_necrosis_8012EF34(Task* arg0)
     }
 }
 
-static void func_necrosis_8012F52C(Task* arg0)
+void func_necrosis_8012F52C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -215,7 +216,7 @@ static void func_necrosis_8012F52C(Task* arg0)
         return;
     }
     if (mem->age % 3 == 0) {
-        spawned = Gp_SpawnEff(0x6001A, coord, mem->period, 0);
+        spawned = Gp_SpawnEff(0x6001A, coord, (s32)(mem->period), 0);
         if (spawned != NULL) {
             Task_Reparent(arg0, spawned->task);
         }
@@ -286,7 +287,7 @@ static void func_necrosis_8012F6EC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_necrosis_8012FAF8(Task* arg0)
+void func_necrosis_8012FAF8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

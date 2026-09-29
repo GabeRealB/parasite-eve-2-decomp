@@ -1,3 +1,5 @@
+#include "dryfield_water_tower_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -25,7 +27,6 @@
 
 /// The saved view byte the scene task keeps while its CAP command runs, and
 /// puts back when the answer is not 0xA.
-extern u32 D_dryfield_water_tower_8018768C;
 
 /// The cap script task the entry task spawns, the target of the scene task's
 /// message 0x13EC and of the room's message 0x13F4.
@@ -42,16 +43,30 @@ extern TaskDesc     D_dryfield_water_tower_80180394;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
-extern s32 D_dryfield_water_tower_801803A0[];
+// Message-table callbacks use the argument views required by this TU.
 
 /// The task descriptor of the room's scene task
 /// `func_dryfield_water_tower_8017D948`.
-extern TaskDesc D_dryfield_water_tower_801803D8;
+extern TaskDesc D_dryfield_water_tower_801803D8[];
 
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
 static void func_dryfield_water_tower_8017DDD0(Task* task);
 
 static void func_dryfield_water_tower_8017DCB4(void);
+
+RoomEventMsg D_dryfield_water_tower_80187694 = { 0 };
+
+u8 D_dryfield_water_tower_8018769C = 0;
+
+Task * D_dryfield_water_tower_801876A0 = NULL;
+
+Task * D_dryfield_water_tower_801876A4 = NULL;
+
+u16 D_dryfield_water_tower_801876A8 = 0;
+
+Task * D_dryfield_water_tower_801876AC = NULL;
+
+RoomEventReq D_dryfield_water_tower_801876B0 = { 0 };
 
 /// The room's event gate. A request whose flag nibble is already set (or clear,
 /// for a negative `flagId`) answers 1. One whose prerequisite item is missing
@@ -151,7 +166,7 @@ void func_dryfield_water_tower_8017D7D8(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_water_tower_80187694.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_water_tower_80187694.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_water_tower_80187694.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_water_tower_80187694.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -182,8 +197,12 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
                 Gp_RunCapCmd(7, 0);
                 gGameSession->eventState        = 1;
-                D_dryfield_water_tower_8018768C = Mc_SaveData[0].state.at4.loc.view;
-                arg0->state                     = arg0->state + 1;
+                {
+                    u32 view = Mc_SaveData[0].state.at4.loc.view;
+                    s32 state = arg0->state;
+                    D_dryfield_water_tower_8018768C.value = view;
+                    arg0->state = state + 1;
+                }
                 return;
             }
             Gp_RunCapCmd1(7);
@@ -206,7 +225,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 gGameSession->eventState    = 0;
                 gGameSession->hideHud       = 0;
                 Gp_StateF0.field_4          = 0;
-                Mc_SaveData[0].state.at4.loc.view = D_dryfield_water_tower_8018768C;
+                Mc_SaveData[0].state.at4.loc.view = D_dryfield_water_tower_8018768C.value;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
@@ -233,7 +252,7 @@ s32 func_dryfield_water_tower_8017DAF8(Task* task, s32 msgId, RoomEventMsg* msg,
     s32          ret;
 
     *out = *msg;
-    if (msg->msgId == 0x13) {
+    if (msg->prefix.packed == 0x13) {
         req.field_0 = 0xA;
         req.field_4 = 6;
         req.field_8 = Gp_PackStageSndId(0x5214000E);
@@ -252,7 +271,7 @@ s32 func_dryfield_water_tower_8017DAF8(Task* task, s32 msgId, RoomEventMsg* msg,
     if (msg->field_5 == 0 && GameFlag_GetNibble(0x55) == 2) {
         GameFlag_SetNibble(0x55, 1);
     }
-    if (msg->msgId == 0x15) {
+    if (msg->prefix.packed == 0x15) {
         if (msg->field_5 == 0 && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
@@ -308,7 +327,7 @@ s32 func_dryfield_water_tower_8017DCFC(void)
 s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        Task_SpawnFromTable(&D_dryfield_water_tower_801803D8, 0, 0, 0);
+        Task_SpawnFromTable(D_dryfield_water_tower_801803D8, 0, 0, 0);
     }
     return 0;
 }

@@ -94,7 +94,7 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
 
 void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 
-void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
+void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);
 
 GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1);
@@ -125,7 +125,7 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2);
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
 
-void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B3448(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpPackedSvec* arg3);
 
 Task* func_800B2968(void);
 

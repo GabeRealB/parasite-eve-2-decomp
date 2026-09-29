@@ -1,3 +1,7 @@
+#include "shelter_b1_armory_private.h"
+#include "rooms/shelter_b1_armory.h"
+#include "mapui/map_shelter.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -31,9 +35,9 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-
-extern UiObject* D_80067634;
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b1_armory_8018558C[4];
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
 /// chooses from, and the one it returns when no case matches.
@@ -154,16 +158,441 @@ extern GpItemMap* D_shelter_b1_armory_80185578;
 
 /// The view index `func_shelter_b1_armory_8018034C` saves while it runs and
 /// restores when it finishes.
-extern u8 D_shelter_b1_armory_8018557C;
 
 /// The event message and request the door gate latched, and the flag saying
 /// one was latched.
 extern RoomEventMsg D_shelter_b1_armory_80185584;
-extern u8           D_shelter_b1_armory_8018558C;
 extern RoomEventReq D_shelter_b1_armory_80185590;
 
 static void func_shelter_b1_armory_80180740(Task* task);
 static void func_shelter_b1_armory_80180784(Task* task);
+
+void func_shelter_b1_armory_8017DDD8(UiList *, UiObject *);
+
+void func_shelter_b1_armory_8017E77C(Task *);
+void func_shelter_b1_armory_8017E9CC(UiList *, UiObject *);
+void func_shelter_b1_armory_8017EBEC(Task *);
+void func_shelter_b1_armory_8017ED94(Task *);
+void func_shelter_b1_armory_8017EF78(UiList *, UiObject *);
+void func_shelter_b1_armory_8017F18C(Task *);
+void func_shelter_b1_armory_8017FC28(UiList *, UiObject *);
+void func_shelter_b1_armory_8017FCE4(Task *);
+
+s32 func_shelter_b1_armory_80180468(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b1_armory_801805A8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_armory_80180698(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b1_armory_801806F8(Task *, s32, GpMsg13EF *, s32);
+void func_shelter_b1_armory_8017E77C(Task *);
+void func_shelter_b1_armory_8017F30C(Task *);
+void func_shelter_b1_armory_8017F5D4(Task *);
+void func_shelter_b1_armory_8017F7A8(Task *);
+void func_shelter_b1_armory_8017FE0C(Task *);
+void func_shelter_b1_armory_801800A4(Task *);
+void func_shelter_b1_armory_80180214(Task *);
+void func_shelter_b1_armory_8018034C(Task *);
+
+u16 D_shelter_b1_armory_80181E9C[4] = {
+    140, 143, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EA4[4] = {
+    172, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181EAC[4] = {
+    103, 98, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EB4[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EC4[8] = {
+    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181ED4[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EE4[4] = {
+    108, 100, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EEC[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181EFC[8] = {
+    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181F0C[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181F1C[4] = {
+    98, 105, 106, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181F24[10] = {
+    65, 59, 58, 1, 2, 6, 8, 4,
+    0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181F38[12] = {
+    131, 157, 140, 142, 143, 10, 70, 69,
+    67, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181F50[10] = {
+    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
+    0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181F64[4] = {
+    108, 100, 102, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181F6C[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181F7C[12] = {
+    157, 9, 140, 142, 138, 143, 10, 70,
+    69, 66, 67, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181F94[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181FA8[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181FB0[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181FC4[14] = {
+    157, 9, 140, 142, 143, 10, 70, 69,
+    66, 67, 68, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181FE0[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80181FF0[6] = {
+    103, 98, 100, 97, 107, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80181FFC[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182014[14] = {
+    140, 142, 138, 143, 10, 70, 69, 66,
+    67, 68, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182030[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182044[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_8018204C[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182060[16] = {
+    140, 142, 138, 139, 143, 10, 70, 69,
+    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182080[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182090[6] = {
+    100, 98, 97, 103, 107, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_8018209C[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801820B4[2] = {
+    139, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801820B8[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801820BC[4] = {
+    108, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801820C4[8] = {
+    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801820D4[4] = {
+    131, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801820DC[4] = {
+    160, 171, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801820E4[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801820EC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801820F8[4] = {
+    140, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182100[6] = {
+    160, 172, 171, 175, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_8018210C[4] = {
+    98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182114[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182120[6] = {
+    131, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_8018212C[4] = {
+    160, 171, 175, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182134[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_8018213C[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182148[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182154[4] = {
+    171, 175, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_8018215C[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182168[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182174[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_80182180[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182184[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_80182190[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_8018219C[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801821A8[4] = {
+    171, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801821B0[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801821BC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801821C8[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801821D4[4] = {
+    171, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_armory_801821DC[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_armory_801821E8[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+RoomShopTier D_shelter_b1_armory_801821F4[13] = {
+    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
+    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
+    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
+    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
+    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
+    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
+    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
+    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
+    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
+    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
+    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
+    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
+    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
+};
+
+s32 D_shelter_b1_armory_80182290 = -1;
+
+u8 D_shelter_b1_armory_80182294[20] = {
+    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_801822A8[8] = {
+    80, 97, 115, 115, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_801822B0[16] = {
+    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
+};
+
+u8 D_shelter_b1_armory_801822C0[4] = { 0 };
+
+u8 D_shelter_b1_armory_801822C4[60] = {
+    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
+    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
+    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
+    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182300[8] = {
+    87, 101, 97, 112, 111, 110, 115, 0,
+};
+
+u8 D_shelter_b1_armory_80182308[12] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182314[8] = {
+    65, 114, 109, 111, 114, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_8018231C[8] = {
+    73, 116, 101, 109, 115, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182324[20] = {
+    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
+    0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182338[16] = {
+    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
+};
+
+u8 D_shelter_b1_armory_80182348[32] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
+    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182368[12] = {
+    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_armory_80182374[4] = {
+    120, 0, 0, 0,
+};
+
+u16 D_shelter_b1_armory_80182378[2] = {
+    0xFFFF, 0,
+};
+
+UiListItemFunc D_shelter_b1_armory_8018237C[1] = {
+    func_shelter_b1_armory_8017DDD8,
+};
+
+UiListItemFunc D_shelter_b1_armory_80182380[1] = {
+    func_shelter_b1_armory_8017E9CC,
+};
+
+UiList D_shelter_b1_armory_80182384 = { D_shelter_b1_armory_80182380, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_b1_armory_801823A8[2] = {
+    func_shelter_b1_armory_8017EF78,
+    func_shelter_b1_armory_8017FC28,
+};
+
+UiList D_shelter_b1_armory_801823B0 = { D_shelter_b1_armory_801823A8, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_b1_armory_801823D4 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_shelter_b1_armory_8017EBEC, 0 };
+
+UiObjectDesc D_shelter_b1_armory_801823F0 = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_shelter_b1_armory_8017E77C, 0 };
+
+UiObjectDesc D_shelter_b1_armory_8018240C = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_shelter_b1_armory_8017ED94, 0 };
+
+UiObjectDesc D_shelter_b1_armory_80182428 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_shelter_b1_armory_8017FCE4, 0 };
+
+UiObjectDesc D_shelter_b1_armory_80182444 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_shelter_b1_armory_8017F18C, 0 };
+
+UiObjectDesc D_shelter_b1_armory_80182460 = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_shelter_b1_armory_8017E77C, 0 };
+
+UiObjectDesc D_shelter_b1_armory_8018247C = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_shelter_b1_armory_8017F30C, 0 };
+
+UiObjectDesc D_shelter_b1_armory_80182498 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_shelter_b1_armory_8017F5D4, 0 };
+
+UiObjectDesc D_shelter_b1_armory_801824B4 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_shelter_b1_armory_8017F7A8, 0 };
+
+TaskDesc D_shelter_b1_armory_801824D0 = { 0, 192, func_shelter_b1_armory_8017FE0C, { .model = NULL } };
+
+TaskDesc D_shelter_b1_armory_801824DC = { 0, 32, func_shelter_b1_armory_801800A4, { .model = NULL } };
+
+TaskDesc D_shelter_b1_armory_801824E8[2] = {
+    { 0, 192, func_shelter_b1_armory_80180214, { .model = NULL } },
+    { 0, 192, func_shelter_b1_armory_8018034C, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_b1_armory_80182500[5] = {
+    { 5102, func_shelter_b1_armory_801805A8 },
+    { 5105, func_shelter_b1_armory_80180468 },
+    { 5103, func_shelter_b1_armory_801806F8 },
+    { 5104, func_shelter_b1_armory_80180698 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -1201,7 +1630,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
     price  = Gp_ItemDescs[itemId].price;
 
     if (task->state == 0) {
-        task->extraState = 1;
+        task->extraState.value = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
         task->state = task->state + 1;
     }
@@ -1241,7 +1670,7 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
         Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
-    count = task->extraState;
+    count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, D_shelter_b1_armory_80182374, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
@@ -1261,18 +1690,18 @@ void func_shelter_b1_armory_8017F7A8(Task* task)
     if (obj->panel.field_0.w == 1) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState < maxQty) {
-                task->extraState = task->extraState + 1;
+            if (task->extraState.value < maxQty) {
+                task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState >= 2) {
-                task->extraState = task->extraState - 1;
+            if (task->extraState.value >= 2) {
+                task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState;
-            for (i = 0; i < task->extraState; i++) {
+            Player_Status.bp -= price * task->extraState.value;
+            for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1403,7 +1832,7 @@ static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
     s32 neg;
 
     flag                         = req->flagId;
-    D_shelter_b1_armory_8018558C = 0;
+    D_shelter_b1_armory_8018558C[0] = 0;
     neg                          = flag < 0;
     got                          = (s16)flag;
     if (neg) {
@@ -1427,7 +1856,7 @@ static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_shelter_b1_armory_801824DC, 0, 0, 0);
-                D_shelter_b1_armory_8018558C = 1;
+                D_shelter_b1_armory_8018558C[0] = 1;
                 return 2;
             }
             return ret;
@@ -1484,7 +1913,7 @@ void func_shelter_b1_armory_801800A4(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -1553,7 +1982,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             save                         = &Mc_SaveData[0];
             view                         = save->state.at4.loc.view;
             save->state.at4.loc.view           = 0xD;
-            D_shelter_b1_armory_8018557C = view;
+            D_shelter_b1_armory_8018557C.value = view;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x16, 0);
             goto advance;
@@ -1570,7 +1999,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_armory_8018557C;
+            Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_armory_8018557C.value;
         advance:
             task->state = task->state + 1;
             break;
@@ -1580,7 +2009,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
 /// Answers 1 and spawns the armory task when a pending mode-5 object with
 /// `field_48` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
 /// 0xF0 selects the task's parameter; on 0x105 a first visit also sets it.
-s32 func_shelter_b1_armory_80180468(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_armory_80180468(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -1619,13 +2048,13 @@ check:
     return 0;
 }
 
-s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventReq req;
 
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0xB) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0xB) {
         req.field_0 = 4;
         req.field_4 = 1;
         req.field_8 = 0x540D0005;
@@ -1634,7 +2063,7 @@ s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEv
         req.itemId  = 0;
         return func_shelter_b1_armory_8017FF40(&req, out);
     }
-    if (in->msgId != 0xD) {
+    if (in->prefix.packed != 0xD) {
         return 1;
     }
     if (GameFlag_GetNibble(0xF0) != 0) {
@@ -1647,7 +2076,7 @@ s32 func_shelter_b1_armory_801805A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEv
     return 0;
 }
 
-s32 func_shelter_b1_armory_80180698(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 12:
@@ -1662,7 +2091,7 @@ s32 func_shelter_b1_armory_80180698(s32 arg0, s32 arg1, s32 arg2)
 
 /// Handler for slot-7 msg `0x13EF`: the directed action (`field_2` 1) that
 /// spawns the armory script.
-s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, GpMsg13EF * arg2, s32 arg3)
 {
     if (arg2->field_2 == 1) {
         Gp_MsgPlayerWeapon(0);

@@ -1,3 +1,6 @@
+#include <psyq/rand.h>
+#include "actors/actor_800100.h"
+#include "gameplay/message.h"
 #include "common.h"
 
 #include <psyq/abs.h>
@@ -166,7 +169,26 @@ extern GpImgRec** D_actor_800100_80167210[];
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
 
-extern void D_actor_800100_80167130;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *);
+        s32 (*call1)(Task *, s32, GpAnimArg *);
+        s32 (*call2)(Task *, s32, GpCopyArg *);
+        s32 (*call3)(Task *, s32, GpCountArg *);
+        s32 (*call4)(Task *, s32, GpDelayArg *);
+        s32 (*call5)(Task *, s32, GpXformArg *);
+        s32 (*call6)(Task *, s32, GpXformArg *, GpOverrideArg *);
+        s32 (*call7)(Task *, s32, s32);
+        s32 (*call8)(Task *, s32, s32, s32);
+        void (*call9)(Task *, s32, GpMoveArg *);
+        s32 (*call10)(Task *, s32, GpCoord *);
+    } handler;
+} Actor800100MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor800100MessageEntry, 8);
+
+extern Actor800100MessageEntry D_actor_800100_80167130[26];
 extern s16  D_actor_800100_80167218[];
 extern s16  D_actor_800100_80167224[];
 extern u8   D_actor_800100_80167230[];
@@ -220,11 +242,790 @@ static void func_actor_800100_80166E94(Task* arg0, s32 arg1);
 static void func_actor_800100_80166EE8(Task* arg0);
 static s32  func_actor_800100_8016709C(GpCoord* arg0, GpRec18* arg1, GpRec18* arg2);
 
-s32 rand();
-
 extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
 extern u8  D_actor_800100_80167310[];
+
+extern GpImgRec * D_actor_800100_80167A18[2];
+extern GpImgRec * D_actor_800100_80167A20[4];
+extern GpImgRec * D_actor_800100_80167A30[4];
+extern GpImgRec * D_actor_800100_80167A40[6];
+extern GpImgRec * D_actor_800100_80167A58[2];
+extern GpImgRec * D_actor_800100_80167A60[2];
+
+SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
+
+Actor800100MessageEntry D_actor_800100_80167130[26] = {
+    { 1000, { .call1 = func_8010C4F0 } },
+    { 1002, { .call1 = func_8010C4F0 } },
+    { 1003, { .call1 = func_8010C4F0 } },
+    { 1004, { .call1 = func_8010C4F0 } },
+    { 1001, { .call5 = func_80104D68 } },
+    { 1005, { .call8 = func_8010583C } },
+    { 1006, { .call5 = func_8010C688 } },
+    { 1007, { .call1 = func_8010C4F0 } },
+    { 1008, { .call1 = func_8010C4F0 } },
+    { 1009, { .call0 = func_8010C30C } },
+    { 1010, { .call6 = func_8010C6C8 } },
+    { 1011, { .call7 = func_80104684 } },
+    { 1012, { .call1 = func_8010C648 } },
+    { 1013, { .call10 = func_80105A60 } },
+    { 1014, { .call3 = func_801052B8 } },
+    { 1015, { .call2 = Gp_CopyAllyAnim } },
+    { 1016, { .call4 = func_8010C75C } },
+    { 1017, { .call8 = Gp_HurtAlly } },
+    { 1018, { .call1 = func_8010C4F0 } },
+    { 1019, { .call1 = func_8010C4F0 } },
+    { 1020, { .call1 = func_8010C4F0 } },
+    { 1021, { .call7 = func_801058BC } },
+    { 1022, { .call9 = Gp_MoveActorByKeep } },
+    { 1023, { .call0 = func_8010C30C } },
+    { 1024, { .call0 = func_8010C30C } },
+    { 1025, { .call7 = func_80105AB0 } },
+};
+
+GpImgRec ** D_actor_800100_80167200[4] = {
+    D_actor_800100_80167A18,
+    D_actor_800100_80167A20,
+    D_actor_800100_80167A30,
+    D_actor_800100_80167A40,
+};
+
+GpImgRec ** D_actor_800100_80167210[2] = {
+    D_actor_800100_80167A60,
+    D_actor_800100_80167A58,
+};
+
+s16 D_actor_800100_80167218[6] = {
+    0, 5, 12, 3, 28, 0,
+};
+
+s16 D_actor_800100_80167224[6] = {
+    0, 3, 0, 3, 16, 0,
+};
+
+u8 D_actor_800100_80167230[8] = {
+    12, 12, 12, 100, 40, 0, 0, 0,
+};
+
+u8 D_actor_800100_80167238[48] = {
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+u8 D_actor_800100_80167268[48] = {
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+u8 D_actor_800100_80167298[48] = {
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+};
+
+u8 D_actor_800100_801672C8[48] = {
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+};
+
+u8 * D_actor_800100_801672F8[4] = {
+    D_actor_800100_80167238,
+    D_actor_800100_80167268,
+    D_actor_800100_80167298,
+    D_actor_800100_801672C8,
+};
+
+u8 D_actor_800100_80167308[8] = {
+    0,
+    0,
+    0,
+    0,
+    3,
+    4,
+    4,
+    4,
+};
+
+u8 D_actor_800100_80167310[8] = {
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+};
+
+u_long D_actor_800100_80167318[84] = {
+    0xECE5B2AF,
+    0xF2F0F5F5,
+    0xF6F0F2F2,
+    0xF2F0F5F7,
+    0x4F8BECC8,
+    0x89C47356,
+    0xEF4F4F56,
+    0xF5F0F25F,
+    0xF2F0F5F5,
+    0xF2F2F2F2,
+    0xD6AF5DF2,
+    0x676593E2,
+    0x5A5A5A9A,
+    0x5050588D,
+    0xF0F25D60,
+    0x8956DCB5,
+    0x5673ADA4,
+    0xF4F4C8E8,
+    0x615050ED,
+    0x8D616161,
+    0x588D7551,
+    0x7E7DBFD5,
+    0x5F609A6B,
+    0x5F5F5F5F,
+    0x61615060,
+    0x65505861,
+    0xA0A086B2,
+    0x50B6E5B0,
+    0x5F506161,
+    0x5D5D5D74,
+    0x7D65605F,
+    0xA0857E6B,
+    0xF1657E7E,
+    0xFFFFFFFF,
+    0xFBFFFFFF,
+    0x8D8D50F0,
+    0x7E7E915A,
+    0x7D7EA0A4,
+    0x5F61618D,
+    0xFFFFFAF8,
+    0xFBFFFFFF,
+    0xA07E60FA,
+    0x9AA086C1,
+    0x73305F9,
+    0xDFFFFFC,
+    0x74E1E704,
+    0x7D8F7661,
+    0x85A9867E,
+    0x616191A4,
+    0xCBE7F050,
+    0x90DFFFF,
+    0xE1EF33DB,
+    0xAAC56B9A,
+    0xF35F7D81,
+    0x14371701,
+    0xF30409D7,
+    0x925ADAC7,
+    0xADA47E68,
+    0x6BAEB1C5,
+    0xB6608D76,
+    0xFF1304C7,
+    0x100E070C,
+    0xA1BFE4EA,
+    0x8488B189,
+    0xE9E9BFA0,
+    0x40404EC,
+    0xD2DCC7EC,
+    0x86A681A4,
+    0x8A8AB3D4,
+    0x7997A6B3,
+    0xEFDC9A5A,
+    0xE1EC0C0E,
+    0xB1D6EAEF,
+    0x8973C4AE,
+    0xAAAAAEB1,
+    0xE8D5B2AD,
+    0xBFD2E8E8,
+    0xC2A8A4D2,
+    0x8AAEC2C2,
+    0xA7895656,
+    0x7E9DA180,
+    0xE4D2BFD2,
+    0xC5D6D2D2,
+    0xB1AEB1AE,
+};
+
+GpImgRec D_actor_800100_80167468[2] = {
+    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_80167318 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_800100_80167488[84] = {
+    0xECE5B2AF,
+    0xF2F0F5F5,
+    0xF6F0F2F2,
+    0xF2F0F5F7,
+    0x4F8BECC8,
+    0x89C47356,
+    0xEF4F4F56,
+    0xF5F0F25F,
+    0xF2F0F5F5,
+    0xF2F2F2F2,
+    0xD6AF5DF2,
+    0x676593E2,
+    0x5A5A5A9A,
+    0x5050588D,
+    0xF0F25D60,
+    0x8956DCB5,
+    0x5673ADA4,
+    0xF4F4C8E8,
+    0x615050ED,
+    0x8D616161,
+    0x588D7551,
+    0x7E7DBFD5,
+    0x91919191,
+    0x67676767,
+    0x61616161,
+    0x65505861,
+    0xA0A086B2,
+    0x50B6E5B0,
+    0x61616161,
+    0x67676761,
+    0x91919167,
+    0xA0857E7E,
+    0x677E7E7E,
+    0x55F6565,
+    0x5F050505,
+    0x61616165,
+    0x7E7E915A,
+    0x7D7EA0A4,
+    0x6161618D,
+    0xFFFF5F65,
+    0x655FFFFF,
+    0xA07E6765,
+    0x9AA086C1,
+    0x50505F9,
+    0x5050505,
+    0x5050505,
+    0x7D767650,
+    0x85A9867E,
+    0x616191A4,
+    0x505F050,
+    0x5050505,
+    0x5050505,
+    0xAAC56B9A,
+    0xF35F7D81,
+    0x14370417,
+    0xF30409D7,
+    0x925ADAC7,
+    0xADA47E68,
+    0x6BAEB1C5,
+    0xB68D8D76,
+    0xFF1304C7,
+    0x170E070C,
+    0xA17D5FF3,
+    0x8488B189,
+    0xF37DBFA0,
+    0x4040404,
+    0xD2DCF3F3,
+    0x86A681A4,
+    0x8A8AB3D4,
+    0x7997A6B3,
+    0xF3F39A5A,
+    0x4040404,
+    0xBFBF9AF3,
+    0x8973C4AE,
+    0xAAAAAEB1,
+    0xD2D2D2AD,
+    0xD2D2D2D2,
+    0xC2A8A4D2,
+    0x8AAEC2C2,
+    0xA7895656,
+    0x7E9DA180,
+    0xE4D2BFD2,
+    0xC5D6D2D2,
+    0xB1AEB1AE,
+};
+
+GpImgRec D_actor_800100_801675D8[2] = {
+    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_80167488 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_800100_801675F8[84] = {
+    0xECE5B2AF,
+    0xF2F0F5F5,
+    0xF6F0F2F2,
+    0xF2F0F5F7,
+    0x4F8BECC8,
+    0x89C47356,
+    0xEF4F4F56,
+    0xF5F0F25F,
+    0xF2F0F5F5,
+    0xF2F2F2F2,
+    0xD6AF5DF2,
+    0x676593E2,
+    0x5A5A5A9A,
+    0x5050588D,
+    0xF0F25D60,
+    0x8956DCB5,
+    0x5673ADA4,
+    0xF4F4C8E8,
+    0x615050ED,
+    0x51516161,
+    0x588D7551,
+    0x7E7DBFD5,
+    0x7E7E7E7E,
+    0x91919191,
+    0x61616191,
+    0x65505861,
+    0xA0A086B2,
+    0x50B6E5B0,
+    0x61616161,
+    0x7E916761,
+    0x7E7E7E7E,
+    0xA0857E7E,
+    0x7E7E7E7E,
+    0x9A919191,
+    0x61616161,
+    0x61616161,
+    0x7E7E915A,
+    0x7D7EA0A4,
+    0x6161618D,
+    0x61616161,
+    0x91676161,
+    0xA07E7E91,
+    0xB67D86C1,
+    0x7E7E91B6,
+    0x7E7E7E7E,
+    0x8D617691,
+    0x7D76768D,
+    0x85A9867E,
+    0x616191A4,
+    0x91766161,
+    0x7E7E7E7E,
+    0x91917E7E,
+    0xAAC57D91,
+    0x5B67D81,
+    0x5D050505,
+    0x55D5D5D,
+    0x925AB605,
+    0xADA47E68,
+    0x6BAEB1C5,
+    0xB68D8D76,
+    0x5D5D0505,
+    0x5055D5D,
+    0xA1B60505,
+    0x8488B189,
+    0x5B6BFA0,
+    0x5050505,
+    0xD2B60505,
+    0x86A681A4,
+    0x8A8AB3D4,
+    0x7997A6B3,
+    0x5B69A5A,
+    0x5050505,
+    0xBFB60505,
+    0x8973C4AE,
+    0xAAAAAEB1,
+    0x5A5AD2AD,
+    0x5A5A5A5A,
+    0xC2A8A4D2,
+    0x8AAEC2C2,
+    0xA7895656,
+    0x7E9DA180,
+    0x5A5A5AD2,
+    0xBF5A5A5A,
+    0xB1AEAEBF,
+};
+
+GpImgRec D_actor_800100_80167748[2] = {
+    { 0, 0, { 0, 0, 21, 8 }, D_actor_800100_801675F8 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_800100_80167768[78] = {
+    0xD3D3C2C2,
+    0xD3D3D3C2,
+    0xB3B1AEC4,
+    0xB389B3B3,
+    0x89898989,
+    0xAEC5B1B3,
+    0x8787AEAE,
+    0xC2C287C2,
+    0xAEABC2C2,
+    0x8989B3B1,
+    0x8989B3B3,
+    0xB1B38989,
+    0xABABC4AE,
+    0x87A7A7A7,
+    0xAB878787,
+    0xA9A9C4C4,
+    0xB3B3B1C4,
+    0xC4C3A9C3,
+    0xC4AEC5C5,
+    0x8383C2AB,
+    0x8887A7A7,
+    0x686CAAC4,
+    0x64625962,
+    0x62626666,
+    0x6C7B6464,
+    0xABABC284,
+    0xA883BCBC,
+    0x597B85AA,
+    0x52525151,
+    0x92646363,
+    0x63926868,
+    0x79635952,
+    0xBCBCC281,
+    0xA0A5A7A7,
+    0x86A07E68,
+    0x8A89C6B0,
+    0x8A8A8A8A,
+    0xA9ADB289,
+    0xA7A58686,
+    0xB8BC83BC,
+    0xB3B0A5CC,
+    0x8A8A8A89,
+    0x8A8A8A8A,
+    0x8A8A8A8A,
+    0x88B1898A,
+    0xBCBCA2A2,
+    0xBABAA2BC,
+    0xA98686A5,
+    0xADADADD4,
+    0x8686A9D4,
+    0xA4868586,
+    0xBA7F9DA0,
+    0xA2BCBCA2,
+    0x9D7F7FBA,
+    0xA06B6BA0,
+    0xA0A4A4A0,
+    0x7E7E6BA0,
+    0x7F9D7E68,
+    0xA26D6D7F,
+    0x7F7FA2A2,
+    0xA68180A1,
+    0xABAAA885,
+    0xAAACACAB,
+    0x818185A9,
+    0x6D7FA182,
+    0xA26D6D6D,
+    0x83A27FBA,
+    0xAEAB8887,
+    0xB17272AE,
+    0xAEB1B1B1,
+    0x83A78788,
+    0x6D6DA2A2,
+    0xA2A26D6D,
+    0xC4888783,
+    0x89B3B1AE,
+    0x89898989,
+    0x88C4B189,
+    0xA283A787,
+};
+
+GpImgRec D_actor_800100_801678A0[2] = {
+    { 0, 0, { 0, 0, 13, 12 }, D_actor_800100_80167768 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_800100_801678C0[78] = {
+    0xD3D3C2C2,
+    0xD3D3D3C2,
+    0xB3B1AEC4,
+    0xB389B3B3,
+    0x89898989,
+    0xAEC5B1B3,
+    0x8787AEAE,
+    0xC2C287C2,
+    0xAEABC2C2,
+    0x8989B3B1,
+    0x8989B3B3,
+    0xB1B38989,
+    0xABABC4AE,
+    0x87A7A7A7,
+    0xAB878787,
+    0x5179C4C4,
+    0x51515151,
+    0xC5685951,
+    0xABAEC5C5,
+    0x8383C2AB,
+    0x8887A7A7,
+    0x686CAAC4,
+    0x50505050,
+    0x50505050,
+    0x6C595150,
+    0xABABABAB,
+    0xA883BCBC,
+    0x7B8787AA,
+    0x332B5051,
+    0x1010135,
+    0x502B3335,
+    0xABAB5252,
+    0xBCBCC2AB,
+    0xBAA5A7A7,
+    0xF05052A1,
+    0xF0F0F0F0,
+    0xF0F0F0F0,
+    0x50F0F0F0,
+    0xA7A5A152,
+    0xB8BC83BC,
+    0x52A1BABA,
+    0xF0F0F0F0,
+    0xF0F0F0F0,
+    0xF0F0F0F0,
+    0xA152F0F0,
+    0xBCBCA2A2,
+    0xBABAA2BC,
+    0xF05052A1,
+    0xF0F0F0F0,
+    0xF0F0F0F0,
+    0x50F0F0F0,
+    0xBA7FA152,
+    0xA2BCBCA2,
+    0x7FA17FBA,
+    0xF0F0F052,
+    0xF0F0F0F0,
+    0xF0F0F0F0,
+    0xA17F52F0,
+    0xA26D6D7F,
+    0x7F7FA2A2,
+    0x85A77F7F,
+    0x89898888,
+    0x88898989,
+    0xA7A78588,
+    0x6D7FA1A7,
+    0xA26D6D6D,
+    0x837F7FBA,
+    0x7B6A6A83,
+    0x7B7B7B7B,
+    0x6A7B7B7B,
+    0x83A7836A,
+    0x6D6DA2A2,
+    0xA2A26D6D,
+    0x88888783,
+    0x88888888,
+    0x88888888,
+    0x88888888,
+    0xA283A787,
+};
+
+GpImgRec D_actor_800100_801679F8[2] = {
+    { 0, 0, { 0, 0, 13, 12 }, D_actor_800100_801678C0 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+GpImgRec * D_actor_800100_80167A18[2] = {
+    D_actor_800100_80167468,
+    NULL,
+};
+
+GpImgRec * D_actor_800100_80167A20[4] = {
+    D_actor_800100_80167468,
+    D_actor_800100_801675D8,
+    D_actor_800100_80167748,
+    NULL,
+};
+
+GpImgRec * D_actor_800100_80167A30[4] = {
+    D_actor_800100_80167748,
+    D_actor_800100_801675D8,
+    D_actor_800100_80167468,
+    NULL,
+};
+
+GpImgRec * D_actor_800100_80167A40[6] = {
+    D_actor_800100_80167468,
+    D_actor_800100_801675D8,
+    D_actor_800100_80167748,
+    D_actor_800100_801675D8,
+    D_actor_800100_80167468,
+    NULL,
+};
+
+GpImgRec * D_actor_800100_80167A58[2] = {
+    D_actor_800100_801678A0,
+    NULL,
+};
+
+GpImgRec * D_actor_800100_80167A60[2] = {
+    D_actor_800100_801679F8,
+    NULL,
+};
 
 /// Per-frame flare task of the actor: while the player model is visible
 /// (`field_C & 0x80` clear) and the room is not fading out
@@ -242,7 +1043,7 @@ extern u8  D_actor_800100_80167310[];
 ///
 /// While `Gp_State1C->eventState` is non-zero the two drawing sub-states wind
 /// `age` back down instead of advancing.
-static void func_actor_800100_80161F20(Task* task)
+void func_actor_800100_80161F20(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;
@@ -315,7 +1116,7 @@ static void func_actor_800100_80161F20(Task* task)
                     if (work->scale < 0x180) {
                         work->scale = work->scale + 0x40;
                     }
-                    eff = Gp_SpawnEff(0x60181, coord, work->scale, NULL);
+                    eff = Gp_SpawnEff(0x60181, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
@@ -436,7 +1237,7 @@ static void func_actor_800100_80162264(VECTOR3* pos, u16 frame, s32 brightness)
 ///   ground is live. A hit on anything (`func_800DE7CC`) ends the flight into
 ///   state 2, and a miss after 0x15 frames releases the task.
 /// - State 2 keeps falling at four times the speed until the same 0x15.
-static void func_actor_800100_801624F0(Task* task)
+void func_actor_800100_801624F0(Task* task)
 {
     GpCoord          ground;
     SVECTOR          after;
@@ -746,7 +1547,7 @@ static void func_actor_800100_80163214(Task* arg0)
     extra              = arg0->extra.tmd;
     coord              = extra->coords;
     arg0->state++;
-    arg0->msgTable     = &D_actor_800100_80167130;
+    arg0->msgTable     = D_actor_800100_80167130;
     arg0->exitCallback = func_actor_800100_80163C04;
     actor->field_938   = 0x14;
     Gp_ActorSlots[1]   = arg0;
@@ -826,7 +1627,7 @@ static void func_actor_800100_80163214(Task* arg0)
     actor->field_924       = func_80104258(arg0, 1, 5, 1);
     Player_Status.field_26 = saved;
     if (actor->field_924 != NULL) {
-        task             = func_80104364((Task*)actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
+        task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
             d4  = actor->field_910;
@@ -838,7 +1639,7 @@ static void func_actor_800100_80163214(Task* arg0)
                 eff = Gp_SpawnEff(0x80060180, actor->field_91C->extra.tmd->coords, idx, 0);
                 if (eff != NULL) {
                     actor->field_914 = eff->task;
-                    Task_Reparent((Task*)arg0, eff->task);
+                    Task_Reparent(arg0, eff->task);
                     func_80106350(arg0, idx, 0);
                 }
             }
@@ -978,7 +1779,7 @@ static void func_actor_800100_80163A58(Task* arg0)
 {
     void**      scratch;
     u8*         head;
-    s32         temp;
+    u8*         temp;
     RECT*       rect;
     GameActor*  actor;
     GpImgRec*** table;
@@ -989,8 +1790,8 @@ static void func_actor_800100_80163A58(Task* arg0)
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
     actor                          = arg0->work;
-    temp                           = (s32)(head - 8);
-    SCRATCH_HEAD_AT(scratch, void) = (void*)temp;
+    temp                           = head - 8;
+    SCRATCH_HEAD_AT(scratch, void) = temp;
     rect                           = (RECT*)temp;
 
     if ((s8)actor->field_987 != 0) {
@@ -1075,15 +1876,15 @@ static void func_actor_800100_80163C04(Task* arg0)
     Gp_UnlinkObj((GpObj*)actor->field_EC);
     Gp_UnlinkObj((GpObj*)actor->field_10C);
     Gp_UnlinkObj(&d4->obj);
-    taskKill((Task*)arg0);
+    taskKill(arg0);
 }
 
 /// State handlers of the actor's main task, indexed by its state.
 static const TaskFuncTable4 D_actor_800100_80161E3C = { {
-    (TaskFunc)func_actor_800100_80163214,
-    (TaskFunc)func_actor_800100_801635F4,
+    func_actor_800100_80163214,
+    func_actor_800100_801635F4,
     func_actor_800100_80163BF8,
-    (TaskFunc)func_actor_800100_80163C04,
+    func_actor_800100_80163C04,
 } };
 
 /// Per-frame entry point of the actor's main task: runs the handler its state
@@ -1131,7 +1932,7 @@ static void func_actor_800100_80163D54(Task* arg0)
                     func_actor_800100_80165720(arg0);
                 }
             } else {
-                val = func_8010BCF4((Task*)arg0, MATRIX_TRANS(&target->coord));
+                val = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
                 if (val < 0) {
                     val = -val;
                 }
@@ -1366,7 +2167,7 @@ static void func_actor_800100_801643F4(Task* arg0)
         case 0:
             flag             = 1;
             actor->field_95E = flag;
-            if (func_8010BCF4((Task*)arg0, pos) < 0) {
+            if (func_8010BCF4(arg0, pos) < 0) {
                 actor->field_93E = -1;
                 arg              = 5;
             } else {
@@ -1377,7 +2178,7 @@ static void func_actor_800100_801643F4(Task* arg0)
             /* fallthrough */
         case 1:
             actor->field_975 = (u8)actor->field_93E;
-            val              = func_8010BCF4((Task*)arg0, pos);
+            val              = func_8010BCF4(arg0, pos);
             if (val < 0) {
                 val = -val;
             }
@@ -1424,7 +2225,7 @@ static void func_actor_800100_80164580(Task* arg0)
                     actor->field_90C = Gp_FindLockNodePad(arg0);
                 }
                 Gp_GetLockPos(actor->field_90C, pos);
-                val = func_8010BCF4((Task*)arg0, pos);
+                val = func_8010BCF4(arg0, pos);
                 if (val < 0) {
                     val = -val;
                 }
@@ -1502,7 +2303,7 @@ static void func_actor_800100_80164710(Task* arg0)
             actor2->field_975 = 0;
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
         } else {
-            dist = func_8010BCF4((Task*)arg0, &scratch->lock);
+            dist = func_8010BCF4(arg0, &scratch->lock);
             if (dist < 0) {
                 dist = -dist;
             }
@@ -1511,7 +2312,7 @@ static void func_actor_800100_80164710(Task* arg0)
             block_10:
                 if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.b.flags & 1)) {
                     // Stored through a plain pointer: the member-access spelling schedules differently.
-                    *(GpLinkNode**)&actor->field_90C = NULL;
+                    *&actor->field_90C = NULL;
                     actor->field_97E                 = 1;
                     actor->field_12A                &= 0x3FFF;
                     if ((u8)Mc_SaveData[0].state.companionVariant == 4) {
@@ -1574,7 +2375,7 @@ static void func_actor_800100_80164940(Task* arg0)
             actor->field_95E = flag;
             actor->field_95A = flag;
             Gp_GetLockPos(actor->field_90C, pos);
-            if (func_8010BCF4((Task*)arg0, pos) < 0) {
+            if (func_8010BCF4(arg0, pos) < 0) {
                 actor->field_93E = flag;
                 arg              = 6;
             } else {
@@ -1587,7 +2388,7 @@ static void func_actor_800100_80164940(Task* arg0)
         case 1:
             actor->field_975 = (u8)actor->field_93E;
             Gp_GetLockPos(actor->field_90C, pos);
-            val  = func_8010BCF4((Task*)arg0, pos);
+            val  = func_8010BCF4(arg0, pos);
             dist = actor->field_934;
             if (val < 0) {
                 val = -val;
@@ -1833,7 +2634,7 @@ static void func_actor_800100_80165010(Task* arg0)
     u16        angle;
 
     coord  = arg0->extra.tmd->coords;
-    target = ((Task*)gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
     d4     = actor->field_910;
     dist   = func_actor_800100_8016709C(coord, &d4->contact, NULL);
@@ -2236,8 +3037,8 @@ static void func_actor_800100_801659EC(Task* arg0)
     GpCoord*    coord;
     VECTOR3*    lock;
     VECTOR*     head;
-    s32         entry;
-    s32         offset;
+    u8*         entry;
+    u8*         offset;
     s32         kind;
     s32         angle;
     s32         index;
@@ -2272,9 +3073,9 @@ static void func_actor_800100_801659EC(Task* arg0)
             }
             inRange = angle < 4;
             if (inRange != 0) {
-                entry  = (s32)D_actor_800100_801672F8[angle];
+                entry  = D_actor_800100_801672F8[angle];
                 offset = entry + (func_8010C058() * 0x10);
-                mode   = *(u8*)(offset + (rand() & 0xF));
+                mode   = offset[rand() & 0xF];
             } else {
                 mode = 3;
             }
@@ -2798,7 +3599,7 @@ static void func_actor_800100_801668C0(GpCoord* arg0)
     sy       = blk->sxy[3].vy;
     prim->y3 = sy;
 
-    addPrim((u_long*)&gGpuCurrentOt[blk->otz >> 4], prim);
+    addPrim(&gGpuCurrentOt[blk->otz >> 4], prim);
     SCRATCH_POP_BYTES(sizeof(Actor800100QuadScratch));
 }
 

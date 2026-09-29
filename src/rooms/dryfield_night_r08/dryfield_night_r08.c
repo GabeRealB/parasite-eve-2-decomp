@@ -18,16 +18,29 @@ extern s32 D_801341E0;
 /// `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern GpMsgEntry D_dryfield_night_r08_80180544[];
 
+s32 func_dryfield_night_r08_8017D5F0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_r08_8017D5F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_dryfield_night_r08_8017D620(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_r08_8017D628(Task *, s32, GpMessageArg, GpMessageArg);
+
+GpMsgEntry D_dryfield_night_r08_80180544[5] = {
+    { 5102, func_dryfield_night_r08_8017D5F8 },
+    { 5105, func_dryfield_night_r08_8017D5F0 },
+    { 5103, func_dryfield_night_r08_8017D628 },
+    { 5104, func_dryfield_night_r08_8017D620 },
+    { 0x7FFFFFFF, NULL },
+};
+
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_night_r08_8017D5F0(void)
+s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
     return 1;
@@ -35,14 +48,14 @@ s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc* src, GpSa
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_r08_8017D620(void)
+s32 func_dryfield_night_r08_8017D620(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_r08_8017D628(void)
+s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

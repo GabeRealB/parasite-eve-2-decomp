@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/dryfield_g_r_kitchen.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -23,11 +24,27 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+#include "mapui/stage_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_dryfield_g_r_kitchen_8017F564[4];
+
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
 extern RoomEventMsg D_dryfield_g_r_kitchen_8017F55C;
 extern RoomEventReq D_dryfield_g_r_kitchen_8017F568;
-extern u8           D_dryfield_g_r_kitchen_8017F564;
 
 /// Descriptor of the event task `func_dryfield_g_r_kitchen_8017D74C`.
 extern TaskDesc D_dryfield_g_r_kitchen_8017EBB4;
@@ -38,17 +55,302 @@ extern GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[];
 /// Endpoints of the two beams drawn in view 2. The code forms this address,
 /// but the table starts one entry earlier, so the beams run from `[0]` to
 /// `[-1]` and from `[2]` to `[1]`.
-extern SVECTOR D_dryfield_g_r_kitchen_8017EBF0[];
 
 /// Endpoints of the two beams drawn in view 3: `[0]` to `[1]` and `[2]` to
 /// `[3]`.
-extern SVECTOR D_dryfield_g_r_kitchen_8017EC08[];
 
 void        func_dryfield_g_r_kitchen_8017D74C(Task* task);
 static void func_dryfield_g_r_kitchen_8017D958(Task* task);
 static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
 static void func_dryfield_g_r_kitchen_8017D9FC(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+
+// Indexed views below share one contiguous table.
+void func_dryfield_g_r_kitchen_8017D74C(Task *);
+s32 func_dryfield_g_r_kitchen_8017D8BC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D8C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_g_r_kitchen_8017D948(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D950(Task *, s32, GpMessageArg, GpMessageArg);
+
+extern GpGridParams D_dryfield_g_r_kitchen_8017EEC0[1];
+extern GpObj4C D_dryfield_g_r_kitchen_8017F038[2];
+extern GpObj4C D_dryfield_g_r_kitchen_8017F0D0[7];
+extern GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1];
+
+TaskDesc D_dryfield_g_r_kitchen_8017EBB4 = { 0, 32, func_dryfield_g_r_kitchen_8017D74C, { .model = NULL } };
+
+GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
+    { 5102, func_dryfield_g_r_kitchen_8017D8C4 },
+    { 5105, func_dryfield_g_r_kitchen_8017D8BC },
+    { 5103, func_dryfield_g_r_kitchen_8017D950 },
+    { 5104, func_dryfield_g_r_kitchen_8017D948 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_dryfield_g_r_kitchen_8017EBE8[8] = {
+    { -1473, -2181, 2023, 0 },
+    { -1473, -2181, 2416, 0 },
+    { -197, -2161, 2973, 0 },
+    { 197, -2161, 2973, 0 },
+    { -70, -2790, -370, 0 },
+    { -70, -2790, 370, 0 },
+    { 70, -2790, -370, 0 },
+    { 70, -2790, 370, 0 },
+};
+
+GpRoomObjRec D_dryfield_g_r_kitchen_8017EC28[1] = {
+    { D_dryfield_g_r_kitchen_8017EEC0, D_dryfield_g_r_kitchen_8017F038, D_dryfield_g_r_kitchen_8017F0D0, NULL },
+};
+
+u8 * D_dryfield_g_r_kitchen_8017EC38[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_dryfield_g_r_kitchen_8017EC3C[1] = {
+    { { .bytes = { 3, 0 } } },
+};
+
+GpRoomCoordRec D_dryfield_g_r_kitchen_8017EC40[1] = {
+    { D_dryfield_g_r_kitchen_8017F464, NULL },
+};
+
+GpWarpRec D_dryfield_g_r_kitchen_8017EC48[2] = {
+    { { .words = { 1024, -1168, 0, 2135 } }, { 0, 0, 0, 0 }, { .words = { 1024, -1168, 0, 2135 } }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, 0, 2, 0, 478 },
+    { { .words = { 2048, 0, 0, 2512 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0, 0, 2512 } }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, 0, 2, 0, 477 },
+};
+
+SVECTOR D_dryfield_g_r_kitchen_8017ECB8[6] = {
+    { 0, 4096, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+};
+
+SVECTOR D_dryfield_g_r_kitchen_8017ECE8[26] = {
+    { 1500, -2900, 3000, 0 },
+    { -1500, -2900, 3000, 0 },
+    { -1500, -2900, -3000, 0 },
+    { 1500, -2900, -3000, 0 },
+    { -800, -600, 1300, 0 },
+    { -1800, -600, 1300, 0 },
+    { -1800, 200, 1300, 0 },
+    { -800, 200, 1300, 0 },
+    { -800, -600, -2300, 0 },
+    { -800, -600, 400, 0 },
+    { -800, 200, 400, 0 },
+    { -800, 200, -2300, 0 },
+    { -1800, -600, 400, 0 },
+    { 900, -600, 3600, 0 },
+    { 900, -3400, 3600, 0 },
+    { 900, -3400, -2300, 0 },
+    { 900, -600, -2300, 0 },
+    { -800, -3400, -2300, 0 },
+    { -1500, 0, 3000, 0 },
+    { 1500, 0, 3000, 0 },
+    { 1500, 0, -3000, 0 },
+    { -1500, 0, -3000, 0 },
+    { -800, -3400, 400, 0 },
+    { -1800, -3400, 400, 0 },
+    { 900, 200, -2300, 0 },
+    { 900, 200, 3600, 0 },
+};
+
+GpGridFace D_dryfield_g_r_kitchen_8017EDB8[16] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 5, 4, 12, 9 }, 3, 0 },
+    { { 14, 15, 13, 16 }, 4, 0 },
+    { { 16, 15, 8, 17 }, 1, 0 },
+    { { 4, 7, 9, 10 }, 2, 0 },
+    { { 19, 20, 18, 21 }, 3, 1 },
+    { { 9, 22, 12, 23 }, 1, 0 },
+    { { 8, 17, 9, 22 }, 2, 0 },
+    { { 8, 11, 16, 24 }, 1, 0 },
+    { { 16, 24, 13, 25 }, 4, 0 },
+    { { 19, 18, 0, 1 }, 5, 0 },
+    { { 18, 21, 1, 2 }, 2, 0 },
+    { { 21, 20, 2, 3 }, 1, 0 },
+    { { 20, 19, 3, 0 }, 4, 0 },
+};
+
+s16 D_dryfield_g_r_kitchen_8017EE78[17] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    -1,
+};
+
+s16 D_dryfield_g_r_kitchen_8017EE9C[14] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    11,
+    12,
+    13,
+    15,
+    -1,
+};
+
+s16 * D_dryfield_g_r_kitchen_8017EEB8[2] = {
+    D_dryfield_g_r_kitchen_8017EE78,
+    D_dryfield_g_r_kitchen_8017EE9C,
+};
+
+GpGridParams D_dryfield_g_r_kitchen_8017EEC0[1] = {
+    { NULL, D_dryfield_g_r_kitchen_8017ECB8, D_dryfield_g_r_kitchen_8017ECE8, D_dryfield_g_r_kitchen_8017EDB8, D_dryfield_g_r_kitchen_8017EEB8, 1800, 3000, 1, 2, 4000, 16 },
+};
+
+GpViewRec D_dryfield_g_r_kitchen_8017EEE4[3] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1053 },
+    { { { { 3955, 0, 1064 }, { 591, 3405, -2198 }, { -885, 2276, 3288 } }, { -400, 2700, 1000 } }, 230 },
+    { { { { -3988, 0, 933 }, { -276, 3911, -1183 }, { -891, -1215, -3808 } }, { -500, 400, -2700 } }, 230 },
+};
+
+GpSprtCmd D_dryfield_g_r_kitchen_8017EF50[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_g_r_kitchen_8017EF60[7] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, -88, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -120, -40, 675, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, -16, 725, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -104, 0, 750, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -96, 16, 750, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, 32, 700, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -88, 40, 675, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_g_r_kitchen_8017EFEC[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_g_r_kitchen_8017F004[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_dryfield_g_r_kitchen_8017F014[3] = {
+    { { .empty = D_dryfield_g_r_kitchen_8017EF50 }, D_dryfield_g_r_kitchen_8017EF50, NULL },
+    { { .elements = D_dryfield_g_r_kitchen_8017EF60 }, D_dryfield_g_r_kitchen_8017EFEC, NULL },
+    { { .empty = D_dryfield_g_r_kitchen_8017F004 }, D_dryfield_g_r_kitchen_8017F004, NULL },
+};
+
+GpObj4C D_dryfield_g_r_kitchen_8017F038[2] = {
+    { NULL, NULL, NULL, { -2, -1167, 381, 0 }, { { 1974, -1520, 391, 0 }, { -1973, -1520, -390, 0 }, { 1974, 1520, 391, 0 }, { -1973, 1520, -390, 0 } }, { -796, 0, 4017, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -1, -1152, 479, 0 }, { { -1973, -1520, -390, 0 }, { 1974, -1520, 391, 0 }, { -1973, 1520, -390, 0 }, { 1974, 1520, 391, 0 } }, { 794, 0, -4019, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_dryfield_g_r_kitchen_8017F0D0[7] = {
+    { NULL, NULL, NULL, { -1248, -48, 2336, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 658, 0, 18, 18, 2, 0 },
+    { NULL, NULL, NULL, { 96, -48, 2784, 0 }, { { 736, 0, -320, 0 }, { 736, 0, 320, 0 }, { -736, 0, -320, 0 }, { -736, 0, 320, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 801, 0, 20, 33, 2, 0 },
+    { NULL, NULL, NULL, { -640, -64, -415, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 658, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 416, -64, -2400, 0 }, { { -608, 0, -576, 0 }, { 608, 0, -576, 0 }, { -608, 0, 576, 0 }, { 608, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -401, 0, 4076, 0 }, 836, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { -544, -64, 944, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 671, 2, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { -640, -64, -1696, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 671, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { 736, -64, -1024, 0 }, { { -416, 0, -1232, 0 }, { 416, 0, -1232, 0 }, { -416, 0, 1232, 0 }, { 416, 0, 1232, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1299, 2, 4, 0, 130, 0 },
+};
+
+GpPointLight D_dryfield_g_r_kitchen_8017F2E4[4] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2400, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 1000, 3200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1800, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3686, 3686, 3686, { 0, 0 } }, 300, 1200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1300, -1800, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3686, 3686, 3686, { 0, 0 } }, 300, 1200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1638, 1638, 1638, { 0, 0 } }, 0x186A0, 0x186A0 },
+};
+
+GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1] = {
+    { 0, NULL, 4, D_dryfield_g_r_kitchen_8017F2E4, 0, NULL },
+};
+
+GpAreaTmdRec D_dryfield_g_r_kitchen_8017F47C[2] = {
+    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_g_r_kitchen_8017F494[3] = {
+    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+    { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
+    { NULL, NULL },
+    { D_map_dryfield_8017B474, D_dryfield_g_r_kitchen_8017F47C },
+    { D_map_dryfield_8017B4B4, D_dryfield_g_r_kitchen_8017F494 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_dryfield_g_r_kitchen_8017F520[3] = {
+    0x10000035,
+    0x10000037,
+    0x10000035,
+};
+
+GpRoomParamRec D_dryfield_g_r_kitchen_8017F52C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_g_r_kitchen_8017F534[1] = {
+    { 0, 0, 1, 0, D_dryfield_g_r_kitchen_8017F520 },
+};
+
+GpRoomParamRec * D_dryfield_g_r_kitchen_8017F53C[8] = {
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F534,
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F52C,
+    D_dryfield_g_r_kitchen_8017F52C,
+};
+
+RoomEventMsg D_dryfield_g_r_kitchen_8017F55C = { 0 };
+
+u8 D_dryfield_g_r_kitchen_8017F564[4] = {
+    0,
+    34,
+    223,
+    253,
+};
+
+RoomEventReq D_dryfield_g_r_kitchen_8017F568 = { 0 };
+
+#define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
+#define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
 
 /// Event gate for the room's exit. Returns 1 when game-flag nibble
 /// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
@@ -66,7 +368,7 @@ static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* m
     s32 neg;
 
     flag                            = req->flagId;
-    D_dryfield_g_r_kitchen_8017F564 = 0;
+    D_dryfield_g_r_kitchen_8017F564[0] = 0;
     neg                             = flag < 0;
     got                             = (s16)flag;
     if (neg) {
@@ -90,7 +392,7 @@ static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* m
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_dryfield_g_r_kitchen_8017EBB4, 0, 0, 0);
-                D_dryfield_g_r_kitchen_8017F564 = 1;
+                D_dryfield_g_r_kitchen_8017F564[0] = 1;
                 return 2;
             }
             return ret;
@@ -147,7 +449,7 @@ void func_dryfield_g_r_kitchen_8017D74C(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_g_r_kitchen_8017F55C.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_dryfield_g_r_kitchen_8017F55C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_g_r_kitchen_8017F55C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_g_r_kitchen_8017F55C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -166,7 +468,7 @@ static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D8BC(void)
+s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -176,13 +478,13 @@ s32 func_dryfield_g_r_kitchen_8017D8BC(void)
 /// through the event gate with the room's own request - nibble 0x34, no item,
 /// cap command 3 and the two sound ids 0x52130001 and 0x52130004 - answering
 /// with the gate's result. Any other area answers 1.
-s32 func_dryfield_g_r_kitchen_8017D8C4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventReq req;
     s32          ret;
 
     *out = *in;
-    if (in->msgId == 0x14) {
+    if (in->prefix.packed == 0x14) {
         req.field_0 = 3;
         req.field_4 = 3;
         req.field_8 = 0x52130001;
@@ -198,14 +500,14 @@ s32 func_dryfield_g_r_kitchen_8017D8C4(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
 
 /// Handler for message 0x13F0 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D948(void)
+s32 func_dryfield_g_r_kitchen_8017D948(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_g_r_kitchen_8017D950(void)
+s32 func_dryfield_g_r_kitchen_8017D950(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -516,7 +818,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GpCoord* arg0, SVECTOR* arg1, SVE
 /// `func_dryfield_g_r_kitchen_8017D9FC`, in view 3 those of
 /// `D_dryfield_g_r_kitchen_8017EC08` through
 /// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
-static void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
+void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
     GpCoord* coord;
 

@@ -54,7 +54,7 @@ static s32 D_combustion_801309A4 = 0;
 /// the yaw the ignition applied, and either state ends as soon as the player
 /// is dying (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the
 /// row's `field_6` tick is reached.
-static void func_combustion_8012EF34(Task* arg0)
+void func_combustion_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -104,7 +104,7 @@ static void func_combustion_8012EF34(Task* arg0)
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].field_0;
             mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].field_2;
-            spawned      = Gp_SpawnEff(0x8006001C, coord, mem->age, &mem->move);
+            spawned      = Gp_SpawnEff(0x8006001C, coord, (s32)(mem->age), &mem->move);
             if (spawned != NULL) {
                 Task_Reparent(arg0, spawned->task);
             }
@@ -140,7 +140,7 @@ static void func_combustion_8012EF34(Task* arg0)
 /// parent. Either state releases the effect once the player is dying
 /// (`Gp_StateC08.field_3`), the room is fading (`Gp_State1C`) or the flame has lived
 /// 0x21 frames.
-static void func_combustion_8012F2BC(Task* arg0)
+void func_combustion_8012F2BC(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -312,7 +312,7 @@ static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
 /// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
 /// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
 /// for state 3) frames.
-static void func_combustion_8012F888(Task* arg0)
+void func_combustion_8012F888(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -674,7 +674,7 @@ static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_POP_BYTES(0x18);
 }
 
-static void func_combustion_801308E0(Task* arg0)
+void func_combustion_801308E0(Task* arg0)
 {
     GpCoord* coord;
 

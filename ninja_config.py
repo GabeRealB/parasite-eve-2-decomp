@@ -221,6 +221,8 @@ PERMUTER_DIR = Path("permuter")
 LIB_SRC_DIR = Path("src/lib")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "gen_asset_inc.py"
+GEN_MODEL_INC = TOOLS_DIR / "gen_model_inc.py"
+GEN_ANIMATION_INC = TOOLS_DIR / "gen_animation_inc.py"
 
 
 def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
@@ -243,6 +245,46 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
             raw = ASSETS_DIR / version / "raw" / type_dir / f"{aid}{rec['ext']}"
             width = {True: 1, "u8": 1, "u16": 2, "u32": 4}[rec["include"]]
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
+    return out
+
+
+def model_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
+    """Typed initializer inputs for model payloads owned by C translation units."""
+    from tools.gen_model_inc import components
+    from tools.gen_overlay_configs import declared_models
+
+    manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    out = []
+    for model in declared_models(manifest):
+        if not model["in_c"]:
+            continue
+        raw = ASSETS_DIR / version / "pe2pkg" / f"{model['package']}.pe2pkg"
+        parts = components(raw.read_bytes(), model["load"], model["source"])
+        prefix = f"{model['package']}_model_{model['source']:05X}"
+        outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc"
+                   for part in parts]
+        out.append((raw, outputs, model["load"], model["source"]))
+    return out
+
+
+def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
+    """Typed initializer inputs for animation sets embedded in C data."""
+    from tools.gen_animation_inc import components
+    from tools.gen_overlay_configs import declared_animations
+
+    manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    out = []
+    for resource in declared_animations(manifest):
+        if not resource["in_c"]:
+            continue
+        raw = ASSETS_DIR / version / "pe2pkg" / f"{resource['package']}.pe2pkg"
+        data = raw.read_bytes()
+        for source in resource["sets"]:
+            parts = components(data, resource["load"], source)
+            prefix = f"{resource['package']}_animation_{source:05X}"
+            outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc"
+                       for part in parts]
+            out.append((raw, outputs, resource["load"], source))
     return out
 
 
@@ -1034,7 +1076,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "objcopy",
         description="objcopy $out",
-        command=f"{OBJCOPY} -O binary $in $out",
+        command=f"{OBJCOPY} -O binary $pad_to $in $out",
     )
 
     if PLATFORM == Platform.Windows:
@@ -1060,7 +1102,28 @@ def ninja_build(
         description="asset-inc $out",
         command=f"{PYTHON} {GEN_ASSET_INC} $in $out $width",
     )
+    ninja_rules_file.rule(
+        "model-inc",
+        description="model-inc $in $source",
+        command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
+    )
+    ninja_rules_file.rule(
+        "animation-inc",
+        description="animation-inc $in $source",
+        command=f"{PYTHON} {GEN_ANIMATION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
+    )
     version = GAME_VERSIONS[game_version_idx].version_name
+    from tools.gen_overlay_configs import serialized_bss_tail, slot_packages
+
+    serialized_bss_sizes = {}
+    overlay_manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    for spec in overlay_manifest.values():
+        for package, slot, entry in slot_packages(spec):
+            objects = slot.get("objects") or entry["objects"]
+            if any("bss" in obj for obj in objects):
+                raw = (ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg").read_bytes()
+                serialized_bss_tail(package, objects, raw)
+                serialized_bss_sizes[package] = len(raw)
     ASSET_INC_OUTPUTS.clear()
     # Matching and nonmatching C builds are separate Ninja graphs. Both must
     # be able to generate their resource includes from an empty build tree.
@@ -1074,6 +1137,30 @@ def ninja_build(
                 variables={"width": str(width)},
             )
         ASSET_INC_OUTPUTS.append(str(inc))
+    for raw, outputs, load, source in model_includes(version):
+        for writer in asset_writers:
+            writer.build(
+                outputs=[str(inc) for inc in outputs], rule="model-inc", inputs=str(raw),
+                implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py")],
+                variables={"load": hex(load), "source": hex(source)},
+            )
+        ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
+    for raw, outputs, load, source in animation_includes(version):
+        for writer in asset_writers:
+            writer.build(
+                outputs=[str(inc) for inc in outputs], rule="animation-inc", inputs=str(raw),
+                implicit=[str(GEN_ANIMATION_INC), str(TOOLS_DIR / "peassets" / "pkg_anim.py")],
+                variables={"load": hex(load), "source": hex(source)},
+            )
+        ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
+
+    # Thousands of resource fragments can be embedded across the overlays.
+    # One ordering edge per C file keeps both Ninja graphs small; preprocessing
+    # depfiles still track the particular fragments each translation unit uses.
+    if ASSET_INC_OUTPUTS:
+        for writer in asset_writers:
+            writer.build("generated-asset-includes", "phony", inputs=ASSET_INC_OUTPUTS)
+        ASSET_INC_OUTPUTS[:] = ["generated-asset-includes"]
 
     ninja_rules_file.rule(
         "objdiff-config",
@@ -1246,6 +1333,10 @@ def ninja_build(
             rule="objcopy",
             inputs=f"{output}.elf",
             implicit=f"{output}.elf",
+            variables=(
+                {"pad_to": f"--pad-to=0x{serialized_bss_sizes[split_config.split_basename]:X}"}
+                if split_config.split_basename in serialized_bss_sizes else {}
+            ),
         )
 
         if split_config.split_basename in TARGETS_POSTBUILD:

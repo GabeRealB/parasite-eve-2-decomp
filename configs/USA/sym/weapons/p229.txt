@@ -1,1 +1,3 @@
 D_p229_8011E5E4 = 0x8011E5E4; // model named by a task descriptor
+
+func_p229_8011D1DC = 0x8011D1DC; // type:func

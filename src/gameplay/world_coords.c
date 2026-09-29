@@ -51,7 +51,7 @@
 typedef struct _GpRec12 {
     /* 0x0 */ s32 field_0; // payload from arg2
     /* 0x4 */ s32 field_4; // descending sort key (arg1)
-    /* 0x8 */ s32 field_8; // payload from arg3
+    /* 0x8 */ void* field_8; // light selected by the kind in field_0
 } GpRec12;
 STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
 
@@ -136,7 +136,7 @@ typedef struct {
     /* 0x00 */ byte pad[0x4C];
     /* 0x4C */ s32  field_0;
     /* 0x50 */ s32  field_4;
-    /* 0x54 */ s32  field_8;
+    /* 0x54 */ void* field_8;
 } GpSolveSlotView;
 STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 
@@ -214,9 +214,9 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2
 
 static __inline__ s32 solve_luma(GpLight* arg0);
 
-static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, s32 obj, GpRec12* last);
+static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, void* obj, GpRec12* last);
 
-static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, s32 obj, GpLightSolveScratch* block);
+static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, void* obj, GpLightSolveScratch* block);
 
 /// Fills a light colour matrix so all three lights share one colour: every
 /// column of the red, green and blue rows gets `r`, `g` and `b`.
@@ -251,7 +251,7 @@ static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
 
 static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4);
 
 static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 
@@ -734,13 +734,13 @@ static __inline__ s32 solve_luma(GpLight* arg0)
     }
 }
 
-static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, s32 obj, GpRec12* last)
+static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, void* obj, GpRec12* last)
 {
     if (val > 0 && last->field_4 < val) {
         Gp_InsertRankedSlot(slots, val, kind, obj, 2);
     }
 }
-static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, s32 obj, GpLightSolveScratch* block)
+static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, void* obj, GpLightSolveScratch* block)
 {
     if (val > 0 && block->slots[3].field_4 < val) {
         Gp_InsertRankedSlot(slots, val, kind, obj, 2);
@@ -760,7 +760,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     s32           i;
     s32           sum;
     s32           val;
-    s32*          cutoffPtr;
+    void**        cutoffPtr;
     GpPointLight* light;
 
     startr   = start;
@@ -855,7 +855,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                 light            = &p->data.light;
                 val              = Gp_LightPoint(light, (VECTOR3*)&block->pos);
                 block->intensity = val;
-                solve_rank(block->slots, val, 3, (s32)light, last);
+                solve_rank(block->slots, val, 3, light, last);
             }
             pointIndex++;
             p++;
@@ -867,7 +867,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         for (i = 0; i < set->n60; i++, light++) {
             val              = Gp_LightPointRoom(light, (VECTOR3*)&block->pos);
             block->intensity = val;
-            solve_rank(block->slots, val, 1, (s32)light, &block->slots[3]);
+            solve_rank(block->slots, val, 1, light, &block->slots[3]);
         }
     }
 
@@ -882,7 +882,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
             val              = Gp_LightCone(obj6C, (VECTOR3*)&block->pos);
             coneRank         = 2;
             block->intensity = val;
-            solve_rank(block->slots, val, coneRank, (s32)obj6C, &block->slots[3]);
+            solve_rank(block->slots, val, coneRank, obj6C, &block->slots[3]);
             i++;
             obj6C++;
         }
@@ -896,7 +896,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         for (; i < set->n58;) {
             val              = solve_luma(obj58);
             block->intensity = val;
-            solve_rank0(block->slots, val, 0, (s32)obj58, block);
+            solve_rank0(block->slots, val, 0, obj58, block);
             i++;
             obj58++;
         }
@@ -926,7 +926,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
             slotArg = (GpSolveSlotView*)((GpRec12*)block + end);
 
             do {
-                light = (GpLight*)block->slots[i].field_8;
+                light = block->slots[i].field_8;
                 if (light != NULL) {
                     if (i == end - 1) {
                         cutoffPtr = &((GpSolveSlotView*)((GpRec12*)block + count))->field_8;
@@ -935,7 +935,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                             s32      attenuation;
                             s32      diff;
                             s32      cutoffScale;
-                            cutoffLight = (GpLight*)slotArg->field_8;
+                            cutoffLight = slotArg->field_8;
                             delta       = 0;
                             if (block->slots[count].field_0 != 0) {
                                 attenuation = light->u.at.scale;
@@ -950,7 +950,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                                     light->u.at.scale = diff;
                                 }
                             }
-                            extraLight     = (GpLight*)slotArg->field_8;
+                            extraLight     = slotArg->field_8;
                             delta        >>= 2;
                             amb            = (slotArg->field_4 >> 2) + delta;
                             colorMtx->t[2] = amb;
@@ -965,13 +965,13 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                     switch (block->slots[i].field_0) {
                         case 1:
                         case 3:
-                            solve_func_800D98C4(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D98C4(i, block->slots[i].field_8, &block->pos, extra);
                             break;
                         case 2:
-                            solve_func_800D9A30(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D9A30(i, block->slots[i].field_8, &block->pos, extra);
                             break;
                         default:
-                            solve_func_800D9794(i, (GpLight*)block->slots[i].field_8, &block->pos, extra);
+                            solve_func_800D9794(i, block->slots[i].field_8, &block->pos, extra);
                             break;
                     }
                 }
@@ -1637,7 +1637,7 @@ static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     SCRATCH_POP(GpLightScratch);
 }
 
-void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4)
 {
     GpRec12* rec;
     GpRec12* next;
@@ -1704,7 +1704,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
     Task*      slot;
     TmdObject* extra;
     GameActor* actor;
-    s32        result;
+    GpRoomCoordSet* result;
     s32        i;
 
     slot  = gameGetPtrSlot(3);
@@ -1716,7 +1716,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
             taskKill(arg0);
             return;
         }
-        arg0->spawnArg2.pointer     = (void*)result;
+        arg0->spawnArg2.pointer     = result;
         extra->lightMtx     = &Gp_DefaultMtx;
         extra->colorMtx     = &Gp_DefaultMtx2;
         actor               = slot->work;

@@ -91,7 +91,7 @@ void Gp_InitCapTask(Task* task)
     task->state++;
 }
 
-void Gp_CapTaskState1(void)
+void Gp_CapTaskState1(Task* task)
 {
     if (gDisplayState.field_112 != 0) {
         func_80724120();

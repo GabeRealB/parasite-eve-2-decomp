@@ -48,7 +48,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Slot40, 0x20);
 /// | `func_actor_503500_8013852C`  | `D_actor_503500_80176EE8[spawnArg1 - 2]`  | `Mem_Set(_, 0x2EC)` |
 /// | `func_actor_503500_8013AD64`  | `D_actor_503500_801774C0[spawnArg1 - 4]`  | `Mem_Set(_, 0xF0)`  |
 /// | `func_actor_503500_8013BEE4`  | `D_actor_503500_801776A0`                 | `Mem_Set(_, 0xF4)`  |
-/// | `func_actor_503500_8013CAE4`  | `D_actor_503500_801770E8`                 | `Mem_Set(_, 0xF4)`  |
+/// | `func_actor_503500_8013CAE4`  | `D_actor_503500_80177794[spawnArg1 - 7]`                 | `Mem_Set(_, 0xF4)`  |
 /// | `func_actor_503500_8013DD10`  | `D_actor_503500_8017797C`                 | `Mem_Set(_, 0xF0)`  |
 /// | `func_actor_503500_8013ECBC`  | `D_actor_503500_80177A6C`                 | `Mem_Set(_, 0xF4)`  |
 /// | `func_actor_503500_8013FA74`  | `D_actor_503500_80177B60`                 | `Mem_Set(_, 0x3D8)` |
@@ -364,7 +364,7 @@ STATIC_ASSERT_SIZEOF(Actor503500UVec, 8);
 /// (each followed by a `Gp_InitRec18Table` on the record area at 0x180) and
 /// `func_actor_503500_80143F78` hands all three back to `Gp_UnlinkObj`.
 /// `func_actor_503500_801437D0` copies the parent's root rotation into
-/// `field_40`, turns it by +/-0x5DC with `func_8004BFF8` (sign from
+/// `field_40`, turns it by +/-0x5DC with `RotMatrixY` (sign from
 /// `field_220`) and hands it to the task it spawns.
 typedef struct Actor503500Work224 {
     /* 0x000 */ byte    pad_0[0x40];

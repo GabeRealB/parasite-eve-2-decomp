@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b1_control_room_access_tunnel.h"
+#include "mapui/map_shelter.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -24,8 +26,6 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-
 /// The room's message table, installed on its task by state 0.
 extern GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
 
@@ -35,34 +35,65 @@ extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
 /// The smoke trail's two spawn offsets: `[0]` places the effect's own
 /// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
 /// under its own name.
-extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EE4[];
-extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EEC;
 
 static void func_shelter_b1_control_room_access_tunnel_8017E57C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_control_room_access_tunnel_8017F8AC(GpCoord* arg0, s16 arg1, u8* arg2);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(void)
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task *, s32, GpMessageArg, GpMessageArg);
+
+GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
+    { 5102, func_shelter_b1_control_room_access_tunnel_8017D5EC },
+    { 5105, func_shelter_b1_control_room_access_tunnel_8017D5E4 },
+    { 5103, func_shelter_b1_control_room_access_tunnel_8017D638 },
+    { 5104, func_shelter_b1_control_room_access_tunnel_8017D630 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[2] = {
+    { 5017, -196, 1184, 0 },
+    { 4172, -196, 1184, 0 },
+};
+
+SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[7] = {
+    { 2313, -196, 1184, 0 },
+    { 1527, -196, 1184, 0 },
+    { 5017, -196, -1028, 0 },
+    { 4172, -196, -1028, 0 },
+    { 2313, -196, -1028, 0 },
+    { 1527, -196, -1028, 0 },
+    { 4266, -1272, -1160, 0 },
+};
+
+SVECTOR D_shelter_b1_control_room_access_tunnel_80181EE4[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `func_80179A04` and returns 1.
-s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// passes both to `func_map_shelter_80179A04` and returns 1.
+s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(void)
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(void)
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -288,7 +319,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s
 /// On its first tick stores six effect ids in gameplay's `D_801157xx` slots;
 /// every tick then draws the room's gouraud cones and disc for the current
 /// camera view (views 2 and 3).
-static void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
+void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
 {
     u8 view;
 
@@ -325,7 +356,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
 /// angle and, once the level drops to 0x10, falls into state 3, which releases
 /// the work block. The block is also released once the room's event state
 /// reaches 4.
-static void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* task)
+void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -502,7 +533,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017E9A8(GpCoord* arg0, s
 /// sixteen and draws the ribbon between the two trails. The work block is
 /// released once the tick count reaches the spawn argument. Nothing runs
 /// while the room's event state is 2 or above.
-static void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
+void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -560,9 +591,12 @@ static void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_b1_control_room_access_tunnel_80181EEC.vx;
-                coord.coord.t[1] = D_shelter_b1_control_room_access_tunnel_80181EEC.vy;
-                coord.coord.t[2] = D_shelter_b1_control_room_access_tunnel_80181EEC.vz;
+                {
+                    SVECTOR* edge = &D_shelter_b1_control_room_access_tunnel_80181EE4[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -701,7 +735,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017F22C(GpCoord* arg0, G
 /// and a second one whose radius grows by 0x30 per tick, both dimming by 0x20
 /// per tick (state 2); either way state 3 releases the work block after seven
 /// ticks. The block is also released once the room's event state reaches 4.
-static void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
+void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

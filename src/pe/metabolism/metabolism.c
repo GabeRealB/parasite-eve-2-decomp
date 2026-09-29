@@ -1,8 +1,9 @@
+#include "pe/metabolism.h"
+
 #include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "pe/metabolism.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -51,7 +52,7 @@ static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
 /// two rings and two or three arcs, each arc on a colour halved again from the
 /// last.
-static void func_metabolism_8012EF34(Task* arg0)
+void func_metabolism_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -130,7 +131,7 @@ static void func_metabolism_8012EF34(Task* arg0)
                     mem->move.vz = 0;
                     mem->move.vy = temp_lo >> 12;
                     spawned      = Gp_SpawnEff(0x60013, coord,
-                                               D_metabolism_8012FB54[mem->index].field_6,
+                                               (s32)(D_metabolism_8012FB54[mem->index].field_6),
                                                &mem->move);
                     if (spawned != NULL) {
                         Task_Reparent(arg0, spawned->task);
@@ -189,7 +190,7 @@ static void func_metabolism_8012EF34(Task* arg0)
 /// three when the level's difficulty band allows it, the alternate
 /// `func_800EB6E8` quad that fades its colour by 0x18 a frame (state 2).
 /// Both states lift the frame and draw on odd ticks until it runs out.
-static void func_metabolism_8012F5A0(Task* arg0)
+void func_metabolism_8012F5A0(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

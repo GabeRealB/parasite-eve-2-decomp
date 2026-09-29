@@ -21,6 +21,20 @@ typedef struct _GpAnimPose {
 } GpAnimPose;
 STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
 
+/// Packed translation + rotation (no `SVECTOR` pad). `Gp_AnimBlendPose`
+/// GPF/GPL-blends `vx`/`vy`/`vz` and copies `rx`/`ry`/`rz` into
+/// `GpAnimScratch80.vec0` / `vec1`. `func_800B3448` dispatches here when
+/// `GpAnimSlot.poseKind == 1`.
+typedef struct _GpPackedPose {
+    /* 0x00 */ s16 vx;
+    /* 0x02 */ s16 vy;
+    /* 0x04 */ s16 vz;
+    /* 0x06 */ s16 rx;
+    /* 0x08 */ s16 ry;
+    /* 0x0A */ s16 rz;
+} GpPackedPose;
+STATIC_ASSERT_SIZEOF(GpPackedPose, 0xC);
+
 /// One bone pose of a track that only rotates: the three Euler angles of the
 /// pose's `SVECTOR`, packed into a single 11/10/11-bit word at a resolution of
 /// 8 angle units.

@@ -1,3 +1,5 @@
+#include "dryfield_night_factory_private.h"
+
 #include "common.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
@@ -25,11 +27,14 @@
 #include "main/tmd.h"
 #include "overlay.h"
 
-void func_8004BFF8(s32 angle, MATRIX* matrix);
+#include "gameplay/room.h"
+#include "rooms/room_common.h"
+#include "rooms/stage_tables.h"
+
+#include "gameplay/area.h"
 
 /// The factory model task's spawn tables for the two stage variants.
 extern TaskDesc D_dryfield_night_factory_80186DE0[];
-extern TaskDesc D_dryfield_night_factory_80186E28[];
 
 /// The collision-grid templates the factory model's faces are rebuilt from,
 /// and the one two of the grid's faces are restored from.
@@ -39,10 +44,6 @@ extern GpGridParams D_dryfield_night_factory_80186DBC;
 
 /// The two argument blocks one of the turn handlers hands `Gp_SpawnScript18`,
 /// one pair per stage variant.
-extern u8 D_dryfield_night_factory_8018A39C[];
-extern u8 D_dryfield_night_factory_8018A3A8[];
-extern u8 D_dryfield_night_factory_8018A7BC[];
-extern u8 D_dryfield_night_factory_8018A7C8[];
 
 static void func_dryfield_night_factory_8017D6F8(Task* task);
 static s32  func_dryfield_night_factory_8017F00C(Task* task);
@@ -75,6 +76,192 @@ static const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC = {
     { func_dryfield_night_factory_8017FDC8, func_dryfield_night_factory_8017F00C, func_dryfield_night_factory_8017F1DC },
 };
 
+extern GpSprtCmd D_dryfield_night_factory_80187EC0[2];
+extern GpSprtCmd D_dryfield_night_factory_80187FD4[6];
+extern GpSprtCmd D_dryfield_night_factory_801880F4[5];
+extern GpSprtCmd D_dryfield_night_factory_80188784[7];
+extern GpSprtCmd D_dryfield_night_factory_801887BC[2];
+extern GpSprtCmd D_dryfield_night_factory_80188A4C[7];
+extern GpSprtCmd D_dryfield_night_factory_80188D90[8];
+extern GpSprtCmd D_dryfield_night_factory_80188EC0[3];
+extern GpSprtCmd D_dryfield_night_factory_80188F28[3];
+extern GpSprtCmd D_dryfield_night_factory_80188F40[2];
+extern GpSprtCmd D_dryfield_night_factory_80188F50[2];
+extern GpSprtCmd D_dryfield_night_factory_80188F60[2];
+extern GpSprtCmd D_dryfield_night_factory_80188F70[2];
+extern GpSprtCmd D_dryfield_night_factory_80188F80[2];
+extern GpSprtCmd D_dryfield_night_factory_801895A8[6];
+extern GpSprtCmd D_dryfield_night_factory_80189858[5];
+extern GpSprtCmd D_dryfield_night_factory_80189880[2];
+extern GpSprtCmd D_dryfield_night_factory_801899E4[6];
+extern GpSprtElem D_dryfield_night_factory_80187ED0[13];
+extern GpSprtElem D_dryfield_night_factory_80188004[12];
+extern GpSprtElem D_dryfield_night_factory_8018811C[82];
+extern GpSprtElem D_dryfield_night_factory_801887CC[32];
+extern GpSprtElem D_dryfield_night_factory_80188A84[39];
+extern GpSprtElem D_dryfield_night_factory_80188DD0[12];
+extern GpSprtElem D_dryfield_night_factory_80188ED8[4];
+extern GpSprtElem D_dryfield_night_factory_80188F90[78];
+extern GpSprtElem D_dryfield_night_factory_801895D8[32];
+extern GpSprtElem D_dryfield_night_factory_80189890[17];
+
+GpSprtCmd D_dryfield_night_factory_80189A14[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_dryfield_night_factory_80189A24[19] = {
+    { { .empty = D_dryfield_night_factory_80187EC0 }, D_dryfield_night_factory_80187EC0, NULL },
+    { { .elements = D_dryfield_night_factory_80187ED0 }, D_dryfield_night_factory_80187FD4, NULL },
+    { { .elements = D_dryfield_night_factory_80188004 }, D_dryfield_night_factory_801880F4, NULL },
+    { { .elements = D_dryfield_night_factory_8018811C }, D_dryfield_night_factory_80188784, NULL },
+    { { .empty = D_dryfield_night_factory_801887BC }, D_dryfield_night_factory_801887BC, NULL },
+    { { .elements = D_dryfield_night_factory_801887CC }, D_dryfield_night_factory_80188A4C, NULL },
+    { { .elements = D_dryfield_night_factory_80188A84 }, D_dryfield_night_factory_80188D90, NULL },
+    { { .elements = D_dryfield_night_factory_80188DD0 }, D_dryfield_night_factory_80188EC0, NULL },
+    { { .elements = D_dryfield_night_factory_80188ED8 }, D_dryfield_night_factory_80188F28, NULL },
+    { { .empty = D_dryfield_night_factory_80188F40 }, D_dryfield_night_factory_80188F40, NULL },
+    { { .empty = D_dryfield_night_factory_80188F50 }, D_dryfield_night_factory_80188F50, NULL },
+    { { .empty = D_dryfield_night_factory_80188F60 }, D_dryfield_night_factory_80188F60, NULL },
+    { { .empty = D_dryfield_night_factory_80188F70 }, D_dryfield_night_factory_80188F70, NULL },
+    { { .empty = D_dryfield_night_factory_80188F80 }, D_dryfield_night_factory_80188F80, NULL },
+    { { .elements = D_dryfield_night_factory_80188F90 }, D_dryfield_night_factory_801895A8, NULL },
+    { { .elements = D_dryfield_night_factory_801895D8 }, D_dryfield_night_factory_80189858, NULL },
+    { { .empty = D_dryfield_night_factory_80189880 }, D_dryfield_night_factory_80189880, NULL },
+    { { .elements = D_dryfield_night_factory_80189890 }, D_dryfield_night_factory_801899E4, NULL },
+    { { .elements = D_dryfield_night_factory_80189890 }, D_dryfield_night_factory_801899E4, NULL },
+};
+
+GpPointLight D_dryfield_night_factory_80189B08[4] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 8762 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1419, 4022 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5657, -1403, 9444 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1759, 1784, 1784, { 0, 0 } }, 1000, 1319 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 2398 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1702, 3699 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 5767 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1522, 4180 },
+};
+
+GpRoomCoordSet D_dryfield_night_factory_80189C88[1] = {
+    { 0, NULL, 4, D_dryfield_night_factory_80189B08, 0, NULL },
+};
+
+GpObj4C D_dryfield_night_factory_80189CA0[14] = {
+    { NULL, NULL, NULL, { 2925, -2368, 1935, 0 }, { { -144, -2976, -2288, 0 }, { -144, 2976, -2288, 0 }, { 144, -2976, 2288, 0 }, { 144, 2976, 2288, 0 } }, { -4092, 0, 257, 0 }, { 0, 0, 4096, 0 }, 3753, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 2704, -2368, 1920, 0 }, { { 144, -2976, 2400, 0 }, { 144, 2976, 2400, 0 }, { -144, -2976, -2400, 0 }, { -144, 2976, -2400, 0 } }, { 4090, 0, -246, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 1312, -2304, 5840, 0 }, { { 1616, -2976, 160, 0 }, { 1616, 2976, 160, 0 }, { -1616, -2976, -160, 0 }, { -1616, 2976, -160, 0 } }, { 405, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3386, 0, 4, 7, 1, 0 },
+    { NULL, NULL, NULL, { 1280, -2368, 5712, 0 }, { { -1632, -2976, -144, 0 }, { -1632, 2976, -144, 0 }, { 1632, -2976, 144, 0 }, { 1632, 2976, 144, 0 } }, { -362, 0, 4091, 0 }, { 0, 0, 4096, 0 }, 3396, 0, 7, 4, 1, 0 },
+    { NULL, NULL, NULL, { 1712, -2336, 8096, 0 }, { { -1520, -2976, 1280, 0 }, { -1520, 2976, 1280, 0 }, { 1520, -2976, -1280, 0 }, { 1520, 2976, -1280, 0 } }, { 2640, 0, 3134, 0 }, { 0, 0, 4096, 0 }, 3574, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { 1760, -2336, 8289, 0 }, { { 1520, -2976, -1280, 0 }, { 1520, 2976, -1280, 0 }, { -1520, -2976, 1280, 0 }, { -1520, 2976, 1280, 0 } }, { -2641, 0, -3136, 0 }, { 0, 0, 4096, 0 }, 3574, 0, 7, 8, 1, 0 },
+    { NULL, NULL, NULL, { 3232, -2336, 5040, 0 }, { { 64, -2976, -752, 0 }, { 64, 2976, -752, 0 }, { -64, -2976, 752, 0 }, { -64, 2976, 752, 0 } }, { -4094, 0, -349, 0 }, { 0, 0, 4096, 0 }, 3061, 0, 4, 6, 1, 0 },
+    { NULL, NULL, NULL, { 3088, -2368, 5087, 0 }, { { -64, -2976, 752, 0 }, { -64, 2976, 752, 0 }, { 64, -2976, -752, 0 }, { 64, 2976, -752, 0 } }, { 4091, 0, 348, 0 }, { 0, 0, 4096, 0 }, 3061, 0, 6, 4, 1, 0 },
+    { NULL, NULL, NULL, { 3360, -2336, 9648, 0 }, { { 112, -2976, -2032, 0 }, { 112, 2976, -2032, 0 }, { -112, -2976, 2032, 0 }, { -112, 2976, 2032, 0 } }, { -4097, 0, -227, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 8, 9, 1, 0 },
+    { NULL, NULL, NULL, { 3184, -2272, 9648, 0 }, { { -128, -2976, 2112, 0 }, { -128, 2976, 2112, 0 }, { 128, -2976, -2112, 0 }, { 128, 2976, -2112, 0 } }, { 4091, 0, 247, 0 }, { 0, 0, 4096, 0 }, 3647, 0, 9, 8, 1, 0 },
+    { NULL, NULL, NULL, { 1104, -2144, 4080, 0 }, { { -1152, -2976, 16, 0 }, { -1152, 2976, 16, 0 }, { 1152, -2976, -16, 0 }, { 1152, 2976, -16, 0 } }, { 56, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 3187, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 1040, -2144, 4192, 0 }, { { 1360, -2976, -48, 0 }, { 1360, 2976, -48, 0 }, { -1360, -2976, 48, 0 }, { -1360, 2976, 48, 0 } }, { -146, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3268, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 4992, -2080, 4275, 0 }, { { 1360, -2976, 0, 0 }, { 1360, 2976, 0, 0 }, { -1360, -2976, 0, 0 }, { -1360, 2976, 0, 0 } }, { 0, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3268, 0, 2, 6, 1, 0 },
+    { NULL, NULL, NULL, { 5008, -2112, 4160, 0 }, { { -1600, -2976, 0, 0 }, { -1600, 2976, 0, 0 }, { 1600, -2976, 0, 0 }, { 1600, 2976, 0, 0 } }, { 0, 0, 4107, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 6, 2, 129, 0 },
+};
+
+GpRoomBoundVec D_dryfield_night_factory_8018A0C8[20] = {
+    { 19, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 763, 757, 658, 746 },
+    { 870, 852, 838, 857 },
+    { 638, 625, 617, 628 },
+    { 16, 16, 16, 16 },
+    { 458, 450, 448, 452 },
+    { 534, 526, 518, 528 },
+    { 519, 513, 500, 513 },
+    { 479, 477, 477, 477 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+GpObj4C D_dryfield_night_factory_8018A168[19] = {
+    { NULL, NULL, NULL, { 5328, -48, 1296, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 807, 0, 25, 17, 2, 0 },
+    { NULL, NULL, NULL, { 5712, -64, 0x2B70, 0 }, { { -672, 0, -928, 0 }, { 672, 0, -928, 0 }, { -672, 0, 928, 0 }, { 672, 0, 928, 0 } }, { 0, 4108, 0, 0 }, { -3784, 0, -1567, 0 }, 1144, 2, 5, 255, 2, 0 },
+    { NULL, NULL, NULL, { 336, -64, 544, 0 }, { { -688, 0, -672, 0 }, { 688, 0, -672, 0 }, { -688, 0, 672, 0 }, { 688, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 960, 2, 6, 255, 2, 0 },
+    { NULL, NULL, NULL, { 5856, -64, 5600, 0 }, { { -496, 0, -576, 0 }, { 496, 0, -576, 0 }, { -496, 0, 576, 0 }, { 496, 0, 576, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 759, 2, 3, 255, 2, 0 },
+    { NULL, NULL, NULL, { 6224, -64, 3968, 0 }, { { -1264, 0, -416, 0 }, { 1264, 0, -416, 0 }, { -1264, 0, 416, 0 }, { 1264, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1330, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 6240, -64, 4816, 0 }, { { -1264, 0, -448, 0 }, { 1264, 0, -448, 0 }, { -1264, 0, 448, 0 }, { 1264, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, 4096, 0 }, 1336, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 384, -64, 7328, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, 0, 22, 34, 2, 0 },
+    { NULL, NULL, NULL, { 5440, -64, 7088, 0 }, { { -528, 0, -992, 0 }, { 528, 0, -992, 0 }, { -528, 0, 992, 0 }, { 528, 0, 992, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1123, 0, 24, 49, 2, 0 },
+    { NULL, NULL, NULL, { 1568, -64, 7104, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 807, 2, 12, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3712, -64, 2528, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 807, 2, 15, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3424, -64, 0, 0 }, { { -1872, 0, -304, 0 }, { 464, 0, -304, 0 }, { -1072, 0, 1296, 0 }, { 464, 0, 1296, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1894, 2, 16, 0, 4, 0 },
+    { NULL, NULL, NULL, { 4816, -64, 928, 0 }, { { -768, 0, -368, 0 }, { 768, 0, -368, 0 }, { -768, 0, 368, 0 }, { 768, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 851, 2, 17, 0, 2, 0 },
+    { NULL, NULL, NULL, { 320, -64, 2336, 0 }, { { -512, 0, -1488, 0 }, { 1408, 0, -912, 0 }, { -512, 0, 880, 0 }, { 1408, 0, 880, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1673, 2, 18, 0, 4, 0 },
+    { NULL, NULL, NULL, { 1799, -64, 0x2787, 0 }, { { -775, 0, 52, 0 }, { -269, 0, -621, 0 }, { 322, 0, 592, 0 }, { 724, 0, -20, 0 } }, { 0, 4099, 0, 0 }, { 3406, 0, -2276, 0 }, 775, 2, 20, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3456, -64, 7440, 0 }, { { -2208, 0, -2688, 0 }, { 1760, 0, -2688, 0 }, { -2208, 0, 2688, 0 }, { 1760, 0, 2688, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 3472, 2, 24, 0, 4, 0 },
+    { NULL, NULL, NULL, { 1248, -64, 8960, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, 2, 22, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4816, -64, 1744, 0 }, { { -928, 0, -384, 0 }, { 928, 0, -384, 0 }, { -928, 0, 384, 0 }, { 928, 0, 384, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, -4091, 0 }, 1003, 2, 15, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4751, -64, 3455, 0 }, { { -947, 0, -557, 0 }, { 1098, 0, -195, 0 }, { -1097, 0, 196, 0 }, { 948, 0, 558, 0 } }, { 0, 4105, 0, 0 }, { -201, 0, 4091, 0 }, 1108, 2, 15, 0, 2, 0 },
+    { NULL, NULL, NULL, { 5632, -64, 9808, 0 }, { { -672, 0, -368, 0 }, { 672, 0, -368, 0 }, { -672, 0, 368, 0 }, { 672, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { -3612, 0, 1931, 0 }, 765, 2, 21, 0, 130, 0 },
+};
+
+GpAreaVariant D_dryfield_night_factory_8018A70C[11] = { 0 };
+
+s32 D_dryfield_night_factory_8018A764[3] = {
+    0x10000051,
+    0x10000053,
+    0x10000051,
+};
+
+s32 D_dryfield_night_factory_8018A770[3] = {
+    0x10000015,
+    0x10000017,
+    0x10000015,
+};
+
+GpRoomParamRec D_dryfield_night_factory_8018A77C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_night_factory_8018A784[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_night_factory_8018A78C[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_factory_8018A764 },
+};
+
+GpRoomParamRec D_dryfield_night_factory_8018A794[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_factory_8018A770 },
+};
+
+GpRoomParamRec * D_dryfield_night_factory_8018A79C[8] = {
+    D_dryfield_night_factory_8018A77C,
+    D_dryfield_night_factory_8018A784,
+    D_dryfield_night_factory_8018A78C,
+    D_dryfield_night_factory_8018A794,
+    D_dryfield_night_factory_8018A77C,
+    D_dryfield_night_factory_8018A77C,
+    D_dryfield_night_factory_8018A77C,
+    D_dryfield_night_factory_8018A77C,
+};
+
+GpScriptCmd D_dryfield_night_factory_8018A7BC[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
+
+GpScriptRec D_dryfield_night_factory_8018A7C8[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
+
+RoomEventMsg D_dryfield_night_factory_8018A7D4 = { 0 };
+
+u8 D_dryfield_night_factory_8018A7DC = 0;
+
+TaskDesc * D_dryfield_night_factory_8018A7E0 = NULL;
+
+TaskDesc * D_dryfield_night_factory_8018A7E4 = NULL;
+
+Task ** D_dryfield_night_factory_8018A7E8 = NULL;
+
+RoomEventReq D_dryfield_night_factory_8018A7EC = { 0 };
+
 /// State 0 of the room's factory model: allocate the work block, seed it from
 /// the progress nibble, point the model's coordinate at the seeded position
 /// and the light/color matrices at the block's own, then pick the spawn table
@@ -104,7 +291,7 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
     obj->flags    &= 0xFF7F;
     if (work->field_0 & 1) {
         work->field_10.value = 0x4000000;
-        func_8004BFF8(0x4000000, &coord->coord);
+        RotMatrixY(0x4000000, &coord->coord);
     }
     if (work->field_0 & 2) {
         work->field_C.value = 0xFDC60000;
@@ -117,7 +304,7 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
     func_dryfield_night_factory_8017FB68(task);
     func_dryfield_night_factory_8017D858(task, 1, 0);
     if (gGameSession->at4.loc.stage == 2) {
-        Task_SpawnFromTable(D_dryfield_night_factory_80186E28, 7, 0, task);
+        Task_SpawnFromTable(D_dryfield_factory_80186E28, 7, 0, task);
     } else {
         Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, task);
     }
@@ -151,7 +338,7 @@ static void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32
 
     coord = task->extra.tmd->coords;
     if (gGameSession->at4.loc.stage == 2) {
-        geom = &D_dryfield_night_factory_80187BF8;
+        geom = &D_dryfield_factory_80187BF8;
     } else {
         geom = &D_dryfield_night_factory_80187BF0;
     }
@@ -272,7 +459,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    func_8004BFF8(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.part.whole, &mat->mat);
     coord->flg = 0;
     return done;
 }
@@ -352,7 +539,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    func_8004BFF8(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.part.whole, &mat->mat);
     coord->flg = 0;
     return done;
 }
@@ -530,7 +717,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
             if (work->field_10.value > 0x800000) {
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18(D_dryfield_night_factory_8018A39C, D_dryfield_night_factory_8018A3A8);
+                    Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
                     Gp_EnqueueStageSnd6(0x53170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(D_dryfield_night_factory_8018A7BC, D_dryfield_night_factory_8018A7C8);
@@ -585,7 +772,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    func_8004BFF8(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.part.whole, &mat->mat);
     coord->flg = 0;
     return done;
 }
@@ -621,7 +808,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
             if (work->field_10.value < 0x3800000) {
                 if (gGameSession->at4.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
-                    Gp_SpawnScript18(D_dryfield_night_factory_8018A39C, D_dryfield_night_factory_8018A3A8);
+                    Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
                     Gp_EnqueueStageSnd6(0x53170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(D_dryfield_night_factory_8018A7BC, D_dryfield_night_factory_8018A7C8);
@@ -676,7 +863,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
     mat->ident.m11_m12 = 0x1000;
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
-    func_8004BFF8(work->field_10.part.whole, &mat->mat);
+    RotMatrixY(work->field_10.part.whole, &mat->mat);
     coord->flg = 0;
     return done;
 }
@@ -938,7 +1125,7 @@ void func_dryfield_night_factory_8017F734(Task* task)
     s32           i;
 
     if (gGameSession->at4.loc.stage == 2) {
-        geom = &D_dryfield_night_factory_80187BF8;
+        geom = &D_dryfield_factory_80187BF8;
     } else {
         geom = &D_dryfield_night_factory_80187BF0;
     }

@@ -1,6 +1,10 @@
 #ifndef ROOMS_MINE_MESA_H
 #define ROOMS_MINE_MESA_H
 
+#include "gameplay/area.h"
+
+#include "types.h"
+
 #include "common.h"
 #include "rooms/room.h"
 
@@ -21,7 +25,7 @@ extern s8               D_mine_mesa_80189B48;
 extern RoomLatchedEvent D_mine_mesa_80189B60;
 
 /// The room's task descriptor table; its spawners pick an entry by index.
-extern TaskDesc D_mine_mesa_801842F4;
+extern TaskDesc D_mine_mesa_801842F4[];
 
 /// Handle of the task spawned from entry 1 or 3 of `D_mine_mesa_801842F4`, or
 /// NULL while none runs.
@@ -30,5 +34,13 @@ extern Task* D_mine_mesa_80189B54;
 /// Handle of the task spawned from entry 4 of `D_mine_mesa_801842F4`, or NULL
 /// while none runs.
 extern Task* D_mine_mesa_80189B5C;
+
+void func_mine_mesa_801811C4(s32 height);
+
+void func_mine_mesa_8017F230(Task* task);
+void func_mine_mesa_8017FC94(Task* task);
+void func_mine_mesa_8018057C(Task* task);
+void func_mine_mesa_8017ED08(Task* arg0);
+extern GpAreaVariant D_mine_mesa_801898F4[12];
 
 #endif // ROOMS_MINE_MESA_H

@@ -1,3 +1,6 @@
+#include "shelter_b1_sterilization_room_private.h"
+#include "mapui/map_shelter.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -11,6 +14,7 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
 #include "rooms/shelter_b1_sterilization_room.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
@@ -44,6 +48,10 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+
+#include "gameplay/animation.h"
+
+extern GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28];
 
 /// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
 /// stride is known.
@@ -102,29 +110,38 @@ extern UiObjectDesc D_shelter_b1_sterilization_room_801847E4;
 /// List state of the menu `func_shelter_b1_sterilization_room_8017EB2C` runs.
 extern UiList D_shelter_b1_sterilization_room_80184810;
 
-extern s32                             D_shelter_b1_sterilization_room_80184E40;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, GpMsg13EF *, s32);
+        s32 (*call2)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call3)(s32, s32, s32);
+    } handler;
+} ShelterB1SterilizationRoomMessageEntry;
+STATIC_ASSERT_SIZEOF(ShelterB1SterilizationRoomMessageEntry, 8);
+
+extern ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6];
 extern TaskDesc                        D_shelter_b1_sterilization_room_80184E70;
 extern s32                             D_shelter_b1_sterilization_room_80184E7C;
-extern s16                             D_shelter_b1_sterilization_room_80184E80;
-extern s16                             D_shelter_b1_sterilization_room_80184E82;
+extern s16 D_shelter_b1_sterilization_room_80184E80[3];
 extern GpGridParams                    D_shelter_b1_sterilization_room_80184F28;
-extern s32                             D_shelter_b1_sterilization_room_80188590;
-extern s32                             D_shelter_b1_sterilization_room_80188624;
+extern GpCopyArg D_shelter_b1_sterilization_room_80188590;
+extern GpAnimArg D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
 extern GpU16Pair                       D_shelter_b1_sterilization_room_80188738;
-extern s32                             D_shelter_b1_sterilization_room_8018873C;
+extern GpEvsCmd D_shelter_b1_sterilization_room_8018873C[];
 
 /// Area records `func_shelter_b1_sterilization_room_8017F550` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
-extern GpAreaApplyRec D_shelter_b1_sterilization_room_80188888;
 
-extern s32            D_shelter_b1_sterilization_room_80188AB4;
-extern s32            D_shelter_b1_sterilization_room_80188ED4;
-extern s32            D_shelter_b1_sterilization_room_80188FDC;
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188AB4[];
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188ED4[];
+extern GpEvsCmd D_shelter_b1_sterilization_room_80188FDC[];
 extern GpGridParams   D_shelter_b1_sterilization_room_80189E44;
-extern GpObj4A        D_shelter_b1_sterilization_room_8018BF30[];
-extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334;
+extern GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[];
 
 /// The task `func_shelter_b1_sterilization_room_8017F550` spawns from entry 1
 /// of its table and waits on, or NULL while none runs.
@@ -133,13 +150,10 @@ extern Task* D_shelter_b1_sterilization_room_8018C33C;
 extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
 
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 extern s32 D_80135AC0;
 extern s32 D_80135D78;
 extern s32 D_80136258;
-
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj);
 static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj);
@@ -154,6 +168,524 @@ static void func_shelter_b1_sterilization_room_801812A0(Task* task);
 
 static void func_shelter_b1_sterilization_room_8017F514(Task* task);
 static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
+
+void func_shelter_b1_sterilization_room_8017D794(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017DF60(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017E978(Task *);
+void func_shelter_b1_sterilization_room_8017EE24(Task *);
+void func_shelter_b1_sterilization_room_8017EFE4(Task *);
+void func_shelter_b1_sterilization_room_8017F1D8(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017F2BC(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017F384(UiList *, UiObject *);
+void func_shelter_b1_sterilization_room_8017F44C(UiList *, UiObject *);
+
+s32 func_shelter_b1_sterilization_room_8017FC78(Task *, s32, GpMsg13EF *, s32);
+s32 func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
+s32 func_shelter_b1_sterilization_room_801803E4(void);
+s32 func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
+void func_shelter_b1_sterilization_room_8017F550(Task *);
+void func_shelter_b1_sterilization_room_80180188(Task *);
+void func_shelter_b1_sterilization_room_801802B0(Task *);
+
+extern GpAnimSet D_shelter_b1_sterilization_room_80185228;
+extern GpAnimSet D_shelter_b1_sterilization_room_801853DC;
+extern GpAnimSet D_shelter_b1_sterilization_room_80185AFC;
+extern GpAnimSet D_shelter_b1_sterilization_room_80185C8C;
+extern GpAnimSet D_shelter_b1_sterilization_room_80186910;
+extern GpAnimSet D_shelter_b1_sterilization_room_80187E18;
+extern GpAnimSet D_shelter_b1_sterilization_room_801884DC;
+void func_shelter_b1_sterilization_room_80180D74(Task *);
+void func_shelter_b1_sterilization_room_80180F74(Task *);
+void func_shelter_b1_sterilization_room_801811E0(Task *);
+
+u8 D_shelter_b1_sterilization_room_80184514[8] = {
+    83, 97, 118, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018451C[12] = {
+    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184528[12] = {
+    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184534[8] = {
+    80, 69, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018453C[8] = {
+    84, 105, 109, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184544[4] = {
+    87, 111, 110, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184548[8] = {
+    69, 115, 99, 97, 112, 101, 100, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184550[12] = {
+    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018455C[16] = {
+    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018456C[8] = {
+    83, 97, 118, 101, 100, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184574[8] = {
+    67, 108, 101, 97, 114, 101, 100, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018457C[8] = {
+    77, 97, 120, 32, 69, 88, 80, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184584[8] = {
+    77, 97, 120, 32, 66, 80, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018458C[8] = {
+    32, 116, 105, 109, 101, 115, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184594[4] = {
+    37, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184598[44] = {
+    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
+    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
+    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_801845C4[36] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
+    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_801845E8[48] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
+    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184618[52] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
+    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_8018464C[52] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
+    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184680[56] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
+    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
+    115, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_801846B8[52] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
+    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
+    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_801846EC[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
+    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
+    101, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_b1_sterilization_room_80184724[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
+    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
+    32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+UiListItemFunc D_shelter_b1_sterilization_room_8018475C[1] = {
+    func_shelter_b1_sterilization_room_8017D794,
+};
+
+UiList D_shelter_b1_sterilization_room_80184760 = { D_shelter_b1_sterilization_room_8018475C, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_b1_sterilization_room_80184784[1] = {
+    func_shelter_b1_sterilization_room_8017DF60,
+};
+
+UiList D_shelter_b1_sterilization_room_80184788 = { D_shelter_b1_sterilization_room_80184784, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_b1_sterilization_room_801847AC = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_b1_sterilization_room_8017EE24, 0 };
+
+UiObjectDesc D_shelter_b1_sterilization_room_801847C8 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_b1_sterilization_room_8017EFE4, 0 };
+
+UiObjectDesc D_shelter_b1_sterilization_room_801847E4 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_b1_sterilization_room_8017E978, 0 };
+
+UiListItemFunc D_shelter_b1_sterilization_room_80184800[4] = {
+    func_shelter_b1_sterilization_room_8017F1D8,
+    func_shelter_b1_sterilization_room_8017F2BC,
+    func_shelter_b1_sterilization_room_8017F384,
+    func_shelter_b1_sterilization_room_8017F44C,
+};
+
+UiList D_shelter_b1_sterilization_room_80184810 = { D_shelter_b1_sterilization_room_80184800, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+TmdBone D_shelter_b1_sterilization_room_80184834[3] = {
+#include "assets/shelter_b1_sterilization_room_model_07838_skeleton.inc"
+};
+
+u32 D_shelter_b1_sterilization_room_801848A0[3] = {
+#include "assets/shelter_b1_sterilization_room_model_07838_partVerts.inc"
+};
+
+SVECTOR D_shelter_b1_sterilization_room_801848AC[56] = {
+#include "assets/shelter_b1_sterilization_room_model_07838_verts.inc"
+};
+
+SVECTOR D_shelter_b1_sterilization_room_80184A6C[6] = {
+#include "assets/shelter_b1_sterilization_room_model_07838_normals.inc"
+};
+
+u32 D_shelter_b1_sterilization_room_80184A9C[215] = {
+#include "assets/shelter_b1_sterilization_room_model_07838_stream.inc"
+};
+
+TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
+    0, 1768, 0, 3,
+    D_shelter_b1_sterilization_room_801848A0, D_shelter_b1_sterilization_room_801848AC, D_shelter_b1_sterilization_room_80184A6C, D_shelter_b1_sterilization_room_80184834, D_shelter_b1_sterilization_room_80184A9C,
+};
+
+TaskDesc D_shelter_b1_sterilization_room_80184E1C[3] = {
+    { 0, 32, func_shelter_b1_sterilization_room_8017F550, { .model = NULL } },
+    { 0, 32, func_shelter_b1_sterilization_room_801802B0, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
+    { 5102, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
+    { 5105, { .call0 = func_shelter_b1_sterilization_room_801803E4 } },
+    { 5103, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
+    { 5104, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
+    { 5106, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_shelter_b1_sterilization_room_80184E70 = { 0, 192, func_shelter_b1_sterilization_room_80180188, { .model = NULL } };
+
+s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
+
+s16 D_shelter_b1_sterilization_room_80184E80[3] = { 0 };
+
+SVECTOR D_shelter_b1_sterilization_room_80184E88[4] = {
+    { -3836, 0, 1436, 0 },
+    { -1108, 0, -3943, 0 },
+    { 4054, 0, 582, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_shelter_b1_sterilization_room_80184EA8[8] = {
+    { -268, 500, 747, 0 },
+    { -268, -932, 747, 0 },
+    { -641, -932, -248, 0 },
+    { -641, 500, -248, 0 },
+    { 399, -932, -540, 0 },
+    { 399, 500, -540, 0 },
+    { 214, -932, 747, 0 },
+    { 214, 500, 747, 0 },
+};
+
+GpGridFace D_shelter_b1_sterilization_room_80184EE8[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_shelter_b1_sterilization_room_80184F18[5] = {
+    0,
+    1,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_shelter_b1_sterilization_room_80184F24[1] = {
+    D_shelter_b1_sterilization_room_80184F18,
+};
+
+GpGridParams D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB1SterilizationRoomPoseBank798C;
+
+ShelterB1SterilizationRoomPoseBank798C D_shelter_b1_sterilization_room_80184F4C = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80184F94[46] = {
+#include "assets/shelter_b1_sterilization_room_animation_07C68_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_8018504C[109] = {
+#include "assets/shelter_b1_sterilization_room_animation_07C68_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_80185200[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_07C68_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_80185228 = {
+    D_shelter_b1_sterilization_room_8018504C, D_shelter_b1_sterilization_room_80185200,
+    { NULL, D_shelter_b1_sterilization_room_80184F4C.words, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} ShelterB1SterilizationRoomPoseBank7C90;
+
+ShelterB1SterilizationRoomPoseBank7C90 D_shelter_b1_sterilization_room_80185250 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_07E1C_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80185268[26] = {
+#include "assets/shelter_b1_sterilization_room_animation_07E1C_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_801852D0[57] = {
+#include "assets/shelter_b1_sterilization_room_animation_07E1C_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_801853B4[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_07E1C_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_801853DC = {
+    D_shelter_b1_sterilization_room_801852D0, D_shelter_b1_sterilization_room_801853B4,
+    { NULL, D_shelter_b1_sterilization_room_80185250.words, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} ShelterB1SterilizationRoomPoseBank7E44;
+
+ShelterB1SterilizationRoomPoseBank7E44 D_shelter_b1_sterilization_room_80185404 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_0853C_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80185464[161] = {
+#include "assets/shelter_b1_sterilization_room_animation_0853C_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_801856E8[251] = {
+#include "assets/shelter_b1_sterilization_room_animation_0853C_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_80185AD4[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_0853C_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_80185AFC = {
+    D_shelter_b1_sterilization_room_801856E8, D_shelter_b1_sterilization_room_80185AD4,
+    { NULL, D_shelter_b1_sterilization_room_80185404.words, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} ShelterB1SterilizationRoomPoseBank8564;
+
+ShelterB1SterilizationRoomPoseBank8564 D_shelter_b1_sterilization_room_80185B24 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_086CC_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80185B3C[17] = {
+#include "assets/shelter_b1_sterilization_room_animation_086CC_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_80185B80[57] = {
+#include "assets/shelter_b1_sterilization_room_animation_086CC_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_80185C64[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_086CC_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_80185C8C = {
+    D_shelter_b1_sterilization_room_80185B80, D_shelter_b1_sterilization_room_80185C64,
+    { NULL, D_shelter_b1_sterilization_room_80185B24.words, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[31];
+    GpPackedSvec words[93];
+} ShelterB1SterilizationRoomPoseBank86F4;
+
+ShelterB1SterilizationRoomPoseBank86F4 D_shelter_b1_sterilization_room_80185CB4 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_09350_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80185E28[308] = {
+#include "assets/shelter_b1_sterilization_room_animation_09350_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_801862F8[380] = {
+#include "assets/shelter_b1_sterilization_room_animation_09350_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_801868E8[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_09350_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_80186910 = {
+    D_shelter_b1_sterilization_room_801862F8, D_shelter_b1_sterilization_room_801868E8,
+    { NULL, D_shelter_b1_sterilization_room_80185CB4.words, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[41];
+    GpPackedSvec words[123];
+} ShelterB1SterilizationRoomPoseBank9378;
+
+ShelterB1SterilizationRoomPoseBank9378 D_shelter_b1_sterilization_room_80186938 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_0A858_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80186B24[549] = {
+#include "assets/shelter_b1_sterilization_room_animation_0A858_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_801873B8[654] = {
+#include "assets/shelter_b1_sterilization_room_animation_0A858_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_80187DF0[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_0A858_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_80187E18 = {
+    D_shelter_b1_sterilization_room_801873B8, D_shelter_b1_sterilization_room_80187DF0,
+    { NULL, D_shelter_b1_sterilization_room_80186938.words, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} ShelterB1SterilizationRoomPoseBankA880;
+
+ShelterB1SterilizationRoomPoseBankA880 D_shelter_b1_sterilization_room_80187E40 = { .poses = {
+#include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b1_sterilization_room_80187E70[151] = {
+#include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank4.inc"
+};
+
+GpAnimRec D_shelter_b1_sterilization_room_801880CC[250] = {
+#include "assets/shelter_b1_sterilization_room_animation_0AF1C_records.inc"
+};
+
+u16 D_shelter_b1_sterilization_room_801884B4[20] = {
+#include "assets/shelter_b1_sterilization_room_animation_0AF1C_indices.inc"
+};
+
+GpAnimSet D_shelter_b1_sterilization_room_801884DC = {
+    D_shelter_b1_sterilization_room_801880CC, D_shelter_b1_sterilization_room_801884B4,
+    { NULL, D_shelter_b1_sterilization_room_80187E40.words, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
+};
+
+TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
+    { 0, 192, func_shelter_b1_sterilization_room_801811E0, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_801813A0, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_80180D74, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_801814FC, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_80181588, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_80180F74, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_80181634, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_801816E0, { .model = NULL } },
+    { 0, 192, func_shelter_b1_sterilization_room_801817EC, { .model = NULL } },
+};
+
+GpAnimSet * D_shelter_b1_sterilization_room_80188570[8] = {
+    NULL,
+    &D_shelter_b1_sterilization_room_80185228,
+    &D_shelter_b1_sterilization_room_801853DC,
+    &D_shelter_b1_sterilization_room_80185AFC,
+    &D_shelter_b1_sterilization_room_80185C8C,
+    &D_shelter_b1_sterilization_room_80186910,
+    &D_shelter_b1_sterilization_room_80187E18,
+    &D_shelter_b1_sterilization_room_801884DC,
+};
+
+GpCopyArg D_shelter_b1_sterilization_room_80188590 = { { .sets = D_shelter_b1_sterilization_room_80188570 }, 8 };
+
+GpAnimArg D_shelter_b1_sterilization_room_80188598 = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpAnimArg D_shelter_b1_sterilization_room_801885AC = { { .index = 1 }, 48, 1, 30, 1 };
+
+GpAnimArg D_shelter_b1_sterilization_room_801885C0 = { { .index = 1 }, 49, 1, 5, 1 };
+
+GpAnimArg D_shelter_b1_sterilization_room_801885D4 = { { .index = 1 }, 50, 1, 5, 1 };
+
+GpAnimArg D_shelter_b1_sterilization_room_801885E8 = { { .index = 1 }, 51, 0, 0, 1 };
+
+GpAnimArg D_shelter_b1_sterilization_room_801885FC = { { .index = 1 }, 52, 0, 0, 0 };
+
+GpAnimArg D_shelter_b1_sterilization_room_80188610 = { { .index = 1 }, 53, 0, 0, 0 };
+
+GpAnimArg D_shelter_b1_sterilization_room_80188624 = { { .index = 1 }, 54, 1, 10, 0 };
+
+GpXformArg D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }, { 0, 2047, 0, 0 } };
+
+GpXformArg D_shelter_b1_sterilization_room_80188650 = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
+
+_ShelterB1SterilizationRoomMsg D_shelter_b1_sterilization_room_80188668[8] = {
+    { { 21, 19, 0, 0, 0, 0, 0, 0, 247, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { { 21, 19, 0, 0, 0, 0, 0, 0, 26, 41, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
+    { { 18, 8, 0, 0, 0, 0, 0, 0, 226, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { { 18, 8, 0, 0, 0, 0, 0, 0, 26, 41, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
+    { { 131, 19, 0, 0, 0, 0, 0, 0, 107, 20, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
+    { { 129, 8, 0, 0, 0, 0, 0, 0, 107, 20, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
+    { { 200, 7, 0, 0, 0, 0, 0, 0, 46, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { { 131, 19, 0, 0, 0, 0, 0, 0, 46, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+};
+
+_ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[8] = {
+    { 9, 7 },
+    { 5, 1 },
+    { 8, 6 },
+    { 7, 3 },
+    { 4, 0 },
+    { 3, 4 },
+    { 6, 2 },
+    { 3, 5 },
+};
 
 void func_shelter_b1_sterilization_room_8017D794(UiList* arg0, UiObject* arg1)
 {
@@ -779,7 +1311,7 @@ void func_shelter_b1_sterilization_room_8017E978(Task* task)
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_shelter_b1_sterilization_room_8017D638[12] = "Telephone\0\0 ";
 
-static void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
+void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1156,7 +1688,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
             }
             break;
         case 4:
-            D_shelter_b1_sterilization_room_8018C33C = Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80184E1C, 1, 0, rec->field_10);
+            D_shelter_b1_sterilization_room_8018C33C = Task_SpawnFromTable(D_shelter_b1_sterilization_room_80184E1C, 1, 0, rec->field_10);
             Gp_StartCapSlot(rec->field_1, 0, 0x63);
             task->state++;
             break;
@@ -1201,7 +1733,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(&D_shelter_b1_sterilization_room_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -1300,17 +1832,17 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 {
     Task* target;
 
-    task->msgTable = &D_shelter_b1_sterilization_room_80184E40;
+    task->msgTable = D_shelter_b1_sterilization_room_80184E40;
     Game_SetPtrSlot(task, 7);
     if (gGameSession->at4.loc.place == 5 && GameFlag_GetNibble(0xEA) == 0) {
         GameFlag_SetNibble(0xF4, 3);
-        Gp_ApplyAreaRecs(&D_shelter_b1_sterilization_room_8018C334);
+        Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetPtrSlot(0xA) != NULL) {
             GameFlag_SetNibble(0x116, 1);
             GameFlag_SetNibble(0xEA, 2);
             GameFlag_SetNibble(0x4B, 8);
             func_800E8634(&D_80135D78, 0, &D_80136258);
-            Gp_SetAreaObjId((GpAreaKey*)&gGameSession->at4.loc, 6, 1);
+            Gp_SetAreaObjId(&gGameSession->at4.loc, 6, 1);
         } else {
             GameFlag_SetNibble(0x116, 2);
             GameFlag_SetNibble(0xEA, 1);
@@ -1325,7 +1857,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
         }
     }
     if (GameFlag_GetNibble(0xEA) != 1) {
-        D_shelter_b1_sterilization_room_8018BF30[0].field_4A &= 0xBF;
+        (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].field_4A &= 0xBF;
     }
     if (gGameSession->at4.loc.place == 1) {
         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);
@@ -1343,8 +1875,8 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
         case 1:
             if (GameFlag_GetNibble(0x76) == 0) {
                 if (GameFlag_GetNibble(0x84) != 0) {
-                    func_800E8634(&D_shelter_b1_sterilization_room_8018873C, 0,
-                                  &D_shelter_b1_sterilization_room_80188AB4);
+                    func_800E8634(D_shelter_b1_sterilization_room_8018873C, 0,
+                                  D_shelter_b1_sterilization_room_80188AB4);
                     GameFlag_SetNibble(0x76, 1);
                 }
             }
@@ -1446,7 +1978,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         D_shelter_b1_sterilization_room_8018C344.field_8  = 0x5410000F;
         D_shelter_b1_sterilization_room_8018C344.field_10 = 0x5410000D;
         D_shelter_b1_sterilization_room_8018C344.field_C  = 0x5410000E;
-        Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80184E1C, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
+        Task_SpawnFromTable(D_shelter_b1_sterilization_room_80184E1C, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
     }
     if (arg2 == 0x15) {
         Gp_RunCapCmd1(arg2);
@@ -1461,7 +1993,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         if (GameFlag_GetNibble(0x76) == 1 && GameFlag_GetNibble(0x77) == 0) {
             if (GameFlag_GetNibble(0x14F) == 0) {
                 Gp_MsgPlayerWeapon(0);
-                func_800E8634(&D_shelter_b1_sterilization_room_80188ED4, 0, &D_shelter_b1_sterilization_room_80188FDC);
+                func_800E8634(D_shelter_b1_sterilization_room_80188ED4, 0, D_shelter_b1_sterilization_room_80188FDC);
                 GameFlag_SetNibble(0x14F, 1);
             } else {
                 Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 0xB, 0);
@@ -1557,14 +2089,14 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
     }
     if (slot != NULL) {
         if (gGameSession->at4.loc.place == 5 && GameFlag_GetNibble(0xEA) == 1) {
-            D_shelter_b1_sterilization_room_80184E82 = 0;
+            D_shelter_b1_sterilization_room_80184E80[1] = 0;
         } else {
-            D_shelter_b1_sterilization_room_80184E82 = 0x2710;
+            D_shelter_b1_sterilization_room_80184E80[1] = 0x2710;
         }
     } else {
-        D_shelter_b1_sterilization_room_80184E82 = 0x2710;
+        D_shelter_b1_sterilization_room_80184E80[1] = 0x2710;
     }
-    func_shelter_b1_sterilization_room_80180570(task->extra.tmd->coords, &D_shelter_b1_sterilization_room_80184E80);
+    func_shelter_b1_sterilization_room_80180570(task->extra.tmd->coords, D_shelter_b1_sterilization_room_80184E80);
 }
 
 s32 func_shelter_b1_sterilization_room_801803E4(void)
@@ -1573,11 +2105,11 @@ s32 func_shelter_b1_sterilization_room_801803E4(void)
 }
 
 /// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `func_80179A04` and returns 1.
+/// passes both to `func_map_shelter_80179A04` and returns 1.
 s32 func_shelter_b1_sterilization_room_801803EC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
@@ -1885,7 +2417,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                         if (Player_Status.hp > 0) {
                             coord = player->extra.tmd->coords;
                             Gp_DispatchMsgPtr(player, 0x3F7, &D_shelter_b1_sterilization_room_80188590, 0);
-                            Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624);
+                            Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.animBlock.index);
                             Gp_DispatchMsgPtr(player, 0x3E8, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)Gp_GetObjPan(coord);
                             SndEvt_EnqueueType6(0x54100011, pan, (s8)gpGetObjDepth(coord));

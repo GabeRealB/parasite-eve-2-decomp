@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_1f_parking_garage.h"
+#include "mapui/map_neo_ark.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -32,7 +34,19 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_1f_parking_garage_80181984[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u8 D_shelter_1f_parking_garage_80181984_value __asm__("D_shelter_1f_parking_garage_80181984");
 
 extern TaskDesc   D_shelter_1f_parking_garage_80180BA0;
 extern TaskDesc   D_shelter_1f_parking_garage_80180BAC;
@@ -43,14 +57,20 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
-extern SVECTOR D_shelter_1f_parking_garage_80180C54[];
-extern SVECTOR D_shelter_1f_parking_garage_80180C5C;
 
 extern GpFadeWork       D_shelter_1f_parking_garage_80181974;
 extern GpFadeWork       D_shelter_1f_parking_garage_80181978;
 extern RoomEventMsg     D_shelter_1f_parking_garage_8018197C;
-extern u8               D_shelter_1f_parking_garage_80181984;
-extern RoomDeparture    D_shelter_1f_parking_garage_80181988;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    RoomDeparture value;
+    u8 retained[4];
+} Shelter1fParkingGarageStorage1988;
+STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
+
+extern Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
 extern RoomLatchedEvent D_shelter_1f_parking_garage_80181998;
 
 static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
@@ -63,13 +83,481 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
 static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
 
+extern GpGridParams D_shelter_1f_parking_garage_80180FE8[1];
+extern GpObj4C D_shelter_1f_parking_garage_801815F8[4];
+extern GpObj4C D_shelter_1f_parking_garage_80181728[5];
+extern GpRoomBoundVec D_shelter_1f_parking_garage_801818A4[5];
+extern GpRoomCoordSet D_shelter_1f_parking_garage_801815E0[1];
+
+s32 func_shelter_1f_parking_garage_8017DCEC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_parking_garage_8017DCF4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_1f_parking_garage_8017DE44(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_parking_garage_8017DE4C(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_shelter_1f_parking_garage_8017D7E8(Task *);
+void func_shelter_1f_parking_garage_8017D958(Task *);
+void func_shelter_1f_parking_garage_8017DAF0(Task *);
+
+TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, func_shelter_1f_parking_garage_8017D7E8, { .model = NULL } };
+
+TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, func_shelter_1f_parking_garage_8017D958, { .model = NULL } };
+
+GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
+    { 5102, func_shelter_1f_parking_garage_8017DCF4 },
+    { 5105, func_shelter_1f_parking_garage_8017DCEC },
+    { 5103, func_shelter_1f_parking_garage_8017DE4C },
+    { 5104, func_shelter_1f_parking_garage_8017DE44 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_1f_parking_garage_80180BE0 = { 0, 32, func_shelter_1f_parking_garage_8017DAF0, { .model = NULL } };
+
+SVECTOR D_shelter_1f_parking_garage_80180BEC[2] = {
+    { 400, -3090, 1790, 0 },
+    { 1600, -3090, 1790, 0 },
+};
+
+SVECTOR D_shelter_1f_parking_garage_80180BFC[10] = {
+    { 4400, -3090, 1790, 0 },
+    { 5600, -3090, 1790, 0 },
+    { 8400, -3090, 1790, 0 },
+    { 9600, -3090, 1790, 0 },
+    { 400, -3090, -1790, 0 },
+    { 1600, -3090, -1790, 0 },
+    { 4400, -3090, -1790, 0 },
+    { 5600, -3090, -1790, 0 },
+    { 8400, -3090, -1790, 0 },
+    { 9600, -3090, -1790, 0 },
+};
+
+SVECTOR D_shelter_1f_parking_garage_80180C4C[1] = {
+    { 2000, -2130, 2230, 0 },
+};
+
+SVECTOR D_shelter_1f_parking_garage_80180C54[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_shelter_1f_parking_garage_80180C64[1] = {
+    { D_shelter_1f_parking_garage_80180FE8, D_shelter_1f_parking_garage_801815F8, D_shelter_1f_parking_garage_80181728, NULL },
+};
+
+GpRoomCoordRec D_shelter_1f_parking_garage_80180C74[1] = {
+    { D_shelter_1f_parking_garage_801815E0, D_shelter_1f_parking_garage_801818A4 },
+};
+
+u8 * D_shelter_1f_parking_garage_80180C7C[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_1f_parking_garage_80180C80[1] = {
+    { { .bytes = { 4, 0 } } },
+};
+
+GpWarpRec D_shelter_1f_parking_garage_80180C84[2] = {
+    { { .words = { 3072, 8564, 0, -1341 } }, { 0, 0, 0, 0 }, { .words = { 3072, 9100, 0, -1560 } }, { 0, 0, 0, 0 }, 0x55010003, 0x55010004, 0, 2, 0, 436 },
+    { { .words = { 2048, 2000, 0, 1700 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2000, 0, 1700 } }, { 0, 0, 0, 0 }, 0x55010002, 0x55010001, 0, 4, 0, 0 },
+};
+
+SVECTOR D_shelter_1f_parking_garage_80180CF4[11] = {
+    { 0, -4096, 0, 0 },
+    { 0, -1206, 3914, 0 },
+    { 0, 3881, -1308, 0 },
+    { 0, 1659, 3745, 0 },
+    { 0, -1208, -3914, 0 },
+    { 0, 1659, -3745, 0 },
+    { 0, 3881, 1308, 0 },
+    { -4096, 0, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_shelter_1f_parking_garage_80180D4C[34] = {
+    { -500, 0, 2000, 0 },
+    { 0x2CEC, 0, 2000, 0 },
+    { 0x2CEC, 0, -2000, 0 },
+    { -500, 0, -2000, 0 },
+    { -500, 1, -1992, 0 },
+    { 0x2CEC, 1, -1992, 0 },
+    { 0x2CEC, -1654, -2502, 0 },
+    { -500, -1654, -2502, 0 },
+    { -500, -3905, 0, 0 },
+    { 0x2CEC, -3905, 0, 0 },
+    { 0x2CEC, -3309, 1769, 0 },
+    { -500, -3309, 1769, 0 },
+    { 0x2CEC, -3309, -1769, 0 },
+    { -500, -3309, -1769, 0 },
+    { -500, -1654, 2502, 0 },
+    { 0x2CEC, -1654, 2502, 0 },
+    { 0x2CEC, 1, 1991, 0 },
+    { -500, 1, 1991, 0 },
+    { 0x2904, 0, 6250, 0 },
+    { 0x2904, -6000, 6250, 0 },
+    { 0x2904, -6000, -6250, 0 },
+    { 0x2904, 0, -6250, 0 },
+    { -500, 0, -3000, 0 },
+    { -500, -6000, -3000, 0 },
+    { -500, -6000, 3000, 0 },
+    { -500, 0, 3000, 0 },
+    { 6405, 0, 840, 0 },
+    { 6405, -1680, 840, 0 },
+    { 6405, -1680, -840, 0 },
+    { 6405, 0, -840, 0 },
+    { 0x2959, -1680, -840, 0 },
+    { 0x2959, 0, -840, 0 },
+    { 0x2959, -1680, 840, 0 },
+    { 0x2959, 0, 840, 0 },
+};
+
+GpGridFace D_shelter_1f_parking_garage_80180E5C[13] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 6, 12, 7, 13 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 4, 0 },
+    { { 10, 15, 11, 14 }, 5, 0 },
+    { { 12, 9, 13, 8 }, 6, 0 },
+    { { 19, 20, 18, 21 }, 7, 0 },
+    { { 23, 24, 22, 25 }, 8, 0 },
+    { { 27, 28, 26, 29 }, 7, 0 },
+    { { 28, 30, 29, 31 }, 9, 0 },
+    { { 32, 30, 27, 28 }, 0, 0 },
+    { { 32, 27, 33, 26 }, 10, 0 },
+};
+
+s16 D_shelter_1f_parking_garage_80180EF8[6] = {
+    0,
+    1,
+    3,
+    6,
+    8,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F04[9] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F18[6] = {
+    0,
+    2,
+    4,
+    5,
+    8,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F24[5] = {
+    0,
+    1,
+    3,
+    6,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F30[12] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    11,
+    12,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F48[5] = {
+    0,
+    2,
+    4,
+    5,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F54[6] = {
+    0,
+    1,
+    3,
+    6,
+    7,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F60[12] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    10,
+    11,
+    12,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F78[6] = {
+    0,
+    2,
+    4,
+    5,
+    7,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F84[2] = {
+    7,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F88[3] = {
+    1,
+    3,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F90[6] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    -1,
+};
+
+s16 D_shelter_1f_parking_garage_80180F9C[5] = {
+    0,
+    2,
+    4,
+    5,
+    -1,
+};
+
+s16 * D_shelter_1f_parking_garage_80180FA8[16] = {
+    D_shelter_1f_parking_garage_80180EF8,
+    D_shelter_1f_parking_garage_80180F04,
+    D_shelter_1f_parking_garage_80180F18,
+    NULL,
+    D_shelter_1f_parking_garage_80180F24,
+    D_shelter_1f_parking_garage_80180F30,
+    D_shelter_1f_parking_garage_80180F48,
+    NULL,
+    D_shelter_1f_parking_garage_80180F54,
+    D_shelter_1f_parking_garage_80180F60,
+    D_shelter_1f_parking_garage_80180F78,
+    D_shelter_1f_parking_garage_80180F84,
+    D_shelter_1f_parking_garage_80180F88,
+    D_shelter_1f_parking_garage_80180F90,
+    D_shelter_1f_parking_garage_80180F9C,
+    NULL,
+};
+
+GpGridParams D_shelter_1f_parking_garage_80180FE8[1] = {
+    { NULL, D_shelter_1f_parking_garage_80180CF4, D_shelter_1f_parking_garage_80180D4C, D_shelter_1f_parking_garage_80180E5C, D_shelter_1f_parking_garage_80180FA8, 500, 6250, 4, 4, 4000, 13 },
+};
+
+GpViewRec D_shelter_1f_parking_garage_8018100C[4] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
+    { { { { 1016, 0, -3967 }, { 94, 4094, 24 }, { 3966, -97, 1016 } }, { -140, 1010, 1370 } }, 257 },
+    { { { { 270, 0, -4087 }, { -2037, 3551, -134 }, { 3543, 2041, 234 } }, { -4450, 3000, -1030 } }, 257 },
+    { { { { 829, 0, 4011 }, { 1836, 3641, -379 }, { -3565, 1875, 737 } }, { -6440, 3350, 790 } }, 257 },
+};
+
+GpSprtCmd D_shelter_1f_parking_garage_8018109C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_1f_parking_garage_801810AC[13] = {
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 8, 2250, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, -16, 2125, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 2125, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -8, -16, 1975, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 0, 1975, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, 8, 1875, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 8, 1875, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -24, 8, 1875, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, 8, 1875, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -16, 2000, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 24 } }, -8, -16, 1937, { .fields = { 104, 40 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 32, 16 } }, 8, -16, 1925, { .fields = { 88, 64 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 24 } }, 40, -16, 1950, { .fields = { 120, 232 } }, 128, 128, 128, 2 },
+};
+
+GpSprtCmd D_shelter_1f_parking_garage_801811B0[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 10, 0, 0, { 1, 0 } },
+    { 10, 3, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_1f_parking_garage_801811D0[28] = {
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, 40, -64, 1125, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 32, -56, 1375, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, -56, 1125, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 24, -48, 1500, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, -48, 1375, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 40, -48, 950, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 72, -48, 950, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, -48, 950, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, -48, 950, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 120, -48, 950, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -40, 950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 64, 0, 875, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 64 } }, 64, 56, 875, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 104, 56, 875, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, 152, 40, 750, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, 32, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 136, 16, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 128, 0, 875, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, 0, 875, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 0, 875, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 0, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 128, -40, 950, { .fields = { 64, 152 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 120, -40, 950, { .fields = { 64, 120 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 112, -40, 966, { .fields = { 64, 88 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 104, -40, 870, { .fields = { 56, 48 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 96, -40, 900, { .fields = { 56, 144 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 32 } }, 88, -40, 900, { .fields = { 56, 112 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 56, 32 } }, 32, -40, 900, { .fields = { 8, 80 } }, 128, 128, 128, 2 },
+};
+
+GpSprtCmd D_shelter_1f_parking_garage_80181400[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 21, 0, 0, { 1, 0 } },
+    { 21, 7, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_1f_parking_garage_80181420[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_1f_parking_garage_80181430[4] = {
+    { { .empty = D_shelter_1f_parking_garage_8018109C }, D_shelter_1f_parking_garage_8018109C, NULL },
+    { { .elements = D_shelter_1f_parking_garage_801810AC }, D_shelter_1f_parking_garage_801811B0, NULL },
+    { { .elements = D_shelter_1f_parking_garage_801811D0 }, D_shelter_1f_parking_garage_80181400, NULL },
+    { { .empty = D_shelter_1f_parking_garage_80181420 }, D_shelter_1f_parking_garage_80181420, NULL },
+};
+
+GpPointLight D_shelter_1f_parking_garage_80181460[4] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2500, 4096 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2130, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 1638, 1638, { 0, 0 } }, 1000, 2001 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2500, 4096 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2000, 4096 },
+};
+
+GpRoomCoordSet D_shelter_1f_parking_garage_801815E0[1] = {
+    { 0, NULL, 4, D_shelter_1f_parking_garage_80181460, 0, NULL },
+};
+
+GpObj4C D_shelter_1f_parking_garage_801815F8[4] = {
+    { NULL, NULL, NULL, { 3453, -3344, 314, 0 }, { { -503, -3680, -4249, 0 }, { 498, -3680, 4245, 0 }, { -503, 3680, -4249, 0 }, { 498, 3680, 4245, 0 } }, { 4068, 0, -480, 0 }, { 0, 0, 4096, 0 }, 5632, 0, 2, 4, 1, 0 },
+    { NULL, NULL, NULL, { 3640, -3392, 347, 0 }, { { 479, -3696, 4156, 0 }, { -488, -3696, -4164, 0 }, { 479, 3696, 4156, 0 }, { -488, 3696, -4164, 0 } }, { -4077, 0, 473, 0 }, { 0, 0, 4096, 0 }, 5585, 0, 4, 2, 1, 0 },
+    { NULL, NULL, NULL, { 7056, -3297, 2400, 0 }, { { 432, -3760, 1920, 0 }, { -432, -3760, -1920, 0 }, { 432, 3760, 1920, 0 }, { -432, 3760, -1920, 0 } }, { -3997, 0, 899, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 6943, -3394, 2560, 0 }, { { -448, -3696, -2000, 0 }, { 448, -3696, 2000, 0 }, { -448, 3697, -2000, 0 }, { 448, 3697, 2000, 0 } }, { 4004, 0, -898, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_shelter_1f_parking_garage_80181728[5] = {
+    { NULL, NULL, NULL, { 8560, -64, -928, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1745, 5, 10, 20, 2, 0 },
+    { NULL, NULL, NULL, { 2016, -48, 1568, 0 }, { { -496, 0, -256, 0 }, { 496, 0, -256, 0 }, { -496, 0, 256, 0 }, { 496, 0, 256, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 557, 0, 5, 33, 2, 0 },
+    { NULL, NULL, NULL, { -96, -64, -80, 0 }, { { -496, 0, -1904, 0 }, { 496, 0, -1904, 0 }, { -496, 0, 1904, 0 }, { 496, 0, 1904, 0 } }, { 0, 4100, 0, 0 }, { 4090, 0, 200, 0 }, 1966, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 8544, 0, 1024, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1745, 5, 10, 20, 2, 0 },
+    { NULL, NULL, NULL, { 0x2870, -64, 0, 0 }, { { -576, 0, -2656, 0 }, { 576, 0, -2656, 0 }, { -576, 0, 2656, 0 }, { 576, 0, 2656, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 2709, 2, 4, 0, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_1f_parking_garage_801818A4[5] = {
+    { 4, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 250, 250, 250, 250 },
+    { 250, 250, 250, 250 },
+    { 250, 250, 250, 250 },
+};
+
+GpAreaTmdRec D_shelter_1f_parking_garage_801818CC[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_shelter_1f_parking_garage_801818D8[12] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017AEC0, D_shelter_1f_parking_garage_801818CC },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_shelter_1f_parking_garage_80181938[3] = {
+    0x10000041,
+    0x10000043,
+    0x10000041,
+};
+
+GpRoomParamRec D_shelter_1f_parking_garage_80181944[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_1f_parking_garage_8018194C[1] = {
+    { 0, 0, 1, 0, D_shelter_1f_parking_garage_80181938 },
+};
+
+GpRoomParamRec * D_shelter_1f_parking_garage_80181954[8] = {
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_8018194C,
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_80181944,
+    D_shelter_1f_parking_garage_80181944,
+};
+
+GpFadeWork D_shelter_1f_parking_garage_80181974 = { 0 };
+
+GpFadeWork D_shelter_1f_parking_garage_80181978 = { 0 };
+
+RoomEventMsg D_shelter_1f_parking_garage_8018197C = { 0 };
+
+u8 D_shelter_1f_parking_garage_80181984[4] = {
+    0,
+    25,
+    36,
+    75,
+};
+
+Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988 = { 0 };
+
+RoomLatchedEvent D_shelter_1f_parking_garage_80181998 = { 0 };
+
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->field_5` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_parking_garage_80181984 = 0;
+    D_shelter_1f_parking_garage_80181984_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_parking_garage_8018197C = *dst;
@@ -78,7 +566,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
-            D_shelter_1f_parking_garage_80181984 = 1;
+            D_shelter_1f_parking_garage_80181984_value = 1;
         }
         return 2;
     }
@@ -95,7 +583,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_5 == 0) {
-        switch (in->msgId) {
+        switch (in->prefix.packed) {
             case 2:
                 if (GameFlag_GetNibble(0x10F) != 0) {
                     out->field_3 = 2;
@@ -183,7 +671,7 @@ static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMs
 }
 
 /// The room's exit task, run on the record published in
-/// `D_shelter_1f_parking_garage_80181988`. State 0 sends the record's
+/// `D_shelter_1f_parking_garage_80181988.value`. State 0 sends the record's
 /// `facing` to the slot-3 game pointer as message 0x3EE, going straight to
 /// state 2 when it is -1; state 1 waits until that pointer answers 0x3F0
 /// with 0. States 2 and 3 play the record's sound event, if any, and wait for
@@ -198,7 +686,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
         case 0:
-            msg.rot.vy = D_shelter_1f_parking_garage_80181988.facing;
+            msg.rot.vy = D_shelter_1f_parking_garage_80181988.value.facing;
             if (msg.rot.vy == -1) {
                 arg0->state = 2;
                 break;
@@ -212,25 +700,25 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
             }
             break;
         case 2:
-            if (D_shelter_1f_parking_garage_80181988.sndEvent == 0) {
+            if (D_shelter_1f_parking_garage_80181988.value.sndEvent == 0) {
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(D_shelter_1f_parking_garage_80181988.sndEvent, 0, 0);
+            SndEvt_EnqueueType6(D_shelter_1f_parking_garage_80181988.value.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(D_shelter_1f_parking_garage_80181988.sndEvent) == 0) {
+            if (SndVoice_HasActiveId(D_shelter_1f_parking_garage_80181988.value.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
             gDisplayState.roomVariant    = 1;
-            Mc_SaveData[0].state.at4.loc.stage = D_shelter_1f_parking_garage_80181988.stage;
-            Mc_SaveData[0].state.at4.loc.area  = D_shelter_1f_parking_garage_80181988.area;
-            Mc_SaveData[0].state.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.warp;
-            Mc_SaveData[0].state.at4.loc.room  = D_shelter_1f_parking_garage_80181988.room;
+            Mc_SaveData[0].state.at4.loc.stage = D_shelter_1f_parking_garage_80181988.value.stage;
+            Mc_SaveData[0].state.at4.loc.area  = D_shelter_1f_parking_garage_80181988.value.area;
+            Mc_SaveData[0].state.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.value.warp;
+            Mc_SaveData[0].state.at4.loc.room  = D_shelter_1f_parking_garage_80181988.value.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
@@ -282,7 +770,7 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_parking_garage_8018197C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -293,7 +781,7 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
 
 /// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
-/// 0x4B from 9 to 0xA, publishes `D_shelter_1f_parking_garage_80181988` and
+/// 0x4B from 9 to 0xA, publishes `D_shelter_1f_parking_garage_80181988.value` and
 /// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
 /// clears `Gp_StateF0.field_4`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
@@ -338,15 +826,15 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
                 p           = &rec;
-                msg.msgId   = p->area;
+                msg.prefix.packed   = p->area;
                 msg.field_2 = p->warp;
                 msg.field_3 = p->room;
                 msg.field_5 = 0;
                 handler(&msg, &msg);
-                p->area                              = msg.msgId;
+                p->area                              = msg.prefix.packed;
                 p->warp                              = msg.field_2;
                 p->room                              = msg.field_3;
-                D_shelter_1f_parking_garage_80181988 = rec;
+                D_shelter_1f_parking_garage_80181988.value = rec;
                 Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
             }
@@ -355,21 +843,21 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_1f_parking_garage_8017DCEC(void)
+s32 func_shelter_1f_parking_garage_8017DCEC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179B14`. Message 5 starts the room's event on flag 0x159; any
+/// `func_map_neo_ark_80179B14`. Message 5 starts the room's event on flag 0x159; any
 /// other message answers 1.
-s32 func_shelter_1f_parking_garage_8017DCF4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_80179B14(in, out);
-    if (in->msgId != 5) {
+    func_map_neo_ark_80179B14(in, out);
+    if (in->prefix.packed != 5) {
         return 1;
     }
     event.capCmd   = 3;
@@ -379,12 +867,12 @@ s32 func_shelter_1f_parking_garage_8017DCF4(s32 arg0, s32 arg1, RoomEventMsg* in
     return _shelter1fParkingGarageStartEvent(out, &event);
 }
 
-s32 func_shelter_1f_parking_garage_8017DE44(void)
+s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 0xA) {
         Gp_MsgPlayerWeapon(0);
@@ -429,7 +917,7 @@ void func_shelter_1f_parking_garage_8017DF14(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
+void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
 {
     u8 view;
 
@@ -689,7 +1177,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32
 /// falls below 0x11. The task then releases its `GpEffWork` block, as it
 /// also does early once `Gp_State1C->eventState` reaches 4; while that state
 /// is non-zero it draws nothing.
-static void func_shelter_1f_parking_garage_8017EC0C(Task* task)
+void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -869,7 +1357,7 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
 /// and draws the band between the trails; the task releases its
 /// `GpEffWork` block once its age reaches `spawnArg1`. Nothing runs while
 /// `Gp_State1C->eventState` is 2 or more.
-static void func_shelter_1f_parking_garage_8017F670(Task* task)
+void func_shelter_1f_parking_garage_8017F670(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -927,9 +1415,12 @@ static void func_shelter_1f_parking_garage_8017F670(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_1f_parking_garage_80180C5C.vx;
-                coord.coord.t[1] = D_shelter_1f_parking_garage_80180C5C.vy;
-                coord.coord.t[2] = D_shelter_1f_parking_garage_80180C5C.vz;
+                {
+                    SVECTOR* edge = &D_shelter_1f_parking_garage_80180C54[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1072,7 +1563,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1
 /// a frame. Either way the task releases its `GpEffWork` block after seven
 /// frames, or early once `Gp_State1C->eventState` reaches 4; while that
 /// state is non-zero it does nothing else.
-static void func_shelter_1f_parking_garage_8017FF58(Task* task)
+void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

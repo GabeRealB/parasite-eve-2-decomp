@@ -28,28 +28,44 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/animation.h"
+
 /// Optional start animation for the same handler: the preset's `field_4`
 /// and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2 once
 /// `field_4C4` is set) and 1.
-typedef struct Actor350700SpawnAnim {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ u8  field_4;
-} Actor350700SpawnAnim;
+typedef GpSpawnAnimArg Actor350700SpawnAnim;
 
 /// Animation bank tables of the enemy actor and of the parent block.
-extern void* D_actor_350700_80169D0C[];
-extern void* D_actor_350700_801708D8[];
+extern GpAnimSet* D_actor_350700_80169CF8[5];
+extern GpAnimSet** D_actor_350700_80169D0C[1];
+extern GpAnimSet* D_actor_350700_801708C0[6];
+extern GpAnimSet** D_actor_350700_801708D8[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_350700_80162404`; terminator id 0x7FFFFFFF.
-extern GpMsgEntry D_actor_350700_80169D1C[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *, s32, GpAnimArg *, s32);
+        s32 (*call2)(Task *, s32, GpCmdArg *);
+        s32 (*call3)(Task *, s32, GpXformArg *);
+        s32 (*call4)(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
+        s32 (*call5)(Task *, s32, s32);
+    } handler;
+} Actor350700MsgEntry;
+STATIC_ASSERT_SIZEOF(Actor350700MsgEntry, 8);
+
+extern Actor350700MsgEntry D_actor_350700_80169D1C[];
 
 /// The `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
 /// `func_actor_350700_801636A8`, terminated by 0x7FFFFFFF.
-extern TaskDesc   D_actor_350700_801708DC;
-extern GpMsgEntry D_actor_350700_8017090C[];
+extern TaskDesc   D_actor_350700_801708DC[];
+extern Actor350700MsgEntry D_actor_350700_8017090C[];
 
 static void func_actor_350700_80161E88(Task* arg0);
 static void func_actor_350700_80162070(Task* arg0);
@@ -128,7 +144,446 @@ static const TaskFuncTable4 D_actor_350700_80161E68 = { {
 /// `func_actor_350700_80163528`.
 static const VECTOR D_actor_350700_80161E78 = { 0, 0, 0x200000, 0 };
 
-/// Per-frame tick of the enemy actor: dispatches through the local two-entry table
+extern TmdSource D_actor_350700_8016E86C;
+extern TmdSource D_actor_350700_8016ECC0;
+extern TmdSource D_actor_350700_8016F1B0;
+extern TmdSource D_actor_350700_8016F5F4;
+s32 func_actor_350700_801630C0(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
+s32 func_actor_350700_801636A8(Task *, s32, GpAnimArg *, s32);
+s32 func_actor_350700_801637C4(Task *, s32, GpXformArg *);
+s32 func_actor_350700_80163840(Task *, s32, s32);
+s32 func_actor_350700_8016395C(void);
+void func_actor_350700_80163274(Task *);
+void func_actor_350700_80163350(Task *);
+
+
+
+s32 func_actor_350700_801621B4(Task *, s32, GpXformArg *, Actor350700SpawnAnim *);
+s32 func_actor_350700_80162860(Task *, s32, GpAnimArg *, s32);
+s32 func_actor_350700_80162998(Task *, s32, GpXformArg *);
+s32 func_actor_350700_80162A14(Task *, s32, s32);
+s32 func_actor_350700_80162AF4(Task *, s32, GpCmdArg *);
+void func_actor_350700_80162398(Task *);
+
+TmdBone D_actor_350700_80163964[19] = {
+#include "assets/actor_350700_model_068A8_skeleton.inc"
+};
+
+u32 D_actor_350700_80163C10[19] = {
+#include "assets/actor_350700_model_068A8_partVerts.inc"
+};
+
+SVECTOR D_actor_350700_80163C5C[312] = {
+#include "assets/actor_350700_model_068A8_verts.inc"
+};
+
+SVECTOR D_actor_350700_8016461C[338] = {
+#include "assets/actor_350700_model_068A8_normals.inc"
+};
+
+u32 D_actor_350700_801650AC[3463] = {
+#include "assets/actor_350700_model_068A8_stream.inc"
+};
+
+TmdSource D_actor_350700_801686C8 = {
+    0, 18392, 6232, 19,
+    D_actor_350700_80163C10, D_actor_350700_80163C5C, D_actor_350700_8016461C, D_actor_350700_80163964, D_actor_350700_801650AC,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor350700PoseBank68CC;
+
+Actor350700PoseBank68CC D_actor_350700_801686EC = { .poses = {
+#include "assets/actor_350700_animation_06AB8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_80168704[23] = {
+#include "assets/actor_350700_animation_06AB8_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_80168760[84] = {
+#include "assets/actor_350700_animation_06AB8_records.inc"
+};
+
+u16 D_actor_350700_801688B0[20] = {
+#include "assets/actor_350700_animation_06AB8_indices.inc"
+};
+
+GpAnimSet D_actor_350700_801688D8 = {
+    D_actor_350700_80168760, D_actor_350700_801688B0,
+    { NULL, D_actor_350700_801686EC.words, NULL, NULL, D_actor_350700_80168704, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[22];
+    GpPackedSvec words[66];
+} Actor350700PoseBank6AE0;
+
+Actor350700PoseBank6AE0 D_actor_350700_80168900 = { .poses = {
+#include "assets/actor_350700_animation_0769C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_80168A08[298] = {
+#include "assets/actor_350700_animation_0769C_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_80168EB0[377] = {
+#include "assets/actor_350700_animation_0769C_records.inc"
+};
+
+u16 D_actor_350700_80169494[20] = {
+#include "assets/actor_350700_animation_0769C_indices.inc"
+};
+
+GpAnimSet D_actor_350700_801694BC = {
+    D_actor_350700_80168EB0, D_actor_350700_80169494,
+    { NULL, D_actor_350700_80168900.words, NULL, NULL, D_actor_350700_80168A08, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor350700PoseBank76C4;
+
+Actor350700PoseBank76C4 D_actor_350700_801694E4 = { .poses = {
+#include "assets/actor_350700_animation_07AA4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_80169520[76] = {
+#include "assets/actor_350700_animation_07AA4_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_80169650[147] = {
+#include "assets/actor_350700_animation_07AA4_records.inc"
+};
+
+u16 D_actor_350700_8016989C[20] = {
+#include "assets/actor_350700_animation_07AA4_indices.inc"
+};
+
+GpAnimSet D_actor_350700_801698C4 = {
+    D_actor_350700_80169650, D_actor_350700_8016989C,
+    { NULL, D_actor_350700_801694E4.words, NULL, NULL, D_actor_350700_80169520, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor350700PoseBank7ACC;
+
+Actor350700PoseBank7ACC D_actor_350700_801698EC = { .poses = {
+#include "assets/actor_350700_animation_07EB0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_80169928[89] = {
+#include "assets/actor_350700_animation_07EB0_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_80169A8C[135] = {
+#include "assets/actor_350700_animation_07EB0_records.inc"
+};
+
+u16 D_actor_350700_80169CA8[20] = {
+#include "assets/actor_350700_animation_07EB0_indices.inc"
+};
+
+GpAnimSet D_actor_350700_80169CD0 = {
+    D_actor_350700_80169A8C, D_actor_350700_80169CA8,
+    { NULL, D_actor_350700_801698EC.words, NULL, NULL, D_actor_350700_80169928, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_actor_350700_80169CF8[5] = {
+    NULL,
+    &D_actor_350700_801688D8,
+    &D_actor_350700_801694BC,
+    &D_actor_350700_801698C4,
+    &D_actor_350700_80169CD0,
+};
+
+GpAnimSet ** D_actor_350700_80169D0C[1] = {
+    D_actor_350700_80169CF8,
+};
+
+TaskDesc D_actor_350700_80169D10 = { 257, 192, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
+
+Actor350700MsgEntry D_actor_350700_80169D1C[6] = {
+    { 2003, { .call1 = func_actor_350700_80162860 } },
+    { 2004, { .call3 = func_actor_350700_80162998 } },
+    { 2005, { .call5 = func_actor_350700_80162A14 } },
+    { 2013, { .call4 = func_actor_350700_801621B4 } },
+    { 2011, { .call2 = func_actor_350700_80162AF4 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TmdBone D_actor_350700_80169D4C[20] = {
+#include "assets/actor_350700_model_0CA4C_skeleton.inc"
+};
+
+u32 D_actor_350700_8016A01C[20] = {
+#include "assets/actor_350700_model_0CA4C_partVerts.inc"
+};
+
+SVECTOR D_actor_350700_8016A06C[300] = {
+#include "assets/actor_350700_model_0CA4C_verts.inc"
+};
+
+SVECTOR D_actor_350700_8016A9CC[298] = {
+#include "assets/actor_350700_model_0CA4C_normals.inc"
+};
+
+u32 D_actor_350700_8016B31C[3412] = {
+#include "assets/actor_350700_model_0CA4C_stream.inc"
+};
+
+TmdSource D_actor_350700_8016E86C = {
+    0, 18224, 5696, 20,
+    D_actor_350700_8016A01C, D_actor_350700_8016A06C, D_actor_350700_8016A9CC, D_actor_350700_80169D4C, D_actor_350700_8016B31C,
+};
+
+TmdBone D_actor_350700_8016E890[1] = {
+#include "assets/actor_350700_model_0CEA0_skeleton.inc"
+};
+
+u32 D_actor_350700_8016E8B4[1] = {
+#include "assets/actor_350700_model_0CEA0_partVerts.inc"
+};
+
+SVECTOR D_actor_350700_8016E8B8[23] = {
+#include "assets/actor_350700_model_0CEA0_verts.inc"
+};
+
+SVECTOR D_actor_350700_8016E970[23] = {
+#include "assets/actor_350700_model_0CEA0_normals.inc"
+};
+
+u32 D_actor_350700_8016EA28[166] = {
+#include "assets/actor_350700_model_0CEA0_stream.inc"
+};
+
+TmdSource D_actor_350700_8016ECC0 = {
+    0, 1148, 0, 1,
+    D_actor_350700_8016E8B4, D_actor_350700_8016E8B8, D_actor_350700_8016E970, D_actor_350700_8016E890, D_actor_350700_8016EA28,
+};
+
+TmdBone D_actor_350700_8016ECE4[1] = {
+#include "assets/actor_350700_model_0D390_skeleton.inc"
+};
+
+u32 D_actor_350700_8016ED08[1] = {
+#include "assets/actor_350700_model_0D390_partVerts.inc"
+};
+
+SVECTOR D_actor_350700_8016ED0C[27] = {
+#include "assets/actor_350700_model_0D390_verts.inc"
+};
+
+SVECTOR D_actor_350700_8016EDE4[27] = {
+#include "assets/actor_350700_model_0D390_normals.inc"
+};
+
+u32 D_actor_350700_8016EEBC[189] = {
+#include "assets/actor_350700_model_0D390_stream.inc"
+};
+
+TmdSource D_actor_350700_8016F1B0 = {
+    0, 1328, 0, 1,
+    D_actor_350700_8016ED08, D_actor_350700_8016ED0C, D_actor_350700_8016EDE4, D_actor_350700_8016ECE4, D_actor_350700_8016EEBC,
+};
+
+TmdBone D_actor_350700_8016F1D4[1] = {
+#include "assets/actor_350700_model_0D7D4_skeleton.inc"
+};
+
+u32 D_actor_350700_8016F1F8[1] = {
+#include "assets/actor_350700_model_0D7D4_partVerts.inc"
+};
+
+SVECTOR D_actor_350700_8016F1FC[22] = {
+#include "assets/actor_350700_model_0D7D4_verts.inc"
+};
+
+SVECTOR D_actor_350700_8016F2AC[24] = {
+#include "assets/actor_350700_model_0D7D4_normals.inc"
+};
+
+u32 D_actor_350700_8016F36C[162] = {
+#include "assets/actor_350700_model_0D7D4_stream.inc"
+};
+
+TmdSource D_actor_350700_8016F5F4 = {
+    0, 1108, 0, 1,
+    D_actor_350700_8016F1F8, D_actor_350700_8016F1FC, D_actor_350700_8016F2AC, D_actor_350700_8016F1D4, D_actor_350700_8016F36C,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor350700PoseBankD7F8;
+
+Actor350700PoseBankD7F8 D_actor_350700_8016F618 = { .poses = {
+#include "assets/actor_350700_animation_0DA4C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_8016F630[32] = {
+#include "assets/actor_350700_animation_0DA4C_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_8016F6B0[101] = {
+#include "assets/actor_350700_animation_0DA4C_records.inc"
+};
+
+u16 D_actor_350700_8016F844[20] = {
+#include "assets/actor_350700_animation_0DA4C_indices.inc"
+};
+
+GpAnimSet D_actor_350700_8016F86C = {
+    D_actor_350700_8016F6B0, D_actor_350700_8016F844,
+    { NULL, D_actor_350700_8016F618.words, NULL, NULL, D_actor_350700_8016F630, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} Actor350700PoseBankDA74;
+
+Actor350700PoseBankDA74 D_actor_350700_8016F894 = { .poses = {
+#include "assets/actor_350700_animation_0DD04_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_8016F8B8[29] = {
+#include "assets/actor_350700_animation_0DD04_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_8016F92C[116] = {
+#include "assets/actor_350700_animation_0DD04_records.inc"
+};
+
+u16 D_actor_350700_8016FAFC[20] = {
+#include "assets/actor_350700_animation_0DD04_indices.inc"
+};
+
+GpAnimSet D_actor_350700_8016FB24 = {
+    D_actor_350700_8016F92C, D_actor_350700_8016FAFC,
+    { NULL, D_actor_350700_8016F894.words, NULL, NULL, D_actor_350700_8016F8B8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} Actor350700PoseBankDD2C;
+
+Actor350700PoseBankDD2C D_actor_350700_8016FB4C = { .poses = {
+#include "assets/actor_350700_animation_0E08C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_8016FB70[55] = {
+#include "assets/actor_350700_animation_0E08C_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_8016FC4C[142] = {
+#include "assets/actor_350700_animation_0E08C_records.inc"
+};
+
+u16 D_actor_350700_8016FE84[20] = {
+#include "assets/actor_350700_animation_0E08C_indices.inc"
+};
+
+GpAnimSet D_actor_350700_8016FEAC = {
+    D_actor_350700_8016FC4C, D_actor_350700_8016FE84,
+    { NULL, D_actor_350700_8016FB4C.words, NULL, NULL, D_actor_350700_8016FB70, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor350700PoseBankE0B4;
+
+Actor350700PoseBankE0B4 D_actor_350700_8016FED4 = { .poses = {
+#include "assets/actor_350700_animation_0E284_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_8016FEEC[33] = {
+#include "assets/actor_350700_animation_0E284_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_8016FF70[67] = {
+#include "assets/actor_350700_animation_0E284_records.inc"
+};
+
+u16 D_actor_350700_8017007C[20] = {
+#include "assets/actor_350700_animation_0E284_indices.inc"
+};
+
+GpAnimSet D_actor_350700_801700A4 = {
+    D_actor_350700_8016FF70, D_actor_350700_8017007C,
+    { NULL, D_actor_350700_8016FED4.words, NULL, NULL, D_actor_350700_8016FEEC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[20];
+    GpPackedSvec words[60];
+} Actor350700PoseBankE2AC;
+
+Actor350700PoseBankE2AC D_actor_350700_801700CC = { .poses = {
+#include "assets/actor_350700_animation_0EA78_bank1.inc"
+} };
+
+GpPackedSvec D_actor_350700_801701BC[164] = {
+#include "assets/actor_350700_animation_0EA78_bank4.inc"
+};
+
+GpAnimRec D_actor_350700_8017044C[265] = {
+#include "assets/actor_350700_animation_0EA78_records.inc"
+};
+
+u16 D_actor_350700_80170870[20] = {
+#include "assets/actor_350700_animation_0EA78_indices.inc"
+};
+
+GpAnimSet D_actor_350700_80170898 = {
+    D_actor_350700_8017044C, D_actor_350700_80170870,
+    { NULL, D_actor_350700_801700CC.words, NULL, NULL, D_actor_350700_801701BC, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_actor_350700_801708C0[6] = {
+    NULL,
+    &D_actor_350700_8016F86C,
+    &D_actor_350700_8016FB24,
+    &D_actor_350700_8016FEAC,
+    &D_actor_350700_801700A4,
+    &D_actor_350700_80170898,
+};
+
+GpAnimSet ** D_actor_350700_801708D8[1] = {
+    D_actor_350700_801708C0,
+};
+
+TaskDesc D_actor_350700_801708DC[4] = {
+    { 257, 192, func_actor_350700_80163350, { .model = &D_actor_350700_8016E86C } },
+    { 1, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016F1B0 } },
+    { 1, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016ECC0 } },
+    { 1, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016F5F4 } },
+};
+
+Actor350700MsgEntry D_actor_350700_8017090C[6] = {
+    { 2003, { .call1 = func_actor_350700_801636A8 } },
+    { 2004, { .call3 = func_actor_350700_801637C4 } },
+    { 2005, { .call5 = func_actor_350700_80163840 } },
+    { 2013, { .call4 = func_actor_350700_801630C0 } },
+    { 2011, { .call0 = func_actor_350700_8016395C } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};/// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 /// the counter at `walk.motion` indexes, then integrates the local-space `step`
 /// into the 16.16 accumulators at `walk.acc`, adds their high halves to the
 /// root coordinate's translation and truncates them back to 16 bits. Ticks the
@@ -641,7 +1096,7 @@ static void func_actor_350700_80162B30(Task* arg0)
     work->walk.acc[0].w = 0;
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
-    spawned             = Task_SpawnFromTable(&D_actor_350700_801708DC, 1, 8, arg0);
+    spawned             = Task_SpawnFromTable(D_actor_350700_801708DC, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -666,7 +1121,7 @@ static void func_actor_350700_80162B30(Task* arg0)
             tmdProcessStream(model);
         }
     }
-    spawned = Task_SpawnFromTable(&D_actor_350700_801708DC, 2, 0xC, arg0);
+    spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 2, 0xC, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
@@ -680,7 +1135,7 @@ static void func_actor_350700_80162B30(Task* arg0)
            for the last byte, global CSE merges this block's area key with the
            one above into a single cross-block pseudo, and the allocation of
            `spawned` and every address temp after it shifts. */
-        sessionKey = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
+        sessionKey = (GpAreaKey*)(keyAddr = &gGameSession->at4.loc.view);
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = ((GpAreaKey*)keyAddr)->room;
@@ -695,7 +1150,7 @@ static void func_actor_350700_80162B30(Task* arg0)
             tmdProcessStream(model);
         }
     }
-    spawned = Task_SpawnFromTable(&D_actor_350700_801708DC, 3, 8, arg0);
+    spawned = Task_SpawnFromTable(D_actor_350700_801708DC, 3, 8, arg0);
     if (spawned != NULL) {
         work->child2 = spawned;
     }

@@ -222,7 +222,13 @@ typedef struct Actor02100Work {
 } Actor02100Work;
 STATIC_ASSERT_SIZEOF(Actor02100Work, 0x19C);
 
-extern GpU16Pair                Actor02100_D03D64;
+extern TmdBone Actor02100_D036BC[3];
+extern u32 Actor02100_D03728[3];
+extern SVECTOR Actor02100_D03734[40];
+extern SVECTOR Actor02100_D03874[32];
+extern u32 Actor02100_D03974[243];
+
+extern GpU16Pair                Actor02100_D03D64[5];
 extern GpPairSrcE               Actor02100_D03D78;
 extern Actor02100Fn01FF0Timing  Actor02100_D03D88[];
 extern Actor02100Fn02924Widths  Actor02100_D03DD8[];
@@ -243,6 +249,80 @@ static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn031C4,
     Actor02100_Fn035D4,
 } };
+
+TmdBone Actor02100_D036BC[3] = {
+#include "assets/actor_102100_model_03D40_skeleton.inc"
+};
+
+u32 Actor02100_D03728[3] = {
+#include "assets/actor_102100_model_03D40_partVerts.inc"
+};
+
+SVECTOR Actor02100_D03734[40] = {
+#include "assets/actor_102100_model_03D40_verts.inc"
+};
+
+SVECTOR Actor02100_D03874[32] = {
+#include "assets/actor_102100_model_03D40_normals.inc"
+};
+
+u32 Actor02100_D03974[243] = {
+#include "assets/actor_102100_model_03D40_stream.inc"
+};
+
+TmdSource Actor02100_D03D40 = {
+    0, 0x6A8, 0, 3,
+    Actor02100_D03728, Actor02100_D03734, Actor02100_D03874,
+    Actor02100_D036BC, Actor02100_D03974,
+};
+
+GpU16Pair Actor02100_D03D64[5] = {
+    { 15, 7 },
+    { 25, 7 },
+    { 12, 2 },
+    { 12, 10 },
+    { 15, 7 },
+};
+
+GpPairSrcE Actor02100_D03D78 = { Actor02100_D03D64, 70, 15, 0, 0, 100, 0, 0, 0, 0 };
+
+Actor02100Fn01FF0Timing Actor02100_D03D88[5] = {
+    { .shorts = { 30, 90, 48, 0, 0, 255, 0, 0 } },
+    { .shorts = { 90, 90, 48, 0, 0, 255, 0, 0 } },
+    { .shorts = { 30, 180, 8, 16, 32, 32, 64, 128 } },
+    { .shorts = { 30, 180, 24, 24, 0, 32, 32, 0 } },
+    { .shorts = { 30, 180, 48, 48, 48, 0, 64, 16 } },
+};
+
+Actor02100Fn02924Widths Actor02100_D03DD8[5] = {
+    { { { -4, 4 }, { -6, 6 } } },
+    { { { -10, 10 }, { -14, 14 } } },
+    { { { -10, 10 }, { -10, 10 } } },
+    { { { -10, 10 }, { -10, 10 } } },
+    { { { -4, 4 }, { -6, 6 } } },
+};
+
+s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
+
+TaskDesc Actor02100_D03E10 = { 1, 0x60, Actor02100_Fn03168, { .model = &Actor02100_D03D40 } };
+
+Actor02100Fn02924Corners Actor02100_D03E1C[2] = {
+    { { 0, 1, 2, 3 } },
+    { { 0, 1, 4, 5 } },
+};
+
+s16 Actor02100_D03E2C[80] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 1, 0,
+    1, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+};
 
 static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
 {
@@ -1170,7 +1250,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             Actor02100_Fn02924(arg0, 1);
             frame = work->field_17A;
             if (frame == 1) {
-                work->field_78.key = Gp_PackPair(&Actor02100_D03D64, work->field_178);
+                work->field_78.key = Gp_PackPair(Actor02100_D03D64, work->field_178);
                 packed             = work->field_178 + 0x26;
                 work->field_C8.key = flagBit;
                 work->field_C8.key = (packed << 8) | (packed | work->field_C8.key);
@@ -1392,7 +1472,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case 3:
-            work->field_78.key = Gp_PackPair(&Actor02100_D03D64, work->field_178);
+            work->field_78.key = Gp_PackPair(Actor02100_D03D64, work->field_178);
             work->field_174    = 4;
             work->field_C8.key = ((work->field_178 + 0x26) << 8) | 0x20000 | (work->field_178 + 0x26);
             work->field_17C++;

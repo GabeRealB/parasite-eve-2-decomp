@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/dryfield_night_trailer_coach.h"
+#include "mapui/map_dryfield_full.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -7,6 +9,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_80181228.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/area_transitions.h"
@@ -36,6 +39,18 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+#include "gameplay/animation.h"
+
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call2)(s32, s32, s32);
+    } handler;
+} DryfieldNightTrailerCoachMessageEntry;
+STATIC_ASSERT_SIZEOF(DryfieldNightTrailerCoachMessageEntry, 8);
+
 /// The "%" suffix the room's percentage formatters append.
 extern u8 D_dryfield_night_trailer_coach_80184D44[];
 
@@ -45,7 +60,7 @@ extern s32 D_dryfield_night_trailer_coach_80184490;
 /// Task descriptor table the room's cutscene tasks spawn from: the room spawns
 /// entry 0 with a cutscene record as its argument, and
 /// `func_dryfield_night_trailer_coach_80181DB0` spawns entry 1 for the scene.
-extern TaskDesc D_dryfield_night_trailer_coach_80184FE4;
+extern TaskDesc D_dryfield_night_trailer_coach_80184FE4[];
 
 static void func_dryfield_night_trailer_coach_80181D74(Task* task);
 
@@ -118,6 +133,1692 @@ extern u16 D_dryfield_night_trailer_coach_801843E8[];
 
 /// The list returned when no case matches.
 extern u16 D_dryfield_night_trailer_coach_80184578[];
+
+void func_dryfield_night_trailer_coach_8017DE8C(UiList *, UiObject *);
+
+void func_dryfield_night_trailer_coach_8017E830(Task *);
+void func_dryfield_night_trailer_coach_8017EA80(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_8017ECA0(Task *);
+void func_dryfield_night_trailer_coach_8017EE48(Task *);
+void func_dryfield_night_trailer_coach_8017F02C(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_8017F240(Task *);
+void func_dryfield_night_trailer_coach_8017FCDC(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_8017FD98(Task *);
+
+s32 func_dryfield_night_trailer_coach_801826A0(void);
+s32 func_dryfield_night_trailer_coach_801826A8(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_trailer_coach_801826EC(s32, s32, s32);
+s32 func_dryfield_night_trailer_coach_80182800(void);
+s32 func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
+void func_dryfield_night_trailer_coach_8017E830(Task *);
+void func_dryfield_night_trailer_coach_8017F3C0(Task *);
+void func_dryfield_night_trailer_coach_8017F688(Task *);
+void func_dryfield_night_trailer_coach_8017F85C(Task *);
+void func_dryfield_night_trailer_coach_8017FEC0(Task *);
+void func_dryfield_night_trailer_coach_8017FFF4(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_801807C0(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_801811D8(Task *);
+void func_dryfield_night_trailer_coach_80181684(Task *);
+void func_dryfield_night_trailer_coach_80181844(Task *);
+void func_dryfield_night_trailer_coach_80181A38(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_80181B1C(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_80181BE4(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_80181CAC(UiList *, UiObject *);
+void func_dryfield_night_trailer_coach_80181DB0(Task *);
+void func_dryfield_night_trailer_coach_8018243C(Task *);
+void func_dryfield_night_trailer_coach_80182610(Task *);
+
+extern GpAnimArg D_dryfield_night_trailer_coach_801879D0;
+extern GpAnimArg D_dryfield_night_trailer_coach_80187A20;
+extern GpAnimSet D_dryfield_night_trailer_coach_80185398;
+extern GpAnimSet D_dryfield_night_trailer_coach_80185590;
+extern GpAnimSet D_dryfield_night_trailer_coach_801858E4;
+extern GpAnimSet D_dryfield_night_trailer_coach_80185ADC;
+extern GpAnimSet D_dryfield_night_trailer_coach_80185DE0;
+extern GpAnimSet D_dryfield_night_trailer_coach_80186208;
+extern GpAnimSet D_dryfield_night_trailer_coach_80186844;
+extern GpAnimSet D_dryfield_night_trailer_coach_80186B5C;
+extern GpAnimSet D_dryfield_night_trailer_coach_80186E88;
+extern GpAnimSet D_dryfield_night_trailer_coach_801873D0;
+extern GpAnimSet D_dryfield_night_trailer_coach_80187924;
+extern GpXformArg D_dryfield_night_trailer_coach_80187988;
+void func_dryfield_night_trailer_coach_8018283C(void);
+void func_dryfield_night_trailer_coach_80182864(void);
+
+u16 D_dryfield_night_trailer_coach_8018409C[4] = {
+    140, 143, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840A4[4] = {
+    172, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801840AC[4] = {
+    103, 98, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840B4[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840C4[8] = {
+    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840D4[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840E4[4] = {
+    108, 100, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840EC[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801840FC[8] = {
+    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018410C[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_8018411C[4] = {
+    98, 105, 106, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184124[10] = {
+    65, 59, 58, 1, 2, 6, 8, 4,
+    0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184138[12] = {
+    131, 157, 140, 142, 143, 10, 70, 69,
+    67, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184150[10] = {
+    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
+    0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184164[4] = {
+    108, 100, 102, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018416C[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_8018417C[12] = {
+    157, 9, 140, 142, 138, 143, 10, 70,
+    69, 66, 67, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184194[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801841A8[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801841B0[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801841C4[14] = {
+    157, 9, 140, 142, 143, 10, 70, 69,
+    66, 67, 68, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801841E0[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801841F0[6] = {
+    103, 98, 100, 97, 107, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801841FC[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184214[14] = {
+    140, 142, 138, 143, 10, 70, 69, 66,
+    67, 68, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184230[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184244[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018424C[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184260[16] = {
+    140, 142, 138, 139, 143, 10, 70, 69,
+    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184280[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184290[6] = {
+    100, 98, 97, 103, 107, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018429C[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801842B4[2] = {
+    139, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801842B8[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801842BC[4] = {
+    108, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801842C4[8] = {
+    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801842D4[4] = {
+    131, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801842DC[4] = {
+    160, 171, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801842E4[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801842EC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801842F8[4] = {
+    140, 138, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184300[6] = {
+    160, 172, 171, 175, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_8018430C[4] = {
+    98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184314[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184320[6] = {
+    131, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_8018432C[4] = {
+    160, 171, 175, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184334[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018433C[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184348[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184354[4] = {
+    171, 175, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_8018435C[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184368[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184374[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184380[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184384[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_80184390[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_8018439C[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801843A8[4] = {
+    171, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801843B0[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801843BC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801843C8[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801843D4[4] = {
+    171, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_801843DC[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_dryfield_night_trailer_coach_801843E8[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+RoomShopTier D_dryfield_night_trailer_coach_801843F4[13] = {
+    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
+    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
+    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
+    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
+    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
+    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
+    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
+    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
+    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
+    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
+    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
+    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
+    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
+};
+
+s32 D_dryfield_night_trailer_coach_80184490 = -1;
+
+u8 D_dryfield_night_trailer_coach_80184494[20] = {
+    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_801844A8[8] = {
+    80, 97, 115, 115, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_801844B0[16] = {
+    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_801844C0[4] = { 0 };
+
+u8 D_dryfield_night_trailer_coach_801844C4[60] = {
+    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
+    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
+    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
+    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184500[8] = {
+    87, 101, 97, 112, 111, 110, 115, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184508[12] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184514[8] = {
+    65, 114, 109, 111, 114, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_8018451C[8] = {
+    73, 116, 101, 109, 115, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184524[20] = {
+    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
+    0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184538[16] = {
+    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184548[32] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
+    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184568[12] = {
+    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184574[4] = {
+    120, 0, 0, 0,
+};
+
+u16 D_dryfield_night_trailer_coach_80184578[2] = {
+    0xFFFF, 0,
+};
+
+UiListItemFunc D_dryfield_night_trailer_coach_8018457C[1] = {
+    func_dryfield_night_trailer_coach_8017DE8C,
+};
+
+UiListItemFunc D_dryfield_night_trailer_coach_80184580[1] = {
+    func_dryfield_night_trailer_coach_8017EA80,
+};
+
+UiList D_dryfield_night_trailer_coach_80184584 = { D_dryfield_night_trailer_coach_80184580, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_dryfield_night_trailer_coach_801845A8[2] = {
+    func_dryfield_night_trailer_coach_8017F02C,
+    func_dryfield_night_trailer_coach_8017FCDC,
+};
+
+UiList D_dryfield_night_trailer_coach_801845B0 = { D_dryfield_night_trailer_coach_801845A8, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_801845D4 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_dryfield_night_trailer_coach_8017ECA0, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_801845F0 = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_dryfield_night_trailer_coach_8017E830, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_8018460C = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_dryfield_night_trailer_coach_8017EE48, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184628 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_dryfield_night_trailer_coach_8017FD98, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184644 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_dryfield_night_trailer_coach_8017F240, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184660 = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_dryfield_night_trailer_coach_8017E830, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_8018467C = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_dryfield_night_trailer_coach_8017F3C0, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184698 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_dryfield_night_trailer_coach_8017F688, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_801846B4 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_dryfield_night_trailer_coach_8017F85C, 0 };
+
+TaskDesc D_dryfield_night_trailer_coach_801846D0 = { 0, 192, func_dryfield_night_trailer_coach_8017FEC0, { .model = NULL } };
+
+TmdBone D_dryfield_night_trailer_coach_801846DC[3] = {
+#include "assets/dryfield_night_trailer_coach_model_076E0_skeleton.inc"
+};
+
+u32 D_dryfield_night_trailer_coach_80184748[3] = {
+#include "assets/dryfield_night_trailer_coach_model_076E0_partVerts.inc"
+};
+
+SVECTOR D_dryfield_night_trailer_coach_80184754[56] = {
+#include "assets/dryfield_night_trailer_coach_model_076E0_verts.inc"
+};
+
+SVECTOR D_dryfield_night_trailer_coach_80184914[6] = {
+#include "assets/dryfield_night_trailer_coach_model_076E0_normals.inc"
+};
+
+u32 D_dryfield_night_trailer_coach_80184944[215] = {
+#include "assets/dryfield_night_trailer_coach_model_076E0_stream.inc"
+};
+
+TmdSource D_dryfield_night_trailer_coach_80184CA0 = {
+    0, 1768, 0, 3,
+    D_dryfield_night_trailer_coach_80184748, D_dryfield_night_trailer_coach_80184754, D_dryfield_night_trailer_coach_80184914, D_dryfield_night_trailer_coach_801846DC, D_dryfield_night_trailer_coach_80184944,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CC4[8] = {
+    83,
+    97,
+    118,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CCC[12] = {
+    80,
+    108,
+    97,
+    121,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CD8[12] = {
+    87,
+    101,
+    97,
+    112,
+    111,
+    110,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CE4[8] = {
+    80,
+    69,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CEC[8] = {
+    84,
+    105,
+    109,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CF4[4] = {
+    87,
+    111,
+    110,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184CF8[8] = {
+    69,
+    115,
+    99,
+    97,
+    112,
+    101,
+    100,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D00[12] = {
+    66,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D0C[16] = {
+    69,
+    120,
+    116,
+    101,
+    114,
+    109,
+    105,
+    110,
+    97,
+    116,
+    101,
+    100,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D1C[8] = {
+    83,
+    97,
+    118,
+    101,
+    100,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D24[8] = {
+    67,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D2C[8] = {
+    77,
+    97,
+    120,
+    32,
+    69,
+    88,
+    80,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D34[8] = {
+    77,
+    97,
+    120,
+    32,
+    66,
+    80,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D3C[8] = {
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D44[4] = {
+    37,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D48[44] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    10,
+    116,
+    105,
+    109,
+    101,
+    32,
+    115,
+    112,
+    101,
+    110,
+    116,
+    32,
+    102,
+    111,
+    114,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D74[36] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    115,
+    97,
+    118,
+    101,
+    115,
+    10,
+    117,
+    115,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184D98[48] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    10,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184DC8[52] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    115,
+    99,
+    97,
+    112,
+    101,
+    115,
+    10,
+    102,
+    114,
+    111,
+    109,
+    32,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184DFC[52] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184E30[56] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    32,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184E68[52] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    32,
+    121,
+    111,
+    117,
+    32,
+    104,
+    97,
+    118,
+    101,
+    10,
+    99,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    32,
+    115,
+    111,
+    32,
+    102,
+    97,
+    114,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184E9C[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    69,
+    88,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_dryfield_night_trailer_coach_80184ED4[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    66,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+UiListItemFunc D_dryfield_night_trailer_coach_80184F0C[1] = {
+    func_dryfield_night_trailer_coach_8017FFF4,
+};
+
+UiList D_dryfield_night_trailer_coach_80184F10 = { D_dryfield_night_trailer_coach_80184F0C, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_dryfield_night_trailer_coach_80184F34[1] = {
+    func_dryfield_night_trailer_coach_801807C0,
+};
+
+UiList D_dryfield_night_trailer_coach_80184F38 = { D_dryfield_night_trailer_coach_80184F34, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184F5C = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_dryfield_night_trailer_coach_80181684, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184F78 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_dryfield_night_trailer_coach_80181844, 0 };
+
+UiObjectDesc D_dryfield_night_trailer_coach_80184F94 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_dryfield_night_trailer_coach_801811D8, 0 };
+
+UiListItemFunc D_dryfield_night_trailer_coach_80184FB0[4] = {
+    func_dryfield_night_trailer_coach_80181A38,
+    func_dryfield_night_trailer_coach_80181B1C,
+    func_dryfield_night_trailer_coach_80181BE4,
+    func_dryfield_night_trailer_coach_80181CAC,
+};
+
+UiList D_dryfield_night_trailer_coach_80184FC0 = { D_dryfield_night_trailer_coach_80184FB0, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+TaskDesc D_dryfield_night_trailer_coach_80184FE4[3] = {
+    { 0, 32, func_dryfield_night_trailer_coach_80181DB0, { .model = NULL } },
+    { 0, 32, func_dryfield_night_trailer_coach_80182610, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldNightTrailerCoachPoseBank7A48;
+
+DryfieldNightTrailerCoachPoseBank7A48 D_dryfield_night_trailer_coach_80185008 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_07DD8_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_8018502C[81] = {
+#include "assets/dryfield_night_trailer_coach_animation_07DD8_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_80185170[128] = {
+#include "assets/dryfield_night_trailer_coach_animation_07DD8_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80185370[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_07DD8_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80185398 = {
+    D_dryfield_night_trailer_coach_80185170, D_dryfield_night_trailer_coach_80185370,
+    { NULL, D_dryfield_night_trailer_coach_80185008.words, NULL, NULL, D_dryfield_night_trailer_coach_8018502C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldNightTrailerCoachPoseBank7E00;
+
+DryfieldNightTrailerCoachPoseBank7E00 D_dryfield_night_trailer_coach_801853C0 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_07FD0_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_801853E4[34] = {
+#include "assets/dryfield_night_trailer_coach_animation_07FD0_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_8018546C[63] = {
+#include "assets/dryfield_night_trailer_coach_animation_07FD0_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80185568[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_07FD0_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80185590 = {
+    D_dryfield_night_trailer_coach_8018546C, D_dryfield_night_trailer_coach_80185568,
+    { NULL, D_dryfield_night_trailer_coach_801853C0.words, NULL, NULL, D_dryfield_night_trailer_coach_801853E4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldNightTrailerCoachPoseBank7FF8;
+
+DryfieldNightTrailerCoachPoseBank7FF8 D_dryfield_night_trailer_coach_801855B8 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_08324_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_801855F4[58] = {
+#include "assets/dryfield_night_trailer_coach_animation_08324_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_801856DC[120] = {
+#include "assets/dryfield_night_trailer_coach_animation_08324_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_801858BC[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_08324_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_801858E4 = {
+    D_dryfield_night_trailer_coach_801856DC, D_dryfield_night_trailer_coach_801858BC,
+    { NULL, D_dryfield_night_trailer_coach_801855B8.words, NULL, NULL, D_dryfield_night_trailer_coach_801855F4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldNightTrailerCoachPoseBank834C;
+
+DryfieldNightTrailerCoachPoseBank834C D_dryfield_night_trailer_coach_8018590C = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_0851C_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80185930[34] = {
+#include "assets/dryfield_night_trailer_coach_animation_0851C_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_801859B8[63] = {
+#include "assets/dryfield_night_trailer_coach_animation_0851C_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80185AB4[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_0851C_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80185ADC = {
+    D_dryfield_night_trailer_coach_801859B8, D_dryfield_night_trailer_coach_80185AB4,
+    { NULL, D_dryfield_night_trailer_coach_8018590C.words, NULL, NULL, D_dryfield_night_trailer_coach_80185930, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldNightTrailerCoachPoseBank8544;
+
+DryfieldNightTrailerCoachPoseBank8544 D_dryfield_night_trailer_coach_80185B04 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_08820_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80185B40[55] = {
+#include "assets/dryfield_night_trailer_coach_animation_08820_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_80185C1C[103] = {
+#include "assets/dryfield_night_trailer_coach_animation_08820_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80185DB8[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_08820_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80185DE0 = {
+    D_dryfield_night_trailer_coach_80185C1C, D_dryfield_night_trailer_coach_80185DB8,
+    { NULL, D_dryfield_night_trailer_coach_80185B04.words, NULL, NULL, D_dryfield_night_trailer_coach_80185B40, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldNightTrailerCoachPoseBank8848;
+
+DryfieldNightTrailerCoachPoseBank8848 D_dryfield_night_trailer_coach_80185E08 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_08C48_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80185E44[90] = {
+#include "assets/dryfield_night_trailer_coach_animation_08C48_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_80185FAC[141] = {
+#include "assets/dryfield_night_trailer_coach_animation_08C48_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_801861E0[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_08C48_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80186208 = {
+    D_dryfield_night_trailer_coach_80185FAC, D_dryfield_night_trailer_coach_801861E0,
+    { NULL, D_dryfield_night_trailer_coach_80185E08.words, NULL, NULL, D_dryfield_night_trailer_coach_80185E44, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} DryfieldNightTrailerCoachPoseBank8C70;
+
+DryfieldNightTrailerCoachPoseBank8C70 D_dryfield_night_trailer_coach_80186230 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_09284_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_801862D8[135] = {
+#include "assets/dryfield_night_trailer_coach_animation_09284_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_801864F4[202] = {
+#include "assets/dryfield_night_trailer_coach_animation_09284_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_8018681C[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_09284_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80186844 = {
+    D_dryfield_night_trailer_coach_801864F4, D_dryfield_night_trailer_coach_8018681C,
+    { NULL, D_dryfield_night_trailer_coach_80186230.words, NULL, NULL, D_dryfield_night_trailer_coach_801862D8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldNightTrailerCoachPoseBank92AC;
+
+DryfieldNightTrailerCoachPoseBank92AC D_dryfield_night_trailer_coach_8018686C = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_0959C_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_801868C0[54] = {
+#include "assets/dryfield_night_trailer_coach_animation_0959C_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_80186998[103] = {
+#include "assets/dryfield_night_trailer_coach_animation_0959C_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80186B34[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_0959C_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80186B5C = {
+    D_dryfield_night_trailer_coach_80186998, D_dryfield_night_trailer_coach_80186B34,
+    { NULL, D_dryfield_night_trailer_coach_8018686C.words, NULL, NULL, D_dryfield_night_trailer_coach_801868C0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldNightTrailerCoachPoseBank95C4;
+
+DryfieldNightTrailerCoachPoseBank95C4 D_dryfield_night_trailer_coach_80186B84 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_098C8_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80186BD8[56] = {
+#include "assets/dryfield_night_trailer_coach_animation_098C8_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_80186CB8[106] = {
+#include "assets/dryfield_night_trailer_coach_animation_098C8_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_80186E60[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_098C8_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80186E88 = {
+    D_dryfield_night_trailer_coach_80186CB8, D_dryfield_night_trailer_coach_80186E60,
+    { NULL, D_dryfield_night_trailer_coach_80186B84.words, NULL, NULL, D_dryfield_night_trailer_coach_80186BD8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} DryfieldNightTrailerCoachPoseBank98F0;
+
+DryfieldNightTrailerCoachPoseBank98F0 D_dryfield_night_trailer_coach_80186EB0 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_09E10_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80186F10[121] = {
+#include "assets/dryfield_night_trailer_coach_animation_09E10_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_801870F4[173] = {
+#include "assets/dryfield_night_trailer_coach_animation_09E10_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_801873A8[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_09E10_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_801873D0 = {
+    D_dryfield_night_trailer_coach_801870F4, D_dryfield_night_trailer_coach_801873A8,
+    { NULL, D_dryfield_night_trailer_coach_80186EB0.words, NULL, NULL, D_dryfield_night_trailer_coach_80186F10, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} DryfieldNightTrailerCoachPoseBank9E38;
+
+DryfieldNightTrailerCoachPoseBank9E38 D_dryfield_night_trailer_coach_801873F8 = { .poses = {
+#include "assets/dryfield_night_trailer_coach_animation_0A364_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_trailer_coach_80187464[106] = {
+#include "assets/dryfield_night_trailer_coach_animation_0A364_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_trailer_coach_8018760C[188] = {
+#include "assets/dryfield_night_trailer_coach_animation_0A364_records.inc"
+};
+
+u16 D_dryfield_night_trailer_coach_801878FC[20] = {
+#include "assets/dryfield_night_trailer_coach_animation_0A364_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_trailer_coach_80187924 = {
+    D_dryfield_night_trailer_coach_8018760C, D_dryfield_night_trailer_coach_801878FC,
+    { NULL, D_dryfield_night_trailer_coach_801873F8.words, NULL, NULL, D_dryfield_night_trailer_coach_80187464, NULL, NULL, NULL },
+};
+
+DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
+    { 5102, { .call1 = func_dryfield_night_trailer_coach_801826A8 } },
+    { 5105, { .call0 = func_dryfield_night_trailer_coach_801826A0 } },
+    { 5103, { .call0 = func_dryfield_night_trailer_coach_80182800 } },
+    { 5104, { .call2 = func_dryfield_night_trailer_coach_801826EC } },
+    { 5106, { .call2 = func_dryfield_night_trailer_coach_80182808 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_dryfield_night_trailer_coach_8018797C = { 0, 32, func_dryfield_night_trailer_coach_8018243C, { .model = NULL } };
+
+GpXformArg D_dryfield_night_trailer_coach_80187988 = { { 4870, 0, -900, 0 }, { 0, -1536, 0, 0 } };
+
+GpXformArg D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
+
+GpXformArg D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
+
+GpAnimArg D_dryfield_night_trailer_coach_801879D0 = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpAnimArg D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_801879F8 = { { .index = 1 }, 47, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187A0C = { { .index = 1 }, 52, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187A20 = { { .index = 1 }, 48, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187A34 = { { .index = 1 }, 53, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187A48[4] = {
+    { { .index = 1 }, 49, 0, 0, 0 },
+    { { .index = 1 }, 50, 0, 0, 0 },
+    { { .index = 1 }, 51, 0, 0, 0 },
+    { { .index = 1 }, 55, 0, 0, 0 },
+};
+
+GpAnimArg D_dryfield_night_trailer_coach_80187A98 = { { .index = 1 }, 56, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187AAC = { { .index = 1 }, 57, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187AC0 = { { .index = 0 }, 0, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187AD4 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187AE8[2] = {
+    { { .index = 0 }, 2, 0, 0, 0 },
+    { { .index = 0 }, 3, 0, 0, 0 },
+};
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B10 = { { .index = 0 }, 4, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B24 = { { .index = 0 }, 5, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B38 = { { .index = 0 }, 6, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B4C = { { .index = 0 }, 7, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B60 = { { .index = 0 }, 8, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B74 = { { .index = 0 }, 9, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B88 = { { .index = 0 }, 10, 1, 8, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187B9C[2] = {
+    { { .index = 0 }, 8, 1, 0, 0 },
+    { { .index = 1 }, 0, 0, 0, 0 },
+};
+
+GpAnimArg D_dryfield_night_trailer_coach_80187BC4 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187BD8 = { { .index = 1 }, 2, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187BEC = { { .index = 1 }, 3, 1, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C00[3] = {
+    { { .index = 1 }, 4, 1, 0, 0 },
+    { { .index = 1 }, 5, 0, 0, 0 },
+    { { .index = 1 }, 6, 0, 0, 0 },
+};
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C3C = { { .index = 1 }, 7, 1, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C50 = { { .index = 1 }, 2, 1, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C64 = { { .index = 2 }, 0, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C78 = { { .index = 2 }, 1, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187C8C = { { .index = 2 }, 2, 0, 0, 0 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187CA0 = { { .index = 2 }, 3, 1, 0, 0 };
+
+GpAnimSet * D_dryfield_night_trailer_coach_80187CB4[12] = {
+    &D_dryfield_night_trailer_coach_801873D0,
+    &D_dryfield_night_trailer_coach_80186208,
+    &D_dryfield_night_trailer_coach_80185590,
+    &D_dryfield_night_trailer_coach_801858E4,
+    &D_dryfield_night_trailer_coach_80185ADC,
+    &D_dryfield_night_trailer_coach_80187924,
+    &D_dryfield_night_trailer_coach_80185DE0,
+    &D_dryfield_night_trailer_coach_80185398,
+    &D_dryfield_night_trailer_coach_80186844,
+    &D_dryfield_night_trailer_coach_80186B5C,
+    &D_dryfield_night_trailer_coach_80186E88,
+    NULL,
+};
+
+GpCopyArg D_dryfield_night_trailer_coach_80187CE4 = { { .sets = D_dryfield_night_trailer_coach_80187CB4 }, 11 };
+
+GpAnimArg D_dryfield_night_trailer_coach_80187CEC = { { .index = 6 }, 34, 0, 0, 0 };
+
+GpEvsCmd D_dryfield_night_trailer_coach_80187D00[25] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_night_trailer_coach_80187CE4 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_trailer_coach_80187988 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187C78 }, { .value = 0 } },
+    { 15, { .value = 0x531B0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187C8C }, { .value = 0 } },
+    { 15, { .value = 0x531B0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_80187A20 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187BC4 }, { .value = 0 } },
+    { 4, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187C50 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B24 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_night_trailer_coach_80187F58[14] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_night_trailer_coach_80187988 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B24 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_night_trailer_coach_801880A8[14] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B38 }, { .value = 0 } },
+    { 4, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B4C }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B60 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_night_trailer_coach_8018283C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_night_trailer_coach_801881F8[14] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackResult = func_800D4D2C }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B74 }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B10 }, { .value = 0 } },
+    { 4, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B24 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4005 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_night_trailer_coach_80188348[19] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B38 }, { .value = 0 } },
+    { 4, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B4C }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B60 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_night_trailer_coach_80182864 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B74 }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B10 }, { .value = 0 } },
+    { 4, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B24 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4005 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_night_trailer_coach_80188510[21] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 24 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B38 }, { .value = 0 } },
+    { 4, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187BC4 }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187BD8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187C3C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_night_trailer_coach_80182864 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B74 }, { .value = 0 } },
+    { 4, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B10 }, { .value = 0 } },
+    { 4, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_night_trailer_coach_80187B24 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4005 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
 
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
@@ -606,8 +2307,6 @@ static void func_dryfield_night_trailer_coach_8017E464(RoomShopList* shop, UiObj
     }
     D_dryfield_night_trailer_coach_80184490 = -1;
 }
-
-extern UiObject* D_80067634;
 
 /// Titles and captions of the shop's panels.
 static const u8 D_dryfield_night_trailer_coach_8017D6D0[] = "Select";
@@ -1196,7 +2895,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
     price  = Gp_ItemDescs[itemId].price;
 
     if (task->state == 0) {
-        task->extraState = 1;
+        task->extraState.value = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
         task->state = task->state + 1;
     }
@@ -1236,7 +2935,7 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
         Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
-    count = task->extraState;
+    count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, D_dryfield_night_trailer_coach_80184574, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
@@ -1256,18 +2955,18 @@ void func_dryfield_night_trailer_coach_8017F85C(Task* task)
     if (obj->panel.field_0.w == 1) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState < maxQty) {
-                task->extraState = task->extraState + 1;
+            if (task->extraState.value < maxQty) {
+                task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState >= 2) {
-                task->extraState = task->extraState - 1;
+            if (task->extraState.value >= 2) {
+                task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState;
-            for (i = 0; i < task->extraState; i++) {
+            Player_Status.bp -= price * task->extraState.value;
+            for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -2051,7 +3750,7 @@ void func_dryfield_night_trailer_coach_801811D8(Task* task)
     }
 }
 
-static void func_dryfield_night_trailer_coach_8018138C(Task* task)
+void func_dryfield_night_trailer_coach_8018138C(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -2379,7 +4078,6 @@ extern Task* D_dryfield_night_trailer_coach_8018C218;
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
-extern GpAreaApplyRec D_dryfield_night_trailer_coach_80188888;
 
 /// The room's cutscene runner: suppresses the player and ally HUD, loads and
 /// starts the scene's caption slot, lets confirm or cancel cut the scene
@@ -2442,7 +4140,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
             }
             break;
         case 4:
-            D_dryfield_night_trailer_coach_8018C218 = Task_SpawnFromTable(&D_dryfield_night_trailer_coach_80184FE4, 1, 0, rec->field_10);
+            D_dryfield_night_trailer_coach_8018C218 = Task_SpawnFromTable(D_dryfield_night_trailer_coach_80184FE4, 1, 0, rec->field_10);
             Gp_StartCapSlot(rec->field_1, 0, 0x63);
             task->state++;
             break;
@@ -2487,7 +4185,7 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -2571,22 +4269,24 @@ void func_dryfield_night_trailer_coach_80181DB0(Task* task)
     }
 }
 
-extern s32            D_dryfield_night_trailer_coach_8018794C;
-extern s32            D_dryfield_night_trailer_coach_801879B8;
-extern s32            D_dryfield_night_trailer_coach_80187CEC;
-extern s32            D_dryfield_night_trailer_coach_80187D00;
-extern s32            D_dryfield_night_trailer_coach_80187F58;
-extern s32            D_dryfield_night_trailer_coach_801880A8;
-extern s32            D_dryfield_night_trailer_coach_801881F8;
-extern s32            D_dryfield_night_trailer_coach_80188348;
-extern s32            D_dryfield_night_trailer_coach_80188510;
-extern s32            D_dryfield_night_trailer_coach_80188708;
-extern s32            D_dryfield_night_trailer_coach_80188858;
-extern s32            D_dryfield_night_trailer_coach_801889A8;
-extern s32            D_dryfield_night_trailer_coach_80188F00;
-extern s32            D_dryfield_night_trailer_coach_80189080;
-extern s32            D_dryfield_night_trailer_coach_801892C0;
-extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208;
+// Message-table callbacks use the argument views required by this TU.
+
+extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
+extern GpXformArg D_dryfield_night_trailer_coach_801879B8;
+extern GpAnimArg D_dryfield_night_trailer_coach_80187CEC;
+extern GpEvsCmd D_dryfield_night_trailer_coach_80187D00[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80187F58[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_801880A8[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_801881F8[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188348[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188510[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188708[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188858[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_801889A8[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80188F00[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_80189080[];
+extern GpEvsCmd D_dryfield_night_trailer_coach_801892C0[];
+extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[];
 
 static void func_dryfield_night_trailer_coach_8018231C(Task* task);
 static void func_dryfield_night_trailer_coach_80182898(Task* task);
@@ -2605,17 +4305,17 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
 {
     s32* state;
 
-    task->msgTable = &D_dryfield_night_trailer_coach_8018794C;
+    task->msgTable = D_dryfield_night_trailer_coach_8018794C;
     Game_SetPtrSlot(task, 7);
     if (gameGetPtrSlot(0xA) != NULL) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_trailer_coach_801879B8, 0);
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E8, &D_dryfield_night_trailer_coach_80187CEC, 0);
     }
     if (Mc_SaveData[0].state.at4.loc.warp == 2) {
-        func_800E8634(&D_dryfield_night_trailer_coach_80187D00, 0, &D_dryfield_night_trailer_coach_80187F58);
+        func_800E8634(D_dryfield_night_trailer_coach_80187D00, 0, D_dryfield_night_trailer_coach_80187F58);
     }
     if (Mc_SaveData[0].state.at4.loc.warp == 3) {
-        func_800E8634(&D_dryfield_night_trailer_coach_80189080, 0, &D_dryfield_night_trailer_coach_801892C0);
+        func_800E8634(D_dryfield_night_trailer_coach_80189080, 0, D_dryfield_night_trailer_coach_801892C0);
         Gp_SetCurBit2Flag(0x22, 1);
     }
     if (func_800E3FCC(0xA2) == 0x25) {
@@ -2635,34 +4335,34 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             if (GameFlag_GetNibble(0x61) == 0) {
-                func_800E8614((s32)&D_dryfield_night_trailer_coach_801880A8, 1);
+                func_800E8614(D_dryfield_night_trailer_coach_801880A8, 1);
                 task->state++;
                 break;
             }
             if (GameFlag_GetNibble(0xE0) == 0 && GameFlag_GetNibble(0x7A) >= 4) {
                 GameFlag_SetNibble(0xE0, 1);
-                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188510, 0);
+                func_800E8614(D_dryfield_night_trailer_coach_80188510, 0);
             } else {
-                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188348, 0);
+                func_800E8614(D_dryfield_night_trailer_coach_80188348, 0);
             }
             taskKill(task);
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0xB) {
-                func_800E8614((s32)&D_dryfield_night_trailer_coach_801881F8, 0);
+                func_800E8614(D_dryfield_night_trailer_coach_801881F8, 0);
             } else if (Gp_GetCapEventKey() == 0xC) {
-                func_800E8614((s32)&D_dryfield_night_trailer_coach_80188708, 1);
+                func_800E8614(D_dryfield_night_trailer_coach_80188708, 1);
             } else if (Gp_GetCapEventKey() == 0xD) {
                 if (GameFlag_GetNibble(0x5B) == 0) {
                     GameFlag_SetNibble(0x5B, 1);
                     GameFlag_SetNibble(0x4C, 0);
-                    Gp_ApplyAreaRecs(&D_dryfield_night_trailer_coach_8018C208);
-                    func_800E8634(&D_dryfield_night_trailer_coach_801889A8, 1,
-                                  &D_dryfield_night_trailer_coach_80188F00);
+                    Gp_ApplyAreaRecs(D_dryfield_night_trailer_coach_8018C208);
+                    func_800E8634(D_dryfield_night_trailer_coach_801889A8, 1,
+                                  D_dryfield_night_trailer_coach_80188F00);
                     func_800E3FAC(0xA2, 0x13);
                     Mc_SaveData[0].state.sceneEvent = 2;
                 } else {
-                    func_800E8614((s32)&D_dryfield_night_trailer_coach_80188858, 1);
+                    func_800E8614(D_dryfield_night_trailer_coach_80188858, 1);
                 }
             }
             task->state++;
@@ -2703,14 +4403,12 @@ s32 func_dryfield_night_trailer_coach_801826A0(void)
     return 0;
 }
 
-extern s32 func_80179954(RoomEventMsg* in, RoomEventMsg* out);
-
 /// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `func_80179954`. Always returns 1.
+/// forwards both to `func_map_dryfield_full_80179954`. Always returns 1.
 s32 func_dryfield_night_trailer_coach_801826A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_80179954(in, out);
+    func_map_dryfield_full_80179954(in, out);
     return 1;
 }
 
@@ -2745,7 +4443,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
         D_dryfield_night_trailer_coach_8018C21C.field_8  = 0x531B0005;
         D_dryfield_night_trailer_coach_8018C21C.field_10 = 0x531B0004;
         D_dryfield_night_trailer_coach_8018C21C.field_C  = 0x531B0006;
-        Task_SpawnFromTable(&D_dryfield_night_trailer_coach_80184FE4, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
+        Task_SpawnFromTable(D_dryfield_night_trailer_coach_80184FE4, 0, 3, &D_dryfield_night_trailer_coach_8018C21C);
     }
     if (arg2 == 3) {
         Task_SpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);

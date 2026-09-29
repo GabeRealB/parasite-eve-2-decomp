@@ -127,25 +127,25 @@ static void func_8010B5E4(Task* arg0);
 
 static void func_8010B5F0(Task* arg0);
 
-static s32 func_8010C30C(Task* arg0);
+s32 func_8010C30C(Task* arg0);
 
 static void func_8010C46C(Task* arg0);
 
-static s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2);
 
-static s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2);
+s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2);
 
-static s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2);
 
-static s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 
-static s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
+s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 
-static s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
+s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2);
 
-static void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
+void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2);
 
-static s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2);
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2);
 
 static inline void _gpResumeBaseState(Task* arg0)
 {
@@ -1244,7 +1244,7 @@ void Gp_EndPlayerActorTask(Task* arg0)
     }
 }
 
-s32 Gp_SetupAllyWeapon(void)
+Task* Gp_SetupAllyWeapon(void)
 {
     Task*       work;
     GameActor*  actor;
@@ -1257,7 +1257,7 @@ s32 Gp_SetupAllyWeapon(void)
     s16         val2;
     GpEffWork*  eff;
     TmdObject*  extra;
-    s32         ret;
+    Task*       ret;
 
     work  = gameGetPtrSlot(0xA);
     actor = work->work;
@@ -1267,7 +1267,7 @@ s32 Gp_SetupAllyWeapon(void)
 
     if (actor->field_924 != NULL) {
         save             = &Mc_SaveData[0];
-        task             = func_80104364((Task*)actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
+        task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
             block = actor->field_910;
@@ -1278,7 +1278,7 @@ s32 Gp_SetupAllyWeapon(void)
             block->actionCount = D_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4 && actor->field_914 == NULL) {
                 eff = Gp_SpawnEff(
-                    0x80060180, actor->field_91C->extra.tmd->coords, val1, 0);
+                    0x80060180, actor->field_91C->extra.tmd->coords, (s32)(val1), 0);
                 if (eff != NULL) {
                     actor->field_914 = eff->task;
                     func_80106350(work, val1, 0);
@@ -1305,7 +1305,7 @@ s32 Gp_SetupAllyWeapon(void)
     next->field_973 = 0;
     next->field_975 = 0;
     Gp_AnimResetChildSlots(work, 1);
-    ret              = (s32)actor->field_91C;
+    ret              = actor->field_91C;
     actor->field_983 = 7;
     return ret;
 }
@@ -1629,7 +1629,7 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     obj->flags |= 0xC800;
 }
 
-static s32 func_8010C30C(Task* arg0)
+s32 func_8010C30C(Task* arg0)
 {
     TmdObject* extra;
     GpCoord*   coord;
@@ -1691,7 +1691,7 @@ static void func_8010C46C(Task* arg0)
     func_80106350(arg0, D_80167218[Mc_SaveData[0].state.companionVariant], 0);
 }
 
-static s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -1733,7 +1733,7 @@ static s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-static s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1745,7 +1745,7 @@ static s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-static s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1757,7 +1757,7 @@ static s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-static s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1769,7 +1769,7 @@ static s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* 
     return 0;
 }
 
-static s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
+s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1784,7 +1784,7 @@ static s32 func_8010C708(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* 
     return 0;
 }
 
-static s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
+s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
 {
     GameActor* actor;
 
@@ -1812,7 +1812,7 @@ static s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
     return 0;
 }
 
-static void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
+void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
 {
     PlayerStatus* p;
     u8            saved;
@@ -1823,7 +1823,7 @@ static void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
     p->field_24 = saved;
 }
 
-static s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
 {
     union {
         GpAnimBlk* block;
@@ -1834,7 +1834,7 @@ static s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  count;
 
     dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant];
-    src        = arg2->words;
+    src        = arg2->source.words;
     count      = arg2->count;
     if (count >= 0x21) {
         return 1;

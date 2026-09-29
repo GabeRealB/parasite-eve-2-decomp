@@ -1,3 +1,6 @@
+#include "shelter_b2_pod_access_tunnel_private.h"
+#include "mapui/map_shelter.h"
+
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -15,15 +18,73 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b2_pod_access_tunnel_80185708[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u8 D_shelter_b2_pod_access_tunnel_80185708_value __asm__("D_shelter_b2_pod_access_tunnel_80185708");
 
 extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BC0;
 extern GpMsgEntry       D_shelter_b2_pod_access_tunnel_80183BCC[];
 extern TaskDesc         D_shelter_b2_pod_access_tunnel_80183BFC;
-extern GpFadeWork       D_shelter_b2_pod_access_tunnel_801856F8;
+extern RoomFadeStorage       D_shelter_b2_pod_access_tunnel_801856F8;
 extern RoomEventMsg     D_shelter_b2_pod_access_tunnel_80185700;
-extern u8               D_shelter_b2_pod_access_tunnel_80185708;
 extern RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C;
+
+s32 D_shelter_b2_pod_access_tunnel_801856A0[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+s32 D_shelter_b2_pod_access_tunnel_801856AC[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b2_pod_access_tunnel_801856B8[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_pod_access_tunnel_801856C0[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_pod_access_tunnel_801856C8[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_pod_access_tunnel_801856D0[1] = {
+    { 0, 0, 1, 0, D_shelter_b2_pod_access_tunnel_801856AC },
+};
+
+GpRoomParamRec * D_shelter_b2_pod_access_tunnel_801856D8[8] = {
+    D_shelter_b2_pod_access_tunnel_801856B8,
+    D_shelter_b2_pod_access_tunnel_801856C0,
+    D_shelter_b2_pod_access_tunnel_801856C8,
+    D_shelter_b2_pod_access_tunnel_801856D0,
+    D_shelter_b2_pod_access_tunnel_801856B8,
+    D_shelter_b2_pod_access_tunnel_801856B8,
+    D_shelter_b2_pod_access_tunnel_801856B8,
+    D_shelter_b2_pod_access_tunnel_801856B8,
+};
+
+RoomFadeStorage D_shelter_b2_pod_access_tunnel_801856F8 = { 0 };
+
+RoomEventMsg D_shelter_b2_pod_access_tunnel_80185700 = { 0 };
+
+u8 D_shelter_b2_pod_access_tunnel_80185708[4] = {
+    0,
+    83,
+    70,
+    179,
+};
+
+RoomLatchedEvent D_shelter_b2_pod_access_tunnel_8018570C = { 0 };
 
 /// Runs the room's pending event once its request has been accepted. State 0
 /// runs the event's CAP command; state 1 waits for it and, when the event asks
@@ -45,10 +106,10 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_shelter_b2_pod_access_tunnel_8018570C.fade != 0) {
-                    D_shelter_b2_pod_access_tunnel_801856F8.field_0 = 0;
-                    D_shelter_b2_pod_access_tunnel_801856F8.field_1 = 0;
-                    D_shelter_b2_pod_access_tunnel_801856F8.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b2_pod_access_tunnel_801856F8);
+                    D_shelter_b2_pod_access_tunnel_801856F8.fade.field_0 = 0;
+                    D_shelter_b2_pod_access_tunnel_801856F8.fade.field_1 = 0;
+                    D_shelter_b2_pod_access_tunnel_801856F8.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_shelter_b2_pod_access_tunnel_801856F8.fade);
                 }
                 arg0->state++;
             }
@@ -69,7 +130,7 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -80,7 +141,7 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
 
 static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b2_pod_access_tunnel_80185708 = 0;
+    D_shelter_b2_pod_access_tunnel_80185708_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_b2_pod_access_tunnel_80185700 = *dst;
@@ -89,20 +150,20 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
-            D_shelter_b2_pod_access_tunnel_80185708 = 1;
+            D_shelter_b2_pod_access_tunnel_80185708_value = 1;
         }
         return 2;
     }
     return 1;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0x30) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0x30) {
         if (GameFlag_GetNibble(0xB4) == 0) {
             if (in->field_5 == 0) {
                 Gp_SetNibbleIf(in->field_6, 2);
@@ -111,7 +172,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
             return 0;
         }
     }
-    if (in->msgId == 0x22) {
+    if (in->prefix.packed == 0x22) {
         if (GameFlag_GetNibble(0x118) == 2) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(4);
@@ -182,7 +243,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
     }
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB28(void)
+s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -196,12 +257,12 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB70(void)
+s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB78(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 4) {
         SndEvt_EnqueueType6(0x16, 0, 0);

@@ -1,2 +1,4 @@
 // Overlay-local symbols for plasma.
 gPlasmaId = 0x8012ef30;
+
+func_plasma_8012EF34 = 0x8012EF34; // type:func

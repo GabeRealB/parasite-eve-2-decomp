@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -14,14 +15,55 @@
 #include "main/task.h"
 #include "main/text.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-
 /// Task table spawned by `func_shelter_b2_breeding_room_8017D6A4` once the
 /// breeding-room script has run.
 extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 
 /// Message table `func_shelter_b2_breeding_room_8017D7EC` installs on its task.
 extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
+
+s32 func_shelter_b2_breeding_room_8017D658(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_breeding_room_8017D660(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b2_breeding_room_8017D6A4(Task *, s32, s32, s32);
+s32 func_shelter_b2_breeding_room_8017D750(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_breeding_room_8017D758(Task *, s32, s32, GpMessageArg);
+void func_shelter_b2_breeding_room_8017D7A8(Task *);
+
+extern SVECTOR D_shelter_b2_breeding_room_801803A4[4];
+extern TmdBone D_shelter_b2_breeding_room_8018037C[1];
+extern u32 D_shelter_b2_breeding_room_801803A0[1];
+extern u32 D_shelter_b2_breeding_room_801803C4[11];
+
+TmdBone D_shelter_b2_breeding_room_8018037C[1] = {
+#include "assets/shelter_b2_breeding_room_model_02E30_skeleton.inc"
+};
+
+u32 D_shelter_b2_breeding_room_801803A0[1] = {
+#include "assets/shelter_b2_breeding_room_model_02E30_partVerts.inc"
+};
+
+SVECTOR D_shelter_b2_breeding_room_801803A4[4] = {
+#include "assets/shelter_b2_breeding_room_model_02E30_verts.inc"
+};
+
+u32 D_shelter_b2_breeding_room_801803C4[11] = {
+#include "assets/shelter_b2_breeding_room_model_02E30_stream.inc"
+};
+
+TmdSource D_shelter_b2_breeding_room_801803F0 = { 0, 40, 0, 1, D_shelter_b2_breeding_room_801803A0, D_shelter_b2_breeding_room_801803A4, &D_shelter_b2_breeding_room_801803A4[4], D_shelter_b2_breeding_room_8018037C, D_shelter_b2_breeding_room_801803C4 };
+
+GpMsgEntry D_shelter_b2_breeding_room_80180414[6] = {
+    { 5102, func_shelter_b2_breeding_room_8017D660 },
+    { 5105, func_shelter_b2_breeding_room_8017D658 },
+    { 5103, func_shelter_b2_breeding_room_8017D750 },
+    { 5104, func_shelter_b2_breeding_room_8017D6A4 },
+    { 5106, func_shelter_b2_breeding_room_8017D758 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_b2_breeding_room_80180444[1] = {
+    { 0, 32, func_shelter_b2_breeding_room_8017D7A8, { .model = NULL } },
+};
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
@@ -36,17 +78,17 @@ void func_shelter_b2_breeding_room_8017D5F8(Task* task)
     }
 }
 
-s32 func_shelter_b2_breeding_room_8017D658(void)
+s32 func_shelter_b2_breeding_room_8017D658(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// passes both to `func_80179A04`, returning 1.
-s32 func_shelter_b2_breeding_room_8017D660(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// passes both to `func_map_shelter_80179A04`, returning 1.
+s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
@@ -73,12 +115,12 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D750(void)
+s32 func_shelter_b2_breeding_room_8017D750(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D758(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 7:

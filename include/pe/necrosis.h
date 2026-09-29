@@ -1,6 +1,8 @@
 #ifndef PE_NECROSIS_H
 #define PE_NECROSIS_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include "gameplay/actor.h"
@@ -29,5 +31,11 @@ typedef struct NecrosisWork {
     /* 0x40 */ GpRec18 rec;
 } NecrosisWork;
 STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
+
+void func_necrosis_8012F52C(Task* arg0);
+
+void func_necrosis_8012FAF8(Task* arg0);
+
+void func_necrosis_8012EF34(Task* arg0);
 
 #endif /* PE_NECROSIS_H */

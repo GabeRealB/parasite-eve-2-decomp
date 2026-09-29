@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/neo_ark_submarine_tunnel.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -29,11 +31,12 @@
 #include "main/task.h"
 #include "overlay.h"
 
+#include "gameplay/animation.h"
+#include "gameplay/message.h"
+
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
 
 /// The area-record id the event handler publishes, and the cutscene script
 /// blobs `func_800E8634` / `func_800E8614` are handed as `(s32)&blob`.
@@ -44,9 +47,8 @@ extern s32 D_80136108;
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
-extern TaskDesc       D_neo_ark_submarine_tunnel_80181A34;
+extern TaskDesc       D_neo_ark_submarine_tunnel_80181A34[];
 extern OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20;
-extern s16            D_neo_ark_submarine_tunnel_80187A24;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -56,19 +58,169 @@ extern s32 D_neo_ark_submarine_tunnel_80181A4C;
 extern OverlayWaveCtx* D_neo_ark_submarine_tunnel_8018790C;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[11];
-extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[30];
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13];
+extern OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32];
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
 extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
 
 /// The tunnel's own script blob and the byte recording which of its scenes has
 /// already been staged.
-extern s32 D_neo_ark_submarine_tunnel_80181AF0;
+extern GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[];
 extern u8  D_neo_ark_submarine_tunnel_80181DF0;
 
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
 static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
+
+s32 func_neo_ark_submarine_tunnel_8017F064(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_neo_ark_submarine_tunnel_8017F27C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_submarine_tunnel_8017F284(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_submarine_tunnel_8017F2C8(Task *, s32, s32, s32);
+
+void func_neo_ark_submarine_tunnel_8017E828(Task *);
+
+extern GpAnimSet D_neo_ark_submarine_tunnel_801814A0;
+extern GpAnimSet D_neo_ark_submarine_tunnel_80181A0C;
+
+void func_neo_ark_submarine_tunnel_8017D634(Task *);
+void func_neo_ark_submarine_tunnel_8017E288(Task *);
+
+extern GpAnimArg D_neo_ark_submarine_tunnel_80181A88;
+extern GpAnimArg D_neo_ark_submarine_tunnel_80181A9C;
+extern GpCopyArg D_neo_ark_submarine_tunnel_80181A80;
+void func_neo_ark_submarine_tunnel_8017F318(s32);
+void func_neo_ark_submarine_tunnel_8017F398(s32);
+
+TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, func_neo_ark_submarine_tunnel_8017D634, { .model = NULL } };
+
+TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { 0, 192, func_neo_ark_submarine_tunnel_8017E288, { .model = NULL } };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} NeoArkSubmarineTunnelPoseBank3B3C;
+
+NeoArkSubmarineTunnelPoseBank3B3C D_neo_ark_submarine_tunnel_801810FC = { .poses = {
+#include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
+} };
+
+GpPackedSvec D_neo_ark_submarine_tunnel_80181144[64] = {
+#include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank4.inc"
+};
+
+GpAnimRec D_neo_ark_submarine_tunnel_80181244[141] = {
+#include "assets/neo_ark_submarine_tunnel_animation_03EE0_records.inc"
+};
+
+u16 D_neo_ark_submarine_tunnel_80181478[20] = {
+#include "assets/neo_ark_submarine_tunnel_animation_03EE0_indices.inc"
+};
+
+GpAnimSet D_neo_ark_submarine_tunnel_801814A0 = {
+    D_neo_ark_submarine_tunnel_80181244, D_neo_ark_submarine_tunnel_80181478,
+    { NULL, D_neo_ark_submarine_tunnel_801810FC.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} NeoArkSubmarineTunnelPoseBank3F08;
+
+NeoArkSubmarineTunnelPoseBank3F08 D_neo_ark_submarine_tunnel_801814C8 = { .poses = {
+#include "assets/neo_ark_submarine_tunnel_animation_0444C_bank1.inc"
+} };
+
+GpPackedSvec D_neo_ark_submarine_tunnel_80181540[126] = {
+#include "assets/neo_ark_submarine_tunnel_animation_0444C_bank4.inc"
+};
+
+GpAnimRec D_neo_ark_submarine_tunnel_80181738[171] = {
+#include "assets/neo_ark_submarine_tunnel_animation_0444C_records.inc"
+};
+
+u16 D_neo_ark_submarine_tunnel_801819E4[20] = {
+#include "assets/neo_ark_submarine_tunnel_animation_0444C_indices.inc"
+};
+
+GpAnimSet D_neo_ark_submarine_tunnel_80181A0C = {
+    D_neo_ark_submarine_tunnel_80181738, D_neo_ark_submarine_tunnel_801819E4,
+    { NULL, D_neo_ark_submarine_tunnel_801814C8.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
+};
+
+TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {
+    { 0, 192, func_neo_ark_submarine_tunnel_8017E828, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_neo_ark_submarine_tunnel_80181A4C = 256;
+
+GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
+    { 5102, func_neo_ark_submarine_tunnel_8017F284 },
+    { 5105, func_neo_ark_submarine_tunnel_8017F27C },
+    { 5103, func_neo_ark_submarine_tunnel_8017F064 },
+    { 5104, func_neo_ark_submarine_tunnel_8017F2C8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpAnimSet * D_neo_ark_submarine_tunnel_80181A78[2] = {
+    &D_neo_ark_submarine_tunnel_80181A0C,
+    &D_neo_ark_submarine_tunnel_801814A0,
+};
+
+GpCopyArg D_neo_ark_submarine_tunnel_80181A80 = { { .sets = D_neo_ark_submarine_tunnel_80181A78 }, 2 };
+
+GpAnimArg D_neo_ark_submarine_tunnel_80181A88 = { { .index = 1 }, 47, 1, 8, 0 };
+
+GpAnimArg D_neo_ark_submarine_tunnel_80181A9C = { { .index = 1 }, 48, 1, 8, 0 };
+
+GpCmdArg D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
+
+GpCmdArg D_neo_ark_submarine_tunnel_80181AB4 = { { .loc = { 5, 12 } }, 1 };
+
+GpCmdArg D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
+
+GpAnimArg D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpXformArg D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
+
+GpOverlayIds D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
+
+GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[32] = {
+    { 12, { .overlays = &D_neo_ark_submarine_tunnel_80181AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_neo_ark_submarine_tunnel_80181A80 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
+    { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_neo_ark_submarine_tunnel_80181AD0 }, { .value = 0 } },
+    { 13, { .callback = func_neo_ark_submarine_tunnel_8017F318 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A9C }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_neo_ark_submarine_tunnel_80181AB4 }, { .value = 2011 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A88 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_neo_ark_submarine_tunnel_80181AB8 }, { .value = 2011 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
+    { 13, { .callback = func_neo_ark_submarine_tunnel_8017F318 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_neo_ark_submarine_tunnel_8017F398 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row
@@ -941,7 +1093,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
     addPrim(&gGpuCurrentOt[0], stp);
 }
 
-s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg2)
+s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg * arg2, GpMessageArg arg3)
 {
     u8 temp_s0;
     u8 temp_s0_2;
@@ -959,14 +1111,14 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
         temp_s0_2 = gGameSession->at4.loc.place;
         if (temp_s0_2 == 1) {
-            func_800E8614((s32)&D_neo_ark_submarine_tunnel_80181AF0, 0);
+            func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
     temp_s0_3 = arg2->field_2;
     if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.place == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
-        func_800E8614((s32)&D_80136108, 0);
+        func_800E8614(&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     if ((arg2->field_2 == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
@@ -984,17 +1136,17 @@ s32 func_neo_ark_submarine_tunnel_8017F064(s32 arg0, s32 arg1, RoomEventMsg* arg
 }
 
 /// Answers 0 unconditionally.
-s32 func_neo_ark_submarine_tunnel_8017F27C(void)
+s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Save-location message handler: copies the incoming `GpSaveLoc` onto the
-/// outgoing one, forwards both to `func_80179B14` and answers 1.
-s32 func_neo_ark_submarine_tunnel_8017F284(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// outgoing one, forwards both to `func_map_neo_ark_80179B14` and answers 1.
+s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
@@ -1028,10 +1180,10 @@ void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
         D_neo_ark_submarine_tunnel_80187A20.blend = 1;
         D_neo_ark_submarine_tunnel_80187A20.g     = 0x80;
         D_neo_ark_submarine_tunnel_80187A20.b     = 0x80;
-        Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_80181A34, 0, 0, &D_neo_ark_submarine_tunnel_80187A20);
+        Task_SpawnFromTable(D_neo_ark_submarine_tunnel_80181A34, 0, 0, &D_neo_ark_submarine_tunnel_80187A20);
         return;
     }
-    D_neo_ark_submarine_tunnel_80187A24 = arg0;
+    D_neo_ark_submarine_tunnel_80187A20.state = arg0;
 }
 
 void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)

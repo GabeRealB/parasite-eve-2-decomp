@@ -388,7 +388,7 @@ Gp_ActorSlots = 0x80115760; // absolute:True
 D_80115768 = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (236)
-func_8004BFF8 = 0x8004BFF8; // absolute:True
+RotMatrixY = 0x8004BFF8; // absolute:True
 Fs_ActorLoadBase0 = 0x8005C36C; // absolute:True
 Fs_ActorLoadBase1 = 0x8005C370; // absolute:True
 Fs_ActorLoadBase2 = 0x8005C374; // absolute:True
@@ -612,10 +612,6 @@ D_8016BFE0 = 0x8016BFE0; // absolute:True
 D_8016EA28 = 0x8016EA28; // absolute:True
 D_801718F0 = 0x801718F0; // absolute:True
 D_801752EC = 0x801752EC; // absolute:True
-D_801797FC = 0x801797FC; // absolute:True
-func_80179954 = 0x80179954; // absolute:True
-func_80179A04 = 0x80179A04; // absolute:True
-func_80179B14 = 0x80179B14; // absolute:True
 func_80179FC8 = 0x80179FC8; // absolute:True
 func_8017A038 = 0x8017A038; // absolute:True
 func_807245E4 = 0x807245E4; // absolute:True
@@ -632,3 +628,15 @@ Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
 
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
 GameFlag_NibbleBanks = 0x80073980; // absolute:True size:0x200
+
+func_map_dryfield_full_80179954 = 0x80179954; // absolute:True
+
+func_map_shelter_80179A04 = 0x80179A04; // absolute:True
+
+func_map_neo_ark_80179B14 = 0x80179B14; // absolute:True
+
+D_actor_310100_801797FC = 0x801797FC; // absolute:True
+
+D_actor_310100_801798FC = 0x801798FC; // absolute:True
+
+D_actor_310100_80179920 = 0x80179920; // absolute:True

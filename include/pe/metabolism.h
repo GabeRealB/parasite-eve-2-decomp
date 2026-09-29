@@ -1,6 +1,8 @@
 #ifndef PE_METABOLISM_H
 #define PE_METABOLISM_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 /// One 8-byte row of `D_metabolism_8012FB54`, indexed by `GpEffWork.index`
@@ -19,5 +21,9 @@ typedef struct MetabolismStep {
     /* 0x6 */ s16 field_6;
 } MetabolismStep;
 STATIC_ASSERT_SIZEOF(MetabolismStep, 8);
+
+void func_metabolism_8012F5A0(Task* arg0);
+
+void func_metabolism_8012EF34(Task* arg0);
 
 #endif /* PE_METABOLISM_H */

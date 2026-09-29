@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b2_pod_bottom.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -18,6 +19,10 @@
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+
+#include "gameplay/collision.h"
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
 
 /// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
 /// `G_SCRATCH_HEAD`: the 32 rotated ring points and the disc centre, the
@@ -49,13 +54,174 @@ extern u16 D_shelter_b2_pod_bottom_80181CA8[][3];
 static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rgb);
 static void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
-extern s16 D_shelter_b2_pod_bottom_801887F0[8];
+// All eight angles are initialized before use. The package contains only
+// the first twelve zero bytes of this sixteen-byte runtime allocation.
+static s16 D_shelter_b2_pod_bottom_801887F0[8];
+
+TmdBone D_shelter_b2_pod_bottom_801876D0[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0A550_skeleton.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_801876F4[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0A550_partVerts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_801876F8[16] = {
+#include "assets/shelter_b2_pod_bottom_model_0A550_verts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80187778[29] = {
+#include "assets/shelter_b2_pod_bottom_model_0A550_normals.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80187860[172] = {
+#include "assets/shelter_b2_pod_bottom_model_0A550_stream.inc"
+};
+
+TmdSource D_shelter_b2_pod_bottom_80187B10 = {
+    0, 1092, 0, 1,
+    D_shelter_b2_pod_bottom_801876F4, D_shelter_b2_pod_bottom_801876F8, D_shelter_b2_pod_bottom_80187778, D_shelter_b2_pod_bottom_801876D0, D_shelter_b2_pod_bottom_80187860,
+};
+
+TmdBone D_shelter_b2_pod_bottom_80187B34[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0A854_skeleton.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80187B58[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0A854_partVerts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80187B5C[11] = {
+#include "assets/shelter_b2_pod_bottom_model_0A854_verts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80187BB4[19] = {
+#include "assets/shelter_b2_pod_bottom_model_0A854_normals.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80187C4C[114] = {
+#include "assets/shelter_b2_pod_bottom_model_0A854_stream.inc"
+};
+
+TmdSource D_shelter_b2_pod_bottom_80187E14 = {
+    0, 720, 0, 1,
+    D_shelter_b2_pod_bottom_80187B58, D_shelter_b2_pod_bottom_80187B5C, D_shelter_b2_pod_bottom_80187BB4, D_shelter_b2_pod_bottom_80187B34, D_shelter_b2_pod_bottom_80187C4C,
+};
+
+TmdBone D_shelter_b2_pod_bottom_80187E38[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0ACA4_skeleton.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80187E5C[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0ACA4_partVerts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80187E60[16] = {
+#include "assets/shelter_b2_pod_bottom_model_0ACA4_verts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80187EE0[29] = {
+#include "assets/shelter_b2_pod_bottom_model_0ACA4_normals.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80187FC8[167] = {
+#include "assets/shelter_b2_pod_bottom_model_0ACA4_stream.inc"
+};
+
+TmdSource D_shelter_b2_pod_bottom_80188264 = {
+    0, 1064, 0, 1,
+    D_shelter_b2_pod_bottom_80187E5C, D_shelter_b2_pod_bottom_80187E60, D_shelter_b2_pod_bottom_80187EE0, D_shelter_b2_pod_bottom_80187E38, D_shelter_b2_pod_bottom_80187FC8,
+};
+
+TmdBone D_shelter_b2_pod_bottom_80188288[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0B08C_skeleton.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_801882AC[1] = {
+#include "assets/shelter_b2_pod_bottom_model_0B08C_partVerts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_801882B0[15] = {
+#include "assets/shelter_b2_pod_bottom_model_0B08C_verts.inc"
+};
+
+SVECTOR D_shelter_b2_pod_bottom_80188328[28] = {
+#include "assets/shelter_b2_pod_bottom_model_0B08C_normals.inc"
+};
+
+u32 D_shelter_b2_pod_bottom_80188408[145] = {
+#include "assets/shelter_b2_pod_bottom_model_0B08C_stream.inc"
+};
+
+TmdSource D_shelter_b2_pod_bottom_8018864C = {
+    0, 928, 0, 1,
+    D_shelter_b2_pod_bottom_801882AC, D_shelter_b2_pod_bottom_801882B0, D_shelter_b2_pod_bottom_80188328, D_shelter_b2_pod_bottom_80188288, D_shelter_b2_pod_bottom_80188408,
+};
+
+GpObj4C D_shelter_b2_pod_bottom_80188670[1] = {
+    { NULL, NULL, NULL, { -2336, -2176, 6848, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1173, 0, 35, 18, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_b2_pod_bottom_801886BC[17] = {
+    { 16, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 820, 820, 820, 820 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 820, 820, 820, 820 },
+    { 16, 16, 16, 16 },
+    { 820, 820, 820, 820 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_shelter_b2_pod_bottom_80188744[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+GpRoomParamRec D_shelter_b2_pod_bottom_80188750[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_pod_bottom_80188758[1] = {
+    { 0, 0, 1, 0, D_shelter_b2_pod_bottom_80188744 },
+};
+
+GpRoomParamRec D_shelter_b2_pod_bottom_80188760[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_pod_bottom_80188768[1] = {
+    { 0, 0, 1, 0, D_shelter_b2_pod_bottom_80188744 },
+};
+
+GpRoomParamRec * D_shelter_b2_pod_bottom_80188770[8] = {
+    D_shelter_b2_pod_bottom_80188750,
+    D_shelter_b2_pod_bottom_80188758,
+    D_shelter_b2_pod_bottom_80188760,
+    D_shelter_b2_pod_bottom_80188768,
+    D_shelter_b2_pod_bottom_80188750,
+    D_shelter_b2_pod_bottom_80188750,
+    D_shelter_b2_pod_bottom_80188750,
+    D_shelter_b2_pod_bottom_80188750,
+};
+
+u16 D_shelter_b2_pod_bottom_80188790[3][16] = { 0 };
 
 /// On its first frame (state 0) fills three rows of 16 random bytes in
 /// `D_shelter_b2_pod_bottom_80188790` from the gameplay LCG and turns off
 /// `groundTrace`; every frame, disables the ground shadow in view 0xF and
 /// selects shade row 0 elsewhere.
-static void func_shelter_b2_pod_bottom_8017D760(Task* task)
+void func_shelter_b2_pod_bottom_8017D760(Task* task)
 {
     s32 i;
 
@@ -90,7 +256,7 @@ static void func_shelter_b2_pod_bottom_8017D760(Task* task)
 /// coordinate by the velocity and bends its Y component, then frees the effect
 /// after the drawer's last cell (12 or 10). While the player is in an event it
 /// only draws, and frees once the event state reaches 4.
-static void func_shelter_b2_pod_bottom_8017D850(Task* task)
+void func_shelter_b2_pod_bottom_8017D850(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -467,7 +633,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GpCoord* coord, s16 arg1, s16 ar
 /// for indices 0-2, then draws three arcs stacked up the frame's Y axis and a
 /// fade quad in the ramp colour. The work is released once the ramp reaches 8
 /// or an event of state 4 or above starts.
-static void func_shelter_b2_pod_bottom_8017EC78(Task* task)
+void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -631,7 +797,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GpCoord* coord,
 /// channel is the colour shifted right by the tint row's entry for it, and
 /// the row is re-rolled below 18 on every animating frame. The work is
 /// released once the fade reaches 0x10 or an event of state 4 or above starts.
-static void func_shelter_b2_pod_bottom_8017F448(Task* task)
+void func_shelter_b2_pod_bottom_8017F448(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -830,7 +996,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GpCoord* coord, s32 arg1, u8* rg
 /// animating, `index` is re-rolled to a random value below 18 every frame.
 /// The work is released once the fade reaches 0x10 or an event of state 4 or
 /// above starts.
-static void func_shelter_b2_pod_bottom_8018016C(Task* task)
+void func_shelter_b2_pod_bottom_8018016C(Task* task)
 {
     GpEffWork*  work;
     GpCoord*    coord;
@@ -981,7 +1147,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GpCoord* arg0, s32 arg1, s32 arg
 /// every fourth tick, releasing the effect after frame 7. During an event of
 /// state 1-3 it keeps drawing without moving or animating; state 4 or above
 /// releases it. Each draw picks one of six sprite CLUTs at random.
-static void func_shelter_b2_pod_bottom_80180898(Task* task)
+void func_shelter_b2_pod_bottom_80180898(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1109,7 +1275,7 @@ static void func_shelter_b2_pod_bottom_80180A4C(GpCoord* coord, s16 radius, SVEC
     SCRATCH_POP_BYTES(0x120);
 }
 
-static void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
+void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1274,7 +1440,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GpCoord* coord, s16 size, u16 co
     SCRATCH_POP_BYTES(0x2C);
 }
 
-static void func_shelter_b2_pod_bottom_80181940(Task* arg0)
+void func_shelter_b2_pod_bottom_80181940(Task* arg0)
 {
     GpCoord* coord;
     u32      rnd;
@@ -1292,7 +1458,7 @@ static void func_shelter_b2_pod_bottom_80181940(Task* arg0)
     }
 }
 
-static void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
+void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
 {
     GpCoord* coord;
     u32      rnd;
@@ -1310,7 +1476,7 @@ static void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     }
 }
 
-static void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
+void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
 {
     GpEffWork* work;
     GpCoord*   coord;

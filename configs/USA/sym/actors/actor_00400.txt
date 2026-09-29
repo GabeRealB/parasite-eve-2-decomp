@@ -1,0 +1,2 @@
+// Overlay-local symbols for actor_00400.
+RotMatrixY = 0x8004bff8; // type:func

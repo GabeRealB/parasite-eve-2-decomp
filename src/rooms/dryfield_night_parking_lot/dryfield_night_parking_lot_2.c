@@ -1,3 +1,6 @@
+#include "dryfield_night_parking_lot_private.h"
+#include "rooms/dryfield_night_parking_lot.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -16,6 +19,22 @@
 #include "main/scratch.h"
 #include "main/session.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+#include "gameplay/animation.h"
+#include "gameplay/evs.h"
+#include "gameplay/message.h"
+#include "gameplay/world_targets.h"
+
 /// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
 extern u16 D_dryfield_night_parking_lot_8017EDBC[];
@@ -31,12 +50,1353 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
+extern GpGridParams D_dryfield_night_parking_lot_8017FAD0[1];
+extern GpObj3A D_dryfield_night_parking_lot_80181330[2];
+extern GpObj4C D_dryfield_night_parking_lot_80180CA8[10];
+extern GpObj4C D_dryfield_night_parking_lot_80180FA0[12];
+extern GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1];
+
+extern TaskDesc D_8014D8A4;
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} DryfieldNightParkingLotPoseBank1224;
+
+DryfieldNightParkingLotPoseBank1224 D_dryfield_night_parking_lot_8017E7E4 = { .poses = {
+#include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_night_parking_lot_8017E85C[95] = {
+#include "assets/dryfield_night_parking_lot_animation_0166C_bank4.inc"
+};
+
+GpAnimRec D_dryfield_night_parking_lot_8017E9D8[139] = {
+#include "assets/dryfield_night_parking_lot_animation_0166C_records.inc"
+};
+
+u16 D_dryfield_night_parking_lot_8017EC04[20] = {
+#include "assets/dryfield_night_parking_lot_animation_0166C_indices.inc"
+};
+
+GpAnimSet D_dryfield_night_parking_lot_8017EC2C = {
+    D_dryfield_night_parking_lot_8017E9D8, D_dryfield_night_parking_lot_8017EC04,
+    { NULL, D_dryfield_night_parking_lot_8017E7E4.words, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
+};
+
+TaskDesc D_dryfield_night_parking_lot_8017EC54 = { 0, 32, func_dryfield_night_parking_lot_8017D760, { .model = NULL } };
+
+GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
+    { 5102, func_dryfield_night_parking_lot_8017D8D0 },
+    { 5105, func_dryfield_night_parking_lot_8017DB04 },
+    { 5103, func_dryfield_night_parking_lot_8017DB34 },
+    { 5104, func_dryfield_night_parking_lot_8017DB0C },
+    { 5106, func_dryfield_night_parking_lot_8017DAB4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpAnimSet * D_dryfield_night_parking_lot_8017EC90[2] = {
+    &D_dryfield_night_parking_lot_8017EC2C,
+    NULL,
+};
+
+GpCopyArg D_dryfield_night_parking_lot_8017EC98 = { { .sets = D_dryfield_night_parking_lot_8017EC90 }, 2 };
+
+GpAnimArg D_dryfield_night_parking_lot_8017ECA0 = { { .index = 1 }, 47, 0, 0, 1 };
+
+GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[11] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_night_parking_lot_8017EC98 }, { .value = 0 } },
+    { 13, { .callback = func_dryfield_night_parking_lot_8017DBA4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_parking_lot_8017ECA0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+u16 D_dryfield_night_parking_lot_8017EDBC[8] = {
+    0, 2, 2, 2, 2, 0, 0, 0,
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EDCC[2] = {
+    { -7290, -2310, -110, 0 },
+    { -6280, -2310, -110, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EDDC[1] = {
+    { 1900, -1730, 3680, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EDE4[1] = {
+    { 4100, -1730, 3680, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EDEC[2] = {
+    { -1030, -2020, 150, 0 },
+    { -570, -2020, 150, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EDFC[3] = {
+    { -2950, -2480, 760, 0 },
+    { 130, -2480, 2660, 0 },
+    { 3930, -2480, 1380, 0 },
+};
+
+GpRoomCoordRec D_dryfield_night_parking_lot_8017EE14[2] = {
+    { D_dryfield_night_parking_lot_80180C90, NULL },
+    { D_dryfield_night_parking_lot_80180C90, NULL },
+};
+
+GpRoomObjRec D_dryfield_night_parking_lot_8017EE24[2] = {
+    { D_dryfield_night_parking_lot_8017FAD0, D_dryfield_night_parking_lot_80180CA8, D_dryfield_night_parking_lot_80180FA0, D_dryfield_night_parking_lot_80181330 },
+    { D_dryfield_night_parking_lot_8017FAD0, D_dryfield_night_parking_lot_80180CA8, D_dryfield_night_parking_lot_80180FA0, D_dryfield_night_parking_lot_80181330 },
+};
+
+u8 D_dryfield_night_parking_lot_8017EE44[8] = {
+    1,
+    8,
+    3,
+    4,
+    9,
+    10,
+    11,
+    0,
+};
+
+u8 * D_dryfield_night_parking_lot_8017EE4C[2] = {
+    D_8010CAF8,
+    D_dryfield_night_parking_lot_8017EE44,
+};
+
+GpViewCountRec D_dryfield_night_parking_lot_8017EE54[2] = {
+    { { .bytes = { 7, 0 } } },
+    { { .bytes = { 7, 0 } } },
+};
+
+GpWarpRec D_dryfield_night_parking_lot_8017EE58[5] = {
+    { { .words = { 3072, 0x2995, 0, 3077 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x2995, 0, 3077 } }, { 0, 0, 0, 0 }, 0x530F0002, 0x530F0001, 0, 7, 0, 486 },
+    { { .words = { 2048, 3200, 0, 3472 } }, { 0, 0, 0, 0 }, { .words = { 2048, 3200, 0, 3472 } }, { 0, 0, 0, 0 }, 0x530F0008, 0x530F0007, 0x530F000A, 5, 0, 481 },
+    { { .words = { 0, -285, 0, 351 } }, { 0, 0, 0, 0 }, { .words = { 0, -285, 0, 351 } }, { 0, 0, 0, 0 }, 0x530F0006, 0x530F0005, 0x530F000A, 4, 0, 480 },
+    { { .words = { 2048, -6840, 0, -450 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6840, 0, -450 } }, { 0, 0, 0, 0 }, 0x530F0008, 0x530F0007, 0x530F000A, 2, 0, 479 },
+    { { .words = { 0, 4771, -450, 1414 } }, { 0, 0, 0, 0 }, { .words = { 0, 4491, 0, 2215 } }, { 0, 0, 0, 0 }, 0, 0, 0, 6, 1, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017EF70[18] = {
+    { 0, -4096, 0, 0 },
+    { 4093, 0, 152, 0 },
+    { 272, 0, 4087, 0 },
+    { -4096, 0, 0, 0 },
+    { -946, 0, 3985, 0 },
+    { 3041, 0, -2744, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 2994, 0, -2795, 0 },
+    { -2914, 0, -2879, 0 },
+    { 0, 0, 4096, 0 },
+    { 3247, 0, -2497, 0 },
+    { 3147, 0, 2622, 0 },
+    { 0, -3417, 2259, 0 },
+    { 0, -3437, -2228, 0 },
+    { -1959, 0, 3597, 0 },
+    { 4006, 0, 855, 0 },
+    { 0, 4096, 0, 0 },
+};
+
+SVECTOR D_dryfield_night_parking_lot_8017F000[132] = {
+    { -0x2BC0, -4606, -3600, 0 },
+    { -8400, -4606, 200, 0 },
+    { -8300, -4606, -2500, 0 },
+    { -6800, -4606, -2600, 0 },
+    { -8400, 0, 200, 0 },
+    { -8300, 0, -2500, 0 },
+    { -6800, 0, -2600, 0 },
+    { 5200, 310, 1715, 0 },
+    { 5200, -3400, 1715, 0 },
+    { 5200, -3400, -250, 0 },
+    { 5200, 310, -250, 0 },
+    { 1200, 0, 2000, 0 },
+    { 0x35E8, 0, 2000, 0 },
+    { 0x35E8, 0, -8900, 0 },
+    { 1200, 0, -8900, 0 },
+    { 6400, 310, 2000, 0 },
+    { 6400, -3400, 2000, 0 },
+    { -3300, -1520, 2900, 0 },
+    { -4500, -1520, 4400, 0 },
+    { 0, -1520, 4400, 0 },
+    { -1400, -1520, 2900, 0 },
+    { -4500, 640, -30, 0 },
+    { -4500, -1520, -30, 0 },
+    { -3300, -1520, 1300, 0 },
+    { -3300, 640, 1300, 0 },
+    { -3300, 640, 2900, 0 },
+    { -1400, 640, 2900, 0 },
+    { 0, 640, 4400, 0 },
+    { -4996, -4000, -335, 0 },
+    { -4996, 0, -335, 0 },
+    { -5327, 0, 0, 0 },
+    { -5327, -4000, 0, 0 },
+    { 5890, -1498, -237, 0 },
+    { 5890, -1798, -237, 0 },
+    { 5890, -1798, -1367, 0 },
+    { 5890, -1498, -1367, 0 },
+    { 4190, -1798, -1367, 0 },
+    { 4190, -1498, -1367, 0 },
+    { 4190, -1498, -237, 0 },
+    { 5090, -1498, -363, 0 },
+    { 5090, -1798, -363, 0 },
+    { 5190, -1798, -233, 0 },
+    { 5190, -1498, -233, 0 },
+    { 4190, -1498, -363, 0 },
+    { 4190, -1798, -363, 0 },
+    { 5090, -3398, 2037, 0 },
+    { 5090, -3098, 2037, 0 },
+    { 5190, -3098, 1917, 0 },
+    { 5190, -3398, 1917, 0 },
+    { 4190, -3398, 2037, 0 },
+    { 4190, -3098, 2037, 0 },
+    { 4190, -3398, 4037, 0 },
+    { 4190, -3098, 4037, 0 },
+    { 4190, -3098, 1917, 0 },
+    { 4190, -3398, 1917, 0 },
+    { 6190, -3098, 1917, 0 },
+    { 6190, -3098, 4037, 0 },
+    { 6190, -3398, 4037, 0 },
+    { 4190, 0, 1715, 0 },
+    { 5190, 0, 1715, 0 },
+    { 5190, -200, 1715, 0 },
+    { 4190, -200, 1715, 0 },
+    { 4190, -1496, -245, 0 },
+    { 5190, -1496, -245, 0 },
+    { 5190, -1696, -245, 0 },
+    { 4190, -1696, -245, 0 },
+    { 1200, 0, 6500, 0 },
+    { 0x35E8, 0, 6500, 0 },
+    { 0x2AF8, 500, 5000, 0 },
+    { 0x2AF8, -3500, 5000, 0 },
+    { 0x2AF8, -3500, 1000, 0 },
+    { 0x2AF8, 500, 1000, 0 },
+    { -1928, 0, 319, 0 },
+    { -1928, -2500, 319, 0 },
+    { -1928, -2500, -5000, 0 },
+    { -1928, 0, -5000, 0 },
+    { 4200, -2500, 319, 0 },
+    { 4200, -2500, -5000, 0 },
+    { 4200, 0, -5000, 0 },
+    { 4200, 0, 319, 0 },
+    { -0x3FAC, -5041, -4680, 0 },
+    { -0x3FAC, 0, -4680, 0 },
+    { 0x396C, 0, -4680, 0 },
+    { 0x396C, -5041, -4680, 0 },
+    { 5190, -3093, 1918, 0 },
+    { 6190, -3093, 1918, 0 },
+    { 6190, -1693, -242, 0 },
+    { 5190, -1693, -242, 0 },
+    { 5190, -3293, 1918, 0 },
+    { 6190, -3293, 1918, 0 },
+    { 6190, -1493, -242, 0 },
+    { 5190, -1493, -242, 0 },
+    { -6324, 0, -2061, 0 },
+    { -6324, -4236, -2061, 0 },
+    { -0x3084, -4236, -5381, 0 },
+    { -0x3084, 0, -5381, 0 },
+    { -5750, -4236, -4749, 0 },
+    { -8846, -4236, -6469, 0 },
+    { -5750, 0, -4749, 0 },
+    { -0x36B0, 0, 0, 0 },
+    { -0x36B0, -4000, 0, 0 },
+    { 0x2A94, -3000, 3800, 0 },
+    { 0x2A94, 0, 3800, 0 },
+    { 5900, 0, 3800, 0 },
+    { 5900, -3000, 3800, 0 },
+    { -4000, -4000, 3800, 0 },
+    { -4000, 0, 3800, 0 },
+    { -4000, 0, -335, 0 },
+    { -4000, -4000, -335, 0 },
+    { 6800, -4000, 3800, 0 },
+    { 6800, 0, 3800, 0 },
+    { 5900, -3000, -4900, 0 },
+    { 5900, -3000, 2180, 0 },
+    { 5900, -6000, 2000, 0 },
+    { 5900, -6000, -4900, 0 },
+    { 5900, 0, -4900, 0 },
+    { 5900, 0, 2180, 0 },
+    { 5900, -6000, 3800, 0 },
+    { 5900, -3000, 0x2AF8, 0 },
+    { 5900, -6000, 0x2AF8, 0 },
+    { 5900, 0, 0x2AF8, 0 },
+    { 0x2A94, -3000, 2180, 0 },
+    { 0x2A94, 0, 2180, 0 },
+    { -0x4588, 0, 2000, 0 },
+    { -0x4588, 0, -8900, 0 },
+    { -0x4588, 0, 6500, 0 },
+    { 4190, 0, 1715, 0 },
+    { 4190, -3000, 1715, 0 },
+    { 4190, -3000, -4680, 0 },
+    { 4190, 0, -4680, 0 },
+    { 6190, 0, 1715, 0 },
+    { 6190, -3000, 1715, 0 },
+};
+
+GpGridFace D_dryfield_night_parking_lot_8017F420[55] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 4, 5, 1, 2 }, 1, 0 },
+    { { 5, 6, 2, 3 }, 2, 0 },
+    { { 8, 9, 7, 10 }, 3, 0 },
+    { { 12, 13, 11, 14 }, 0, 5 },
+    { { 16, 8, 15, 7 }, 4, 0 },
+    { { 18, 19, 17, 20 }, 0, 0 },
+    { { 22, 23, 21, 24 }, 5, 0 },
+    { { 23, 17, 24, 25 }, 6, 0 },
+    { { 17, 20, 25, 26 }, 7, 0 },
+    { { 20, 19, 26, 27 }, 8, 0 },
+    { { 29, 30, 28, 31 }, 9, 0 },
+    { { 33, 34, 32, 35 }, 3, 0 },
+    { { 34, 36, 35, 37 }, 10, 0 },
+    { { 38, 32, 37, 35 }, 0, 0 },
+    { { 40, 41, 39, 42 }, 11, 0 },
+    { { 39, 43, 40, 44 }, 7, 0 },
+    { { 46, 47, 45, 48 }, 12, 0 },
+    { { 45, 49, 46, 50 }, 10, 0 },
+    { { 52, 53, 51, 54 }, 6, 0 },
+    { { 53, 52, 55, 56 }, 0, 0 },
+    { { 56, 52, 57, 51 }, 7, 0 },
+    { { 59, 60, 58, 61 }, 10, 0 },
+    { { 63, 64, 62, 65 }, 10, 0 },
+    { { 62, 61, 63, 60 }, 13, 0 },
+    { { 11, 66, 12, 67 }, 0, 2 },
+    { { 69, 70, 68, 71 }, 3, 0 },
+    { { 73, 74, 72, 75 }, 3, 0 },
+    { { 76, 77, 73, 74 }, 0, 0 },
+    { { 77, 76, 78, 79 }, 6, 0 },
+    { { 76, 73, 79, 72 }, 10, 0 },
+    { { 81, 82, 80, 83 }, 10, 1 },
+    { { 85, 86, 84, 87 }, 14, 0 },
+    { { 84, 88, 85, 89 }, 7, 0 },
+    { { 91, 87, 90, 86 }, 7, 0 },
+    { { 93, 94, 92, 95 }, 15, 0 },
+    { { 96, 97, 93, 94 }, 0, 0 },
+    { { 96, 93, 98, 92 }, 16, 0 },
+    { { 30, 99, 31, 100 }, 7, 0 },
+    { { 102, 103, 101, 104 }, 7, 0 },
+    { { 106, 107, 105, 108 }, 6, 0 },
+    { { 28, 108, 29, 107 }, 7, 0 },
+    { { 109, 110, 105, 106 }, 7, 0 },
+    { { 112, 113, 111, 114 }, 3, 0 },
+    { { 111, 115, 112, 116 }, 3, 0 },
+    { { 104, 118, 117, 119 }, 3, 0 },
+    { { 117, 113, 104, 112 }, 3, 0 },
+    { { 103, 120, 104, 118 }, 3, 0 },
+    { { 104, 112, 101, 121 }, 17, 0 },
+    { { 112, 116, 121, 122 }, 10, 0 },
+    { { 17, 23, 18, 22 }, 0, 0 },
+    { { 11, 14, 123, 124 }, 0, 5 },
+    { { 123, 125, 11, 66 }, 0, 5 },
+    { { 127, 128, 126, 129 }, 3, 6 },
+    { { 131, 127, 130, 126 }, 10, 6 },
+};
+
+s16 D_dryfield_night_parking_lot_8017F6B4[5] = {
+    31,
+    35,
+    36,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6C0[4] = {
+    31,
+    38,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6C8[4] = {
+    38,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6D0[3] = {
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6D8[2] = {
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6DC[6] = {
+    0,
+    31,
+    35,
+    36,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6E8[9] = {
+    0,
+    1,
+    2,
+    31,
+    35,
+    36,
+    38,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F6FC[6] = {
+    0,
+    1,
+    38,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F708[3] = {
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F710[2] = {
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F714[7] = {
+    0,
+    31,
+    35,
+    36,
+    37,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F724[12] = {
+    0,
+    1,
+    2,
+    11,
+    31,
+    35,
+    36,
+    37,
+    38,
+    41,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F73C[15] = {
+    0,
+    1,
+    2,
+    7,
+    11,
+    35,
+    36,
+    37,
+    38,
+    40,
+    41,
+    50,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F75C[7] = {
+    6,
+    40,
+    42,
+    50,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F76C[2] = {
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F770[7] = {
+    27,
+    28,
+    31,
+    36,
+    37,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F780[17] = {
+    0,
+    2,
+    7,
+    11,
+    27,
+    28,
+    30,
+    31,
+    35,
+    36,
+    37,
+    38,
+    40,
+    41,
+    50,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F7A4[20] = {
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    27,
+    28,
+    30,
+    35,
+    36,
+    37,
+    38,
+    40,
+    41,
+    42,
+    50,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F7CC[11] = {
+    6,
+    7,
+    8,
+    9,
+    10,
+    40,
+    42,
+    50,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F7E4[2] = {
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F7E8[6] = {
+    4,
+    27,
+    28,
+    31,
+    51,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F7F4[9] = {
+    4,
+    27,
+    28,
+    29,
+    30,
+    31,
+    51,
+    53,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F808[23] = {
+    4,
+    6,
+    7,
+    8,
+    9,
+    10,
+    18,
+    19,
+    20,
+    22,
+    24,
+    25,
+    27,
+    28,
+    29,
+    30,
+    42,
+    50,
+    51,
+    52,
+    53,
+    54,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F838[9] = {
+    4,
+    6,
+    9,
+    10,
+    25,
+    42,
+    51,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F84C[3] = {
+    25,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F854[9] = {
+    4,
+    28,
+    29,
+    31,
+    43,
+    44,
+    51,
+    53,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F868[20] = {
+    3,
+    4,
+    12,
+    13,
+    14,
+    15,
+    16,
+    23,
+    24,
+    28,
+    29,
+    30,
+    31,
+    32,
+    34,
+    43,
+    44,
+    51,
+    53,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F890[37] = {
+    3,
+    4,
+    5,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    39,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    51,
+    52,
+    53,
+    54,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F8DC[26] = {
+    3,
+    4,
+    5,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    32,
+    33,
+    39,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    52,
+    53,
+    54,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F910[5] = {
+    25,
+    45,
+    47,
+    52,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F91C[5] = {
+    4,
+    31,
+    43,
+    44,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F928[18] = {
+    3,
+    4,
+    12,
+    13,
+    14,
+    15,
+    16,
+    23,
+    24,
+    28,
+    29,
+    31,
+    32,
+    34,
+    43,
+    44,
+    53,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F94C[36] = {
+    3,
+    4,
+    5,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    39,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    53,
+    54,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F994[19] = {
+    4,
+    5,
+    20,
+    21,
+    25,
+    26,
+    32,
+    33,
+    39,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    54,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9BC[4] = {
+    25,
+    45,
+    47,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9C4[3] = {
+    4,
+    31,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9CC[4] = {
+    4,
+    26,
+    31,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9D4[7] = {
+    4,
+    25,
+    26,
+    39,
+    48,
+    49,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9E4[7] = {
+    4,
+    25,
+    26,
+    39,
+    48,
+    49,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9F4[2] = {
+    25,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017F9F8[3] = {
+    4,
+    31,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017FA00[3] = {
+    4,
+    31,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017FA08[3] = {
+    4,
+    25,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017FA10[3] = {
+    4,
+    25,
+    -1,
+};
+
+s16 D_dryfield_night_parking_lot_8017FA18[2] = {
+    25,
+    -1,
+};
+
+s16 * D_dryfield_night_parking_lot_8017FA1C[45] = {
+    D_dryfield_night_parking_lot_8017F6B4,
+    D_dryfield_night_parking_lot_8017F6C0,
+    D_dryfield_night_parking_lot_8017F6C8,
+    D_dryfield_night_parking_lot_8017F6D0,
+    D_dryfield_night_parking_lot_8017F6D8,
+    D_dryfield_night_parking_lot_8017F6DC,
+    D_dryfield_night_parking_lot_8017F6E8,
+    D_dryfield_night_parking_lot_8017F6FC,
+    D_dryfield_night_parking_lot_8017F708,
+    D_dryfield_night_parking_lot_8017F710,
+    D_dryfield_night_parking_lot_8017F714,
+    D_dryfield_night_parking_lot_8017F724,
+    D_dryfield_night_parking_lot_8017F73C,
+    D_dryfield_night_parking_lot_8017F75C,
+    D_dryfield_night_parking_lot_8017F76C,
+    D_dryfield_night_parking_lot_8017F770,
+    D_dryfield_night_parking_lot_8017F780,
+    D_dryfield_night_parking_lot_8017F7A4,
+    D_dryfield_night_parking_lot_8017F7CC,
+    D_dryfield_night_parking_lot_8017F7E4,
+    D_dryfield_night_parking_lot_8017F7E8,
+    D_dryfield_night_parking_lot_8017F7F4,
+    D_dryfield_night_parking_lot_8017F808,
+    D_dryfield_night_parking_lot_8017F838,
+    D_dryfield_night_parking_lot_8017F84C,
+    D_dryfield_night_parking_lot_8017F854,
+    D_dryfield_night_parking_lot_8017F868,
+    D_dryfield_night_parking_lot_8017F890,
+    D_dryfield_night_parking_lot_8017F8DC,
+    D_dryfield_night_parking_lot_8017F910,
+    D_dryfield_night_parking_lot_8017F91C,
+    D_dryfield_night_parking_lot_8017F928,
+    D_dryfield_night_parking_lot_8017F94C,
+    D_dryfield_night_parking_lot_8017F994,
+    D_dryfield_night_parking_lot_8017F9BC,
+    D_dryfield_night_parking_lot_8017F9C4,
+    D_dryfield_night_parking_lot_8017F9CC,
+    D_dryfield_night_parking_lot_8017F9D4,
+    D_dryfield_night_parking_lot_8017F9E4,
+    D_dryfield_night_parking_lot_8017F9F4,
+    D_dryfield_night_parking_lot_8017F9F8,
+    D_dryfield_night_parking_lot_8017FA00,
+    D_dryfield_night_parking_lot_8017FA08,
+    D_dryfield_night_parking_lot_8017FA10,
+    D_dryfield_night_parking_lot_8017FA18,
+};
+
+GpGridParams D_dryfield_night_parking_lot_8017FAD0[1] = {
+    { NULL, D_dryfield_night_parking_lot_8017EF70, D_dryfield_night_parking_lot_8017F000, D_dryfield_night_parking_lot_8017F420, D_dryfield_night_parking_lot_8017FA1C, 0x4588, 8900, 9, 5, 4000, 55 },
+};
+
+GpViewRec D_dryfield_night_parking_lot_8017FAF4[11] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 380 },
+    { { { { 2636, 0, -3134 }, { -93, 4094, -78 }, { 3133, 122, 2635 } }, { 0x27F9, 2236, 6567 } }, 230 },
+    { { { { 2646, 0, -3126 }, { -3085, 656, -2612 }, { 501, 4043, 424 } }, { 3012, 5975, 537 } }, 230 },
+    { { { { 456, 0, 4070 }, { -262, 4087, 29 }, { -4062, -264, 455 } }, { -3566, 1036, -1232 } }, 230 },
+    { { { { 1002, 0, -3971 }, { 304, 4083, 76 }, { 3959, -314, 999 } }, { 2133, 1036, -1232 } }, 230 },
+    { { { { 371, 0, -4079 }, { 322, 4083, 29 }, { 4066, -323, 370 } }, { -2016, 736, -2302 } }, 230 },
+    { { { { 814, 0, -4014 }, { 596, 4050, 121 }, { 3969, -609, 805 } }, { -6266, 636, -2232 } }, 230 },
+    { { { { 2636, 0, -3134 }, { -93, 4094, -78 }, { 3133, 122, 2635 } }, { 0x27F9, 2236, 6567 } }, 230 },
+    { { { { 1002, 0, -3971 }, { 304, 4083, 76 }, { 3959, -314, 999 } }, { 2133, 1036, -1232 } }, 230 },
+    { { { { 371, 0, -4079 }, { 322, 4083, 29 }, { 4066, -323, 370 } }, { -2016, 736, -2302 } }, 230 },
+    { { { { 814, 0, -4014 }, { 596, 4050, 121 }, { 3969, -609, 805 } }, { -6266, 636, -2232 } }, 230 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8017FC80[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_8017FC90[10] = {
+    { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8017FD58[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 1, 0 } },
+    { 7, 3, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpDrawAreaRec D_dryfield_night_parking_lot_8017FD78[2] = {
+    { { 136, 0, 182, 239 }, 2250 },
+    { { 0, 0, 0, 0 }, 0xFFFF },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_8017FD8C[24] = {
+    { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, -96, -40, 750, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -160, -120, 625, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 32 } }, -112, -120, 625, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -64, -104, 625, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, -88, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, -80, 625, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -80, 925, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -96, 925, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, -56, 925, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -40, 1125, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -32, 1350, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -40, 925, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 96 } }, 40, -112, 925, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -120, 925, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -64, 925, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -120, 925, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -64, 925, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -8, 925, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, -8, 925, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, 16, 925, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8017FF6C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 24, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_8017FF84[16] = {
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 48, -88, 925, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, -80, 925, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, -72, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 240 } }, -160, -120, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 240 } }, -144, -120, 1000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 224 } }, -120, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 176 } }, -96, -96, 1125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 136 } }, -80, -72, 1250, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, -56, 1250, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 96 } }, -88, -48, 2000, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 32, 8, 1657, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 40, 8, 1470, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 56 } }, 48, 0, 1407, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 64 } }, 64, -8, 1419, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_801800C4[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 4, 0, 0, { 3, 0 } },
+    { 4, 6, 0, 0, { 0, 0 } },
+    { 10, 2, 0, 0, { 2, 0 } },
+    { 12, 4, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_801800F4[7] = {
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_80180180[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_80180198[21] = {
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 64, 500, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 64, 500, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 24, 500, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 24, 500, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -16, 525, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -16, 500, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -56, 500, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 500, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, 120, -80, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, -120, 1012, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 16, -72, 1012, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 48 } }, 16, -24, 1012, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, 24, 1012, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 1012, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -24, 1012, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -72, 1012, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -120, 1012, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1012, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1012, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1012, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1012, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8018033C[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 9, 0, 0, { 1, 0 } },
+    { 9, 12, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8018035C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_8018036C[10] = {
+    { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_80180434[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 1, 0 } },
+    { 7, 3, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpDrawAreaRec D_dryfield_night_parking_lot_80180454[2] = {
+    { { 136, 0, 182, 239 }, 2250 },
+    { { 0, 0, 0, 0 }, 0xFFFF },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_80180468[7] = {
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_801804F4[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_night_parking_lot_8018050C[6] = {
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 136, -80, 500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 136, -16, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 112, -64, 500, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, 112, -8, 500, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 80, -48, 500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 80, 24, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_80180584[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_night_parking_lot_8018059C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_dryfield_night_parking_lot_801805AC[11] = {
+    { { .empty = D_dryfield_night_parking_lot_8017FC80 }, D_dryfield_night_parking_lot_8017FC80, NULL },
+    { { .elements = D_dryfield_night_parking_lot_8017FC90 }, D_dryfield_night_parking_lot_8017FD58, D_dryfield_night_parking_lot_8017FD78 },
+    { { .elements = D_dryfield_night_parking_lot_8017FD8C }, D_dryfield_night_parking_lot_8017FF6C, NULL },
+    { { .elements = D_dryfield_night_parking_lot_8017FF84 }, D_dryfield_night_parking_lot_801800C4, NULL },
+    { { .elements = D_dryfield_night_parking_lot_801800F4 }, D_dryfield_night_parking_lot_80180180, NULL },
+    { { .elements = D_dryfield_night_parking_lot_80180198 }, D_dryfield_night_parking_lot_8018033C, NULL },
+    { { .empty = D_dryfield_night_parking_lot_8018035C }, D_dryfield_night_parking_lot_8018035C, NULL },
+    { { .elements = D_dryfield_night_parking_lot_8018036C }, D_dryfield_night_parking_lot_80180434, D_dryfield_night_parking_lot_80180454 },
+    { { .elements = D_dryfield_night_parking_lot_80180468 }, D_dryfield_night_parking_lot_801804F4, NULL },
+    { { .elements = D_dryfield_night_parking_lot_8018050C }, D_dryfield_night_parking_lot_80180584, NULL },
+    { { .empty = D_dryfield_night_parking_lot_8018059C }, D_dryfield_night_parking_lot_8018059C, NULL },
+};
+
+GpPointLight D_dryfield_night_parking_lot_80180630[17] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2680, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2211, 2457, 2703, { 0, 0 } }, 0x186A0, 0x186A0 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8450, -1990, -5560 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1802, 1884, 1966, { 0, 0 } }, 3000, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2970, -2190, 780 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3522, 3440, 3194, { 0, 0 } }, 1000, 2500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3220, -2190, -4630 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3604, 3522, 3276, { 0, 0 } }, 2500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 130, -2190, 2660 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3522, 3440, 3194, { 0, 0 } }, 1000, 2500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3930, -2190, 1380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3522, 3440, 3194, { 0, 0 } }, 1000, 2200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -730, -2010, 440 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 2949, 2211, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3010, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3440, { 0, 0 } }, 1000, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7290, -2010, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2539, { 0, 0 } }, 500, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2760, -2010, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2539, { 0, 0 } }, 500, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7480, -1990, -1610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3686, 3522, 3031, { 0, 0 } }, 2000, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3440, { 0, 0 } }, 500, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4990, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3440, { 0, 0 } }, 500, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7210, -1420, 3730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3440, { 0, 0 } }, 500, 1000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9250, -1420, 3730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3440, { 0, 0 } }, 500, 1000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 640, -1520, 350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 2949, 2211, { 0, 0 } }, 500, 800 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -1520, 350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 2949, 2211, { 0, 0 } }, 500, 800 },
+};
+
+GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1] = {
+    { 0, NULL, 17, D_dryfield_night_parking_lot_80180630, 0, NULL },
+};
+
+GpObj4C D_dryfield_night_parking_lot_80180CA8[10] = {
+    { NULL, NULL, NULL, { -2698, -2736, -1594, 0 }, { { -2084, -3856, 2134, 0 }, { 2085, -3856, -2134, 0 }, { -2084, 3856, 2134, 0 }, { 2085, 3856, -2134, 0 } }, { -2935, 0, -2867, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -2816, -2592, -1600, 0 }, { { 2078, -3616, -2142, 0 }, { -2092, -3616, 2127, 0 }, { 2078, 3616, -2142, 0 }, { -2092, 3616, 2127, 0 } }, { 2941, 0, 2873, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -2560, -2656, 1664, 0 }, { { 1854, -3680, -2342, 0 }, { -1877, -3680, 2312, 0 }, { 1854, 3680, -2342, 0 }, { -1877, 3680, 2312, 0 } }, { 3203, 0, 2568, 0 }, { 0, 0, 4096, 0 }, 4720, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -2528, -2720, 1760, 0 }, { { -1873, -3744, 2314, 0 }, { 1857, -3744, -2338, 0 }, { -1873, 3744, 2314, 0 }, { 1857, 3744, -2338, 0 } }, { -3200, 0, -2566, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 831, -2528, 2015, 0 }, { { -694, -3552, 2899, 0 }, { 690, -3552, -2903, 0 }, { -694, 3552, 2899, 0 }, { 690, 3552, -2903, 0 } }, { -3985, 0, -951, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 798, -2416, 2046, 0 }, { { 690, -3440, -2903, 0 }, { -694, -3440, 2899, 0 }, { 690, 3440, -2903, 0 }, { -694, 3440, 2899, 0 } }, { 3998, 0, 953, 0 }, { 0, 0, 4096, 0 }, 4550, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 8191, -2320, 2527, 0 }, { { -34, -3344, -2982, 0 }, { 35, -3344, 2983, 0 }, { -34, 3344, -2982, 0 }, { 35, 3344, 2983, 0 } }, { 4106, 0, -48, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { 8223, -2256, 2399, 0 }, { { 35, -3280, 2983, 0 }, { -34, -3280, -2982, 0 }, { 35, 3280, 2983, 0 }, { -34, 3280, -2982, 0 } }, { -4098, 0, 47, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { 4048, -2912, 3200, 0 }, { { -500, -3856, 3222, 0 }, { 501, -3856, -3222, 0 }, { -500, 3856, 3222, 0 }, { 501, 3856, -3222, 0 } }, { -4059, 0, -631, 0 }, { 0, 0, 4096, 0 }, 5042, 0, 5, 6, 1, 0 },
+    { NULL, NULL, NULL, { 3968, -2848, 2864, 0 }, { { 396, -3856, -2554, 0 }, { -395, -3856, 2554, 0 }, { 396, 3856, -2554, 0 }, { -395, 3856, 2554, 0 } }, { 4054, 0, 627, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 6, 5, 129, 0 },
+};
+
+GpObj4C D_dryfield_night_parking_lot_80180FA0[12] = {
+    { NULL, NULL, NULL, { 0x2870, -48, 2976, 0 }, { { -560, 0, -1024, 0 }, { 560, 0, -1024, 0 }, { -560, 0, 1024, 0 }, { 560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, 0, 2, 19, 2, 0 },
+    { NULL, NULL, NULL, { 3040, -48, 3744, 0 }, { { 832, 0, -560, 0 }, { 832, 0, 560, 0 }, { -832, 0, -560, 0 }, { -832, 0, 560, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1001, 0, 17, 33, 2, 0 },
+    { NULL, NULL, NULL, { -800, -48, 192, 0 }, { { 704, 0, -560, 0 }, { 704, 0, 560, 0 }, { -704, 0, -560, 0 }, { -704, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 898, 0, 16, 49, 2, 0 },
+    { NULL, NULL, NULL, { -6736, -48, -640, 0 }, { { 656, 0, -560, 0 }, { 656, 0, 560, 0 }, { -656, 0, -560, 0 }, { -656, 0, 560, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 861, 0, 18, 65, 2, 0 },
+    { NULL, NULL, NULL, { 4752, -48, 1936, 0 }, { { 368, 0, -224, 0 }, { 368, 0, 224, 0 }, { -368, 0, -224, 0 }, { -368, 0, 224, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 430, 1, 52, 128, 2, 0 },
+    { NULL, NULL, NULL, { 4640, -992, 1632, 0 }, { { -560, 1024, 0, 0 }, { 560, 1024, 0, 0 }, { -560, -1024, 0, 0 }, { 560, -1024, 0, 0 } }, { 0, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 1166, 0, 29, 81, 2, 0 },
+    { NULL, NULL, NULL, { -880, -64, 3184, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { 4076, 0, 401, 0 }, 1166, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4672, -480, 1408, 0 }, { { 512, 0, -112, 0 }, { 512, 0, 112, 0 }, { -512, 0, -112, 0 }, { -512, 0, 112, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 523, 0x8101, 50, 0, 2, 0 },
+    { NULL, NULL, NULL, { 18, -64, 2210, 0 }, { { 0, 0, -2160, 0 }, { 736, 0, -2160, 0 }, { -736, 0, 2160, 0 }, { 0, 0, 2160, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2275, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { -2080, -64, 2592, 0 }, { { 1232, 0, -416, 0 }, { 1232, 0, 416, 0 }, { -1232, 0, -416, 0 }, { -1232, 0, 416, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1299, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { -6992, -64, -1936, 0 }, { { 1472, 0, -192, 0 }, { 1472, 0, 928, 0 }, { -1472, 0, -928, 0 }, { -1472, 0, 192, 0 } }, { 0, 4097, 0, 0 }, { 201, 0, 4091, 0 }, 1736, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { -5624, -64, -3000, 0 }, { { -200, 0, -1816, 0 }, { 920, 0, -1816, 0 }, { -904, 0, 1704, 0 }, { 184, 0, 1928, 0 } }, { 0, 4103, 0, 0 }, { 3857, 0, 1380, 0 }, 2031, 2, 5, 0, 130, 0 },
+};
+
+GpObj3A D_dryfield_night_parking_lot_80181330[2] = {
+    { NULL, NULL, { -160, -1872, -2944, 0 }, { { 1508, 2896, -2822, 0 }, { 1508, -2896, -2822, 0 }, { -1509, 2896, 2821, 0 }, { -1509, -2896, 2821, 0 } }, { 3613, 0, 1931, 0 }, { -38, 16 }, 1, 0 },
+    { NULL, NULL, { -6018, -1792, 3071, 0 }, { { 1509, 2896, -2821, 0 }, { 1509, -2896, -2821, 0 }, { -1508, 2896, 2822, 0 }, { -1508, -2896, 2822, 0 } }, { 3613, 0, 1931, 0 }, { -38, 16 }, 129, 0 },
+};
+
+GpAreaTmdRec D_dryfield_night_parking_lot_801813A8[3] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_night_parking_lot_801813CC[2] = {
+    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_night_parking_lot_801813E4[3] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_night_parking_lot_80181408[2] = {
+    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_night_parking_lot_80181420[2] = {
+    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_dryfield_night_parking_lot_80181438[22] = {
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_dryfield_full_8017BAB8, D_dryfield_night_parking_lot_801813A8 },
+    { D_map_dryfield_full_8017BB28, D_dryfield_night_parking_lot_801813CC },
+    { D_map_dryfield_full_8017BB78, D_dryfield_night_parking_lot_801813E4 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_dryfield_full_8017BBE8, D_dryfield_night_parking_lot_80181408 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_dryfield_full_8017BC08, D_dryfield_night_parking_lot_80181420 },
+};
+
+s32 D_dryfield_night_parking_lot_801814E8[3] = {
+    0x10000049,
+    0x1000004B,
+    0x10000049,
+};
+
+s32 D_dryfield_night_parking_lot_801814F4[3] = {
+    0x1000003D,
+    0x1000003F,
+    0x1000003D,
+};
+
+s32 D_dryfield_night_parking_lot_80181500[3] = {
+    0x10000051,
+    0x10000053,
+    0x10000055,
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_8018150C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_80181514[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_parking_lot_801814E8 },
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_8018151C[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_parking_lot_801814F4 },
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_80181524[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_parking_lot_80181500 },
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_8018152C[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_night_parking_lot_80181534[1] = {
+    { 0, 0, 1, 0, D_dryfield_night_parking_lot_801814E8 },
+};
+
+GpRoomParamRec * D_dryfield_night_parking_lot_8018153C[8] = {
+    D_dryfield_night_parking_lot_8018150C,
+    D_dryfield_night_parking_lot_8018152C,
+    D_dryfield_night_parking_lot_8018151C,
+    D_dryfield_night_parking_lot_80181524,
+    D_dryfield_night_parking_lot_8018150C,
+    D_dryfield_night_parking_lot_80181514,
+    D_dryfield_night_parking_lot_80181534,
+    D_dryfield_night_parking_lot_8018150C,
+};
+
 /// Parking-lot room draw: latches the view's entry of the room's per-view table
 /// into `Gp_State1C->roomEffectMode`, then queues the props of the room phase
 /// `gGameSession->at4.loc.view` selects - 2, 4 and 5 several points each, 3 and 6 a
 /// single one. Every phase ends with the same semi-transparent sprite call,
 /// which `jump.c` cross-jumps into one tail block after the last case.
-static void func_dryfield_night_parking_lot_8017DC88(void)
+void func_dryfield_night_parking_lot_8017DC88(Task* unused)
 {
     u8 view;
 

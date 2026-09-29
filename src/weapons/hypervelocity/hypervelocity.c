@@ -71,7 +71,7 @@ static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
 /// - State 4 fades the ring out 0x20 a frame while spawning smoke off a random
 ///   one of the player's two hand coordinates, and returns to state 1 once the
 ///   flare is 0x6F frames old or the charge goes negative.
-static void func_hypervelocity_8011D1E8(Task* task)
+void func_hypervelocity_8011D1E8(Task* task)
 {
     u8            rgb[3];
     GpCoord*      coord;
@@ -250,7 +250,7 @@ static void func_hypervelocity_8011D1E8(Task* task)
 ///   living past frame 0x15 releases the pool block.
 /// - State 2 shrinks the ring by 0x40 a frame, spawning one more spark burst
 ///   per frame until the ring falls under 0x80.
-static void func_hypervelocity_8011D830(Task* task)
+void func_hypervelocity_8011D830(Task* task)
 {
     GpCoord       ground;
     SVECTOR       after;
@@ -794,7 +794,7 @@ static void func_hypervelocity_8011F11C(Task* task)
     Gp_ReleaseState1CMem(mem, task);
 }
 
-static void func_hypervelocity_8011F168(Task* arg0)
+void func_hypervelocity_8011F168(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -832,7 +832,7 @@ static void func_hypervelocity_8011F168(Task* arg0)
     }
 }
 
-static void func_hypervelocity_8011F270(Task* arg0)
+void func_hypervelocity_8011F270(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

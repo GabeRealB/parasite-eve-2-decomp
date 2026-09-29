@@ -1,3 +1,6 @@
+#include "actor_503500_private.h"
+#include "rooms/shelter_r48.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -46,6 +49,25 @@
 #include "overlay.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+
+/// The 0x160 work block cleared by func_actor_503500_801372C8.
+typedef struct Actor503500Work160 {
+    MATRIX light;
+    MATRIX color;
+    Actor503500Slot40 slot40;
+    GpRec18 rec60[8];
+    GpEffArg field_120;
+    Actor503500FixVec rot;
+    Actor503500FixVec vel;
+    Actor503500FixVec pos;
+    s16 field_158;
+    u16 field_15A;
+    s8 field_15C;
+    s8 field_15D;
+    s8 field_15E;
+    s8 field_15F;
+} Actor503500Work160;
+STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 
 /// Element of `D_actor_503500_80176EE8`, the two 0x2EC blocks
 /// `func_actor_503500_8013852C` clears for spawn slots 2 and 3. The shared
@@ -97,28 +119,19 @@ typedef struct Actor503500Work2EC {
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
-/// Twelve-byte record of `Actor503500VecSet::field_C`, copied whole.
-typedef struct Actor503500Rec12 {
-    /* 0x00 */ s16 field_0[6];
-} Actor503500Rec12;
-STATIC_ASSERT_SIZEOF(Actor503500Rec12, 0xC);
-
-/// Vector set that `func_actor_503500_80136B64` rotates from the template at
-/// `D_actor_503500_8016F03C` into the live copy at `D_80183EEC`: the four
-/// `field_4` vectors are only rotated, the eight `field_8` ones are also
-/// offset by the attach coordinate's translation.
-typedef struct Actor503500VecSet {
-    /* 0x00 */ s32               field_0;
-    /* 0x04 */ SVECTOR*          field_4;
-    /* 0x08 */ SVECTOR*          field_8;
-    /* 0x0C */ Actor503500Rec12* field_C;
-} Actor503500VecSet;
-STATIC_ASSERT_SIZEOF(Actor503500VecSet, 0x10);
-
 static void func_actor_503500_8013AC6C(s32 p0, s32 p1, s32 p2, s32 p3, SVECTOR* coeff);
 
 /// The boss work block, cleared by `func_actor_503500_80132F64`.
-extern Actor503500Work D_actor_503500_80176574;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    Actor503500Work value;
+    u8 retained[8];
+} Actor5035003Storage6574;
+STATIC_ASSERT_SIZEOF(Actor5035003Storage6574, 2032);
+
+extern Actor5035003Storage6574 D_actor_503500_80176574;
 /// 18-entry table of per-slot u16 counters, indexed by slot in
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
 extern u16 D_actor_503500_80176D64[];
@@ -153,7 +166,9 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1,
                                GpAnimArg* arg2, s32 arg3);
 
 /// Animation-bank table indexed by `GpAnimArg::animBlock.index`.
-extern void* D_actor_503500_8016EAB8[];
+extern GpAnimSet* D_actor_503500_8016EA54[20];
+extern GpAnimSet* D_actor_503500_8016EAA4[5];
+extern GpAnimSet** D_actor_503500_8016EAB8[2];
 static void  func_actor_503500_80136450(Task* arg0);
 static void  func_actor_503500_801369E4(Task* arg0);
 static void  func_actor_503500_80136A80(Task* arg0);
@@ -179,15 +194,16 @@ static void func_actor_503500_80136D30(Task* arg0);
 static void func_actor_503500_80136DDC(Task* arg0);
 /// `TaskDesc` table `func_actor_503500_80132F64` and
 /// `func_actor_503500_80135D00` spawn slot enemies from.
-extern TaskDesc D_actor_503500_8016E924;
+extern TaskDesc D_actor_503500_8016E924[];
 /// Initial position of the boss's collision node, copied into both the
 /// enemy's `field_1C` and `field_5D4`'s `field_10/12/14`.
 extern SVECTOR  D_actor_503500_8016EC50;
 extern SVECTOR  D_actor_503500_8016EF58[];
-extern TaskDesc D_actor_503500_8016E9F0;
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132F64`.
-extern GpMsgEntry D_actor_503500_8016EA2C[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+
 /// Per-spawn enemy parameter table indexed by `Task::spawnArg1`;
 /// `func_actor_503500_8013BEE4` and `func_actor_503500_8013ECBC` park the row
 /// in `GpEnemy::param` and seed the enemy's HP from its `hpMax`.
@@ -212,7 +228,6 @@ extern s16 D_actor_503500_8016EF50[];
 /// Per-sub-state speed class: 1 and 2 pick the slower yaw-tracking rates.
 extern s8 D_actor_503500_8016E8FC[];
 /// Main-executable yaw rotation: rotates `m` about Y by `angle`.
-void func_8004BFF8(s32 angle, MATRIX* m);
 /// Per-slot camera masks: bits 0x08/0x10/0x20/0x40 are yaw sectors around the
 /// boss, bits 1/2/4 camera height bands (see `func_actor_503500_80135644`).
 extern u8 D_actor_503500_8016E910[];
@@ -227,7 +242,7 @@ extern SVECTOR D_actor_503500_8016F0D0[];
 /// `GpEnemy::bodyPos` and display node share.
 extern SVECTOR         D_actor_503500_8016F060;
 extern SVECTOR         D_actor_503500_8016F068;
-extern Actor503500Work D_actor_503500_80176D88;
+extern Actor503500Work160 D_actor_503500_80176D88;
 /// Per-slot tables of the 0x2EC enemies in `D_actor_503500_80176EE8`: world
 /// translation and rotation of the task's coordinate (indexed by
 /// `spawnArg1 - 2`), the local offset its `GpEnemy::bodyPos` and display node
@@ -237,7 +252,7 @@ extern SVECTOR            D_actor_503500_8016F090[];
 extern SVECTOR            D_actor_503500_8016F0A0[];
 extern SVECTOR            D_actor_503500_8016F0B0;
 extern Actor503500UVec    D_actor_503500_8016F0A8[];
-extern Actor503500Work2EC D_actor_503500_80176EE8[];
+extern Actor503500Work2EC D_actor_503500_80176EE8[2];
 /// Rest offset of the same enemies' `field_29C`, indexed by `spawnArg1 - 2`
 /// (the bytes of `D_actor_503500_8016F0A8[2..]`, named on their own because the
 /// code indexes from here), and the local vector `func_actor_503500_80138A30`
@@ -265,8 +280,7 @@ static void func_actor_503500_80137048(Task* arg0, s32 rate);
 /// The animation preset `func_actor_503500_80136D30` re-applies when the boss
 /// finishes the clip it was gating on.
 extern GpAnimArg         D_actor_503500_8016EAD4;
-extern Actor503500VecSet D_80183EEC;
-extern Actor503500VecSet D_actor_503500_8016F03C;
+extern GpGridParams D_actor_503500_8016F03C;
 static void              func_actor_503500_80132F64(Task* arg0);
 static void              func_actor_503500_80133270(Task* arg0);
 static void              func_actor_503500_801372C8(Task* arg0);
@@ -277,7 +291,7 @@ static void              func_actor_503500_80138898(Task* arg0);
 static void func_actor_503500_80138454(Task* arg0);
 static void func_actor_503500_80138490(Task* arg0, s32 arg1);
 static void func_actor_503500_80139EFC(Task* arg0);
-static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out);
+static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out);
 static void func_actor_503500_8013AB38(Task* arg0);
 
 /// `Task::state` handlers `func_actor_503500_80137238` dispatches through.
@@ -288,6 +302,18 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
         func_actor_503500_80136228,
     },
 };
+
+Task * D_actor_503500_80176558 = NULL;
+
+GpXformArg D_actor_503500_8017655C = { 0 };
+
+Actor5035003Storage6574 D_actor_503500_80176574 = { 0 };
+
+u16 D_actor_503500_80176D64[18] = { 0 };
+
+Actor503500Work160 D_actor_503500_80176D88 = { 0 };
+
+Actor503500Work2EC D_actor_503500_80176EE8[2] = { 0 };
 
 /// State-0 init of the boss: clears and seeds its work block, links the
 /// second body part's display node, spawns slot enemies 1..11 from
@@ -312,7 +338,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     GpRec18*       recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
-    Actor503500Work* work = &D_actor_503500_80176574;
+    Actor503500Work* work = &D_actor_503500_80176574.value;
 
     tmd   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
@@ -362,7 +388,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     work->field_5D4.flags     &= 0x7FFF;
 
     for (i = 1; i < 12; i++) {
-        child = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, i, i, enemy);
+        child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
             sessionKey = &gGameSession->at4.loc;
             raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -386,7 +412,7 @@ static void func_actor_503500_80132F64(Task* arg0)
         }
     }
     work->enemies[0] = enemy;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0x23);
+    (Gp_IncStateF0Ref)(0x23);
     func_actor_503500_80136B64(arg0, 1, 0);
     for (i = 17; i >= 0; i--) {
         D_actor_503500_80176D64[i] = 0;
@@ -1069,7 +1095,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                 SndEvt_EnqueueType6(0x40230012, pan, (s8)(gpGetObjDepth(coord) / 2));
             }
             if (++work->field_7BC >= 0x97) {
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x64, arg0);
+                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->sub        = &arg0->extra.tmd->coords[3];
@@ -1089,7 +1115,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                     task->exitCallback(task);
                 }
                 func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, arg0);
+                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->sub        = &arg0->extra.tmd->coords[3];
@@ -1226,7 +1252,7 @@ static void func_actor_503500_80134C68(Task* arg0)
         case 1:
             if (func_actor_503500_80136014(arg0, 4) != 0) {
                 func_actor_503500_80135FB4(arg0, 5, 0x10);
-                task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 4, 0x5A, arg0);
+                task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
                     coord->sub        = &arg0->extra.tmd->coords[3];
@@ -1461,8 +1487,8 @@ static void func_actor_503500_801353F0(Task* arg0)
     s32              speed;
     s32              scale;
     MATRIX*          m;
-    s32*             px;
-    s32*             pz;
+    long*            px;
+    long*            pz;
 
     work               = arg0->work;
     coord              = arg0->extra.tmd->coords;
@@ -1511,7 +1537,7 @@ static void func_actor_503500_801353F0(Task* arg0)
     MATRIX_PAIR(m, 1, 1) = 0x1000;
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = 0x1000;
-    func_8004BFF8(work->field_7B6, m);
+    RotMatrixY(work->field_7B6, m);
     scale               = speed >> 12;
     work->field_6B4     = mat.m[0][2] * scale;
     work->field_6BC     = mat.m[2][2] * scale;
@@ -1748,7 +1774,7 @@ s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, GpCmdArg* msg)
 /// `func_actor_503500_80135E04` does.
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 {
-    D_actor_503500_80176574.enemies[arg1] = NULL;
+    D_actor_503500_80176574.value.enemies[arg1] = NULL;
 }
 
 /// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
@@ -1767,9 +1793,9 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
     u32            raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
-    Actor503500Work* work = &D_actor_503500_80176574;
+    Actor503500Work* work = &D_actor_503500_80176574.value;
 
-    enemy = Gp_SpawnEnemyFromTable(&D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
+    enemy = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
     if (enemy != NULL) {
         sessionKey = &gGameSession->at4.loc;
         raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1798,7 +1824,7 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 /// empty. `arg0` is loaded by every caller but the body ignores it.
 s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
 {
-    return D_actor_503500_80176574.enemies[arg1] == NULL;
+    return D_actor_503500_80176574.value.enemies[arg1] == NULL;
 }
 
 /// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
@@ -1807,7 +1833,7 @@ s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
 /// `sub`; any other `arg1` only sets its bit.
 void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
 {
-    Actor503500Work* work = &D_actor_503500_80176574;
+    Actor503500Work* work = &D_actor_503500_80176574.value;
 
     switch (arg1) {
         case 5:
@@ -1838,7 +1864,7 @@ void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
 /// `func_actor_503500_80135E04` does.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 {
-    D_actor_503500_80176574.field_730[arg1] = arg2;
+    D_actor_503500_80176574.value.field_730[arg1] = arg2;
 }
 
 /// Sets the per-slot playback rate `GpAnimSlot.rate` on animation slots 1..16 of the
@@ -1868,10 +1894,10 @@ void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 /// the same way `func_actor_503500_80135E04` does.
 s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
 {
-    if (arg1 != D_actor_503500_80176574.field_7D5) {
+    if (arg1 != D_actor_503500_80176574.value.field_7D5) {
         return -1;
     }
-    return (D_actor_503500_80176574.slot40.boss.flags_4C & 0x102) != 0;
+    return (D_actor_503500_80176574.value.slot40.boss.flags_4C & 0x102) != 0;
 }
 
 /// Puts the boss into state 2: clears the state's step counters and the two
@@ -1895,7 +1921,7 @@ void func_actor_503500_80136048(Task* arg0)
 /// argument, and callers pass unrelated pointers they already hold.
 s32 func_actor_503500_8013608C(void* arg0)
 {
-    return (u32)((u16)D_actor_503500_80176574.field_7B0 - 2) < 3U;
+    return (u32)((u16)D_actor_503500_80176574.value.field_7B0 - 2) < 3U;
 }
 
 static void func_actor_503500_801360A4(s32 arg0, s16 arg1)
@@ -1961,12 +1987,12 @@ s16 func_actor_503500_80136134(Task* arg0)
 
 s32 func_actor_503500_80136208(void)
 {
-    return D_actor_503500_80176574.field_7E6;
+    return D_actor_503500_80176574.value.field_7E6;
 }
 
 s16 func_actor_503500_80136218(void)
 {
-    return D_actor_503500_80176574.field_7BA;
+    return D_actor_503500_80176574.value.field_7BA;
 }
 
 /// Exit callback of the boss task: tears down the second body part's display
@@ -2334,7 +2360,7 @@ static void func_actor_503500_80136AEC(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Rebuilds the live vector set `D_80183EEC` from its template in the world
+/// Rebuilds the live vector set `D_shelter_r48_80183EEC` from its template in the world
 /// frame of the actor's second attach coordinate. `arg1` also recopies the
 /// four `field_C` records; `arg2` raises the offset by 0x1F40 in Y.
 static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
@@ -2344,8 +2370,8 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
     s32                i;
     SVECTOR*           src;
     SVECTOR*           dst;
-    Actor503500VecSet* out = &D_80183EEC;
-    Actor503500VecSet* in  = &D_actor_503500_8016F03C;
+    GpGridParams* out = D_shelter_r48_80183EEC;
+    GpGridParams* in  = &D_actor_503500_8016F03C;
 
     if (arg1 != 0) {
         for (i = 0; i < 4; i++) {
@@ -2706,7 +2732,7 @@ static void func_actor_503500_801374BC(Task* arg0)
         case 1:
             if ((s16)++work->field_15A > 0) {
                 for (i = 0; i < 2; i++) {
-                    task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 2, i, 0);
+                    task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 2, i, 0);
                     if (task != NULL) {
                         coord             = task->extra.tmd->coords;
                         coord->sub        = arg0->extra.tmd->coords;
@@ -2766,7 +2792,7 @@ static void func_actor_503500_80137678(Task* arg0)
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_158 = 0;
-            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= 0xF0;
@@ -3415,7 +3441,7 @@ static void func_actor_503500_80138C08(Task* arg0)
                 pos.vz = Player_Status.coordMtx->t[2] - work->pts[8].vz;
                 dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
                 if (dist < 3000) {
-                    task = Task_SpawnFromTable(&D_actor_503500_8016E9F0, 0, 0, dist * 3000);
+                    task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 0, dist * 3000);
                     if (task != NULL) {
                         Gp_ComposeParentWorld(&coord[8], &m, &pos);
                         src    = (s32*)&m;
@@ -3481,7 +3507,7 @@ static void func_actor_503500_80139014(Task* arg0)
             Gp_UnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_2D8 = 0;
-            ((void (*)(s32))Gp_IncStateF0Ref)(0);
+            (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= 0xF0;
@@ -4013,7 +4039,7 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GpCoord* coords, s32 phase)
 /// Evaluates a cubic Bezier segment at frame `pos` of `len`: control points
 /// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
 /// reaches `len`. Writes the X/Y/Z result to `out`.
-static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
+static void func_actor_503500_8013A7B0(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out)
 {
     SVECTOR  coeff[3];
     SVECTOR* p1;

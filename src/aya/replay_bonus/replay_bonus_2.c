@@ -31,7 +31,6 @@ extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 extern s32          D_replay_bonus_80119288;
-extern s32          D_replay_bonus_8011928C;
 
 extern UiObjectDesc D_800611E4;
 extern UiObjectDesc D_replay_bonus_80119170;
@@ -86,7 +85,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 break;
             case 7:
                 if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0x11, 0, 1);
+                    arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0x11, 0, 1);
                     arg0->state     = arg0->state + 1;
                 } else {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119170, 0, 1, 2, NULL);
@@ -94,7 +93,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 break;
             case 8:
                 if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = ((UiObject * (*)(UiObject*, s32, s32, s32)) Gp_SpawnItemPrompt)(NULL, 0xF, 0, 1);
+                    arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0xF, 0, 1);
                 } else {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 1, 1, 1, NULL);
                     arg0->state     = arg0->state - 2;
@@ -555,7 +554,7 @@ static void func_replay_bonus_80117E04(void)
         lf2->b0 = 0x40;
         lf2->y0 = y;
         lf2->y1 = y;
-        func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].cmds);
+        func_replay_bonus_801183B8(y, D_replay_bonus_80119298[i].cmds.pointer);
     }
 
     tpage          = gGpuPrimCursor;
@@ -856,33 +855,33 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     }
 }
 
-static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
+static s32 func_replay_bonus_80118B6C(ReplayBonusStfAddress base, s32 index)
 {
     ReplayBonusStfLine* rec;
     s32                 i;
 
-    if (strncmp(file->magic, "STF", 3) != 0) {
+    if (strncmp(base.file->magic, "STF", 3) != 0) {
         return 0;
     }
 
-    if (file->field_C > 0) {
-        file->field_C          += (s32)file;
-        file->field_8          += (s32)file;
-        file->field_10         += (s32)file;
-        file->field_14         += (s32)file;
-        D_replay_bonus_80119298 = ((ReplayBonusStfTable*)file->field_10)->lines;
-        D_replay_bonus_801192A0 = ((ReplayBonusStfTable*)file->field_10)->count;
+    if (base.file->field_C.offset > 0) {
+        base.file->field_C.offset += base.address;
+        base.file->field_8.offset += base.address;
+        base.file->field_10.offset += base.address;
+        base.file->field_14.offset += base.address;
+        D_replay_bonus_80119298 = (base.file->field_10.pointer)->lines;
+        D_replay_bonus_801192A0 = (base.file->field_10.pointer)->count;
         for (i = 0; i < D_replay_bonus_801192A0; i++) {
             rec                     = D_replay_bonus_80119298;
             D_replay_bonus_80119298 = rec + 1;
-            rec->cmds               = (ReplayBonusStfCmd*)((s32)rec->cmds + (s32)file);
+            rec->cmds.offset       += base.address;
         }
     }
 
-    D_replay_bonus_80119290 = (ReplayBonusStfGlyph*)file->field_C;
-    D_replay_bonus_80119294 = (ReplayBonusStfHdr*)file->field_8;
-    D_replay_bonus_80119298 = ((ReplayBonusStfTable*)file->field_10)->lines;
-    D_replay_bonus_8011929C = (ReplayBonusStfSpr*)file->field_14;
+    D_replay_bonus_80119290 = base.file->field_C.pointer;
+    D_replay_bonus_80119294 = base.file->field_8.pointer;
+    D_replay_bonus_80119298 = (base.file->field_10.pointer)->lines;
+    D_replay_bonus_8011929C = base.file->field_14.pointer;
     return 1;
 }
 
@@ -972,7 +971,7 @@ static void func_replay_bonus_80118F00(s32 arg0)
     s32           count;
     s32           i;
     s32           type;
-    s32           temp;
+    ReplayBonusStfFile*           temp;
 
     count = 0;
     i     = count;
@@ -983,7 +982,7 @@ static void func_replay_bonus_80118F00(s32 arg0)
             if (count == arg0) {
                 temp                    = slot->field_4;
                 D_replay_bonus_8011928C = temp;
-                func_replay_bonus_80118B6C((ReplayBonusStfFile*)temp, i);
+                func_replay_bonus_80118B6C(temp, i);
                 return;
             }
             count++;

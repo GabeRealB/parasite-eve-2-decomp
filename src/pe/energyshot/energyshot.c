@@ -1,5 +1,6 @@
-#include "common.h"
 #include "pe/energyshot.h"
+
+#include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -52,7 +53,7 @@ static s16 D_energyshot_80130128[16] = { 0 };
 /// brightness / radius, draws three rings plus `field_0` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
-static void func_energyshot_8012EF34(Task* arg0)
+void func_energyshot_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;
@@ -399,7 +400,7 @@ static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3
     SCRATCH_POP_BYTES(0x118);
 }
 
-static void func_energyshot_8012FFB8(Task* arg0)
+void func_energyshot_8012FFB8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

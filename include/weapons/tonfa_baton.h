@@ -1,6 +1,8 @@
 #ifndef WEAPONS_TONFA_BATON_H
 #define WEAPONS_TONFA_BATON_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -44,5 +46,7 @@ typedef struct _TonfaBeamScratch {
     /* 0x28 */ s32     unused;
 } TonfaBeamScratch;
 STATIC_ASSERT_SIZEOF(TonfaBeamScratch, 0x2C);
+
+void func_tonfa_baton_8011D1EC(Task* task);
 
 #endif

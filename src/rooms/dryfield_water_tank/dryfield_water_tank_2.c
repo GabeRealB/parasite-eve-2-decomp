@@ -1,3 +1,5 @@
+#include "dryfield_water_tank_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -35,6 +37,8 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
+#include "gameplay/animation.h"
+
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
 /// `owner` is written by that run, so the block's tail is outside its
@@ -62,20 +66,20 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 /// Main-executable flag set to 1 before the view tasks are respawned.
 
 /// Spawn table for the task that takes over once the intro stream is done.
-extern TaskDesc D_dryfield_water_tank_80180764;
+extern TaskDesc D_dryfield_water_tank_80180764[];
 
-extern TaskDesc D_dryfield_water_tank_80184DF4;
+extern TaskDesc D_dryfield_water_tank_80184DF4[];
 
 /// Script record the cutscene owner is handed with msg 0x3F4.
-extern s32 D_dryfield_water_tank_801804EC;
+extern GpAnimSet* D_dryfield_water_tank_801804EC[2];
 
 /// The placement the room sends the slot-3 task, the cutscene's owner, with
 /// message 0x3E9.
 extern GpXformArg D_dryfield_water_tank_801804F4;
 
 /// The two blocks `func_800E8634` is handed as raw addresses.
-extern s32 D_dryfield_water_tank_8018050C;
-extern s32 D_dryfield_water_tank_8018068C;
+extern GpEvsCmd D_dryfield_water_tank_8018050C[];
+extern GpEvsCmd D_dryfield_water_tank_8018068C[];
 
 /// The water tank's run: one `SVECTOR` position per frame, `y` fixed at -12000
 /// and `z` stepping up the room, 52 entries of movement before the tail clamps.
@@ -103,6 +107,865 @@ extern u16 D_dryfield_water_tank_801868CC[];
 /// The room's cutscene task, parked by `func_dryfield_water_tank_8017E9F8` so
 /// the script commands can reach its `DwtWork` block.
 extern Task* D_dryfield_water_tank_80188D50;
+
+void func_dryfield_water_tank_8017E9F8(Task *);
+
+extern TmdSource D_dryfield_water_tank_8017FD3C;
+void func_dryfield_water_tank_8017E3C4(Task *);
+void func_dryfield_water_tank_8017E568(Task *);
+void func_dryfield_water_tank_8017EB80(s16);
+void func_dryfield_water_tank_8017EBA0(void);
+
+GpXformArg D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
+
+GpXformArg D_dryfield_water_tank_8017F0E8 = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
+
+GpAnimArg D_dryfield_water_tank_8017F100 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpEvsCmd D_dryfield_water_tank_8017F114[11] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_8017F100 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_water_tank_8017F0D0 }, { .value = 0 } },
+    { 42, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_water_tank_8017F21C[11] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_8017F100 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_water_tank_8017F0E8 }, { .value = 0 } },
+    { 42, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpMsgEntry D_dryfield_water_tank_8017F324[5] = {
+    { 5102, func_dryfield_water_tank_8017D7C4 },
+    { 5105, func_dryfield_water_tank_8017D7BC },
+    { 5103, func_dryfield_water_tank_8017D7EC },
+    { 5104, func_dryfield_water_tank_8017D910 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_dryfield_water_tank_8017F34C[2] = {
+    { 0, 32, func_dryfield_water_tank_8017D948, { .model = NULL } },
+    { 0, 32, func_dryfield_water_tank_8017D618, { .model = NULL } },
+};
+
+TmdBone D_dryfield_water_tank_8017F364[1] = {
+#include "assets/dryfield_water_tank_model_0277C_skeleton.inc"
+};
+
+u32 D_dryfield_water_tank_8017F388[1] = {
+#include "assets/dryfield_water_tank_model_0277C_partVerts.inc"
+};
+
+SVECTOR D_dryfield_water_tank_8017F38C[97] = {
+#include "assets/dryfield_water_tank_model_0277C_verts.inc"
+};
+
+u32 D_dryfield_water_tank_8017F694[426] = {
+#include "assets/dryfield_water_tank_model_0277C_stream.inc"
+};
+
+TmdSource D_dryfield_water_tank_8017FD3C = {
+    0, 3360, 0, 1,
+    D_dryfield_water_tank_8017F388, D_dryfield_water_tank_8017F38C, &D_dryfield_water_tank_8017F38C[97], D_dryfield_water_tank_8017F364, D_dryfield_water_tank_8017F694,
+};
+
+GpXformArg D_dryfield_water_tank_8017FD60[2] = {
+    { { 3100, 0, 0, 0 }, { 0, 1024, 0, 0 } },
+    { { 3100, 0, 1800, 0 }, { 0, 1024, 0, 0 } },
+};
+
+DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3] = {
+    { 2004, { .call1 = func_dryfield_water_tank_8017E0E8 } },
+    { 2011, { .call0 = func_dryfield_water_tank_8017E174 } },
+    { 2005, { .call2 = func_dryfield_water_tank_8017E0B4 } },
+};
+
+u16 D_dryfield_water_tank_8017FDA8[12] = {
+    400,
+    1000,
+    0xFE70,
+    0xFF38,
+    0,
+    0xFDA8,
+    200,
+    800,
+    0xFC18,
+    0xFCE0,
+    600,
+    0,
+};
+
+GpEvsCmd D_dryfield_water_tank_8017FDC0[11] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_water_tank_8017FEC8[8] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_water_tank_8017E1B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_dryfield_water_tank_8017FF88[2] = {
+    { 0, 192, func_dryfield_water_tank_8017DEA4, { .model = NULL } },
+    { 257, 192, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} DryfieldWaterTankPoseBank29E0;
+
+DryfieldWaterTankPoseBank29E0 D_dryfield_water_tank_8017FFA0 = { .poses = {
+#include "assets/dryfield_water_tank_animation_02B70_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_8017FFB8[8] = {
+#include "assets/dryfield_water_tank_animation_02B70_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_8017FFD8[76] = {
+#include "assets/dryfield_water_tank_animation_02B70_records.inc"
+};
+
+u16 D_dryfield_water_tank_80180108[20] = {
+#include "assets/dryfield_water_tank_animation_02B70_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80180130 = {
+    D_dryfield_water_tank_8017FFD8, D_dryfield_water_tank_80180108,
+    { NULL, D_dryfield_water_tank_8017FFA0.words, NULL, NULL, D_dryfield_water_tank_8017FFB8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldWaterTankPoseBank2B98;
+
+DryfieldWaterTankPoseBank2B98 D_dryfield_water_tank_80180158 = { .poses = {
+#include "assets/dryfield_water_tank_animation_02F04_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801801AC[65] = {
+#include "assets/dryfield_water_tank_animation_02F04_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801802B0[123] = {
+#include "assets/dryfield_water_tank_animation_02F04_records.inc"
+};
+
+u16 D_dryfield_water_tank_8018049C[20] = {
+#include "assets/dryfield_water_tank_animation_02F04_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_801804C4 = {
+    D_dryfield_water_tank_801802B0, D_dryfield_water_tank_8018049C,
+    { NULL, D_dryfield_water_tank_80180158.words, NULL, NULL, D_dryfield_water_tank_801801AC, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_dryfield_water_tank_801804EC[2] = {
+    &D_dryfield_water_tank_80180130,
+    &D_dryfield_water_tank_801804C4,
+};
+
+GpXformArg D_dryfield_water_tank_801804F4 = { { 2600, -0x2EE0, -450, 0 }, { 0, 512, 0, 0 } };
+
+GpEvsCmd D_dryfield_water_tank_8018050C[16] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_water_tank_8018068C[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_water_tank_8017EBA0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_dryfield_water_tank_80180764[4] = {
+    { 0, 192, NULL, { .model = NULL } },
+    { 0, 192, func_dryfield_water_tank_8017E568, { .model = NULL } },
+    { 0, 192, func_dryfield_water_tank_8017E220, { .model = NULL } },
+    { 0, 192, func_dryfield_water_tank_8017E3C4, { .model = NULL } },
+};
+
+TaskDesc D_dryfield_water_tank_80180794 = { 0, 192, func_dryfield_water_tank_8017E9F8, { .model = NULL } };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} DryfieldWaterTankPoseBank31E0;
+
+DryfieldWaterTankPoseBank31E0 D_dryfield_water_tank_801807A0 = { .poses = {
+#include "assets/dryfield_water_tank_animation_034BC_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801807E8[46] = {
+#include "assets/dryfield_water_tank_animation_034BC_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801808A0[109] = {
+#include "assets/dryfield_water_tank_animation_034BC_records.inc"
+};
+
+u16 D_dryfield_water_tank_80180A54[20] = {
+#include "assets/dryfield_water_tank_animation_034BC_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80180A7C = {
+    D_dryfield_water_tank_801808A0, D_dryfield_water_tank_80180A54,
+    { NULL, D_dryfield_water_tank_801807A0.words, NULL, NULL, D_dryfield_water_tank_801807E8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} DryfieldWaterTankPoseBank34E4;
+
+DryfieldWaterTankPoseBank34E4 D_dryfield_water_tank_80180AA4 = { .poses = {
+#include "assets/dryfield_water_tank_animation_0377C_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80180AD4[55] = {
+#include "assets/dryfield_water_tank_animation_0377C_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80180BB0[89] = {
+#include "assets/dryfield_water_tank_animation_0377C_records.inc"
+};
+
+u16 D_dryfield_water_tank_80180D14[20] = {
+#include "assets/dryfield_water_tank_animation_0377C_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80180D3C = {
+    D_dryfield_water_tank_80180BB0, D_dryfield_water_tank_80180D14,
+    { NULL, D_dryfield_water_tank_80180AA4.words, NULL, NULL, D_dryfield_water_tank_80180AD4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldWaterTankPoseBank37A4;
+
+DryfieldWaterTankPoseBank37A4 D_dryfield_water_tank_80180D64 = { .poses = {
+#include "assets/dryfield_water_tank_animation_03A60_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80180DA0[60] = {
+#include "assets/dryfield_water_tank_animation_03A60_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80180E90[90] = {
+#include "assets/dryfield_water_tank_animation_03A60_records.inc"
+};
+
+u16 D_dryfield_water_tank_80180FF8[20] = {
+#include "assets/dryfield_water_tank_animation_03A60_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80181020 = {
+    D_dryfield_water_tank_80180E90, D_dryfield_water_tank_80180FF8,
+    { NULL, D_dryfield_water_tank_80180D64.words, NULL, NULL, D_dryfield_water_tank_80180DA0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} DryfieldWaterTankPoseBank3A88;
+
+DryfieldWaterTankPoseBank3A88 D_dryfield_water_tank_80181048 = { .poses = {
+#include "assets/dryfield_water_tank_animation_03CB4_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80181060[30] = {
+#include "assets/dryfield_water_tank_animation_03CB4_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801810D8[93] = {
+#include "assets/dryfield_water_tank_animation_03CB4_records.inc"
+};
+
+u16 D_dryfield_water_tank_8018124C[20] = {
+#include "assets/dryfield_water_tank_animation_03CB4_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80181274 = {
+    D_dryfield_water_tank_801810D8, D_dryfield_water_tank_8018124C,
+    { NULL, D_dryfield_water_tank_80181048.words, NULL, NULL, D_dryfield_water_tank_80181060, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} DryfieldWaterTankPoseBank3CDC;
+
+DryfieldWaterTankPoseBank3CDC D_dryfield_water_tank_8018129C = { .poses = {
+#include "assets/dryfield_water_tank_animation_04000_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801812E4[60] = {
+#include "assets/dryfield_water_tank_animation_04000_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801813D4[113] = {
+#include "assets/dryfield_water_tank_animation_04000_records.inc"
+};
+
+u16 D_dryfield_water_tank_80181598[20] = {
+#include "assets/dryfield_water_tank_animation_04000_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_801815C0 = {
+    D_dryfield_water_tank_801813D4, D_dryfield_water_tank_80181598,
+    { NULL, D_dryfield_water_tank_8018129C.words, NULL, NULL, D_dryfield_water_tank_801812E4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[22];
+    GpPackedSvec words[66];
+} DryfieldWaterTankPoseBank4028;
+
+DryfieldWaterTankPoseBank4028 D_dryfield_water_tank_801815E8 = { .poses = {
+#include "assets/dryfield_water_tank_animation_047BC_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801816F0[170] = {
+#include "assets/dryfield_water_tank_animation_047BC_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80181998[239] = {
+#include "assets/dryfield_water_tank_animation_047BC_records.inc"
+};
+
+u16 D_dryfield_water_tank_80181D54[20] = {
+#include "assets/dryfield_water_tank_animation_047BC_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80181D7C = {
+    D_dryfield_water_tank_80181998, D_dryfield_water_tank_80181D54,
+    { NULL, D_dryfield_water_tank_801815E8.words, NULL, NULL, D_dryfield_water_tank_801816F0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldWaterTankPoseBank47E4;
+
+DryfieldWaterTankPoseBank47E4 D_dryfield_water_tank_80181DA4 = { .poses = {
+#include "assets/dryfield_water_tank_animation_04AA0_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80181DE0[60] = {
+#include "assets/dryfield_water_tank_animation_04AA0_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80181ED0[90] = {
+#include "assets/dryfield_water_tank_animation_04AA0_records.inc"
+};
+
+u16 D_dryfield_water_tank_80182038[20] = {
+#include "assets/dryfield_water_tank_animation_04AA0_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80182060 = {
+    D_dryfield_water_tank_80181ED0, D_dryfield_water_tank_80182038,
+    { NULL, D_dryfield_water_tank_80181DA4.words, NULL, NULL, D_dryfield_water_tank_80181DE0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldWaterTankPoseBank4AC8;
+
+DryfieldWaterTankPoseBank4AC8 D_dryfield_water_tank_80182088 = { .poses = {
+#include "assets/dryfield_water_tank_animation_04C98_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801820AC[34] = {
+#include "assets/dryfield_water_tank_animation_04C98_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80182134[63] = {
+#include "assets/dryfield_water_tank_animation_04C98_records.inc"
+};
+
+u16 D_dryfield_water_tank_80182230[20] = {
+#include "assets/dryfield_water_tank_animation_04C98_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80182258 = {
+    D_dryfield_water_tank_80182134, D_dryfield_water_tank_80182230,
+    { NULL, D_dryfield_water_tank_80182088.words, NULL, NULL, D_dryfield_water_tank_801820AC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldWaterTankPoseBank4CC0;
+
+DryfieldWaterTankPoseBank4CC0 D_dryfield_water_tank_80182280 = { .poses = {
+#include "assets/dryfield_water_tank_animation_04FEC_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801822BC[58] = {
+#include "assets/dryfield_water_tank_animation_04FEC_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801823A4[120] = {
+#include "assets/dryfield_water_tank_animation_04FEC_records.inc"
+};
+
+u16 D_dryfield_water_tank_80182584[20] = {
+#include "assets/dryfield_water_tank_animation_04FEC_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_801825AC = {
+    D_dryfield_water_tank_801823A4, D_dryfield_water_tank_80182584,
+    { NULL, D_dryfield_water_tank_80182280.words, NULL, NULL, D_dryfield_water_tank_801822BC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldWaterTankPoseBank5014;
+
+DryfieldWaterTankPoseBank5014 D_dryfield_water_tank_801825D4 = { .poses = {
+#include "assets/dryfield_water_tank_animation_051E4_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801825F8[34] = {
+#include "assets/dryfield_water_tank_animation_051E4_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80182680[63] = {
+#include "assets/dryfield_water_tank_animation_051E4_records.inc"
+};
+
+u16 D_dryfield_water_tank_8018277C[20] = {
+#include "assets/dryfield_water_tank_animation_051E4_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_801827A4 = {
+    D_dryfield_water_tank_80182680, D_dryfield_water_tank_8018277C,
+    { NULL, D_dryfield_water_tank_801825D4.words, NULL, NULL, D_dryfield_water_tank_801825F8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} DryfieldWaterTankPoseBank520C;
+
+DryfieldWaterTankPoseBank520C D_dryfield_water_tank_801827CC = { .poses = {
+#include "assets/dryfield_water_tank_animation_05704_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80182844[100] = {
+#include "assets/dryfield_water_tank_animation_05704_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801829D4[178] = {
+#include "assets/dryfield_water_tank_animation_05704_records.inc"
+};
+
+u16 D_dryfield_water_tank_80182C9C[20] = {
+#include "assets/dryfield_water_tank_animation_05704_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80182CC4 = {
+    D_dryfield_water_tank_801829D4, D_dryfield_water_tank_80182C9C,
+    { NULL, D_dryfield_water_tank_801827CC.words, NULL, NULL, D_dryfield_water_tank_80182844, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldWaterTankPoseBank572C;
+
+DryfieldWaterTankPoseBank572C D_dryfield_water_tank_80182CEC = { .poses = {
+#include "assets/dryfield_water_tank_animation_059E4_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80182D28[59] = {
+#include "assets/dryfield_water_tank_animation_059E4_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80182E14[90] = {
+#include "assets/dryfield_water_tank_animation_059E4_records.inc"
+};
+
+u16 D_dryfield_water_tank_80182F7C[20] = {
+#include "assets/dryfield_water_tank_animation_059E4_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80182FA4 = {
+    D_dryfield_water_tank_80182E14, D_dryfield_water_tank_80182F7C,
+    { NULL, D_dryfield_water_tank_80182CEC.words, NULL, NULL, D_dryfield_water_tank_80182D28, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} DryfieldWaterTankPoseBank5A0C;
+
+DryfieldWaterTankPoseBank5A0C D_dryfield_water_tank_80182FCC = { .poses = {
+#include "assets/dryfield_water_tank_animation_05DB8_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_8018302C[84] = {
+#include "assets/dryfield_water_tank_animation_05DB8_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_8018317C[117] = {
+#include "assets/dryfield_water_tank_animation_05DB8_records.inc"
+};
+
+u16 D_dryfield_water_tank_80183350[20] = {
+#include "assets/dryfield_water_tank_animation_05DB8_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80183378 = {
+    D_dryfield_water_tank_8018317C, D_dryfield_water_tank_80183350,
+    { NULL, D_dryfield_water_tank_80182FCC.words, NULL, NULL, D_dryfield_water_tank_8018302C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldWaterTankPoseBank5DE0;
+
+DryfieldWaterTankPoseBank5DE0 D_dryfield_water_tank_801833A0 = { .poses = {
+#include "assets/dryfield_water_tank_animation_061A8_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801833F4[62] = {
+#include "assets/dryfield_water_tank_animation_061A8_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_801834EC[149] = {
+#include "assets/dryfield_water_tank_animation_061A8_records.inc"
+};
+
+u16 D_dryfield_water_tank_80183740[20] = {
+#include "assets/dryfield_water_tank_animation_061A8_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80183768 = {
+    D_dryfield_water_tank_801834EC, D_dryfield_water_tank_80183740,
+    { NULL, D_dryfield_water_tank_801833A0.words, NULL, NULL, D_dryfield_water_tank_801833F4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldWaterTankPoseBank61D0;
+
+DryfieldWaterTankPoseBank61D0 D_dryfield_water_tank_80183790 = { .poses = {
+#include "assets/dryfield_water_tank_animation_06514_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_801837E4[74] = {
+#include "assets/dryfield_water_tank_animation_06514_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_8018390C[104] = {
+#include "assets/dryfield_water_tank_animation_06514_records.inc"
+};
+
+u16 D_dryfield_water_tank_80183AAC[20] = {
+#include "assets/dryfield_water_tank_animation_06514_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80183AD4 = {
+    D_dryfield_water_tank_8018390C, D_dryfield_water_tank_80183AAC,
+    { NULL, D_dryfield_water_tank_80183790.words, NULL, NULL, D_dryfield_water_tank_801837E4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} DryfieldWaterTankPoseBank653C;
+
+DryfieldWaterTankPoseBank653C D_dryfield_water_tank_80183AFC = { .poses = {
+#include "assets/dryfield_water_tank_animation_06840_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80183B50[56] = {
+#include "assets/dryfield_water_tank_animation_06840_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80183C30[106] = {
+#include "assets/dryfield_water_tank_animation_06840_records.inc"
+};
+
+u16 D_dryfield_water_tank_80183DD8[20] = {
+#include "assets/dryfield_water_tank_animation_06840_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80183E00 = {
+    D_dryfield_water_tank_80183C30, D_dryfield_water_tank_80183DD8,
+    { NULL, D_dryfield_water_tank_80183AFC.words, NULL, NULL, D_dryfield_water_tank_80183B50, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} DryfieldWaterTankPoseBank6868;
+
+DryfieldWaterTankPoseBank6868 D_dryfield_water_tank_80183E28 = { .poses = {
+#include "assets/dryfield_water_tank_animation_06C68_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80183E64[90] = {
+#include "assets/dryfield_water_tank_animation_06C68_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80183FCC[141] = {
+#include "assets/dryfield_water_tank_animation_06C68_records.inc"
+};
+
+u16 D_dryfield_water_tank_80184200[20] = {
+#include "assets/dryfield_water_tank_animation_06C68_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80184228 = {
+    D_dryfield_water_tank_80183FCC, D_dryfield_water_tank_80184200,
+    { NULL, D_dryfield_water_tank_80183E28.words, NULL, NULL, D_dryfield_water_tank_80183E64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} DryfieldWaterTankPoseBank6C90;
+
+DryfieldWaterTankPoseBank6C90 D_dryfield_water_tank_80184250 = { .poses = {
+#include "assets/dryfield_water_tank_animation_06F48_bank1.inc"
+} };
+
+GpPackedSvec D_dryfield_water_tank_80184274[51] = {
+#include "assets/dryfield_water_tank_animation_06F48_bank4.inc"
+};
+
+GpAnimRec D_dryfield_water_tank_80184340[104] = {
+#include "assets/dryfield_water_tank_animation_06F48_records.inc"
+};
+
+u16 D_dryfield_water_tank_801844E0[20] = {
+#include "assets/dryfield_water_tank_animation_06F48_indices.inc"
+};
+
+GpAnimSet D_dryfield_water_tank_80184508 = {
+    D_dryfield_water_tank_80184340, D_dryfield_water_tank_801844E0,
+    { NULL, D_dryfield_water_tank_80184250.words, NULL, NULL, D_dryfield_water_tank_80184274, NULL, NULL, NULL },
+};
+
+SVECTOR D_dryfield_water_tank_80184530[82] = {
+    { 2534, -0x2EE0, 611, 0 },
+    { 2534, -0x2EE0, 612, 0 },
+    { 2534, -0x2EE0, 617, 0 },
+    { 2534, -0x2EE0, 624, 0 },
+    { 2534, -0x2EE0, 634, 0 },
+    { 2534, -0x2EE0, 647, 0 },
+    { 2534, -0x2EE0, 661, 0 },
+    { 2534, -0x2EE0, 676, 0 },
+    { 2534, -0x2EE0, 692, 0 },
+    { 2534, -0x2EE0, 708, 0 },
+    { 2534, -0x2EE0, 725, 0 },
+    { 2534, -0x2EE0, 741, 0 },
+    { 2534, -0x2EE0, 758, 0 },
+    { 2534, -0x2EE0, 773, 0 },
+    { 2534, -0x2EE0, 788, 0 },
+    { 2534, -0x2EE0, 801, 0 },
+    { 2534, -0x2EE0, 813, 0 },
+    { 2534, -0x2EE0, 823, 0 },
+    { 2534, -0x2EE0, 831, 0 },
+    { 2534, -0x2EE0, 839, 0 },
+    { 2534, -0x2EE0, 846, 0 },
+    { 2534, -0x2EE0, 853, 0 },
+    { 2534, -0x2EE0, 860, 0 },
+    { 2534, -0x2EE0, 867, 0 },
+    { 2534, -0x2EE0, 874, 0 },
+    { 2534, -0x2EE0, 881, 0 },
+    { 2534, -0x2EE0, 888, 0 },
+    { 2534, -0x2EE0, 895, 0 },
+    { 2534, -0x2EE0, 901, 0 },
+    { 2534, -0x2EE0, 908, 0 },
+    { 2534, -0x2EE0, 915, 0 },
+    { 2534, -0x2EE0, 921, 0 },
+    { 2534, -0x2EE0, 928, 0 },
+    { 2534, -0x2EE0, 934, 0 },
+    { 2534, -0x2EE0, 939, 0 },
+    { 2534, -0x2EE0, 943, 0 },
+    { 2534, -0x2EE0, 947, 0 },
+    { 2534, -0x2EE0, 952, 0 },
+    { 2534, -0x2EE0, 958, 0 },
+    { 2534, -0x2EE0, 964, 0 },
+    { 2534, -0x2EE0, 968, 0 },
+    { 2534, -0x2EE0, 971, 0 },
+    { 2534, -0x2EE0, 973, 0 },
+    { 2534, -0x2EE0, 973, 0 },
+    { 2534, -0x2EE0, 973, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2534, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2533, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+    { 2532, -0x2EE0, 972, 0 },
+};
+
+SVECTOR D_dryfield_water_tank_801847C0[52] = {
+    { 2532, -0x2EE0, 972, 0 },
+    { 2527, -0x2EE0, 972, 0 },
+    { 2523, -0x2EE0, 972, 0 },
+    { 2518, -0x2EE0, 972, 0 },
+    { 2506, -0x2EE0, 972, 0 },
+    { 2493, -0x2EE0, 972, 0 },
+    { 2481, -0x2EE0, 972, 0 },
+    { 2465, -0x2EE0, 972, 0 },
+    { 2450, -0x2EE0, 972, 0 },
+    { 2434, -0x2EE0, 972, 0 },
+    { 2418, -0x2EE0, 972, 0 },
+    { 2401, -0x2EE0, 972, 0 },
+    { 2385, -0x2EE0, 972, 0 },
+    { 2370, -0x2EE0, 972, 0 },
+    { 2356, -0x2EE0, 972, 0 },
+    { 2341, -0x2EE0, 972, 0 },
+    { 2331, -0x2EE0, 972, 0 },
+    { 2321, -0x2EE0, 972, 0 },
+    { 2311, -0x2EE0, 972, 0 },
+    { 2304, -0x2EE0, 972, 0 },
+    { 2297, -0x2EE0, 972, 0 },
+    { 2290, -0x2EE0, 972, 0 },
+    { 2284, -0x2EE0, 972, 0 },
+    { 2277, -0x2EE0, 972, 0 },
+    { 2270, -0x2EE0, 972, 0 },
+    { 2263, -0x2EE0, 972, 0 },
+    { 2256, -0x2EE0, 972, 0 },
+    { 2249, -0x2EE0, 972, 0 },
+    { 2242, -0x2EE0, 972, 0 },
+    { 2235, -0x2EE0, 972, 0 },
+    { 2229, -0x2EE0, 972, 0 },
+    { 2222, -0x2EE0, 972, 0 },
+    { 2215, -0x2EE0, 972, 0 },
+    { 2208, -0x2EE0, 972, 0 },
+    { 2204, -0x2EE0, 972, 0 },
+    { 2200, -0x2EE0, 972, 0 },
+    { 2196, -0x2EE0, 972, 0 },
+    { 2190, -0x2EE0, 972, 0 },
+    { 2184, -0x2EE0, 972, 0 },
+    { 2178, -0x2EE0, 972, 0 },
+    { 2175, -0x2EE0, 972, 0 },
+    { 2172, -0x2EE0, 972, 0 },
+    { 2169, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+    { 2170, -0x2EE0, 972, 0 },
+};
 
 /// Fade the water tank to white and tear the task down.
 ///
@@ -234,7 +1097,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             Mem_Set(Fs_ImgBuffers, 0, 0x25800);
             SetDispMask(1);
             taskKill(task);
-            Task_SpawnOnDefaultList(&D_dryfield_water_tank_80180764, 2, 8, 0);
+            Task_SpawnOnDefaultList(D_dryfield_water_tank_80180764, 2, 8, 0);
             Display_ResetHeapWrapper();
             return;
     }
@@ -273,7 +1136,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                 case 0:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = &D_dryfield_water_tank_801804EC;
+                        msg.rec.animBlock.ptr = D_dryfield_water_tank_801804EC;
                         msg.rec.field_4       = 0;
                         msg.rec.field_8       = 0;
                         msg.rec.field_C       = 0;
@@ -285,7 +1148,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                 case 1:
                     cur = (DwtWork*)task->work;
                     if (cur->owner != NULL) {
-                        msg.rec.animBlock.ptr = &D_dryfield_water_tank_801804EC;
+                        msg.rec.animBlock.ptr = D_dryfield_water_tank_801804EC;
                         msg.rec.field_4       = step;
                         msg.rec.field_8       = step;
                         msg.rec.field_C       = 0xF;
@@ -297,7 +1160,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             }
             break;
         case 3:
-            Task_SpawnFromTable(&D_dryfield_water_tank_80180764, 3, 8, 0);
+            Task_SpawnFromTable(D_dryfield_water_tank_80180764, 3, 8, 0);
             break;
         case 4:
             msg.warp.rot.vy = 0x800;
@@ -307,7 +1170,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             idx = (u16)work->field_6;
             switch (idx) {
                 case 0:
-                    Display_SpawnWithOt(&D_dryfield_water_tank_80180764, 1, 0, 0);
+                    Display_SpawnWithOt(D_dryfield_water_tank_80180764, 1, 0, 0);
                     gDisplayState.at100.flags.flipMode = 1;
                     Gp_SpawnViewTasks();
                     work->field_6++;
@@ -391,8 +1254,8 @@ L_case0:
         script.field_C         = 0xA;
         script.field_10        = 0;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &script, 0);
-        func_800E8634(&D_dryfield_water_tank_8018050C, 0,
-                      &D_dryfield_water_tank_8018068C);
+        func_800E8634(D_dryfield_water_tank_8018050C, 0,
+                      D_dryfield_water_tank_8018068C);
         goto advance;
     }
     return;
@@ -445,7 +1308,7 @@ void func_dryfield_water_tank_8017EBA0(void)
 
 void func_dryfield_water_tank_8017EC38(u32 arg0)
 {
-    Task_SpawnFromTable(&D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
+    Task_SpawnFromTable(D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
 }
 
 /// Walks the water tank one step along `D_dryfield_water_tank_80184530` per
@@ -592,7 +1455,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
 /// shared work block's `field_A`. Gameplay holds this address in its data
 /// (0x80110614, pointing at the room overlay), and `dryfield_parking_lot` and
 /// `dryfield_water_tower` carry the same body.
-static void func_dryfield_water_tank_8017F084(void)
+void func_dryfield_water_tank_8017F084(Task* unused)
 {
     Gp_State1C->roomEffectMode = D_dryfield_water_tank_801868CC[(Gp_GetViewIndex() & 0xFF) - 1];
 }

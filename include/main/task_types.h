@@ -159,7 +159,10 @@ typedef struct Task {
     TaskSpawnArg spawnArg1;     // First argument, interpreted by the task type.
     u8           status;        // The task's own byte; the task system records a stop request in it as 0xFF
     byte         unknown_39[3];
-    s32          extraState;    // Word handed back with a stop request; the task's own payload otherwise
+    union {
+        s32   value;
+        void* pointer;
+    } extraState; // Stop-request word or task-owned payload, including command replies
     byte         unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
@@ -180,6 +183,7 @@ typedef struct {
     TaskFunc callback;    // Per-frame entry point the spawned task runs
     union {
         TmdSource* model; // Kind 1: the model the task attaches
+        void*      storage; // Other kinds may pass a pointer to their own data
         s32        value; // The descriptor's own value, where it attaches no model
     } arg;
 } TaskDesc;

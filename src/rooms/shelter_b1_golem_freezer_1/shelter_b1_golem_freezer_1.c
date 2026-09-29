@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b1_golem_freezer_1.h"
+#include "mapui/map_shelter.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -25,15 +27,17 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "gameplay/direction_input.h"
+
+#include "actors/task_tables.h"
+
 extern void func_80131E70(void);
 extern void func_80131E24(void);
-extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
-extern s16          D_shelter_b1_golem_freezer_1_8017E6D0;
-extern s16          D_shelter_b1_golem_freezer_1_8017E6D2;
+extern s16 D_shelter_b1_golem_freezer_1_8017E6D0[3];
 extern GpGridParams D_shelter_b1_golem_freezer_1_8017E714;
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
@@ -43,30 +47,390 @@ static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
 static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
+s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_golem_freezer_1_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task *, s32, RoomEventMsg *, GpMessageArg);
+
+GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
+    { 5102, func_shelter_b1_golem_freezer_1_8017D5D8 },
+    { 5105, func_shelter_b1_golem_freezer_1_8017D5D0 },
+    { 5103, func_shelter_b1_golem_freezer_1_8017D624 },
+    { 5104, func_shelter_b1_golem_freezer_1_8017D61C },
+    { 0x7FFFFFFF, NULL },
+};
+
+s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
+    0,
+    0,
+    0,
+};
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E6D8[1] = {
+    { -1404, 0, 3848, 0 },
+};
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E6E0[4] = {
+    { 592, 500, 918, 0 },
+    { 592, -873, 918, 0 },
+    { -679, -873, 454, 0 },
+    { -679, 500, 454, 0 },
+};
+
+GpGridFace D_shelter_b1_golem_freezer_1_8017E700[1] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+};
+
+s16 D_shelter_b1_golem_freezer_1_8017E70C[2] = {
+    0,
+    -1,
+};
+
+s16 * D_shelter_b1_golem_freezer_1_8017E710[1] = {
+    D_shelter_b1_golem_freezer_1_8017E70C,
+};
+
+GpGridParams D_shelter_b1_golem_freezer_1_8017E714 = { NULL, D_shelter_b1_golem_freezer_1_8017E6D8, D_shelter_b1_golem_freezer_1_8017E6E0, D_shelter_b1_golem_freezer_1_8017E700, D_shelter_b1_golem_freezer_1_8017E710, 679, -454, 1, 1, 4000, 1 };
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E738[1] = {
+    { 385, -3495, 555, 0 },
+};
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E740[10] = {
+    { 7185, -2160, 10, 0 },
+    { 1000, 0, 0, 0 },
+    { 3000, 0, 0, 0 },
+    { 5000, 0, 0, 0 },
+    { 7000, 0, 0, 0 },
+    { 0, 0, 1500, 0 },
+    { 2000, 0, 1500, 0 },
+    { 4000, 0, 1500, 0 },
+    { 6000, 0, 1500, 0 },
+    { 6500, 0, 2500, 0 },
+};
+
+u8 * D_shelter_b1_golem_freezer_1_8017E790[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b1_golem_freezer_1_8017E794[2] = {
+    { { .bytes = { 7, 0 } } },
+    { { .bytes = { 0, 0 } } },
+};
+
+GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[1] = {
+    { { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, 0, 5, 0, 433 },
+};
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E7D0[9] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_golem_freezer_1_8017E818[28] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 470, -3429, 1440, 0 },
+    { 470, 0, 1440, 0 },
+    { 470, 0, 280, 0 },
+    { 470, -3429, 280, 0 },
+    { 7180, 0, 280, 0 },
+    { 7180, -3429, 280, 0 },
+    { 7180, 0, 2240, 0 },
+    { 7180, -3429, 2240, 0 },
+    { 5500, -3429, 1440, 0 },
+    { 5500, 0, 1440, 0 },
+    { 5500, 0, 2240, 0 },
+    { 5500, -3429, 2240, 0 },
+};
+
+GpGridFace D_shelter_b1_golem_freezer_1_8017E8F8[12] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 17, 18, 16, 19 }, 4, 0 },
+    { { 18, 20, 19, 21 }, 5, 0 },
+    { { 20, 22, 21, 23 }, 6, 0 },
+    { { 25, 17, 24, 16 }, 7, 0 },
+    { { 25, 26, 20, 22 }, 8, 1 },
+    { { 26, 27, 22, 23 }, 7, 0 },
+    { { 25, 24, 26, 27 }, 4, 0 },
+    { { 20, 18, 25, 17 }, 8, 1 },
+};
+
+s16 D_shelter_b1_golem_freezer_1_8017E988[12] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_b1_golem_freezer_1_8017E9A0[12] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 * D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
+    D_shelter_b1_golem_freezer_1_8017E988,
+    D_shelter_b1_golem_freezer_1_8017E9A0,
+};
+
+GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, D_shelter_b1_golem_freezer_1_8017E7D0, D_shelter_b1_golem_freezer_1_8017E818, D_shelter_b1_golem_freezer_1_8017E8F8, D_shelter_b1_golem_freezer_1_8017E9B8, -470, -280, 2, 1, 4000, 12 };
+
+GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3740, 0x61A8, -960 } }, 853 },
+    { { { { 586, 0, -4053 }, { -114, 4094, -16 }, { 4052, 115, 586 } }, { -420, 1500, -330 } }, 257 },
+    { { { { 531, 0, 4061 }, { 103, 4094, -13 }, { -4060, 104, 531 } }, { -6710, 1500, -330 } }, 257 },
+    { { { { 3120, 0, 2652 }, { -153, 4089, 180 }, { -2648, -236, 3115 } }, { -6050, 1500, 3100 } }, 289 },
+    { { { { 1015, 0, -3968 }, { -3004, 2675, -768 }, { 2592, 3101, 663 } }, { -4450, 3360, -460 } }, 257 },
+    { { { { 3084, 0, 2694 }, { 720, 3946, -824 }, { -2596, 1095, 2972 } }, { -3520, 1560, 1190 } }, 312 },
+    { { { { 2473, 0, -3264 }, { -442, 4058, -335 }, { 3234, 555, 2450 } }, { 880, 1490, 900 } }, 447 },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017EAE0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_golem_freezer_1_8017EAF0[30] = {
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 875, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -80, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -128, -40, 899, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, 8, 1000, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 48, 1075, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -120, 1075, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -88, 1075, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -56, 1075, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -24, 1125, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 8, 1125, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 40, 1125, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, 64, 1125, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -120, 950, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -96, 958, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -72, 999, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -48, 1133, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -24, 1150, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -8, 1200, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -8, 1250, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 8, 1200, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 1200, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 56, 1200, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 32, 1267, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -120, 866, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -96, 956, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -72, 1226, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -48, 1143, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -112, 1203, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -96, 1108, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -80, 1156, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED48[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 30, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED60[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED70[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED80[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED90[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
+    { { .empty = D_shelter_b1_golem_freezer_1_8017EAE0 }, D_shelter_b1_golem_freezer_1_8017EAE0, NULL },
+    { { .elements = D_shelter_b1_golem_freezer_1_8017EAF0 }, D_shelter_b1_golem_freezer_1_8017ED48, NULL },
+    { { .empty = D_shelter_b1_golem_freezer_1_8017ED60 }, D_shelter_b1_golem_freezer_1_8017ED60, NULL },
+    { { .empty = D_shelter_b1_golem_freezer_1_8017ED70 }, D_shelter_b1_golem_freezer_1_8017ED70, NULL },
+    { { .empty = D_shelter_b1_golem_freezer_1_8017ED80 }, D_shelter_b1_golem_freezer_1_8017ED80, NULL },
+    { { .empty = D_shelter_b1_golem_freezer_1_8017ED90 }, D_shelter_b1_golem_freezer_1_8017ED90, NULL },
+    { { .empty = D_shelter_b1_golem_freezer_1_8017EDA0 }, D_shelter_b1_golem_freezer_1_8017EDA0, NULL },
+};
+
+GpPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2916, -3502, -3635 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1474, 2048, 1865, { 0, 0 } }, 6500, 8500 },
+};
+
+GpRoomCoordSet D_shelter_b1_golem_freezer_1_8017EE64 = { 0, NULL, 1, D_shelter_b1_golem_freezer_1_8017EE04, 0, NULL };
+
+GpObj4C D_shelter_b1_golem_freezer_1_8017EE7C[4] = {
+    { NULL, NULL, NULL, { 3643, -1712, 668, 0 }, { { -50, -2576, -1587, 0 }, { 50, -2576, 1588, 0 }, { -50, 2576, -1587, 0 }, { 50, 2576, 1588, 0 } }, { 4098, 0, -130, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 3786, -1680, 763, 0 }, { { 43, -2544, 1293, 0 }, { -43, -2544, -1293, 0 }, { 43, 2544, 1293, 0 }, { -43, 2544, -1293, 0 } }, { -4103, 0, 135, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 5695, -1664, 544, 0 }, { { 413, -2576, -1534, 0 }, { -413, -2576, 1534, 0 }, { 413, 2576, -1534, 0 }, { -413, 2576, 1534, 0 } }, { 3959, 0, 1065, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 5, 2, 1, 0 },
+    { NULL, NULL, NULL, { 5855, -1664, 640, 0 }, { { -413, -2576, 1534, 0 }, { 413, -2576, -1534, 0 }, { -413, 2576, 1534, 0 }, { 413, 2576, -1534, 0 } }, { -3961, 0, -1067, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 2, 5, 129, 0 },
+};
+
+GpObj4C D_shelter_b1_golem_freezer_1_8017EFAC[5] = {
+    { NULL, NULL, NULL, { 6736, -144, 1152, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1039, 0, 19, 18, 2, 0 },
+    { NULL, NULL, NULL, { 784, -141, 784, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3296, -142, 1040, 0 }, { { -2240, 0, -256, 0 }, { 2240, 0, -256, 0 }, { -2240, 0, 256, 0 }, { 2240, 0, 256, 0 } }, { 0, 4110, 0, 0 }, { -201, 0, -4091, 0 }, 2246, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 992, -143, 1008, 0 }, { { -144, 0, -592, 0 }, { 1680, 0, -592, 0 }, { -144, 0, 528, 0 }, { 1680, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1778, 5, 1, 0, 4, 0 },
+    { NULL, NULL, NULL, { 4064, -64, 416, 0 }, { { -3040, 0, -256, 0 }, { 3040, 0, -256, 0 }, { -3040, 0, 256, 0 }, { 3040, 0, 256, 0 } }, { 0, 4095, 0, 0 }, { 201, 0, 4091, 0 }, 3050, 2, 7, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F128[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F134[2] = {
+    { 143, 607, 0, 0, { 0, 0 }, D_801416A8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_golem_freezer_1_8017F14C[1] = {
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_golem_freezer_1_8017F15C[2] = {
+    { 143, 0, 0, 1140, 0, 1060, 1251, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {
+    { NULL, NULL },
+    { D_shelter_b1_golem_freezer_1_8017F14C, D_shelter_b1_golem_freezer_1_8017F128 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_golem_freezer_1_8017F15C, D_shelter_b1_golem_freezer_1_8017F134 },
+    { NULL, NULL },
+};
+
+GpRoomBoundVec D_shelter_b1_golem_freezer_1_8017F234[8] = {
+    { 7, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 486, 554, 538, 526 },
+    { 458, 559, 500, 513 },
+    { 16, 16, 16, 16 },
+    { 457, 557, 503, 512 },
+    { 406, 881, 1574, 789 },
+    { 797, 1115, 1678, 1066 },
+};
+
+s32 D_shelter_b1_golem_freezer_1_8017F274[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+GpRoomParamRec D_shelter_b1_golem_freezer_1_8017F280[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b1_golem_freezer_1_8017F288[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_golem_freezer_1_8017F274 },
+};
+
+GpRoomParamRec * D_shelter_b1_golem_freezer_1_8017F290[8] = {
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F288,
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F280,
+    D_shelter_b1_golem_freezer_1_8017F280,
+};
+
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(void)
+s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both on to `func_80179A04`. Always answers 1.
-s32 func_shelter_b1_golem_freezer_1_8017D5D8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// the outgoing one and passes both on to `func_map_shelter_80179A04`. Always answers 1.
+s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
 /// Message-table handler for message 0x13F0: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D61C(void)
+s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for message 0x13EF: when the message's `field_2` is 1
 /// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D624(s32 arg0, s32 arg1, RoomEventMsg* msg)
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg * msg, GpMessageArg arg3)
 {
     if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
         func_80131E70();
@@ -123,14 +487,14 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     }
     if (slot != NULL) {
         if (gGameSession->at4.loc.place == 0x15) {
-            D_shelter_b1_golem_freezer_1_8017E6D2 = 0;
+            D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0;
         } else {
-            D_shelter_b1_golem_freezer_1_8017E6D2 = 0x2710;
+            D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0x2710;
         }
     } else {
-        D_shelter_b1_golem_freezer_1_8017E6D2 = 0x2710;
+        D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0x2710;
     }
-    func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, &D_shelter_b1_golem_freezer_1_8017E6D0);
+    func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
@@ -188,7 +552,7 @@ static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
     }
 }
 
-static void func_shelter_b1_golem_freezer_1_8017DA7C(void)
+void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
 {
     SVECTOR pos;
     s32     i;
@@ -286,7 +650,7 @@ static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s3
     SCRATCH_POP(RoomDraw13Scratch);
 }
 
-static void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
+void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;

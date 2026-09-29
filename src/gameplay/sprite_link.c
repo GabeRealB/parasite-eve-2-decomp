@@ -72,7 +72,7 @@ void Gp_LinkViewSprts(void)
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
     rec           = recs[(u8)view - 1].field_4;
-    base          = recs[(u8)view - 1].field_0;
+    base          = recs[(u8)view - 1].field_0.elements;
     if (rec->field_2 == 0) {
         rec++;
     } else {
@@ -196,7 +196,7 @@ void Gp_AllocSprtLists(void)
     view          = Gp_GetViewIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     rec           = recs[view - 1].field_4;
-    elems         = recs[view - 1].field_0;
+    elems         = recs[view - 1].field_0.elements;
     while (rec->field_0 != 0xFFFF) {
         count.address += rec->field_2;
         rec++;
@@ -412,7 +412,7 @@ static void func_800AD024(void)
             prim           = (DR_AREA*)gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
-            addPrim((u_long*)((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC) + (u32)gGpuCurrentOt), prim);
+            addPrim((&gGpuCurrentOt[((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & 0xFFC)) / sizeof(*gGpuCurrentOt)]), prim);
         }
     }
 }

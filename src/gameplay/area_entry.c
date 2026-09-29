@@ -1,4 +1,5 @@
 #include "gameplay/area_entry.h"
+#include "rooms/mist_shooting_gallery.h"
 
 #include "types.h"
 
@@ -32,8 +33,6 @@ extern UiObjectDesc D_8010CA40[];
 extern UiObjectDesc D_8010CA78[];
 
 void Gp_AreaEnterTask(Task* arg0);
-
-extern UiObjectDesc D_80185000;
 
 u8         Gp_StrItemObtained[] = "Item obtained!";
 u8         Gp_StrBonusItem[]    = "Bonus item!!";
@@ -79,13 +78,13 @@ void Gp_AreaEnterTask(Task* arg0)
         SndEvt_EnqueueType8(0xD);
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
         if (key == GP_LOC_KEY(1, 20, 0, 0)) {
-            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
+            arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);
         } else {
             arg0->spawnArg2.pointer = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
             if (arg0->spawnArg1.value == 0) {
                 work->field_4 = 0;
                 work->field_0 = 0;
-                Gp_SetAreaFlag2(1, (GpAreaKey*)&gGameSession->at4.loc);
+                Gp_SetAreaFlag2(1, &gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
                 if (!((key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) &&
                       gGameSession->at4.loc.place - 1 < 3U)) {

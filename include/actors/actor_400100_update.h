@@ -14,13 +14,9 @@ typedef struct Actor00100StateTable {
 } Actor00100StateTable;
 STATIC_ASSERT_SIZEOF(Actor00100StateTable, 0x9C);
 
-typedef struct Actor00100AnimWord {
-    s32 value;
-} Actor00100AnimWord;
 
 extern Actor00100AnimCommand Actor00100_D1B9D0;
 
-extern Actor00100AnimWord Actor00100_D1B9BC, Actor00100_D1B9C0;
 
 static __inline__ s16 Actor00100_InRegion(Task* actor)
 {

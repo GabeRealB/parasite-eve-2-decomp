@@ -21,9 +21,7 @@ extern u_long* gGpuCurrentOt;
 
 /// Resolve an aligned byte offset from depth quantization to an OT tag.
 /// Callers supply a multiple of sizeof(u_long), within the current table.
-/// The numeric address operation is confined to this PS1 hardware boundary:
-/// using ordinary pointer addition reverses GCC 2.8.1's MIPS addu operands.
-#define Gpu_OtEntryAtByteOffset(byteOffset) ((u_long*)((byteOffset) + (uintptr)gGpuCurrentOt))
+#define Gpu_OtEntryAtByteOffset(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(u_long)])
 
 /// Vertex `n`'s colour word: `rn`, `gn`, `bn`, then the primitive's `code` for
 /// vertex 0 and a pad byte for the others. Build a constant with `PRIM_RGBC`.
@@ -64,13 +62,14 @@ void Display_SetMode(s32 arg0);
 
 void Display_ClampField126(s8 arg0);
 
-Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
-Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3);
+Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
 void Display_SetDrawMode(s32 arg0);
 
-s32 Display_InitModeObj(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3);
+/// Queues a mode transition; the task is spawned asynchronously, so returns NULL.
+Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3);
 
 void Gpu_ResetGraphAndOt(void);
 

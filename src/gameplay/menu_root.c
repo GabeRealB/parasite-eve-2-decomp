@@ -1,4 +1,5 @@
 #include "gameplay/item_menu.h"
+#include "rooms/mist_shooting_gallery.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -129,10 +130,6 @@ extern UiListItemFunc D_8010E9F0[1];
 static s32 D_8010EA54[];
 
 static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1);
-
-extern UiObjectDesc D_80184F70;
-
-extern UiObject* D_80067634;
 
 char        Gp_StrUsedDot[]      = "used.";
 char        Gp_StrCreatedDot[]   = "created.";
@@ -468,7 +465,7 @@ void Gp_MenuRootTask(Task* arg0)
                 CdCmd_EnqueueLoadFile(1, 0, 0);
                 obj = Ui_SpawnFromDesc(&D_8010EEA4, 1, 1, 2, 0);
             } else if (arg == 0x44) {
-                obj = Ui_SpawnFromDesc(&D_80184F70, 0, 1, 1, 0);
+                obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80184F70, 0, 1, 1, 0);
             } else if (arg == 0x43) {
                 obj = Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, 0);
             } else if (arg == 0x42) {
@@ -629,22 +626,22 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
     u8*       text;
     s32       color;
     s32       one;
-    s32       val;
+    TaskSpawnArg       val;
     UiObject* child;
     s32       flag;
     u8*       map;
 
-    val = arg1->spawnArg1.value;
+    val = arg1->spawnArg1;
     map = (u8*)arg1->work;
-    if (val != 0) {
-        if ((u32)val > 0xFFFF) {
+    if (val.value != 0) {
+        if (val.unsignedValue > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
-            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
-            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, val.pointer, color, one, 0);
+            text = Text_SkipLines(val.pointer, one);
             Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0x1E, text, color, one, 0);
-        } else if ((u32)(val - 0x300) < 0x100U) {
-            Gp_DrawCastCostLines(arg0, val);
+        } else if ((u32)(val.value - 0x300) < 0x100U) {
+            Gp_DrawCastCostLines(arg0, val.value);
         }
     }
     childTask = arg1->firstChild;

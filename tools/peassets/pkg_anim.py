@@ -60,6 +60,78 @@ POSE_BANK_SLOTS = 8
 REC_CHAIN_END = 0xC0
 
 
+def read_set(data: bytes, base: int, source_offset: int) -> dict:
+    """Validate and delimit a self-contained animation set in a package.
+
+    These exported sets store pose banks, keyframes, track starts, then the
+    0x28-byte GpAnimSet descriptor. Validate the accesses made by the animation
+    player before treating that range as a resource. A shared or otherwise
+    different layout is not accepted by this delimiter.
+    """
+    def fail(reason: str) -> None:
+        raise ValueError(f"animation set at 0x{source_offset:X}: {reason}")
+
+    if source_offset < 0 or source_offset + 0x28 > len(data):
+        fail("descriptor outside package")
+    words = struct.unpack_from("<10I", data, source_offset)
+    recs, indices = (words[0] - base, words[1] - base)
+    banks = {kind: address - base for kind, address in enumerate(words[2:]) if address}
+    if not banks or set(banks) - {1, 4}:
+        fail("unsupported pose banks")
+    if not (0 <= recs < indices < source_offset) or recs % 4 or indices % 2 or (indices - recs) % 4:
+        fail("record/index layout")
+    if source_offset - indices > 514:
+        fail("track index table is too large")
+    if any(offset < 0 or offset >= recs or offset % 4 for offset in banks.values()):
+        fail("pose bank outside preceding data")
+
+    records = list(struct.iter_unpack("<HBB", data[recs:indices]))
+    used = {kind: 0 for kind in banks}
+    for pose, _, flags in records:
+        if flags & 0x80:
+            if flags < REC_CHAIN_END and pose >= len(records):
+                fail("control record jumps outside the record array")
+        else:
+            kind = flags & 0xF
+            if kind not in banks:
+                fail("keyframe has no supported pose bank")
+            end = pose + (3 if kind == 1 else 1)
+            if banks[kind] + end * 4 > recs:
+                fail("keyframe reads past its pose data")
+            used[kind] = max(used[kind], end)
+    if not all(used.values()):
+        fail("cannot delimit an unused pose bank")
+
+    starts = list(struct.unpack_from(f"<{(source_offset - indices) // 2}H", data, indices))
+    # An odd track count leaves a halfword before the aligned descriptor.
+    # Its contents need not be zero in exported resources.
+    if len(starts) > 1 and (starts[-1] >= len(records) or starts[-1] <= starts[-2]):
+        starts.pop()
+    if not starts or starts[0] != 0 or any(start >= len(records) for start in starts):
+        fail("track starts outside the record array")
+    if any(a >= b for a, b in zip(starts, starts[1:])):
+        fail("track starts are not ordered")
+    if any(records[end - 1][2] < REC_CHAIN_END for end in starts[1:] + [len(records)]):
+        fail("track is missing its end record")
+
+    spans = sorted((offset, offset + used[kind] * 4) for kind, offset in banks.items())
+    cursor = spans[0][0]
+    for start, end in spans + [(recs, indices)]:
+        if start != cursor:
+            fail("pose banks and records are not contiguous")
+        cursor = end
+    return {
+        "source_offset": source_offset,
+        "head": spans[0][0],
+        "end": source_offset + 0x28,
+        "records_offset": recs,
+        "record_count": len(records),
+        "indices_offset": indices,
+        "track_count": len(starts),
+        "pose_banks": {kind: {"offset": offset, "words": used[kind]} for kind, offset in banks.items()},
+    }
+
+
 @dataclass
 class AnimSet:
     va: int

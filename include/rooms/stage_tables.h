@@ -1757,7 +1757,6 @@ extern u8*             D_shelter_r47_80187674[];
 extern GpViewCountRec  D_shelter_r47_80187678[];
 extern GpWarpRec       D_shelter_r47_8018767C[];
 extern GpObj4A         D_shelter_r47_801876B4[];
-extern GpObj4A         D_shelter_r47_8018787C[];
 extern GpGridParams    D_shelter_r47_8018828C;
 extern GpViewRec       D_shelter_r47_801882B0[];
 extern GpSprtRec       D_shelter_r47_80189C68[];
@@ -1783,5 +1782,7 @@ extern GpWarpRec       D_shelter_r49_8017DA38[];
 extern GpViewRec       D_shelter_r49_8017DAD0[];
 extern GpSprtRec       D_shelter_r49_8017DCA0[];
 extern GpRoomParamRec* D_shelter_r49_8017DDF8[];
+
+extern GpObj4C D_shelter_r47_8018787C[13];
 
 #endif /* ROOMS_STAGE_TABLES_H */

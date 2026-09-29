@@ -52,4 +52,8 @@ extern GpEffWork* D_gunblade_8012E248;
 
 void func_gunblade_8011E008(s32 arg0);
 
+void func_gunblade_8011D1E4(Task* task);
+
+void func_gunblade_8011DAA4(Task* task);
+
 #endif

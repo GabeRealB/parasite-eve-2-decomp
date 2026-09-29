@@ -1,3 +1,6 @@
+#include "gameplay/evs.h"
+#include "shelter_b3_garbage_incinerator_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -45,6 +48,17 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
+#include "gameplay/direction.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "gameplay/animation.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b3_garbage_incinerator_8018FC5C[4];
+
 extern TaskDesc D_80164FF8;
 
 /// Work block of the task that moves its model while steering another task.
@@ -70,23 +84,43 @@ typedef struct {
 } _DescentWork;
 
 extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B58[2];
-extern GpMsgEntry     D_shelter_b3_garbage_incinerator_80185B40[];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *);
+        void (*call1)(Task *, s32, GpXformArg *);
+        void (*call2)(Task *, s32, s32);
+    } handler;
+} ShelterB3GarbageIncinerator2ExtendedMessageEntry;
+STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2ExtendedMessageEntry, 8);
+
+extern ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
 extern GpXformArg     D_shelter_b3_garbage_incinerator_80185B88;
-extern GpAreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C;
 extern Task*          D_shelter_b3_garbage_incinerator_8018FC34;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 extern s32             D_shelter_b3_garbage_incinerator_80185BC4;
 extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
-extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FC60[9];
+extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FC60[10];
 extern OverlayWaveRec  D_shelter_b3_garbage_incinerator_8018FCB0[30];
-extern POLY_FT4        D_shelter_b3_garbage_incinerator_8018FEE0[][30][8];
+// The task starts at row 1 and draws rows -1 through 28.
+extern POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
    215100 (the caption drawing): their data here. */
-extern u8       D_shelter_b3_garbage_incinerator_80186F70[];
-extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *, s32, s32);
+    } handler;
+} ShelterB3GarbageIncinerator2MessageEntry;
+STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2MessageEntry, 8);
+
+extern ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1];
+extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[];
 
 extern GlyphUvwh* D_shelter_b3_garbage_incinerator_8018FC44;
 extern s16        D_shelter_b3_garbage_incinerator_8018FC4C;
@@ -102,7 +136,6 @@ extern GpCapEntry* D_shelter_b3_garbage_incinerator_8018FC40;
 extern GpEvt12*    D_shelter_b3_garbage_incinerator_8018FC48;
 extern s16         D_shelter_b3_garbage_incinerator_8018FC52;
 extern s16         D_shelter_b3_garbage_incinerator_8018FC56;
-extern u8          D_shelter_b3_garbage_incinerator_8018FC5C;
 extern s32         D_shelter_b3_garbage_incinerator_80187278;
 extern s32         D_shelter_b3_garbage_incinerator_8018727C;
 
@@ -143,14 +176,14 @@ STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[];
 
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
-extern s32 D_shelter_b3_garbage_incinerator_80186F78[];
+extern GpAnimSet* D_shelter_b3_garbage_incinerator_80186F78[4];
 
 /// Table indexed by `field_38 - 0x2F`: each entry is the following animation
 /// set less 0x2F, and a negative entry means there is none.
 extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
 
 /// Model/animation set installed with `func_800E8614` on arming.
-extern u8 D_shelter_b3_garbage_incinerator_80186FB8[];
+extern GpEvsCmd D_shelter_b3_garbage_incinerator_80186FB8[];
 
 /// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
 /// model and `spawnArgLo` the scale that goes with it.
@@ -170,12 +203,544 @@ extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 extern OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[];
 
 /// Task table entry spawned once when the controller starts.
-extern TaskDesc D_shelter_b3_garbage_incinerator_80187184;
+// Keep the stored callback signature alongside the scheduler's task view.
+typedef union {
+    TaskDesc tasks[1];
+    struct {
+        u16 flags;
+        u16 priority;
+        union {
+            TaskFunc task;
+            void (*withArg)(Task*, s32);
+        } callback;
+        TaskSpawnArg arg;
+    } native[1];
+} GarbageIncineratorTaskTable;
+STATIC_ASSERT_SIZEOF(GarbageIncineratorTaskTable, 0xc);
+
+extern GarbageIncineratorTaskTable D_shelter_b3_garbage_incinerator_80187184;
 static void     func_shelter_b3_garbage_incinerator_8017FB80(void);
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187190;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018719C;
+
+void func_shelter_b3_garbage_incinerator_80180F18(Task *);
+void func_shelter_b3_garbage_incinerator_80180F54(Task *);
+
+extern GpGridParams D_shelter_b3_garbage_incinerator_80188388[1];
+extern GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1];
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22];
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018EC38[20];
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018F228[17];
+extern GpObj4C D_shelter_b3_garbage_incinerator_8018F734[6];
+extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1];
+extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018E598[1];
+
+void func_shelter_b3_garbage_incinerator_8017FA58(Task *, s32);
+
+void func_shelter_b3_garbage_incinerator_8017DCD4(Task *);
+void func_shelter_b3_garbage_incinerator_8017E158(Task *);
+void func_shelter_b3_garbage_incinerator_8017E690(Task *, s32, s32);
+void func_shelter_b3_garbage_incinerator_8017E70C(Task *, s32, GpXformArg *);
+void func_shelter_b3_garbage_incinerator_8017E7A4(Task *);
+void func_shelter_b3_garbage_incinerator_8017E7D0(Task *);
+void func_shelter_b3_garbage_incinerator_8017F0A8(Task *);
+void func_shelter_b3_garbage_incinerator_8017F410(Task *);
+void func_shelter_b3_garbage_incinerator_8017F6D8(Task *);
+void func_shelter_b3_garbage_incinerator_8017F8A4(Task *, s32, s32);
+void func_shelter_b3_garbage_incinerator_8017F8AC(s32);
+void func_shelter_b3_garbage_incinerator_8017F930(s32);
+void func_shelter_b3_garbage_incinerator_8017F968(void);
+void func_shelter_b3_garbage_incinerator_8017F9B4(s32);
+void func_shelter_b3_garbage_incinerator_8017FA3C(void);
+
+TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { 0, 192, func_shelter_b3_garbage_incinerator_8017DCD4, { .model = NULL } };
+
+TmdBone D_shelter_b3_garbage_incinerator_801855EC[1] = {
+#include "assets/shelter_b3_garbage_incinerator_model_0855C_skeleton.inc"
+};
+
+u32 D_shelter_b3_garbage_incinerator_80185610[1] = {
+#include "assets/shelter_b3_garbage_incinerator_model_0855C_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_garbage_incinerator_80185614[49] = {
+#include "assets/shelter_b3_garbage_incinerator_model_0855C_verts.inc"
+};
+
+SVECTOR D_shelter_b3_garbage_incinerator_8018579C[1] = {
+#include "assets/shelter_b3_garbage_incinerator_model_0855C_normals.inc"
+};
+
+u32 D_shelter_b3_garbage_incinerator_801857A4[222] = {
+#include "assets/shelter_b3_garbage_incinerator_model_0855C_stream.inc"
+};
+
+TmdSource D_shelter_b3_garbage_incinerator_80185B1C = {
+    0, 1872, 0, 1,
+    D_shelter_b3_garbage_incinerator_80185610, D_shelter_b3_garbage_incinerator_80185614, D_shelter_b3_garbage_incinerator_8018579C, D_shelter_b3_garbage_incinerator_801855EC, D_shelter_b3_garbage_incinerator_801857A4,
+};
+
+ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
+    { 2005, { .call2 = func_shelter_b3_garbage_incinerator_8017E690 } },
+    { 2004, { .call1 = func_shelter_b3_garbage_incinerator_8017E70C } },
+    { 5108, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
+};
+
+GpXformArg D_shelter_b3_garbage_incinerator_80185B58[2] = {
+    { { 0x36B0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } },
+    { { 0x36B0, 2000, -0x4650, 0 }, { 0, 0, 0, 0 } },
+};
+
+GpXformArg D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
+
+TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { 257, 192, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
+
+TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
+    { 0, 192, func_shelter_b3_garbage_incinerator_8017E7D0, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_shelter_b3_garbage_incinerator_80185BC4 = 256;
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB3GarbageIncineratorPoseBank8608;
+
+ShelterB3GarbageIncineratorPoseBank8608 D_shelter_b3_garbage_incinerator_80185BC8 = { .poses = {
+#include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_garbage_incinerator_80185C10[46] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_garbage_incinerator_80185CC8[109] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_088E4_records.inc"
+};
+
+u16 D_shelter_b3_garbage_incinerator_80185E7C[20] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_088E4_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_garbage_incinerator_80185EA4 = {
+    D_shelter_b3_garbage_incinerator_80185CC8, D_shelter_b3_garbage_incinerator_80185E7C,
+    { NULL, D_shelter_b3_garbage_incinerator_80185BC8.words, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} ShelterB3GarbageIncineratorPoseBank890C;
+
+ShelterB3GarbageIncineratorPoseBank890C D_shelter_b3_garbage_incinerator_80185ECC = { .poses = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09320_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_garbage_incinerator_80185F8C[246] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09320_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_garbage_incinerator_80186364[341] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09320_records.inc"
+};
+
+u16 D_shelter_b3_garbage_incinerator_801868B8[20] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09320_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_garbage_incinerator_801868E0 = {
+    D_shelter_b3_garbage_incinerator_80186364, D_shelter_b3_garbage_incinerator_801868B8,
+    { NULL, D_shelter_b3_garbage_incinerator_80185ECC.words, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} ShelterB3GarbageIncineratorPoseBank9348;
+
+ShelterB3GarbageIncineratorPoseBank9348 D_shelter_b3_garbage_incinerator_80186908 = { .poses = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09988_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_garbage_incinerator_801869B0[148] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09988_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_garbage_incinerator_80186C00[200] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09988_records.inc"
+};
+
+u16 D_shelter_b3_garbage_incinerator_80186F20[20] = {
+#include "assets/shelter_b3_garbage_incinerator_animation_09988_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_garbage_incinerator_80186F48 = {
+    D_shelter_b3_garbage_incinerator_80186C00, D_shelter_b3_garbage_incinerator_80186F20,
+    { NULL, D_shelter_b3_garbage_incinerator_80186908.words, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
+};
+
+ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1] = {
+    { 2011, { .call0 = func_shelter_b3_garbage_incinerator_8017F8A4 } },
+};
+
+GpAnimSet * D_shelter_b3_garbage_incinerator_80186F78[4] = {
+    &D_shelter_b3_garbage_incinerator_80185EA4,
+    &D_shelter_b3_garbage_incinerator_80186F48,
+    &D_shelter_b3_garbage_incinerator_801868E0,
+    NULL,
+};
+
+s16 D_shelter_b3_garbage_incinerator_80186F88[4] = {
+    -1,
+    -1,
+    -1,
+    0,
+};
+
+GpEffArg D_shelter_b3_garbage_incinerator_80186F90 = { NULL, 0, 1 };
+
+u16 D_shelter_b3_garbage_incinerator_80186F98[16] = {
+    2,
+    4,
+    6,
+    10,
+    1,
+    3,
+    5,
+    7,
+    8,
+    9,
+    11,
+    12,
+    13,
+    15,
+    16,
+    18,
+};
+
+GpEvsCmd D_shelter_b3_garbage_incinerator_80186FB8[17] = {
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F8AC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F9B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F930 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F8AC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_garbage_incinerator_8017F968 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F8AC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F9B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F930 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_shelter_b3_garbage_incinerator_8017F930 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_shelter_b3_garbage_incinerator_8017FA3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
+    { 0, 192, func_shelter_b3_garbage_incinerator_8017F6D8, { .model = NULL } },
+    { 0, 192, taskKill, { .model = NULL } },
+    { 0, 192, func_shelter_b3_garbage_incinerator_8017F0A8, { .model = NULL } },
+    { 0, 192, func_shelter_b3_garbage_incinerator_8017F410, { .model = NULL } },
+};
+
+s16 D_shelter_b3_garbage_incinerator_80187180 = 384;
+
+s16 D_shelter_b3_garbage_incinerator_80187182 = 0;
+
+GarbageIncineratorTaskTable D_shelter_b3_garbage_incinerator_80187184 = { .native = { { 0, 32, { .withArg = func_shelter_b3_garbage_incinerator_8017FA58 }, { .value = 0 } } } };
+
+TaskDesc D_shelter_b3_garbage_incinerator_80187190 = { 0, 32, func_shelter_b3_garbage_incinerator_80180F18, { .model = NULL } };
+
+TaskDesc D_shelter_b3_garbage_incinerator_8018719C = { 0, 32, func_shelter_b3_garbage_incinerator_80180F54, { .model = NULL } };
+
+OverlayCapWindow D_shelter_b3_garbage_incinerator_801871A8[13] = {
+    { 300, 295, 16, 5 },
+    { 240, 235, 16, 4 },
+    { 180, 175, 16, 3 },
+    { 120, 115, 16, 2 },
+    { 60, 55, 16, 1 },
+    { 30, 25, 17, 30 },
+    { 5, 4, 17, 5 },
+    { 4, 3, 17, 4 },
+    { 3, 2, 17, 3 },
+    { 2, 1, 17, 2 },
+    { 1, 0, 17, 1 },
+    { 0, -3, 17, 0 },
+    { -1, 0, 0, 0 },
+};
+
+s32 D_shelter_b3_garbage_incinerator_80187278 = 8;
+
+s32 D_shelter_b3_garbage_incinerator_8018727C = 0;
+
+GpRoomCoordRec D_shelter_b3_garbage_incinerator_80187280[7] = {
+    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
+    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
+    { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
+    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
+    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
+    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
+    { D_shelter_b3_garbage_incinerator_8018E598, NULL },
+};
+
+GpRoomObjRec D_shelter_b3_garbage_incinerator_801872B8[7] = {
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018E5B0, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018E5B0, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018F228, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+};
+
+u8 D_shelter_b3_garbage_incinerator_80187328[40] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+};
+
+u8 D_shelter_b3_garbage_incinerator_80187350[40] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    16,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    6,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+};
+
+u8 D_shelter_b3_garbage_incinerator_80187378[40] = {
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    10,
+    11,
+    12,
+    13,
+    30,
+    31,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    14,
+    15,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+};
+
+u8 D_shelter_b3_garbage_incinerator_801873A0[40] = {
+    1,
+    22,
+    23,
+    24,
+    25,
+    32,
+    27,
+    28,
+    29,
+    10,
+    11,
+    12,
+    13,
+    30,
+    31,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    14,
+    15,
+    26,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+};
+
+u8 D_shelter_b3_garbage_incinerator_801873C8[40] = {
+    1,
+    22,
+    23,
+    24,
+    25,
+    35,
+    36,
+    37,
+    29,
+    10,
+    11,
+    12,
+    13,
+    38,
+    39,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    14,
+    15,
+    32,
+    33,
+    34,
+    26,
+    27,
+    28,
+    30,
+    31,
+    40,
+};
+
+u8 * D_shelter_b3_garbage_incinerator_801873F0[7] = {
+    D_shelter_b3_garbage_incinerator_80187328,
+    D_shelter_b3_garbage_incinerator_80187350,
+    D_shelter_b3_garbage_incinerator_80187328,
+    D_shelter_b3_garbage_incinerator_80187378,
+    D_shelter_b3_garbage_incinerator_801873A0,
+    D_shelter_b3_garbage_incinerator_80187378,
+    D_shelter_b3_garbage_incinerator_801873C8,
+};
+
+GpViewCountRec D_shelter_b3_garbage_incinerator_8018740C[7] = {
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+    { { .bytes = { 40, 0 } } },
+};
+
+GpWarpRec D_shelter_b3_garbage_incinerator_8018741C[3] = {
+    { { .words = { 1024, 640, 0, -2656 } }, { 0, 0, 0, 0 }, { .words = { 1024, 640, 0, -2656 } }, { 0, 0, 0, 0 }, 0, 0, 0, 8, 0, 0 },
+    { { .words = { 0, 0x36D5, 0, -0x6466 } }, { 0, 0, 0, 0 }, { .words = { 0, 0x36D5, 0, -0x6466 } }, { 0, 0, 0, 0 }, 0, 0x54280006, 0, 9, 0, 0 },
+    { { .words = { 1024, 522, 0, -714 } }, { 0, 0, 0, 0 }, { .words = { 1024, 522, 0, -714 } }, { 0, 0, 0, 0 }, 0x54280002, 0x54280001, 0, 2, 0, 0 },
+};
 
 void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 {
@@ -359,7 +924,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 D_shelter_b3_garbage_incinerator_8018FC34 = task;
                 obj->lightMtx                             = &work->lightMtx;
                 task->msgTable                            = D_shelter_b3_garbage_incinerator_80185B40;
-                work->target                              = (Task*)Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                work->target                              = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
             }
             if (gGameSession->field_135 != 0) {
                 func_shelter_b3_garbage_incinerator_8018507C();
@@ -459,7 +1024,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 break;
             }
             gGameSession->field_132 = 3;
-            Gp_ApplyAreaRecs(&D_shelter_b3_garbage_incinerator_8018FB6C);
+            Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
         kill:
             taskKill(task);
             return;
@@ -586,7 +1151,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
             for (i = 0; i < 2; i++) {
                 tpage0 = getTPage(2, 0, 0, i << 8);
                 tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = D_shelter_b3_garbage_incinerator_8018FEE0[i];
+                grid   = &D_shelter_b3_garbage_incinerator_8018FDA0[i][1];
                 for (j = -1; j < 29; j++) {
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
@@ -672,7 +1237,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
             for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
                 rowBack = -rowIndex;
                 row     = scratch->rows - rowBack;
-                grid    = D_shelter_b3_garbage_incinerator_8018FEE0[gDisplayState.drawBuffer];
+                grid    = &D_shelter_b3_garbage_incinerator_8018FDA0[gDisplayState.drawBuffer][1];
                 p       = grid[j];
                 for (k = 0; k < 8; k++, p++) {
                     if (j != -1) {
@@ -753,7 +1318,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
             work->b        = 0;
             work->g        = 0;
             work->r        = 0;
-            arg0->msgTable = &D_shelter_b3_garbage_incinerator_80186F70;
+            arg0->msgTable = D_shelter_b3_garbage_incinerator_80186F70;
             arg0->state   += 1;
             break;
         case 2:
@@ -914,12 +1479,12 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
                 n += 1;
             }
-            msg.words = &D_shelter_b3_garbage_incinerator_80186F78[0];
+            msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.count = n & 0xFFFF;
             Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
-            func_800E8614((s32)&D_shelter_b3_garbage_incinerator_80186FB8, 0);
+            func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->field_3A = work->field_3A + 1;
@@ -966,7 +1531,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 work->field_2C                            = gameGetPtrSlot(3);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
-            Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
+            Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184.tasks, 0, 0xD0, 0);
             if (arg0->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
             }
@@ -1041,7 +1606,7 @@ void func_shelter_b3_garbage_incinerator_8017F968(void)
 
     work->wave.span  = 0x258;
     work->wave.scale = 0x100;
-    Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->wave);
+    Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->wave);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
@@ -1198,7 +1763,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017FD64(s16 arg0, s16 arg1, s32 
     D_shelter_b3_garbage_incinerator_8018FC4C = func_shelter_b3_garbage_incinerator_80180B18(D_shelter_b3_garbage_incinerator_8018FC48[entry].field_8.text);
     D_shelter_b3_garbage_incinerator_8018FC4E = func_shelter_b3_garbage_incinerator_801808A8(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text);
     D_shelter_b3_garbage_incinerator_8018FC54 = func_shelter_b3_garbage_incinerator_80180D44(D_shelter_b3_garbage_incinerator_8018FC48[D_shelter_b3_garbage_incinerator_8018FC52].field_8.text);
-    D_shelter_b3_garbage_incinerator_8018FC5C = 0x1E;
+    D_shelter_b3_garbage_incinerator_8018FC5C[0] = 0x1E;
     return 0;
 }
 
@@ -1437,8 +2002,8 @@ static void func_shelter_b3_garbage_incinerator_80180994(void)
     s32      c1;
     s32      c2;
 
-    if (D_shelter_b3_garbage_incinerator_8018FC5C != 0) {
-        D_shelter_b3_garbage_incinerator_8018FC5C -= 1;
+    if (D_shelter_b3_garbage_incinerator_8018FC5C[0] != 0) {
+        D_shelter_b3_garbage_incinerator_8018FC5C[0] -= 1;
         return;
     }
     prim           = (POLY_G3*)gGpuPrimCursor;

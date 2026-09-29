@@ -1,1 +1,25 @@
 // Overlay-local symbols for neo_ark_r31.
+D_neo_ark_r31_8017DC54 = 0x8017DC54; // size:0x4 defined:True
+D_neo_ark_r31_8017DC2C = 0x8017DC2C; // size:0x8 defined:True
+D_neo_ark_r31_8017DC34 = 0x8017DC34; // size:0x20 defined:True
+D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // size:0xC defined:True
+D_neo_ark_r31_8017D9F4 = 0x8017D9F4; // size:0x28 defined:True
+D_neo_ark_r31_8017DA1C = 0x8017DA1C; // size:0x4 defined:True
+D_neo_ark_r31_8017DA20 = 0x8017DA20; // size:0x2 defined:True
+D_neo_ark_r31_8017DA24 = 0x8017DA24; // size:0x38 defined:True
+D_neo_ark_r31_8017DA5C = 0x8017DA5C; // size:0x6C defined:True
+D_neo_ark_r31_8017DAC8 = 0x8017DAC8; // size:0x10 defined:True
+D_neo_ark_r31_8017DAD8 = 0x8017DAD8; // size:0x10 defined:True
+D_neo_ark_r31_8017DAE8 = 0x8017DAE8; // size:0x10 defined:True
+D_neo_ark_r31_8017DAF8 = 0x8017DAF8; // size:0x24 defined:True
+D_neo_ark_r31_8017DB1C = 0x8017DB1C; // size:0x60 defined:True
+D_neo_ark_r31_8017DB7C = 0x8017DB7C; // size:0x18 defined:True
+D_neo_ark_r31_8017DB94 = 0x8017DB94; // size:0x24 defined:True
+D_neo_ark_r31_8017DBB8 = 0x8017DBB8; // size:0x68 defined:True
+D_neo_ark_r31_8017DC20 = 0x8017DC20; // size:0xC defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+D_80139F8C = 0x80139F8C; // absolute:True
+D_801437EC = 0x801437EC; // absolute:True
+D_map_neo_ark_8017C550 = 0x8017C550; // absolute:True
+
+func_neo_ark_r31_8017D990 = 0x8017D990; // type:func

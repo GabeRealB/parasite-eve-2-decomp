@@ -89,7 +89,7 @@ static inline s16 _gpStageFlagNibble(u16* table, s16 idx);
 
 static void Gp_InitDirState(Task* arg0);
 
-static void Gp_DirTaskState1(void);
+static void Gp_DirTaskState1(Task* task);
 
 static u8 Gp_GetViewCountLo(void);
 
@@ -391,7 +391,7 @@ void Gp_RebuildAreaIdBits(void)
 /// bit 0x800 is added onto that nibble's value.
 const TaskFuncTable3 Gp_DirTaskStates = { {
     Gp_InitDirState,
-    (TaskFunc)Gp_DirTaskState1,
+    Gp_DirTaskState1,
     taskKill,
 } };
 
@@ -500,7 +500,7 @@ static void Gp_InitDirState(Task* arg0)
     arg0->state++;
 }
 
-static void Gp_DirTaskState1(void)
+static void Gp_DirTaskState1(Task* task)
 {
     Gp_CommitObj4CSave();
     func_800AD6BC();
@@ -703,7 +703,7 @@ void Gp_SetCurAreaFlag4(void)
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    key = (GpAreaKey*)&gGameSession->at4.loc;
+    key = &gGameSession->at4.loc;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
         obj = rec[key->area].field_4;

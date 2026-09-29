@@ -351,3 +351,5 @@ D_mappic_s5_03_8012F110 = 0x8012F110; // absolute:True
 D_mappic_s5_03_8012F1F0 = 0x8012F1F0; // absolute:True
 D_mappic_s5_03_8012F2B8 = 0x8012F2B8; // absolute:True
 D_mappic_s5_03_8012F348 = 0x8012F348; // absolute:True
+
+func_map_neo_ark_80179B14 = 0x80179B14; // type:func

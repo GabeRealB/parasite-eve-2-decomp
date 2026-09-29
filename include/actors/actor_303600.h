@@ -1,0 +1,11 @@
+#ifndef ACTORS_ACTOR_303600_H
+#define ACTORS_ACTOR_303600_H
+
+#include "gameplay/animation.h"
+
+extern GpAnimSet D_actor_303600_801693C0;
+extern GpAnimSet D_actor_303600_80169610;
+extern GpAnimSet D_actor_303600_80169A50;
+extern GpAnimSet D_actor_303600_80169C7C;
+
+#endif

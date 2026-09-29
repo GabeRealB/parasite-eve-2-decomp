@@ -1,2 +1,94 @@
 // Overlay-local symbols for shelter_b2_north_maintenance_walkway.
-D_shelter_b2_north_maintenance_walkway_801863C4 = 0x801863C4; // size:0xC
+D_shelter_b2_north_maintenance_walkway_80186380 = 0x80186380; // size:0x20 defined:True
+D_shelter_b2_north_maintenance_walkway_80183B90 = 0x80183B90; // size:0x20 defined:True
+D_shelter_b2_north_maintenance_walkway_80183BB0 = 0x80183BB0; // size:0x70 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C20 = 0x80183C20; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C28 = 0x80183C28; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C30 = 0x80183C30; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_801860C8 = 0x801860C8; // size:0x30 defined:True
+D_shelter_b2_north_maintenance_walkway_801860F8 = 0x801860F8; // size:0x60 defined:True
+D_shelter_b2_north_maintenance_walkway_80186158 = 0x80186158; // size:0x50 defined:True
+D_shelter_b2_north_maintenance_walkway_801861A8 = 0x801861A8; // size:0x60 defined:True
+D_shelter_b2_north_maintenance_walkway_80186208 = 0x80186208; // size:0x50 defined:True
+D_shelter_b2_north_maintenance_walkway_80186258 = 0x80186258; // size:0xB0 defined:True
+D_shelter_b2_north_maintenance_walkway_80186308 = 0x80186308; // size:0x3C defined:True
+D_shelter_b2_north_maintenance_walkway_80186344 = 0x80186344; // size:0xC defined:True
+D_shelter_b2_north_maintenance_walkway_80186350 = 0x80186350; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_80186358 = 0x80186358; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_80186360 = 0x80186360; // size:0x20 defined:True
+D_shelter_b2_north_maintenance_walkway_801863A0 = 0x801863A0; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C5C = 0x80183C5C; // size:0x4 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C60 = 0x80183C60; // size:0x4 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C64 = 0x80183C64; // size:0x70 defined:True
+D_shelter_b2_north_maintenance_walkway_80183CD4 = 0x80183CD4; // size:0x70 defined:True
+D_shelter_b2_north_maintenance_walkway_80183D44 = 0x80183D44; // size:0x130 defined:True
+D_shelter_b2_north_maintenance_walkway_80183E74 = 0x80183E74; // size:0xD8 defined:True
+D_shelter_b2_north_maintenance_walkway_80183F4C = 0x80183F4C; // size:0x14 defined:True
+D_shelter_b2_north_maintenance_walkway_80183F60 = 0x80183F60; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_80183F84 = 0x80183F84; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_80183FA8 = 0x80183FA8; // size:0x14 defined:True
+D_shelter_b2_north_maintenance_walkway_80183FBC = 0x80183FBC; // size:0x22 defined:True
+D_shelter_b2_north_maintenance_walkway_80183FE0 = 0x80183FE0; // size:0x22 defined:True
+D_shelter_b2_north_maintenance_walkway_80184004 = 0x80184004; // size:0x18 defined:True
+D_shelter_b2_north_maintenance_walkway_8018401C = 0x8018401C; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_80184040 = 0x80184040; // size:0x120 defined:True
+D_shelter_b2_north_maintenance_walkway_80184160 = 0x80184160; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_80184170 = 0x80184170; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_80184180 = 0x80184180; // size:0x230 defined:True
+D_shelter_b2_north_maintenance_walkway_801843B0 = 0x801843B0; // size:0x20 defined:True
+D_shelter_b2_north_maintenance_walkway_801843D0 = 0x801843D0; // size:0x370 defined:True
+D_shelter_b2_north_maintenance_walkway_80184740 = 0x80184740; // size:0x18 defined:True
+D_shelter_b2_north_maintenance_walkway_80184758 = 0x80184758; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_80184768 = 0x80184768; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_80184778 = 0x80184778; // size:0xA14 defined:True
+D_shelter_b2_north_maintenance_walkway_8018518C = 0x8018518C; // size:0x18 defined:True
+D_shelter_b2_north_maintenance_walkway_801851A4 = 0x801851A4; // size:0x938 defined:True
+D_shelter_b2_north_maintenance_walkway_80185ADC = 0x80185ADC; // size:0x28 defined:True
+D_shelter_b2_north_maintenance_walkway_80185B04 = 0x80185B04; // size:0x60 defined:True
+D_shelter_b2_north_maintenance_walkway_80185B64 = 0x80185B64; // size:0x1E0 defined:True
+D_shelter_b2_north_maintenance_walkway_80185D44 = 0x80185D44; // size:0x18 defined:True
+D_shelter_b2_north_maintenance_walkway_80185D5C = 0x80185D5C; // size:0x1C8 defined:True
+D_shelter_b2_north_maintenance_walkway_80185F24 = 0x80185F24; // size:0xE4 defined:True
+D_shelter_b2_north_maintenance_walkway_80186008 = 0x80186008; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_8018602C = 0x8018602C; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_80186050 = 0x80186050; // size:0x24 defined:True
+D_shelter_b2_north_maintenance_walkway_80186074 = 0x80186074; // size:0x30 defined:True
+D_shelter_b2_north_maintenance_walkway_801860A4 = 0x801860A4; // size:0x24 defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+D_80135C30 = 0x80135C30; // absolute:True
+D_8013F5F0 = 0x8013F5F0; // absolute:True
+D_80142604 = 0x80142604; // absolute:True
+D_80147400 = 0x80147400; // absolute:True
+D_80148110 = 0x80148110; // absolute:True
+D_8014E7A4 = 0x8014E7A4; // absolute:True
+D_80153EC8 = 0x80153EC8; // absolute:True
+D_801575F0 = 0x801575F0; // absolute:True
+D_8015FDF0 = 0x8015FDF0; // absolute:True
+D_80165208 = 0x80165208; // absolute:True
+D_shelter_b2_north_maintenance_walkway_80183C4C = 0x80183C4C; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_80183C38 = 0x80183C38; // size:0x14 defined:True
+D_shelter_b2_north_maintenance_walkway_801863A8 = 0x801863A8; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_801863B0 = 0x801863B0; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_801863B8 = 0x801863B8; // size:0x8 defined:True
+D_shelter_b2_north_maintenance_walkway_801863C0 = 0x801863C0; // size:0x1 defined:True
+D_shelter_b2_north_maintenance_walkway_801863C4 = 0x801863C4; // size:0x10 defined:True
+D_shelter_b2_north_maintenance_walkway_801863D4 = 0x801863D4; // size:0x14 defined:True
+D_shelter_b2_north_maintenance_walkway_80183B48 = 0x80183B48; // size:0xC defined:True
+D_shelter_b2_north_maintenance_walkway_80183B54 = 0x80183B54; // size:0xC defined:True
+D_shelter_b2_north_maintenance_walkway_80183B60 = 0x80183B60; // size:0x30 defined:True
+
+func_shelter_b2_north_maintenance_walkway_80181BB4 = 0x80181BB4; // type:func
+
+func_shelter_b2_north_maintenance_walkway_80182618 = 0x80182618; // type:func
+
+func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func
+
+func_shelter_b2_north_maintenance_walkway_8017F590 = 0x8017F590; // type:func
+
+func_shelter_b2_north_maintenance_walkway_801802D8 = 0x801802D8; // type:func
+
+func_shelter_b2_north_maintenance_walkway_80180670 = 0x80180670; // type:func
+
+func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func
+
+func_shelter_b2_north_maintenance_walkway_8017DDE8 = 0x8017DDE8; // type:func

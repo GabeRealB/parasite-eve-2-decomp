@@ -42,4 +42,8 @@ typedef struct _M4a1HammerTrailScratch {
 } M4a1HammerTrailScratch;
 STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 
+void func_m4a1_hammer_8011DD08(Task* arg0);
+
+void func_m4a1_hammer_8011D1E0(Task* task);
+
 #endif

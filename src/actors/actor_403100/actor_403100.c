@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/dryfield_night_motel_balcony.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include "psyq/libgs.h"
@@ -49,6 +50,8 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 #include "overlay.h"
+
+extern GpImgRec D_actor_403100_801555EC[2];
 
 static void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
@@ -109,11 +112,8 @@ typedef struct Actor403100Entry {
 } Actor403100Entry;
 STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 
-extern GpAreaApplyRec   D_8018F2CC;
 extern s16              D_actor_403100_80155810;
 extern Actor403100Entry D_actor_403100_80155814[28];
-
-void func_8017F6C8(s32 screen, s32 depth, s32 size, s32 frame);
 
 /// Eight animation-set pointers passed to slot 3 in message 0x3FF.
 /// Entry 4 is replaced by entry 7 of the selected player animation block.
@@ -290,12 +290,11 @@ STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);
 
 static void func_actor_403100_8013480C(Task* arg0, s32 arg1);
 
-static void func_actor_403100_80133C94(void);
+static void func_actor_403100_80133C94(Task* task);
 static void func_actor_403100_80133D88(Task* arg0);
 static void func_actor_403100_80133E88(Task* arg0);
-static void func_actor_403100_8013E5FC(void);
+static void func_actor_403100_8013E5FC(Task* task);
 static void func_actor_403100_8013E624(Task* arg0);
-void        func_8004BFF8(s16 angle, MATRIX* matrix);
 
 static void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
 
@@ -316,20 +315,16 @@ static void func_actor_403100_8013F610(void);
 static void func_actor_403100_8013F658(void);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 
-extern GpImgRec  D_actor_403100_801555EC;
-extern GpU16Pair D_actor_403100_80147614;
+extern GpU16Pair D_actor_403100_80147614[6];
 static void      func_actor_403100_801342B4(Task* arg0);
 static void      func_actor_403100_8013C7B4(Task* arg0);
 
 extern u8 D_actor_403100_801557A8[];
 
-void func_8018257C(void);
-void func_8017E250(s32 arg0, s32 arg1);
-
-extern TaskDesc D_actor_403100_8015560C;
+extern TaskDesc D_actor_403100_8015560C[];
 extern s16      D_actor_403100_80155794[5][2];
 
-static void func_actor_403100_8013E964(void);
+static void func_actor_403100_8013E964(Task* task);
 static void func_actor_403100_8013E96C(Task* arg0);
 static void func_actor_403100_8013E9D8(Task* arg0);
 static void func_actor_403100_8013EA60(Task* arg0);
@@ -338,7 +333,7 @@ static void func_actor_403100_8013EB68(Task* arg0);
 static void func_actor_403100_8013EBC8(Task* arg0);
 static void func_actor_403100_8013EC4C(Task* arg0);
 static void func_actor_403100_8013ECD0(Task* arg0);
-static void func_actor_403100_8013ED48(void);
+static void func_actor_403100_8013ED48(Task* task);
 
 /* Per-frame actor dispatcher tables and region query. */
 typedef struct {
@@ -348,9 +343,2980 @@ extern Actor403100RectEntry D_actor_403100_80155638[];
 extern s32                  D_80166098;
 static s32                  func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
 
-extern u8 D_actor_403100_801557B0[2][16];
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    u8 value[2][16];
+    u8 retained[16];
+} Actor403100Storage57B0;
+STATIC_ASSERT_SIZEOF(Actor403100Storage57B0, 48);
+
+extern Actor403100Storage57B0 D_actor_403100_801557B0;
 
 extern Actor403100RectEntry D_actor_403100_80155698[];
+
+extern GpAnimSet D_actor_403100_8014CD6C;
+extern GpAnimSet D_actor_403100_8014D994;
+extern GpAnimSet D_actor_403100_8014DACC;
+extern GpAnimSet D_actor_403100_8014E060;
+extern GpAnimSet D_actor_403100_8014EC10;
+extern GpAnimSet D_actor_403100_8014F70C;
+void func_actor_403100_8013D564(Task *, s32, u16 *);
+void func_actor_403100_8013D5F4(void);
+void func_actor_403100_8013D608(Task *, s32, s32);
+
+extern GpAnimSet D_actor_403100_801479D0;
+extern GpAnimSet D_actor_403100_801481EC;
+extern GpAnimSet D_actor_403100_801488A0;
+extern GpAnimSet D_actor_403100_80149078;
+extern GpAnimSet D_actor_403100_801493A4;
+extern GpAnimSet D_actor_403100_801494B0;
+extern GpAnimSet D_actor_403100_80149EF8;
+extern GpAnimSet D_actor_403100_8014A8A8;
+extern GpAnimSet D_actor_403100_8014B5F8;
+extern GpAnimSet D_actor_403100_8014BAB0;
+extern GpAnimSet D_actor_403100_8014BDA8;
+extern GpAnimSet D_actor_403100_8014BF58;
+extern GpAnimSet D_actor_403100_8014C138;
+extern GpAnimSet D_actor_403100_8014C5E0;
+extern GpAnimSet D_actor_403100_8014C7EC;
+extern GpAnimSet D_actor_403100_80150420;
+extern GpAnimSet D_actor_403100_80151898;
+extern GpAnimSet D_actor_403100_80151E24;
+extern GpAnimSet D_actor_403100_80151F6C;
+extern GpAnimSet D_actor_403100_80152444;
+extern GpAnimSet D_actor_403100_801528F4;
+extern GpAnimSet D_actor_403100_80152DC4;
+extern GpAnimSet D_actor_403100_8015324C;
+extern GpAnimSet D_actor_403100_8015374C;
+
+extern TmdSource D_actor_403100_801475F0;
+void func_actor_403100_8013E04C(Task *);
+void func_actor_403100_8013E0A4(Task *);
+void func_actor_403100_8013E0FC(Task *);
+
+extern u_long D_actor_403100_80153774[1950];
+
+TmdBone D_actor_403100_8013F7C4[15] = {
+#include "assets/actor_403100_model_157D0_skeleton.inc"
+};
+
+u32 D_actor_403100_8013F9E0[15] = {
+#include "assets/actor_403100_model_157D0_partVerts.inc"
+};
+
+SVECTOR D_actor_403100_8013FA1C[524] = {
+#include "assets/actor_403100_model_157D0_verts.inc"
+};
+
+SVECTOR D_actor_403100_80140A7C[543] = {
+#include "assets/actor_403100_model_157D0_normals.inc"
+};
+
+u32 D_actor_403100_80141B74[5791] = {
+#include "assets/actor_403100_model_157D0_stream.inc"
+};
+
+TmdSource D_actor_403100_801475F0 = {
+    0, 32572, 8568, 15,
+    D_actor_403100_8013F9E0, D_actor_403100_8013FA1C, D_actor_403100_80140A7C, D_actor_403100_8013F7C4, D_actor_403100_80141B74,
+};
+
+GpU16Pair D_actor_403100_80147614[6] = {
+    { 20, 0 },
+    { 25, 6 },
+    { 30, 0 },
+    { 8, 0 },
+    { 10, 6 },
+    { 15, 0 },
+};
+
+GpPairSrcE D_actor_403100_8014762C = { D_actor_403100_80147614, 4650, 2000, 1000, 100, 200, 20, 100, 5, 0 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor403100PoseBank1581C;
+
+Actor403100PoseBank1581C D_actor_403100_8014763C = { .poses = {
+#include "assets/actor_403100_animation_15BB0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014766C[76] = {
+#include "assets/actor_403100_animation_15BB0_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014779C[133] = {
+#include "assets/actor_403100_animation_15BB0_records.inc"
+};
+
+u16 D_actor_403100_801479B0[16] = {
+#include "assets/actor_403100_animation_15BB0_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801479D0 = {
+    D_actor_403100_8014779C, D_actor_403100_801479B0,
+    { NULL, D_actor_403100_8014763C.words, NULL, NULL, D_actor_403100_8014766C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[21];
+    GpPackedSvec words[63];
+} Actor403100PoseBank15BD8;
+
+Actor403100PoseBank15BD8 D_actor_403100_801479F8 = { .poses = {
+#include "assets/actor_403100_animation_163CC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80147AF4[186] = {
+#include "assets/actor_403100_animation_163CC_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80147DDC[252] = {
+#include "assets/actor_403100_animation_163CC_records.inc"
+};
+
+u16 D_actor_403100_801481CC[16] = {
+#include "assets/actor_403100_animation_163CC_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801481EC = {
+    D_actor_403100_80147DDC, D_actor_403100_801481CC,
+    { NULL, D_actor_403100_801479F8.words, NULL, NULL, D_actor_403100_80147AF4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} Actor403100PoseBank163F4;
+
+Actor403100PoseBank163F4 D_actor_403100_80148214 = { .poses = {
+#include "assets/actor_403100_animation_16A80_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801482D4[159] = {
+#include "assets/actor_403100_animation_16A80_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80148550[204] = {
+#include "assets/actor_403100_animation_16A80_records.inc"
+};
+
+u16 D_actor_403100_80148880[16] = {
+#include "assets/actor_403100_animation_16A80_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801488A0 = {
+    D_actor_403100_80148550, D_actor_403100_80148880,
+    { NULL, D_actor_403100_80148214.words, NULL, NULL, D_actor_403100_801482D4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} Actor403100PoseBank16AA8;
+
+Actor403100PoseBank16AA8 D_actor_403100_801488C8 = { .poses = {
+#include "assets/actor_403100_animation_17258_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801489A0[191] = {
+#include "assets/actor_403100_animation_17258_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80148C9C[239] = {
+#include "assets/actor_403100_animation_17258_records.inc"
+};
+
+u16 D_actor_403100_80149058[16] = {
+#include "assets/actor_403100_animation_17258_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80149078 = {
+    D_actor_403100_80148C9C, D_actor_403100_80149058,
+    { NULL, D_actor_403100_801488C8.words, NULL, NULL, D_actor_403100_801489A0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} Actor403100PoseBank17280;
+
+Actor403100PoseBank17280 D_actor_403100_801490A0 = { .poses = {
+#include "assets/actor_403100_animation_17584_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801490F4[69] = {
+#include "assets/actor_403100_animation_17584_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80149208[95] = {
+#include "assets/actor_403100_animation_17584_records.inc"
+};
+
+u16 D_actor_403100_80149384[16] = {
+#include "assets/actor_403100_animation_17584_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801493A4 = {
+    D_actor_403100_80149208, D_actor_403100_80149384,
+    { NULL, D_actor_403100_801490A0.words, NULL, NULL, D_actor_403100_801490F4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank175AC;
+
+Actor403100PoseBank175AC D_actor_403100_801493CC = { .poses = {
+#include "assets/actor_403100_animation_17690_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801493E4[13] = {
+#include "assets/actor_403100_animation_17690_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80149418[30] = {
+#include "assets/actor_403100_animation_17690_records.inc"
+};
+
+u16 D_actor_403100_80149490[16] = {
+#include "assets/actor_403100_animation_17690_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801494B0 = {
+    D_actor_403100_80149418, D_actor_403100_80149490,
+    { NULL, D_actor_403100_801493CC.words, NULL, NULL, D_actor_403100_801493E4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[29];
+    GpPackedSvec words[87];
+} Actor403100PoseBank176B8;
+
+Actor403100PoseBank176B8 D_actor_403100_801494D8 = { .poses = {
+#include "assets/actor_403100_animation_180D8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80149634[244] = {
+#include "assets/actor_403100_animation_180D8_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80149A04[309] = {
+#include "assets/actor_403100_animation_180D8_records.inc"
+};
+
+u16 D_actor_403100_80149ED8[16] = {
+#include "assets/actor_403100_animation_180D8_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80149EF8 = {
+    D_actor_403100_80149A04, D_actor_403100_80149ED8,
+    { NULL, D_actor_403100_801494D8.words, NULL, NULL, D_actor_403100_80149634, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[23];
+    GpPackedSvec words[69];
+} Actor403100PoseBank18100;
+
+Actor403100PoseBank18100 D_actor_403100_80149F20 = { .poses = {
+#include "assets/actor_403100_animation_18A88_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014A034[242] = {
+#include "assets/actor_403100_animation_18A88_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014A3FC[291] = {
+#include "assets/actor_403100_animation_18A88_records.inc"
+};
+
+u16 D_actor_403100_8014A888[16] = {
+#include "assets/actor_403100_animation_18A88_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014A8A8 = {
+    D_actor_403100_8014A3FC, D_actor_403100_8014A888,
+    { NULL, D_actor_403100_80149F20.words, NULL, NULL, D_actor_403100_8014A034, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[37];
+    GpPackedSvec words[111];
+} Actor403100PoseBank18AB0;
+
+Actor403100PoseBank18AB0 D_actor_403100_8014A8D0 = { .poses = {
+#include "assets/actor_403100_animation_197D8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014AA8C[327] = {
+#include "assets/actor_403100_animation_197D8_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014AFA8[396] = {
+#include "assets/actor_403100_animation_197D8_records.inc"
+};
+
+u16 D_actor_403100_8014B5D8[16] = {
+#include "assets/actor_403100_animation_197D8_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014B5F8 = {
+    D_actor_403100_8014AFA8, D_actor_403100_8014B5D8,
+    { NULL, D_actor_403100_8014A8D0.words, NULL, NULL, D_actor_403100_8014AA8C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} Actor403100PoseBank19800;
+
+Actor403100PoseBank19800 D_actor_403100_8014B620 = { .poses = {
+#include "assets/actor_403100_animation_19C90_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014B698[112] = {
+#include "assets/actor_403100_animation_19C90_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014B858[142] = {
+#include "assets/actor_403100_animation_19C90_records.inc"
+};
+
+u16 D_actor_403100_8014BA90[16] = {
+#include "assets/actor_403100_animation_19C90_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014BAB0 = {
+    D_actor_403100_8014B858, D_actor_403100_8014BA90,
+    { NULL, D_actor_403100_8014B620.words, NULL, NULL, D_actor_403100_8014B698, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor403100PoseBank19CB8;
+
+Actor403100PoseBank19CB8 D_actor_403100_8014BAD8 = { .poses = {
+#include "assets/actor_403100_animation_19F88_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014BB08[67] = {
+#include "assets/actor_403100_animation_19F88_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014BC14[93] = {
+#include "assets/actor_403100_animation_19F88_records.inc"
+};
+
+u16 D_actor_403100_8014BD88[16] = {
+#include "assets/actor_403100_animation_19F88_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014BDA8 = {
+    D_actor_403100_8014BC14, D_actor_403100_8014BD88,
+    { NULL, D_actor_403100_8014BAD8.words, NULL, NULL, D_actor_403100_8014BB08, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} Actor403100PoseBank19FB0;
+
+Actor403100PoseBank19FB0 D_actor_403100_8014BDD0 = { .poses = {
+#include "assets/actor_403100_animation_1A138_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014BDF4[17] = {
+#include "assets/actor_403100_animation_1A138_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014BE38[64] = {
+#include "assets/actor_403100_animation_1A138_records.inc"
+};
+
+u16 D_actor_403100_8014BF38[16] = {
+#include "assets/actor_403100_animation_1A138_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014BF58 = {
+    D_actor_403100_8014BE38, D_actor_403100_8014BF38,
+    { NULL, D_actor_403100_8014BDD0.words, NULL, NULL, D_actor_403100_8014BDF4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor403100PoseBank1A160;
+
+Actor403100PoseBank1A160 D_actor_403100_8014BF80 = { .poses = {
+#include "assets/actor_403100_animation_1A318_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014BFBC[31] = {
+#include "assets/actor_403100_animation_1A318_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014C038[56] = {
+#include "assets/actor_403100_animation_1A318_records.inc"
+};
+
+u16 D_actor_403100_8014C118[16] = {
+#include "assets/actor_403100_animation_1A318_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014C138 = {
+    D_actor_403100_8014C038, D_actor_403100_8014C118,
+    { NULL, D_actor_403100_8014BF80.words, NULL, NULL, D_actor_403100_8014BFBC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor403100PoseBank1A340;
+
+Actor403100PoseBank1A340 D_actor_403100_8014C160 = { .poses = {
+#include "assets/actor_403100_animation_1A7C0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014C1CC[107] = {
+#include "assets/actor_403100_animation_1A7C0_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014C378[146] = {
+#include "assets/actor_403100_animation_1A7C0_records.inc"
+};
+
+u16 D_actor_403100_8014C5C0[16] = {
+#include "assets/actor_403100_animation_1A7C0_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014C5E0 = {
+    D_actor_403100_8014C378, D_actor_403100_8014C5C0,
+    { NULL, D_actor_403100_8014C160.words, NULL, NULL, D_actor_403100_8014C1CC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} Actor403100PoseBank1A7E8;
+
+Actor403100PoseBank1A7E8 D_actor_403100_8014C608 = { .poses = {
+#include "assets/actor_403100_animation_1A9CC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014C62C[41] = {
+#include "assets/actor_403100_animation_1A9CC_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014C6D0[63] = {
+#include "assets/actor_403100_animation_1A9CC_records.inc"
+};
+
+u16 D_actor_403100_8014C7CC[16] = {
+#include "assets/actor_403100_animation_1A9CC_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014C7EC = {
+    D_actor_403100_8014C6D0, D_actor_403100_8014C7CC,
+    { NULL, D_actor_403100_8014C608.words, NULL, NULL, D_actor_403100_8014C62C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank1A9F4;
+
+Actor403100PoseBank1A9F4 D_actor_403100_8014C814 = { .poses = {
+#include "assets/actor_403100_animation_1AF4C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014C82C[135] = {
+#include "assets/actor_403100_animation_1AF4C_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014CA48[191] = {
+#include "assets/actor_403100_animation_1AF4C_records.inc"
+};
+
+u16 D_actor_403100_8014CD44[20] = {
+#include "assets/actor_403100_animation_1AF4C_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014CD6C = {
+    D_actor_403100_8014CA48, D_actor_403100_8014CD44,
+    { NULL, D_actor_403100_8014C814.words, NULL, NULL, D_actor_403100_8014C82C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[23];
+    GpPackedSvec words[69];
+} Actor403100PoseBank1AF74;
+
+Actor403100PoseBank1AF74 D_actor_403100_8014CD94 = { .poses = {
+#include "assets/actor_403100_animation_1BB74_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014CEA8[309] = {
+#include "assets/actor_403100_animation_1BB74_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014D37C[380] = {
+#include "assets/actor_403100_animation_1BB74_records.inc"
+};
+
+u16 D_actor_403100_8014D96C[20] = {
+#include "assets/actor_403100_animation_1BB74_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014D994 = {
+    D_actor_403100_8014D37C, D_actor_403100_8014D96C,
+    { NULL, D_actor_403100_8014CD94.words, NULL, NULL, D_actor_403100_8014CEA8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank1BB9C;
+
+Actor403100PoseBank1BB9C D_actor_403100_8014D9BC = { .poses = {
+#include "assets/actor_403100_animation_1BCAC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014D9D4[14] = {
+#include "assets/actor_403100_animation_1BCAC_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014DA0C[38] = {
+#include "assets/actor_403100_animation_1BCAC_records.inc"
+};
+
+u16 D_actor_403100_8014DAA4[20] = {
+#include "assets/actor_403100_animation_1BCAC_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014DACC = {
+    D_actor_403100_8014DA0C, D_actor_403100_8014DAA4,
+    { NULL, D_actor_403100_8014D9BC.words, NULL, NULL, D_actor_403100_8014D9D4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor403100PoseBank1BCD4;
+
+Actor403100PoseBank1BCD4 D_actor_403100_8014DAF4 = { .poses = {
+#include "assets/actor_403100_animation_1C240_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014DB24[144] = {
+#include "assets/actor_403100_animation_1C240_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014DD64[181] = {
+#include "assets/actor_403100_animation_1C240_records.inc"
+};
+
+u16 D_actor_403100_8014E038[20] = {
+#include "assets/actor_403100_animation_1C240_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014E060 = {
+    D_actor_403100_8014DD64, D_actor_403100_8014E038,
+    { NULL, D_actor_403100_8014DAF4.words, NULL, NULL, D_actor_403100_8014DB24, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[20];
+    GpPackedSvec words[60];
+} Actor403100PoseBank1C268;
+
+Actor403100PoseBank1C268 D_actor_403100_8014E088 = { .poses = {
+#include "assets/actor_403100_animation_1CDF0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014E178[310] = {
+#include "assets/actor_403100_animation_1CDF0_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014E650[358] = {
+#include "assets/actor_403100_animation_1CDF0_records.inc"
+};
+
+u16 D_actor_403100_8014EBE8[20] = {
+#include "assets/actor_403100_animation_1CDF0_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014EC10 = {
+    D_actor_403100_8014E650, D_actor_403100_8014EBE8,
+    { NULL, D_actor_403100_8014E088.words, NULL, NULL, D_actor_403100_8014E178, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[26];
+    GpPackedSvec words[78];
+} Actor403100PoseBank1CE18;
+
+Actor403100PoseBank1CE18 D_actor_403100_8014EC38 = { .poses = {
+#include "assets/actor_403100_animation_1D8EC_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014ED70[260] = {
+#include "assets/actor_403100_animation_1D8EC_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014F180[345] = {
+#include "assets/actor_403100_animation_1D8EC_records.inc"
+};
+
+u16 D_actor_403100_8014F6E4[20] = {
+#include "assets/actor_403100_animation_1D8EC_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8014F70C = {
+    D_actor_403100_8014F180, D_actor_403100_8014F6E4,
+    { NULL, D_actor_403100_8014EC38.words, NULL, NULL, D_actor_403100_8014ED70, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[26];
+    GpPackedSvec words[78];
+} Actor403100PoseBank1D914;
+
+Actor403100PoseBank1D914 D_actor_403100_8014F734 = { .poses = {
+#include "assets/actor_403100_animation_1E600_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_8014F86C[331] = {
+#include "assets/actor_403100_animation_1E600_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_8014FD98[410] = {
+#include "assets/actor_403100_animation_1E600_records.inc"
+};
+
+u16 D_actor_403100_80150400[16] = {
+#include "assets/actor_403100_animation_1E600_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80150420 = {
+    D_actor_403100_8014FD98, D_actor_403100_80150400,
+    { NULL, D_actor_403100_8014F734.words, NULL, NULL, D_actor_403100_8014F86C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[22];
+    GpPackedSvec words[66];
+} Actor403100PoseBank1E628;
+
+Actor403100PoseBank1E628 D_actor_403100_80150448 = { .poses = {
+#include "assets/actor_403100_animation_1FA78_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80150550[556] = {
+#include "assets/actor_403100_animation_1FA78_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80150E00[670] = {
+#include "assets/actor_403100_animation_1FA78_records.inc"
+};
+
+u16 D_actor_403100_80151878[16] = {
+#include "assets/actor_403100_animation_1FA78_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80151898 = {
+    D_actor_403100_80150E00, D_actor_403100_80151878,
+    { NULL, D_actor_403100_80150448.words, NULL, NULL, D_actor_403100_80150550, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} Actor403100PoseBank1FAA0;
+
+Actor403100PoseBank1FAA0 D_actor_403100_801518C0 = { .poses = {
+#include "assets/actor_403100_animation_20004_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80151938[131] = {
+#include "assets/actor_403100_animation_20004_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80151B44[176] = {
+#include "assets/actor_403100_animation_20004_records.inc"
+};
+
+u16 D_actor_403100_80151E04[16] = {
+#include "assets/actor_403100_animation_20004_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80151E24 = {
+    D_actor_403100_80151B44, D_actor_403100_80151E04,
+    { NULL, D_actor_403100_801518C0.words, NULL, NULL, D_actor_403100_80151938, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank2002C;
+
+Actor403100PoseBank2002C D_actor_403100_80151E4C = { .poses = {
+#include "assets/actor_403100_animation_2014C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80151E64[13] = {
+#include "assets/actor_403100_animation_2014C_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80151E98[45] = {
+#include "assets/actor_403100_animation_2014C_records.inc"
+};
+
+u16 D_actor_403100_80151F4C[16] = {
+#include "assets/actor_403100_animation_2014C_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80151F6C = {
+    D_actor_403100_80151E98, D_actor_403100_80151F4C,
+    { NULL, D_actor_403100_80151E4C.words, NULL, NULL, D_actor_403100_80151E64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank20174;
+
+Actor403100PoseBank20174 D_actor_403100_80151F94 = { .poses = {
+#include "assets/actor_403100_animation_20624_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80151FAC[121] = {
+#include "assets/actor_403100_animation_20624_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80152190[165] = {
+#include "assets/actor_403100_animation_20624_records.inc"
+};
+
+u16 D_actor_403100_80152424[16] = {
+#include "assets/actor_403100_animation_20624_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80152444 = {
+    D_actor_403100_80152190, D_actor_403100_80152424,
+    { NULL, D_actor_403100_80151F94.words, NULL, NULL, D_actor_403100_80151FAC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor403100PoseBank2064C;
+
+Actor403100PoseBank2064C D_actor_403100_8015246C = { .poses = {
+#include "assets/actor_403100_animation_20AD4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80152484[119] = {
+#include "assets/actor_403100_animation_20AD4_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80152660[157] = {
+#include "assets/actor_403100_animation_20AD4_records.inc"
+};
+
+u16 D_actor_403100_801528D4[16] = {
+#include "assets/actor_403100_animation_20AD4_indices.inc"
+};
+
+GpAnimSet D_actor_403100_801528F4 = {
+    D_actor_403100_80152660, D_actor_403100_801528D4,
+    { NULL, D_actor_403100_8015246C.words, NULL, NULL, D_actor_403100_80152484, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} Actor403100PoseBank20AFC;
+
+Actor403100PoseBank20AFC D_actor_403100_8015291C = { .poses = {
+#include "assets/actor_403100_animation_20FA4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801529B8[102] = {
+#include "assets/actor_403100_animation_20FA4_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80152B50[149] = {
+#include "assets/actor_403100_animation_20FA4_records.inc"
+};
+
+u16 D_actor_403100_80152DA4[16] = {
+#include "assets/actor_403100_animation_20FA4_indices.inc"
+};
+
+GpAnimSet D_actor_403100_80152DC4 = {
+    D_actor_403100_80152B50, D_actor_403100_80152DA4,
+    { NULL, D_actor_403100_8015291C.words, NULL, NULL, D_actor_403100_801529B8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor403100PoseBank20FCC;
+
+Actor403100PoseBank20FCC D_actor_403100_80152DEC = { .poses = {
+#include "assets/actor_403100_animation_2142C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_80152E58[95] = {
+#include "assets/actor_403100_animation_2142C_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80152FD4[150] = {
+#include "assets/actor_403100_animation_2142C_records.inc"
+};
+
+u16 D_actor_403100_8015322C[16] = {
+#include "assets/actor_403100_animation_2142C_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8015324C = {
+    D_actor_403100_80152FD4, D_actor_403100_8015322C,
+    { NULL, D_actor_403100_80152DEC.words, NULL, NULL, D_actor_403100_80152E58, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} Actor403100PoseBank21454;
+
+Actor403100PoseBank21454 D_actor_403100_80153274 = { .poses = {
+#include "assets/actor_403100_animation_2192C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_403100_801532C8[95] = {
+#include "assets/actor_403100_animation_2192C_bank4.inc"
+};
+
+GpAnimRec D_actor_403100_80153444[186] = {
+#include "assets/actor_403100_animation_2192C_records.inc"
+};
+
+u16 D_actor_403100_8015372C[16] = {
+#include "assets/actor_403100_animation_2192C_indices.inc"
+};
+
+GpAnimSet D_actor_403100_8015374C = {
+    D_actor_403100_80153444, D_actor_403100_8015372C,
+    { NULL, D_actor_403100_80153274.words, NULL, NULL, D_actor_403100_801532C8, NULL, NULL, NULL },
+};
+
+u_long D_actor_403100_80153774[1950] = {
+    0x2020202,
+    0x2020202,
+    0x2E372B61,
+    0x362D3535,
+    0x2513553,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x142A2B2A,
+    0x4D4D4D4D,
+    0xBB353535,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x36382A2A,
+    0x534C4C35,
+    0x61363535,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x7E020202,
+    0x1B292B42,
+    0x53345335,
+    0x4D535353,
+    0x202026C,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x34020202,
+    0x4D1D2B13,
+    0x1A4B4C64,
+    0x355D644C,
+    0x2020253,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2D020202,
+    0x1B082A13,
+    0x4B251A4A,
+    0x61843535,
+    0x2027F36,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xD020202,
+    0x1A2A2A42,
+    0x4A254C4A,
+    0x6079531B,
+    0x2683535,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x42020202,
+    0x4C292A2A,
+    0x4B6B6E25,
+    0x6053334D,
+    0x261367B,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xD470202,
+    0x1A1B4F2B,
+    0x4B6B6B25,
+    0x7B356434,
+    0xBB848484,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xE340202,
+    0x1A1B1C0E,
+    0x6B6B2324,
+    0x844B254B,
+    0x84ADADAD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x42290202,
+    0x4C4E1C2B,
+    0x67236B24,
+    0xAD848484,
+    0xADADADAD,
+    0x2020247,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x420E0202,
+    0x251B4F4F,
+    0x8C223E25,
+    0x84ADADAD,
+    0xADAFADAD,
+    0x20202AD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2B0E6802,
+    0x344E1D4F,
+    0x71226E4C,
+    0xADAD9999,
+    0xAFAFADAD,
+    0x20284AD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2A134C02,
+    0x49130E50,
+    0x3B8D495D,
+    0x84999970,
+    0xAFAFADAD,
+    0x26C84AD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2B133402,
+    0x53130E2B,
+    0x7170475B,
+    0xAD996F71,
+    0xAFAFADAD,
+    0x8484ADAF,
+    0x6868897A,
+    0x3535349D,
+    0x36353535,
+    0x37373737,
+    0x2E143737,
+    0x35353535,
+    0x6C49372E,
+    0x27E3551,
+    0x2020202,
+    0xD2C2902,
+    0xD132C2B,
+    0x6F5E604D,
+    0x84998B71,
+    0xAFAFADAD,
+    0x84ADADAF,
+    0x84847884,
+    0x647B7B7A,
+    0x64363636,
+    0x38386415,
+    0x64646464,
+    0x64366464,
+    0x7A783564,
+    0x2BB5336,
+    0x2020202,
+    0xD420E02,
+    0x1D1E0D42,
+    0x7E81292B,
+    0xAD998A62,
+    0xAFADADAD,
+    0xADADADAF,
+    0x58849999,
+    0x7B7A5884,
+    0x7B367B7B,
+    0x78647864,
+    0x58587878,
+    0x64647B7B,
+    0x665D8736,
+    0x2687A2E,
+    0x2020202,
+    0x2C2C0E68,
+    0x53502B42,
+    0x4A0B121B,
+    0xADAD997D,
+    0xAFADA9A9,
+    0xADADAFAF,
+    0xA9ADADAD,
+    0x5884ADAD,
+    0x7B7B8F78,
+    0xA6A9A978,
+    0xB6B6A6A6,
+    0x6478B6B6,
+    0x3661857B,
+    0x2688561,
+    0x2020202,
+    0x2C0E1334,
+    0x2D0D2B2A,
+    0x261C1C64,
+    0xA9AD7D56,
+    0xA9A9A9A9,
+    0xAFAFAFA9,
+    0xA9ADADAD,
+    0xA9A9A9A9,
+    0xA98FACA9,
+    0xACA9A9A9,
+    0xA9A9ACAC,
+    0x7BB6A9A9,
+    0x61667985,
+    0x202B6B6,
+    0x2020202,
+    0x2C0E134C,
+    0x2D171F2A,
+    0x60606036,
+    0xA9ADADAD,
+    0xAFA9A9A9,
+    0xA9ADA9A9,
+    0xABA9A9A9,
+    0xADADABAB,
+    0xA9ADA900,
+    0xACA9A9A9,
+    0xAC00A900,
+    0xB6A9A9AC,
+    0xB6B6525B,
+    0x283ACA9,
+    0x2020202,
+    0xE2B420D,
+    0x2D1E1F2B,
+    0x1C997D60,
+    0xADA9A960,
+    0xA9ADA6AF,
+    0xA9A9A9A9,
+    0xABABABAB,
+    0xABABABAB,
+    0xA9A900AD,
+    0xA9A9A9,
+    0xA6A678AC,
+    0xA9A9ACA6,
+    0xA9A9B6B6,
+    0x298ACAC,
+    0x2020202,
+    0x2C1E2B0E,
+    0x2D30300D,
+    0x1CAD997D,
+    0xAFADA960,
+    0xADA68FA6,
+    0xABABA9A9,
+    0xABABABAB,
+    0xABABABAB,
+    0xA900ADAB,
+    0xA9A9A9A9,
+    0x8F8FA678,
+    0xA9A9A68F,
+    0xACACA9A9,
+    0x29097AC,
+    0x47020202,
+    0xD2D2A0E,
+    0x642D300D,
+    0x60ADADAD,
+    0xADADA9A9,
+    0xA9ADAFAF,
+    0xABABABA9,
+    0xACACA9A9,
+    0xABA9A9AC,
+    0xA9ADA9C2,
+    0xA6ACA9A9,
+    0x8FA6ACAC,
+    0xA9A9A98F,
+    0xACACACAC,
+    0x290A8A7,
+    0x4C020202,
+    0x7B604F13,
+    0x7D602D2D,
+    0xADADADAD,
+    0xA9A9A9A9,
+    0xA9A9ADA9,
+    0xA9ABABA9,
+    0x8F8F8FA4,
+    0xA9A9AC8F,
+    0xADA9ABAB,
+    0x8FA6A9A9,
+    0x8FACACA6,
+    0xAFADA9A6,
+    0xADA9A9A9,
+    0x290A4AD,
+    0x4C020202,
+    0x992D4F0E,
+    0xAD999999,
+    0xADADADAD,
+    0xADA9607D,
+    0xA9A9A9A9,
+    0x99A9ABAB,
+    0x4C4C4C7A,
+    0xA9AC587A,
+    0xADABABA9,
+    0xACACADA9,
+    0xA6A6A6AC,
+    0xA9AFADA9,
+    0x19538FA6,
+    0x2059217,
+    0xD020202,
+    0x60294F2C,
+    0xADADA9A9,
+    0xADADADAD,
+    0xAD7D60AD,
+    0xA9A9A9AD,
+    0x7A99ABAB,
+    0x290D294C,
+    0xAC588129,
+    0xA9ABABA9,
+    0xADADADA9,
+    0xA9928FA6,
+    0xA9AFACA9,
+    0x1719538F,
+    0x2AB926D,
+    0xE020202,
+    0x7B15642A,
+    0xADADA97D,
+    0xADADA9A9,
+    0xA6A6ACAD,
+    0xA9ADADAC,
+    0x2758ABAB,
+    0xD4C4C0D,
+    0xAC584C29,
+    0xADABABA9,
+    0xADA6A68F,
+    0xA9A9A9A6,
+    0xA9A9A9A9,
+    0xADA9A9,
+    0x2ABABAB,
+    0x2C7E0202,
+    0x1515362B,
+    0xADA97D7B,
+    0xADA96060,
+    0x8F8FACAD,
+    0xADAD8F92,
+    0x2758ABAB,
+    0xD4C810D,
+    0xAC584C29,
+    0xADABABA9,
+    0xACADA6A6,
+    0xA9A6928F,
+    0x8FA9A9AD,
+    0x8282928F,
+    0x2ABAB8F,
+    0x42600202,
+    0x60602B0D,
+    0xA9AD9960,
+    0xA96060AD,
+    0x928FACAD,
+    0xA9AD8F95,
+    0x6A98ABAB,
+    0xD0D0D4C,
+    0xAC588129,
+    0xADABABA9,
+    0xA6ACADAD,
+    0xADA9A692,
+    0x7CA9A9AF,
+    0x6D198292,
+    0x2ABAB8F,
+    0xE340202,
+    0x60602B0D,
+    0xA9ADAD99,
+    0xA9A9A9A9,
+    0xA9A9A9A9,
+    0xA9A9A9A9,
+    0x58A9ABAB,
+    0x4C27276A,
+    0xA9AC9F7B,
+    0xADA9ABA9,
+    0x8FA6ADA9,
+    0xAFA9ADA6,
+    0x8FACA98F,
+    0x8F92927C,
+    0x2ABABAB,
+    0xE150202,
+    0x60360D2B,
+    0xADADAD99,
+    0xA9A9A9AD,
+    0xADA9A9A9,
+    0xA9A9ADAD,
+    0xA9ABABAB,
+    0x8F8F8F8F,
+    0xA9A9AC8F,
+    0xA9ADA9AB,
+    0xA68FACA9,
+    0xADA9A9A9,
+    0xA9A9A9AD,
+    0xABA7A900,
+    0x2ABABAB,
+    0xE4F0202,
+    0x604C1515,
+    0xA6A6AD99,
+    0xA9A9ADAD,
+    0x92ACADA9,
+    0xA9ADACA6,
+    0xABABABAB,
+    0xACACACA9,
+    0xABA9A9AC,
+    0xA6A9AB,
+    0xA6A6AD,
+    0xAFADAB00,
+    0xA6A6A98F,
+    0xAB51458F,
+    0x2ABABAB,
+    0xE0E6102,
+    0x99604C15,
+    0x8F8FADAD,
+    0xA9A9A9AD,
+    0xA6ACADA9,
+    0xADADAC8F,
+    0xABABABA9,
+    0xA9A9ABAB,
+    0xABABA9A9,
+    0xA6ACA9,
+    0xACAC,
+    0xADA9ABAB,
+    0x92A6A9AF,
+    0xAB171992,
+    0x2ABABAB,
+    0x150E6102,
+    0xA9A96060,
+    0xA6A6ADA9,
+    0xADA9A9AD,
+    0xACADA9AD,
+    0xA9A9ADAC,
+    0xABABA9A9,
+    0xABABABAB,
+    0xACA9ABAB,
+    0xADA6AC,
+    0xABA900AC,
+    0xA9A9A9AB,
+    0xA6ADA900,
+    0xAB51968F,
+    0x2ABABAB,
+    0x4C0D1402,
+    0xA9A9994C,
+    0xADADADA9,
+    0xA97DA9AD,
+    0xADA9ADAD,
+    0xA9A9A9A9,
+    0xA9A9ADAD,
+    0xABABABAB,
+    0xACACA9A9,
+    175,
+    0xACACA900,
+    0xACACADAD,
+    0xA900AC,
+    0xA1AFA900,
+    0x2ABAB8F,
+    0x4C2B4202,
+    0xA9A99960,
+    0xA9ADADA9,
+    0x7D60A9A9,
+    0xADADADA9,
+    0xADADADAD,
+    0xA9ADADAD,
+    0xA9ABABA9,
+    0xA6ACA6AC,
+    0xA900A9AD,
+    0xADAFAFAC,
+    0xAFAFACAD,
+    0xA9ACADAF,
+    0x828296A7,
+    0x2ABAB51,
+    0x4C0D1E84,
+    0xA9A99960,
+    0xA9A9A9A9,
+    0x49A9ADA9,
+    0xACADAD7D,
+    0xACA6ACAC,
+    0xADADACAC,
+    0xACA9ABA9,
+    0xA9ADAFAF,
+    0xAFA9A9AF,
+    0xABADAFAF,
+    0xA9ABABAB,
+    0xA900AD,
+    0x6D42958F,
+    0x2ABAB8F,
+    0x150D2C61,
+    0xA9A9604C,
+    0xADA999A9,
+    0xACA6A6AD,
+    0xACAC8FAD,
+    0xA68FA6AF,
+    0xADACAFA6,
+    0xA6ADABA9,
+    0xAFA9AD8F,
+    0xACAFA9AB,
+    0xABABABA9,
+    0xABABABAB,
+    0xACAFA9,
+    0x519292A4,
+    0x2ABABAB,
+    0x36152C34,
+    0xA9604C36,
+    0xADA9A9A9,
+    0xAC9292A6,
+    0xAF8F928F,
+    0x95928FA6,
+    0xADACA68F,
+    0x97A6ADA6,
+    0xAFAFA9AD,
+    0xADAFA7A9,
+    0xABABABAB,
+    0xABABABAB,
+    0xA900A9,
+    0xA9ACAF00,
+    0x2A9A9A9,
+    0x2C0E0D1E,
+    0xA94C3615,
+    0xADA9A9A9,
+    0xACA6A6AD,
+    0xAFAC8FAC,
+    0x8F8FA6AF,
+    0xA6ACAFA6,
+    0x8F95ADA9,
+    0x8FAFA9A9,
+    0xADAFA700,
+    0xABABABAB,
+    0xADABABAB,
+    0x97AF8FA6,
+    0xABABA78F,
+    0x2A9ACAB,
+    0x36152C2B,
+    0x7B614C36,
+    0xADA9A97D,
+    0xADADADAD,
+    0xACACACAD,
+    0xACACACAC,
+    0xA9ADADAD,
+    0xAC97A6A9,
+    0x97AFADA9,
+    0xA6AFAC00,
+    0xADAF8F8F,
+    0xAFADADA9,
+    0x8FAFAFAF,
+    0xABABA78F,
+    0x2A9ACAB,
+    0x150D0D2B,
+    0x60153636,
+    0xA9A9997B,
+    0xADA9A9AD,
+    0xA9ADADAD,
+    0xA9A9ADAD,
+    0xA9A9A9A9,
+    0xAD8FA6AC,
+    0x8FA7ACA9,
+    0x8FA6ACAC,
+    0x8F8F9797,
+    0xAFA6A6AF,
+    0xACAC00AD,
+    0xACACACAC,
+    0x2A90000,
+    0xD2C422B,
+    0x6060150D,
+    0xA9A9A97B,
+    0xA9A9A9A9,
+    0xA9A9A9A9,
+    0xADADA6AD,
+    0xA9A9A9AD,
+    0xADAFA6AC,
+    0xACA7ACA9,
+    0x8FA6AFAD,
+    0xA68F8F8F,
+    0xADAFAFAF,
+    0xACA900A9,
+    0xACACACAC,
+    0x2A90000,
+    0xE0D422B,
+    0x61362B1E,
+    0x99A9A97D,
+    0x997D7D99,
+    0xA9A9A9A9,
+    0xA6A6ADAD,
+    0xA9ADADA6,
+    0xAD8FAFA9,
+    0xA6A6ADA9,
+    0xACA6AC00,
+    0xABABABAB,
+    0xADA9ABAB,
+    0x97AFACAD,
+    0xABABA78F,
+    0x2A9ACAB,
+    0x2C2B0E34,
+    0x36132C2C,
+    0x787D7D7B,
+    0x7D7D7860,
+    0xA9A9A984,
+    0x92A6A9A9,
+    0xADADA68F,
+    0x8FACACA9,
+    0xAFACA9AD,
+    0xACACAFA9,
+    0xABABABAB,
+    0xABABABAB,
+    0x8FA9A9A9,
+    0xABABA78F,
+    0x2A9ACAB,
+    0x420D2C34,
+    0x380E0E0E,
+    0x64786136,
+    0xA978607B,
+    0xA9ADA9A9,
+    0x95A6A9A9,
+    0xADADA67C,
+    0x97ADA9AB,
+    0xACA9A9AD,
+    0xA7AFA9AF,
+    0xABABABA9,
+    0xABABABAB,
+    0xAFAFA6,
+    0xA9ACACAC,
+    0x2A9A9A9,
+    0x42132A5D,
+    0x612B130E,
+    0x7B61614E,
+    0xA9A9787B,
+    0xA9ADADAD,
+    0xA6ADA9A9,
+    0xA9A9ADA6,
+    0xADA9ABA9,
+    0xADA9ADA9,
+    0xAFA9ADAD,
+    0xA9A9A9AF,
+    0xABABABAB,
+    0xA90000A9,
+    0x6D6D96AF,
+    0x2AB8F51,
+    0x2B0E2B58,
+    0x61611313,
+    0x1B1B4C4E,
+    0xA9A9A978,
+    0xA9A9A9A9,
+    0xADADADA9,
+    0xA9A9A9AD,
+    0xA9ABA9A9,
+    0xADA9A9A9,
+    0xADADACA6,
+    0xA9ADA7AF,
+    0xACA9A9A9,
+    0xA6ACA6,
+    0x8282A8AC,
+    0x2ABA66D,
+    0x2B0E2B58,
+    0x2A4E130E,
+    0x1A38362B,
+    0x787DA97B,
+    0x7D847D7D,
+    0xA9A9A9A9,
+    0xA9A9ADA9,
+    0xABABABAB,
+    0xA9ADADAB,
+    0xADACA6AD,
+    0xAFAFAFAD,
+    0xA98FA6AF,
+    0xACA9A9A9,
+    0xA9A9A900,
+    0x2ABABA9,
+    0x2B133431,
+    0x2B0D130D,
+    0x6034371E,
+    0x6078604C,
+    0x7D787D7B,
+    0xA9A9A999,
+    0xABA9ADAD,
+    0xABABABAB,
+    0xADABABAB,
+    0xACA6A9A9,
+    0xA9AFADAD,
+    0x5DA9ACAD,
+    0xA9A9A95D,
+    0x36929296,
+    0x2AB886D,
+    0x42136102,
+    0x38383842,
+    0x34363838,
+    0x7B647B52,
+    0xA960787B,
+    0xADA9A9A9,
+    0xAB83ADAF,
+    0xABABABAB,
+    0xABABABAB,
+    0xA6A9A9A9,
+    0xADADADAC,
+    0x7BA9ADA9,
+    0xA95E5D4B,
+    0x6D3696A9,
+    0x2AB5D6D,
+    0xD0D7E02,
+    0x36363638,
+    0x52363652,
+    0x7D7A7B4C,
+    0xA9A9A97D,
+    0xAFADADA9,
+    0xABC1AF7C,
+    0xA9A9ABAB,
+    0xABADA9A9,
+    0xA9A9ADAB,
+    0xACACACAC,
+    0x5EA9ACAC,
+    0x5E4B4B4B,
+    0xACACAC5E,
+    0x2ABABAB,
+    0xD1E0202,
+    0x52523636,
+    0x7A7A5236,
+    0xA97D7D7D,
+    0xA9A9A9A9,
+    0xADA9A9A9,
+    0xABABADAF,
+    0xAD58A9AB,
+    0xADA9ADAD,
+    0xA9ADABAB,
+    0xACACACA9,
+    0xA98FA6A6,
+    0x5D5D5EA9,
+    0xA9A9A9A9,
+    0x2ABA9A9,
+    0x2B2A0202,
+    0x7A7A5236,
+    0xA9A9A97D,
+    0xA9A9A9A9,
+    0x844799A9,
+    0xA9A9A999,
+    0xABABA9A9,
+    0x586BACA9,
+    0xA9A9ADA9,
+    0xA9A9ABAB,
+    0xADA9A9A9,
+    0xADACADAD,
+    0xA9A9A9AC,
+    0xA7A9A9A9,
+    0x2AB96A7,
+    0xD340202,
+    0x7D345236,
+    0x99ADADAD,
+    0xA9A99999,
+    0x4A807899,
+    0xAFA9A984,
+    0xA9ABABAD,
+    0x8129A9AC,
+    0xA9AD9FA9,
+    0xACA6A9AD,
+    0xACACACAC,
+    0xA9ADA9AC,
+    0xACADA9A9,
+    0x8FA9A6A6,
+    0x2AB3845,
+    0xE340202,
+    0x7D343636,
+    0xADADADAD,
+    0x992E6414,
+    0x4C805D46,
+    0xA6ADA999,
+    0xA9ABABAD,
+    0x4C29A9AC,
+    0xA9AD9FA9,
+    0xA9A9ABA9,
+    0xADA9A9A9,
+    0xA9A9A9AC,
+    0xA9A9A9A9,
+    0xA6ACA9A9,
+    0x2AB968F,
+    0xD7E0202,
+    0x7A34362A,
+    0xADA97D7D,
+    0x7B4E53AD,
+    0x84678060,
+    0xA6AFADA9,
+    0xA9ABABAD,
+    0x4C29A9AC,
+    0xA9AD9FA9,
+    0xA6A6A9AD,
+    0xA6ACACAC,
+    0xA9A9ACA6,
+    0xA7A1A7AC,
+    0xACA4ACAC,
+    0x2ADADAD,
+    0x2B020202,
+    0x34342B0D,
+    0xA9AD7A,
+    0x4CA9ADA9,
+    0xA984494A,
+    0xAFAFAFAD,
+    0xA9ABABAD,
+    0x8129A9AC,
+    0xA9AD9FA9,
+    0xA9A9ABAD,
+    0xACA9A9A9,
+    0xA965A6A6,
+    0xA7A1ACA9,
+    0x161645AC,
+    0x28F1616,
+    0x2B020202,
+    0x36360D13,
+    0xA97A3434,
+    0xADADAD00,
+    0xA9A9A9A9,
+    0xADADADAD,
+    0xA9ABA9AD,
+    0x586BACA9,
+    0xA9A9ADA9,
+    0xACADA9AD,
+    0xADACACA6,
+    0x4B5EA6AC,
+    0xA7ACA95D,
+    0x162D7CAC,
+    0x28F1616,
+    0x4C020202,
+    0x4D2A1313,
+    0x7A343436,
+    0xADAD00A9,
+    0xA9A9A9A9,
+    0xA9A9A9A9,
+    0xABABADA9,
+    0xAD58A9A9,
+    0xADA9A9AD,
+    0xA6ADA9AB,
+    0xADADADA6,
+    0x4B5EACAD,
+    0xACA9654B,
+    0xADADACA7,
+    0x2ADADAD,
+    0x4C020202,
+    0x4E421313,
+    0x34381434,
+    0xA9A97A34,
+    0xA9A90000,
+    0xADACACA9,
+    0xABA9A9A9,
+    0xA9A9A9AB,
+    0xA9ADADA9,
+    0xA6A9A9AB,
+    0xADADADAC,
+    0x655EADA9,
+    0xA9654B4B,
+    0xA7ADADA9,
+    0x29797A7,
+    0x7E020202,
+    0x2A2B130E,
+    0x36302D35,
+    0x7A7A3634,
+    0x848453,
+    0xA9A9ADAD,
+    0xA9A9A9A9,
+    0xABABABAB,
+    0xABABA9AB,
+    0xA9A9A9A9,
+    0xACADADA9,
+    0x5EADA9AC,
+    0x654B4B5E,
+    0xA7A9A9A9,
+    0x2A19296,
+    0x2020202,
+    0x2B4F2C1E,
+    0x2A37532A,
+    0x78523736,
+    0xA9845178,
+    0xA900A9A9,
+    0xA9A9A9A9,
+    0xABA9A9A9,
+    0xA9ABABAB,
+    0xADADA9A9,
+    0xACA6ACAC,
+    0xADA9ACAC,
+    0x4B655DA9,
+    0xA9A96565,
+    0x2ADADA9,
+    0x2020202,
+    0x2A4F2B4F,
+    0x162E140D,
+    0x997A301E,
+    0x67538784,
+    0xAFAF616A,
+    0xA9A9A9A9,
+    0xA9ADADA9,
+    0xA6ADA9A9,
+    0xA6ACADAD,
+    0xA6A6A6A6,
+    0xA9ACACAC,
+    0x627D5EA9,
+    0x7A5D5D9C,
+    0x2927CAD,
+    0x2020202,
+    0x152B2C61,
+    0x1E361E1E,
+    0x87676617,
+    0x8D6A337A,
+    0xAFAF466B,
+    0xADA9AFAF,
+    0xADA9ADAD,
+    0xADADADAD,
+    0xACACACAD,
+    0xA6A6A6A6,
+    0xADADACA6,
+    0x225D7D7D,
+    0x615D467E,
+    0x2537A7D,
+    0x2020202,
+    0x6B0D1334,
+    0x161E1F15,
+    0x2E366753,
+    0x3C675352,
+    0x678A6871,
+    0x7A79151A,
+    0xADADADAD,
+    0xADADADAD,
+    0xADADADAD,
+    0x85A6A6AC,
+    0x52ADAD85,
+    0x4B5D5D5D,
+    0x61615B80,
+    0x27D7D37,
+    0x2020202,
+    0x490E137E,
+    0x16161E4E,
+    0x714847B,
+    0x8A716E69,
+    0x398AB8B8,
+    0x61524E4A,
+    0x9A58847B,
+    0x9A9A9AAD,
+    0x857D7DAD,
+    0x85858585,
+    0x36155337,
+    0x352E5252,
+    0x1549857A,
+    0x2515315,
+    0x2020202,
+    0x4F130E02,
+    0x42521515,
+    0x1579842A,
+    0xB8BD3C08,
+    0x9D70BCBB,
+    0x34533381,
+    0x9A9A9A52,
+    0x345D5D5D,
+    0x16363434,
+    0x3452301F,
+    0x36141414,
+    0x35355236,
+    0x348A5D34,
+    0x2513635,
+    0x2020202,
+    0x2B2C0902,
+    0x1552132C,
+    0x64537B2C,
+    0xB9B9BB39,
+    0x478BBD6F,
+    0x2794A60,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2025802,
+    0x2020202,
+    0x6B153402,
+    0x2D2A1309,
+    0x4B157738,
+    0x6FBFB69A,
+    0x60493B71,
+    0x2688787,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xB6025802,
+    0x2020202,
+    0x642B3402,
+    0x38131315,
+    0x4D4C842D,
+    0xBDBD6F67,
+    0x354B6A8C,
+    0x202687B,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xB6020202,
+    0xA9A4A663,
+    0x2020202,
+    0x132C7E02,
+    0x70E091E,
+    0x1B158434,
+    0xBDBD7067,
+    0x1C334A3B,
+    0x2020252,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xB6020202,
+    0xB4B498B6,
+    0xABABABAB,
+    0x2020202,
+    0x132B0202,
+    0x1E301509,
+    0x26147B49,
+    0x70BD708C,
+    0x51344A67,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xB6020202,
+    0x989898B6,
+    0xABABA900,
+    0xAAABABAB,
+    0x2020202,
+    0x134D0202,
+    0x3A38534F,
+    0x4B2A3534,
+    0x71BD708C,
+    0x2346167,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x98989802,
+    0xA9ADACAC,
+    0xABABABAB,
+    0xA900AAAB,
+    0x2020202,
+    0x2C600202,
+    0x3616380D,
+    0x4A4E0D15,
+    0x8D71708D,
+    0x26C5281,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADACA0,
+    0xABAAADAD,
+    0xAB00AAAB,
+    0xABAAA9A9,
+    0x2020202,
+    0xE340202,
+    0x35301F0E,
+    0x4A351536,
+    0x6A8D718D,
+    0x202604A,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADACACA0,
+    0xC200A9AC,
+    0xABAAA9A9,
+    0xAAABABAB,
+    0x2020202,
+    0x42470202,
+    0x36370E2B,
+    0x6A1B3653,
+    0x616B8D8C,
+    0x2027E33,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACADADA0,
+    0xABA9ABAD,
+    0xABABABAB,
+    0xA9ABABAB,
+    0x2020202,
+    0x1E020202,
+    0x30161F4F,
+    0x6B263653,
+    0x644B6A8D,
+    0x2020264,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACAC00A0,
+    0xABABAB00,
+    0xABAAABAB,
+    0xABABAAAB,
+    0x2020202,
+    0x1E020202,
+    0x1E1F2A15,
+    0x6E341453,
+    0x53334A6B,
+    0x2020260,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADACAD31,
+    0xABABAB00,
+    0xABABAAAA,
+    0xABABABAB,
+    0x2020202,
+    0x61020202,
+    0x1E1F1E2A,
+    0x4C533536,
+    0x34644B4B,
+    0x20202BB,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADADA0,
+    0xABABAB00,
+    0xABABABAA,
+    0xABABABAA,
+    0x2020202,
+    0x60020202,
+    0x16170D2A,
+    0x354E3515,
+    0x64536464,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAC00ADA4,
+    0xABABABA9,
+    0xABA9ABAB,
+    0xABABA9A9,
+    0x2020202,
+    0x6C020202,
+    0x16171F15,
+    0x53363515,
+    0x7F53642E,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACAC00A4,
+    0xABAB00AB,
+    0xABA9ABAA,
+    0xABABABA9,
+    0x2020202,
+    0x2020202,
+    0x161E1F36,
+    0x35353637,
+    0x2345236,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADAFADA0,
+    0xAD00AC00,
+    0xABABA9AC,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0x16300D15,
+    0x36353636,
+    0x2605253,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADA7ACA0,
+    0xACACACAD,
+    0xABABACAC,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0x38382B61,
+    0x36365336,
+    0x27E6434,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACACAFA4,
+    0xACADADAD,
+    0xABAAACAC,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0x151E2B51,
+    0x2E355336,
+    0x2025253,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACADAFA4,
+    0xA9ABAA00,
+    0xABAAABA9,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0x151E166C,
+    0x52343636,
+    0x2024735,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADACACA4,
+    0xABABA9A9,
+    0xABA9ABAB,
+    0xABABA9AB,
+    0x2020202,
+    0x2020202,
+    0x362A3802,
+    0x61343637,
+    0x2026C35,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAFACA0,
+    0xABABA9A9,
+    0xABABAAAB,
+    0xABAB00AB,
+    0x2020202,
+    0x2020202,
+    0x36151602,
+    0x66355337,
+    0x2020260,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAFACA0,
+    0xABA9ABAA,
+    0xABAB00AB,
+    0xABABABA9,
+    0x2020202,
+    0x2020202,
+    0x36386102,
+    0x35366436,
+    0x202029C,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACAFAD31,
+    0xAAA9ABAA,
+    0xABABABAB,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0x36155102,
+    0x53666635,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2B69898,
+    0x2020202,
+    0xACAF0031,
+    0xABABABAB,
+    0xABAAABAB,
+    0x55AB00AB,
+    0x2020202,
+    0x2020202,
+    0x37369C02,
+    0x51363553,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x298AD98,
+    0x2020202,
+    0xACAF0031,
+    0xABABABA9,
+    0xABAAAAAB,
+    0xB2ABAAAB,
+    0x2020202,
+    0x2020202,
+    0x36360202,
+    0xBB355353,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2B4AD98,
+    0x2020202,
+    0xACACAD31,
+    0xABABAB00,
+    0xABAB00AB,
+    0xA3ABABA9,
+    0x2020202,
+    0x2020202,
+    0x53530202,
+    0x2515336,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x56ABACAC,
+    0x2020202,
+    0xAD00ACA4,
+    0xABABABAD,
+    0xABABA9AB,
+    0xAEABABA9,
+    0x2020202,
+    0x2020202,
+    0x4D7E0202,
+    0x27E3436,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xABABACAC,
+    0xA6983198,
+    0xADADA6,
+    0xABAB0000,
+    0xABABABA9,
+    0x55ABABAA,
+    0x2020202,
+    0x2020202,
+    0x36470202,
+    0x2026153,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xABAAAC98,
+    0xA60000AD,
+    0xAF00A7,
+    0xABA9ADAB,
+    0xABABABAA,
+    0x4ABA9A9,
+    0x2020202,
+    0x2020202,
+    0x366C0202,
+    0x2027F53,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xC2ADAFB4,
+    0xA600ADAD,
+    0xADAFADA4,
+    0xA9ADAB,
+    0xABA9A9AB,
+    0xABABAB00,
+    0x2020202,
+    0x2020202,
+    0x2D020202,
+    0x2029C53,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xABA4AFB4,
+    0xA6A4AD00,
+    0xACACACA9,
+    0xA9AA,
+    0xABABAB,
+    0xABA9ABAD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xABAFAC05,
+    0xACA7ADAB,
+    0xADADADA9,
+    0xACA9A900,
+    0xACABABA9,
+    0xA9ADA9AD,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADAC05,
+    0xADAC00AB,
+    0xADADACAD,
+    0xADA900AD,
+    0xA9ABABAD,
+    0xACAC00,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADB4,
+    0xADAD00A9,
+    0xACAC00,
+    0xA900AC00,
+    0xABA9ADAD,
+    0xAD0000AA,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADA9B4,
+    0xACAD00A9,
+    0xACACABA9,
+    0xACACAB,
+    0xADADA9,
+    0xA90000,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADA998,
+    0xAC000000,
+    0xACACAB00,
+    0xADAD0000,
+    0xA9A900,
+    0xACADAD00,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAD000098,
+    0xA900AD,
+    0xACAC0000,
+    0xAD0000AC,
+    0xABA9ADAD,
+    0xACACA9AB,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADA900B4,
+    0xA900AC,
+    0xACACADAD,
+    0xAC0000AC,
+    0xA9AC0000,
+    169,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAD00ADB4,
+    0xABA9ADAC,
+    0xACACAC00,
+    0xACA9A9AD,
+    0xAAADA900,
+    0xADADAFA9,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xAD98,
+    0xAAADACAC,
+    0xACAC00AB,
+    0xA900AD,
+    0xA9ACADAC,
+    0xAF0000AB,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xADADAC,
+    0xACACAD,
+    0xADA9ABAB,
+    0xAB00ADAD,
+    0xACACA900,
+    0xAF00A900,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACACADAC,
+    0xADADADAD,
+    0xABABA900,
+    0xA900ACAD,
+    0xADADABAB,
+    0xAFAD00A9,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0x2020202,
+    0xACACAC98,
+    0xAC00ADAD,
+    0xC2AB00AD,
+    0xAD000000,
+    0xA900ABAB,
+    0xACABA9AB,
+    0x2020202,
+    0x2020202,
+    0xAC020202,
+    0xADADADAC,
+    0xADA9ADAD,
+    0xADADADAD,
+    0xADA9A9A9,
+    0xADADADAD,
+    0x915E7EAD,
+    0xAFACACAC,
+    0xA9A900AC,
+    0xABA9ADAC,
+    0xA9A9,
+    0xABA9AA,
+    0xABA9A9,
+    0x2020202,
+    0x2020202,
+    0xAD020202,
+    0xADA9A9A9,
+    0xA9A9ADAC,
+    0xA9ADADA9,
+    0xACA9A9A9,
+    0xA9ADADAC,
+    0xA961ACA9,
+    0xA7ACAFA7,
+    0xABA9ADAC,
+    0xACAC00,
+    0xA9A9AAA9,
+    0xABA900,
+    0xADAAAB00,
+    0x2020202,
+    0x2020202,
+    0xA9AC0202,
+    0xADADA9A9,
+    0xA9A9A9AC,
+    0xACACACA9,
+    0xACA6A6A6,
+    0xA9ADADAC,
+    0xA961A9A9,
+    0xA7A7A7A7,
+    0xA9ADACAC,
+    0xADAC00AB,
+    0xAAA9AD,
+    0xA9ABAB00,
+    0xACABA9,
+    0x2020202,
+    0x2020202,
+    0xA9ADAC02,
+    0xACACADA9,
+    0xA7ADADAD,
+    0xA7A6ACAC,
+    0xA9A6A7A7,
+    0xA9A9A9AD,
+    0xA9A9A9A9,
+    0xA7A8A79F,
+    0xADACADAC,
+    169,
+    173,
+    0xABABABA9,
+    0xAB00ABAB,
+    0x2020202,
+    0x2020202,
+    0xA9A9AC02,
+    0xACA7ACAD,
+    0xA7ADADAD,
+    0xA7A6ACAD,
+    0x4AA9A7A7,
+    0xA9A9ACA9,
+    0xA9A9A9A9,
+    0xA1A8A77E,
+    0xADADADA7,
+    0xABABADAC,
+    0xA90000A9,
+    0xAAABABAB,
+    0xABABAAAB,
+    0x2020202,
+    0x2020202,
+    0xA9A9ADAC,
+    0xACA7ACA9,
+    0xADADA7AD,
+    0xA6ACACA9,
+    0x5BA9A6A6,
+    0x7EAC5B4A,
+    0x7EA9A9A9,
+    0xA1AF787E,
+    0xAFA8,
+    0xA900ADAC,
+    0xA9AB,
+    0xABABAAA9,
+    0xABABABAB,
+    0x2020202,
+    0x2020202,
+    0xADA9A9AD,
+    0xA9A9ADAD,
+    0xADADADAD,
+    0xACACADA9,
+    0xA9A9ACAC,
+    0x4A99495B,
+    0x7E5C997E,
+    0xA8A64B7B,
+    0xADA7A8,
+    0xA900ADAD,
+    0xA9AB00A9,
+    0xABAB00A9,
+    0xABABABAB,
+    0x2020202,
+    0xAC020202,
+    0xA7ADADAD,
+    0x5B64ADAD,
+    0xACACACA9,
+    0xADA962A9,
+    0xA9ACA9AD,
+    0x5B4A80A9,
+    0x7E447E6E,
+    0xA760647A,
+    0xAFA7A8,
+    0xACAD00,
+    0xA9A9AD00,
+    0xABABABAB,
+    0xABABABAB,
+    0x2020202,
+    0xAD020202,
+    0xADADA7AD,
+    0xA95BADAD,
+    0xA6A7ACAD,
+    0xA96223A9,
+    0x4A5BACA9,
+    0x5B226799,
+    0x6B99656B,
+    0x8F356187,
+    0xACA7A7A7,
+    0xADAD0000,
+    0xACAD00,
+    0xABABABAB,
+    0xABABABAB,
+    0x2020202,
+    0xADBB0202,
+    0xACACADAD,
+    0xACACACAD,
+    0x7CA7A7A7,
+    0xAC9923A9,
+    0x811B5BAC,
+    0x3B5B5B4A,
+    0x6B5C6723,
+    0x344E8187,
+    0xA7A7A7A6,
+    0xAC00A9AD,
+    0xADAD00AD,
+    0xABABA9A9,
+    0xABABABAB,
+    0x2020202,
+    0xA9AC0202,
+    0xADA7ADAD,
+    0xA95DACAC,
+    0x8F8FA7A7,
+    0x672362AD,
+    0x814D615B,
+    0x397E995B,
+    0x4A5E8D3C,
+    0x15648149,
+    0xA7AFAF7B,
+    0xADA9ADAF,
+    0xADA900AC,
+    0xABAB00AD,
+    0xABABAAAB,
+    0x2020202,
+    0x31310202,
+    0xADADA7A9,
+    0xA96478AC,
+    0xA97C8FA7,
+    0x234A6762,
+    0x494A4A47,
+    0x707E9999,
+    0x498A8D3B,
+    0x4E5D8025,
+    0xA7AF7A1C,
+    0xA9A9A7A8,
+    0xA9ADAD,
+    0xA900ACAD,
+    0xABA900A9,
+    0x2020202,
+    0x7B0E7E02,
+    0xA7A7ADA9,
+    0xA96446AC,
+    0x99A97CAD,
+    0x99259999,
+    0x67474799,
+    0x718D7E5B,
+    0x7E8A3B39,
+    0x605D4A1A,
+    0xA78F3637,
+    0xA9ACA7A8,
+    0xAD00AA,
+    0xACACAC00,
+    0xAAA900AD,
+    0x2020202,
+    0x7B133402,
+    0xADA9A9A9,
+    0xA978ACAC,
+    0x4762ADAD,
+    0x47254E99,
+    0x67474799,
+    0x8D396223,
+    0x9A8A8D39,
+    0x7A874B6E,
+    0xA7641534,
+    0xADA7A8A7,
+    0xAD00AAAB,
+    0xACAC0000,
+    0xABA900AD,
+    0x2020202,
+    0x7A1E2902,
+    0xA9A9A9A9,
+    0x7BACACAD,
+    0x2562ADAD,
+    0x4D4E2967,
+    0x49492547,
+    0x8C8A8C6B,
+    0x889D3C3B,
+    0x7B4A2881,
+    0x7A14537A,
+    0xA7A8A7A7,
+    0xA9AC,
+    0xAD00A9AD,
+    0xADAD,
+    0x2020202,
+    0x61150E68,
+    0x5661ACA9,
+    0x6436AC31,
+    0x2925ADAD,
+    0x1C422A25,
+    0x49611669,
+    0x8B8A6725,
+    0x883C3C8D,
+    0x611C2862,
+    0x352E8760,
+    0xA7A7A79F,
+    0xA90000A7,
+    0xADAD,
+    0xADADAD00,
+    0x2020202,
+    0xAD371334,
+    0x773834A9,
+    0x161E7B83,
+    0x423562AD,
+    0x2B41150D,
+    0x81281B35,
+    0x8A392224,
+    0x623D3C67,
+    0x4B2A4C9A,
+    0x537A5D61,
+    0xA7A7A77B,
+    0xA900ACA7,
+    0xADACAD00,
+    0xAD000000,
+    0x2020202,
+    0xAD370E4C,
+    0x2D155DA9,
+    0x1E1E7757,
+    0x41363562,
+    0x2C2A2A2C,
+    0x4B1C5236,
+    0x8B3C6781,
+    0x6A3D7362,
+    0x6128489A,
+    0x7A853361,
+    0xAFA77A35,
+    0xACAFA7,
+    0xAD00A9A9,
+    0xA9A90000,
+    0x2020202,
+    0xAC371E0D,
+    0x3A517878,
+    0x16515760,
+    0x15152A1F,
+    0x2B4F1E0D,
+    0x4B4C354F,
+    0x8C739D22,
+    0x3D233C89,
+    0x4A4A9A67,
+    0x5B7A157A,
+    0xA78F4C61,
+    0xACAFA7A7,
+    0xA9A9A9AD,
+    0xA9A90000,
+    0xBB020202,
+    0xAC362A2C,
+    0x15778579,
+    0x2E787A15,
+    0x292A2A0E,
+    0x2A36421E,
+    0x496B4E29,
+    0x8D3C9D23,
+    0x3D222289,
+    0x497F7E3E,
+    0x8436367F,
+    0x9F523385,
+    0xA4AFA7A7,
+    0xAAA900AC,
+    0xA9A9AB,
+};
+
+GpImgRec D_actor_403100_801555EC[2] = {
+    { 0, 0, { 384, 256, 30, 130 }, D_actor_403100_80153774 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+TaskDesc D_actor_403100_8015560C[2] = {
+    { 257, 96, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
+    { 2, 96, func_actor_403100_8013E04C, { .model = NULL } },
+};
+
+TaskDesc D_actor_403100_80155624 = { 2, 96, func_actor_403100_8013E0A4, { .model = NULL } };
+
+GpEffArg D_actor_403100_80155630 = { NULL, 1536, 3 };
+
+Actor403100RectEntry D_actor_403100_80155638[8] = {
+    { -7100, 9200, 3600, 1900, 1 },
+    { -7100, 6450, 1900, 2750, 1 },
+    { -3500, 9200, 3500, 1900, 5 },
+    { -7100, -1000, 1900, 7450, 3 },
+    { -7100, -5100, 1900, 4100, 4 },
+    { -0x32C8, 900, 4000, 2200, 2 },
+    { -9000, 900, 1900, 2200, 6 },
+    { 0, 0, 0, 0, -1 },
+};
+
+Actor403100RectEntry D_actor_403100_80155698[7] = {
+    { -2000, 9200, 2000, 1900, 3 },
+    { -5500, 9200, 3500, 1900, 4 },
+    { -7100, 5900, 3000, 3400, 5 },
+    { -7100, 2900, 3000, 3400, 6 },
+    { -7100, -100, 3000, 3400, 7 },
+    { -7100, -3400, 3000, 3700, 8 },
+    { 0, 0, 0, 0, -1 },
+};
+
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(void);
+        void (*call1)(Task *, s32, s32);
+        void (*call2)(Task *, s32, u16 *);
+    } handler;
+} Actor403100MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor403100MessageEntry, 8);
+
+Actor403100MessageEntry D_actor_403100_801556EC[4] = {
+    { 2014, { .call0 = func_actor_403100_8013D5F4 } },
+    { 2011, { .call2 = func_actor_403100_8013D564 } },
+    { 2005, { .call1 = func_actor_403100_8013D608 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+Actor403100AnimTable D_actor_403100_8015570C = { { NULL, &D_actor_403100_8014CD6C, &D_actor_403100_8014D994, &D_actor_403100_8014DACC, NULL, &D_actor_403100_8014EC10, &D_actor_403100_8014E060, &D_actor_403100_8014F70C } };
+
+GpAnimSet * D_actor_403100_8015572C[26] = {
+    NULL,
+    &D_actor_403100_801479D0,
+    &D_actor_403100_801481EC,
+    &D_actor_403100_801488A0,
+    &D_actor_403100_80149078,
+    &D_actor_403100_801493A4,
+    &D_actor_403100_801494B0,
+    &D_actor_403100_80149EF8,
+    &D_actor_403100_8014A8A8,
+    &D_actor_403100_8014B5F8,
+    &D_actor_403100_8014BAB0,
+    &D_actor_403100_8014BDA8,
+    &D_actor_403100_8014BF58,
+    &D_actor_403100_8014C138,
+    &D_actor_403100_8014C5E0,
+    &D_actor_403100_8014C7EC,
+    &D_actor_403100_80150420,
+    &D_actor_403100_80151E24,
+    &D_actor_403100_80151F6C,
+    &D_actor_403100_80151898,
+    &D_actor_403100_80152444,
+    &D_actor_403100_801528F4,
+    &D_actor_403100_80152DC4,
+    &D_actor_403100_8015324C,
+    &D_actor_403100_8015374C,
+    NULL,
+};
+
+s16 D_actor_403100_80155794[5][2] = {
+    { -1312, 6720 },
+    { -3488, 5024 },
+    { -3136, 3744 },
+    { -1536, 672 },
+    { -2016, 1952 },
+};
+
+u8 D_actor_403100_801557A8[8] = {
+    0,
+    1,
+    2,
+    1,
+    2,
+    1,
+    0,
+    0,
+};
+
+Actor403100Storage57B0 D_actor_403100_801557B0 = { {
+    { 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 7, 7, 7 },
+    { 4, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 7, 7, 7 },
+}, { 0 } };
+
+Actor403100QuadEntry D_actor_403100_801557E0[2] = {
+    { 142, 0x3FC0, 151, 64, 8, 56, 2250, 104, 184, 0x808080 },
+    { 142, 0x3FC0, 167, 184, 0xFF60, 0xFFC0, 2250, 88, 0, 0x808080 },
+};
+
+Actor403100Work * D_actor_403100_80155808 = NULL;
+
+GpEnemy * D_actor_403100_8015580C = NULL;
+
+s16 D_actor_403100_80155810 = 0;
+
+Actor403100Entry D_actor_403100_80155814[28] = { 0 };
 
 static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
 {
@@ -433,12 +3399,10 @@ static __inline__ s32 Actor403100_LocalizeRotation(GpCoord* arg0, MATRIX* arg1, 
 extern Actor403100Work* D_actor_403100_80155808;
 extern GpEnemy*         D_actor_403100_8015580C;
 
-void                        func_8017E3C8(void);
-void                        func_8017E4B8(void);
-extern u16                  D_actor_403100_80147630;
-extern GpCoord*             D_actor_403100_80155630;
-extern u32                  D_actor_403100_801556EC[];
-extern u32                  D_actor_403100_8015572C[];
+extern GpEffArg D_actor_403100_80155630;
+
+extern Actor403100MessageEntry D_actor_403100_801556EC[4];
+extern GpAnimSet* D_actor_403100_8015572C[26];
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
 extern Actor403100AnimTable D_actor_403100_8015570C;
@@ -446,8 +3410,6 @@ extern Actor403100AnimTable D_actor_403100_8015570C;
 extern u8 D_80165FC0;
 
 /* Resolved through `configs/USA/sym/actors.imports.txt`. */
-void func_8017E128(s32 arg0);
-void func_80182730(void);
 
 /* Defined later in this file. */
 static void func_actor_403100_801326DC(Actor403100Work* work);
@@ -458,7 +3420,7 @@ static s32  func_actor_403100_80133928(void);
 static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
 static void func_actor_403100_8013E6F0(Task* arg0);
-static void func_actor_403100_8013F12C(void);
+static void func_actor_403100_8013F12C(Task* task);
 static void func_actor_403100_8013E16C(void);
 static void func_actor_403100_8013E174(void);
 static void func_actor_403100_8013E1E4(void);
@@ -471,14 +3433,14 @@ static void func_actor_403100_8013D2A0(s16 arg0);
 static void func_actor_403100_8013D6B4(Task* arg0);
 static void func_actor_403100_8013D700(Task* arg0);
 static void func_actor_403100_80136830(Task* arg0);
-static void func_actor_403100_80137268(void);
-static void func_actor_403100_80137310(void);
+static void func_actor_403100_80137268(Task* task);
+static void func_actor_403100_80137310(Task* task);
 static void func_actor_403100_8013BB8C(Task* arg0);
 static void func_actor_403100_8013BDE4(Task* arg0);
 static void func_actor_403100_8013BEF0(Task* arg0);
 static void func_actor_403100_8013D88C(Task* arg0);
 static void func_actor_403100_8013D8F4(Task* arg0);
-static void func_actor_403100_8013DA6C(void);
+static void func_actor_403100_8013DA6C(Task* task);
 static void func_actor_403100_8013DAC4(Task* arg0);
 static void func_actor_403100_8013DB48(Task* arg0);
 static void func_actor_403100_8013DC18(Task* arg0);
@@ -486,8 +3448,8 @@ static void func_actor_403100_8013DCAC(Task* arg0);
 static void func_actor_403100_8013DD78(Task* arg0);
 static void func_actor_403100_8013DE0C(Task* arg0);
 static void func_actor_403100_8013DEA0(Task* arg0);
-static void func_actor_403100_8013DF0C(void);
-static void func_actor_403100_8013DF64(void);
+static void func_actor_403100_8013DF0C(Task* task);
+static void func_actor_403100_8013DF64(Task* task);
 static void func_actor_403100_8013DFBC(Task* arg0);
 static void func_actor_403100_8013E6A0(Task* arg0);
 static void func_actor_403100_8013E784(Task* arg0);
@@ -495,37 +3457,37 @@ static void func_actor_403100_8013E7C8(Task* arg0);
 static void func_actor_403100_8013E88C(Task* arg0);
 static void func_actor_403100_8013E920(Task* arg0);
 static void func_actor_403100_8013ED50(Task* arg0);
-static void func_actor_403100_8013EDDC(void);
+static void func_actor_403100_8013EDDC(Task* task);
 static void func_actor_403100_8013EE28(Task* arg0);
-static void func_actor_403100_8013EEB0(void);
+static void func_actor_403100_8013EEB0(Task* task);
 static void func_actor_403100_8013EEB8(Task* arg0);
-static void func_actor_403100_8013EF24(void);
-static void func_actor_403100_8013EF2C(void);
-static void func_actor_403100_8013EF34(void);
-static void func_actor_403100_8013EF58(void);
-static void func_actor_403100_8013EF60(void);
-static void func_actor_403100_8013EFC0(void);
+static void func_actor_403100_8013EF24(Task* task);
+static void func_actor_403100_8013EF2C(Task* task);
+static void func_actor_403100_8013EF34(Task* task);
+static void func_actor_403100_8013EF58(Task* task);
+static void func_actor_403100_8013EF60(Task* task);
+static void func_actor_403100_8013EFC0(Task* task);
 static void func_actor_403100_8013EFC8(Task* arg0);
 static void func_actor_403100_8013F034(Task* arg0);
 static void func_actor_403100_8013F0A8(Task* arg0);
-static void func_actor_403100_8013F18C(void);
-static void func_actor_403100_8013F1D8(void);
-static void func_actor_403100_8013F230(void);
-static void func_actor_403100_8013F270(void);
-static void func_actor_403100_8013F2D8(void);
-static void func_actor_403100_8013F344(void);
-static void func_actor_403100_8013F3AC(void);
+static void func_actor_403100_8013F18C(Task* task);
+static void func_actor_403100_8013F1D8(Task* task);
+static void func_actor_403100_8013F230(Task* task);
+static void func_actor_403100_8013F270(Task* task);
+static void func_actor_403100_8013F2D8(Task* task);
+static void func_actor_403100_8013F344(Task* task);
+static void func_actor_403100_8013F3AC(Task* task);
 static void func_actor_403100_8013F3EC(Task* arg0);
-static void func_actor_403100_8013F488(void);
-static void func_actor_403100_8013F4E0(void);
-static void func_actor_403100_8013F520(void);
-static void func_actor_403100_8013F588(void);
-static void func_actor_403100_8013F6B0(void);
-static void func_actor_403100_8013F6F4(void);
-static void func_actor_403100_8013F76C(void);
-static void func_actor_403100_8013F7AC(void);
-static void func_actor_403100_8013F7B4(void);
-static void func_actor_403100_8013F7BC(void);
+static void func_actor_403100_8013F488(Task* task);
+static void func_actor_403100_8013F4E0(Task* task);
+static void func_actor_403100_8013F520(Task* task);
+static void func_actor_403100_8013F588(Task* task);
+static void func_actor_403100_8013F6B0(Task* task);
+static void func_actor_403100_8013F6F4(Task* task);
+static void func_actor_403100_8013F76C(Task* task);
+static void func_actor_403100_8013F7AC(Task* task);
+static void func_actor_403100_8013F7B4(Task* task);
+static void func_actor_403100_8013F7BC(Task* task);
 
 static __inline__ s16 Actor403100_TestFlags(void)
 {
@@ -619,7 +3581,7 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             D_actor_403100_80155814[i].obj.pos.vx   = 0;
             D_actor_403100_80155814[i].obj.pos.vy   = 0;
             D_actor_403100_80155814[i].obj.pos.vz   = 0;
-            D_actor_403100_80155814[i].obj.key      = Gp_PackPair(&D_actor_403100_80147614, 1);
+            D_actor_403100_80155814[i].obj.key      = Gp_PackPair(D_actor_403100_80147614, 1);
             D_actor_403100_80155814[i].obj.radius   = 0x32;
             D_actor_403100_80155814[i].obj.flags    = 1;
             obj                                     = &D_actor_403100_80155814[i].obj;
@@ -666,25 +3628,25 @@ static void func_actor_403100_80132320(Task* arg0)
     D_actor_403100_80155808->field_55C.key      = 0x3001F;
     D_actor_403100_80155808->field_414.flags   |= 0x8000;
     D_actor_403100_80155808->field_55C.coord    = &arg0->extra.tmd->coords[7];
-    D_actor_403100_80155808->field_55C.ctx.recs = (GpRec18*)D_actor_403100_80155808->pad_57C;
+    D_actor_403100_80155808->field_55C.ctx.recs = D_actor_403100_80155808->pad_57C;
     D_actor_403100_80155808->field_55C.pos.vx   = -0x200;
     D_actor_403100_80155808->field_55C.pos.vy   = 0;
     D_actor_403100_80155808->field_55C.pos.vz   = 0x200;
     D_actor_403100_80155808->field_55C.radius   = 0x3A0;
     D_actor_403100_80155808->field_55C.flags    = 1;
     Gp_LinkObj(3, &D_actor_403100_80155808->field_55C);
-    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_57C, 1, 0);
+    Gp_InitRec18Table(D_actor_403100_80155808->pad_57C, 1, 0);
     D_actor_403100_80155808->field_594.key      = 0x3001F;
     D_actor_403100_80155808->field_55C.flags   &= 0x7FFF;
     D_actor_403100_80155808->field_594.coord    = &arg0->extra.tmd->coords[6];
-    D_actor_403100_80155808->field_594.ctx.recs = (GpRec18*)D_actor_403100_80155808->pad_5B4;
+    D_actor_403100_80155808->field_594.ctx.recs = D_actor_403100_80155808->pad_5B4;
     D_actor_403100_80155808->field_594.pos.vx   = -0x200;
     D_actor_403100_80155808->field_594.pos.vy   = 0;
     D_actor_403100_80155808->field_594.pos.vz   = 0x180;
     D_actor_403100_80155808->field_594.radius   = 0x3A0;
     D_actor_403100_80155808->field_594.flags    = 1;
     Gp_LinkObj(3, &D_actor_403100_80155808->field_594);
-    Gp_InitRec18Table((GpRec18*)D_actor_403100_80155808->pad_5B4, 1, 0);
+    Gp_InitRec18Table(D_actor_403100_80155808->pad_5B4, 1, 0);
     D_actor_403100_80155808->field_594.flags &= 0x7FFF;
 }
 static void func_actor_403100_80132528(Task* arg0)
@@ -789,7 +3751,7 @@ static void func_actor_403100_801328DC(Task* arg0)
     joint                               = &root[5];
     Actor403100_AccumulateRotation(joint, rotation, root);
     RotMatrixX(D_actor_403100_80155808->field_604, rotation);
-    func_8004BFF8(D_actor_403100_80155808->field_608, rotation);
+    RotMatrixY(D_actor_403100_80155808->field_608, rotation);
     Actor403100_LocalizeRotation(joint, rotation, root);
     dest          = &joint->coord;
     dest->m[0][0] = rotation->m[0][0];
@@ -815,12 +3777,12 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
     SVECTOR   corner1;
     SVECTOR   corner2;
     SVECTOR   corner3;
-    s32       screen0;
-    s32       screen1;
-    s32       screen2;
-    s32       screen3;
-    s32       perspective;
-    s32       flags;
+    long      screen0;
+    long      screen1;
+    long      screen2;
+    long      screen3;
+    long      perspective;
+    long      flags;
     s16       lastZ;
     s16       angle;
     GpCoord*  secondCoord;
@@ -914,7 +3876,7 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
             PRIM_XY_WORD(poly, 3) = screen3;
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             setRGB0(poly, 0xFF, 0xFF, 0xFF);
-            addPrim((u32*)((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
         }
     }
 }
@@ -1136,7 +4098,7 @@ static s32 func_actor_403100_80133928(void)
     return 0;
 }
 /// Wraps the root yaw `field_82` to 12 bits and replaces the rotation of the
-/// root coordinate with the one `func_8004BFF8` builds from it.
+/// root coordinate with the one `RotMatrixY` builds from it.
 static inline void _actor403100SetRootYaw(Task* task)
 {
     MATRIX   rotation;
@@ -1146,7 +4108,7 @@ static inline void _actor403100SetRootYaw(Task* task)
     coords                            = task->extra.tmd->coords;
     D_actor_403100_80155808->field_82 = (s32)((u16)D_actor_403100_80155808->field_82 << 20) >> 20;
     gfxSetRotIdentity(&rotation);
-    func_8004BFF8(D_actor_403100_80155808->field_82, &rotation);
+    RotMatrixY(D_actor_403100_80155808->field_82, &rotation);
     dest          = &coords->coord;
     dest->m[0][0] = rotation.m[0][0];
     dest->m[0][1] = rotation.m[0][1];
@@ -1194,10 +4156,10 @@ static inline void _actor403100UpdateColor(Task* task, GpCoord* coord)
 static void func_actor_403100_801339EC(Task* arg0)
 {
     void (*handlers[5])(Task*) = {
-        (void (*)(Task*))func_actor_403100_80133C94,
+        func_actor_403100_80133C94,
         func_actor_403100_80133D88,
         func_actor_403100_80133E88,
-        (void (*)(Task*))func_actor_403100_8013E5FC,
+        func_actor_403100_8013E5FC,
         func_actor_403100_8013E624
     };
     GpCoord* coords;
@@ -1239,7 +4201,7 @@ static void func_actor_403100_801339EC(Task* arg0)
         Display_ClampField126(0);
     }
 }
-static void func_actor_403100_80133C94(void)
+static void func_actor_403100_80133C94(Task* task)
 {
     s32 i;
 
@@ -1315,28 +4277,28 @@ static void func_actor_403100_80133E88(Task* arg0)
     rootCoord->flg                      = 0;
     rootCoord->coord.t[1]              += 0xC;
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x28) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x3F) == 0x20) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 8) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 2);
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 2) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -1349,7 +4311,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x1E) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -1362,7 +4324,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 1);
@@ -1375,7 +4337,7 @@ static void func_actor_403100_80133E88(Task* arg0)
         }
     }
     if ((D_actor_403100_80155808->field_5EC & 0x7F) == 0x40) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 4);
@@ -1416,7 +4378,7 @@ static void func_actor_403100_801342B4(Task* arg0)
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
                 Gp_SpawnEff(0x60050, coord1, 0, &offset1);
-                func_8017E250((s16)i, 1);
+                func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
                 D_actor_403100_80155808->regions.regionFlags[i] = 1;
             } else {
                 Gp_SpawnEff(0x60050, coord1, 1, &offset1);
@@ -1427,7 +4389,7 @@ static void func_actor_403100_801342B4(Task* arg0)
         if (Actor403100_FindRegion(pos2.vx, pos2.vz) == i) {
             if (D_actor_403100_80155808->regions.regionFlags[i] == 0) {
                 Gp_SpawnEff(0x60050, coord2, 0, &offset2);
-                func_8017E250((s16)i, 1);
+                func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
                 D_actor_403100_80155808->regions.regionFlags[i] = 1;
             } else {
                 Gp_SpawnEff(0x60050, coord2, 1, &offset2);
@@ -1442,31 +4404,31 @@ static void func_actor_403100_801345E0(Task* arg0, Task* arg1)
 
     arg0->extra.tmd->coords->flg = 0;
     if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
-        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
         if (task != NULL) {
             coord = task->extra.tmd->coords;
             _actor403100PlaceSpawned(coord, 0);
         }
         if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
-            task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+            task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
             if (task != NULL) {
                 coord = task->extra.tmd->coords;
                 _actor403100PlaceSpawned(coord, 1);
             }
             if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
-                task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                 if (task != NULL) {
                     coord = task->extra.tmd->coords;
                     _actor403100PlaceSpawned(coord, 2);
                 }
                 if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
-                    task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                    task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                     if (task != NULL) {
                         coord = task->extra.tmd->coords;
                         _actor403100PlaceSpawned(coord, 3);
                     }
                     if (!(D_actor_403100_80155808->field_5EC & 0x3F)) {
-                        task = Task_SpawnFromTable(&D_actor_403100_8015560C, 1, 0, 0);
+                        task = Task_SpawnFromTable(D_actor_403100_8015560C, 1, 0, 0);
                         if (task != NULL) {
                             coord = task->extra.tmd->coords;
                             _actor403100PlaceSpawned(coord, 4);
@@ -1510,7 +4472,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         }
         if (D_actor_403100_80155808->regions.regionFlags[2] == 0 &&
             Actor403100_FindEffectRegion(entry->position.vx, entry->position.vz) == 2) {
-            func_8017E250(2, 1);
+            func_dryfield_night_motel_balcony_8017E250(2, 1);
             D_actor_403100_80155808->regions.regionFlags[2] = 1;
         }
         pos.vx = entry->position.vx;
@@ -1529,7 +4491,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             size   = baseSize + growth;
         }
         if (flag >= 0) {
-            func_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), entry->frame);
+            func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), entry->frame);
         } else {
             _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, 0x7FFF, 0x4000);
         }
@@ -1601,7 +4563,7 @@ static void func_actor_403100_80134D50(Task* arg0)
 {
     TmdObject* object                 = arg0->extra.tmd;
     void       (*handlers[10])(Task*) = {
-        (void (*)(Task*))func_actor_403100_8013E964,
+        func_actor_403100_8013E964,
         func_actor_403100_8013E96C,
         func_actor_403100_8013E9D8,
         func_actor_403100_8013EA60,
@@ -1610,7 +4572,7 @@ static void func_actor_403100_80134D50(Task* arg0)
         func_actor_403100_8013EBC8,
         func_actor_403100_8013EC4C,
         func_actor_403100_8013ECD0,
-        (void (*)(Task*))func_actor_403100_8013ED48
+        func_actor_403100_8013ED48
     };
     GpCoord* coords;
     GpCoord* side;
@@ -1678,7 +4640,7 @@ static void func_actor_403100_8013506C(Task* arg0)
         D_actor_403100_80155808->field_5EC = 0;
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->field_5FE = 0x1E;
-        func_8017E128(0);
+        func_dryfield_night_motel_balcony_8017E128(0);
         sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0001;
         pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&arg0->extra.tmd->coords[1]) / 2));
@@ -1699,7 +4661,7 @@ static void func_actor_403100_801351F8(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x3E) {
-        func_8017E128(0);
+        func_dryfield_night_motel_balcony_8017E128(0);
         Gp_SpawnPadLerp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->field_5FE = 0x1E;
         sound                              = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0001;
@@ -1759,10 +4721,10 @@ static void func_actor_403100_801354A0(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)(gpGetObjDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x1E, 0xFFU, 8U);
         D_actor_403100_80155808->field_5FE = 0x1E;
-        func_8017E128(1);
+        func_dryfield_night_motel_balcony_8017E128(1);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x18) {
-        func_8017E128(0);
+        func_dryfield_night_motel_balcony_8017E128(0);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
         D_actor_403100_80155808->field_5FA += 1;
@@ -1846,7 +4808,7 @@ static void func_actor_403100_8013588C(Task* arg0)
         D_actor_403100_80155808->field_5FE = 0x1E;
     }
     if ((u32)(D_actor_403100_80155808->field_5EC - 0xE) < 7U) {
-        func_8017E128(D_actor_403100_801557A8[D_actor_403100_80155808->field_5EE]);
+        func_dryfield_night_motel_balcony_8017E128(D_actor_403100_801557A8[D_actor_403100_80155808->field_5EE]);
         D_actor_403100_80155808->field_5EE += 1;
     }
     if ((s16)D_actor_403100_80155808->field_5EC >= 0x15) {
@@ -1883,7 +4845,7 @@ static void func_actor_403100_801359DC(Task* arg0)
     work->field_5EC   = 0;
     work->field_618   = 0x1400;
     work->field_5FA  += 1;
-    Gp_ApplyAreaRecs(&D_8018F2CC);
+    Gp_ApplyAreaRecs(D_dryfield_night_motel_balcony_8018F2CC);
 }
 static void func_actor_403100_80135AE0(Task* arg0)
 {
@@ -1925,7 +4887,7 @@ static void func_actor_403100_80135C00(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x1E) {
-        func_8018257C();
+        func_dryfield_night_motel_balcony_8018257C();
         sound = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
@@ -1935,7 +4897,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x28) {
-        func_8018257C();
+        func_dryfield_night_motel_balcony_8018257C();
         sound_2 = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_2   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth_2 = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
@@ -1945,7 +4907,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x3C) {
-        func_8018257C();
+        func_dryfield_night_motel_balcony_8018257C();
         sound_3 = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_3   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth_3 = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
@@ -1955,7 +4917,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         SndEvt_EnqueueType7(0x401F0004, 0xA);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x5A) {
-        func_8018257C();
+        func_dryfield_night_motel_balcony_8018257C();
         sound_4 = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan_4   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth_4 = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
@@ -1987,7 +4949,7 @@ static void func_actor_403100_80135F30(Task* arg0)
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xA) {
-        func_8018257C();
+        func_dryfield_night_motel_balcony_8018257C();
         sound = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0004;
         pan   = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[4]);
         depth = gpGetObjDepth(&arg0->extra.tmd->coords[4]);
@@ -2153,7 +5115,7 @@ static void func_actor_403100_80136610(Task* arg0)
     obj->lightMtx                       = &work->field_0.matrices.light;
     D_actor_403100_80155808             = work;
     obj->colorMtx                       = &work->field_0.matrices.color;
-    arg0->msgTable                      = &D_actor_403100_801556EC;
+    arg0->msgTable                      = D_actor_403100_801556EC;
     work->field_622                     = (s16)gGameSession->at4.loc.view;
     enemy->field_48                     = 0;
     enemy->field_4                      = &coord->coord;
@@ -2167,11 +5129,11 @@ static void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_8015580C->node.state.b.flags = kind;
     D_actor_403100_8015580C->param              = &D_actor_403100_8014762C;
     D_actor_403100_8015580C->recs               = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155630                     = arg0->extra.tmd->coords;
+    D_actor_403100_80155630.coord                     = arg0->extra.tmd->coords;
     flags                                       = &obj->flags;
     *flags                                      = 0;
     D_actor_403100_80155808->field_658          = -1;
-    func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, &D_actor_403100_8015572C, obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
+    func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, D_actor_403100_8015572C, obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_5DE = 1;
     D_actor_403100_80155808->field_5DA = 2;
@@ -2181,11 +5143,15 @@ static void func_actor_403100_80136610(Task* arg0)
     for (i = 27; i >= 0; i--) {
         D_actor_403100_80155814[i].active = 0;
     }
-    func_8017E4B8();
-    func_8017E3C8();
+    func_dryfield_night_motel_balcony_8017E4B8();
+    func_dryfield_night_motel_balcony_8017E3C8();
     D_actor_403100_80155810            = 0;
-    D_actor_403100_8015580C->hpMax     = D_actor_403100_80147630;
-    D_actor_403100_8015580C->hp        = (s16)D_actor_403100_80147630;
+    {
+        GpEnemy* activeEnemy = D_actor_403100_8015580C;
+        u16 hp = D_actor_403100_8014762C.hpMax;
+        activeEnemy->hpMax = hp;
+        activeEnemy->hp = (s16)hp;
+    }
     arg0->state                        = 1;
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
@@ -2195,7 +5161,7 @@ static const TaskFuncTable3 D_actor_403100_80131EB0 = {
     {
         func_actor_403100_8013ED50,
         func_actor_403100_8013506C,
-        (TaskFunc)func_actor_403100_8013EDDC,
+        func_actor_403100_8013EDDC,
     },
 };
 
@@ -2204,7 +5170,7 @@ static const TaskFuncTable3 D_actor_403100_80131EBC = {
     {
         func_actor_403100_8013EE28,
         func_actor_403100_801351F8,
-        (TaskFunc)func_actor_403100_8013EEB0,
+        func_actor_403100_8013EEB0,
     },
 };
 
@@ -2214,7 +5180,7 @@ static const TaskFuncTable4 D_actor_403100_80131EC8 = {
         func_actor_403100_8013539C,
         func_actor_403100_8013EEB8,
         func_actor_403100_801354A0,
-        (TaskFunc)func_actor_403100_8013EF24,
+        func_actor_403100_8013EF24,
     },
 };
 
@@ -2223,16 +5189,16 @@ static const TaskFuncTable3 D_actor_403100_80131ED8 = {
     {
         func_actor_403100_801355D4,
         func_actor_403100_801356F4,
-        (TaskFunc)func_actor_403100_8013EF2C,
+        func_actor_403100_8013EF2C,
     },
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `field_5FA`.
 static const TaskFuncTable3 D_actor_403100_80131EE4 = {
     {
-        (TaskFunc)func_actor_403100_8013EF34,
+        func_actor_403100_8013EF34,
         func_actor_403100_8013588C,
-        (TaskFunc)func_actor_403100_8013EF58,
+        func_actor_403100_8013EF58,
     },
 };
 
@@ -2241,8 +5207,8 @@ static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
         func_actor_403100_801359DC,
         func_actor_403100_80135AE0,
-        (TaskFunc)func_actor_403100_8013EF60,
-        (TaskFunc)func_actor_403100_8013EFC0,
+        func_actor_403100_8013EF60,
+        func_actor_403100_8013EFC0,
     },
 };
 
@@ -2282,7 +5248,7 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
 /// mode steps through its own table by `field_5FA`.
 static const TaskFuncTable11 D_actor_403100_80131F34 = {
     {
-        (TaskFunc)func_actor_403100_8013DA6C,
+        func_actor_403100_8013DA6C,
         func_actor_403100_8013DAC4,
         func_actor_403100_8013DB48,
         func_actor_403100_8013DC18,
@@ -2290,8 +5256,8 @@ static const TaskFuncTable11 D_actor_403100_80131F34 = {
         func_actor_403100_8013DD78,
         func_actor_403100_8013DE0C,
         func_actor_403100_8013DEA0,
-        (TaskFunc)func_actor_403100_8013DF0C,
-        (TaskFunc)func_actor_403100_8013DF64,
+        func_actor_403100_8013DF0C,
+        func_actor_403100_8013DF64,
         func_actor_403100_8013DFBC,
     },
 };
@@ -2474,7 +5440,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
                     D_actor_403100_8015580C->node.state.b.flags = 9;
-                    func_800E8614((s32)&D_80166098, 0);
+                    func_800E8614(&D_80166098, 0);
                     arg0->state                        = 1;
                     D_actor_403100_80155808->field_5F8 = 0;
                     D_actor_403100_80155808->field_5FA = 0;
@@ -2516,7 +5482,7 @@ static void func_actor_403100_8013712C(Task* arg0)
     D_actor_403100_80155808->field_5E6          = 0x1E;
     D_actor_403100_80155808->field_62C          = 0x20;
     D_actor_403100_80155808->field_600          = 0;
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     i                                        = 0;
     entries                                  = D_actor_403100_80155814;
     obj                                      = &entries->obj;
@@ -2549,13 +5515,13 @@ static void func_actor_403100_8013712C(Task* arg0)
 /// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `field_5FA`.
 static const TaskFuncTable3 D_actor_403100_80131F60 = {
     {
-        (TaskFunc)func_actor_403100_8013F18C,
-        (TaskFunc)func_actor_403100_80137268,
-        (TaskFunc)func_actor_403100_80137310,
+        func_actor_403100_8013F18C,
+        func_actor_403100_80137268,
+        func_actor_403100_80137310,
     },
 };
 
-static void func_actor_403100_80137268(void)
+static void func_actor_403100_80137268(Task* task)
 {
     s16 state;
 
@@ -2579,7 +5545,7 @@ static void func_actor_403100_80137268(void)
             break;
     }
 }
-static void func_actor_403100_80137310(void)
+static void func_actor_403100_80137310(Task* task)
 {
     s32 halfHealth;
     s16 phase;
@@ -2594,12 +5560,12 @@ static void func_actor_403100_80137310(void)
         if ((Player_Status.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
             random1                            = (Gp_LcgState * 5) + 0x71357911;
             Gp_LcgState                        = random1;
-            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0[1][(random1 >> 16) & 15];
+            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
             D_actor_403100_80155808->field_5FA = 0;
         } else {
             random2                            = (Gp_LcgState * 5) + 0x71357911;
             Gp_LcgState                        = random2;
-            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0[0][(random2 >> 16) & 15];
+            D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[0][(random2 >> 16) & 15];
             D_actor_403100_80155808->field_5FA = 0;
         }
         if ((s16)D_actor_403100_80155808->field_5F8 == 4) {
@@ -2645,7 +5611,7 @@ static void func_actor_403100_80137310(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_801375B8(void)
+static void func_actor_403100_801375B8(Task* task)
 {
     u16 angle;
     u32 random2;
@@ -2709,7 +5675,7 @@ static void func_actor_403100_801376D8(Task* arg0)
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
-            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
             }
         }
@@ -2773,7 +5739,7 @@ static void func_actor_403100_801379B4(Task* arg0)
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
-            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+            if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
             }
         }
@@ -2810,7 +5776,7 @@ static void func_actor_403100_801379B4(Task* arg0)
         }
     }
 }
-static void func_actor_403100_80137CA8(void)
+static void func_actor_403100_80137CA8(Task* task)
 {
     u16 angleY;
     u16 angleX;
@@ -2869,7 +5835,7 @@ static void func_actor_403100_80137DC4(Task* arg0)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_80137F4C(void)
+static void func_actor_403100_80137F4C(Task* task)
 {
     Actor403100Entry* entry;
     GpObj*            obj;
@@ -2940,7 +5906,7 @@ static void func_actor_403100_80138048(Task* arg0)
             D_actor_403100_80155808->field_61C = 3;
         }
         if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
-            func_80182730();
+            func_dryfield_night_motel_balcony_80182730();
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x33) {
@@ -3121,7 +6087,7 @@ static void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
-        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
         }
     }
@@ -3153,7 +6119,7 @@ static void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-static void func_actor_403100_80138AB4(void)
+static void func_actor_403100_80138AB4(Task* task)
 {
     Task* player;
     u16   frame;
@@ -3167,7 +6133,7 @@ static void func_actor_403100_80138AB4(void)
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
-        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 0), 0) == 1) {
+        if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*Gp_ActorSlots)->work)->field_956 = 0xA;
         }
     }
@@ -3179,7 +6145,7 @@ static void func_actor_403100_80138AB4(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-static void func_actor_403100_80138C18(void)
+static void func_actor_403100_80138C18(Task* task)
 {
     u16 velocityZ;
     u16 velocityX;
@@ -3237,7 +6203,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
     Task*            player;
     Actor403100Work* work;
 
-    player                             = (Task*)Gp_ActorSlots[0];
+    player                             = Gp_ActorSlots[0];
     D_actor_403100_80155808->field_5EC = (u16)(D_actor_403100_80155808->field_5EC + 1);
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         if ((s16)D_actor_403100_80155808->field_5EC < 0x101) {
@@ -3457,8 +6423,8 @@ static void func_actor_403100_801395EC(Task* arg0)
     D_actor_403100_80155808->field_A0  = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 3);
     D_actor_403100_80155808->field_A2  = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x280 - D_actor_403100_80155808->field_A2) >> 3);
     D_actor_403100_80155808->field_A4  = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x140 - D_actor_403100_80155808->field_A4) >> 3);
-    x                                  = *(s32*)(u32)&part->coord.t[0];
-    *(s32*)(u32)&part->coord.t[0]      = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
+    x                                  = part->coord.t[0];
+    part->coord.t[0]      = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
     D_actor_403100_80155808->field_80  = 0;
     D_actor_403100_80155808->field_82  = 0xC00;
     D_actor_403100_80155808->field_84  = 0;
@@ -3471,14 +6437,14 @@ static void func_actor_403100_801395EC(Task* arg0)
         obj                                       = &entries->obj;
         entry                                     = entries;
         Mc_SaveData[0].state.at4.loc.view               = 0x18;
-        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        coords->coord.t[1]           = -0x1388;
         D_actor_403100_80155808->field_5E8        = 0;
         D_actor_403100_80155808->field_604        = 0;
         D_actor_403100_80155808->field_608        = 0;
         D_actor_403100_80155808->field_A0         = 0;
         D_actor_403100_80155808->field_A2         = 0;
         D_actor_403100_80155808->field_A4         = 0;
-        *(s32*)(u32)&part->coord.t[0]             = -0x877;
+        part->coord.t[0]             = -0x877;
         D_actor_403100_80155808->field_5DE        = 7;
         D_actor_403100_80155808->field_5DA        = 2;
         D_actor_403100_80155808->flags_634.h.high = 0x14;
@@ -3490,9 +6456,9 @@ static void func_actor_403100_801395EC(Task* arg0)
         D_actor_403100_80155808->field_B4         = 0;
         D_actor_403100_80155810                   = 0;
         D_actor_403100_80155808->field_5FA       += 1;
-        *(s32*)(u32)&coords->coord.t[0]           = -0x44C;
-        *(s32*)(u32)&coords->coord.t[2]           = 0x2710;
-        *(s32*)(u32)&coords->coord.t[1]           = -0x1388;
+        coords->coord.t[0]           = -0x44C;
+        coords->coord.t[2]           = 0x2710;
+        coords->coord.t[1]           = -0x1388;
         D_actor_403100_80155808->field_80         = 0;
         D_actor_403100_80155808->field_82         = 0xA00;
         D_actor_403100_80155808->field_84         = 0;
@@ -3588,7 +6554,7 @@ static void func_actor_403100_80139818(Task* arg0)
         func_8010B2A0(0, 3);
         func_actor_403100_8013D1B8(1, 0x3F4);
         task = gameGetPtrSlot(3);
-        Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 4), 0);
+        Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 4), 0);
         if (config->hp <= 0) {
             sound2 = (((u16)((GpEnemy*)playerTask->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x531D000B;
             pan2   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
@@ -3696,11 +6662,11 @@ static void func_actor_403100_80139E80(Task* arg0)
         D_actor_403100_80155808->field_5E2              = 8;
         D_actor_403100_80155808->field_5DE              = 0xE;
         D_actor_403100_80155808->field_5DA              = 2;
-        *(s16*)(u32)&D_actor_403100_80155808->field_5EC = 0;
+        D_actor_403100_80155808->field_5EC = 0;
         Mc_SaveData[0].state.at4.loc.view                     = 0xC;
-        *(s32*)(u32)&coords->coord.t[0]                 = -0x44C;
-        *(s32*)(u32)&coords->coord.t[2]                 = 0x1770;
-        *(s32*)(u32)&coords->coord.t[1]                 = 0;
+        coords->coord.t[0]                 = -0x44C;
+        coords->coord.t[2]                 = 0x1770;
+        coords->coord.t[1]                 = 0;
         D_actor_403100_80155808->field_82               = 0xC00;
         D_actor_403100_80155808->field_80               = 0;
         D_actor_403100_80155808->field_84               = 0;
@@ -3709,7 +6675,7 @@ static void func_actor_403100_80139E80(Task* arg0)
         D_actor_403100_80155808->field_A0               = 0;
         D_actor_403100_80155808->field_A2               = 0;
         D_actor_403100_80155808->field_A4               = 0;
-        *(s32*)(u32)&part->coord.t[0]                   = -0x877;
+        part->coord.t[0]                   = -0x877;
         D_actor_403100_80155808->field_5FA             += 1;
     }
 }
@@ -3746,7 +6712,7 @@ static void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->field_5FA += 1;
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = gameGetPtrSlot(3);
-        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 5), 0) != 0) {
+        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 5), 0) != 0) {
             gGameSession->suppressDeathChecks = 1;
             state                             = 7;
             if (D_actor_403100_8015580C->hp <= 0) {
@@ -3763,7 +6729,7 @@ static void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->field_5EC = 0;
     }
 }
-static void func_actor_403100_8013A254(void)
+static void func_actor_403100_8013A254(Task* task)
 {
     Task*            actor;
     Actor403100Work* work;
@@ -3780,20 +6746,20 @@ static void func_actor_403100_8013A254(void)
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xB) {
         if (D_actor_403100_80155808->regions.fields.field_63E == 0) {
-            func_8017E250(1, 1);
+            func_dryfield_night_motel_balcony_8017E250(1, 1);
             D_actor_403100_80155808->regions.fields.field_63E = 1;
         } else {
-            func_8017E250(1, 2);
+            func_dryfield_night_motel_balcony_8017E250(1, 2);
         }
         Gp_SpawnPadLerp(8, 0xFFU, 8U);
         D_actor_403100_80155808->field_5FE = 8;
-        sound                              = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0006;
+        sound                              = (((u16)((GpEnemy*)(actor)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0006;
         pan                                = (s8)Gp_GetObjPan(actor->extra.tmd->coords + 1);
         depth                              = gpGetObjDepth(actor->extra.tmd->coords + 1);
         SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x1C) {
-        sound2 = (((u16)((GpEnemy*)((Task*)actor)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0007;
+        sound2 = (((u16)((GpEnemy*)(actor)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0007;
         pan2   = (s8)Gp_GetObjPan(actor->extra.tmd->coords + 1);
         depth2 = gpGetObjDepth(actor->extra.tmd->coords + 1);
         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
@@ -3977,7 +6943,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->field_5FA             = 0;
     }
 }
-static void func_actor_403100_8013AC04(void)
+static void func_actor_403100_8013AC04(Task* task)
 {
     s32              state;
     s32              message;
@@ -3991,7 +6957,7 @@ static void func_actor_403100_8013AC04(void)
     u8               completed;
     Actor403100Work* work;
 
-    player   = (Task*)*Gp_ActorSlots;
+    player   = *Gp_ActorSlots;
     actor    = (GameActor*)player->work;
     finished = 0;
     if ((s16)D_actor_403100_80155808->field_5EC == 0) {
@@ -4012,7 +6978,7 @@ static void func_actor_403100_8013AC04(void)
     if ((completed = finished != 0)) {
         Mc_SaveData[0].state.at4.loc.view = 0x14;
         task                        = gameGetPtrSlot(3);
-        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 2), 0) != 0) {
+        if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 2), 0) != 0) {
             gGameSession->suppressDeathChecks   = 1;
             gGameSession->areaBgmCountdown      = 0x7F;
             D_actor_403100_80155808->pad_670[0] = 1U;
@@ -4031,7 +6997,7 @@ static void func_actor_403100_8013AC04(void)
         D_actor_403100_80155808->field_5FA = (u16)(D_actor_403100_80155808->field_5FA + 1);
     }
 }
-static void func_actor_403100_8013AE28(void)
+static void func_actor_403100_8013AE28(Task* task)
 {
     Task* player;
     s32   sound;
@@ -4043,15 +7009,15 @@ static void func_actor_403100_8013AE28(void)
     s32   depth;
     u16   frame;
 
-    player                             = (Task*)*Gp_ActorSlots;
+    player                             = *Gp_ActorSlots;
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0xA) {
         if (D_actor_403100_80155808->regions.fields.field_63C == 0) {
-            func_8017E250(0, 1);
+            func_dryfield_night_motel_balcony_8017E250(0, 1);
             D_actor_403100_80155808->regions.fields.field_63C = 1;
         } else {
-            func_8017E250(0, 2);
+            func_dryfield_night_motel_balcony_8017E250(0, 2);
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0xB) {
@@ -4176,7 +7142,7 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     D_actor_403100_80155808->field_5EC += 1;
     Mc_SaveData[0].state.at4.loc.view         = 0x18;
     if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
-        Gp_LoadImages(&D_actor_403100_801555EC);
+        Gp_LoadImages(&D_actor_403100_801555EC[0]);
     }
     if ((s16)D_actor_403100_80155808->field_5EC == 0x10E) {
         sound = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401F0005;
@@ -4316,22 +7282,22 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
 /// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `field_5FA`.
 static const TaskFuncTable6 D_actor_403100_80131F84 = {
     {
-        (TaskFunc)func_actor_403100_801375B8,
+        func_actor_403100_801375B8,
         func_actor_403100_801376D8,
         func_actor_403100_801379B4,
-        (TaskFunc)func_actor_403100_80137CA8,
+        func_actor_403100_80137CA8,
         func_actor_403100_80137DC4,
-        (TaskFunc)func_actor_403100_8013F1D8,
+        func_actor_403100_8013F1D8,
     },
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `field_5FA`.
 static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
-        (TaskFunc)func_actor_403100_80137F4C,
+        func_actor_403100_80137F4C,
         func_actor_403100_80138048,
-        (TaskFunc)func_actor_403100_8013F230,
-        (TaskFunc)func_actor_403100_8013F270,
+        func_actor_403100_8013F230,
+        func_actor_403100_8013F270,
         func_actor_403100_8013842C,
     },
 };
@@ -4339,15 +7305,15 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
 /// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `field_5FA`.
 static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
-        (TaskFunc)func_actor_403100_8013F2D8,
-        (TaskFunc)func_actor_403100_8013F344,
+        func_actor_403100_8013F2D8,
+        func_actor_403100_8013F344,
         func_actor_403100_80138610,
         func_actor_403100_801386DC,
         func_actor_403100_80138790,
         func_actor_403100_80138844,
-        (TaskFunc)func_actor_403100_80138AB4,
-        (TaskFunc)func_actor_403100_80138C18,
-        (TaskFunc)func_actor_403100_8013F3AC,
+        func_actor_403100_80138AB4,
+        func_actor_403100_80138C18,
+        func_actor_403100_8013F3AC,
     },
 };
 
@@ -4363,8 +7329,8 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
         func_actor_403100_80139818,
         func_actor_403100_80139E80,
         func_actor_403100_8013A064,
-        (TaskFunc)func_actor_403100_8013A254,
-        (TaskFunc)func_actor_403100_8013F488,
+        func_actor_403100_8013A254,
+        func_actor_403100_8013F488,
     },
 };
 
@@ -4373,8 +7339,8 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         func_actor_403100_8013A4C8,
         func_actor_403100_8013A5AC,
-        (TaskFunc)func_actor_403100_8013F4E0,
-        (TaskFunc)func_actor_403100_8013F520,
+        func_actor_403100_8013F4E0,
+        func_actor_403100_8013F520,
         func_actor_403100_8013A81C,
     },
 };
@@ -4382,19 +7348,19 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
 /// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `field_5FA`.
 static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
-        (TaskFunc)func_actor_403100_8013F588,
+        func_actor_403100_8013F588,
         func_actor_403100_8013AA04,
-        (TaskFunc)func_actor_403100_8013AC04,
-        (TaskFunc)func_actor_403100_8013AE28,
+        func_actor_403100_8013AC04,
+        func_actor_403100_8013AE28,
     },
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `field_5FA`.
 static const TaskFuncTable3 D_actor_403100_80132024 = {
     {
-        (TaskFunc)func_actor_403100_8013F6B0,
-        (TaskFunc)func_actor_403100_8013F6F4,
-        (TaskFunc)func_actor_403100_8013F76C,
+        func_actor_403100_8013F6B0,
+        func_actor_403100_8013F6F4,
+        func_actor_403100_8013F76C,
     },
 };
 
@@ -4403,10 +7369,10 @@ static const TaskFuncTable6 D_actor_403100_80132030 = {
     {
         func_actor_403100_8013BB8C,
         func_actor_403100_8013BDE4,
-        (TaskFunc)func_actor_403100_8013F7AC,
-        (TaskFunc)func_actor_403100_8013F7B4,
+        func_actor_403100_8013F7AC,
+        func_actor_403100_8013F7B4,
         func_actor_403100_8013BEF0,
-        (TaskFunc)func_actor_403100_8013F7BC,
+        func_actor_403100_8013F7BC,
     },
 };
 
@@ -4585,7 +7551,7 @@ static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         poly->y2   = arg1 + (entry->y + entry->h);
         poly->x3   = arg0 + (entry->x + entry->w);
         poly->y3   = arg1 + (entry->y + entry->h);
-        addPrim((u32*)((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC) + (u32)gGpuCurrentOt), poly);
+        addPrim((&gGpuCurrentOt[((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt)]), poly);
     }
 }
 static void func_actor_403100_8013C214(Task* arg0)
@@ -4633,8 +7599,8 @@ static void func_actor_403100_8013C214(Task* arg0)
             if (next2 >= 0xB4) {
                 D_actor_403100_80155808->field_63A = 0;
                 task                               = gameGetPtrSlot(3);
-                if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(&D_actor_403100_80147614, 3), 0) != 0) {
-                    sound = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x531D000B;
+                if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 3), 0) != 0) {
+                    sound = (((u16)((GpEnemy*)(playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x531D000B;
                     pan   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
                     depth = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
                     SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
@@ -4653,13 +7619,13 @@ static void func_actor_403100_8013C214(Task* arg0)
                     randomSound = (random >> 0x10) & 3;
                     if (randomSound == 0) {
                         soundCoords = playerTask->extra.tmd->coords + 1;
-                        sound2      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
+                        sound2      = (((u16)((GpEnemy*)(playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                         pan2        = (s8)Gp_GetObjPan(soundCoords);
                         depth2      = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
                         SndEvt_EnqueueType6(sound2, (s32)pan2, (s8)(depth2 / 2));
                     } else if (randomSound == 1) {
                         soundCoords = playerTask->extra.tmd->coords + 1;
-                        sound3      = (((u16)((GpEnemy*)((Task*)playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 7;
+                        sound3      = (((u16)((GpEnemy*)(playerTask)->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 7;
                         pan3        = (s8)Gp_GetObjPan(soundCoords);
                         depth3      = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
                         SndEvt_EnqueueType6(sound3, (s32)pan3, (s8)(depth3 / 2));
@@ -5248,7 +8214,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
     SndEvt_EnqueueType7(0x401F0004, 0xA);
     Gp_UnlinkNode(&D_actor_403100_8015580C->node);
-    func_800E8614((s32)&D_80165FC0, 0);
+    func_800E8614(&D_80165FC0, 0);
     arg0->state                        = 1;
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
@@ -5266,11 +8232,11 @@ static s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
     }
     return 0;
 }
-static void func_actor_403100_8013DA6C(void)
+static void func_actor_403100_8013DA6C(Task* task)
 {
-    void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013712C, func_actor_403100_8013F12C };
+    TaskFunc fns[2] = { func_actor_403100_8013712C, func_actor_403100_8013F12C };
 
-    fns[(s16)D_actor_403100_80155808->field_5FA]();
+    fns[(s16)D_actor_403100_80155808->field_5FA](task);
 }
 
 static void func_actor_403100_8013DAC4(Task* arg0)
@@ -5334,17 +8300,17 @@ static void func_actor_403100_8013DEA0(Task* arg0)
     sp = D_actor_403100_80132014;
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
 }
-static void func_actor_403100_8013DF0C(void)
+static void func_actor_403100_8013DF0C(Task* task)
 {
     void (*fns[2])(void) = { func_actor_403100_8013F610, func_actor_403100_8013F658 };
 
     fns[(s16)D_actor_403100_80155808->field_5FA]();
 }
-static void func_actor_403100_8013DF64(void)
+static void func_actor_403100_8013DF64(Task* task)
 {
-    void (*fns[2])(void) = { (void (*)(void))func_actor_403100_8013B128, (void (*)(void))func_actor_403100_8013B3C4 };
+    TaskFunc fns[2] = { func_actor_403100_8013B128, func_actor_403100_8013B3C4 };
 
-    fns[(s16)D_actor_403100_80155808->field_5FA]();
+    fns[(s16)D_actor_403100_80155808->field_5FA](task);
 }
 static void func_actor_403100_8013DFBC(Task* arg0)
 {
@@ -5482,7 +8448,7 @@ static s32 func_actor_403100_8013E450(GpCoord* arg0, MATRIX* arg1, GpCoord* arg2
     MulRotMatrix(arg1);
     return 1;
 }
-static void func_actor_403100_8013E5FC(void)
+static void func_actor_403100_8013E5FC(Task* task)
 {
     D_actor_403100_8015580C->recs       = 0;
     D_actor_403100_80155808->field_5EC  = 0;
@@ -5605,7 +8571,7 @@ static void func_actor_403100_8013E920(Task* arg0)
         taskKill(arg0);
     }
 }
-static void func_actor_403100_8013E964(void)
+static void func_actor_403100_8013E964(Task* task)
 {
 }
 
@@ -5688,7 +8654,7 @@ static void func_actor_403100_8013ECD0(Task* arg0)
     sp.funcs[(s16)D_actor_403100_80155808->field_5FA](arg0);
     func_actor_403100_801327CC(arg0);
 }
-static void func_actor_403100_8013ED48(void)
+static void func_actor_403100_8013ED48(Task* task)
 {
 }
 
@@ -5711,14 +8677,14 @@ static void func_actor_403100_8013ED50(Task* arg0)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-static void func_actor_403100_8013EDDC(void)
+static void func_actor_403100_8013EDDC(Task* task)
 {
     u16 frame;
 
     frame                              = D_actor_403100_80155808->field_5EC + 1;
     D_actor_403100_80155808->field_5EC = frame;
     if ((s16)frame == 0x1E) {
-        func_8017E128(1);
+        func_dryfield_night_motel_balcony_8017E128(1);
     }
 }
 
@@ -5740,7 +8706,7 @@ static void func_actor_403100_8013EE28(Task* arg0)
     D_actor_403100_80155808->field_5EC  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-static void func_actor_403100_8013EEB0(void)
+static void func_actor_403100_8013EEB0(Task* task)
 {
 }
 
@@ -5757,26 +8723,26 @@ static void func_actor_403100_8013EEB8(Task* arg0)
     }
     func_actor_403100_801327CC();
 }
-static void func_actor_403100_8013EF24(void)
+static void func_actor_403100_8013EF24(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF2C(void)
+static void func_actor_403100_8013EF2C(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF34(void)
+static void func_actor_403100_8013EF34(Task* task)
 {
     D_actor_403100_80155808->field_5EC = 0;
     D_actor_403100_80155808->field_5EE = 0;
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-static void func_actor_403100_8013EF58(void)
+static void func_actor_403100_8013EF58(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF60(void)
+static void func_actor_403100_8013EF60(Task* task)
 {
     if (Actor403100_TestFlags12C()) {
         D_actor_403100_80155808->field_5FC  = 0xB4;
@@ -5786,7 +8752,7 @@ static void func_actor_403100_8013EF60(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-static void func_actor_403100_8013EFC0(void)
+static void func_actor_403100_8013EFC0(Task* task)
 {
 }
 
@@ -5846,7 +8812,7 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;
 }
-static void func_actor_403100_8013F12C(void)
+static void func_actor_403100_8013F12C(Task* task)
 {
     u16 frame;
 
@@ -5860,7 +8826,7 @@ static void func_actor_403100_8013F12C(void)
     }
 }
 
-static void func_actor_403100_8013F18C(void)
+static void func_actor_403100_8013F18C(Task* task)
 {
     D_actor_403100_80155808->field_5FC = 4;
     D_actor_403100_80155808->field_5E2 = 0x10;
@@ -5873,14 +8839,14 @@ static void func_actor_403100_8013F18C(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-static void func_actor_403100_8013F1D8(void)
+static void func_actor_403100_8013F1D8(Task* task)
 {
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5F8 = 1;
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_8013F230(void)
+static void func_actor_403100_8013F230(Task* task)
 {
     u16 frame;
 
@@ -5892,7 +8858,7 @@ static void func_actor_403100_8013F230(void)
     }
 }
 
-static void func_actor_403100_8013F270(void)
+static void func_actor_403100_8013F270(Task* task)
 {
     D_actor_403100_80155808->field_5EC = 0;
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -5903,7 +8869,7 @@ static void func_actor_403100_8013F270(void)
     D_actor_403100_80155808->field_5FA = D_actor_403100_80155808->field_5FA + 1;
 }
 
-static void func_actor_403100_8013F2D8(void)
+static void func_actor_403100_8013F2D8(Task* task)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -5916,7 +8882,7 @@ static void func_actor_403100_8013F2D8(void)
     }
 }
 
-static void func_actor_403100_8013F344(void)
+static void func_actor_403100_8013F344(Task* task)
 {
     if (((func_actor_403100_80133928() << 0x10) == 0) &&
         (D_actor_403100_80155808->field_5F6 == 5)) {
@@ -5928,7 +8894,7 @@ static void func_actor_403100_8013F344(void)
     }
 }
 
-static void func_actor_403100_8013F3AC(void)
+static void func_actor_403100_8013F3AC(Task* task)
 {
     u16 frame;
 
@@ -5961,14 +8927,14 @@ static void func_actor_403100_8013F3EC(Task* arg0)
     D_actor_403100_80155808->field_610  = 0;
     D_actor_403100_80155808->field_5FA += 1;
 }
-static void func_actor_403100_8013F488(void)
+static void func_actor_403100_8013F488(Task* task)
 {
     if (Actor403100_TestFlags()) {
         D_actor_403100_80155808->field_5F8 = 1;
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_8013F4E0(void)
+static void func_actor_403100_8013F4E0(Task* task)
 {
     u16 frame;
 
@@ -5979,7 +8945,7 @@ static void func_actor_403100_8013F4E0(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_8013F520(void)
+static void func_actor_403100_8013F520(Task* task)
 {
     D_actor_403100_80155808->field_5EC = 0;
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -5989,7 +8955,7 @@ static void func_actor_403100_8013F520(void)
     D_actor_403100_80155808->field_5DA  = 1;
     D_actor_403100_80155808->field_5FA += 1;
 }
-static void func_actor_403100_8013F588(void)
+static void func_actor_403100_8013F588(Task* task)
 {
     if ((func_actor_403100_80133928() << 0x10) == 0) {
         D_actor_403100_80155808->field_5F6             = 4;
@@ -6022,7 +8988,7 @@ static void func_actor_403100_8013F658(void)
         D_actor_403100_80155808->field_5FA = 0;
     }
 }
-static void func_actor_403100_8013F6B0(void)
+static void func_actor_403100_8013F6B0(Task* task)
 {
     D_actor_403100_80155808->field_61C  = 2;
     D_actor_403100_80155808->field_5F6  = 4;
@@ -6032,7 +8998,7 @@ static void func_actor_403100_8013F6B0(void)
     D_actor_403100_80155808->field_5DA  = 1;
     D_actor_403100_80155808->field_5FA += 1;
 }
-static void func_actor_403100_8013F6F4(void)
+static void func_actor_403100_8013F6F4(Task* task)
 {
     if (Actor403100_TestFlags104()) {
         D_actor_403100_80155808->field_5FC  = 4;
@@ -6043,7 +9009,7 @@ static void func_actor_403100_8013F6F4(void)
         D_actor_403100_80155808->field_5FA += 1;
     }
 }
-static void func_actor_403100_8013F76C(void)
+static void func_actor_403100_8013F76C(Task* task)
 {
     u16 frame;
 
@@ -6055,14 +9021,14 @@ static void func_actor_403100_8013F76C(void)
     }
 }
 
-static void func_actor_403100_8013F7AC(void)
+static void func_actor_403100_8013F7AC(Task* task)
 {
 }
 
-static void func_actor_403100_8013F7B4(void)
+static void func_actor_403100_8013F7B4(Task* task)
 {
 }
 
-static void func_actor_403100_8013F7BC(void)
+static void func_actor_403100_8013F7BC(Task* task)
 {
 }

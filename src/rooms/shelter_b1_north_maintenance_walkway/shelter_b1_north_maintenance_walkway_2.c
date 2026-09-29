@@ -29,14 +29,33 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/sprites.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/area.h"
+
+#include "gameplay/message.h"
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16 retained;
+} ShelterB1NorthMaintenanceWalkwayHaloStorage;
+STATIC_ASSERT_SIZEOF(ShelterB1NorthMaintenanceWalkwayHaloStorage, 20);
+extern ShelterB1NorthMaintenanceWalkwayHaloStorage D_shelter_b1_north_maintenance_walkway_80184B50;
+
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
-extern RoomHaloShade D_shelter_b1_north_maintenance_walkway_80184B50[];
 
 /// Offsets from the anchor of the two points the twin trail follows. The
 /// second is also reached under its own name.
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B64[];
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B6C;
 
 /// Per-colour channel shifts for the glowing disc, indexed by the spawn
 /// argument.
@@ -55,6 +74,472 @@ static void func_shelter_b1_north_maintenance_walkway_80183870(GpCoord* arg0, s3
 static void func_shelter_b1_north_maintenance_walkway_80183C94(GpCoord* arg0, s32 arg1, u8* rgb);
 static void func_shelter_b1_north_maintenance_walkway_801841D4(GpCoord* coord, s16 size);
 static void func_shelter_b1_north_maintenance_walkway_80184700(GpCoord* arg0, s32 arg1);
+
+ShelterB1NorthMaintenanceWalkwayHaloStorage D_shelter_b1_north_maintenance_walkway_80184B50 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x374F };
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184B64[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+RoomHaloShade D_shelter_b1_north_maintenance_walkway_80184B74[2] = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+};
+
+u8 * D_shelter_b1_north_maintenance_walkway_80184B80[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b1_north_maintenance_walkway_80184B84[1] = {
+    { { .bytes = { 6, 0 } } },
+};
+
+GpWarpRec D_shelter_b1_north_maintenance_walkway_80184B88[2] = {
+    { { .words = { 0, -2000, 0, 3600 } }, { 0, 0, 0, 0 }, { .words = { 0, -2000, 0, 3600 } }, { 0, 0, 0, 0 }, 0x540C0002, 0x540C0001, 0, 2, 0, 435 },
+    { { .words = { 0, 1983, 0, -4420 } }, { 0, 0, 0, 0 }, { .words = { 0, 1983, 0, -4420 } }, { 0, 0, 0, 0 }, 0x540C0004, 0x540C0003, 0, 5, 0, 432 },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184BF8[14] = {
+    { 0, 4096, 0, 0 },
+    { 2613, -3154, 0, 0 },
+    { -2704, -3077, 0, 0 },
+    { 0, 862, 4004, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, 774, -4022, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -3154, 2613, 0 },
+    { 0, -3077, -2704, 0 },
+    { -4022, 774, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 4004, 862, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184C68[38] = {
+    { 2930, -2600, 4900, 0 },
+    { 1090, -2600, 3120, 0 },
+    { 1090, -2600, -4930, 0 },
+    { 2930, -2600, -4930, 0 },
+    { 810, -1300, 2840, 0 },
+    { 1160, -1010, 3190, 0 },
+    { 1160, -1010, -4930, 0 },
+    { 810, -1300, -4930, 0 },
+    { 3180, -1300, -4930, 0 },
+    { 2850, -1010, -4930, 0 },
+    { 2850, -1010, 4820, 0 },
+    { 3180, -1300, 5150, 0 },
+    { -2870, -2600, 4900, 0 },
+    { -2870, -2600, 3120, 0 },
+    { -2870, -1300, 2840, 0 },
+    { 1160, 0, 3190, 0 },
+    { -2870, -1010, 3190, 0 },
+    { -2870, 0, 3190, 0 },
+    { -2870, -1300, 5150, 0 },
+    { 2850, 0, 4820, 0 },
+    { -2870, 0, 4820, 0 },
+    { -2870, -1010, 4820, 0 },
+    { 2850, 0, -4930, 0 },
+    { 1160, 0, -4930, 0 },
+    { 1065, 0, 3098, 0 },
+    { 2935, 0, 4902, 0 },
+    { 2935, 0, -4937, 0 },
+    { 1065, 0, -4937, 0 },
+    { -2872, 0, 3098, 0 },
+    { -2872, 0, 4902, 0 },
+    { -2870, 150, 2700, 0 },
+    { -2870, -2690, 2700, 0 },
+    { -2870, -2690, 5300, 0 },
+    { -2870, 150, 5300, 0 },
+    { 3330, 150, -4930, 0 },
+    { 3330, -2690, -4930, 0 },
+    { 730, -2690, -4930, 0 },
+    { 730, 150, -4930, 0 },
+};
+
+GpGridFace D_shelter_b1_north_maintenance_walkway_80184D98[18] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 0, 12, 1, 13 }, 0, 0 },
+    { { 1, 13, 4, 14 }, 3, 0 },
+    { { 5, 16, 15, 17 }, 4, 0 },
+    { { 12, 0, 18, 11 }, 5, 0 },
+    { { 19, 20, 10, 21 }, 6, 0 },
+    { { 4, 14, 5, 16 }, 7, 0 },
+    { { 10, 21, 11, 18 }, 8, 0 },
+    { { 0, 3, 11, 8 }, 9, 0 },
+    { { 22, 19, 9, 10 }, 10, 0 },
+    { { 2, 1, 7, 4 }, 11, 0 },
+    { { 15, 23, 5, 6 }, 12, 0 },
+    { { 25, 26, 24, 27 }, 13, 1 },
+    { { 24, 28, 25, 29 }, 13, 1 },
+    { { 31, 32, 30, 33 }, 12, 0 },
+    { { 35, 36, 34, 37 }, 4, 0 },
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184E70[10] = {
+    0,
+    1,
+    2,
+    10,
+    11,
+    12,
+    13,
+    14,
+    17,
+    -1,
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184E84[18] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184EA8[18] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184ECC[10] = {
+    0,
+    1,
+    2,
+    10,
+    11,
+    12,
+    13,
+    14,
+    17,
+    -1,
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184EE0[17] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    -1,
+};
+
+s16 D_shelter_b1_north_maintenance_walkway_80184F04[17] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    -1,
+};
+
+s16 * D_shelter_b1_north_maintenance_walkway_80184F28[6] = {
+    D_shelter_b1_north_maintenance_walkway_80184E70,
+    D_shelter_b1_north_maintenance_walkway_80184E84,
+    D_shelter_b1_north_maintenance_walkway_80184EA8,
+    D_shelter_b1_north_maintenance_walkway_80184ECC,
+    D_shelter_b1_north_maintenance_walkway_80184EE0,
+    D_shelter_b1_north_maintenance_walkway_80184F04,
+};
+
+GpGridParams D_shelter_b1_north_maintenance_walkway_80184F40 = { NULL, D_shelter_b1_north_maintenance_walkway_80184BF8, D_shelter_b1_north_maintenance_walkway_80184C68, D_shelter_b1_north_maintenance_walkway_80184D98, D_shelter_b1_north_maintenance_walkway_80184F28, 2872, 4937, 2, 3, 4000, 18 };
+
+GpViewRec D_shelter_b1_north_maintenance_walkway_80184F64[6] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },
+    { { { { -1505, 0, 3809 }, { 1128, 3912, 446 }, { -3638, 1213, -1437 } }, { -1615, 1990, -4920 } }, 235 },
+    { { { { -938, 0, -3987 }, { -839, 4004, 197 }, { 3897, 861, -917 } }, { 2967, 1799, -4953 } }, 235 },
+    { { { { -3922, 0, 1178 }, { 358, 3901, 1193 }, { -1122, 1245, -3736 } }, { -2962, 1720, -4953 } }, 225 },
+    { { { { -3898, 0, 1255 }, { 321, 3959, 999 }, { -1213, 1049, -3768 } }, { -2910, 1543, -771 } }, 235 },
+    { { { { -938, 0, -3987 }, { -839, 4004, 197 }, { 3897, 861, -917 } }, { 2967, 1799, -4953 } }, 235 },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018503C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018504C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_north_maintenance_walkway_8018505C[38] = {
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, -96, 730, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 80, -96, 764, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, -80, 955, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 80, -80, 792, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -80, 778, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -64, 875, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -40, 875, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -16, 875, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 8, 875, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 32, 875, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 56, 875, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 48, 1075, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 24, 1050, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, 0, 975, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, -48, 925, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 80, -64, 925, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 40, -64, 955, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, -56, 950, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -48, 950, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -40, 975, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -16, 950, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 8, 1075, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 32, 1075, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 48, 48, 1210, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 32, 1100, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 24, 1075, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 32, 1109, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 16, 1075, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, -24, 922, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -24, 950, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 32, -96, 945, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 64 } }, -40, -24, 5000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 40 } }, 128, -120, 875, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, 104, -120, 900, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 40 } }, 72, -120, 912, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, 56, -112, 925, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 8 } }, 40, -104, 925, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 48, 16 } }, 24, -96, 925, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_80185354[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 31, 0, 0, { 2, 0 } },
+    { 31, 1, 0, 0, { 1, 0 } },
+    { 32, 6, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018537C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018538C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018539C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b1_north_maintenance_walkway_801853AC[6] = {
+    { { .empty = D_shelter_b1_north_maintenance_walkway_8018503C }, D_shelter_b1_north_maintenance_walkway_8018503C, NULL },
+    { { .empty = D_shelter_b1_north_maintenance_walkway_8018504C }, D_shelter_b1_north_maintenance_walkway_8018504C, NULL },
+    { { .elements = D_shelter_b1_north_maintenance_walkway_8018505C }, D_shelter_b1_north_maintenance_walkway_80185354, NULL },
+    { { .empty = D_shelter_b1_north_maintenance_walkway_8018537C }, D_shelter_b1_north_maintenance_walkway_8018537C, NULL },
+    { { .empty = D_shelter_b1_north_maintenance_walkway_8018538C }, D_shelter_b1_north_maintenance_walkway_8018538C, NULL },
+    { { .empty = D_shelter_b1_north_maintenance_walkway_8018539C }, D_shelter_b1_north_maintenance_walkway_8018539C, NULL },
+};
+
+GpPointLight D_shelter_b1_north_maintenance_walkway_801853F4[5] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1863, -221, 4731 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2758, 2836, 2918, { 0, 0 } }, 948, 2672 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 68, -223, 4315 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2698, 2860, 2900, { 0, 0 } }, 1359, 3223 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2002, -504, -2007 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2785, 2839, 2881, { 0, 0 } }, 1799, 3522 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1916, -2, 445 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2839, 2860, 2999, { 0, 0 } }, 1721, 3243 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1988, -223, 2836 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2659, 2760, 2850, { 0, 0 } }, 1741, 3222 },
+};
+
+GpRoomCoordSet D_shelter_b1_north_maintenance_walkway_801855D4 = { 0, NULL, 5, D_shelter_b1_north_maintenance_walkway_801853F4, 0, NULL };
+
+GpObj4C D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
+    { NULL, NULL, NULL, { 2080, -1584, -576, 0 }, { { -1376, -1904, 192, 0 }, { 1376, -1904, -192, 0 }, { -1376, 1904, 192, 0 }, { 1376, 1904, -192, 0 } }, { -569, 0, -4074, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 2048, -1600, -672, 0 }, { { 1408, -1904, -192, 0 }, { -1408, -1904, 192, 0 }, { 1408, 1904, -192, 0 }, { -1408, 1904, 192, 0 } }, { 554, 0, 4067, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 2240, -1504, 3200, 0 }, { { 1536, -1904, 256, 0 }, { -1536, -1904, -256, 0 }, { 1536, 1904, 256, 0 }, { -1536, 1904, -256, 0 } }, { -676, 0, 4053, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 2176, -1505, 3280, 0 }, { { -1536, -1904, -272, 0 }, { 1536, -1904, 272, 0 }, { -1536, 1904, -272, 0 }, { 1536, 1904, 272, 0 } }, { 714, 0, -4039, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -608, -1568, 4016, 0 }, { { 96, -1904, -1312, 0 }, { -96, -1904, 1312, 0 }, { 96, 1904, -1312, 0 }, { -96, 1904, 1312, 0 } }, { 4090, 0, 298, 0 }, { 0, 0, 4096, 0 }, 2304, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -496, -1600, 3984, 0 }, { { -80, -1904, 1328, 0 }, { 80, -1904, -1328, 0 }, { -80, 1904, 1328, 0 }, { 80, 1904, -1328, 0 } }, { -4097, 0, -248, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 2, 3, 129, 0 },
+};
+
+GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
+    { NULL, NULL, { -1280, -1104, 1776, 0 }, { { -1920, 2128, -848, 0 }, { 1920, 2128, 848, 0 }, { -1920, -2128, -848, 0 }, { 1920, -2128, 848, 0 } }, { -1662, 0, 3761, 0 }, { -87, 11 }, 129, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_801857F0[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_80185814[2] = {
+    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_8018582C[4] = {
+    { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
+    { 46, 46, 1, 0, { 0, 0 }, D_8014F698 },
+    { 47, 47, 1, 0, { 0, 0 }, D_801502BC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_8018585C[2] = {
+    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_80185874[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_north_maintenance_walkway_80185898[6] = {
+    { 21, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
+    { 21, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
+    { 24, 0, 0, 1500, 0, 2900, 800, 0, 2, 4, 0 },
+    { 24, 0, 0, 2500, 0, 2100, 2300, 0, 2, 4, 0 },
+    { 24, 0, 0, 1500, 0, -1200, 1900, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_north_maintenance_walkway_801858F8[2] = {
+    { 3, 0, 0, 2000, 0, 4000, 3072, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_north_maintenance_walkway_80185918[10] = {
+    { 70, 0, 0, 1750, 0, -1050, 2400, 0, 0, 2, 0 },
+    { 70, 0, 0, 2300, 0, 3600, 3600, 0, 0, 2, 0 },
+    { 46, 0, 0, 2550, 0, 4500, 500, 0, 2, 4, 0 },
+    { 46, 0, 0, 500, 0, 3600, 3300, 0, 2, 4, 0 },
+    { 46, 0, 0, 1850, 0, 2050, 1500, 0, 2, 4, 0 },
+    { 47, 0, 0, -1800, 0, 4500, 2100, 0, 2, 4, 0 },
+    { 47, 0, 0, -350, 0, 3900, 3050, 0, 2, 4, 0 },
+    { 47, 0, 0, 1550, 0, -2000, 1800, 0, 2, 4, 0 },
+    { 47, 0, 0, 2550, 0, -2400, 2500, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_north_maintenance_walkway_801859B8[2] = {
+    { 11, 0, 0, 2000, 0, 1600, 0, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_north_maintenance_walkway_801859D8[6] = {
+    { 21, 1, 0, -2900, -2000, 4900, 1024, 0, 0, 2, 3 },
+    { 21, 1, 0, -2900, -2000, 4000, 1024, 0, 0, 2, 3 },
+    { 21, 1, 0, 2000, -1900, 5100, 2048, 0, 0, 2, 3 },
+    { 21, 1, 0, 3200, -1900, 4000, 3072, 0, 0, 2, 3 },
+    { 57, 0, 0, -500, 0, 4000, 1024, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
+    { NULL, NULL },
+    { D_shelter_b1_north_maintenance_walkway_80185898, D_shelter_b1_north_maintenance_walkway_801857F0 },
+    { D_shelter_b1_north_maintenance_walkway_801858F8, D_shelter_b1_north_maintenance_walkway_80185814 },
+    { D_shelter_b1_north_maintenance_walkway_80185918, D_shelter_b1_north_maintenance_walkway_8018582C },
+    { D_shelter_b1_north_maintenance_walkway_801859B8, D_shelter_b1_north_maintenance_walkway_8018585C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_north_maintenance_walkway_801859D8, D_shelter_b1_north_maintenance_walkway_80185874 },
+};
+
+GpObj4C D_shelter_b1_north_maintenance_walkway_80185A98[2] = {
+    { NULL, NULL, NULL, { -2128, -48, 3344, 0 }, { { -720, 0, -400, 0 }, { 720, 0, -400, 0 }, { -720, 0, 400, 0 }, { 720, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 822, 0, 14, 18, 2, 0 },
+    { NULL, NULL, NULL, { 1984, -48, -4560, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1115, 0, 11, 35, 130, 0 },
+};
+
+s32 D_shelter_b1_north_maintenance_walkway_80185B30[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b1_north_maintenance_walkway_80185B3C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b1_north_maintenance_walkway_80185B44[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_north_maintenance_walkway_80185B30 },
+};
+
+GpRoomParamRec * D_shelter_b1_north_maintenance_walkway_80185B4C[8] = {
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B44,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+    D_shelter_b1_north_maintenance_walkway_80185B3C,
+};
+
+RoomFadeStorage D_shelter_b1_north_maintenance_walkway_80185B6C = { 0 };
+
+RoomEventMsg D_shelter_b1_north_maintenance_walkway_80185B74 = { 0 };
+
+s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
+    0,
+    89,
+    61,
+    49,
+};
+
+RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80 = { 0 };
 
 /// Queues a grey gouraud glow spanning the projected points `arg0[0]` and
 /// `arg0[1]`: a half-disc at each end, of radius `arg1` scaled by that end's
@@ -249,7 +734,7 @@ void func_shelter_b1_north_maintenance_walkway_8017E55C(SVECTOR* arg0, s16 arg1)
 /// and draws it, and within eight ticks of its lifetime it fades out, releasing
 /// its work block once dark. It pauses while the room's event state is set
 /// and releases the block when that state reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_8017E8B8(Task* task)
+void func_shelter_b1_north_maintenance_walkway_8017E8B8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -508,7 +993,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017F26C(GpCoord* arg0, s1
 /// It then fades from full level through the afterglow, 0x10 a tick, and
 /// releases its work block. It pauses while the room's event state is set and
 /// releases the block when that state reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -552,9 +1037,9 @@ static void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].b;
+                rgb[0]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].r;
+                rgb[1]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].g;
+                rgb[2]           = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].b;
                 func_shelter_b1_north_maintenance_walkway_8017F26C(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -572,9 +1057,9 @@ static void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].r;
-                    rgb[1] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].g;
-                    rgb[2] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50[mem->index].b;
+                    rgb[0] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].r;
+                    rgb[1] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].g;
+                    rgb[2] = mem->scale >> D_shelter_b1_north_maintenance_walkway_80184B50.entries[mem->index].b;
                     func_shelter_b1_north_maintenance_walkway_801803E8(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
@@ -596,7 +1081,7 @@ kill:
 /// the main level falls 0x18 a tick and the work block is released. It pauses
 /// while the room's event state is set and releases the block when that state
 /// reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -975,7 +1460,7 @@ static void func_shelter_b1_north_maintenance_walkway_801803E8(GpCoord* arg0, s1
 /// outwards along that heading at 3/16 speed with a vertical velocity of -0x80
 /// per tick of age, then releases its work block. It pauses while the room's
 /// event state is set and releases the block when that state reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1012,7 +1497,7 @@ static void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
 /// drawing two fans and an inward-shrinking ring in a colour derived from the
 /// level, and queues a fade quad in that colour when it peaks; state 2 fades
 /// out through the star draw before the work block is released.
-static void func_shelter_b1_north_maintenance_walkway_80180EDC(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_80180EDC(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1190,7 +1675,7 @@ static void func_shelter_b1_north_maintenance_walkway_801815AC(GpCoord* arg0, s1
 /// between the rings as a beam. The work block is released once the tick count
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
-static void func_shelter_b1_north_maintenance_walkway_80181940(Task* task)
+void func_shelter_b1_north_maintenance_walkway_80181940(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1248,9 +1733,12 @@ static void func_shelter_b1_north_maintenance_walkway_80181940(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_b1_north_maintenance_walkway_80184B6C.vx;
-                coord.coord.t[1] = D_shelter_b1_north_maintenance_walkway_80184B6C.vy;
-                coord.coord.t[2] = D_shelter_b1_north_maintenance_walkway_80184B6C.vz;
+                {
+                    SVECTOR* edge = &D_shelter_b1_north_maintenance_walkway_80184B64[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1390,7 +1878,7 @@ static void func_shelter_b1_north_maintenance_walkway_80181E30(GpCoord* arg0, Gp
 /// a tick. Either way it releases its work block after seven ticks. It pauses
 /// while the room's event state is set and releases the block when that state
 /// reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_80182228(Task* task)
+void func_shelter_b1_north_maintenance_walkway_80182228(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1589,7 +2077,7 @@ static void func_shelter_b1_north_maintenance_walkway_801824B0(GpCoord* arg0, s1
 /// the work block. The spawn argument picks the disc's colour shifts. It
 /// pauses while the room's event state is set and releases the block when that
 /// state reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1628,7 +2116,7 @@ static void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -1706,7 +2194,7 @@ static void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
 /// animation frame; it releases its work block after 20 ticks. It pauses while
 /// the room's event state is set and releases the block when that state
 /// reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task)
+void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1715,7 +2203,7 @@ static void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task)
 
     work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1.value;
+    target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -1933,7 +2421,7 @@ static void func_shelter_b1_north_maintenance_walkway_80183C94(GpCoord* arg0, s3
 /// gone the main level falls 0x18 a tick and the work block is released. It
 /// pauses while the room's event state is set and releases the block when that
 /// state reaches 4.
-static void func_shelter_b1_north_maintenance_walkway_80184028(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_80184028(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;

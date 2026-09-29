@@ -1,6 +1,8 @@
 #ifndef ROOMS_DRYFIELD_NIGHT_FACTORY_H
 #define ROOMS_DRYFIELD_NIGHT_FACTORY_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -125,15 +127,10 @@ STATIC_ASSERT_SIZEOF(NightFactoryScriptWork, 0x10);
 /// The single-entry `TaskDesc` table the room's script task spawns its child
 /// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
 extern TaskDesc D_dryfield_night_factory_80186E94[];
-/// The script's message table, parked in `Task::msgTable`.
-extern GpMsgEntry D_dryfield_night_factory_80186EAC[];
+/// Alternate child task descriptor used by the shared factory controller.
+extern TaskDesc D_dryfield_night_factory_80186EA0[];
 /// The room's 0xFFFF-terminated hotspot table.
 extern OverlayHotspot D_dryfield_night_factory_80186EBC[];
-
-/// The collision grids of the two stage variants, whose faces the factory
-/// model's handlers rewrite as it moves.
-extern GpGridParams D_dryfield_night_factory_80187BF0;
-extern GpGridParams D_dryfield_night_factory_80187BF8;
 
 /// Shows (non-zero) or hides (zero) the second sprite command of view 9 of the
 /// current room, in stage 2 only.
@@ -141,5 +138,19 @@ void func_dryfield_night_factory_80181620(s32 show);
 
 /// As `func_dryfield_night_factory_80181620`, for view 11.
 void func_dryfield_night_factory_80181B38(s32 show);
+
+// Variant-specific factory task and collision tables.
+extern TaskDesc D_dryfield_night_factory_80186DE0[];
+extern GpGridParams D_dryfield_night_factory_80187BF0;
+
+#include "gameplay/pad_script.h"
+
+extern GpScriptCmd D_dryfield_night_factory_8018A7BC[3];
+
+extern GpScriptRec D_dryfield_night_factory_8018A7C8[3];
+
+extern GpAreaVariant D_dryfield_night_factory_8018A70C[11];
+
+void func_dryfield_night_factory_801825F0(Task* task);
 
 #endif // ROOMS_DRYFIELD_NIGHT_FACTORY_H

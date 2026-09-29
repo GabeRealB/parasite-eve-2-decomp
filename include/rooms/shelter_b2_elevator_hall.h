@@ -1,6 +1,8 @@
 #ifndef ROOMS_SHELTER_B2_ELEVATOR_HALL_H
 #define ROOMS_SHELTER_B2_ELEVATOR_HALL_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -36,7 +38,6 @@ extern RoomEventMsg D_shelter_b2_elevator_hall_80184D7C;
 
 /// Set by `func_shelter_b2_elevator_hall_8017D610` when the event it gates has
 /// just fired, clear otherwise.
-extern u8 D_shelter_b2_elevator_hall_80184D84;
 
 /// Copy of the request that fired a gated event, whose cap command and voice
 /// lines the task `func_shelter_b2_elevator_hall_8017D774` plays.
@@ -46,5 +47,16 @@ extern RoomEventReq D_shelter_b2_elevator_hall_80184D88;
 /// copies the recorded message's area, warp and room into the save location,
 /// spawns task 0x11 and ends.
 void func_shelter_b2_elevator_hall_8017D774(Task* task);
+
+void func_shelter_b2_elevator_hall_801817FC(Task* arg0);
+void func_shelter_b2_elevator_hall_80182260(Task* task);
+void func_shelter_b2_elevator_hall_80182B48(Task* task);
+void func_shelter_b2_elevator_hall_8017F1D8(Task* task);
+void func_shelter_b2_elevator_hall_8017FF20(Task* arg0);
+void func_shelter_b2_elevator_hall_801802B8(Task* arg0);
+void func_shelter_b2_elevator_hall_801816C8(Task* arg0);
+extern GpAreaVariant D_shelter_b2_elevator_hall_80184C7C[22];
+
+void func_shelter_b2_elevator_hall_8017DD60(Task* arg0);
 
 #endif // ROOMS_SHELTER_B2_ELEVATOR_HALL_H

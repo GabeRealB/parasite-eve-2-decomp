@@ -1,3 +1,5 @@
+#include "dryfield_water_tank_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -18,6 +20,7 @@
 #include "gameplay/world_targets.h"
 
 #include "gameplay/evs.h"
+#include "gameplay/animation.h"
 #include "gameplay/message.h"
 #include "gameplay/world_state.h"
 #include "main/display.h"
@@ -30,6 +33,29 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "overlay.h"
+
+#include "gameplay/room.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+
+// The animation copy spans the bank and its following records.
+// Keep the typed fields and the complete copied word range together.
+typedef union {
+    struct {
+        GpAnimSet* sets[19];
+        GpCopyArg copy;
+    } data;
+    s32 words[21];
+} DryfieldWaterTankAnimStorage4960;
+STATIC_ASSERT_SIZEOF(DryfieldWaterTankAnimStorage4960, 84);
+
+extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
+
+extern GpRoomBoundVec D_dryfield_water_tank_80188C58[11];
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
@@ -88,17 +114,18 @@ STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
 
-extern s32            D_dryfield_water_tank_8017F114;
-extern s32            D_dryfield_water_tank_8017F21C;
+extern GpEvsCmd D_dryfield_water_tank_8017F114[];
+extern GpEvsCmd D_dryfield_water_tank_8017F21C[];
 extern GpMsgEntry     D_dryfield_water_tank_8017F324[];
-extern TaskDesc       D_dryfield_water_tank_8017F34C;
-extern GpMsgEntry     D_dryfield_water_tank_8017FD90[];
-extern s32            D_dryfield_water_tank_8017FDC0;
-extern s32            D_dryfield_water_tank_8017FEC8;
-extern TaskDesc       D_dryfield_water_tank_8017FF88;
+extern TaskDesc       D_dryfield_water_tank_8017F34C[];
+// Message-table callbacks use the argument views required by this TU.
+
+extern GpEvsCmd D_dryfield_water_tank_8017FDC0[];
+extern GpEvsCmd D_dryfield_water_tank_8017FEC8[];
+extern TaskDesc       D_dryfield_water_tank_8017FF88[];
 extern TaskDesc       D_dryfield_water_tank_80180794;
-extern s32            D_dryfield_water_tank_80184E0C;
-extern s32            D_dryfield_water_tank_801859DC;
+extern GpEvsCmd D_dryfield_water_tank_80184E0C[];
+extern GpEvsCmd D_dryfield_water_tank_801859DC[];
 extern TaskDesc       D_dryfield_water_tank_801868A4[];
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern Task*          D_dryfield_water_tank_80188D44;
@@ -108,16 +135,1088 @@ extern Task*          D_dryfield_water_tank_80188D4C;
 /// The model's placement run at 0x8017FD60. `[1]` (0x8017FD78) is the lowered
 /// record: the model sinks until its Z passes `pos.vz` and is snapped to its
 /// `pos.vy` and then `pos.vx`. The model task reaches that record both from
-/// this head and by its own symbol, so the head is declared one element long;
+/// this head and through a direct reference to its second element;
 /// the driver sends the head itself as the 0x7D4 placement.
-extern GpXformArg D_dryfield_water_tank_8017FD60[1];
-extern GpXformArg D_dryfield_water_tank_8017FD78;
+extern GpXformArg D_dryfield_water_tank_8017FD60[2];
 
 /// X offsets the model task spawns effect 0x60054 with, indexed by the 0..10
 /// `killCountdown` counter it wraps.
 extern u16 D_dryfield_water_tank_8017FDA8[];
 
 static void func_dryfield_water_tank_8017DB48(void);
+
+extern GpAreaTmdRec D_dryfield_water_tank_80188BCC[2];
+
+extern GpGridParams D_dryfield_water_tank_80186EBC[1];
+extern GpObj4C D_dryfield_water_tank_80187FF8[4];
+extern GpObj4C D_dryfield_water_tank_80188920[9];
+extern GpRoomCoordSet D_dryfield_water_tank_80188908[1];
+
+extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
+extern GpAnimSet D_dryfield_water_tank_80180A7C;
+extern GpAnimSet D_dryfield_water_tank_80180D3C;
+extern GpAnimSet D_dryfield_water_tank_80181020;
+extern GpAnimSet D_dryfield_water_tank_80181274;
+extern GpAnimSet D_dryfield_water_tank_801815C0;
+extern GpAnimSet D_dryfield_water_tank_80181D7C;
+extern GpAnimSet D_dryfield_water_tank_80182060;
+extern GpAnimSet D_dryfield_water_tank_80182258;
+extern GpAnimSet D_dryfield_water_tank_801825AC;
+extern GpAnimSet D_dryfield_water_tank_801827A4;
+extern GpAnimSet D_dryfield_water_tank_80182CC4;
+extern GpAnimSet D_dryfield_water_tank_80182FA4;
+extern GpAnimSet D_dryfield_water_tank_80183378;
+extern GpAnimSet D_dryfield_water_tank_80183768;
+extern GpAnimSet D_dryfield_water_tank_80183AD4;
+extern GpAnimSet D_dryfield_water_tank_80183E00;
+extern GpAnimSet D_dryfield_water_tank_80184228;
+extern GpAnimSet D_dryfield_water_tank_80184508;
+
+DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960 = { .data = { { NULL, &D_dryfield_water_tank_80180A7C, &D_dryfield_water_tank_80180D3C, &D_dryfield_water_tank_80181020, &D_dryfield_water_tank_80181274, &D_dryfield_water_tank_80181D7C, &D_dryfield_water_tank_80182258, &D_dryfield_water_tank_801825AC, &D_dryfield_water_tank_801827A4, &D_dryfield_water_tank_80182CC4, &D_dryfield_water_tank_80182FA4, &D_dryfield_water_tank_80183378, &D_dryfield_water_tank_80183768, &D_dryfield_water_tank_80183AD4, &D_dryfield_water_tank_80183E00, &D_dryfield_water_tank_801815C0, &D_dryfield_water_tank_80182060, &D_dryfield_water_tank_80184508, &D_dryfield_water_tank_80184228 }, { { .words = D_dryfield_water_tank_80184960.words }, 20 } } };
+
+GpAnimArg D_dryfield_water_tank_801849B4 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_dryfield_water_tank_801849C8 = { { .index = 1 }, 48, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_801849DC = { { .index = 1 }, 49, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_801849F0 = { { .index = 1 }, 50, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A04 = { { .index = 1 }, 51, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A18 = { { .index = 1 }, 52, 0, 0, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A2C[2] = {
+    { { .index = 1 }, 53, 1, 20, 0 },
+    { { .index = 1 }, 54, 1, 20, 0 },
+};
+
+GpAnimArg D_dryfield_water_tank_80184A54 = { { .index = 1 }, 55, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A68 = { { .index = 1 }, 56, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A7C = { { .index = 1 }, 57, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184A90 = { { .index = 1 }, 58, 1, 20, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184AA4[2] = {
+    { { .index = 1 }, 59, 1, 20, 0 },
+    { { .index = 1 }, 60, 1, 20, 0 },
+};
+
+GpAnimArg D_dryfield_water_tank_80184ACC = { { .index = 1 }, 61, 1, 3, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184AE0 = { { .index = 1 }, 62, 0, 0, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184AF4 = { { .index = 1 }, 63, 0, 0, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184B08 = { { .index = 1 }, 64, 1, 3, 0 };
+
+GpAnimArg D_dryfield_water_tank_80184B1C = { { .index = 1 }, 65, 1, 3, 0 };
+
+GpXformArg D_dryfield_water_tank_80184B30 = { { 2530, -0x2EE0, 610, 0 }, { 0, -2047, 0, 0 } };
+
+GpXformArg D_dryfield_water_tank_80184B48 = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
+
+s32 D_dryfield_water_tank_80184B60[2] = {
+    62,
+    63,
+};
+
+GpAnimArg D_dryfield_water_tank_80184B68[3] = {
+    { { .index = 0 }, 1, 0, 0, 0 },
+    { { .index = 0 }, 1, 1, 20, 0 },
+    { { .index = 0 }, 2, 1, 20, 1 },
+};
+
+GpAnimArg D_dryfield_water_tank_80184BA4 = { { .index = 0 }, 3, 0, 0, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184BB8 = { { .index = 0 }, 4, 1, 8, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184BCC = { { .index = 0 }, 5, 1, 8, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184BE0 = { { .index = 0 }, 6, 1, 20, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184BF4 = { { .index = 0 }, 7, 1, 20, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184C08 = { { .index = 0 }, 8, 0, 0, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184C1C[8] = {
+    { { .index = 0 }, 9, 1, 20, 1 },
+    { { .index = 0 }, 10, 1, 20, 1 },
+    { { .index = 0 }, 11, 1, 20, 1 },
+    { { .index = 0 }, 12, 1, 20, 1 },
+    { { .index = 0 }, 13, 1, 20, 1 },
+    { { .index = 0 }, 14, 1, 20, 1 },
+    { { .index = 0 }, 15, 1, 20, 1 },
+    { { .index = 0 }, 16, 1, 20, 1 },
+};
+
+GpAnimArg D_dryfield_water_tank_80184CBC = { { .index = 0 }, 17, 1, 20, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184CD0 = { { .index = 0 }, 18, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184CE4 = { { .index = 0 }, 19, 0, 0, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184CF8 = { { .index = 0 }, 20, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D0C = { { .index = 0 }, 21, 1, 20, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D20 = { { .index = 0 }, 22, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D34 = { { .index = 0 }, 23, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D48 = { { .index = 0 }, 24, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D5C = { { .index = 0 }, 25, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D70 = { { .index = 0 }, 26, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D84 = { { .index = 0 }, 27, 1, 2, 1 };
+
+GpAnimArg D_dryfield_water_tank_80184D98 = { { .index = 0 }, 28, 1, 2, 1 };
+
+GpXformArg D_dryfield_water_tank_80184DAC = { { 2530, -0x2EE0, -640, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
+
+TaskDesc D_dryfield_water_tank_80184DF4[2] = {
+    { 0, 192, func_dryfield_water_tank_8017EC6C, { .model = NULL } },
+    { 0, 192, func_dryfield_water_tank_8017ED30, { .model = NULL } },
+};
+
+GpEvsCmd D_dryfield_water_tank_80184E0C[126] = {
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_water_tank_80184960.data.copy }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_water_tank_80184B30 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_dryfield_water_tank_80184DAC }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849C8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184CE4 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184CD0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_dryfield_water_tank_80184DC4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184BA4 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A68 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184C08 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184BCC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A7C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D5C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D70 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D98 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184ACC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D0C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A90 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184CF8 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D20 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184CBC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184BF4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184B08 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D5C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184B1C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A54 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D34 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A90 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D70 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184D48 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184BA4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849DC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184C08 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5215000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x52150010 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A04 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849F0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_dryfield_water_tank_80184BCC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849C8 }, { .value = 0 } },
+    { 4, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_dryfield_water_tank_8017EC38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
+    { 4, { .value = 52 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A18 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_dryfield_water_tank_80184DDC }, { .value = 0 } },
+    { 4, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_dryfield_water_tank_8017EC38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 20, { .value = 4 }, { .value = 30 }, { .value = 30 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_water_tank_80184B48 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849B4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 21, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_water_tank_801859DC[14] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 20, { .value = 4 }, { .value = 30 }, { .value = 30 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_water_tank_80184B48 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849B4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 21, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TmdBone D_dryfield_water_tank_80185B2C[1] = {
+#include "assets/dryfield_water_tank_model_092C0_skeleton.inc"
+};
+
+u32 D_dryfield_water_tank_80185B50[1] = {
+#include "assets/dryfield_water_tank_model_092C0_partVerts.inc"
+};
+
+SVECTOR D_dryfield_water_tank_80185B54[84] = {
+#include "assets/dryfield_water_tank_model_092C0_verts.inc"
+};
+
+SVECTOR D_dryfield_water_tank_80185DF4[72] = {
+#include "assets/dryfield_water_tank_model_092C0_normals.inc"
+};
+
+u32 D_dryfield_water_tank_80186034[531] = {
+#include "assets/dryfield_water_tank_model_092C0_stream.inc"
+};
+
+TmdSource D_dryfield_water_tank_80186880 = {
+    0, 3768, 0, 1,
+    D_dryfield_water_tank_80185B50, D_dryfield_water_tank_80185B54, D_dryfield_water_tank_80185DF4, D_dryfield_water_tank_80185B2C, D_dryfield_water_tank_80186034,
+};
+
+TaskDesc D_dryfield_water_tank_801868A4[2] = {
+    { 1, 192, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_dryfield_water_tank_801868BC = 0;
+
+s32 D_dryfield_water_tank_801868C0 = 0;
+
+s32 D_dryfield_water_tank_801868C4 = 0;
+
+s32 D_dryfield_water_tank_801868C8 = 0;
+
+u16 D_dryfield_water_tank_801868CC[10] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+};
+
+GpRoomObjRec D_dryfield_water_tank_801868E0[1] = {
+    { D_dryfield_water_tank_80186EBC, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
+};
+
+u8 * D_dryfield_water_tank_801868F0[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_dryfield_water_tank_801868F4[2] = {
+    { { .bytes = { 10, 0 } } },
+    { { .bytes = { 0, 0 } } },
+};
+
+GpRoomCoordRec D_dryfield_water_tank_801868F8[1] = {
+    { D_dryfield_water_tank_80188908, D_dryfield_water_tank_80188C58 },
+};
+
+GpWarpRec D_dryfield_water_tank_80186900[2] = {
+    { { .words = { 512, -2327, -0x2EDF, 1143 } }, { 0, 0, 0, 0 }, { .words = { 512, -2327, -0x2EDF, 1143 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
+};
+
+SVECTOR D_dryfield_water_tank_80186970[14] = {
+    { 0, -4096, 0, 0 },
+    { 2896, 0, -2896, 0 },
+    { 2896, 0, 2896, 0 },
+    { -2896, 0, 2896, 0 },
+    { -2896, 0, -2896, 0 },
+    { 1295, 0, -3886, 0 },
+    { 3581, 0, -1989, 0 },
+    { -2896, 0, 2896, 0 },
+    { -4096, 0, 0, 0 },
+    { 2896, 0, -2896, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -2812, 0, -2978, 0 },
+};
+
+SVECTOR D_dryfield_water_tank_801869E0[70] = {
+    { 1300, -0x2EE0, 3300, 0 },
+    { 1300, -0x2EE0, -3300, 0 },
+    { -1300, -0x2EE0, -3300, 0 },
+    { -1300, -0x2EE0, 3300, 0 },
+    { -3300, -0x2EE0, -1300, 0 },
+    { -3300, -0x2EE0, 1400, 0 },
+    { 3300, -0x2EE0, 1400, 0 },
+    { 3300, -0x2EE0, -1300, 0 },
+    { 1220, -0x4204, 913, 0 },
+    { 913, -0x4204, 1220, 0 },
+    { 1279, -0x4204, 1586, 0 },
+    { 1586, -0x4204, 1279, 0 },
+    { 1220, -0x4010, 913, 0 },
+    { 1586, -0x4010, 1279, 0 },
+    { 1279, -0x4010, 1586, 0 },
+    { 913, -0x4010, 1220, 0 },
+    { -2000, -0x4010, 2000, 0 },
+    { 2000, -0x4010, 2000, 0 },
+    { 2000, -0x4010, -2000, 0 },
+    { -2000, -0x4010, -2000, 0 },
+    { -2300, -0x2EE0, -1100, 0 },
+    { -2300, -0x3A98, -1100, 0 },
+    { -1400, -0x3A98, -800, 0 },
+    { -1400, -0x2EE0, -800, 0 },
+    { -2800, -0x2EE0, -2000, 0 },
+    { -2800, -0x3A98, -2000, 0 },
+    { 800, -0x4A38, -1900, 0 },
+    { 800, -0x4010, -1900, 0 },
+    { 1900, -0x4010, -800, 0 },
+    { 1900, -0x4A38, -800, 0 },
+    { 1900, -0x4010, 800, 0 },
+    { 1900, -0x4A38, 800, 0 },
+    { -800, -0x4A38, 1900, 0 },
+    { -800, -0x4010, 1900, 0 },
+    { -1900, -0x4010, 800, 0 },
+    { -1900, -0x4A38, 800, 0 },
+    { 800, -0x4A38, 1900, 0 },
+    { 800, -0x4010, 1900, 0 },
+    { -800, -0x4010, -1900, 0 },
+    { -800, -0x4A38, -1900, 0 },
+    { -1900, -0x4A38, -800, 0 },
+    { -1900, -0x4010, -800, 0 },
+    { 1200, -0x32C8, -3000, 0 },
+    { 1200, -0x2EE0, -3000, 0 },
+    { 3000, -0x2EE0, -1200, 0 },
+    { 3000, -0x32C8, -1200, 0 },
+    { 3000, -0x2EE0, 1300, 0 },
+    { 3000, -0x32C8, 1300, 0 },
+    { -1200, -0x32C8, 3000, 0 },
+    { -1200, -0x2EE0, 3000, 0 },
+    { -3000, -0x2EE0, 1200, 0 },
+    { -3000, -0x32C8, 1200, 0 },
+    { 1200, -0x32C8, 3000, 0 },
+    { 1200, -0x2EE0, 3000, 0 },
+    { -1200, -0x2EE0, -3000, 0 },
+    { -1200, -0x32C8, -3000, 0 },
+    { -3000, -0x32C8, -1200, 0 },
+    { -3000, -0x2EE0, -1200, 0 },
+    { 800, -0x2EE0, -1900, 0 },
+    { 1900, -0x2EE0, -800, 0 },
+    { 1900, -0x2EE0, 800, 0 },
+    { -800, -0x2EE0, 1900, 0 },
+    { -1900, -0x2EE0, 800, 0 },
+    { 800, -0x2EE0, 1900, 0 },
+    { -800, -0x2EE0, -1900, 0 },
+    { -1900, -0x2EE0, -800, 0 },
+    { -1600, -0x2EE0, 450, 0 },
+    { -1600, -0x3A98, 450, 0 },
+    { -3500, -0x3A98, 450, 0 },
+    { -3500, -0x2EE0, 450, 0 },
+};
+
+GpGridFace D_dryfield_water_tank_80186C10[36] = {
+    { { 1, 2, 0, 3 }, 0, 3 },
+    { { 4, 5, 2, 3 }, 0, 4 },
+    { { 6, 7, 0, 1 }, 0, 4 },
+    { { 9, 10, 8, 11 }, 0, 0 },
+    { { 8, 11, 12, 13 }, 1, 0 },
+    { { 11, 10, 13, 14 }, 2, 0 },
+    { { 10, 9, 14, 15 }, 3, 0 },
+    { { 8, 12, 9, 15 }, 4, 0 },
+    { { 17, 18, 16, 19 }, 0, 5 },
+    { { 21, 22, 20, 23 }, 5, 1 },
+    { { 20, 24, 21, 25 }, 6, 1 },
+    { { 27, 28, 26, 29 }, 7, 1 },
+    { { 30, 31, 28, 29 }, 8, 1 },
+    { { 33, 34, 32, 35 }, 9, 1 },
+    { { 37, 33, 36, 32 }, 10, 1 },
+    { { 36, 31, 37, 30 }, 4, 1 },
+    { { 39, 40, 38, 41 }, 2, 1 },
+    { { 38, 27, 39, 26 }, 11, 1 },
+    { { 41, 40, 34, 35 }, 12, 1 },
+    { { 43, 44, 42, 45 }, 7, 1 },
+    { { 46, 47, 44, 45 }, 8, 1 },
+    { { 49, 50, 48, 51 }, 9, 1 },
+    { { 53, 49, 52, 48 }, 10, 1 },
+    { { 52, 47, 53, 46 }, 13, 1 },
+    { { 55, 56, 54, 57 }, 2, 1 },
+    { { 54, 43, 55, 42 }, 11, 1 },
+    { { 57, 56, 50, 51 }, 12, 1 },
+    { { 27, 28, 58, 59 }, 9, 0 },
+    { { 59, 28, 60, 30 }, 12, 0 },
+    { { 33, 34, 61, 62 }, 7, 0 },
+    { { 37, 33, 63, 61 }, 11, 0 },
+    { { 63, 60, 37, 30 }, 2, 0 },
+    { { 64, 65, 38, 41 }, 4, 0 },
+    { { 38, 27, 64, 58 }, 10, 0 },
+    { { 62, 34, 65, 41 }, 8, 0 },
+    { { 67, 68, 66, 69 }, 11, 1 },
+};
+
+s16 D_dryfield_water_tank_80186DC0[34] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    21,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    -1,
+};
+
+s16 D_dryfield_water_tank_80186E04[29] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14,
+    15,
+    16,
+    18,
+    21,
+    22,
+    23,
+    26,
+    28,
+    29,
+    30,
+    31,
+    32,
+    34,
+    35,
+    -1,
+};
+
+s16 D_dryfield_water_tank_80186E40[28] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    11,
+    12,
+    14,
+    15,
+    16,
+    17,
+    19,
+    20,
+    23,
+    24,
+    25,
+    27,
+    28,
+    30,
+    31,
+    32,
+    33,
+    -1,
+};
+
+s16 D_dryfield_water_tank_80186E78[25] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    11,
+    12,
+    13,
+    14,
+    15,
+    19,
+    20,
+    21,
+    22,
+    23,
+    27,
+    28,
+    29,
+    30,
+    31,
+    -1,
+};
+
+s16 * D_dryfield_water_tank_80186EAC[4] = {
+    D_dryfield_water_tank_80186DC0,
+    D_dryfield_water_tank_80186E04,
+    D_dryfield_water_tank_80186E40,
+    D_dryfield_water_tank_80186E78,
+};
+
+GpGridParams D_dryfield_water_tank_80186EBC[1] = {
+    { NULL, D_dryfield_water_tank_80186970, D_dryfield_water_tank_801869E0, D_dryfield_water_tank_80186C10, D_dryfield_water_tank_80186EAC, 3500, 3300, 2, 2, 4000, 36 },
+};
+
+GpViewRec D_dryfield_water_tank_80186EE0[10] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
+    { { { { 1429, 0, -3838 }, { -2523, 3086, -939 }, { 2892, 2692, 1077 } }, { 5050, 0x3E4E, 1880 } }, 257 },
+    { { { { -853, 0, 4006 }, { 1212, 3903, 258 }, { -3818, 1239, -813 } }, { -5920, 0x37FA, -1350 } }, 257 },
+    { { { { -1180, 0, 3922 }, { 173, 4092, 52 }, { -3918, 180, -1179 } }, { -4220, 0x42EA, -1350 } }, 230 },
+    { { { { -2338, 0, 3362 }, { 0, 4096, 0 }, { -3362, 0, -2338 } }, { -6615, 0x324B, -2870 } }, 541 },
+    { { { { -4013, 0, 817 }, { 0, 4096, 0 }, { -817, 0, -4013 } }, { -3050, 0x348A, -2000 } }, 680 },
+    { { { { 4022, 0, 773 }, { 0, 4096, 0 }, { -773, 0, 4022 } }, { -3000, 0x348A, 1950 } }, 680 },
+    { { { { -1032, 0, 3963 }, { 0, 4096, 0 }, { -3963, 0, -1032 } }, { -3180, 0x335E, -310 } }, 257 },
+    { { { { 3261, 0, 2478 }, { 0, 4096, 0 }, { -2478, 0, 3261 } }, { -4900, 1150, 2500 } }, 257 },
+    { { { { -2401, 0, 3317 }, { 3202, 1072, 2318 }, { -868, 3953, -628 } }, { 572, 0x42B6, 1557 } }, 380 },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187048[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_80187058[31] = {
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, -120, 3693, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, -120, 1131, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -120, 1028, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -64, 1355, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -72, -120, 990, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -72, -48, 1277, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -56, -120, 954, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -56, -48, 1191, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, -120, 1123, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -120, 1128, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 72, -120, 1045, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 72, -56, 1416, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 56, -120, 992, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 56, -48, 1304, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -120, 954, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 40, -48, 1228, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -144, 8, 1000, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 16, 1000, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 16, 875, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -80, 8, 875, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 16, 875, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, 40, 875, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -24, 48, 875, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, 64, 875, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 64, 875, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 32, 40, 875, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, 32, 750, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 64, 24, 875, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 16, 875, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 8, 875, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 0, 875, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_801872C4[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 16, 0, 0, { 1, 0 } },
+    { 16, 15, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_801872E4[88] = {
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -96, -120, 1275, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, -120, 1250, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -80, -120, 1125, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -72, -120, 1125, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 80, -120, 1250, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 72, -120, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, -120, 1250, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 56, -120, 1250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 48, -120, 1250, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -64, -120, 1047, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -48, -120, 1000, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -32, -120, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -16, -120, 1000, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 0, -120, 1000, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 16, -120, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 32, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 0, 1500, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, -56, 1250, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, -80, 0, 1500, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -48, 0, 1375, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, 0, 1375, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -64, 0, 1375, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, -72, 0, 1500, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 56 } }, -64, -56, 1250, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, -56, 1250, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, 0, 1375, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, -56, 1225, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, -56, 1250, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 32, -56, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, -56, 1127, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 48, -56, 1150, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, -56, 1250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, -56, 1250, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, -56, 1250, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, -56, 1375, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -32, -56, 1375, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -16, -56, 1125, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, -56, 1125, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, 16, -56, 1125, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 16, 0, 1375, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 24, 0, 1375, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 56 } }, 32, 0, 1375, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, 0, 1375, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 48, 0, 1500, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, 56, 0, 1500, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, 64, 0, 1500, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 0, 1500, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, -32, 0, 1375, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, -16, 0, 1375, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, 0, 0, 1375, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 24, 750, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, -152, -24, 900, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, -24, 875, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 56 } }, -136, 8, 750, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 8, 750, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 40, 750, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 8, 750, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, 40, 750, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, 16, 750, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 64, 750, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, -88, 16, 750, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, -88, 48, 750, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -72, 48, 750, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, 48, 750, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 16, 750, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, 16, 750, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 56, 750, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -16, 16, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 24, 750, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, 24, 750, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, 24, 776, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 0, 56, 750, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 16, 56, 750, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, 56, 750, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, 16, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 48, 750, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, 16, 750, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 80, 8, 750, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 96, 0, 750, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 112, 0, 750, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 128, 0, 750, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 136, -8, 750, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 144, -8, 750, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 24, 750, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 144, 16, 750, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 80, 40, 750, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 96, 32, 750, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 56 } }, -48, -40, 1125, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_801879C4[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 50, 0, 0, { 1, 0 } },
+    { 50, 37, 0, 0, { 2, 0 } },
+    { 87, 1, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_801879EC[10] = {
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, 8, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 8, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 8, 625, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 24, 625, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 56, 625, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 24, 625, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, 72, 625, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 104, 625, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, 80, 625, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 96, 625, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187AB4[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 10, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_80187ACC[25] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -24, 500, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 32, 500, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 104 } }, -136, -24, 500, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, -24, 500, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -24, 500, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, 16, 500, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 32, 500, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, -88, -24, 500, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, -24, 500, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, -24, 500, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, -24, 500, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, 32, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, 32, 500, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -16, 32, 500, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 136 } }, 16, -24, 500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, -24, 500, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 48, -32, 500, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, -32, 500, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -32, 500, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, -32, 500, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 32, 40, 500, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 40, 500, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 40, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, 40, 500, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 40, 500, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187CC0[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 25, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187CD8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187CE8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_80187CF8[1] = {
+    { 143, 0x3FC0, { .fields = { 88, 240 } }, -40, -120, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187D0C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_dryfield_water_tank_80187D24[27] = {
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -88, 750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 750, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -16, 750, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 32, 750, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, -80, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 0, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 32, 750, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 72, 24, 750, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 0, 750, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 72, -72, 750, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -72, 750, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, -32, 750, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 16, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, -48, 1875, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, 0, 1875, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, 0, 1875, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -48, 1875, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, -48, 1875, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, 0, 1875, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 48, -8, 1875, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -56, 1875, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, -120, 250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, 0, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -64, 0, 250, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -64, -120, 250, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, -48, -120, 250, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, -48, 0, 250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187F40[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 10, 0, 0, { 3, 0 } },
+    { 10, 3, 0, 0, { 0, 0 } },
+    { 13, 8, 0, 0, { 2, 0 } },
+    { 21, 6, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_dryfield_water_tank_80187F70[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_dryfield_water_tank_80187F80[10] = {
+    { { .empty = D_dryfield_water_tank_80187048 }, D_dryfield_water_tank_80187048, NULL },
+    { { .elements = D_dryfield_water_tank_80187058 }, D_dryfield_water_tank_801872C4, NULL },
+    { { .elements = D_dryfield_water_tank_801872E4 }, D_dryfield_water_tank_801879C4, NULL },
+    { { .elements = D_dryfield_water_tank_801879EC }, D_dryfield_water_tank_80187AB4, NULL },
+    { { .elements = D_dryfield_water_tank_80187ACC }, D_dryfield_water_tank_80187CC0, NULL },
+    { { .empty = D_dryfield_water_tank_80187CD8 }, D_dryfield_water_tank_80187CD8, NULL },
+    { { .empty = D_dryfield_water_tank_80187CE8 }, D_dryfield_water_tank_80187CE8, NULL },
+    { { .elements = D_dryfield_water_tank_80187CF8 }, D_dryfield_water_tank_80187D0C, NULL },
+    { { .elements = D_dryfield_water_tank_80187D24 }, D_dryfield_water_tank_80187F40, NULL },
+    { { .empty = D_dryfield_water_tank_80187F70 }, D_dryfield_water_tank_80187F70, NULL },
+};
+
+GpObj4C D_dryfield_water_tank_80187FF8[4] = {
+    { NULL, NULL, NULL, { -864, -0x32D0, 2464, 0 }, { { 0, -1968, -1024, 0 }, { 0, -1968, 1024, 0 }, { 0, 1968, -1024, 0 }, { 0, 1968, 1024, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2217, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -576, -0x3310, 2464, 0 }, { { 0, -1904, 1024, 0 }, { 0, -1904, -1024, 0 }, { 0, 1904, 1024, 0 }, { 0, 1904, -1024, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 768, -0x32D0, -2368, 0 }, { { 0, -1936, 1024, 0 }, { 0, -1936, -1024, 0 }, { 0, 1936, 1024, 0 }, { 0, 1936, -1024, 0 } }, { -4103, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2187, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 3, 2, 129, 0 },
+};
+
+GpPointLight D_dryfield_water_tank_80188128[21] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -0x36B0, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -0x36B0, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -0x36B0, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -0x36B0, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1500, -0x36B0, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1028, 1028, 1028, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -0x36B0, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 61, -0x4650, 1039 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1960, -0x4650, 520 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2340, -0x4718, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 582, -0x4650, -880 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x4CCC, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1000, 3000 },
+};
+
+GpRoomCoordSet D_dryfield_water_tank_80188908[1] = {
+    { 0, NULL, 21, D_dryfield_water_tank_80188128, 0, NULL },
+};
+
+GpObj4C D_dryfield_water_tank_80188920[9] = {
+    { NULL, NULL, NULL, { -2449, -0x2F60, 640, 0 }, { { -728, 0, -256, 0 }, { 336, 0, -584, 0 }, { -624, 0, 680, 0 }, { 1016, 0, 160, 0 } }, { 0, 4096, 0, 0 }, { 401, 0, 4076, 0 }, 1024, 0, 20, 19, 2, 0 },
+    { NULL, NULL, NULL, { 2512, -0x2F20, 720, 0 }, { { -840, 0, -144, 0 }, { 896, 0, -152, 0 }, { -832, 0, 120, 0 }, { 776, 0, 176, 0 } }, { 0, 4100, 0, 0 }, { 401, 0, 4076, 0 }, 907, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { -1668, -0x4040, -1586, 0 }, { { 1321, 0, -1157, 0 }, { 1703, 0, 329, 0 }, { -1148, 0, 1191, 0 }, { 396, 0, 1526, 0 } }, { 0, 4115, 0, 0 }, { 401, 0, 4076, 0 }, 1755, 2, 12, 1, 4, 0 },
+    { NULL, NULL, NULL, { 1432, -0x2F23, -17, 0 }, { { 159, 0, 627, 0 }, { 157, 0, -595, 0 }, { 1387, 0, 451, 0 }, { 1371, 0, -481, 0 } }, { 0, 4107, 0, 0 }, { 4094, 0, 0, 0 }, 1453, 2, 14, 0, 4, 0 },
+    { NULL, NULL, NULL, { -656, -0x2F21, 2160, 0 }, { { -841, 0, 1091, 0 }, { -619, 0, -1091, 0 }, { 611, 0, 1171, 0 }, { 851, 0, -1169, 0 } }, { 0, 4100, 0, 0 }, { 4094, 0, 0, 0 }, 1442, 0x8005, 2, 0, 3, 0 },
+    { NULL, NULL, NULL, { 1031, -0x2F40, 1303, 0 }, { { -269, 0, 617, 0 }, { 667, 0, -339, 0 }, { 261, 0, 1577, 0 }, { 1711, 0, 194, 0 } }, { 0, 4111, 0, 0 }, { 2750, 0, 3035, 0 }, 1717, 5, 3, 0, 4, 0 },
+    { NULL, NULL, NULL, { 1255, -0x4040, 1247, 0 }, { { 668, 0, -496, 0 }, { -403, 0, 647, 0 }, { 39, 0, -1272, 0 }, { -1328, 0, 97, 0 } }, { 0, 4103, 0, 0 }, { -3166, 0, -2599, 0 }, 1330, 5, 4, 0, 4, 0 },
+    { NULL, NULL, NULL, { 1296, -0x4046, 1232, 0 }, { { 780, 0, -320, 0 }, { -291, 0, 823, 0 }, { 439, 0, -936, 0 }, { -928, 0, 433, 0 } }, { 0, 4096, 0, 0 }, { -3166, 0, -2599, 0 }, 1031, 5, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { 1280, -0x2F20, 1560, 0 }, { { -685, 0, 241, 0 }, { 187, 0, -619, 0 }, { -251, 0, 689, 0 }, { 751, 0, -310, 0 } }, { 0, 4097, 0, 0 }, { 2750, 0, 3035, 0 }, 812, 5, 3, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_dryfield_water_tank_80188BCC[2] = {
+    { 140, 204, 0, 0, { 0, 0 }, D_8013E748 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_dryfield_water_tank_80188BE4[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_dryfield_water_tank_80188BF0[13] = {
+    { NULL, NULL },
+    { D_map_dryfield_8017B644, D_dryfield_water_tank_80188BCC },
+    { D_map_dryfield_8017B664, D_dryfield_water_tank_80188BE4 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpRoomBoundVec D_dryfield_water_tank_80188C58[11] = {
+    { 10, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 1500, 1500, 1500, 1500 },
+    { 1500, 1500, 1500, 1500 },
+    { 2000, 2000, 2000, 2000 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_dryfield_water_tank_80188CB0[3] = {
+    0x10000035,
+    0x10000037,
+    0x10000035,
+};
+
+s32 D_dryfield_water_tank_80188CBC[3] = {
+    0x10000045,
+    0x10000047,
+    0x10000045,
+};
+
+s32 D_dryfield_water_tank_80188CC8[3] = {
+    0x10000015,
+    0x10000017,
+    0x10000019,
+};
+
+GpRoomParamRec D_dryfield_water_tank_80188CD4[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_water_tank_80188CDC[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_dryfield_water_tank_80188CE4[1] = {
+    { 0, 0, 1, 0, D_dryfield_water_tank_80188CB0 },
+};
+
+GpRoomParamRec D_dryfield_water_tank_80188CEC[1] = {
+    { 0, 0, 1, 0, D_dryfield_water_tank_80188CBC },
+};
+
+GpRoomParamRec D_dryfield_water_tank_80188CF4[1] = {
+    { 0, 0, 1, 0, D_dryfield_water_tank_80188CC8 },
+};
+
+GpRoomParamRec * D_dryfield_water_tank_80188CFC[8] = {
+    D_dryfield_water_tank_80188CD4,
+    D_dryfield_water_tank_80188CDC,
+    D_dryfield_water_tank_80188CD4,
+    D_dryfield_water_tank_80188CE4,
+    D_dryfield_water_tank_80188CEC,
+    D_dryfield_water_tank_80188CF4,
+    D_dryfield_water_tank_80188CD4,
+    D_dryfield_water_tank_80188CD4,
+};
+
+GpAreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
+    { 2, 2, 3, 17 },
+    { 2, 2, 7, 33 },
+    { 2, 15, 3, 17 },
+    { 2, 15, 7, 33 },
+    { 2, 20, 3, 1 },
+    { 2, 24, 2, 1 },
+    { 2, 29, 3, 17 },
+    { 2, 29, 8, 33 },
+    { 2, 30, 2, 0 },
+    { 255, 0, 0, 0 },
+};
+
+Task * D_dryfield_water_tank_80188D44 = NULL;
+
+s32 D_dryfield_water_tank_80188D48 = 0;
+
+Task * D_dryfield_water_tank_80188D4C = NULL;
+
+Task * D_dryfield_water_tank_80188D50 = NULL;
 
 void func_dryfield_water_tank_8017D618(Task* arg0)
 {
@@ -148,7 +1247,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Gp_StateF0.field_4 = 0;
                 GameFlag_SetNibble(0x55, 3);
                 SndEvt_EnqueueType6(0x52150004, 0, 0);
-                Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 0, 0, 0);
+                Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
                 gGameSession->eventState    = 0;
@@ -167,25 +1266,25 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
 
 /// Handler for message 0x13F1 in the room task's message table: accepts the
 /// message and does nothing, answering 0.
-s32 func_dryfield_water_tank_8017D7BC(void)
+s32 func_dryfield_water_tank_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EE in the room task's message table: copies the
 /// location record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         if (GameFlag_GetNibble(0x36) == 0) {
             GameFlag_SetNibble(0x36, 1);
-            Task_SpawnFromTable(&D_dryfield_water_tank_8017F34C, 0, 0, 0);
+            Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
             GameFlag_SetNibble(0x56, 1);
         }
     }
@@ -196,13 +1295,13 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
         GameFlag_SetNibble(0x155, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
         Gp_MsgPlayerWeapon(0);
-        func_800E8634(&D_dryfield_water_tank_80184E0C, 0, &D_dryfield_water_tank_801859DC);
+        func_800E8634(D_dryfield_water_tank_80184E0C, 0, D_dryfield_water_tank_801859DC);
     }
     if (arg2->field_2 == 3) {
-        func_800E8614((s32)&D_dryfield_water_tank_8017F114, 0);
+        func_800E8614(D_dryfield_water_tank_8017F114, 0);
     }
     if (arg2->field_2 == 4) {
-        func_800E8614((s32)&D_dryfield_water_tank_8017F21C, 0);
+        func_800E8614(D_dryfield_water_tank_8017F21C, 0);
     }
     return 1;
 }
@@ -210,10 +1309,10 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2)
 /// Room message handler: on message `0xE` spawn the second entry of
 /// `D_dryfield_water_tank_8017F34C`, the same table `func_dryfield_water_tank_8017D7EC`
 /// takes entry 0 from.
-s32 func_dryfield_water_tank_8017D910(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_water_tank_8017D910(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0xE) {
-        Task_SpawnFromTable(&D_dryfield_water_tank_8017F34C, 1, 0, 0);
+        Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 1, 0, 0);
     }
     return 0;
 }
@@ -353,10 +1452,10 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
         case 1:
             work->field_4E++;
             if ((s16)work->field_4E >= 0x3D) {
-                Gp_DispatchMsg(arg0, 0x7D4, (s32)&D_dryfield_water_tank_8017FD78, 0);
+                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tank_8017FD60[1], 0);
                 return 1;
             }
-            coord->coord.t[0] = D_dryfield_water_tank_8017FD78.pos.vx;
+            coord->coord.t[0] = D_dryfield_water_tank_8017FD60[1].pos.vx;
             if (gDisplayState.gameTick & 4) {
                 coord->coord.t[0] += 5;
             }
@@ -447,12 +1546,12 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 D_dryfield_water_tank_80188D4C = arg0;
             }
             work        = (DwtScriptWork*)arg0->work;
-            work->child = Task_SpawnFromTable(&D_dryfield_water_tank_8017FF88, 1, 0, 0);
+            work->child = Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
             arg0->state = arg0->state + 1;
             break;
         case 1:
-            Gp_DispatchMsg(work->child, 0x7D4, (s32)&D_dryfield_water_tank_8017FD60, 0);
-            func_800E8634(&D_dryfield_water_tank_8017FDC0, 0, &D_dryfield_water_tank_8017FEC8);
+            Gp_DispatchMsgPtr(work->child, 0x7D4, &D_dryfield_water_tank_8017FD60, 0);
+            func_800E8634(D_dryfield_water_tank_8017FDC0, 0, D_dryfield_water_tank_8017FEC8);
             arg0->state = arg0->state + 1;
             break;
         case 2:
@@ -473,7 +1572,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->owner, 0x3F3, 0, 0);
             Gp_DispatchMsg(work->child, 0x7D5, 1, 0);
             msg.command = 2;
-            Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
+            Gp_DispatchMsgPtr(work->child, 0x7DB, &msg, 0);
             break;
         case 2:
             Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);

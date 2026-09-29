@@ -338,6 +338,8 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
 
 s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
 {
+    // Collision records encode the source address as two halfwords.
+    union { GpObj* object; s32 address; } sourceAddress;
     u8*               head;
     GpCapsuleScratch* block;
     VECTOR*           ends;
@@ -481,8 +483,9 @@ check:
             block->src.vz = (u16)block->sphere.vz;
         }
         if (arg1->flags & 0x800) {
-            block->extra.vx = (s32)arg0;
-            block->extra.vy = (s32)arg0 >> 16;
+            sourceAddress.object = arg0;
+            block->extra.vx = sourceAddress.address;
+            block->extra.vy = sourceAddress.address >> 16;
         } else {
             block->extra.vx = 0;
             block->extra.vy = 0;
@@ -813,7 +816,7 @@ done:
     SCRATCH_POP_BYTES(0x88);
 }
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
+s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, GpObj* arg3)
 {
     u8*               head;
     GpGridRayScratch* block;

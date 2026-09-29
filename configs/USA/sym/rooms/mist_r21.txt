@@ -1,2 +1,4 @@
 // Overlay-local symbols for mist_r21.
 D_mist_r21_8017D5D0 = 0x8017D5D0; // force_not_migration:True string no code reads, after the task state table
+D_mist_r21_8017D770 = 0x8017D770; // size:0x28 defined:True
+D_mist_r21_8017D798 = 0x8017D798; // size:0xC defined:True

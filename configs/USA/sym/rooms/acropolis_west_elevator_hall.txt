@@ -1,1 +1,84 @@
 // Overlay-local symbols for acropolis_west_elevator_hall.
+D_acropolis_west_elevator_hall_80184A04 = 0x80184A04; // size:0x200 defined:True
+D_acropolis_west_elevator_hall_80184C04 = 0x80184C04; // size:0x200 defined:True
+D_acropolis_west_elevator_hall_80184E04 = 0x80184E04; // size:0x200 defined:True
+D_acropolis_west_elevator_hall_801849C8 = 0x801849C8; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_801849CC = 0x801849CC; // size:0x28 defined:True
+D_acropolis_west_elevator_hall_801849F4 = 0x801849F4; // size:0x10 defined:True
+D_acropolis_west_elevator_hall_801845F4 = 0x801845F4; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_8018460C = 0x8018460C; // size:0x14 defined:True
+D_acropolis_west_elevator_hall_80184620 = 0x80184620; // size:0x270 defined:True
+D_acropolis_west_elevator_hall_80184890 = 0x80184890; // size:0x138 defined:True
+D_acropolis_west_elevator_hall_80184568 = 0x80184568; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_8018458C = 0x8018458C; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_80184590 = 0x80184590; // size:0x8 defined:True
+D_acropolis_west_elevator_hall_80184598 = 0x80184598; // size:0x14 defined:True
+D_acropolis_west_elevator_hall_801845AC = 0x801845AC; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801845C4 = 0x801845C4; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801845DC = 0x801845DC; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801802A4 = 0x801802A4; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_801802A8 = 0x801802A8; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801802C0 = 0x801802C0; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_801802E4 = 0x801802E4; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_801802E8 = 0x801802E8; // size:0xC0 defined:True
+D_acropolis_west_elevator_hall_801803A8 = 0x801803A8; // size:0x164 defined:True
+D_acropolis_west_elevator_hall_8018050C = 0x8018050C; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_80180530 = 0x80180530; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_80180554 = 0x80180554; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_80180558 = 0x80180558; // size:0xC0 defined:True
+D_acropolis_west_elevator_hall_80180618 = 0x80180618; // size:0x164 defined:True
+D_acropolis_west_elevator_hall_8018077C = 0x8018077C; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_801807A0 = 0x801807A0; // size:0x4B0 defined:True
+D_acropolis_west_elevator_hall_80180C50 = 0x80180C50; // size:0x19B0 defined:True
+D_acropolis_west_elevator_hall_80182600 = 0x80182600; // size:0x1F18 defined:True
+D_acropolis_west_elevator_hall_80184518 = 0x80184518; // size:0x28 defined:True
+D_acropolis_west_elevator_hall_80184540 = 0x80184540; // size:0x28 defined:True
+D_acropolis_west_elevator_hall_80185004 = 0x80185004; // size:0x20 defined:True
+D_acropolis_west_elevator_hall_80185024 = 0x80185024; // size:0x10 defined:True
+D_acropolis_west_elevator_hall_80185034 = 0x80185034; // size:0x4 defined:True
+D_acropolis_west_elevator_hall_80185038 = 0x80185038; // size:0x2 defined:True
+D_acropolis_west_elevator_hall_8018503C = 0x8018503C; // size:0x8 defined:True
+D_acropolis_west_elevator_hall_80185044 = 0x80185044; // size:0x70 defined:True
+D_acropolis_west_elevator_hall_801850B4 = 0x801850B4; // size:0x38 defined:True
+D_acropolis_west_elevator_hall_801850EC = 0x801850EC; // size:0xE8 defined:True
+D_acropolis_west_elevator_hall_801851D4 = 0x801851D4; // size:0xA8 defined:True
+D_acropolis_west_elevator_hall_8018527C = 0x8018527C; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_80185294 = 0x80185294; // size:0xA defined:True
+D_acropolis_west_elevator_hall_801852A0 = 0x801852A0; // size:0x16 defined:True
+D_acropolis_west_elevator_hall_801852B8 = 0x801852B8; // size:0xC defined:True
+D_acropolis_west_elevator_hall_801852C4 = 0x801852C4; // size:0x10 defined:True
+D_acropolis_west_elevator_hall_801852D4 = 0x801852D4; // size:0xE defined:True
+D_acropolis_west_elevator_hall_801852E4 = 0x801852E4; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801852FC = 0x801852FC; // size:0x24 defined:True
+D_acropolis_west_elevator_hall_80185320 = 0x80185320; // size:0x130 defined:True
+D_acropolis_west_elevator_hall_80185450 = 0x80185450; // size:0x17C defined:True
+D_acropolis_west_elevator_hall_801855CC = 0x801855CC; // size:0x10 defined:True
+D_acropolis_west_elevator_hall_801855DC = 0x801855DC; // size:0x208 defined:True
+D_acropolis_west_elevator_hall_801857E4 = 0x801857E4; // size:0x20 defined:True
+D_acropolis_west_elevator_hall_80185804 = 0x80185804; // size:0x4EC defined:True
+D_acropolis_west_elevator_hall_80185CF0 = 0x80185CF0; // size:0x28 defined:True
+D_acropolis_west_elevator_hall_80185D18 = 0x80185D18; // size:0x4B0 defined:True
+D_acropolis_west_elevator_hall_801861C8 = 0x801861C8; // size:0x20 defined:True
+D_acropolis_west_elevator_hall_801861E8 = 0x801861E8; // size:0x208 defined:True
+D_acropolis_west_elevator_hall_801863F0 = 0x801863F0; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_80186408 = 0x80186408; // size:0x3C defined:True
+D_acropolis_west_elevator_hall_80186444 = 0x80186444; // size:0x5A0 defined:True
+D_acropolis_west_elevator_hall_801869E4 = 0x801869E4; // size:0x18 defined:True
+D_acropolis_west_elevator_hall_801869FC = 0x801869FC; // size:0xB4 defined:True
+D_acropolis_west_elevator_hall_80186AB0 = 0x80186AB0; // size:0xC defined:True
+D_acropolis_west_elevator_hall_80186ABC = 0x80186ABC; // size:0x8 defined:True
+D_acropolis_west_elevator_hall_80186AC4 = 0x80186AC4; // size:0x20 defined:True
+D_acropolis_west_elevator_hall_80186AE4 = 0x80186AE4; // size:0x8 defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+
+func_acropolis_west_elevator_hall_8017FAE8 = 0x8017FAE8; // type:func
+
+func_acropolis_west_elevator_hall_8017FE18 = 0x8017FE18; // type:func
+
+func_acropolis_west_elevator_hall_8017FFE4 = 0x8017FFE4; // type:func
+
+func_acropolis_west_elevator_hall_8017F990 = 0x8017F990; // type:func
+
+func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func
+
+func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func

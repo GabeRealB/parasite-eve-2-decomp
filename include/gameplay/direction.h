@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "gameplay/view.h"
+#include "gameplay/message.h"
 
 /// 8-byte dest-location payload at `Gp_WarpLoc`. `Gp_CommitDirWarp` fills it
 /// (halfword `field_0`/`field_1` from `Gp_DirAlt`, `field_2` from
@@ -13,20 +14,7 @@
 /// ...)`. `Gp_CommitWarp` fills the same payload from `Gp_DirByte` /
 /// `Gp_DirNibble & 0xF` and `GpWarpRec.field_36`. `Gp_CommitSaveLoc` does the
 /// same copy + spawn.
-typedef struct _GpSaveLoc {
-    union {
-        struct {
-            /* 0x0 */ u8 field_0;
-            /* 0x1 */ u8 field_1;
-        } bytes;
-        u16 packed;
-    } prefix;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-    /* 0x6 */ u16 field_6;
-} GpSaveLoc;
+typedef RoomEventMsg GpSaveLoc;
 STATIC_ASSERT_SIZEOF(GpSaveLoc, 8);
 
 /// 4-byte stack payload for slot-7 msg `0x13EF`. `Gp_PostMsg13EF` copies

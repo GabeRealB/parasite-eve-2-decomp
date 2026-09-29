@@ -1,3 +1,7 @@
+#include "neo_ark_garden_private.h"
+#include "rooms/neo_ark_garden.h"
+#include "mapui/map_neo_ark.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -26,17 +30,95 @@
 #include "main/task.h"
 #include "overlay.h"
 
+#include "gameplay/area.h"
+#include "gameplay/room.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-
-extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
 
 extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 
 extern GpMsgEntry D_neo_ark_garden_801813B0[];
 extern s32        D_801334EC;
 extern s32        D_80133954;
+
+extern GpAreaTmdRec D_neo_ark_garden_80182AE8[2];
+extern GpAreaTmdRec D_neo_ark_garden_80182B00[2];
+extern GpAreaTmdRec D_neo_ark_garden_80182B18[3];
+extern GpAreaTmdRec D_neo_ark_garden_80182B3C[2];
+
+GpAreaTmdRec D_neo_ark_garden_80182AE8[2] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_garden_80182B00[2] = {
+    { 132, 510, 0, 0, { 0, 0 }, D_8013D2E0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_garden_80182B18[3] = {
+    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_neo_ark_garden_80182B3C[2] = {
+    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_neo_ark_garden_80182B54[13] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017B630, D_neo_ark_garden_80182AE8 },
+    { D_map_neo_ark_8017B6E0, D_neo_ark_garden_80182B00 },
+    { D_map_neo_ark_8017B700, D_neo_ark_garden_80182B18 },
+    { D_map_neo_ark_8017B780, D_neo_ark_garden_80182B3C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_neo_ark_garden_80182BBC[3] = {
+    0x1000000D,
+    0x1000000F,
+    0x1000000D,
+};
+
+GpRoomParamRec D_neo_ark_garden_80182BC8[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_neo_ark_garden_80182BD0[1] = {
+    { 0, 0, 1, 0, D_neo_ark_garden_80182BBC },
+};
+
+GpRoomParamRec * D_neo_ark_garden_80182BD8[8] = {
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BD0,
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BC8,
+    D_neo_ark_garden_80182BC8,
+};
+
+GpAreaApplyRec D_neo_ark_garden_80182BF8[3] = {
+    { 5, 11, 2, 1 },
+    { 5, 27, 2, 1 },
+    { 255, 0, 0, 0 },
+};
 
 /// Draws a water-refraction ripple for some views of areas 27, 14, 15, 13, 30
 /// and 29 and returns at once for every other view. The view sets the row
@@ -748,16 +830,16 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     SCRATCH_POP_BYTES(0x40);
 }
 
-s32 func_neo_ark_garden_8017E840(void)
+s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E848(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179B14(in, out);
-    if (in->msgId != 0x21) {
+    func_map_neo_ark_80179B14(in, out);
+    if (in->prefix.packed != 0x21) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDC) != 0) {
@@ -771,7 +853,7 @@ s32 func_neo_ark_garden_8017E848(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEvent
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E8DC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);
@@ -789,7 +871,7 @@ s32 func_neo_ark_garden_8017E8DC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E9AC(void)
+s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

@@ -38,7 +38,7 @@ static const TaskFuncTable3 D_800974C8;
 
 void Gp_EvtCapWeaponTask(Task* arg0);
 
-static void func_800E4020(void);
+static void func_800E4020(Task* task);
 
 TaskDesc Gp_EvtSpawnTable[3] = {
     { 0, 32, Gp_EvtCapTask, { NULL } },
@@ -75,7 +75,7 @@ s32 Gp_CapCaretDir = 0;
 
 static const TaskFuncTable3 D_800974C8 = { {
     func_800E31E8,
-    (TaskFunc)func_800E4020,
+    func_800E4020,
     taskKill,
 } };
 
@@ -238,7 +238,7 @@ const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
 
 const TaskFuncTable3 Gp_CapTaskStates = { {
     Gp_InitCapTask,
-    (TaskFunc)Gp_CapTaskState1,
+    Gp_CapTaskState1,
     taskKill,
 } };
 
@@ -274,12 +274,12 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
 void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 {
-    s32 out;
+    Task* out;
 
     arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
     Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D0, arg0, &out);
     if (out != 0) {
-        Gp_DispatchMsg((Task*)out, 0x7D5, arg1, 0);
+        Gp_DispatchMsg(out, 0x7D5, arg1, 0);
     }
 }
 
@@ -392,7 +392,7 @@ s32 func_800E4018(void)
     return 0;
 }
 
-static void func_800E4020(void)
+static void func_800E4020(Task* task)
 {
 }
 

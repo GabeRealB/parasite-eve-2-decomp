@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-typedef void (*GpCapTextCb)(s16, s16, u16*, s16, s32);
+#include "gameplay/cap.h"
 
 typedef struct _GpCapChoice {
     /* 0x0 */ s16 pos[2]; // screen x, y the choice was laid out at

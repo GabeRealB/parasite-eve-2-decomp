@@ -1,6 +1,8 @@
 #ifndef PE_PLASMA_H
 #define PE_PLASMA_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -17,5 +19,7 @@ typedef struct PlasmaRingScale {
     /* 0x4 */ s16 rExtra;
 } PlasmaRingScale;
 STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
+
+void func_plasma_8012EF34(Task* arg0);
 
 #endif /* PE_PLASMA_H */

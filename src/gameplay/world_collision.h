@@ -30,7 +30,7 @@ void Gp_CollideObjGrid(GpObj* arg0);
 
 void Gp_CollideObjGridDir(GpObj* arg0);
 
-s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3);
+s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, GpObj* arg3);
 
 extern GpObj4C* Gp_Obj4CList;
 

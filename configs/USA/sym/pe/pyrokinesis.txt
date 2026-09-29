@@ -1,0 +1,10 @@
+
+func_pyrokinesis_8012EF48 = 0x8012EF48; // type:func
+
+func_pyrokinesis_80131CE4 = 0x80131CE4; // type:func
+
+func_pyrokinesis_80130C54 = 0x80130C54; // type:func
+
+func_pyrokinesis_801311B8 = 0x801311B8; // type:func
+
+func_pyrokinesis_8012FAC8 = 0x8012FAC8; // type:func

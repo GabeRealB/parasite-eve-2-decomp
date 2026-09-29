@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/dryfield_water_hole.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -31,7 +32,7 @@ static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
 /// draws, moves the coordinate by the velocity with gravity pulling it down,
 /// and releases the block after animation frame 7. While the room's event
 /// state is non-zero it only draws, releasing the block from event state 4 on.
-static void func_dryfield_water_hole_8017F118(Task* task)
+void func_dryfield_water_hole_8017F118(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;

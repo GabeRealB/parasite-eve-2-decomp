@@ -1,6 +1,8 @@
 #ifndef PE_ENERGYSHOT_H
 #define PE_ENERGYSHOT_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 
 /// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.index`
@@ -15,5 +17,9 @@ typedef struct EnergyShotScale {
     /* 0x6 */ s16 field_6;
 } EnergyShotScale;
 STATIC_ASSERT_SIZEOF(EnergyShotScale, 8);
+
+void func_energyshot_8012FFB8(Task* arg0);
+
+void func_energyshot_8012EF34(Task* arg0);
 
 #endif /* PE_ENERGYSHOT_H */

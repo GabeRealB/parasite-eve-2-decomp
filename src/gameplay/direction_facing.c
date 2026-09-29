@@ -1,4 +1,9 @@
 #include "gameplay/area_transitions.h"
+#include "rooms/shelter_b4_reservoir.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
+#include "rooms/acropolis_fountain.h"
+#include "rooms/shelter_b4_water_supply.h"
+#include "rooms/acropolis_bridge.h"
 
 #include "common.h"
 
@@ -35,26 +40,6 @@ extern u8 D_801149E8[10];
 
 extern u8 D_801149F4[8];
 
-void D_8017DA78(s32 arg0, s32 arg1);
-
-void D_8017EF60(s32 arg0, s32 arg1);
-
-extern u8 D_80189A9C[];
-
-extern u8 D_80189AA8[];
-
-extern u8 D_801826FC[];
-
-extern u8 D_8018270C[];
-
-extern u8 D_8018271C[];
-
-extern u8 D_8018272C[];
-
-extern u8 D_801850C8[];
-
-extern u8 D_801850D8[];
-
 u8 D_801149E8[10] = {
     4,
     4,
@@ -79,11 +64,11 @@ u8 D_801149F4[8] = {
 };
 
 GpDirPair D_801149FC[5] = {
-    { D_80189A9C, D_80189AA8 },
+    { D_acropolis_bridge_80189A9C, &D_acropolis_bridge_80189A9C[12] },
     { D_801149E8, D_801149F4 },
-    { D_801826FC, D_8018270C },
-    { D_8018271C, D_8018272C },
-    { D_801850C8, D_801850D8 }
+    { D_shelter_b4_water_supply_801826FC, &D_shelter_b4_water_supply_801826FC[16] },
+    { &D_shelter_b4_water_supply_801826FC[32], &D_shelter_b4_water_supply_801826FC[48] },
+    { D_shelter_b4_reservoir_801850C8, D_shelter_b4_reservoir_801850D8 }
 };
 
 void Gp_MsgPlayerDirFacing(void)
@@ -186,7 +171,7 @@ void Gp_PostDirIfCapIdle(void)
 
 void Gp_RunDirAction(void)
 {
-    void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
+    void (*fns[2])(s32, s32) = { func_acropolis_fountain_8017DA78, func_acropolis_helicopter_landing_pad_8017EF60 };
 
     if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;

@@ -56,7 +56,7 @@ static void Gp_KickScriptAB(Task* task);
 
 static void Gp_DispatchScript18(Task* task);
 
-static void Gp_ScriptAState0(void);
+static void Gp_ScriptAState0(Task* task);
 
 static void Gp_TickScriptADelay(Task* task);
 
@@ -64,7 +64,7 @@ static void Gp_ScriptAState3(Task* task);
 
 static void Gp_ScriptAState4(Task* task);
 
-static void Gp_ScriptBState0(void);
+static void Gp_ScriptBState0(Task* task);
 
 static void Gp_TickScriptBDelay(Task* task);
 
@@ -329,7 +329,7 @@ void Gp_Script18Task(Task* arg0)
     }
 }
 
-static void Gp_ScriptAState0(void)
+static void Gp_ScriptAState0(Task* task)
 {
 }
 
@@ -353,7 +353,7 @@ static void Gp_ScriptAState4(Task* task)
     Gp_StepScriptA(task);
 }
 
-static void Gp_ScriptBState0(void)
+static void Gp_ScriptBState0(Task* task)
 {
 }
 

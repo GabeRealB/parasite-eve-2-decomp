@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/mist_r18.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -21,6 +22,21 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/text.h"
+
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "gameplay/direction_input.h"
+
+#include "gameplay/message.h"
+
+#include "gameplay/animation.h"
+
+extern GpRoomCoordSet D_mist_r18_80186E44[1];
 
 /// Sprite description the overlay's two primitive emitters read from.
 ///
@@ -48,18 +64,6 @@ typedef struct MistR18Sprite {
 
 STATIC_ASSERT_SIZEOF(MistR18Sprite, 0x14);
 
-/// One glyph cell in the font table `MistR18TextSpawn::glyphs`: its position
-/// within the texture page and the size of its screen rectangle. A cell whose
-/// `h` is 0 (a space) draws nothing but still advances the pen by `w`.
-typedef struct MistR18Glyph {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 w;
-    /* 0x3 */ u8 h;
-} MistR18Glyph;
-
-STATIC_ASSERT_SIZEOF(MistR18Glyph, 0x4);
-
 /// Spawn descriptor for the typewriter text task `func_mist_r18_8017D5EC`
 /// drives, hung off `Task::spawnArg2`.
 ///
@@ -80,7 +84,7 @@ typedef struct MistR18TextSpawn {
     /* 0x0C */ s16           delay;
     /* 0x0E */ s16           index;
     /* 0x10 */ u8*           script;
-    /* 0x14 */ MistR18Glyph* glyphs;
+    /* 0x14 */ GlyphUvwh* glyphs;
     /* 0x18 */ s16           lineHeight;
     /* 0x1A */ s16           delayEnd;
     /* 0x1C */ s16           boxW;
@@ -118,19 +122,19 @@ static void func_mist_r18_8017ECF4(Task* arg0);
 
 /// The room's task-spawn table; its entries are started by index from the
 /// room's callbacks.
-extern TaskDesc D_mist_r18_80184F04;
+extern TaskDesc D_mist_r18_80184F04[];
 /// Spawn descriptor handed to entry 5 of `D_mist_r18_80184F04`.
-extern s32 D_mist_r18_80184EE4;
-extern s32 D_mist_r18_8018522C;
-extern s32 D_mist_r18_8018576C;
-extern s32 D_mist_r18_80185AE4;
-extern s32 D_mist_r18_80185EBC;
-extern s32 D_mist_r18_8018603C;
-extern s32 D_mist_r18_801861BC;
-extern s32 D_mist_r18_8018639C;
-extern s32 D_mist_r18_8018645C;
-extern s32 D_mist_r18_8018651C;
-extern s32 D_mist_r18_80186564;
+extern MistR18TextSpawn D_mist_r18_80184EE4;
+extern GpEvsCmd D_mist_r18_8018522C[];
+extern GpEvsCmd D_mist_r18_8018576C[];
+extern GpEvsCmd D_mist_r18_80185AE4[];
+extern GpEvsCmd D_mist_r18_80185EBC[];
+extern GpEvsCmd D_mist_r18_8018603C[];
+extern GpEvsCmd D_mist_r18_801861BC[];
+extern GpEvsCmd D_mist_r18_8018639C[];
+extern GpEvsCmd D_mist_r18_8018645C[];
+extern GpEvsCmd D_mist_r18_8018651C[];
+extern GpEvsCmd D_mist_r18_80186564[];
 /// The two prop tasks `func_mist_r18_8017E6D8` spawns and
 /// `func_mist_r18_8017E784` tears down, by index.
 extern Task* D_mist_r18_80186E90;
@@ -161,6 +165,1061 @@ static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
 static const TaskFuncTable4 D_mist_r18_8017D5DC = {
     { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, func_mist_r18_8017E92C, taskKill },
 };
+
+extern GpAreaTmdRec D_mist_r18_80186BD8[3];
+
+extern GpGridParams D_mist_r18_801866F8[1];
+
+extern GpAnimSet* D_mist_r18_80184F64[11];
+void func_mist_r18_8017E6D8(s32);
+void func_mist_r18_8017E784(s32);
+void func_mist_r18_8017E7F0(void);
+void func_mist_r18_8017E824(void);
+void func_mist_r18_8017EA2C(void);
+void func_mist_r18_8017EA60(void);
+void func_mist_r18_8017EB48(void);
+void func_mist_r18_8017EBB8(void);
+void func_mist_r18_8017EBF8(void);
+void func_mist_r18_8017EC38(void);
+void func_mist_r18_8017EC58(void);
+void func_mist_r18_8017EC78(void);
+void func_mist_r18_8017ECC0(s8);
+void func_mist_r18_8017ECCC(void);
+
+extern GpAnimSet D_mist_r18_8017F834;
+extern GpAnimSet D_mist_r18_801806A8;
+extern GpAnimSet D_mist_r18_80180D1C;
+extern GpAnimSet D_mist_r18_80181250;
+extern GpAnimSet D_mist_r18_80181D4C;
+extern GpAnimSet D_mist_r18_80182394;
+extern GpAnimSet D_mist_r18_80183064;
+extern GpAnimSet D_mist_r18_801847F0;
+extern GpAnimSet D_mist_r18_80184B8C;
+extern GpAnimSet D_mist_r18_80184E80;
+extern TmdSource D_mist_r18_8017F064;
+extern TmdSource D_mist_r18_8017F25C;
+void func_mist_r18_8017D5EC(Task *);
+void func_mist_r18_8017DA8C(Task *);
+void func_mist_r18_8017E2C8(Task *);
+void func_mist_r18_8017E3A4(Task *);
+void func_mist_r18_8017E854(Task *);
+void func_mist_r18_8017EA98(Task *);
+void func_mist_r18_8017EC98(Task *);
+
+TmdBone D_mist_r18_8017EDBC[1] = {
+#include "assets/mist_r18_model_01AA4_skeleton.inc"
+};
+
+u32 D_mist_r18_8017EDE0[1] = {
+#include "assets/mist_r18_model_01AA4_partVerts.inc"
+};
+
+SVECTOR D_mist_r18_8017EDE4[14] = {
+#include "assets/mist_r18_model_01AA4_verts.inc"
+};
+
+SVECTOR D_mist_r18_8017EE54[17] = {
+#include "assets/mist_r18_model_01AA4_normals.inc"
+};
+
+u32 D_mist_r18_8017EEDC[98] = {
+#include "assets/mist_r18_model_01AA4_stream.inc"
+};
+
+TmdSource D_mist_r18_8017F064 = {
+    0, 652, 0, 1,
+    D_mist_r18_8017EDE0, D_mist_r18_8017EDE4, D_mist_r18_8017EE54, D_mist_r18_8017EDBC, D_mist_r18_8017EEDC,
+};
+
+TmdBone D_mist_r18_8017F088[1] = {
+#include "assets/mist_r18_model_01C9C_skeleton.inc"
+};
+
+u32 D_mist_r18_8017F0AC[1] = {
+#include "assets/mist_r18_model_01C9C_partVerts.inc"
+};
+
+SVECTOR D_mist_r18_8017F0B0[14] = {
+#include "assets/mist_r18_model_01C9C_verts.inc"
+};
+
+u32 D_mist_r18_8017F120[79] = {
+#include "assets/mist_r18_model_01C9C_stream.inc"
+};
+
+TmdSource D_mist_r18_8017F25C = {
+    0, 528, 0, 1,
+    D_mist_r18_8017F0AC, D_mist_r18_8017F0B0, &D_mist_r18_8017F0B0[14], D_mist_r18_8017F088, D_mist_r18_8017F120,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistR18PoseBank1CC0;
+
+MistR18PoseBank1CC0 D_mist_r18_8017F280 = { .poses = {
+#include "assets/mist_r18_animation_02274_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_8017F2D4[113] = {
+#include "assets/mist_r18_animation_02274_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_8017F498[221] = {
+#include "assets/mist_r18_animation_02274_records.inc"
+};
+
+u16 D_mist_r18_8017F80C[20] = {
+#include "assets/mist_r18_animation_02274_indices.inc"
+};
+
+GpAnimSet D_mist_r18_8017F834 = {
+    D_mist_r18_8017F498, D_mist_r18_8017F80C,
+    { NULL, D_mist_r18_8017F280.words, NULL, NULL, D_mist_r18_8017F2D4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MistR18PoseBank229C;
+
+MistR18PoseBank229C D_mist_r18_8017F85C = { .poses = {
+#include "assets/mist_r18_animation_030E8_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_8017F898[395] = {
+#include "assets/mist_r18_animation_030E8_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_8017FEC4[495] = {
+#include "assets/mist_r18_animation_030E8_records.inc"
+};
+
+u16 D_mist_r18_80180680[20] = {
+#include "assets/mist_r18_animation_030E8_indices.inc"
+};
+
+GpAnimSet D_mist_r18_801806A8 = {
+    D_mist_r18_8017FEC4, D_mist_r18_80180680,
+    { NULL, D_mist_r18_8017F85C.words, NULL, NULL, D_mist_r18_8017F898, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} MistR18PoseBank3110;
+
+MistR18PoseBank3110 D_mist_r18_801806D0 = { .poses = {
+#include "assets/mist_r18_animation_0375C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80180724[154] = {
+#include "assets/mist_r18_animation_0375C_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_8018098C[218] = {
+#include "assets/mist_r18_animation_0375C_records.inc"
+};
+
+u16 D_mist_r18_80180CF4[20] = {
+#include "assets/mist_r18_animation_0375C_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80180D1C = {
+    D_mist_r18_8018098C, D_mist_r18_80180CF4,
+    { NULL, D_mist_r18_801806D0.words, NULL, NULL, D_mist_r18_80180724, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MistR18PoseBank3784;
+
+MistR18PoseBank3784 D_mist_r18_80180D44 = { .poses = {
+#include "assets/mist_r18_animation_03C90_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80180D5C[95] = {
+#include "assets/mist_r18_animation_03C90_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_80180ED8[212] = {
+#include "assets/mist_r18_animation_03C90_records.inc"
+};
+
+u16 D_mist_r18_80181228[20] = {
+#include "assets/mist_r18_animation_03C90_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80181250 = {
+    D_mist_r18_80180ED8, D_mist_r18_80181228,
+    { NULL, D_mist_r18_80180D44.words, NULL, NULL, D_mist_r18_80180D5C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} MistR18PoseBank3CB8;
+
+MistR18PoseBank3CB8 D_mist_r18_80181278 = { .poses = {
+#include "assets/mist_r18_animation_0478C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80181338[285] = {
+#include "assets/mist_r18_animation_0478C_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_801817AC[350] = {
+#include "assets/mist_r18_animation_0478C_records.inc"
+};
+
+u16 D_mist_r18_80181D24[20] = {
+#include "assets/mist_r18_animation_0478C_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80181D4C = {
+    D_mist_r18_801817AC, D_mist_r18_80181D24,
+    { NULL, D_mist_r18_80181278.words, NULL, NULL, D_mist_r18_80181338, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} MistR18PoseBank47B4;
+
+MistR18PoseBank47B4 D_mist_r18_80181D74 = { .poses = {
+#include "assets/mist_r18_animation_04DD4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80181E4C[59] = {
+#include "assets/mist_r18_animation_04DD4_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_80181F38[269] = {
+#include "assets/mist_r18_animation_04DD4_records.inc"
+};
+
+u16 D_mist_r18_8018236C[20] = {
+#include "assets/mist_r18_animation_04DD4_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80182394 = {
+    D_mist_r18_80181F38, D_mist_r18_8018236C,
+    { NULL, D_mist_r18_80181D74.words, NULL, NULL, D_mist_r18_80181E4C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} MistR18PoseBank4DFC;
+
+MistR18PoseBank4DFC D_mist_r18_801823BC = { .poses = {
+#include "assets/mist_r18_animation_05AA4_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80182494[342] = {
+#include "assets/mist_r18_animation_05AA4_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_801829EC[404] = {
+#include "assets/mist_r18_animation_05AA4_records.inc"
+};
+
+u16 D_mist_r18_8018303C[20] = {
+#include "assets/mist_r18_animation_05AA4_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80183064 = {
+    D_mist_r18_801829EC, D_mist_r18_8018303C,
+    { NULL, D_mist_r18_801823BC.words, NULL, NULL, D_mist_r18_80182494, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MistR18PoseBank5ACC;
+
+MistR18PoseBank5ACC D_mist_r18_8018308C = { .poses = {
+#include "assets/mist_r18_animation_07230_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_801830A4[685] = {
+#include "assets/mist_r18_animation_07230_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_80183B58[796] = {
+#include "assets/mist_r18_animation_07230_records.inc"
+};
+
+u16 D_mist_r18_801847C8[20] = {
+#include "assets/mist_r18_animation_07230_indices.inc"
+};
+
+GpAnimSet D_mist_r18_801847F0 = {
+    D_mist_r18_80183B58, D_mist_r18_801847C8,
+    { NULL, D_mist_r18_8018308C.words, NULL, NULL, D_mist_r18_801830A4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MistR18PoseBank7258;
+
+MistR18PoseBank7258 D_mist_r18_80184818 = { .poses = {
+#include "assets/mist_r18_animation_075CC_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_8018483C[86] = {
+#include "assets/mist_r18_animation_075CC_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_80184994[116] = {
+#include "assets/mist_r18_animation_075CC_records.inc"
+};
+
+u16 D_mist_r18_80184B64[20] = {
+#include "assets/mist_r18_animation_075CC_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80184B8C = {
+    D_mist_r18_80184994, D_mist_r18_80184B64,
+    { NULL, D_mist_r18_80184818.words, NULL, NULL, D_mist_r18_8018483C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MistR18PoseBank75F4;
+
+MistR18PoseBank75F4 D_mist_r18_80184BB4 = { .poses = {
+#include "assets/mist_r18_animation_078C0_bank1.inc"
+} };
+
+GpPackedSvec D_mist_r18_80184BFC[52] = {
+#include "assets/mist_r18_animation_078C0_bank4.inc"
+};
+
+GpAnimRec D_mist_r18_80184CCC[99] = {
+#include "assets/mist_r18_animation_078C0_records.inc"
+};
+
+u16 D_mist_r18_80184E58[20] = {
+#include "assets/mist_r18_animation_078C0_indices.inc"
+};
+
+GpAnimSet D_mist_r18_80184E80 = {
+    D_mist_r18_80184CCC, D_mist_r18_80184E58,
+    { NULL, D_mist_r18_80184BB4.words, NULL, NULL, D_mist_r18_80184BFC, NULL, NULL, NULL },
+};
+
+u8 D_mist_r18_80184EA8[60] = {
+    18,
+    30,
+    41,
+    45,
+    30,
+    38,
+    27,
+    30,
+    43,
+    69,
+    56,
+    65,
+    69,
+    69,
+    53,
+    61,
+    61,
+    61,
+    69,
+    69,
+    52,
+    62,
+    55,
+    55,
+    0,
+    12,
+    254,
+    12,
+    66,
+    8,
+    66,
+    18,
+    66,
+    19,
+    66,
+    69,
+    2,
+    30,
+    39,
+    45,
+    30,
+    43,
+    65,
+    69,
+    69,
+    11,
+    40,
+    44,
+    69,
+    0,
+    39,
+    32,
+    30,
+    37,
+    30,
+    44,
+    255,
+    0,
+    0,
+    0,
+};
+
+MistR18TextSpawn D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
+
+TaskDesc D_mist_r18_80184F04[8] = {
+    { 1, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F064 } },
+    { 1, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F25C } },
+    { 2, 192, func_mist_r18_8017DA8C, { .model = NULL } },
+    { 0, 192, func_mist_r18_8017E854, { .model = NULL } },
+    { 1, 192, func_mist_r18_8017EA98, { .model = &D_mist_r18_8017F25C } },
+    { 0, 192, func_mist_r18_8017D5EC, { .model = NULL } },
+    { 0, 192, func_mist_r18_8017E3A4, { .model = NULL } },
+    { 0, 192, func_mist_r18_8017EC98, { .model = NULL } },
+};
+
+GpAnimSet * D_mist_r18_80184F64[11] = {
+    NULL,
+    &D_mist_r18_8017F834,
+    &D_mist_r18_801806A8,
+    &D_mist_r18_80180D1C,
+    &D_mist_r18_80181250,
+    &D_mist_r18_80181D4C,
+    &D_mist_r18_80182394,
+    &D_mist_r18_80183064,
+    &D_mist_r18_801847F0,
+    &D_mist_r18_80184B8C,
+    &D_mist_r18_80184E80,
+};
+
+GpCopyArg D_mist_r18_80184F90 = { { .sets = D_mist_r18_80184F64 }, 11 };
+
+GpAnimArg D_mist_r18_80184F98 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80184FAC = { { .index = 1 }, 48, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80184FC0 = { { .index = 1 }, 49, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80184FD4 = { { .index = 1 }, 50, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80184FE8 = { { .index = 1 }, 51, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80184FFC = { { .index = 1 }, 52, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185010 = { { .index = 1 }, 53, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185024 = { { .index = 1 }, 54, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185038 = { { .index = 1 }, 55, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_8018504C = { { .index = 1 }, 56, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185060 = { { .index = 1 }, 57, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185074 = { { .ptr = NULL }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185088 = { { .ptr = NULL }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_8018509C = { { .ptr = NULL }, 2, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801850B0 = { { .ptr = NULL }, 3, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801850C4 = { { .ptr = NULL }, 4, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801850D8 = { { .ptr = NULL }, 5, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801850EC = { { .ptr = NULL }, 6, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_80185100 = { { .ptr = NULL }, 7, 0, 1, 0 };
+
+GpAnimArg D_mist_r18_80185114 = { { .ptr = NULL }, 8, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_80185128 = { { .ptr = NULL }, 9, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_8018513C = { { .ptr = NULL }, 10, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185150 = { { .ptr = NULL }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185164 = { { .ptr = NULL }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_r18_80185178 = { { .ptr = NULL }, 2, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_8018518C = { { .ptr = NULL }, 3, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801851A0 = { { .ptr = NULL }, 4, 0, 1, 0 };
+
+GpAnimArg D_mist_r18_801851B4 = { { .ptr = NULL }, 5, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801851C8 = { { .ptr = NULL }, 6, 0, 1, 0 };
+
+GpAnimArg D_mist_r18_801851DC = { { .ptr = NULL }, 7, 1, 6, 0 };
+
+GpAnimArg D_mist_r18_801851F0 = { { .ptr = NULL }, 8, 0, 0, 0 };
+
+GpXformArg D_mist_r18_80185204 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+
+GpCmdArg D_mist_r18_8018521C = { 0 };
+
+GpCmdArg D_mist_r18_80185220 = { { .loc = { 0, 0 } }, 1 };
+
+GpCmdArg D_mist_r18_80185224 = { { .loc = { 0, 0 } }, 2 };
+
+GpCmdArg D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
+
+GpEvsCmd D_mist_r18_8018522C[56] = {
+    { 13, { .callbackNoArg = func_mist_r18_8017EBB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EBF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EC38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017E7F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017E824 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FAC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185088 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185164 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EC58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FC0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_8018509C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_801850B0 }, { .value = 0 } },
+    { 4, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51120003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51120004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_8018521C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185220 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_8018576C[37] = {
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_r18_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FD4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FE8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_801850C4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185178 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_801850D8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FFC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185010 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_801850EC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_8018518C }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185224 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185228 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_80185AE4[41] = {
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_r18_8017E6D8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185024 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185038 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185100 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_801851A0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_801851B4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185114 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_801851C8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_8018504C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185128 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_801851DC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_r18_8017E784 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_80185EBC[16] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_8018603C[16] = {
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185060 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_80185074 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_80185150 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017ECCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_801861BC[20] = {
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_r18_80185204 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_r18_80184F90 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185060 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_r18_8018513C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_r18_801851F0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017ECCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_8018639C[8] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EC78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185220 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_8018645C[8] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_mist_r18_80185228 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_8018651C[3] = {
+    { 13, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_r18_80186564[7] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpRoomObjRec D_mist_r18_8018660C[1] = {
+    { D_mist_r18_801866F8, NULL, NULL, NULL },
+};
+
+u8 * D_mist_r18_8018661C[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_mist_r18_80186620[2] = {
+    { { .bytes = { 10, 0 } } },
+    { { .bytes = { 0, 0 } } },
+};
+
+GpRoomCoordRec D_mist_r18_80186624[1] = {
+    { D_mist_r18_80186E44, NULL },
+};
+
+GpWarpRec D_mist_r18_8018662C[1] = {
+    { { .words = { 2048, -6000, 0, 3218 } }, { 0, 0, 0, 0 }, { .words = { 2048, -6000, 0, 3218 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+};
+
+SVECTOR D_mist_r18_80186664[1] = {
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_mist_r18_8018666C[4] = {
+    { -7000, 0, 6000, 0 },
+    { 7000, 0, 6000, 0 },
+    { 7000, 0, -5000, 0 },
+    { -7000, 0, -5000, 0 },
+};
+
+GpGridFace D_mist_r18_8018668C[1] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+};
+
+s16 D_mist_r18_80186698[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_8018669C[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866A0[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866A4[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866A8[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866AC[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866B0[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866B4[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866B8[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866BC[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866C0[2] = {
+    0,
+    -1,
+};
+
+s16 D_mist_r18_801866C4[2] = {
+    0,
+    -1,
+};
+
+s16 * D_mist_r18_801866C8[12] = {
+    D_mist_r18_80186698,
+    D_mist_r18_8018669C,
+    D_mist_r18_801866A0,
+    D_mist_r18_801866A4,
+    D_mist_r18_801866A8,
+    D_mist_r18_801866AC,
+    D_mist_r18_801866B0,
+    D_mist_r18_801866B4,
+    D_mist_r18_801866B8,
+    D_mist_r18_801866BC,
+    D_mist_r18_801866C0,
+    D_mist_r18_801866C4,
+};
+
+GpGridParams D_mist_r18_801866F8[1] = {
+    { NULL, D_mist_r18_80186664, D_mist_r18_8018666C, D_mist_r18_8018668C, D_mist_r18_801866C8, 7000, 5000, 4, 3, 4000, 1 },
+};
+
+GpViewRec D_mist_r18_8018671C[10] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, -500 } }, 447 },
+    { { { { 1821, 0, 3668 }, { 23, 4095, -11 }, { -3668, 25, 1821 } }, { -1440, 1500, -620 } }, 230 },
+    { { { { 1698, 0, 3727 }, { 836, 3991, -381 }, { -3632, 919, 1655 } }, { 1290, 1500, -3770 } }, 257 },
+    { { { { -1337, 0, 3871 }, { 8, 4095, 3 }, { -3871, 9, -1337 } }, { 1970, 1440, -4180 } }, 329 },
+    { { { { -3828, 0, -1455 }, { 265, 4027, -699 }, { 1430, -748, -3764 } }, { 5550, 800, -5320 } }, 680 },
+    { { { { 1376, 0, 3857 }, { 1511, 3768, -539 }, { -3549, 1605, 1266 } }, { 4520, 1670, -2880 } }, 257 },
+    { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
+    { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
+    { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
+    { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
+};
+
+GpSprtCmd D_mist_r18_80186884[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_80186894[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 0, 0, 0, { 1, 0 } },
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_801868B4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mist_r18_801868C4[10] = {
+    { 143, 0x3FC0, { .fields = { 64, 40 } }, -56, 80, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 40 } }, 8, 80, 750, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, 80, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 24 } }, -56, 56, 825, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -8, 56, 825, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 56, 825, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, 8, 56, 825, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 56, 825, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 56, 825, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 64, 825, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mist_r18_8018698C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 10, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_801869A4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mist_r18_801869B4[17] = {
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -96, 88, 288, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 72, 323, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -64, 80, 298, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -64, 64, 352, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -24, 72, 310, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -24, 56, 350, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 16, 64, 318, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, 56, 64, 283, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, 64, 318, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 16, 48, 350, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 40, 362, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 64, 40, 362, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 32, 362, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 40, 375, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 48, 375, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -152, 88, 307, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 80, 302, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mist_r18_80186B08[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 17, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_80186B20[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_80186B30[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_80186B40[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mist_r18_80186B50[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_mist_r18_80186B60[10] = {
+    { { .empty = D_mist_r18_80186884 }, D_mist_r18_80186884, NULL },
+    { { .empty = D_mist_r18_80186894 }, D_mist_r18_80186894, NULL },
+    { { .empty = D_mist_r18_801868B4 }, D_mist_r18_801868B4, NULL },
+    { { .elements = D_mist_r18_801868C4 }, D_mist_r18_8018698C, NULL },
+    { { .empty = D_mist_r18_801869A4 }, D_mist_r18_801869A4, NULL },
+    { { .elements = D_mist_r18_801869B4 }, D_mist_r18_80186B08, NULL },
+    { { .empty = D_mist_r18_80186B20 }, D_mist_r18_80186B20, NULL },
+    { { .empty = D_mist_r18_80186B30 }, D_mist_r18_80186B30, NULL },
+    { { .empty = D_mist_r18_80186B40 }, D_mist_r18_80186B40, NULL },
+    { { .empty = D_mist_r18_80186B50 }, D_mist_r18_80186B50, NULL },
+};
+
+GpAreaTmdRec D_mist_r18_80186BD8[3] = {
+    { 144, 130, 0, 0, { 0, 0 }, D_8013ABB4 },
+    { 105, 130, 1, 0, { 0, 0 }, D_80157DE0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_mist_r18_80186BFC[13] = {
+    { NULL, NULL },
+    { D_map_akropolis_8017BD8C, D_mist_r18_80186BD8 },
+    { NULL, NULL },
+    { D_map_akropolis_8017BD8C, D_mist_r18_80186BD8 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpPointLight D_mist_r18_80186C64[5] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 2050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3800, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3800, -2300, 2050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5450, -1200, 4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 800, 1200 },
+};
+
+GpRoomCoordSet D_mist_r18_80186E44[1] = {
+    { 0, NULL, 5, D_mist_r18_80186C64, 0, NULL },
+};
+
+s32 D_mist_r18_80186E5C[3] = {
+    0x1000002D,
+    0x1000002F,
+    0x1000002D,
+};
+
+GpRoomParamRec D_mist_r18_80186E68[1] = {
+    { 0, 0, 1, 0, D_mist_r18_80186E5C },
+};
+
+GpRoomParamRec * D_mist_r18_80186E70[8] = {
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+    D_mist_r18_80186E68,
+};
+
+Task * D_mist_r18_80186E90 = NULL;
+
+Task * D_mist_r18_80186E94 = NULL;
+
+Task * D_mist_r18_80186E98 = NULL;
+
+s32 D_mist_r18_80186E9C = 0;
+
+s32 D_mist_r18_80186EA0 = 0;
 
 /// Typewriter text task for the room's message box: state 0 measures the
 /// script (or, for a negative per-glyph delay, reveals all of it at once) and
@@ -271,22 +1330,22 @@ static void func_mist_r18_8017D960(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == 0)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
-            func_800E8634(&D_mist_r18_80185EBC, 0, &D_mist_r18_80186564);
+            func_800E8634(D_mist_r18_80185EBC, 0, D_mist_r18_80186564);
             D_mist_r18_80186E9C = 2;
         } else if (state == 2) {
-            func_800E8634(&D_mist_r18_8018576C, 0, &D_mist_r18_8018645C);
+            func_800E8634(D_mist_r18_8018576C, 0, D_mist_r18_8018645C);
             D_mist_r18_80186EA0 = 0;
             D_mist_r18_80186E9C = 3;
         } else if (state == 3) {
-            func_800E8614((s32)&D_mist_r18_8018603C, 0);
+            func_800E8614(D_mist_r18_8018603C, 0);
             D_mist_r18_80186E9C = 4;
         } else if (state == 4) {
             if (func_8017A038() != 1) {
-                func_800E8614((s32)&D_mist_r18_801861BC, 0);
+                func_800E8614(D_mist_r18_801861BC, 0);
                 D_mist_r18_80186EA0 = 1;
                 return;
             }
-            func_800E8634(&D_mist_r18_80185AE4, 0, &D_mist_r18_8018651C);
+            func_800E8634(D_mist_r18_80185AE4, 0, D_mist_r18_8018651C);
             D_mist_r18_80186E9C = 5;
         }
     }
@@ -691,7 +1750,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&D_mist_r18_80184F04, idx, 8, gameGetPtrSlot(3));
+        task  = Task_SpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetPtrSlot(3));
         *slot = task;
         if (task != NULL) {
             task->extra.tmd->flags &= 0xFF7F;
@@ -717,13 +1776,13 @@ void func_mist_r18_8017E784(s32 idx)
 
 void func_mist_r18_8017E7F0(void)
 {
-    Task_SpawnFromTable(&D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
+    Task_SpawnFromTable(D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
 }
 
 /// Spawn entry 3 of the room's task table.
 void func_mist_r18_8017E824(void)
 {
-    Task_SpawnFromTable(&D_mist_r18_80184F04, 3, 0, 0);
+    Task_SpawnFromTable(D_mist_r18_80184F04, 3, 0, 0);
 }
 
 /// Per-frame entry point of the backdrop task: run the handler its state
@@ -787,7 +1846,7 @@ static void func_mist_r18_8017E994(s32 tpage, s16 arg1)
 /// `D_mist_r18_80186E98`, which `func_mist_r18_8017EA60` kills.
 void func_mist_r18_8017EA2C(void)
 {
-    D_mist_r18_80186E98 = Task_SpawnFromTable(&D_mist_r18_80184F04, 4, 0, 0);
+    D_mist_r18_80186E98 = Task_SpawnFromTable(D_mist_r18_80184F04, 4, 0, 0);
 }
 
 void func_mist_r18_8017EA60(void)
@@ -841,7 +1900,7 @@ void func_mist_r18_8017EBB8(void)
 
 void func_mist_r18_8017EBF8(void)
 {
-    if (Task_SpawnFromTable(&D_mist_r18_80184F04, 7, 0, 0) != NULL) {
+    if (Task_SpawnFromTable(D_mist_r18_80184F04, 7, 0, 0) != NULL) {
         D_801156F9 = 1;
     }
 }
@@ -862,7 +1921,7 @@ void func_mist_r18_8017EC78(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-void func_mist_r18_8017EC98(void)
+void func_mist_r18_8017EC98(Task* task)
 {
     if (gGameSession->viewReady != 1) {
         D_801156F9 = 0;
@@ -885,7 +1944,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E94 = 0;
     D_mist_r18_80186E98 = 0;
     Game_SetPtrSlot(arg0, 7);
-    func_800E8634(&D_mist_r18_8018522C, 0, &D_mist_r18_8018639C);
+    func_800E8634(D_mist_r18_8018522C, 0, D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);
     D_mist_r18_80186E9C = 1;
 }

@@ -20,7 +20,7 @@ void Gp_EnqueueSndCd(u8 arg0);
 
 void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1);
 
-void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                      void* arg7);
 
 void Gp_ApplyAreaTmdFlags(void);

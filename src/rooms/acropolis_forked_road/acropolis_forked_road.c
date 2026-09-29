@@ -1,3 +1,4 @@
+#include "gameplay/evs.h"
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -18,9 +19,18 @@
 /// The room's message table, installed on its entry task.
 extern GpMsgEntry D_acropolis_forked_road_80180F14[];
 
-extern s32      D_acropolis_forked_road_80180F3C;
-extern TaskDesc D_acropolis_forked_road_80180F44;
-extern s32      D_acropolis_forked_road_801820B8;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    s32 value;
+    u8 retained[4];
+} AcropolisForkedRoadStorage0F3C;
+STATIC_ASSERT_SIZEOF(AcropolisForkedRoadStorage0F3C, 8);
+
+extern AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C;
+extern TaskDesc D_acropolis_forked_road_80180F44[];
+extern GpEvsCmd D_acropolis_forked_road_801820B8[];
 
 static void func_acropolis_forked_road_8017D92C(Task* task);
 static void func_acropolis_forked_road_8017D970(Task* task);
@@ -29,6 +39,21 @@ static void func_acropolis_forked_road_8017D970(Task* task);
 static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
     { func_acropolis_forked_road_8017D92C, func_acropolis_forked_road_8017D970, taskKill }
 };
+
+s32 func_acropolis_forked_road_8017D5EC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_forked_road_8017D850(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_forked_road_8017D858(Task *, s32, s32, GpMessageArg);
+s32 func_acropolis_forked_road_8017D8A8(Task *, s32, GpMsg13EF *, GpMessageArg);
+
+GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
+    { 5102, func_acropolis_forked_road_8017D5EC },
+    { 5105, func_acropolis_forked_road_8017D850 },
+    { 5104, func_acropolis_forked_road_8017D858 },
+    { 5103, func_acropolis_forked_road_8017D8A8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 
 /// Message gate for the forked road's two hotspots: copies the incoming record
 /// to the outgoing one, then answers according to the message id and the
@@ -44,14 +69,14 @@ static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
 /// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless no
 /// stream file is open (`gDisplayState.field_112 < 0 || D_8006AC30.sector == 0`), in which
 /// case the message is refused with `field_2 = 2`.
-s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    if (in->msgId == 8) {
+    if (in->prefix.packed == 8) {
         if ((GameFlag_GetNibble(9) & 2) && (in->field_5 == 0)) {
             out->field_3 = 2;
         }
-        if (in->msgId == 8) {
+        if (in->prefix.packed == 8) {
             if (GameFlag_GetNibble(0) < 3) {
                 if (in->field_5 == 0) {
                     Gp_SetNibbleIf(in->field_6, 2);
@@ -70,7 +95,7 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             }
         }
     }
-    if (in->msgId == 0xA) {
+    if (in->prefix.packed == 0xA) {
         if (GameFlag_GetNibble(1) < 2) {
             if (in->field_5 == 0) {
                 Gp_SetNibbleIf(in->field_6, 2);
@@ -87,7 +112,7 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             if (in->field_5 == 0) {
                 Mc_SaveData[0].state.at4.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 0, 0, 0);
+                Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
                 GameFlag_SetNibble(1, 3);
             }
             return 0;
@@ -110,12 +135,12 @@ s32 func_acropolis_forked_road_8017D5EC(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 }
 
 /// Room script callback with nothing to do: always answers 0.
-s32 func_acropolis_forked_road_8017D850(void)
+s32 func_acropolis_forked_road_8017D850(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D858(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     s32 cmd;
 
@@ -130,14 +155,14 @@ s32 func_acropolis_forked_road_8017D858(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     u8 temp;
 
     if (arg2->field_2 == 1 && (GameFlag_GetNibble(9) & 2)) {
         temp = gGameSession->at4.loc.place;
         if (((temp == 4) || (temp == 8)) && (GameFlag_GetNibble(0xCC) == 0)) {
-            func_800E8614((s32)&D_acropolis_forked_road_801820B8, 1);
+            func_800E8614(D_acropolis_forked_road_801820B8, 1);
             GameFlag_SetNibble(0xCC, 1);
         }
     }
@@ -155,12 +180,12 @@ static void func_acropolis_forked_road_8017D92C(Task* task)
 
 /// Per-frame state of the room's own task: the first frame the session's warp
 /// id is 2, spawns entry 2 of the room's task table, latching
-/// `D_acropolis_forked_road_80180F3C` so that happens only once.
+/// `D_acropolis_forked_road_80180F3C.value` so that happens only once.
 static void func_acropolis_forked_road_8017D970(Task* task)
 {
-    if ((D_acropolis_forked_road_80180F3C == 0) && (gGameSession->at4.loc.warp == 2)) {
-        D_acropolis_forked_road_80180F3C = 1;
-        Task_SpawnFromTable(&D_acropolis_forked_road_80180F44, 2, 0, 0);
+    if ((D_acropolis_forked_road_80180F3C.value == 0) && (gGameSession->at4.loc.warp == 2)) {
+        D_acropolis_forked_road_80180F3C.value = 1;
+        Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
 }
 

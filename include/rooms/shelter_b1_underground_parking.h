@@ -1,6 +1,8 @@
 #ifndef ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
 #define ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -51,5 +53,22 @@ extern s32 D_shelter_b1_underground_parking_80186FB0;
 /// markers: it selects 0x180 or 0x60 as the second argument of their draw
 /// calls. Its meaning is unproven.
 extern u16 D_shelter_b1_underground_parking_8018D78C;
+
+extern GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
+
+void func_shelter_b1_underground_parking_8017EDE8(Task* task);
+
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    TaskDesc value;
+    u8 retained[4];
+} ShelterB1UndergroundParkingStorage71F0;
+STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorage71F0, 16);
+
+extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0;
+
+void func_shelter_b1_underground_parking_80184A18(Task* unused);
 
 #endif // ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H

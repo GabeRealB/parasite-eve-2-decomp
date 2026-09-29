@@ -39,6 +39,8 @@ import os
 import re
 import sys
 from collections import Counter
+from ctypes import c_int, c_longlong, c_void_p
+from functools import lru_cache
 from multiprocessing import Pool
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "refactor"))
@@ -128,13 +130,39 @@ def _classify(src, dst, implicit):
     return None
 
 
+@lru_cache(maxsize=1)
+def _constant_evaluator():
+    """Bind libclang's evaluator, including macro literals with empty tokens."""
+    lib = ci.conf.lib
+    lib.clang_Cursor_Evaluate.argtypes = [ci.Cursor]
+    lib.clang_Cursor_Evaluate.restype = c_void_p
+    lib.clang_EvalResult_getKind.argtypes = [c_void_p]
+    lib.clang_EvalResult_getKind.restype = c_int
+    lib.clang_EvalResult_getAsLongLong.argtypes = [c_void_p]
+    lib.clang_EvalResult_getAsLongLong.restype = c_longlong
+    lib.clang_EvalResult_dispose.argtypes = [c_void_p]
+    lib.clang_EvalResult_dispose.restype = None
+    return lib
+
+
 def _is_null(cur):
     """A literal 0, which converts to any pointer type without comment."""
     cur = cpa._strip(cur)
     if cur.kind != ci.CursorKind.INTEGER_LITERAL:
         return False
     toks = list(cur.get_tokens())
-    return len(toks) == 1 and re.fullmatch(r"0[xX]?0*[uUlL]*", toks[0].spelling) is not None
+    if len(toks) == 1:
+        return re.fullmatch(r"0[xX]?0*[uUlL]*", toks[0].spelling) is not None
+    # Nested macro expansion can have no tokens, or an extent spanning the
+    # rest of the definition. Evaluate only the integer literal itself.
+    lib = _constant_evaluator()
+    value = lib.clang_Cursor_Evaluate(cur)
+    if not value:
+        return False
+    try:
+        return lib.clang_EvalResult_getKind(value) == 1 and lib.clang_EvalResult_getAsLongLong(value) == 0
+    finally:
+        lib.clang_EvalResult_dispose(value)
 
 
 def _is_constant(cur):

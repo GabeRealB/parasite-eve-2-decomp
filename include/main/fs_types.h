@@ -1,6 +1,8 @@
 #ifndef MAIN_FS_TYPES_H
 #define MAIN_FS_TYPES_H
 
+#include <psyq/sys/types.h>
+
 #include "common.h"
 
 #include "main/stream_types.h"
@@ -142,9 +144,10 @@ typedef struct _FsFolderSlot {
 } FsFolderSlot;
 STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
 
-/// Large dual-buffer image area pointed to by `Fs_ImgBuffers`.
+/// Image workspace, used as twenty 1920-word strips or one continuous frame.
+/// A flat array also keeps whole-frame pixel processing within one C object.
 typedef struct _FsImgBuffers {
-    u32 buffers[20][1920];
+    u_long words[20 * 1920];
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 

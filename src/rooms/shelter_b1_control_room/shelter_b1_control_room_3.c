@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b1_control_room.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -41,7 +42,7 @@ static void func_shelter_b1_control_room_80181810(GpCoord* arg0, s32 arg1);
 /// coordinate along a fixed direction of its own frame, drawing a widening
 /// ring while the glow fades, and releases the work block when it has faded.
 /// State 4 releases it at once.
-static void func_shelter_b1_control_room_8017FF80(Task* arg0)
+void func_shelter_b1_control_room_8017FF80(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -80,7 +81,7 @@ static void func_shelter_b1_control_room_8017FF80(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -158,7 +159,7 @@ static void func_shelter_b1_control_room_8017FF80(Task* arg0)
 /// tick, advancing its frame. It releases its work block after 20 ticks, or
 /// once the room's event state reaches 4, and is frozen while the event state
 /// is non-zero.
-static void func_shelter_b1_control_room_801804D8(Task* task)
+void func_shelter_b1_control_room_801804D8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -167,7 +168,7 @@ static void func_shelter_b1_control_room_801804D8(Task* task)
 
     work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1.value;
+    target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -384,7 +385,7 @@ static void func_shelter_b1_control_room_80180DA4(GpCoord* arg0, s32 arg1, u8* r
 /// `func_shelter_b1_control_room_801812E4` at the coordinate. While its echo
 /// level lasts it also draws a widening ring that fades out; after that the
 /// fan dims, and the work block is released once it has gone dark.
-static void func_shelter_b1_control_room_80181138(Task* arg0)
+void func_shelter_b1_control_room_80181138(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;

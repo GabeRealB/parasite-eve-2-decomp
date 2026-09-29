@@ -46,7 +46,9 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
-/// The four bonusGpGridParamsmode blurbs shown by the gallery's help panel, indexed by
+#include "rooms/stage_tables.h"
+
+/// The four bonus-mode blurbs shown by the gallery's help panel, indexed by
 /// `Mc_SaveData[0].state.gameMode`. `func_mist_shooting_gallery_8017FAE8` copies the whole thing
 /// onto its stack before indexing it.
 typedef struct MistShootingGalleryModeTexts {
@@ -73,7 +75,7 @@ typedef struct MistShootingGalleryRatings {
 STATIC_ASSERT_SIZEOF(MistShootingGalleryRatings, 0x20);
 
 /// The six gauge strings the DATA panel draws through
-/// `MistShootingGalleryRating::gauge`; also stackGpGridParamscopied before use.
+/// `MistShootingGalleryRating::gauge`; also stack-copied before use.
 typedef struct MistShootingGalleryGauges {
     /* 0x00 */ const char* bars[6];
 } MistShootingGalleryGauges;
@@ -81,12 +83,12 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 
 /// One row of the gallery's RESULT panel: the points one kill of that target
 /// is worth and the name printed beside it ("Red Target", "Crow", ...).
-/// `func_mist_shooting_gallery_8017E234` walks the 13GpGridParamsentry table
-/// `D_mist_shooting_gallery_80184F98` in step with the perGpGridParamstarget kill counts
+/// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
+/// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
 /// in `MistShootingGalleryWork::pad_0F`.
 typedef struct MistShootingGalleryTarget {
     /* 0x0 */ s32 points;
-    /* 0x4 */ u8* name;
+    /* 0x4 */ const char* name;
 } MistShootingGalleryTarget;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
 
@@ -108,7 +110,7 @@ extern char D_mist_shooting_gallery_80184F20[];
 extern char D_mist_shooting_gallery_80184F24[];
 extern char D_mist_shooting_gallery_80184F2C[];
 
-extern const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
+static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
 static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
 static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
@@ -138,9 +140,9 @@ extern TaskDesc D_8014E13C;
 extern s32      D_80153274;
 extern s32      D_80153D6C;
 
-/// ScreenGpGridParamsfade "overlay owns the display" flag, first byte of the flag block
+/// Screen-fade "overlay owns the display" flag, first byte of the flag block
 /// at 0x80071068. Declared as an array on purpose: GCC 2.8.1 exempts a
-/// *fixedGpGridParamsaddress scalar* store from aliasing with a varyingGpGridParamsaddress struct
+/// *fixed-address scalar* store from aliasing with a varying-address struct
 /// load, so a plain `extern s8` here lets the scheduler hoist the following
 /// `arg0->state` load above the store. Indexing an array makes the store a
 /// struct reference and keeps the two in order.
@@ -155,9 +157,9 @@ extern UiList D_mist_shooting_gallery_80184F4C;
 extern UiList                    D_mist_shooting_gallery_8018503C;
 extern UiObjectDesc              D_mist_shooting_gallery_8018507C[];
 extern UiObjectDesc              D_mist_shooting_gallery_8018501C;
-extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[];
+extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13];
 extern GpMsgEntry                D_mist_shooting_gallery_801850E8[];
-extern TaskDesc                  D_mist_shooting_gallery_801856B8;
+extern TaskDesc                  D_mist_shooting_gallery_801856B8[];
 extern TaskDesc                  D_mist_shooting_gallery_801850DC;
 extern GpGridParams              D_mist_shooting_gallery_80185198;
 extern GpGridParams              D_mist_shooting_gallery_801851F8;
@@ -189,24 +191,12 @@ extern UiList D_mist_shooting_gallery_80185338;
 extern UiObjectDesc D_mist_shooting_gallery_8018535C;
 
 extern TaskDesc D_mist_shooting_gallery_80185378;
-extern TaskDesc D_mist_shooting_gallery_80185384;
+extern TaskDesc D_mist_shooting_gallery_80185384[];
 
 /// The room's active data bank pointer, and the two banks it chooses between.
-extern void* D_mist_shooting_gallery_801853C0;
-extern u32   D_mist_shooting_gallery_8018D1B4[];
-extern u32   D_mist_shooting_gallery_8018DF38[];
-
-extern SVECTOR D_mist_shooting_gallery_80185550[];
-extern SVECTOR D_mist_shooting_gallery_80185570[];
-extern SVECTOR D_mist_shooting_gallery_801855C0[];
-extern SVECTOR D_mist_shooting_gallery_801855F0[];
-extern SVECTOR D_mist_shooting_gallery_80185610[];
-extern SVECTOR D_mist_shooting_gallery_80185670[];
-extern SVECTOR D_mist_shooting_gallery_80185678[];
-extern SVECTOR D_mist_shooting_gallery_80185680[];
-extern SVECTOR D_mist_shooting_gallery_80185688[];
-extern SVECTOR D_mist_shooting_gallery_80185690[];
-extern SVECTOR D_mist_shooting_gallery_801856B0[];
+extern GpRoomCoordRec D_mist_shooting_gallery_801853C0[];
+extern GpRoomCoordSet D_mist_shooting_gallery_8018D1B4;
+extern GpRoomCoordSet D_mist_shooting_gallery_8018DF38;
 
 static void func_mist_shooting_gallery_801801E4(s32 arg0);
 static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -214,7 +204,758 @@ static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg
 
 static const char D_mist_shooting_gallery_8017D65C[];
 
-static void func_mist_shooting_gallery_8017DCAC(s32 mode)
+// Indexed views below share one contiguous table.
+extern GpObj4C D_mist_shooting_gallery_8018BDE8[28];
+extern GpObj4C D_mist_shooting_gallery_8018C638[21];
+extern GpRoomBoundVec D_mist_shooting_gallery_8018DFD4[19];
+
+void func_mist_shooting_gallery_8018055C(UiList *, UiObject *);
+void func_mist_shooting_gallery_80180728(Task *);
+void func_mist_shooting_gallery_80180A00(Task *);
+void func_mist_shooting_gallery_80180B64(Task *);
+void func_mist_shooting_gallery_80180F2C(Task *);
+void func_mist_shooting_gallery_801810D8(Task *);
+
+extern const char D_mist_shooting_gallery_8017D86C[22];
+extern const char D_mist_shooting_gallery_8017D884[19];
+extern const char D_mist_shooting_gallery_8017D898[14];
+extern const char D_mist_shooting_gallery_8017D8A8[26];
+extern const char D_mist_shooting_gallery_8017D8C4[24];
+extern const char D_mist_shooting_gallery_8017D8DC[17];
+extern const char D_mist_shooting_gallery_8017D8F0[23];
+extern const char D_mist_shooting_gallery_8017D908[17];
+extern const char D_mist_shooting_gallery_8017D91C[16];
+extern const char D_mist_shooting_gallery_8017D92C[15];
+extern const char D_mist_shooting_gallery_8017D93C[24];
+extern const char D_mist_shooting_gallery_8017D954[11];
+extern const char D_mist_shooting_gallery_8017D960[27];
+extern const char D_mist_shooting_gallery_8017D97C[11];
+extern const char D_mist_shooting_gallery_8017D988[17];
+extern const char D_mist_shooting_gallery_8017D99C[14];
+extern const char D_mist_shooting_gallery_8017D9AC[11];
+extern const char D_mist_shooting_gallery_8017D9B8[13];
+extern const char D_mist_shooting_gallery_8017D9C8[23];
+extern const char D_mist_shooting_gallery_8017D9E0[13];
+extern const char D_mist_shooting_gallery_8017D9F0[17];
+extern const char D_mist_shooting_gallery_8017DA04[16];
+extern const char D_mist_shooting_gallery_8017DA14[12];
+extern const char D_mist_shooting_gallery_8017DA20[20];
+extern const char D_mist_shooting_gallery_8017DA34[17];
+extern const char D_mist_shooting_gallery_8017DA48[19];
+extern const char D_mist_shooting_gallery_8017DA5C[24];
+extern const char D_mist_shooting_gallery_8017DA74[19];
+extern const char D_mist_shooting_gallery_8017DA88[27];
+extern const char D_mist_shooting_gallery_8017DAA4[18];
+extern const char D_mist_shooting_gallery_8017DAB8[16];
+extern const char D_mist_shooting_gallery_8017DAC8[20];
+s32 func_mist_shooting_gallery_8017FEB0(Task *, s32, s32, s32);
+s32 func_mist_shooting_gallery_8017FEB8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_mist_shooting_gallery_80180000(Task *, s32, s32, GpMessageArg);
+s32 func_mist_shooting_gallery_8018008C(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_mist_shooting_gallery_8017E234(Task *);
+void func_mist_shooting_gallery_8017E854(Task *);
+void func_mist_shooting_gallery_8017EAE0(Task *);
+void func_mist_shooting_gallery_8017EC58(Task *);
+void func_mist_shooting_gallery_8017F128(Task *);
+void func_mist_shooting_gallery_8017F6C8(Task *);
+void func_mist_shooting_gallery_8017F98C(UiList *, UiObject *);
+void func_mist_shooting_gallery_8017FAE8(Task *);
+void func_mist_shooting_gallery_8017FDD0(Task *);
+
+static const char D_mist_shooting_gallery_8017D5E0[12];
+static const char D_mist_shooting_gallery_8017D5EC[16];
+static const char D_mist_shooting_gallery_8017D5FC[16];
+static const char D_mist_shooting_gallery_8017D60C[8];
+static const char D_mist_shooting_gallery_8017D614[8];
+static const char D_mist_shooting_gallery_8017D61C[4];
+static const char D_mist_shooting_gallery_8017D620[8];
+static const char D_mist_shooting_gallery_8017D628[8];
+static const char D_mist_shooting_gallery_8017D630[12];
+static const char D_mist_shooting_gallery_8017D63C[4];
+static const char D_mist_shooting_gallery_8017D640[8];
+static const char D_mist_shooting_gallery_8017D648[8];
+static const char D_mist_shooting_gallery_8017D650[12];
+void func_mist_shooting_gallery_8017DE7C(UiList *, UiObject *);
+void func_mist_shooting_gallery_8017E090(Task *);
+
+char D_mist_shooting_gallery_80184DD4[80] = {
+    82,
+    101,
+    112,
+    108,
+    97,
+    121,
+    32,
+    109,
+    111,
+    100,
+    101,
+    10,
+    67,
+    111,
+    108,
+    108,
+    101,
+    99,
+    116,
+    32,
+    98,
+    111,
+    110,
+    117,
+    115,
+    32,
+    105,
+    116,
+    101,
+    109,
+    115,
+    32,
+    101,
+    97,
+    99,
+    104,
+    32,
+    116,
+    105,
+    109,
+    101,
+    32,
+    121,
+    111,
+    117,
+    10,
+    99,
+    108,
+    101,
+    97,
+    114,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    32,
+    105,
+    110,
+    32,
+    114,
+    101,
+    112,
+    108,
+    97,
+    121,
+    32,
+    109,
+    111,
+    100,
+    101,
+    33,
+    0,
+    0,
+    0,
+    0,
+};
+
+char D_mist_shooting_gallery_80184E24[76] = {
+    66,
+    111,
+    117,
+    110,
+    116,
+    121,
+    32,
+    109,
+    111,
+    100,
+    101,
+    10,
+    70,
+    105,
+    110,
+    100,
+    32,
+    116,
+    104,
+    101,
+    32,
+    104,
+    105,
+    100,
+    100,
+    101,
+    110,
+    32,
+    71,
+    79,
+    76,
+    69,
+    77,
+    32,
+    115,
+    111,
+    108,
+    100,
+    105,
+    101,
+    114,
+    115,
+    10,
+    97,
+    110,
+    100,
+    32,
+    115,
+    116,
+    114,
+    105,
+    118,
+    101,
+    32,
+    102,
+    111,
+    114,
+    32,
+    97,
+    32,
+    66,
+    80,
+    32,
+    104,
+    105,
+    103,
+    104,
+    32,
+    115,
+    99,
+    111,
+    114,
+    101,
+    33,
+    0,
+    0,
+};
+
+char D_mist_shooting_gallery_80184E70[84] = {
+    83,
+    99,
+    97,
+    118,
+    101,
+    110,
+    103,
+    101,
+    114,
+    32,
+    109,
+    111,
+    100,
+    101,
+    10,
+    83,
+    104,
+    111,
+    112,
+    115,
+    32,
+    97,
+    114,
+    101,
+    32,
+    98,
+    97,
+    114,
+    101,
+    44,
+    32,
+    97,
+    110,
+    100,
+    32,
+    112,
+    105,
+    99,
+    107,
+    105,
+    110,
+    103,
+    115,
+    32,
+    97,
+    114,
+    101,
+    10,
+    115,
+    108,
+    105,
+    109,
+    46,
+    32,
+    85,
+    115,
+    101,
+    32,
+    121,
+    111,
+    117,
+    114,
+    32,
+    119,
+    105,
+    116,
+    115,
+    44,
+    32,
+    110,
+    111,
+    116,
+    32,
+    121,
+    111,
+    117,
+    114,
+    32,
+    97,
+    109,
+    109,
+    111,
+    33,
+    0,
+};
+
+char D_mist_shooting_gallery_80184EC4[84] = {
+    78,
+    105,
+    103,
+    104,
+    116,
+    109,
+    97,
+    114,
+    101,
+    32,
+    109,
+    111,
+    100,
+    101,
+    10,
+    89,
+    111,
+    117,
+    32,
+    115,
+    116,
+    97,
+    114,
+    116,
+    32,
+    111,
+    102,
+    102,
+    32,
+    115,
+    105,
+    99,
+    107,
+    32,
+    97,
+    110,
+    100,
+    32,
+    116,
+    104,
+    105,
+    110,
+    103,
+    115,
+    32,
+    103,
+    101,
+    116,
+    10,
+    119,
+    111,
+    114,
+    115,
+    101,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    109,
+    111,
+    115,
+    116,
+    32,
+    100,
+    105,
+    102,
+    102,
+    105,
+    99,
+    117,
+    108,
+    116,
+    32,
+    109,
+    111,
+    100,
+    101,
+    46,
+    0,
+};
+
+char D_mist_shooting_gallery_80184F18[4] = {
+    123,
+    0,
+    0,
+    0,
+};
+
+char D_mist_shooting_gallery_80184F1C[4] = {
+    123,
+    123,
+    0,
+    0,
+};
+
+char D_mist_shooting_gallery_80184F20[4] = {
+    123,
+    123,
+    123,
+    0,
+};
+
+char D_mist_shooting_gallery_80184F24[8] = {
+    123,
+    123,
+    123,
+    123,
+    0,
+    0,
+    0,
+    0,
+};
+
+char D_mist_shooting_gallery_80184F2C[8] = {
+    123,
+    123,
+    123,
+    123,
+    123,
+    0,
+    0,
+    0,
+};
+
+s16 D_mist_shooting_gallery_80184F34[10] = {
+    129,
+    130,
+    157,
+    143,
+    136,
+    132,
+    144,
+    140,
+    141,
+    142,
+};
+
+UiListItemFunc D_mist_shooting_gallery_80184F48[1] = {
+    func_mist_shooting_gallery_8017DE7C,
+};
+
+UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_mist_shooting_gallery_80184F70 = { 2, 0xFFF8, 0, 144, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E090, 0 };
+
+TaskDesc D_mist_shooting_gallery_80184F8C = { 0, 192, Gp_MenuRootTask, { .model = NULL } };
+
+MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13] = {
+    { 600, D_mist_shooting_gallery_8017D650 },
+    { 1600, D_mist_shooting_gallery_8017D648 },
+    { 900, D_mist_shooting_gallery_8017D640 },
+    { 500, D_mist_shooting_gallery_8017D63C },
+    { 2400, D_mist_shooting_gallery_8017D630 },
+    { 500, D_mist_shooting_gallery_8017D628 },
+    { 1300, D_mist_shooting_gallery_8017D620 },
+    { 3000, D_mist_shooting_gallery_8017D61C },
+    { 600, D_mist_shooting_gallery_8017D614 },
+    { -3000, D_mist_shooting_gallery_8017D60C },
+    { 200, D_mist_shooting_gallery_8017D5FC },
+    { 400, D_mist_shooting_gallery_8017D5EC },
+    { 600, D_mist_shooting_gallery_8017D5E0 },
+};
+
+UiObjectDesc D_mist_shooting_gallery_80185000 = { 2, 0xFF98, 0xFFD0, 208, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E234, 0 };
+
+UiObjectDesc D_mist_shooting_gallery_8018501C = { 2, 0xFFB8, 0xFFD0, 144, 56, 24, 0, 0, 192, func_mist_shooting_gallery_8017E854, 0 };
+
+UiListItemFunc D_mist_shooting_gallery_80185038[1] = {
+    func_mist_shooting_gallery_8017F98C,
+};
+
+UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_mist_shooting_gallery_80185060 = { 2, 0xFF70, 0xFFA0, 176, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017EAE0, 0 };
+
+UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
+    { 2, 32, 0xFFA0, 112, 128, 28, 0, 0, 192, func_mist_shooting_gallery_8017EC58, 0 },
+    { 3, 0xFF70, 32, 288, 48, 24, 0, 0, 192, func_mist_shooting_gallery_8017FAE8, 0 },
+    { 2, 0xFF70, 0xFFEA, 288, 73, 20, 0, 0, 192, func_mist_shooting_gallery_8017F128, 0 },
+};
+
+TaskDesc D_mist_shooting_gallery_801850D0 = { 0, 192, func_mist_shooting_gallery_8017F6C8, { .model = NULL } };
+
+TaskDesc D_mist_shooting_gallery_801850DC = { 0, 192, func_mist_shooting_gallery_8017FDD0, { .model = NULL } };
+
+GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
+    { 5102, func_mist_shooting_gallery_8017FEB8 },
+    { 5105, func_mist_shooting_gallery_8017FEB0 },
+    { 5103, func_mist_shooting_gallery_8018008C },
+    { 5104, func_mist_shooting_gallery_80180000 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_mist_shooting_gallery_80185110[3] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_mist_shooting_gallery_80185128[8] = {
+    { -0x28B9, 20, 5090, 0 },
+    { -0x28B9, -1490, 5090, 0 },
+    { -0x28B9, -1490, 4925, 0 },
+    { -0x28B9, 20, 4925, 0 },
+    { -9970, -1490, 4925, 0 },
+    { -9970, 20, 4925, 0 },
+    { -9970, 20, 5090, 0 },
+    { -9970, -1490, 5090, 0 },
+};
+
+GpGridFace D_mist_shooting_gallery_80185168[3] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 7, 1, 6, 0 }, 2, 0 },
+};
+
+s16 D_mist_shooting_gallery_8018518C[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_mist_shooting_gallery_80185194[1] = {
+    D_mist_shooting_gallery_8018518C,
+};
+
+GpGridParams D_mist_shooting_gallery_80185198 = { NULL, D_mist_shooting_gallery_80185110, D_mist_shooting_gallery_80185128, D_mist_shooting_gallery_80185168, D_mist_shooting_gallery_80185194, 0x28B9, -4925, 1, 1, 4000, 3 };
+
+SVECTOR D_mist_shooting_gallery_801851BC[1] = {
+    { 4096, 0, 0, 0 },
+};
+
+SVECTOR D_mist_shooting_gallery_801851C4[4] = {
+    { -6500, -2960, 6320, 0 },
+    { -6500, 10, 6320, 0 },
+    { -6500, 10, 3680, 0 },
+    { -6500, -2960, 3680, 0 },
+};
+
+GpGridFace D_mist_shooting_gallery_801851E4[1] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+};
+
+s16 D_mist_shooting_gallery_801851F0[2] = {
+    0,
+    -1,
+};
+
+s16 * D_mist_shooting_gallery_801851F4[1] = {
+    D_mist_shooting_gallery_801851F0,
+};
+
+GpGridParams D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_8018521C[3] = {
+    { 20, D_mist_shooting_gallery_8017D898 },
+    { 23, D_mist_shooting_gallery_8017D884 },
+    { 49, D_mist_shooting_gallery_8017D86C },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_80185234[3] = {
+    { 20, D_mist_shooting_gallery_8017D898 },
+    { 60, D_mist_shooting_gallery_8017D8C4 },
+    { 66, D_mist_shooting_gallery_8017D8A8 },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_8018524C[3] = {
+    { 20, D_mist_shooting_gallery_8017D898 },
+    { 22, D_mist_shooting_gallery_8017D8F0 },
+    { 74, D_mist_shooting_gallery_8017D8DC },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_80185264[3] = {
+    { 67, D_mist_shooting_gallery_8017D92C },
+    { 82, D_mist_shooting_gallery_8017D91C },
+    { 93, D_mist_shooting_gallery_8017D908 },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_8018527C[3] = {
+    { 20, D_mist_shooting_gallery_8017D898 },
+    { 21, D_mist_shooting_gallery_8017D954 },
+    { 60, D_mist_shooting_gallery_8017D93C },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_80185294[4] = {
+    { 41, D_mist_shooting_gallery_8017D99C },
+    { 45, D_mist_shooting_gallery_8017D988 },
+    { 58, D_mist_shooting_gallery_8017D97C },
+    { 61, D_mist_shooting_gallery_8017D960 },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_801852B4[4] = {
+    { 35, D_mist_shooting_gallery_8017D9E0 },
+    { 36, D_mist_shooting_gallery_8017D9C8 },
+    { 42, D_mist_shooting_gallery_8017D9B8 },
+    { 44, D_mist_shooting_gallery_8017D9AC },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_801852D4[4] = {
+    { 31, D_mist_shooting_gallery_8017DA20 },
+    { 59, D_mist_shooting_gallery_8017DA14 },
+    { 89, D_mist_shooting_gallery_8017DA04 },
+    { 93, D_mist_shooting_gallery_8017D9F0 },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_801852F4[4] = {
+    { 76, D_mist_shooting_gallery_8017DA74 },
+    { 77, D_mist_shooting_gallery_8017DA5C },
+    { 78, D_mist_shooting_gallery_8017DA48 },
+    { 83, D_mist_shooting_gallery_8017DA34 },
+};
+
+RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[4] = {
+    { 9, D_mist_shooting_gallery_8017DAC8 },
+    { 43, D_mist_shooting_gallery_8017DAB8 },
+    { 17, D_mist_shooting_gallery_8017DAA4 },
+    { 37, D_mist_shooting_gallery_8017DA88 },
+};
+
+UiListItemFunc D_mist_shooting_gallery_80185334[1] = {
+    func_mist_shooting_gallery_8018055C,
+};
+
+UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_mist_shooting_gallery_8018535C = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
+
+TaskDesc D_mist_shooting_gallery_80185378 = { 0, 192, func_mist_shooting_gallery_80180A00, { .model = NULL } };
+
+TaskDesc D_mist_shooting_gallery_80185384[3] = {
+    { 0, 192, func_mist_shooting_gallery_801810D8, { .model = NULL } },
+    { 0, 192, func_mist_shooting_gallery_80180F2C, { .model = NULL } },
+    { 0, 192, func_mist_shooting_gallery_80180B64, { .model = NULL } },
+};
+
+GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {
+    { &D_mist_shooting_gallery_80189968, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
+};
+
+u8 * D_mist_shooting_gallery_801853B8[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
+    { { .bytes = { 18, 0 } } },
+    { { .bytes = { 0, 0 } } },
+};
+
+GpRoomCoordRec D_mist_shooting_gallery_801853C0[1] = {
+    { &D_mist_shooting_gallery_8018D1B4, D_mist_shooting_gallery_8018DFD4 },
+};
+
+GpWarpRec D_mist_shooting_gallery_801853C8[7] = {
+    { { .words = { 1024, -0x2D50, 0, 5200 } }, { 0, 0, 0, 0 }, { .words = { 1024, -0x2D50, 0, 5200 } }, { 0, 0, 0, 0 }, 0x51140002, 0x51140001, 0, 2, 0, 0 },
+    { { .words = { 3072, -9630, 0, -3040 } }, { 0, 0, 0, 0 }, { .words = { 3072, -9630, 0, -3040 } }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, 0, 4, 0, 0 },
+    { { .words = { 1024, -6800, 0, 3000 } }, { 0, 0, 0, 0 }, { .words = { 1024, -6800, 0, 3000 } }, { 0, 0, 0, 0 }, 0, 0, 0, 14, 0, 0 },
+    { { .words = { 1024, -8700, 0, -3000 } }, { 0, 0, 0, 0 }, { .words = { 1024, -8700, 0, -3000 } }, { 0, 0, 0, 0 }, 0x51140004, 0x51140003, 0, 5, 0, 0 },
+    { { .words = { 2048, -8000, 0, -1800 } }, { 0, 0, 0, 0 }, { .words = { 2048, -8000, 0, -1800 } }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, 0, 5, 0, 0 },
+    { { .words = { 0, -8000, 0, -720 } }, { 0, 0, 0, 0 }, { .words = { 0, -8000, 0, -720 } }, { 0, 0, 0, 0 }, 0x51140006, 0x51140005, 0, 7, 0, 0 },
+    { { .words = { 0, -8000, 0, -720 } }, { 0, 0, 0, 0 }, { .words = { 0, -8000, 0, -720 } }, { 0, 0, 0, 0 }, 0, 0, 0, 15, 0, 0 },
+};
+
+SVECTOR D_mist_shooting_gallery_80185550[45] = {
+    { -11000, -2930, 5580, 0 },
+    { -11000, -2930, 4420, 0 },
+    { -11000, -2930, 2580, 0 },
+    { -11000, -2930, 1420, 0 },
+    { -11000, -2930, -420, 0 },
+    { -11000, -2930, -1580, 0 },
+    { -11080, -2930, -3000, 0 },
+    { -9920, -2930, -3000, 0 },
+    { -9400, -1990, 5680, 0 },
+    { -9400, -1990, 5220, 0 },
+    { -9400, -1990, 4480, 0 },
+    { -9400, -1990, 4020, 0 },
+    { -9400, -1990, 3290, 0 },
+    { -9400, -1990, 2820, 0 },
+    { -9400, -1990, 2090, 0 },
+    { -9400, -1990, 1610, 0 },
+    { -9400, -1990, 880, 0 },
+    { -9400, -1990, 420, 0 },
+    { -9400, -1990, -320, 0 },
+    { -9400, -1990, -780, 0 },
+    { -8130, -2920, 500, 0 },
+    { -6880, -2920, 500, 0 },
+    { -8130, -2920, 2750, 0 },
+    { -6880, -2920, 2750, 0 },
+    { -8130, -2920, 5000, 0 },
+    { -6880, -2920, 5000, 0 },
+    { -3920, -2000, -410, 0 },
+    { -3400, -2000, -560, 0 },
+    { -3920, -2000, 6420, 0 },
+    { -3400, -2000, 6560, 0 },
+    { -11510, -2770, 560, 0 },
+    { -11530, -2770, -470, 0 },
+    { -11520, -2770, -1500, 0 },
+    { -11520, -2770, -2880, 0 },
+    { -11270, -2770, -3410, 0 },
+    { -9890, -2770, -3420, 0 },
+    { -460, -2770, -780, 0 },
+    { 5000, -2770, -250, 0 },
+    { 7060, -2770, 220, 0 },
+    { 12620, -2770, -390, 0 },
+    { 12840, -2770, 3000, 0 },
+    { 12620, -2770, 6410, 0 },
+    { 7060, -2770, 5770, 0 },
+    { 4940, -2770, 6280, 0 },
+    { -390, -2770, 6800, 0 },
+};
+
+#define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
+#define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
+#define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
+#define D_mist_shooting_gallery_80185610 (D_mist_shooting_gallery_80185550 + 24)
+#define D_mist_shooting_gallery_80185670 (D_mist_shooting_gallery_80185550 + 36)
+#define D_mist_shooting_gallery_80185678 (D_mist_shooting_gallery_80185550 + 37)
+#define D_mist_shooting_gallery_80185680 (D_mist_shooting_gallery_80185550 + 38)
+#define D_mist_shooting_gallery_80185688 (D_mist_shooting_gallery_80185550 + 39)
+#define D_mist_shooting_gallery_80185690 (D_mist_shooting_gallery_80185550 + 40)
+#define D_mist_shooting_gallery_801856B0 (D_mist_shooting_gallery_80185550 + 44)
+
+void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
     McItemScan* scan;
     s32         row;
@@ -320,6 +1061,21 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         }
     }
 }
+static const char D_mist_shooting_gallery_8017D5D8[8] = "Select";
+static const char D_mist_shooting_gallery_8017D5E0[12] = "Red Target";
+static const char D_mist_shooting_gallery_8017D5EC[16] = "Brown Target";
+static const char D_mist_shooting_gallery_8017D5FC[16] = "Yellow Target";
+static const char D_mist_shooting_gallery_8017D60C[8] = "Woman";
+static const char D_mist_shooting_gallery_8017D614[8] = "Crow";
+static const char D_mist_shooting_gallery_8017D61C[4] = "Bee";
+static const char D_mist_shooting_gallery_8017D620[8] = "Spider";
+static const char D_mist_shooting_gallery_8017D628[8] = "Snake";
+static const char D_mist_shooting_gallery_8017D630[12] = "Scorpion";
+static const char D_mist_shooting_gallery_8017D63C[4] = "Rat";
+static const char D_mist_shooting_gallery_8017D640[8] = "Monkey";
+static const char D_mist_shooting_gallery_8017D648[8] = "Bear";
+static const char D_mist_shooting_gallery_8017D650[12] = "Bacterium";
+
 void func_mist_shooting_gallery_8017E090(Task* task)
 {
     UiObject* obj;
@@ -333,12 +1089,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
     obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
     list          = &D_mist_shooting_gallery_80184F4C;
-    /* Only "Select" is drawn; the target names that follow it share this
-     * literal because they are reached from a `.data` table of name/score
-     * pairs, so nothing else in the room's C claims those rodata bytes. */
-    Ui_DrawText(&(obj)->panel,
-                "Select\0\0Red Target\0\0Brown Target\0\0\0\0Yellow Target\0\0\0Woman\0\0\0Crow\0\0\0\0Bee\0"
-                "Spider\0\0Snake\0\0\0Scorpion\0\0\0\0Rat\0Monkey\0\0Bear\0\0\0\0Bacterium");
+    Ui_DrawText(&obj->panel, D_mist_shooting_gallery_8017D5D8);
     if (task->state == 0) {
         count  = 0;
         i      = count;
@@ -1049,7 +1800,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         }
     }
 }
-static s32 func_mist_shooting_gallery_8017F95C(void)
+s32 func_mist_shooting_gallery_8017F95C(s32 unused)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80184F8C, 0x44, 0, 0);
     return 1;
@@ -1102,7 +1853,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
     }
     Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, texts.text[Mc_SaveData[0].state.gameMode], 0x606060, 1, 0);
 }
-static void func_mist_shooting_gallery_8017FBD8(void)
+void func_mist_shooting_gallery_8017FBD8(void)
 {
     if ((Mc_SaveData[0].state.clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
@@ -1123,7 +1874,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     }
     func_mist_shooting_gallery_801801E4(var_a0);
     if (Mc_SaveData[0].state.demoScene == 7) {
-        Task_SpawnFromTable(&D_mist_shooting_gallery_801856B8, 0, 0, 0);
+        Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->at4.loc.warp == 7) {
         Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
     }
@@ -1220,7 +1971,7 @@ s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
     if (*(u16*)src == 0x13 && src->field_5 == 0) {
@@ -1250,7 +2001,7 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, G
     return 1;
 }
 
-s32 func_mist_shooting_gallery_80180000(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 >= 5) {
         if (arg2 >= 9) {
@@ -1268,7 +2019,7 @@ s32 func_mist_shooting_gallery_80180000(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (D_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
@@ -1289,9 +2040,9 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2)
     return 0;
 }
 
-/// The room task's threeGpGridParamsstate table, run from a stack copy by
+/// The room task's three-state table, run from a stack copy by
 /// `func_mist_shooting_gallery_8018018C`: the entry tick
-/// `func_mist_shooting_gallery_8017FC2C`, the perGpGridParamsframe state
+/// `func_mist_shooting_gallery_8017FC2C`, the per-frame state
 /// `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
 static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
     { func_mist_shooting_gallery_8017FC2C, func_mist_shooting_gallery_8017FD40, taskKill },
@@ -1334,10 +2085,10 @@ const char D_mist_shooting_gallery_8017DAA4[] = "3. Out Of Phase 2";
 const char D_mist_shooting_gallery_8017DAB8[] = "2. The Vagrants";
 const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
 
-/// The room task: copies the threeGpGridParamsstate table
+/// The room task: copies the three-state table
 /// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
 /// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
-/// the perGpGridParamsframe state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
+/// the per-frame state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
 void func_mist_shooting_gallery_8018018C(Task* task)
 {
     TaskFuncTable3 sp;
@@ -1379,7 +2130,7 @@ static void func_mist_shooting_gallery_801801E4(s32 arg0)
     }
 }
 
-static void func_mist_shooting_gallery_80180390(s32 arg0)
+void func_mist_shooting_gallery_80180390(s32 arg0)
 {
     GpGridParams* dst    = &D_mist_shooting_gallery_80189968;
     GpGridParams* src    = &D_mist_shooting_gallery_801851F8;
@@ -1638,7 +2389,7 @@ void func_mist_shooting_gallery_80180A00(Task* task)
     }
 }
 
-static s32 func_mist_shooting_gallery_80180B34(void)
+s32 func_mist_shooting_gallery_80180B34(s32 unused)
 {
     Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
     return 1;
@@ -1862,14 +2613,14 @@ void func_mist_shooting_gallery_801810D8(Task* task)
                 task->state = 2;
                 return;
             }
-            Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 2, 0, 0);
+            Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 2, 0, 0);
             gDisplayState.at100.flags.flipMode = 0;
             Gp_SpawnViewTasks();
         case 1:
             task->state = task->state + 1;
             return;
         case 2:
-            Display_SpawnWithOt(&D_mist_shooting_gallery_80185384, 1, 0, 0);
+            Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 1, 0, 0);
             gDisplayState.at100.flags.flipMode = 1;
             Gp_SpawnViewTasks();
             taskKill(task);
@@ -1879,16 +2630,16 @@ void func_mist_shooting_gallery_801810D8(Task* task)
 
 /// Publishes one of the room's two data banks as the active one: bank 0 for a
 /// zero argument, bank 1 otherwise.
-static void func_mist_shooting_gallery_801811C0(s16 arg0)
+void func_mist_shooting_gallery_801811C0(s16 arg0)
 {
     if (arg0 == 0) {
-        D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018D1B4;
+        D_mist_shooting_gallery_801853C0[0].field_0 = &D_mist_shooting_gallery_8018D1B4;
         return;
     }
-    D_mist_shooting_gallery_801853C0 = D_mist_shooting_gallery_8018DF38;
+    D_mist_shooting_gallery_801853C0[0].field_0 = &D_mist_shooting_gallery_8018DF38;
 }
 
-static void func_mist_shooting_gallery_801811EC(void)
+void func_mist_shooting_gallery_801811EC(Task* unused)
 {
     u8 view;
 
@@ -1956,10 +2707,10 @@ static void func_mist_shooting_gallery_801811EC(void)
 
 /// Draws a glowing capsule between the points `arg0[0]` and `arg0[1]`,
 /// projected through `gGfxViewCoord.workm`; nothing is drawn unless both project.
-/// Each end is a halfGpGridParamsdisc of screen radius `arg1 * 64 / otz` and the two are
+/// Each end is a half-disc of screen radius `arg1 * 64 / otz` and the two are
 /// joined by a band, built from gouraud quads lit at the centre line and black
 /// at the rim, in two 0x400 steps around the angle between the projected
-/// points. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB), brightened
+/// points. `arg2` is the colour as three 4-bit channels (0xRGB), brightened
 /// slightly on odd frames.
 static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
@@ -2095,7 +2846,7 @@ static void func_mist_shooting_gallery_80181480(SVECTOR* arg0, s32 arg1, s32 arg
 /// Draws a glowing disc around the point `arg0`, projected through
 /// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
 /// wedges lit at the projected centre and black at the rim, of screen radius
-/// `arg1 * 64 / otz`. `arg2` is the colour as three 4GpGridParamsbit channels (0xRGB),
+/// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
 /// brightened slightly on odd frames.
 static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
 {

@@ -1,1 +1,76 @@
 // Overlay-local symbols for neo_ark_north_promenade.
+D_neo_ark_north_promenade_80181DB4 = 0x80181DB4; // size:0x10 defined:True
+D_neo_ark_north_promenade_80181DC4 = 0x80181DC4; // size:0x8 defined:True
+D_neo_ark_north_promenade_80181DCC = 0x80181DCC; // size:0x4 defined:True
+D_neo_ark_north_promenade_80181DD0 = 0x80181DD0; // size:0x2 defined:True
+D_neo_ark_north_promenade_80181DD4 = 0x80181DD4; // size:0x70 defined:True
+D_neo_ark_north_promenade_80181E44 = 0x80181E44; // size:0x60 defined:True
+D_neo_ark_north_promenade_80181EA4 = 0x80181EA4; // size:0x278 defined:True
+D_neo_ark_north_promenade_8018211C = 0x8018211C; // size:0x174 defined:True
+D_neo_ark_north_promenade_80182290 = 0x80182290; // size:0xC defined:True
+D_neo_ark_north_promenade_8018229C = 0x8018229C; // size:0x12 defined:True
+D_neo_ark_north_promenade_801822B0 = 0x801822B0; // size:0xC defined:True
+D_neo_ark_north_promenade_801822BC = 0x801822BC; // size:0x10 defined:True
+D_neo_ark_north_promenade_801822CC = 0x801822CC; // size:0x14 defined:True
+D_neo_ark_north_promenade_801822E0 = 0x801822E0; // size:0x14 defined:True
+D_neo_ark_north_promenade_801822F4 = 0x801822F4; // size:0xA defined:True
+D_neo_ark_north_promenade_80182300 = 0x80182300; // size:0x1C defined:True
+D_neo_ark_north_promenade_8018231C = 0x8018231C; // size:0x1C defined:True
+D_neo_ark_north_promenade_80182338 = 0x80182338; // size:0x1A defined:True
+D_neo_ark_north_promenade_80182354 = 0x80182354; // size:0xE defined:True
+D_neo_ark_north_promenade_80182364 = 0x80182364; // size:0x1C defined:True
+D_neo_ark_north_promenade_80182380 = 0x80182380; // size:0xE defined:True
+D_neo_ark_north_promenade_80182390 = 0x80182390; // size:0xE defined:True
+D_neo_ark_north_promenade_801823A0 = 0x801823A0; // size:0xA defined:True
+D_neo_ark_north_promenade_801823AC = 0x801823AC; // size:0x40 defined:True
+D_neo_ark_north_promenade_801823EC = 0x801823EC; // size:0x24 defined:True
+D_neo_ark_north_promenade_80182410 = 0x80182410; // size:0xD8 defined:True
+D_neo_ark_north_promenade_801824E8 = 0x801824E8; // size:0x10 defined:True
+D_neo_ark_north_promenade_801824F8 = 0x801824F8; // size:0x10 defined:True
+D_neo_ark_north_promenade_80182508 = 0x80182508; // size:0x10 defined:True
+D_neo_ark_north_promenade_80182518 = 0x80182518; // size:0x2D0 defined:True
+D_neo_ark_north_promenade_801827E8 = 0x801827E8; // size:0x28 defined:True
+D_neo_ark_north_promenade_80182810 = 0x80182810; // size:0x1CC defined:True
+D_neo_ark_north_promenade_801829DC = 0x801829DC; // size:0x28 defined:True
+D_neo_ark_north_promenade_80182A04 = 0x80182A04; // size:0x280 defined:True
+D_neo_ark_north_promenade_80182C84 = 0x80182C84; // size:0x20 defined:True
+D_neo_ark_north_promenade_80182CA4 = 0x80182CA4; // size:0x48 defined:True
+D_neo_ark_north_promenade_80182CEC = 0x80182CEC; // size:0xB0 defined:True
+D_neo_ark_north_promenade_80182D9C = 0x80182D9C; // size:0x18 defined:True
+D_neo_ark_north_promenade_80182DB4 = 0x80182DB4; // size:0x260 defined:True
+D_neo_ark_north_promenade_80183014 = 0x80183014; // size:0x18 defined:True
+D_neo_ark_north_promenade_8018302C = 0x8018302C; // size:0x18 defined:True
+D_neo_ark_north_promenade_80183044 = 0x80183044; // size:0x18 defined:True
+D_neo_ark_north_promenade_8018305C = 0x8018305C; // size:0x68 defined:True
+D_neo_ark_north_promenade_801830C4 = 0x801830C4; // size:0x1C8 defined:True
+D_neo_ark_north_promenade_8018328C = 0x8018328C; // size:0x3C defined:True
+D_neo_ark_north_promenade_801832C8 = 0x801832C8; // size:0xC defined:True
+D_neo_ark_north_promenade_801832D4 = 0x801832D4; // size:0x8 defined:True
+D_neo_ark_north_promenade_801832DC = 0x801832DC; // size:0x8 defined:True
+D_neo_ark_north_promenade_801832E4 = 0x801832E4; // size:0x8 defined:True
+D_neo_ark_north_promenade_801832EC = 0x801832EC; // size:0x20 defined:True
+D_80147DF0 = 0x80147DF0; // absolute:True
+D_80148110 = 0x80148110; // absolute:True
+D_801482C0 = 0x801482C0; // absolute:True
+D_map_neo_ark_8017B0F0 = 0x8017B0F0; // absolute:True
+D_map_neo_ark_8017B120 = 0x8017B120; // absolute:True
+D_map_neo_ark_8017B160 = 0x8017B160; // absolute:True
+D_neo_ark_north_promenade_80181DA4 = 0x80181DA4; // size:0x10 defined:True
+D_neo_ark_north_promenade_80181D68 = 0x80181D68; // size:0x28 defined:True
+D_neo_ark_north_promenade_80181D90 = 0x80181D90; // size:0x14 defined:True
+
+func_neo_ark_north_promenade_8017FDD4 = 0x8017FDD4; // type:func
+
+func_neo_ark_north_promenade_80180838 = 0x80180838; // type:func
+
+func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func
+
+func_neo_ark_north_promenade_8017D7B0 = 0x8017D7B0; // type:func
+
+func_neo_ark_north_promenade_8017E4F8 = 0x8017E4F8; // type:func
+
+func_neo_ark_north_promenade_8017E890 = 0x8017E890; // type:func
+
+func_neo_ark_north_promenade_8017FCA0 = 0x8017FCA0; // type:func
+
+func_neo_ark_north_promenade_8017D720 = 0x8017D720; // type:func

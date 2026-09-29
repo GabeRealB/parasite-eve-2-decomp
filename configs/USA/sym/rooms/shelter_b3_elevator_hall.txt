@@ -1,1 +1,95 @@
 // Overlay-local symbols for shelter_b3_elevator_hall.
+D_shelter_b3_elevator_hall_80182A74 = 0x80182A74; // size:0x40 defined:True
+D_shelter_b3_elevator_hall_80182AB4 = 0x80182AB4; // size:0x40 defined:True
+D_shelter_b3_elevator_hall_80182AF4 = 0x80182AF4; // size:0x40 defined:True
+D_shelter_b3_elevator_hall_80182A20 = 0x80182A20; // size:0xC defined:True
+D_shelter_b3_elevator_hall_80182A2C = 0x80182A2C; // size:0xC defined:True
+D_shelter_b3_elevator_hall_80182A38 = 0x80182A38; // size:0x30 defined:True
+D_shelter_b3_elevator_hall_80182A68 = 0x80182A68; // size:0xC defined:True
+D_shelter_b3_elevator_hall_80182B48 = 0x80182B48; // size:0xC defined:True
+D_shelter_b3_elevator_hall_80182B54 = 0x80182B54; // size:0x4 defined:True
+D_shelter_b3_elevator_hall_80182B58 = 0x80182B58; // size:0x2 defined:True
+D_shelter_b3_elevator_hall_80182B5C = 0x80182B5C; // size:0xA8 defined:True
+D_shelter_b3_elevator_hall_80182C04 = 0x80182C04; // size:0x48 defined:True
+D_shelter_b3_elevator_hall_80182C4C = 0x80182C4C; // size:0x338 defined:True
+D_shelter_b3_elevator_hall_80182F84 = 0x80182F84; // size:0x330 defined:True
+D_shelter_b3_elevator_hall_801832B4 = 0x801832B4; // size:0x3E defined:True
+D_shelter_b3_elevator_hall_801832F4 = 0x801832F4; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_80183308 = 0x80183308; // size:0x52 defined:True
+D_shelter_b3_elevator_hall_8018335C = 0x8018335C; // size:0x10 defined:True
+D_shelter_b3_elevator_hall_8018336C = 0x8018336C; // size:0x52 defined:True
+D_shelter_b3_elevator_hall_801833C0 = 0x801833C0; // size:0x1C defined:True
+D_shelter_b3_elevator_hall_801833DC = 0x801833DC; // size:0xA defined:True
+D_shelter_b3_elevator_hall_801833E8 = 0x801833E8; // size:0x42 defined:True
+D_shelter_b3_elevator_hall_8018342C = 0x8018342C; // size:0x22 defined:True
+D_shelter_b3_elevator_hall_80183450 = 0x80183450; // size:0xC defined:True
+D_shelter_b3_elevator_hall_8018345C = 0x8018345C; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_80183470 = 0x80183470; // size:0x10 defined:True
+D_shelter_b3_elevator_hall_80183480 = 0x80183480; // size:0xA defined:True
+D_shelter_b3_elevator_hall_8018348C = 0x8018348C; // size:0x3C defined:True
+D_shelter_b3_elevator_hall_801834C8 = 0x801834C8; // size:0x24 defined:True
+D_shelter_b3_elevator_hall_801834EC = 0x801834EC; // size:0xFC defined:True
+D_shelter_b3_elevator_hall_801835E8 = 0x801835E8; // size:0x10 defined:True
+D_shelter_b3_elevator_hall_801835F8 = 0x801835F8; // size:0x10 defined:True
+D_shelter_b3_elevator_hall_80183608 = 0x80183608; // size:0x244 defined:True
+D_shelter_b3_elevator_hall_8018384C = 0x8018384C; // size:0x20 defined:True
+D_shelter_b3_elevator_hall_8018386C = 0x8018386C; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_80183880 = 0x80183880; // size:0x104 defined:True
+D_shelter_b3_elevator_hall_80183984 = 0x80183984; // size:0x20 defined:True
+D_shelter_b3_elevator_hall_801839A4 = 0x801839A4; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_801839B8 = 0x801839B8; // size:0x1E0 defined:True
+D_shelter_b3_elevator_hall_80183B98 = 0x80183B98; // size:0x20 defined:True
+D_shelter_b3_elevator_hall_80183BB8 = 0x80183BB8; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_80183BCC = 0x80183BCC; // size:0x5B4 defined:True
+D_shelter_b3_elevator_hall_80184180 = 0x80184180; // size:0x38 defined:True
+D_shelter_b3_elevator_hall_801841B8 = 0x801841B8; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_801841CC = 0x801841CC; // size:0x10 defined:True
+D_shelter_b3_elevator_hall_801841DC = 0x801841DC; // size:0x54 defined:True
+D_shelter_b3_elevator_hall_80184230 = 0x80184230; // size:0x1E0 defined:True
+D_shelter_b3_elevator_hall_80184410 = 0x80184410; // size:0x18 defined:True
+D_shelter_b3_elevator_hall_80184428 = 0x80184428; // size:0x260 defined:True
+D_shelter_b3_elevator_hall_80184688 = 0x80184688; // size:0x18 defined:True
+D_shelter_b3_elevator_hall_801846A0 = 0x801846A0; // size:0x24 defined:True
+D_shelter_b3_elevator_hall_801846C4 = 0x801846C4; // size:0x18 defined:True
+D_shelter_b3_elevator_hall_801846DC = 0x801846DC; // size:0x30 defined:True
+D_shelter_b3_elevator_hall_8018470C = 0x8018470C; // size:0x40 defined:True
+D_shelter_b3_elevator_hall_8018474C = 0x8018474C; // size:0x30 defined:True
+D_shelter_b3_elevator_hall_8018477C = 0x8018477C; // size:0x60 defined:True
+D_shelter_b3_elevator_hall_801847DC = 0x801847DC; // size:0x130 defined:True
+D_shelter_b3_elevator_hall_8018490C = 0x8018490C; // size:0x78 defined:True
+D_shelter_b3_elevator_hall_80184984 = 0x80184984; // size:0xC defined:True
+D_shelter_b3_elevator_hall_80184990 = 0x80184990; // size:0xC defined:True
+D_shelter_b3_elevator_hall_8018499C = 0x8018499C; // size:0xC defined:True
+D_shelter_b3_elevator_hall_801849A8 = 0x801849A8; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849B0 = 0x801849B0; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849B8 = 0x801849B8; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849C0 = 0x801849C0; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849C8 = 0x801849C8; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849D0 = 0x801849D0; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849D8 = 0x801849D8; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_801849E0 = 0x801849E0; // size:0x20 defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+D_8013647C = 0x8013647C; // absolute:True
+D_80142604 = 0x80142604; // absolute:True
+D_80148110 = 0x80148110; // absolute:True
+D_8015F400 = 0x8015F400; // absolute:True
+D_shelter_b3_elevator_hall_80184A00 = 0x80184A00; // size:0x8 defined:True
+D_shelter_b3_elevator_hall_80184A08 = 0x80184A08; // size:0x4 defined:True
+D_shelter_b3_elevator_hall_80184A0C = 0x80184A0C; // size:0x14 defined:True
+D_shelter_b3_elevator_hall_80182B34 = 0x80182B34; // size:0x14 defined:True
+
+func_shelter_b3_elevator_hall_8017DE70 = 0x8017DE70; // type:func
+
+func_shelter_b3_elevator_hall_80180E18 = 0x80180E18; // type:func
+
+func_shelter_b3_elevator_hall_80181370 = 0x80181370; // type:func
+
+func_shelter_b3_elevator_hall_80181FD0 = 0x80181FD0; // type:func
+
+func_shelter_b3_elevator_hall_8017E7F4 = 0x8017E7F4; // type:func
+
+func_shelter_b3_elevator_hall_8017F53C = 0x8017F53C; // type:func
+
+func_shelter_b3_elevator_hall_8017F8D4 = 0x8017F8D4; // type:func
+
+func_shelter_b3_elevator_hall_80180CE4 = 0x80180CE4; // type:func

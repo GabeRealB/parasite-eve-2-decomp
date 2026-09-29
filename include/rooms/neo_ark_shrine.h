@@ -1,6 +1,8 @@
 #ifndef ROOMS_NEO_ARK_SHRINE_H
 #define ROOMS_NEO_ARK_SHRINE_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -32,7 +34,7 @@ typedef struct {
 /// Hotspot table of the shrine's cap script, terminated by an `id` of -1.
 extern OverlayHotspot D_neo_ark_shrine_80182430[];
 
-extern TaskDesc D_neo_ark_shrine_80182508;
+extern TaskDesc D_neo_ark_shrine_80182508[];
 
 /// Set by one of the cap script's two pad-lerp steps and cleared by the other;
 /// while it is set, the puzzle's step check reports kind 4.
@@ -63,5 +65,12 @@ void func_neo_ark_shrine_8017F448(void);
 
 void func_neo_ark_shrine_8017D9A0(Task* task);
 void func_neo_ark_shrine_8017DB10(Task* arg0);
+
+void func_neo_ark_shrine_8017F8DC(Task* task);
+void func_neo_ark_shrine_8017FEA0(Task* task);
+void func_neo_ark_shrine_80180904(Task* task);
+extern GpAreaVariant D_neo_ark_shrine_801866C8[13];
+
+void func_neo_ark_shrine_801811EC(Task* task);
 
 #endif // ROOMS_NEO_ARK_SHRINE_H

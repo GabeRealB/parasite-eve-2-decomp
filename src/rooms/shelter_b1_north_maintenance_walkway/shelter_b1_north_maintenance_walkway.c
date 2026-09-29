@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include "rooms/room.h"
@@ -21,6 +22,12 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C_value __asm__("D_shelter_b1_north_maintenance_walkway_80185B7C");
+
 extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
 
@@ -31,13 +38,63 @@ extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
 
 static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 
-extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 /// Spawn payload of the task 0x31 the event task may start.
-extern GpFadeWork       D_shelter_b1_north_maintenance_walkway_80185B6C;
+extern RoomFadeStorage       D_shelter_b1_north_maintenance_walkway_80185B6C;
 extern RoomEventMsg     D_shelter_b1_north_maintenance_walkway_80185B74;
-extern s8               D_shelter_b1_north_maintenance_walkway_80185B7C;
 extern RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
+
+void func_shelter_b1_north_maintenance_walkway_8017D60C(Task *);
+s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+void func_shelter_b1_north_maintenance_walkway_8017D918(Task *);
+s32 func_shelter_b1_north_maintenance_walkway_8017DA34(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_north_maintenance_walkway_8017DA3C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task *, s32, GpMessageArg, GpMessageArg);
+
+TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D60C, { .model = NULL } };
+
+GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
+    { 5102, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
+    { 5105, func_shelter_b1_north_maintenance_walkway_8017DA34 },
+    { 5103, func_shelter_b1_north_maintenance_walkway_8017DA44 },
+    { 5104, func_shelter_b1_north_maintenance_walkway_8017DA3C },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {
+    { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D918, { .model = NULL } },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[10] = {
+    { 894, -197, -2271, 0 },
+    { 894, -197, -3102, 0 },
+    { 894, -197, 376, 0 },
+    { 894, -197, -396, 0 },
+    { 894, -197, 2648, 0 },
+    { 894, -197, 2036, 0 },
+    { 3106, -197, -2271, 0 },
+    { 3106, -197, -3102, 0 },
+    { 3106, -197, 376, 0 },
+    { 3106, -197, -396, 0 },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[2] = {
+    { 3106, -197, 2648, 0 },
+    { 3106, -197, 2036, 0 },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[6] = {
+    { 653, -197, 2896, 0 },
+    { -31, -197, 2896, 0 },
+    { -42, -197, 5113, 0 },
+    { 597, -197, 5113, 0 },
+    { -1562, -197, 5113, 0 },
+    { -2493, -197, 5113, 0 },
+};
+
+SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
+    { 749, -1283, 2310, 0 },
+};
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -46,7 +103,7 @@ extern RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
 static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
+    D_shelter_b1_north_maintenance_walkway_80185B7C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_b1_north_maintenance_walkway_80185B74 = *dst;
@@ -55,7 +112,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_b1_north_maintenance_walkway_80184A78, 0, 0, 0);
-            D_shelter_b1_north_maintenance_walkway_80185B7C = 1;
+            D_shelter_b1_north_maintenance_walkway_80185B7C_value = 1;
         }
         return 2;
     }
@@ -81,10 +138,10 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_shelter_b1_north_maintenance_walkway_80185B80.fade != 0) {
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.field_0 = 0;
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.field_1 = 0;
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_north_maintenance_walkway_80185B6C);
+                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_0 = 0;
+                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_1 = 0;
+                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_north_maintenance_walkway_80185B6C.fade);
                 }
                 arg0->state++;
             }
@@ -105,7 +162,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -115,9 +172,9 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179A04`. Messages 0xB and 0xE start the room's event - command 3 /
+/// `func_map_shelter_80179A04`. Messages 0xB and 0xE start the room's event - command 3 /
 /// 2 on flag 0x14D / 0x14E; any other message answers 1.
-s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomLatchedEvent event;
     s32              cmd;
@@ -125,8 +182,8 @@ s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(s32 arg0, s32 arg1, RoomE
     s16              flag;
 
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId != 0xB) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed != 0xB) {
         goto message0E;
     }
     snd            = 0x540C0001;
@@ -139,7 +196,7 @@ start_event:
     event.fade   = 0;
     return _shelterB1NorthMaintenanceWalkwayStartEvent(out, &event);
 message0E:
-    if (in->msgId == 0xE) {
+    if (in->prefix.packed == 0xE) {
         snd            = 0x540C0003;
         cmd            = 2;
         event.stageSnd = snd;
@@ -181,17 +238,17 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
     }
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA34(void)
+s32 func_shelter_b1_north_maintenance_walkway_8017DA34(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA3C(void)
+s32 func_shelter_b1_north_maintenance_walkway_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA44(void)
+s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -249,7 +306,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
     }
 }
 
-static void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
+void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x60247;

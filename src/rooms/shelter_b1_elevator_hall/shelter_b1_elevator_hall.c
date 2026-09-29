@@ -1,3 +1,6 @@
+#include "shelter_b1_elevator_hall_private.h"
+#include "mapui/map_shelter.h"
+
 #include "common.h"
 
 #include "rooms/room.h"
@@ -21,12 +24,12 @@ extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[];
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CAC;
 extern TaskDesc   D_shelter_b1_elevator_hall_80182CE8;
 extern GpSaveLoc  D_shelter_b1_elevator_hall_801849F8;
-extern GpFadeWork D_shelter_b1_elevator_hall_801849F0;
-
-extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
+extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
 static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
+
+GpSaveLoc D_shelter_b1_elevator_hall_801849F8 = { 0 };
 
 void func_shelter_b1_elevator_hall_8017D620(Task* task)
 {
@@ -77,10 +80,10 @@ void func_shelter_b1_elevator_hall_8017D620(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData[0].state.at4.loc.area;
+            msg.prefix.packed   = Mc_SaveData[0].state.at4.loc.area;
             msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
             msg2        = msg;
-            func_80179A04((GpSaveLoc*)&msg, (GpSaveLoc*)&msg2);
+            func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
             Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
@@ -90,10 +93,10 @@ void func_shelter_b1_elevator_hall_8017D620(Task* task)
     }
 }
 
-s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
 {
     *dst = *src;
-    func_80179A04(src, dst);
+    func_map_shelter_80179A04(src, dst);
     if (*(u16*)src == 0xF && GameFlag_GetNibble(0xA5) == 0) {
         if (src->field_5 == 0) {
             Gp_SetNibbleIf(src->field_6, 2);
@@ -172,10 +175,10 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             Gp_TriggerPeIfArmed();
             goto advance;
         case 4:
-            D_shelter_b1_elevator_hall_801849F0.field_0 = 0;
-            D_shelter_b1_elevator_hall_801849F0.field_1 = 0;
-            D_shelter_b1_elevator_hall_801849F0.field_2 = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0);
+            D_shelter_b1_elevator_hall_801849F0.fade.field_0 = 0;
+            D_shelter_b1_elevator_hall_801849F0.fade.field_1 = 0;
+            D_shelter_b1_elevator_hall_801849F0.fade.field_2 = 0x1E;
+            Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
             SndEvt_EnqueueType6(0x54090007, 0, 0);
             goto advance;
         case 5:
@@ -197,22 +200,22 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
     }
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB54(void)
+s32 func_shelter_b1_elevator_hall_8017DB54(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB5C(void)
+s32 func_shelter_b1_elevator_hall_8017DB5C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB64(void)
+s32 func_shelter_b1_elevator_hall_8017DB64(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB6C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 6:

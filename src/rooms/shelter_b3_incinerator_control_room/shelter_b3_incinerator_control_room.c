@@ -1,9 +1,12 @@
 #include "common.h"
+#include "rooms/shelter_b3_incinerator_control_room.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include "rooms/room.h"
 #include "rooms/room_common.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
@@ -29,14 +32,10 @@
 #include "main/text.h"
 #include "main/ui.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 extern s32            D_801360E4;
 extern s32            D_80136804;
-extern GpAreaApplyRec D_80188888[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `Mc_SaveData`.
@@ -94,7 +93,7 @@ extern UiObjectDesc D_shelter_b3_incinerator_control_room_801817C4;
 extern UiList       D_shelter_b3_incinerator_control_room_801817F0;
 
 /// Task table the cutscene and its sound task are spawned from.
-extern TaskDesc D_shelter_b3_incinerator_control_room_80181814;
+extern TaskDesc D_shelter_b3_incinerator_control_room_80181814[];
 
 /// Message table of the room's message task.
 extern GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[];
@@ -111,6 +110,191 @@ extern Task* D_shelter_b3_incinerator_control_room_80182A54;
 extern RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 
 static void func_shelter_b3_incinerator_control_room_8017F44C(Task* task);
+
+void func_shelter_b3_incinerator_control_room_8017D6CC(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017DE98(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017E8B0(Task *);
+void func_shelter_b3_incinerator_control_room_8017ED5C(Task *);
+void func_shelter_b3_incinerator_control_room_8017EF1C(Task *);
+void func_shelter_b3_incinerator_control_room_8017F110(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017F1F4(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017F2BC(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017F384(UiList *, UiObject *);
+void func_shelter_b3_incinerator_control_room_8017F488(Task *);
+
+void func_shelter_b3_incinerator_control_room_8017F488(Task *);
+void func_shelter_b3_incinerator_control_room_8017F9F4(Task *);
+
+s32 func_shelter_b3_incinerator_control_room_8017FA84(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b3_incinerator_control_room_8017FB20(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task *, s32, s32, GpMessageArg);
+
+u8 D_shelter_b3_incinerator_control_room_801814F4[8] = {
+    83, 97, 118, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_801814FC[12] = {
+    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181508[12] = {
+    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181514[8] = {
+    80, 69, 32, 68, 97, 116, 97, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018151C[8] = {
+    84, 105, 109, 101, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181524[4] = {
+    87, 111, 110, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181528[8] = {
+    69, 115, 99, 97, 112, 101, 100, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181530[12] = {
+    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018153C[16] = {
+    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018154C[8] = {
+    83, 97, 118, 101, 100, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181554[8] = {
+    67, 108, 101, 97, 114, 101, 100, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018155C[8] = {
+    77, 97, 120, 32, 69, 88, 80, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181564[8] = {
+    77, 97, 120, 32, 66, 80, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018156C[8] = {
+    32, 116, 105, 109, 101, 115, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181574[4] = {
+    37, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181578[44] = {
+    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
+    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
+    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_801815A4[36] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
+    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_801815C8[48] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
+    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_801815F8[52] = {
+    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
+    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
+    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_8018162C[52] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
+    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
+    101, 46, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181660[56] = {
+    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
+    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
+    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
+    115, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181698[52] = {
+    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
+    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
+    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
+    46, 0, 0, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_801816CC[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
+    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
+    101, 32, 103, 97, 109, 101, 46, 0,
+};
+
+u8 D_shelter_b3_incinerator_control_room_80181704[56] = {
+    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
+    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
+    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
+    32, 103, 97, 109, 101, 46, 0, 0,
+};
+
+UiListItemFunc D_shelter_b3_incinerator_control_room_8018173C[1] = {
+    func_shelter_b3_incinerator_control_room_8017D6CC,
+};
+
+UiList D_shelter_b3_incinerator_control_room_80181740 = { D_shelter_b3_incinerator_control_room_8018173C, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_b3_incinerator_control_room_80181764[1] = {
+    func_shelter_b3_incinerator_control_room_8017DE98,
+};
+
+UiList D_shelter_b3_incinerator_control_room_80181768 = { D_shelter_b3_incinerator_control_room_80181764, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_b3_incinerator_control_room_8018178C = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_b3_incinerator_control_room_8017ED5C, 0 };
+
+UiObjectDesc D_shelter_b3_incinerator_control_room_801817A8 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_b3_incinerator_control_room_8017EF1C, 0 };
+
+UiObjectDesc D_shelter_b3_incinerator_control_room_801817C4 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_b3_incinerator_control_room_8017E8B0, 0 };
+
+UiListItemFunc D_shelter_b3_incinerator_control_room_801817E0[4] = {
+    func_shelter_b3_incinerator_control_room_8017F110,
+    func_shelter_b3_incinerator_control_room_8017F1F4,
+    func_shelter_b3_incinerator_control_room_8017F2BC,
+    func_shelter_b3_incinerator_control_room_8017F384,
+};
+
+UiList D_shelter_b3_incinerator_control_room_801817F0 = { D_shelter_b3_incinerator_control_room_801817E0, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+void func_shelter_b3_incinerator_control_room_8017F488(Task *);
+void func_shelter_b3_incinerator_control_room_8017F9F4(Task *);
+
+TaskDesc D_shelter_b3_incinerator_control_room_80181814[3] = {
+    { 0, 32, func_shelter_b3_incinerator_control_room_8017F488, { .model = NULL } },
+    { 0, 32, func_shelter_b3_incinerator_control_room_8017F9F4, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
+    { 5102, func_shelter_b3_incinerator_control_room_8017FA8C },
+    { 5105, func_shelter_b3_incinerator_control_room_8017FA84 },
+    { 5103, func_shelter_b3_incinerator_control_room_8017FBE0 },
+    { 5104, func_shelter_b3_incinerator_control_room_8017FB20 },
+    { 5106, func_shelter_b3_incinerator_control_room_8017FBE8 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// Draws one row of the play-data panel, the row picked by
 /// `UiList::field_8`: a caption followed by a value - play time, one of
@@ -759,7 +943,7 @@ static const char D_shelter_b3_incinerator_control_room_8017D638[12] = "Telephon
 /// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
 /// out and updates the list. When the first child window finishes, the menu
 /// opens the item prompt its selection picks, or closes.
-static void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
+void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -1154,7 +1338,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
             break;
         case 4:
             D_shelter_b3_incinerator_control_room_80182A54 =
-                Task_SpawnFromTable(&D_shelter_b3_incinerator_control_room_80181814, 1, 0, script->field_10);
+                Task_SpawnFromTable(D_shelter_b3_incinerator_control_room_80181814, 1, 0, script->field_10);
             Gp_StartCapSlot(script->field_1, 0, 0x63);
             task->state++;
             break;
@@ -1199,7 +1383,7 @@ void func_shelter_b3_incinerator_control_room_8017F488(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -1308,16 +1492,16 @@ void func_shelter_b3_incinerator_control_room_8017F9F4(Task* task)
     }
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FA84(void)
+s32 func_shelter_b3_incinerator_control_room_8017FA84(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FA8C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId != 0x2A) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed != 0x2A) {
         return 1;
     }
     if (GameFlag_GetNibble(0xA7) != 0) {
@@ -1331,7 +1515,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(s32 arg0, s32 arg1, RoomEv
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FB20(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x138) != 0) {
@@ -1344,7 +1528,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(s32 arg0, s32 arg1, s32 ar
             D_shelter_b3_incinerator_control_room_80182A58.field_8  = 0x54290004;
             D_shelter_b3_incinerator_control_room_80182A58.field_10 = 0x54290002;
             D_shelter_b3_incinerator_control_room_80182A58.field_C  = 0x54290003;
-            Task_SpawnFromTable(&D_shelter_b3_incinerator_control_room_80181814, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
+            Task_SpawnFromTable(D_shelter_b3_incinerator_control_room_80181814, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
             GameFlag_SetNibble(0x138, 1);
             Gp_SpawnIfCapIdle(6, 1);
@@ -1353,12 +1537,12 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(s32 arg0, s32 arg1, s32 ar
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FBE0(void)
+s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FBE8(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(0x54290009, 0, 0);

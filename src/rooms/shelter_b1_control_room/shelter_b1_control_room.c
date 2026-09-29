@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b1_control_room.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -95,13 +97,29 @@ typedef struct {
     s32     bottom;
 } _MirrorScratch;
 
-extern s32        func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 extern void       func_80131FB8(void);
 extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
 extern s32        D_80132D70;
 extern s32        D_80133088;
 
 static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
+
+s32 func_shelter_b1_control_room_8017ECCC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_8017ECD4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_control_room_8017ED68(Task *, s32, s32, s32);
+s32 func_shelter_b1_control_room_8017EE24(Task *, s32, GpMessageArg, GpMessageArg);
+
+void func_shelter_b1_control_room_8017D7B8(Task *);
+
+TaskDesc D_shelter_b1_control_room_80181B88 = { 0, 112, func_shelter_b1_control_room_8017D7B8, { .model = NULL } };
+
+GpMsgEntry D_shelter_b1_control_room_80181B94[5] = {
+    { 5102, func_shelter_b1_control_room_8017ECD4 },
+    { 5105, func_shelter_b1_control_room_8017ECCC },
+    { 5103, func_shelter_b1_control_room_8017EE24 },
+    { 5104, func_shelter_b1_control_room_8017ED68 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// Applies `m` to `v` through the GTE and stores the result in `out`.
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
@@ -555,16 +573,16 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     SCRATCH_POP_BYTES(0x8C);
 }
 
-s32 func_shelter_b1_control_room_8017ECCC(void)
+s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_control_room_8017ECD4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId != 0x13) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed != 0x13) {
         return 1;
     }
     if (GameFlag_GetNibble(0xAD) != 0) {
@@ -611,7 +629,7 @@ s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 a
     return 0;
 }
 
-s32 func_shelter_b1_control_room_8017EE24(void)
+s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

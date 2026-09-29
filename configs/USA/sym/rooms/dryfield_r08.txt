@@ -1,1 +1,56 @@
 // Overlay-local symbols for dryfield_r08.
+D_dryfield_r08_8017F464 = 0x8017F464; // size:0x60 defined:True
+D_dryfield_r08_8017F4C4 = 0x8017F4C4; // size:0x218 defined:True
+D_dryfield_r08_8017F6DC = 0x8017F6DC; // size:0x20 defined:True
+D_dryfield_r08_8017F6FC = 0x8017F6FC; // size:0x8 defined:True
+D_dryfield_r08_8017F704 = 0x8017F704; // size:0x4 defined:True
+D_dryfield_r08_8017F708 = 0x8017F708; // size:0x10 defined:True
+D_dryfield_r08_8017F718 = 0x8017F718; // size:0x38 defined:True
+D_dryfield_r08_8017F750 = 0x8017F750; // size:0x30 defined:True
+D_dryfield_r08_8017F780 = 0x8017F780; // size:0x1D8 defined:True
+D_dryfield_r08_8017F958 = 0x8017F958; // size:0x174 defined:True
+D_dryfield_r08_8017FACC = 0x8017FACC; // size:0x22 defined:True
+D_dryfield_r08_8017FAF0 = 0x8017FAF0; // size:0x10 defined:True
+D_dryfield_r08_8017FB00 = 0x8017FB00; // size:0x1A defined:True
+D_dryfield_r08_8017FB1C = 0x8017FB1C; // size:0xC defined:True
+D_dryfield_r08_8017FB28 = 0x8017FB28; // size:0x22 defined:True
+D_dryfield_r08_8017FB4C = 0x8017FB4C; // size:0x10 defined:True
+D_dryfield_r08_8017FB5C = 0x8017FB5C; // size:0x10 defined:True
+D_dryfield_r08_8017FB6C = 0x8017FB6C; // size:0xA defined:True
+D_dryfield_r08_8017FB78 = 0x8017FB78; // size:0x20 defined:True
+D_dryfield_r08_8017FB98 = 0x8017FB98; // size:0x24 defined:True
+D_dryfield_r08_8017FBBC = 0x8017FBBC; // size:0xD8 defined:True
+D_dryfield_r08_8017FC94 = 0x8017FC94; // size:0x10 defined:True
+D_dryfield_r08_8017FCA4 = 0x8017FCA4; // size:0x6A4 defined:True
+D_dryfield_r08_80180348 = 0x80180348; // size:0x20 defined:True
+D_dryfield_r08_80180368 = 0x80180368; // size:0xF0 defined:True
+D_dryfield_r08_80180458 = 0x80180458; // size:0x18 defined:True
+D_dryfield_r08_80180470 = 0x80180470; // size:0x118 defined:True
+D_dryfield_r08_80180588 = 0x80180588; // size:0x68 defined:True
+D_dryfield_r08_801805F0 = 0x801805F0; // size:0xA0 defined:True
+D_dryfield_r08_80180690 = 0x80180690; // size:0x18 defined:True
+D_dryfield_r08_801806A8 = 0x801806A8; // size:0x258 defined:True
+D_dryfield_r08_80180900 = 0x80180900; // size:0x18 defined:True
+D_dryfield_r08_80180918 = 0x80180918; // size:0x48 defined:True
+D_dryfield_r08_80180960 = 0x80180960; // size:0x60 defined:True
+D_dryfield_r08_801809C0 = 0x801809C0; // size:0x18 defined:True
+D_dryfield_r08_801809D8 = 0x801809D8; // size:0x180 defined:True
+D_dryfield_r08_80180B58 = 0x80180B58; // size:0x18 defined:True
+D_dryfield_r08_80180B70 = 0x80180B70; // size:0x18 defined:True
+D_8013D390 = 0x8013D390; // absolute:True
+D_dryfield_r08_80180B88 = 0x80180B88; // size:0x68 defined:True
+D_map_dryfield_8017AF44 = 0x8017AF44; // absolute:True
+D_dryfield_r08_80180BF0 = 0x80180BF0; // size:0xC defined:True
+D_dryfield_r08_80180BFC = 0x80180BFC; // size:0x8 defined:True
+D_dryfield_r08_80180C04 = 0x80180C04; // size:0x20 defined:True
+D_dryfield_r08_80180C24 = 0x80180C24; // size:0x4 defined:True
+
+func_dryfield_r08_8017F334 = 0x8017F334; // type:func
+
+func_dryfield_r08_8017F340 = 0x8017F340; // type:func
+
+func_dryfield_r08_8017F438 = 0x8017F438; // type:func
+
+func_dryfield_r08_8017D5F8 = 0x8017D5F8; // type:func
+
+func_dryfield_r08_8017D8B4 = 0x8017D8B4; // type:func

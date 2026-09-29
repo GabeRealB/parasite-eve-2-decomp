@@ -1,3 +1,4 @@
+#include "actors/actor_210700.h"
 #include "common.h"
 
 
@@ -22,6 +23,10 @@
 #include "main/tmd.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+
+#include "gameplay/animation.h"
+
+extern GpImgRec D_actor_210700_8015858C[2];
 
 /// The actor's work block. The spawn handler `func_actor_210700_80149F90`
 /// allocates it zeroed with `memCalloc(0x540, 0)` and keeps it in
@@ -74,18 +79,28 @@ STATIC_ASSERT_SIZEOF(Actor210700Anim, 0x18);
 
 /// Animation sources the 0x7D3 handler loads, indexed by its payload's
 /// `field_0`.
-extern void* D_actor_210700_801585C8[];
+extern GpAnimSet* D_actor_210700_801585AC[7];
+extern GpAnimSet** D_actor_210700_801585C8[1];
 
 /// The actor's message table, parked in `Task::msgTable`: 0x7D3
 /// `func_actor_210700_8014A224`, 0x7D4 `func_actor_210700_8014A344`, 0x7D5
 /// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
-extern GpMsgEntry D_actor_210700_801585D8[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, Actor210700Anim *, s32);
+        s32 (*call1)(Task *, s32, GpXformArg *, s32);
+        s32 (*call2)(Task *, s32, s32);
+    } handler;
+} Actor210700MsgEntry;
+STATIC_ASSERT_SIZEOF(Actor210700MsgEntry, 8);
+
+extern Actor210700MsgEntry D_actor_210700_801585D8[];
 
 /// Images the texture-upload state and the 0x7E0 handler post over the
 /// model's texture.
-extern GpImgRec D_actor_210700_80157F4C;
-extern GpImgRec D_actor_210700_8015826C;
-extern GpImgRec D_actor_210700_8015858C;
 
 static void func_actor_210700_80149F90(Task* task);
 static void func_actor_210700_8014A0AC(Task* task);
@@ -102,7 +117,1047 @@ static const TaskFuncTable3 D_actor_210700_80149E24 = { {
     func_actor_210700_8014A1E8,
 } };
 
-/// Texture-upload step, run by the tick state: while `field_53C` names an
+
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[49];
+    GpPackedSvec words[147];
+} Actor210700PoseBank750;
+
+extern GpAnimSet D_actor_210700_80156A40;
+extern GpAnimSet D_actor_210700_80156E00;
+extern GpAnimSet D_actor_210700_80157060;
+extern GpAnimSet D_actor_210700_8015754C;
+extern GpAnimSet D_actor_210700_8015799C;
+extern GpAnimSet D_actor_210700_80157C24;
+extern TmdSource D_actor_210700_80156504;
+s32 func_actor_210700_8014A224(Task *, s32, Actor210700Anim *, s32);
+s32 func_actor_210700_8014A344(Task *, s32, GpXformArg *, s32);
+s32 func_actor_210700_8014A3D4(Task *, s32, s32);
+s32 func_actor_210700_8014A4B0(Task *, s32, s32);
+void func_actor_210700_80149F38(Task *);
+
+Actor210700PoseBank750 D_actor_210700_8014A570 = { .poses = {
+#include "assets/actor_210700_animation_01E2C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014A7BC[592] = {
+#include "assets/actor_210700_animation_01E2C_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014B0FC[714] = {
+#include "assets/actor_210700_animation_01E2C_records.inc"
+};
+
+u16 D_actor_210700_8014BC24[20] = {
+#include "assets/actor_210700_animation_01E2C_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014BC4C = {
+    D_actor_210700_8014B0FC, D_actor_210700_8014BC24,
+    { NULL, D_actor_210700_8014A570.words, NULL, NULL, D_actor_210700_8014A7BC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} Actor210700PoseBank1E54;
+
+Actor210700PoseBank1E54 D_actor_210700_8014BC74 = { .poses = {
+#include "assets/actor_210700_animation_027F8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014BD4C[226] = {
+#include "assets/actor_210700_animation_027F8_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014C0D4[327] = {
+#include "assets/actor_210700_animation_027F8_records.inc"
+};
+
+u16 D_actor_210700_8014C5F0[20] = {
+#include "assets/actor_210700_animation_027F8_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014C618 = {
+    D_actor_210700_8014C0D4, D_actor_210700_8014C5F0,
+    { NULL, D_actor_210700_8014BC74.words, NULL, NULL, D_actor_210700_8014BD4C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor210700PoseBank2820;
+
+Actor210700PoseBank2820 D_actor_210700_8014C640 = { .poses = {
+#include "assets/actor_210700_animation_02B54_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014C688[51] = {
+#include "assets/actor_210700_animation_02B54_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014C754[126] = {
+#include "assets/actor_210700_animation_02B54_records.inc"
+};
+
+u16 D_actor_210700_8014C94C[20] = {
+#include "assets/actor_210700_animation_02B54_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014C974 = {
+    D_actor_210700_8014C754, D_actor_210700_8014C94C,
+    { NULL, D_actor_210700_8014C640.words, NULL, NULL, D_actor_210700_8014C688, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor210700PoseBank2B7C;
+
+Actor210700PoseBank2B7C D_actor_210700_8014C99C = { .poses = {
+#include "assets/actor_210700_animation_02E0C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014C9D8[50] = {
+#include "assets/actor_210700_animation_02E0C_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014CAA0[89] = {
+#include "assets/actor_210700_animation_02E0C_records.inc"
+};
+
+u16 D_actor_210700_8014CC04[20] = {
+#include "assets/actor_210700_animation_02E0C_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014CC2C = {
+    D_actor_210700_8014CAA0, D_actor_210700_8014CC04,
+    { NULL, D_actor_210700_8014C99C.words, NULL, NULL, D_actor_210700_8014C9D8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} Actor210700PoseBank2E34;
+
+Actor210700PoseBank2E34 D_actor_210700_8014CC54 = { .poses = {
+#include "assets/actor_210700_animation_0318C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014CCB4[67] = {
+#include "assets/actor_210700_animation_0318C_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014CDC0[113] = {
+#include "assets/actor_210700_animation_0318C_records.inc"
+};
+
+u16 D_actor_210700_8014CF84[20] = {
+#include "assets/actor_210700_animation_0318C_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014CFAC = {
+    D_actor_210700_8014CDC0, D_actor_210700_8014CF84,
+    { NULL, D_actor_210700_8014CC54.words, NULL, NULL, D_actor_210700_8014CCB4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor210700PoseBank31B4;
+
+Actor210700PoseBank31B4 D_actor_210700_8014CFD4 = { .poses = {
+#include "assets/actor_210700_animation_03424_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014D010[37] = {
+#include "assets/actor_210700_animation_03424_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014D0A4[94] = {
+#include "assets/actor_210700_animation_03424_records.inc"
+};
+
+u16 D_actor_210700_8014D21C[20] = {
+#include "assets/actor_210700_animation_03424_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014D244 = {
+    D_actor_210700_8014D0A4, D_actor_210700_8014D21C,
+    { NULL, D_actor_210700_8014CFD4.words, NULL, NULL, D_actor_210700_8014D010, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[15];
+    GpPackedSvec words[45];
+} Actor210700PoseBank344C;
+
+Actor210700PoseBank344C D_actor_210700_8014D26C = { .poses = {
+#include "assets/actor_210700_animation_03BD0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014D320[170] = {
+#include "assets/actor_210700_animation_03BD0_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014D5C8[256] = {
+#include "assets/actor_210700_animation_03BD0_records.inc"
+};
+
+u16 D_actor_210700_8014D9C8[20] = {
+#include "assets/actor_210700_animation_03BD0_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8014D9F0 = {
+    D_actor_210700_8014D5C8, D_actor_210700_8014D9C8,
+    { NULL, D_actor_210700_8014D26C.words, NULL, NULL, D_actor_210700_8014D320, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[116];
+    GpPackedSvec words[348];
+} Actor210700PoseBank3BF8;
+
+Actor210700PoseBank3BF8 D_actor_210700_8014DA18 = { .poses = {
+#include "assets/actor_210700_animation_067E8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_8014DF88[1028] = {
+#include "assets/actor_210700_animation_067E8_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8014EF98[1426] = {
+#include "assets/actor_210700_animation_067E8_records.inc"
+};
+
+u16 D_actor_210700_801505E0[20] = {
+#include "assets/actor_210700_animation_067E8_indices.inc"
+};
+
+GpAnimSet D_actor_210700_80150608 = {
+    D_actor_210700_8014EF98, D_actor_210700_801505E0,
+    { NULL, D_actor_210700_8014DA18.words, NULL, NULL, D_actor_210700_8014DF88, NULL, NULL, NULL },
+};
+
+TmdBone D_actor_210700_80150630[20] = {
+#include "assets/actor_210700_model_0C6E4_skeleton.inc"
+};
+
+u32 D_actor_210700_80150900[20] = {
+#include "assets/actor_210700_model_0C6E4_partVerts.inc"
+};
+
+SVECTOR D_actor_210700_80150950[386] = {
+#include "assets/actor_210700_model_0C6E4_verts.inc"
+};
+
+SVECTOR D_actor_210700_80151560[385] = {
+#include "assets/actor_210700_model_0C6E4_normals.inc"
+};
+
+u32 D_actor_210700_80152168[4327] = {
+#include "assets/actor_210700_model_0C6E4_stream.inc"
+};
+
+TmdSource D_actor_210700_80156504 = {
+    0, 23980, 6012, 20,
+    D_actor_210700_80150900, D_actor_210700_80150950, D_actor_210700_80151560, D_actor_210700_80150630, D_actor_210700_80152168,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} Actor210700PoseBankC708;
+
+Actor210700PoseBankC708 D_actor_210700_80156528 = { .poses = {
+#include "assets/actor_210700_animation_0CC20_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_80156594[112] = {
+#include "assets/actor_210700_animation_0CC20_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_80156754[177] = {
+#include "assets/actor_210700_animation_0CC20_records.inc"
+};
+
+u16 D_actor_210700_80156A18[20] = {
+#include "assets/actor_210700_animation_0CC20_indices.inc"
+};
+
+GpAnimSet D_actor_210700_80156A40 = {
+    D_actor_210700_80156754, D_actor_210700_80156A18,
+    { NULL, D_actor_210700_80156528.words, NULL, NULL, D_actor_210700_80156594, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} Actor210700PoseBankCC48;
+
+Actor210700PoseBankCC48 D_actor_210700_80156A68 = { .poses = {
+#include "assets/actor_210700_animation_0CFE0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_80156ABC[62] = {
+#include "assets/actor_210700_animation_0CFE0_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_80156BB4[137] = {
+#include "assets/actor_210700_animation_0CFE0_records.inc"
+};
+
+u16 D_actor_210700_80156DD8[20] = {
+#include "assets/actor_210700_animation_0CFE0_indices.inc"
+};
+
+GpAnimSet D_actor_210700_80156E00 = {
+    D_actor_210700_80156BB4, D_actor_210700_80156DD8,
+    { NULL, D_actor_210700_80156A68.words, NULL, NULL, D_actor_210700_80156ABC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor210700PoseBankD008;
+
+Actor210700PoseBankD008 D_actor_210700_80156E28 = { .poses = {
+#include "assets/actor_210700_animation_0D240_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_80156E40[32] = {
+#include "assets/actor_210700_animation_0D240_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_80156EC0[94] = {
+#include "assets/actor_210700_animation_0D240_records.inc"
+};
+
+u16 D_actor_210700_80157038[20] = {
+#include "assets/actor_210700_animation_0D240_indices.inc"
+};
+
+GpAnimSet D_actor_210700_80157060 = {
+    D_actor_210700_80156EC0, D_actor_210700_80157038,
+    { NULL, D_actor_210700_80156E28.words, NULL, NULL, D_actor_210700_80156E40, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor210700PoseBankD268;
+
+Actor210700PoseBankD268 D_actor_210700_80157088 = { .poses = {
+#include "assets/actor_210700_animation_0D72C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_801570D0[104] = {
+#include "assets/actor_210700_animation_0D72C_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_80157270[173] = {
+#include "assets/actor_210700_animation_0D72C_records.inc"
+};
+
+u16 D_actor_210700_80157524[20] = {
+#include "assets/actor_210700_animation_0D72C_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8015754C = {
+    D_actor_210700_80157270, D_actor_210700_80157524,
+    { NULL, D_actor_210700_80157088.words, NULL, NULL, D_actor_210700_801570D0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor210700PoseBankD754;
+
+Actor210700PoseBankD754 D_actor_210700_80157574 = { .poses = {
+#include "assets/actor_210700_animation_0DB7C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_801575BC[84] = {
+#include "assets/actor_210700_animation_0DB7C_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_8015770C[154] = {
+#include "assets/actor_210700_animation_0DB7C_records.inc"
+};
+
+u16 D_actor_210700_80157974[20] = {
+#include "assets/actor_210700_animation_0DB7C_indices.inc"
+};
+
+GpAnimSet D_actor_210700_8015799C = {
+    D_actor_210700_8015770C, D_actor_210700_80157974,
+    { NULL, D_actor_210700_80157574.words, NULL, NULL, D_actor_210700_801575BC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor210700PoseBankDBA4;
+
+Actor210700PoseBankDBA4 D_actor_210700_801579C4 = { .poses = {
+#include "assets/actor_210700_animation_0DE04_bank1.inc"
+} };
+
+GpPackedSvec D_actor_210700_801579F4[52] = {
+#include "assets/actor_210700_animation_0DE04_bank4.inc"
+};
+
+GpAnimRec D_actor_210700_80157AC4[78] = {
+#include "assets/actor_210700_animation_0DE04_records.inc"
+};
+
+u16 D_actor_210700_80157BFC[20] = {
+#include "assets/actor_210700_animation_0DE04_indices.inc"
+};
+
+GpAnimSet D_actor_210700_80157C24 = {
+    D_actor_210700_80157AC4, D_actor_210700_80157BFC,
+    { NULL, D_actor_210700_801579C4.words, NULL, NULL, D_actor_210700_801579F4, NULL, NULL, NULL },
+};
+
+u_long D_actor_210700_80157C4C[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA6A2A28D,
+    0xADA5ADA5,
+    0xB1B1B1AE,
+    0xAEAEADAE,
+    0x65929AA9,
+    0xADA68766,
+    0xADA5A5AD,
+    0xADADADAD,
+    0x8B969EA5,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0xA5958C8D,
+    0xFFB9C29C,
+    0xAE61B5FF,
+    0xA9A9A9A5,
+    0x7C788F95,
+    0xA7958785,
+    0x9FA5A68B,
+    0xFFFFB561,
+    0x9890C5BF,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0x9B8C828D,
+    0xFFB21716,
+    0xCECCFFFF,
+    0x9595A890,
+    0x7B65864E,
+    0x998D8665,
+    0xCEACA997,
+    0xB7FFFFC4,
+    0x9BCCD5D0,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9894028A,
+    0x1CCB0B1,
+    0x81958B9B,
+    0x72677882,
+    0x998E8568,
+    0xCC9B95A2,
+    0x98AE7EC6,
+    0x87891601,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x87879A9B,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_210700_80157F4C[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_80157C4C },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_210700_80157F6C[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA2A2A28D,
+    0x8C8C8C8C,
+    0xA9A9A68C,
+    0xAEAEA9A9,
+    0x65929AA9,
+    0xADA68766,
+    0xA9A9A5AD,
+    0x9595A9A9,
+    0x95959595,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0x95958C8D,
+    0xB0C2A995,
+    0xC2C2B0B0,
+    0xA9A9A9A9,
+    0x7C788F95,
+    0xA7958785,
+    0xA9A9A68B,
+    0xC2B0B0C2,
+    0x959595C2,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0xC28C828D,
+    0xB0B0B0B0,
+    0xB0B0B0B0,
+    0x9595A8B0,
+    0x7B65864E,
+    0x998D8665,
+    0xB0B0A997,
+    0xB0B0B0B0,
+    0x9BC2B0B0,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9894028A,
+    0x1CCB0B1,
+    0x81958B9B,
+    0x72677882,
+    0x998E8568,
+    0xCC9B95A2,
+    0x98AE7EC6,
+    0x87891601,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x879A9A9A,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_210700_8015826C[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_80157F6C },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+u_long D_actor_210700_8015828C[192] = {
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x64838DA2,
+    0x48555D4F,
+    0x49494949,
+    0x54554849,
+    0x65657C5E,
+    0x60737A7A,
+    0x48485555,
+    0x60545555,
+    0x64795672,
+    0xA2A28E76,
+    0xFFFFFFFF,
+    0xB1FFFFFF,
+    0x65838DA2,
+    0x4948546F,
+    0x45454545,
+    0x54484949,
+    0x7766705E,
+    0x545F6A77,
+    0x48484848,
+    0x54554848,
+    0x6479725F,
+    0xA2A28262,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x65839AA1,
+    0x4948545C,
+    0x45454545,
+    0x54484945,
+    0x7777705E,
+    0x555D7C8A,
+    0x48484848,
+    0x55484848,
+    0x65687D53,
+    0xA2A28276,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x64828DA1,
+    0x49485451,
+    0x45454549,
+    0x60554949,
+    0x6877686F,
+    0x545F7B77,
+    0x48484848,
+    0x54554848,
+    0x777A705F,
+    0xA2A29A83,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x789A99A1,
+    0x605F706A,
+    0x55485554,
+    0x72605455,
+    0x6A86666A,
+    0x5E577787,
+    0x54545454,
+    0x6F605454,
+    0x8F8F786A,
+    0xA2A2998E,
+    0xFFFFFFFF,
+    0xFFFFFFFF,
+    0x96A6A3A1,
+    0x9B639098,
+    0x7C7C9489,
+    0x776A7C7C,
+    0x85829388,
+    0x66878E8F,
+    0x7A7A6A67,
+    0xA38E898A,
+    0x98A5A0A6,
+    0xA2A2A6A9,
+    0xFFFFFFFF,
+    0xB5FFFFFF,
+    0xA096A6A3,
+    0x989F9F98,
+    0xAB919090,
+    0x99A36363,
+    0x77878F99,
+    0x99999A87,
+    0x9191A6A1,
+    0xAD9F9890,
+    0x9FADADAD,
+    0xA2A7969E,
+    0xFFFFFFFF,
+    0x61FFFFFF,
+    0xA2A3A3A2,
+    0x96A7A3A2,
+    0x61619F98,
+    0x9F616161,
+    0x77788FA1,
+    0x9E998778,
+    0x6161AEAE,
+    0xA99EA59F,
+    0xA1A1A7A6,
+    0xA2A1A1A1,
+    0xFFFFFFFF,
+    0x9FFFFFFF,
+    0xA2A2A28D,
+    0xA2A2A2A2,
+    0xB19898A2,
+    0xAEAEADAE,
+    0x65929AA9,
+    0xADA68766,
+    0xADA5A5AD,
+    0x8B8B9898,
+    0xA2A2A2A2,
+    0xA2A2A2A2,
+    0xFFFFFFFF,
+    0xA5FFFFFF,
+    0xA2958C8D,
+    0x788FA2A2,
+    0xA2A28F8F,
+    0xA9A9A9A6,
+    0x7C788F95,
+    0xA7958785,
+    0xA2A2A7A7,
+    0x8F788F8F,
+    0x959595A2,
+    0x8C8C9795,
+    0xFFFFFFFF,
+    0xABFFFFFF,
+    0x958C828D,
+    0x61ADADA9,
+    0xAD616161,
+    0xA9A99898,
+    0x7B65864E,
+    0x998D8665,
+    0x61AD9897,
+    0x61616161,
+    0x95A9ADAD,
+    0x87868281,
+    0xFFFFFFFF,
+    0x9BB6FFFF,
+    0x828F828D,
+    0x9898ADAD,
+    0x98A9A9A9,
+    0x818198AD,
+    0x72677882,
+    0x998E8568,
+    0x98AD9898,
+    0x98A9A9A9,
+    0x87ADADAD,
+    0x8A6A6686,
+    0xFFFFFFFF,
+    0x8F98FFFF,
+    0x787A788E,
+    0x8F868282,
+    0x9388938E,
+    0x9A999A8E,
+    0x6F706488,
+    0x8E86646C,
+    0x9A9A8E8E,
+    0x87879A9B,
+    0x66788687,
+    0x7A735E73,
+    0xFFFFFFFF,
+    0x8691FFFF,
+    0x4F746A86,
+    0x72576870,
+    0x6A705E74,
+    0x87868A8A,
+    0x7D736777,
+    0x87787072,
+    0x8A898987,
+    0x6C6C707A,
+    0x605E6C57,
+    0x6A605454,
+    0xFFFFFFFF,
+    0x7763FFFF,
+    0x535F6A77,
+    0x55555460,
+    0x54554848,
+    0x776A7353,
+    0x5D7D577A,
+    0x788A705F,
+    0x72707C7A,
+    0x54545460,
+    0x55555454,
+    0x7A735455,
+    0xFFFFFFFF,
+    0x6691FFFF,
+    0x60737A77,
+    0x45454854,
+    0x55484945,
+    0x7C735354,
+    0x545F577A,
+    0x7A7A7354,
+    0x5453737C,
+    0x48494848,
+    0x55554848,
+    0x777A7254,
+};
+
+GpImgRec D_actor_210700_8015858C[2] = {
+    { 0, 0, { 0, 0, 24, 16 }, D_actor_210700_8015828C },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+GpAnimSet * D_actor_210700_801585AC[7] = {
+    NULL,
+    &D_actor_210700_80156A40,
+    &D_actor_210700_80156E00,
+    &D_actor_210700_80157060,
+    &D_actor_210700_8015754C,
+    &D_actor_210700_8015799C,
+    &D_actor_210700_80157C24,
+};
+
+GpAnimSet ** D_actor_210700_801585C8[1] = {
+    D_actor_210700_801585AC,
+};
+
+TaskDesc D_actor_210700_801585CC = { 1, 192, func_actor_210700_80149F38, { .model = &D_actor_210700_80156504 } };
+
+Actor210700MsgEntry D_actor_210700_801585D8[5] = {
+    { 2003, { .call0 = func_actor_210700_8014A224 } },
+    { 2004, { .call1 = func_actor_210700_8014A344 } },
+    { 2005, { .call2 = func_actor_210700_8014A3D4 } },
+    { 2016, { .call2 = func_actor_210700_8014A4B0 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};/// Texture-upload step, run by the tick state: while `field_53C` names an
 /// upload in progress, counts `field_53A` down one a frame, and on the frame
 /// it underflows posts that step's image over the 0x18x0x10 rect at y 0x28.
 /// Steps 1 and 2 then reload the countdown from `field_538` and advance to the
@@ -122,7 +1177,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case 1:
             work->field_53A = work->field_53A - 1;
             if ((s16)work->field_53A < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_8015858C, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_210700_8015858C[0], &rect);
                 work->field_53A = work->field_538;
                 work->field_53C = work->field_53C + 1;
             }
@@ -130,7 +1185,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case 2:
             work->field_53A = work->field_53A - 1;
             if ((s16)work->field_53A < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_8015826C, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_210700_8015826C[0], &rect);
                 work->field_53A = work->field_538;
                 work->field_53C = work->field_53C + 1;
             }
@@ -138,7 +1193,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case 3:
             work->field_53A = work->field_53A - 1;
             if ((s16)work->field_53A < 0) {
-                Gp_LoadActorImage(arg0, &D_actor_210700_80157F4C, &rect);
+                Gp_LoadActorImage(arg0, &D_actor_210700_80157F4C[0], &rect);
                 work->field_53C = 0;
             }
             break;
@@ -368,8 +1423,8 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 }
 
 /// Message-0x7E0 handler: uploads one of the actor's three texture records over
-/// the 0x18x0x10 rect at y 0x28 -- `D_actor_210700_8015858C` for mode 1,
-/// `D_actor_210700_80157F4C` for modes 0 and 2, and `D_actor_210700_8015826C`
+/// the 0x18x0x10 rect at y 0x28 -- `D_actor_210700_8015858C[0]` for mode 1,
+/// `D_actor_210700_80157F4C[0]` for modes 0 and 2, and `D_actor_210700_8015826C[0]`
 /// for mode 3, which sets the work block's `field_53C` / `field_538` to 1
 /// first. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
@@ -388,16 +1443,16 @@ s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 1:
-            img = &D_actor_210700_8015858C;
+            img = &D_actor_210700_8015858C[0];
             break;
         case 0:
         case 2:
-            img = &D_actor_210700_80157F4C;
+            img = &D_actor_210700_80157F4C[0];
             break;
         case 3:
             ((Actor210700Work*)((GameActor*)arg0->work))->field_53C = 1;
             ((Actor210700Work*)((GameActor*)arg0->work))->field_538 = 1;
-            img                                                     = &D_actor_210700_8015826C;
+            img                                                     = &D_actor_210700_8015826C[0];
             break;
         default:
             img = NULL;

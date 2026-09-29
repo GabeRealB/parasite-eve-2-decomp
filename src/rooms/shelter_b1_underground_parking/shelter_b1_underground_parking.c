@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -9,6 +10,7 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "rooms/shelter_b1_underground_parking.h"
+#include "rooms/acropolis_square.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/attachments.h"
@@ -51,11 +53,17 @@
 #include "main/wipsys.h"
 #include "overlay.h"
 
-extern s32  func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+
+extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
+
 extern void func_80131E38(void);
 
 extern UiObjectDesc D_800611E4;
-extern UiObject*    D_80067634;
 
 /// Labels of the nine play-data rows, and the help line each row shows while
 /// it is selected.
@@ -234,10 +242,19 @@ extern UiObjectDesc D_shelter_b1_underground_parking_801870F4;
 extern Task* D_shelter_b1_underground_parking_8018D754;
 
 /// The area records applied when the scene hands the Dryfield story on.
-extern GpAreaApplyRec D_shelter_b1_underground_parking_80188888;
 
 extern s32             D_shelter_b1_underground_parking_8018D758;
-extern RoomCutsceneRec D_shelter_b1_underground_parking_8018D75C;
+
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    RoomCutsceneRec value;
+    u8 retained[8];
+} ShelterB1UndergroundParkingStorageD75C;
+STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorageD75C, 32);
+
+extern ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C;
 extern TaskDesc        D_shelter_b1_underground_parking_80187200;
 extern TaskDesc        D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc        D_shelter_b1_underground_parking_8018726C[];
@@ -246,9 +263,9 @@ extern GpFadeWork      D_shelter_b1_underground_parking_8018D750;
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
 
-extern s32 D_shelter_b1_underground_parking_801872D8;
-extern s32 D_shelter_b1_underground_parking_801873DC;
-extern s32 D_shelter_b1_underground_parking_80187544;
+extern GpEvsCmd D_shelter_b1_underground_parking_801872D8[];
+extern GpEvsCmd D_shelter_b1_underground_parking_801873DC[];
+extern GpEvsCmd D_shelter_b1_underground_parking_80187544[];
 
 /// The task spawned from `D_shelter_b1_underground_parking_80187670`, and its
 /// descriptor.
@@ -265,8 +282,6 @@ extern OverlayHotspot D_shelter_b1_underground_parking_8018767C[];
 extern u8             D_shelter_b1_underground_parking_801876C4[];
 
 extern SVECTOR D_shelter_b1_underground_parking_80187714[];
-extern SVECTOR D_shelter_b1_underground_parking_8018771C[];
-extern SVECTOR D_shelter_b1_underground_parking_80187724[];
 extern SVECTOR D_shelter_b1_underground_parking_80187784[];
 extern SVECTOR D_shelter_b1_underground_parking_801877A4[];
 
@@ -295,6 +310,4212 @@ static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 static void func_shelter_b1_underground_parking_8017F7D0(Task* task);
 static void func_shelter_b1_underground_parking_801848BC(Task* task);
 static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+void func_shelter_b1_underground_parking_8017FE7C(UiList *, UiObject *);
+
+void func_shelter_b1_underground_parking_8017DA50(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017E21C(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017EC34(Task *);
+void func_shelter_b1_underground_parking_8017F0E0(Task *);
+void func_shelter_b1_underground_parking_8017F2A0(Task *);
+void func_shelter_b1_underground_parking_8017F494(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017F578(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017F640(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_8017F708(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_80180820(Task *);
+void func_shelter_b1_underground_parking_80180A70(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_80180C90(Task *);
+void func_shelter_b1_underground_parking_80180E38(Task *);
+void func_shelter_b1_underground_parking_8018101C(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_80181230(Task *);
+void func_shelter_b1_underground_parking_80181CCC(UiList *, UiObject *);
+void func_shelter_b1_underground_parking_80181D88(Task *);
+
+void func_shelter_b1_underground_parking_80180820(Task *);
+void func_shelter_b1_underground_parking_801813B0(Task *);
+void func_shelter_b1_underground_parking_80181678(Task *);
+void func_shelter_b1_underground_parking_8018184C(Task *);
+void func_shelter_b1_underground_parking_80181EB0(Task *);
+
+extern GpGridParams D_shelter_b1_underground_parking_80187E50[1];
+extern GpGridParams D_shelter_b1_underground_parking_801884D4[1];
+extern GpGridParams D_shelter_b1_underground_parking_80188BC4[1];
+extern GpGridParams D_shelter_b1_underground_parking_8018912C[1];
+extern GpGridParams D_shelter_b1_underground_parking_80189754[1];
+extern GpObj4C D_shelter_b1_underground_parking_8018B094[8];
+extern GpObj4C D_shelter_b1_underground_parking_8018B2F4[8];
+extern GpObj4C D_shelter_b1_underground_parking_8018B674[12];
+extern GpObj4C D_shelter_b1_underground_parking_8018BA04[12];
+extern GpObj4C D_shelter_b1_underground_parking_8018BD94[12];
+extern GpObj4C D_shelter_b1_underground_parking_8018C124[12];
+extern GpObj4C D_shelter_b1_underground_parking_8018C4B4[12];
+extern GpObj4C D_shelter_b1_underground_parking_8018C844[20];
+extern GpObj4C D_shelter_b1_underground_parking_8018CE34[16];
+extern GpObj4C D_shelter_b1_underground_parking_8018D2F4[11];
+extern GpRoomBoundVec D_shelter_b1_underground_parking_8018D638[25];
+extern GpRoomCoordSet D_shelter_b1_underground_parking_8018B07C[1];
+s32 func_shelter_b1_underground_parking_80182830(Task *, s32, RoomEventMsg *, GpMessageArg);
+s32 func_shelter_b1_underground_parking_80182A60(Task *, s32, s32, s32);
+s32 func_shelter_b1_underground_parking_80183284(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b1_underground_parking_80183360(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_underground_parking_801833DC(Task *, s32, s32, GpMessageArg);
+void func_shelter_b1_underground_parking_80181FE4(Task *);
+void func_shelter_b1_underground_parking_80182154(Task *);
+void func_shelter_b1_underground_parking_80182DB4(Task *);
+void func_shelter_b1_underground_parking_80182FC8(Task *);
+void func_shelter_b1_underground_parking_801831F4(Task *);
+void func_shelter_b1_underground_parking_80183410(Task *);
+void func_shelter_b1_underground_parking_801834D4(Task *);
+void func_shelter_b1_underground_parking_80183560(Task *);
+void func_shelter_b1_underground_parking_8018363C(Task *);
+void func_shelter_b1_underground_parking_801836D8(Task *);
+void func_shelter_b1_underground_parking_80183714(Task *);
+void func_shelter_b1_underground_parking_801837D8(u8);
+void func_shelter_b1_underground_parking_80183804(u8);
+void func_shelter_b1_underground_parking_80184234(Task *);
+void func_shelter_b1_underground_parking_80184284(Task *);
+
+extern GpSprtCmd D_shelter_b1_underground_parking_80189AD8[2];
+extern GpSprtCmd D_shelter_b1_underground_parking_80189AE8[2];
+extern GpSprtCmd D_shelter_b1_underground_parking_80189BFC[3];
+extern GpSprtCmd D_shelter_b1_underground_parking_80189E94[4];
+extern GpSprtCmd D_shelter_b1_underground_parking_80189EB4[2];
+extern GpSprtCmd D_shelter_b1_underground_parking_80189EC4[2];
+extern GpSprtElem D_shelter_b1_underground_parking_80189AF8[13];
+extern GpSprtElem D_shelter_b1_underground_parking_80189C14[32];
+
+u8 D_shelter_b1_underground_parking_8018689C[8] = {
+    83,
+    97,
+    118,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868A4[12] = {
+    80,
+    108,
+    97,
+    121,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868B0[12] = {
+    87,
+    101,
+    97,
+    112,
+    111,
+    110,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868BC[8] = {
+    80,
+    69,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868C4[8] = {
+    84,
+    105,
+    109,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868CC[4] = {
+    87,
+    111,
+    110,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868D0[8] = {
+    69,
+    115,
+    99,
+    97,
+    112,
+    101,
+    100,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868D8[12] = {
+    66,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868E4[16] = {
+    69,
+    120,
+    116,
+    101,
+    114,
+    109,
+    105,
+    110,
+    97,
+    116,
+    101,
+    100,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868F4[8] = {
+    83,
+    97,
+    118,
+    101,
+    100,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801868FC[8] = {
+    67,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186904[8] = {
+    77,
+    97,
+    120,
+    32,
+    69,
+    88,
+    80,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_8018690C[8] = {
+    77,
+    97,
+    120,
+    32,
+    66,
+    80,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186914[8] = {
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_8018691C[4] = {
+    37,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186920[44] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    10,
+    116,
+    105,
+    109,
+    101,
+    32,
+    115,
+    112,
+    101,
+    110,
+    116,
+    32,
+    102,
+    111,
+    114,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_8018694C[36] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    115,
+    97,
+    118,
+    101,
+    115,
+    10,
+    117,
+    115,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186970[48] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    10,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801869A0[52] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    115,
+    99,
+    97,
+    112,
+    101,
+    115,
+    10,
+    102,
+    114,
+    111,
+    109,
+    32,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_801869D4[52] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186A08[56] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    32,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186A40[52] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    32,
+    121,
+    111,
+    117,
+    32,
+    104,
+    97,
+    118,
+    101,
+    10,
+    99,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    32,
+    115,
+    111,
+    32,
+    102,
+    97,
+    114,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186A74[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    69,
+    88,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_shelter_b1_underground_parking_80186AAC[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    66,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+UiListItemFunc D_shelter_b1_underground_parking_80186AE4[1] = {
+    func_shelter_b1_underground_parking_8017DA50,
+};
+
+UiList D_shelter_b1_underground_parking_80186AE8 = { D_shelter_b1_underground_parking_80186AE4, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_b1_underground_parking_80186B0C[1] = {
+    func_shelter_b1_underground_parking_8017E21C,
+};
+
+UiList D_shelter_b1_underground_parking_80186B10 = { D_shelter_b1_underground_parking_80186B0C, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80186B34 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_b1_underground_parking_8017F0E0, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80186B50 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_b1_underground_parking_8017F2A0, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80186B6C = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_b1_underground_parking_8017EC34, 0 };
+
+UiListItemFunc D_shelter_b1_underground_parking_80186B88[4] = {
+    func_shelter_b1_underground_parking_8017F494,
+    func_shelter_b1_underground_parking_8017F578,
+    func_shelter_b1_underground_parking_8017F640,
+    func_shelter_b1_underground_parking_8017F708,
+};
+
+UiList D_shelter_b1_underground_parking_80186B98 = { D_shelter_b1_underground_parking_80186B88, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+u16 D_shelter_b1_underground_parking_80186BBC[4] = {
+    140, 143, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186BC4[4] = {
+    172, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186BCC[4] = {
+    103, 98, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186BD4[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186BE4[8] = {
+    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186BF4[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C04[4] = {
+    108, 100, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C0C[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C1C[8] = {
+    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186C2C[8] = {
+    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C3C[4] = {
+    98, 105, 106, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186C44[10] = {
+    65, 59, 58, 1, 2, 6, 8, 4,
+    0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C58[12] = {
+    131, 157, 140, 142, 143, 10, 70, 69,
+    67, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C70[10] = {
+    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
+    0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C84[4] = {
+    108, 100, 102, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186C8C[8] = {
+    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186C9C[12] = {
+    157, 9, 140, 142, 138, 143, 10, 70,
+    69, 66, 67, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186CB4[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186CC8[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186CD0[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186CE4[14] = {
+    157, 9, 140, 142, 143, 10, 70, 69,
+    66, 67, 68, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186D00[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186D10[6] = {
+    103, 98, 100, 97, 107, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186D1C[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186D34[14] = {
+    140, 142, 138, 143, 10, 70, 69, 66,
+    67, 68, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186D50[10] = {
+    162, 166, 173, 174, 171, 169, 170, 175,
+    0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186D64[4] = {
+    100, 98, 97, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186D6C[10] = {
+    65, 59, 58, 1, 2, 3, 6, 8,
+    4, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186D80[16] = {
+    140, 142, 138, 139, 143, 10, 70, 69,
+    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DA0[8] = {
+    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DB0[6] = {
+    100, 98, 97, 103, 107, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186DBC[12] = {
+    65, 59, 58, 1, 2, 3, 6, 7,
+    8, 4, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DD4[2] = {
+    139, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186DD8[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186DDC[4] = {
+    108, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DE4[8] = {
+    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DF4[4] = {
+    131, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186DFC[4] = {
+    160, 171, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E04[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E0C[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E18[4] = {
+    140, 138, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E20[6] = {
+    160, 172, 171, 175, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E2C[4] = {
+    98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E34[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E40[6] = {
+    131, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E4C[4] = {
+    160, 171, 175, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E54[4] = {
+    108, 100, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E5C[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E68[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E74[4] = {
+    171, 175, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E7C[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186E88[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186E94[6] = {
+    140, 138, 143, 70, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186EA0[2] = {
+    171, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EA4[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EB0[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EBC[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EC8[4] = {
+    171, 175, 0xFFFE, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186ED0[6] = {
+    108, 100, 98, 13, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186EDC[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EE8[6] = {
+    140, 138, 143, 70, 157, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186EF4[4] = {
+    171, 0xFFFE, 0xFFFF, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80186EFC[6] = {
+    108, 100, 98, 103, 13, 0xFFFF,
+};
+
+u16 D_shelter_b1_underground_parking_80186F08[6] = {
+    65, 59, 58, 60, 11, 0xFFFF,
+};
+
+RoomShopTier D_shelter_b1_underground_parking_80186F14[13] = {
+    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
+    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
+    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
+    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
+    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
+    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
+    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
+    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
+    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
+    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
+    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
+    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
+    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
+};
+
+s32 D_shelter_b1_underground_parking_80186FB0 = -1;
+
+u8 D_shelter_b1_underground_parking_80186FB4[20] = {
+    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80186FC8[8] = {
+    80, 97, 115, 115, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80186FD0[16] = {
+    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80186FE0[4] = { 0 };
+
+u8 D_shelter_b1_underground_parking_80186FE4[60] = {
+    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
+    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
+    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
+    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187020[8] = {
+    87, 101, 97, 112, 111, 110, 115, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187028[12] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187034[8] = {
+    65, 114, 109, 111, 114, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_8018703C[8] = {
+    73, 116, 101, 109, 115, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187044[20] = {
+    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
+    0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187058[16] = {
+    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187068[32] = {
+    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
+    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187088[12] = {
+    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_shelter_b1_underground_parking_80187094[4] = {
+    120, 0, 0, 0,
+};
+
+u16 D_shelter_b1_underground_parking_80187098[2] = {
+    0xFFFF, 0,
+};
+
+UiListItemFunc D_shelter_b1_underground_parking_8018709C[1] = {
+    func_shelter_b1_underground_parking_8017FE7C,
+};
+
+UiListItemFunc D_shelter_b1_underground_parking_801870A0[1] = {
+    func_shelter_b1_underground_parking_80180A70,
+};
+
+UiList D_shelter_b1_underground_parking_801870A4 = { D_shelter_b1_underground_parking_801870A0, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_b1_underground_parking_801870C8[2] = {
+    func_shelter_b1_underground_parking_8018101C,
+    func_shelter_b1_underground_parking_80181CCC,
+};
+
+UiList D_shelter_b1_underground_parking_801870D0 = { D_shelter_b1_underground_parking_801870C8, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_801870F4 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_shelter_b1_underground_parking_80180C90, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80187110 = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_shelter_b1_underground_parking_80180820, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_8018712C = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_shelter_b1_underground_parking_80180E38, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80187148 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_shelter_b1_underground_parking_80181D88, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_80187164 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_shelter_b1_underground_parking_80181230, 0 };
+
+// Retained data: Complete UI descriptor follows the adjacent UI descriptors. Its last 12 bytes also resemble a TaskDesc, which is its embedded task seed.
+UiObjectDesc D_shelter_b1_underground_parking_80187180 = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_shelter_b1_underground_parking_80180820, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_8018719C = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_shelter_b1_underground_parking_801813B0, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_801871B8 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_shelter_b1_underground_parking_80181678, 0 };
+
+UiObjectDesc D_shelter_b1_underground_parking_801871D4 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_shelter_b1_underground_parking_8018184C, 0 };
+
+ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { 0, 192, func_shelter_b1_underground_parking_80181EB0, { .model = NULL } }, { 0 } };
+
+TaskDesc D_shelter_b1_underground_parking_80187200 = { 0, 32, func_shelter_b1_underground_parking_80181FE4, { .model = NULL } };
+
+TaskDesc D_shelter_b1_underground_parking_8018720C[3] = {
+    { 0, 32, func_shelter_b1_underground_parking_80182154, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_801831F4, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_b1_underground_parking_80187230[6] = {
+    { 5102, func_shelter_b1_underground_parking_80183360 },
+    { 5105, func_shelter_b1_underground_parking_80183284 },
+    { 5103, func_shelter_b1_underground_parking_80182830 },
+    { 5104, func_shelter_b1_underground_parking_80182A60 },
+    { 5106, func_shelter_b1_underground_parking_801833DC },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
+    { 0, 32, func_shelter_b1_underground_parking_80183410, { .model = NULL } },
+};
+
+TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
+    { 0, 32, func_shelter_b1_underground_parking_801834D4, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_80183560, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_8018363C, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_80182DB4, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_801836D8, { .model = NULL } },
+    { 0, 32, func_shelter_b1_underground_parking_80182FC8, { .model = NULL } },
+    { 0, 192, func_shelter_b1_underground_parking_80183714, { .model = NULL } },
+};
+
+GpXformArg D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
+
+GpEvsCmd D_shelter_b1_underground_parking_801872D8[10] = {
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54140007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_shelter_b1_underground_parking_801872C0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpAnimArg D_shelter_b1_underground_parking_801873C8 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpEvsCmd D_shelter_b1_underground_parking_801873DC[15] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_shelter_b1_underground_parking_80183804 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_underground_parking_801873C8 }, { .value = 0 } },
+    { 15, { .value = 0x54140003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54140009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_shelter_b1_underground_parking_801837D8 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_shelter_b1_underground_parking_80187544[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_shelter_b1_underground_parking_801837D8 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[9] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 1, 0, 38, 0 },
+    { 1, 0, 76, 0 },
+    { 8, 0, 76, 0 },
+    { 8, 0, 102, 0 },
+    { 15, 0, 64, 0 },
+    { 8, 0, 76, 0 },
+    { 8, 0, 76, 0 },
+};
+
+TaskDesc D_shelter_b1_underground_parking_80187664[1] = {
+    { 0, 192, func_shelter_b1_underground_parking_80184234, { .model = NULL } },
+};
+
+TaskDesc D_shelter_b1_underground_parking_80187670 = { 0, 32, func_shelter_b1_underground_parking_80184284, { .model = NULL } };
+
+OverlayHotspot D_shelter_b1_underground_parking_8018767C[6] = {
+    { -78, 77, 16, 16, 8, 1, 0 },
+    { -48, 77, 16, 16, 4, 1, 0 },
+    { -21, 77, 16, 16, 2, 1, 0 },
+    { 3, 77, 16, 16, 1, 1, 0 },
+    { 34, 77, 40, 16, 16, 1, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+u8 D_shelter_b1_underground_parking_801876C4[16] = {
+    3,
+    3,
+    2,
+    5,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    3,
+    3,
+    4,
+    3,
+    2,
+};
+
+DVECTOR D_shelter_b1_underground_parking_801876D4[16] = {
+    { -66, -62 },
+    { -26, -62 },
+    { 14, -62 },
+    { 62, -62 },
+    { -66, -27 },
+    { -26, -27 },
+    { 14, -27 },
+    { 62, -27 },
+    { -66, 9 },
+    { -26, 9 },
+    { 14, 9 },
+    { 62, 9 },
+    { -66, 41 },
+    { -26, 41 },
+    { 14, 41 },
+    { 62, 41 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80187714[1] = {
+    { -180, -1300, -5490, 0 },
+};
+
+// Lighting task addresses entry 11, whose capsule renderer consumes two points.
+SVECTOR D_shelter_b1_underground_parking_8018771C[13] = {
+    { 2020, -2290, -7580, 0 },
+    { -3240, -5470, 3600, 0 },
+    { -2550, -5470, 2680, 0 },
+    { -1840, -5470, 1720, 0 },
+    { -1150, -5470, 810, 0 },
+    { 280, -5470, 810, 0 },
+    { 970, -5470, 1720, 0 },
+    { 1710, -5470, 2680, 0 },
+    { 2400, -5470, 3600, 0 },
+    { -1160, -5470, -1070, 0 },
+    { -1840, -5470, -1980, 0 },
+    { 1430, -3930, -6650, 0 },
+    { 2580, -3930, -6650, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80187784[4] = {
+    { 6800, -2150, -2900, 0 },
+    { 7960, -2150, -2900, 0 },
+    { 6800, -2150, 2900, 0 },
+    { 7960, -2150, 2900, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_801877A4[2] = {
+    { -7090, -3080, 1780, 0 },
+    { -8250, -3080, 1780, 0 },
+};
+
+GpRoomCoordRec D_shelter_b1_underground_parking_801877B4[8] = {
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+    { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
+};
+
+GpRoomObjRec D_shelter_b1_underground_parking_801877F4[8] = {
+    { D_shelter_b1_underground_parking_80187E50, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018B674, NULL },
+    { D_shelter_b1_underground_parking_801884D4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018BA04, NULL },
+    { D_shelter_b1_underground_parking_80188BC4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018BD94, NULL },
+    { D_shelter_b1_underground_parking_801884D4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018C124, NULL },
+    { D_shelter_b1_underground_parking_801884D4, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018C4B4, NULL },
+    { D_shelter_b1_underground_parking_8018912C, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018C844, NULL },
+    { D_shelter_b1_underground_parking_8018912C, D_shelter_b1_underground_parking_8018B094, D_shelter_b1_underground_parking_8018CE34, NULL },
+    { D_shelter_b1_underground_parking_80189754, D_shelter_b1_underground_parking_8018B2F4, D_shelter_b1_underground_parking_8018D2F4, NULL },
+};
+
+u8 D_shelter_b1_underground_parking_80187874[24] = {
+    1,
+    2,
+    11,
+    4,
+    5,
+    24,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    15,
+};
+
+u8 D_shelter_b1_underground_parking_8018788C[24] = {
+    1,
+    2,
+    7,
+    4,
+    5,
+    9,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_underground_parking_801878A4[24] = {
+    1,
+    2,
+    7,
+    4,
+    5,
+    22,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_underground_parking_801878BC[24] = {
+    1,
+    2,
+    11,
+    4,
+    5,
+    15,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_underground_parking_801878D4[24] = {
+    1,
+    10,
+    12,
+    14,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_underground_parking_801878EC[24] = {
+    1,
+    10,
+    12,
+    13,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 D_shelter_b1_underground_parking_80187904[24] = {
+    1,
+    16,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    2,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+};
+
+u8 * D_shelter_b1_underground_parking_8018791C[8] = {
+    D_8010CAF8,
+    D_shelter_b1_underground_parking_80187874,
+    D_shelter_b1_underground_parking_8018788C,
+    D_shelter_b1_underground_parking_801878A4,
+    D_shelter_b1_underground_parking_801878BC,
+    D_shelter_b1_underground_parking_801878D4,
+    D_shelter_b1_underground_parking_801878EC,
+    D_shelter_b1_underground_parking_80187904,
+};
+
+GpViewCountRec D_shelter_b1_underground_parking_8018793C[8] = {
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+    { { .bytes = { 24, 0 } } },
+};
+
+GpWarpRec D_shelter_b1_underground_parking_8018794C[2] = {
+    { { .words = { 0, 1913, 0, -7180 } }, { 0, 0, 0, 0 }, { .words = { 0, 1980, 0, -6660 } }, { 0, 0, 0, 0 }, 0x54140002, 0x54140001, 0, 2, 0, 0 },
+    { { .words = { 2048, 401, 0, -1200 } }, { 0, 0, 0, 0 }, { .words = { 2048, 401, 0, -1200 } }, { 0, 0, 0, 0 }, 0x5414000A, 0, 0, 3, 0, 436 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_801879BC[6] = {
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_801879EC[60] = {
+    { -5390, 0, 5650, 0 },
+    { 0x2AF8, 0, 5650, 0 },
+    { 0x2AF8, 0, -8000, 0 },
+    { -5390, 0, -8000, 0 },
+    { 0x2AF8, -5000, 5650, 0 },
+    { -5390, -5000, 5650, 0 },
+    { -5390, -5000, -8000, 0 },
+    { 0x2AF8, -5000, -8000, 0 },
+    { 3000, -4000, -5650, 0 },
+    { 4000, -4000, -5650, 0 },
+    { 4000, -6000, -5650, 0 },
+    { 3000, -6000, -5650, 0 },
+    { 3000, 0, -5650, 0 },
+    { 4000, 0, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { -5000, -4000, -5650, 0 },
+    { -5000, 0, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, -6000, -5650, 0 },
+    { -5000, -6000, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, 0, -7650, 0 },
+    { 1000, -4000, -7650, 0 },
+    { 2900, 0, -7650, 0 },
+    { 2900, -4000, -7650, 0 },
+    { 2900, 0, -5650, 0 },
+    { 2900, -4000, -5650, 0 },
+    { -3300, 0, 4150, 0 },
+    { -3300, -5000, 4150, 0 },
+    { -3300, -5000, 5650, 0 },
+    { -3300, 0, 5650, 0 },
+    { -5000, 0, 4150, 0 },
+    { -5000, -5000, 4150, 0 },
+    { 0, 0, 5650, 0 },
+    { 0, -5000, 5650, 0 },
+    { 0, -5000, 3350, 0 },
+    { 0, 0, 3350, 0 },
+    { 4000, -5000, 3350, 0 },
+    { 4000, 0, 3350, 0 },
+    { 2896, 187, -4145, 0 },
+    { 2896, -4813, -4145, 0 },
+    { 2896, -4813, -5645, 0 },
+    { 2896, 187, -5645, 0 },
+    { 4236, 187, -4145, 0 },
+    { 4236, -4813, -4145, 0 },
+    { -1900, 0, -2950, 0 },
+    { -1900, -5000, -2950, 0 },
+    { -5000, -5000, -2950, 0 },
+    { -5000, 0, -2950, 0 },
+    { -1900, 0, -5650, 0 },
+    { -1900, -5000, -5650, 0 },
+    { -5000, 0, -6250, 0 },
+    { -5000, -6000, -6250, 0 },
+    { -5000, -6000, 6250, 0 },
+    { -5000, 0, 6250, 0 },
+    { 4000, 0, 6250, 0 },
+    { 4000, -6000, 6250, 0 },
+    { 4000, -6000, -6250, 0 },
+    { 4000, 0, -6250, 0 },
+};
+
+GpGridFace D_shelter_b1_underground_parking_80187BCC[22] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 1, 0, 4, 5 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 3, 0 },
+    { { 8, 11, 14, 18 }, 3, 0 },
+    { { 19, 15, 18, 14 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 22, 24, 23, 25 }, 3, 0 },
+    { { 24, 26, 25, 27 }, 5, 0 },
+    { { 20, 23, 27, 25 }, 1, 0 },
+    { { 29, 30, 28, 31 }, 4, 0 },
+    { { 33, 29, 32, 28 }, 2, 0 },
+    { { 35, 36, 34, 37 }, 5, 0 },
+    { { 36, 38, 37, 39 }, 2, 0 },
+    { { 41, 42, 40, 43 }, 5, 0 },
+    { { 45, 41, 44, 40 }, 3, 0 },
+    { { 47, 48, 46, 49 }, 3, 0 },
+    { { 51, 47, 50, 46 }, 4, 0 },
+    { { 53, 54, 52, 55 }, 4, 0 },
+    { { 57, 58, 56, 59 }, 5, 0 },
+};
+
+s16 D_shelter_b1_underground_parking_80187CD4[8] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187CE4[8] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187CF4[9] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    15,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D08[8] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D18[17] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    18,
+    19,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D3C[12] = {
+    0,
+    5,
+    6,
+    7,
+    8,
+    11,
+    16,
+    17,
+    18,
+    19,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D54[7] = {
+    0,
+    1,
+    2,
+    14,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D64[8] = {
+    0,
+    1,
+    2,
+    12,
+    14,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D74[15] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187D94[10] = {
+    0,
+    3,
+    4,
+    6,
+    10,
+    11,
+    16,
+    17,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DA8[6] = {
+    0,
+    1,
+    2,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DB4[6] = {
+    0,
+    1,
+    2,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DC0[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DC8[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DD0[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DD8[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DE0[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DE8[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DF0[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80187DF8[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_shelter_b1_underground_parking_80187E00[20] = {
+    D_shelter_b1_underground_parking_80187CD4,
+    D_shelter_b1_underground_parking_80187CE4,
+    D_shelter_b1_underground_parking_80187CF4,
+    D_shelter_b1_underground_parking_80187D08,
+    D_shelter_b1_underground_parking_80187D18,
+    D_shelter_b1_underground_parking_80187D3C,
+    D_shelter_b1_underground_parking_80187D54,
+    D_shelter_b1_underground_parking_80187D64,
+    D_shelter_b1_underground_parking_80187D74,
+    D_shelter_b1_underground_parking_80187D94,
+    D_shelter_b1_underground_parking_80187DA8,
+    D_shelter_b1_underground_parking_80187DB4,
+    D_shelter_b1_underground_parking_80187DC0,
+    D_shelter_b1_underground_parking_80187DC8,
+    D_shelter_b1_underground_parking_80187DD0,
+    D_shelter_b1_underground_parking_80187DD8,
+    D_shelter_b1_underground_parking_80187DE0,
+    D_shelter_b1_underground_parking_80187DE8,
+    D_shelter_b1_underground_parking_80187DF0,
+    D_shelter_b1_underground_parking_80187DF8,
+};
+
+GpGridParams D_shelter_b1_underground_parking_80187E50[1] = {
+    { NULL, D_shelter_b1_underground_parking_801879BC, D_shelter_b1_underground_parking_801879EC, D_shelter_b1_underground_parking_80187BCC, D_shelter_b1_underground_parking_80187E00, 5390, 8000, 5, 4, 4000, 22 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80187E74[8] = {
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { -2171, 0, -3473, 0 },
+    { -2171, 0, 3473, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80187EB4[84] = {
+    { -5390, 0, 5650, 0 },
+    { 0x2AF8, 0, 5650, 0 },
+    { 0x2AF8, 0, -8000, 0 },
+    { -5390, 0, -8000, 0 },
+    { 0x2AF8, -5000, 5650, 0 },
+    { -5390, -5000, 5650, 0 },
+    { -5390, -5000, -8000, 0 },
+    { 0x2AF8, -5000, -8000, 0 },
+    { 3000, -4000, -5650, 0 },
+    { 4000, -4000, -5650, 0 },
+    { 4000, -6000, -5650, 0 },
+    { 3000, -6000, -5650, 0 },
+    { 3000, 0, -5650, 0 },
+    { 4000, 0, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { -5000, -4000, -5650, 0 },
+    { -5000, 0, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, -6000, -5650, 0 },
+    { -5000, -6000, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, 0, -7650, 0 },
+    { 1000, -4000, -7650, 0 },
+    { 2900, 0, -7650, 0 },
+    { 2900, -4000, -7650, 0 },
+    { 2900, 0, -5650, 0 },
+    { 2900, -4000, -5650, 0 },
+    { 4000, -3000, 1710, 0 },
+    { 4000, -3000, 6250, 0 },
+    { 4000, -6000, 6250, 0 },
+    { 4000, -6000, 1710, 0 },
+    { 4000, 0, 1710, 0 },
+    { 4000, 0, 6250, 0 },
+    { 4000, -3000, -1710, 0 },
+    { 4000, -3000, -6250, 0 },
+    { 4000, 0, -6250, 0 },
+    { 4000, 0, -1710, 0 },
+    { 4000, -6000, -1710, 0 },
+    { 4000, -6000, -6250, 0 },
+    { 9820, -3000, 2930, 0 },
+    { 4000, -3000, 2930, 0 },
+    { 4000, -3000, -2960, 0 },
+    { 9820, -3000, -2960, 0 },
+    { 4000, 0, -2960, 0 },
+    { 9820, 0, -2960, 0 },
+    { 9820, 0, 2930, 0 },
+    { 4000, 0, 2930, 0 },
+    { -3300, 0, 4150, 0 },
+    { -3300, -5000, 4150, 0 },
+    { -3300, -5000, 5650, 0 },
+    { -3300, 0, 5650, 0 },
+    { -5000, 0, 4150, 0 },
+    { -5000, -5000, 4150, 0 },
+    { 0, 0, 5650, 0 },
+    { 0, -5000, 5650, 0 },
+    { 0, -5000, 3350, 0 },
+    { 0, 0, 3350, 0 },
+    { 4000, -5000, 3350, 0 },
+    { 4000, 0, 3350, 0 },
+    { 2896, 187, -4145, 0 },
+    { 2896, -4813, -4145, 0 },
+    { 2896, -4813, -5645, 0 },
+    { 2896, 187, -5645, 0 },
+    { 4236, 187, -4145, 0 },
+    { 4236, -4813, -4145, 0 },
+    { -1900, 0, -2950, 0 },
+    { -1900, -5000, -2950, 0 },
+    { -5000, -5000, -2950, 0 },
+    { -5000, 0, -2950, 0 },
+    { -1900, 0, -5650, 0 },
+    { -1900, -5000, -5650, 0 },
+    { -5000, 0, -6250, 0 },
+    { -5000, -6000, -6250, 0 },
+    { -5000, -6000, 6250, 0 },
+    { -5000, 0, 6250, 0 },
+    { 4790, 0, 1210, 0 },
+    { 4790, -3000, 1210, 0 },
+    { 4790, -3000, -1210, 0 },
+    { 4790, 0, -1210, 0 },
+    { 4800, -3000, 1210, 0 },
+    { 4800, 0, 1210, 0 },
+    { 4800, 0, -1210, 0 },
+    { 4800, -3000, -1210, 0 },
+};
+
+GpGridFace D_shelter_b1_underground_parking_80188154[33] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 1, 0, 4, 5 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 3, 0 },
+    { { 8, 11, 14, 18 }, 3, 0 },
+    { { 19, 15, 18, 14 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 22, 24, 23, 25 }, 3, 0 },
+    { { 24, 26, 25, 27 }, 5, 0 },
+    { { 20, 23, 27, 25 }, 1, 0 },
+    { { 29, 30, 28, 31 }, 5, 0 },
+    { { 33, 29, 32, 28 }, 5, 0 },
+    { { 35, 36, 34, 37 }, 5, 0 },
+    { { 28, 31, 34, 38 }, 5, 0 },
+    { { 39, 35, 38, 34 }, 5, 0 },
+    { { 41, 42, 40, 43 }, 1, 0 },
+    { { 44, 45, 42, 43 }, 3, 0 },
+    { { 45, 46, 43, 40 }, 5, 0 },
+    { { 46, 47, 40, 41 }, 2, 0 },
+    { { 49, 50, 48, 51 }, 4, 0 },
+    { { 53, 49, 52, 48 }, 2, 0 },
+    { { 55, 56, 54, 57 }, 5, 0 },
+    { { 56, 58, 57, 59 }, 2, 0 },
+    { { 61, 62, 60, 63 }, 5, 0 },
+    { { 65, 61, 64, 60 }, 3, 0 },
+    { { 67, 68, 66, 69 }, 3, 0 },
+    { { 71, 67, 70, 66 }, 4, 0 },
+    { { 73, 74, 72, 75 }, 4, 0 },
+    { { 77, 78, 76, 79 }, 5, 0 },
+    { { 28, 80, 32, 81 }, 6, 0 },
+    { { 83, 34, 82, 37 }, 7, 0 },
+};
+
+s16 D_shelter_b1_underground_parking_801882E0[8] = {
+    0,
+    1,
+    5,
+    7,
+    27,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801882F0[8] = {
+    0,
+    1,
+    5,
+    7,
+    27,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188300[9] = {
+    0,
+    1,
+    2,
+    21,
+    22,
+    23,
+    24,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188314[8] = {
+    0,
+    1,
+    2,
+    21,
+    22,
+    23,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188324[18] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    14,
+    16,
+    25,
+    26,
+    27,
+    28,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188348[17] = {
+    0,
+    5,
+    6,
+    7,
+    8,
+    11,
+    14,
+    15,
+    16,
+    17,
+    18,
+    25,
+    26,
+    27,
+    28,
+    32,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018836C[12] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    15,
+    17,
+    20,
+    23,
+    24,
+    31,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188384[9] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    21,
+    23,
+    24,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188398[18] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    14,
+    16,
+    17,
+    18,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801883BC[19] = {
+    0,
+    3,
+    4,
+    6,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    25,
+    26,
+    30,
+    31,
+    32,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801883E4[15] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    20,
+    24,
+    30,
+    31,
+    32,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188404[9] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    17,
+    20,
+    24,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188418[6] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188424[8] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    30,
+    32,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188434[9] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188448[7] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188458[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188460[6] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018846C[7] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018847C[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_shelter_b1_underground_parking_80188484[20] = {
+    D_shelter_b1_underground_parking_801882E0,
+    D_shelter_b1_underground_parking_801882F0,
+    D_shelter_b1_underground_parking_80188300,
+    D_shelter_b1_underground_parking_80188314,
+    D_shelter_b1_underground_parking_80188324,
+    D_shelter_b1_underground_parking_80188348,
+    D_shelter_b1_underground_parking_8018836C,
+    D_shelter_b1_underground_parking_80188384,
+    D_shelter_b1_underground_parking_80188398,
+    D_shelter_b1_underground_parking_801883BC,
+    D_shelter_b1_underground_parking_801883E4,
+    D_shelter_b1_underground_parking_80188404,
+    D_shelter_b1_underground_parking_80188418,
+    D_shelter_b1_underground_parking_80188424,
+    D_shelter_b1_underground_parking_80188434,
+    D_shelter_b1_underground_parking_80188448,
+    D_shelter_b1_underground_parking_80188458,
+    D_shelter_b1_underground_parking_80188460,
+    D_shelter_b1_underground_parking_8018846C,
+    D_shelter_b1_underground_parking_8018847C,
+};
+
+GpGridParams D_shelter_b1_underground_parking_801884D4[1] = {
+    { NULL, D_shelter_b1_underground_parking_80187E74, D_shelter_b1_underground_parking_80187EB4, D_shelter_b1_underground_parking_80188154, D_shelter_b1_underground_parking_80188484, 5390, 8000, 5, 4, 4000, 33 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_801884F8[8] = {
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { -2191, 0, -3461, 0 },
+    { -1850, 0, 3654, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80188538[90] = {
+    { -5390, 0, 5650, 0 },
+    { 0x2AF8, 0, 5650, 0 },
+    { 0x2AF8, 0, -8000, 0 },
+    { -5390, 0, -8000, 0 },
+    { 0x2AF8, -5000, 5650, 0 },
+    { -5390, -5000, 5650, 0 },
+    { -5390, -5000, -8000, 0 },
+    { 0x2AF8, -5000, -8000, 0 },
+    { 3000, -4000, -5650, 0 },
+    { 4000, -4000, -5650, 0 },
+    { 4000, -6000, -5650, 0 },
+    { 3000, -6000, -5650, 0 },
+    { 3000, 0, -5650, 0 },
+    { 4000, 0, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { -5000, -4000, -5650, 0 },
+    { -5000, 0, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, -6000, -5650, 0 },
+    { -5000, -6000, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, 0, -7650, 0 },
+    { 1000, -4000, -7650, 0 },
+    { 2900, 0, -7650, 0 },
+    { 2900, -4000, -7650, 0 },
+    { 2900, 0, -5650, 0 },
+    { 2900, -4000, -5650, 0 },
+    { 4000, -3000, 1710, 0 },
+    { 4000, -3000, 6250, 0 },
+    { 4000, -6000, 6250, 0 },
+    { 4000, -6000, 1710, 0 },
+    { 4000, 0, 1710, 0 },
+    { 4000, 0, 6250, 0 },
+    { 4000, -3000, -1710, 0 },
+    { 4000, -3000, -6250, 0 },
+    { 4000, 0, -6250, 0 },
+    { 4000, 0, -1710, 0 },
+    { 4000, -6000, -1710, 0 },
+    { 4000, -6000, -6250, 0 },
+    { 9820, -3000, 2930, 0 },
+    { 4000, -3000, 2930, 0 },
+    { 4000, -3000, -2960, 0 },
+    { 9820, -3000, -2960, 0 },
+    { 4000, 0, -2960, 0 },
+    { 9820, 0, -2960, 0 },
+    { 9820, 0, 2930, 0 },
+    { 4000, 0, 2930, 0 },
+    { -3300, 0, 4150, 0 },
+    { -3300, -5000, 4150, 0 },
+    { -3300, -5000, 5650, 0 },
+    { -3300, 0, 5650, 0 },
+    { -5000, 0, 4150, 0 },
+    { -5000, -5000, 4150, 0 },
+    { 0, 0, 5650, 0 },
+    { 0, -5000, 5650, 0 },
+    { 0, -5000, 3350, 0 },
+    { 0, 0, 3350, 0 },
+    { 4000, -5000, 3350, 0 },
+    { 4000, 0, 3350, 0 },
+    { 2896, 187, -4145, 0 },
+    { 2896, -4813, -4145, 0 },
+    { 2896, -4813, -5645, 0 },
+    { 2896, 187, -5645, 0 },
+    { 4236, 187, -4145, 0 },
+    { 4236, -4813, -4145, 0 },
+    { -1900, 0, -2950, 0 },
+    { -1900, -5000, -2950, 0 },
+    { -5000, -5000, -2950, 0 },
+    { -5000, 0, -2950, 0 },
+    { -1900, 0, -5650, 0 },
+    { -1900, -5000, -5650, 0 },
+    { -5000, 0, -6250, 0 },
+    { -5000, -6000, -6250, 0 },
+    { -5000, -6000, 6250, 0 },
+    { -5000, 0, 6250, 0 },
+    { 9820, -3000, 600, 0 },
+    { 9820, 0, 600, 0 },
+    { 4790, 0, 600, 0 },
+    { 4790, -3000, 600, 0 },
+    { 4790, -3000, -900, 0 },
+    { 4790, 0, -900, 0 },
+    { 9820, 0, -900, 0 },
+    { 9820, -3000, -900, 0 },
+    { 4790, 0, 1210, 0 },
+    { 4790, -3000, 1210, 0 },
+    { 4790, -3000, 600, 0 },
+    { 4790, 0, 600, 0 },
+    { 4790, -3000, -1310, 0 },
+    { 4790, 0, -1310, 0 },
+};
+
+GpGridFace D_shelter_b1_underground_parking_80188808[36] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 1, 0, 4, 5 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 3, 0 },
+    { { 8, 11, 14, 18 }, 3, 0 },
+    { { 19, 15, 18, 14 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 22, 24, 23, 25 }, 3, 0 },
+    { { 24, 26, 25, 27 }, 5, 0 },
+    { { 20, 23, 27, 25 }, 1, 0 },
+    { { 29, 30, 28, 31 }, 5, 0 },
+    { { 33, 29, 32, 28 }, 5, 0 },
+    { { 35, 36, 34, 37 }, 5, 0 },
+    { { 28, 31, 34, 38 }, 5, 0 },
+    { { 39, 35, 38, 34 }, 5, 0 },
+    { { 41, 42, 40, 43 }, 1, 0 },
+    { { 44, 45, 42, 43 }, 3, 0 },
+    { { 45, 46, 43, 40 }, 5, 0 },
+    { { 46, 47, 40, 41 }, 2, 0 },
+    { { 49, 50, 48, 51 }, 4, 0 },
+    { { 53, 49, 52, 48 }, 2, 0 },
+    { { 55, 56, 54, 57 }, 5, 0 },
+    { { 56, 58, 57, 59 }, 2, 0 },
+    { { 61, 62, 60, 63 }, 5, 0 },
+    { { 65, 61, 64, 60 }, 3, 0 },
+    { { 67, 68, 66, 69 }, 3, 0 },
+    { { 71, 67, 70, 66 }, 4, 0 },
+    { { 73, 74, 72, 75 }, 4, 0 },
+    { { 77, 78, 76, 79 }, 2, 0 },
+    { { 81, 82, 80, 83 }, 3, 0 },
+    { { 85, 86, 84, 87 }, 5, 0 },
+    { { 28, 85, 32, 84 }, 6, 0 },
+    { { 80, 88, 81, 89 }, 5, 0 },
+    { { 88, 34, 89, 37 }, 7, 0 },
+};
+
+s16 D_shelter_b1_underground_parking_801889B8[8] = {
+    0,
+    1,
+    5,
+    7,
+    27,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801889C8[8] = {
+    0,
+    1,
+    5,
+    7,
+    27,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801889D8[9] = {
+    0,
+    1,
+    2,
+    21,
+    22,
+    23,
+    24,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801889EC[8] = {
+    0,
+    1,
+    2,
+    21,
+    22,
+    23,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801889FC[18] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    14,
+    16,
+    25,
+    26,
+    27,
+    28,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188A20[17] = {
+    0,
+    5,
+    6,
+    7,
+    8,
+    11,
+    14,
+    15,
+    16,
+    17,
+    18,
+    25,
+    26,
+    27,
+    28,
+    35,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188A44[12] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    15,
+    17,
+    20,
+    23,
+    24,
+    33,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188A5C[9] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    21,
+    23,
+    24,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188A70[18] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    14,
+    16,
+    17,
+    18,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188A94[22] = {
+    0,
+    3,
+    4,
+    6,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    25,
+    26,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188AC0[18] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    20,
+    24,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188AE4[9] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    17,
+    20,
+    24,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188AF8[6] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B04[10] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    30,
+    31,
+    34,
+    35,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B18[11] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    30,
+    31,
+    32,
+    33,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B30[7] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B40[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B48[8] = {
+    0,
+    1,
+    17,
+    18,
+    19,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B58[9] = {
+    0,
+    1,
+    2,
+    17,
+    19,
+    20,
+    30,
+    31,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188B6C[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_shelter_b1_underground_parking_80188B74[20] = {
+    D_shelter_b1_underground_parking_801889B8,
+    D_shelter_b1_underground_parking_801889C8,
+    D_shelter_b1_underground_parking_801889D8,
+    D_shelter_b1_underground_parking_801889EC,
+    D_shelter_b1_underground_parking_801889FC,
+    D_shelter_b1_underground_parking_80188A20,
+    D_shelter_b1_underground_parking_80188A44,
+    D_shelter_b1_underground_parking_80188A5C,
+    D_shelter_b1_underground_parking_80188A70,
+    D_shelter_b1_underground_parking_80188A94,
+    D_shelter_b1_underground_parking_80188AC0,
+    D_shelter_b1_underground_parking_80188AE4,
+    D_shelter_b1_underground_parking_80188AF8,
+    D_shelter_b1_underground_parking_80188B04,
+    D_shelter_b1_underground_parking_80188B18,
+    D_shelter_b1_underground_parking_80188B30,
+    D_shelter_b1_underground_parking_80188B40,
+    D_shelter_b1_underground_parking_80188B48,
+    D_shelter_b1_underground_parking_80188B58,
+    D_shelter_b1_underground_parking_80188B6C,
+};
+
+GpGridParams D_shelter_b1_underground_parking_80188BC4[1] = {
+    { NULL, D_shelter_b1_underground_parking_801884F8, D_shelter_b1_underground_parking_80188538, D_shelter_b1_underground_parking_80188808, D_shelter_b1_underground_parking_80188B74, 5390, 8000, 5, 4, 4000, 36 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80188BE8[6] = {
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80188C18[68] = {
+    { -5390, 0, 5650, 0 },
+    { 0x2AF8, 0, 5650, 0 },
+    { 0x2AF8, 0, -8000, 0 },
+    { -5390, 0, -8000, 0 },
+    { 0x2AF8, -5000, 5650, 0 },
+    { -5390, -5000, 5650, 0 },
+    { -5390, -5000, -8000, 0 },
+    { 0x2AF8, -5000, -8000, 0 },
+    { 3000, -4000, -5650, 0 },
+    { 4000, -4000, -5650, 0 },
+    { 4000, -6000, -5650, 0 },
+    { 3000, -6000, -5650, 0 },
+    { 3000, 0, -5650, 0 },
+    { 4000, 0, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { -5000, -4000, -5650, 0 },
+    { -5000, 0, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, -6000, -5650, 0 },
+    { -5000, -6000, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, 0, -7650, 0 },
+    { 1000, -4000, -7650, 0 },
+    { 2900, 0, -7650, 0 },
+    { 2900, -4000, -7650, 0 },
+    { 2900, 0, -5650, 0 },
+    { 2900, -4000, -5650, 0 },
+    { -3300, 0, 4150, 0 },
+    { -3300, -5000, 4150, 0 },
+    { -3300, -5000, 5650, 0 },
+    { -3300, 0, 5650, 0 },
+    { -5000, 0, 4150, 0 },
+    { -5000, -5000, 4150, 0 },
+    { 0, 0, 5650, 0 },
+    { 0, -5000, 5650, 0 },
+    { 0, -5000, 3350, 0 },
+    { 0, 0, 3350, 0 },
+    { 4000, -5000, 3350, 0 },
+    { 4000, 0, 3350, 0 },
+    { 2896, 187, -4145, 0 },
+    { 2896, -4813, -4145, 0 },
+    { 2896, -4813, -5645, 0 },
+    { 2896, 187, -5645, 0 },
+    { 4236, 187, -4145, 0 },
+    { 4236, -4813, -4145, 0 },
+    { -1900, 0, -2950, 0 },
+    { -1900, -5000, -2950, 0 },
+    { -5000, -5000, -2950, 0 },
+    { -5000, 0, -2950, 0 },
+    { -1900, 0, -5650, 0 },
+    { -1900, -5000, -5650, 0 },
+    { -5000, 0, -6250, 0 },
+    { -5000, -6000, -6250, 0 },
+    { -5000, -6000, 6250, 0 },
+    { -5000, 0, 6250, 0 },
+    { 4000, 0, 6250, 0 },
+    { 4000, -6000, 6250, 0 },
+    { 4000, -6000, -6250, 0 },
+    { 4000, 0, -6250, 0 },
+    { -1770, 0, 900, 0 },
+    { -1770, -1800, 900, 0 },
+    { -1770, -1800, -900, 0 },
+    { -1770, 0, -900, 0 },
+    { 2030, -1800, -900, 0 },
+    { 2030, 0, -900, 0 },
+    { 2030, -1800, 900, 0 },
+    { 2030, 0, 900, 0 },
+};
+
+GpGridFace D_shelter_b1_underground_parking_80188E38[27] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 1, 0, 4, 5 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 3, 0 },
+    { { 8, 11, 14, 18 }, 3, 0 },
+    { { 19, 15, 18, 14 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 22, 24, 23, 25 }, 3, 0 },
+    { { 24, 26, 25, 27 }, 5, 0 },
+    { { 20, 23, 27, 25 }, 1, 0 },
+    { { 29, 30, 28, 31 }, 4, 0 },
+    { { 33, 29, 32, 28 }, 2, 0 },
+    { { 35, 36, 34, 37 }, 5, 0 },
+    { { 36, 38, 37, 39 }, 2, 0 },
+    { { 41, 42, 40, 43 }, 5, 0 },
+    { { 45, 41, 44, 40 }, 3, 0 },
+    { { 47, 48, 46, 49 }, 3, 0 },
+    { { 51, 47, 50, 46 }, 4, 0 },
+    { { 53, 54, 52, 55 }, 4, 0 },
+    { { 57, 58, 56, 59 }, 5, 0 },
+    { { 61, 62, 60, 63 }, 5, 0 },
+    { { 62, 64, 63, 65 }, 2, 0 },
+    { { 64, 66, 65, 67 }, 4, 0 },
+    { { 66, 61, 67, 60 }, 3, 0 },
+    { { 66, 64, 61, 62 }, 0, 0 },
+};
+
+s16 D_shelter_b1_underground_parking_80188F7C[8] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188F8C[12] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    20,
+    22,
+    23,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188FA4[13] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    15,
+    20,
+    22,
+    23,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188FC0[8] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188FD0[17] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    18,
+    19,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80188FF4[17] = {
+    0,
+    5,
+    6,
+    7,
+    8,
+    11,
+    16,
+    17,
+    18,
+    19,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189018[12] = {
+    0,
+    1,
+    2,
+    14,
+    15,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189030[8] = {
+    0,
+    1,
+    2,
+    12,
+    14,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189040[15] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189060[14] = {
+    0,
+    3,
+    4,
+    6,
+    10,
+    11,
+    16,
+    17,
+    21,
+    23,
+    24,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018907C[10] = {
+    0,
+    1,
+    2,
+    15,
+    21,
+    23,
+    24,
+    25,
+    26,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189090[6] = {
+    0,
+    1,
+    2,
+    15,
+    21,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018909C[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890A4[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890AC[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890B4[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890BC[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890C4[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890CC[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801890D4[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_shelter_b1_underground_parking_801890DC[20] = {
+    D_shelter_b1_underground_parking_80188F7C,
+    D_shelter_b1_underground_parking_80188F8C,
+    D_shelter_b1_underground_parking_80188FA4,
+    D_shelter_b1_underground_parking_80188FC0,
+    D_shelter_b1_underground_parking_80188FD0,
+    D_shelter_b1_underground_parking_80188FF4,
+    D_shelter_b1_underground_parking_80189018,
+    D_shelter_b1_underground_parking_80189030,
+    D_shelter_b1_underground_parking_80189040,
+    D_shelter_b1_underground_parking_80189060,
+    D_shelter_b1_underground_parking_8018907C,
+    D_shelter_b1_underground_parking_80189090,
+    D_shelter_b1_underground_parking_8018909C,
+    D_shelter_b1_underground_parking_801890A4,
+    D_shelter_b1_underground_parking_801890AC,
+    D_shelter_b1_underground_parking_801890B4,
+    D_shelter_b1_underground_parking_801890BC,
+    D_shelter_b1_underground_parking_801890C4,
+    D_shelter_b1_underground_parking_801890CC,
+    D_shelter_b1_underground_parking_801890D4,
+};
+
+GpGridParams D_shelter_b1_underground_parking_8018912C[1] = {
+    { NULL, D_shelter_b1_underground_parking_80188BE8, D_shelter_b1_underground_parking_80188C18, D_shelter_b1_underground_parking_80188E38, D_shelter_b1_underground_parking_801890DC, 5390, 8000, 5, 4, 4000, 27 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80189150[8] = {
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { -2428, 0, 3299, 0 },
+    { 3053, 0, 2731, 0 },
+};
+
+SVECTOR D_shelter_b1_underground_parking_80189190[83] = {
+    { -5390, 0, 5650, 0 },
+    { 0x2AF8, 0, 5650, 0 },
+    { 0x2AF8, 0, -8000, 0 },
+    { -5390, 0, -8000, 0 },
+    { 0x2AF8, -5000, 5650, 0 },
+    { -5390, -5000, 5650, 0 },
+    { -5390, -5000, -8000, 0 },
+    { 0x2AF8, -5000, -8000, 0 },
+    { 3000, -4000, -5650, 0 },
+    { 4000, -4000, -5650, 0 },
+    { 4000, -6000, -5650, 0 },
+    { 3000, -6000, -5650, 0 },
+    { 3000, 0, -5650, 0 },
+    { 4000, 0, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { -5000, -4000, -5650, 0 },
+    { -5000, 0, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, -6000, -5650, 0 },
+    { -5000, -6000, -5650, 0 },
+    { 1000, -4000, -5650, 0 },
+    { 1000, 0, -5650, 0 },
+    { 1000, 0, -7650, 0 },
+    { 1000, -4000, -7650, 0 },
+    { 2900, 0, -7650, 0 },
+    { 2900, -4000, -7650, 0 },
+    { 2900, 0, -5650, 0 },
+    { 2900, -4000, -5650, 0 },
+    { -3300, 0, 4150, 0 },
+    { -3300, -5000, 4150, 0 },
+    { -3300, -5000, 5650, 0 },
+    { -3300, 0, 5650, 0 },
+    { -5000, 0, 4150, 0 },
+    { -5000, -5000, 4150, 0 },
+    { 0, 0, 5650, 0 },
+    { 0, -5000, 5650, 0 },
+    { 0, -5000, 3350, 0 },
+    { 0, 0, 3350, 0 },
+    { 4000, -5000, 3350, 0 },
+    { 4000, 0, 3350, 0 },
+    { 2896, 187, -4145, 0 },
+    { 2896, -4813, -4145, 0 },
+    { 2896, -4813, -5645, 0 },
+    { 2896, 187, -5645, 0 },
+    { 4236, 187, -4145, 0 },
+    { 4236, -4813, -4145, 0 },
+    { -1900, 0, -5650, 0 },
+    { -1900, -5000, -5650, 0 },
+    { -1900, -5000, -1001, 0 },
+    { -1900, 0, -1001, 0 },
+    { -5000, 0, -6250, 0 },
+    { -5000, -6000, -6250, 0 },
+    { -5000, -6000, 6250, 0 },
+    { -5000, 0, 6250, 0 },
+    { 4000, 0, 6250, 0 },
+    { 4000, -6000, 6250, 0 },
+    { 4000, -6000, -6250, 0 },
+    { 4000, 0, -6250, 0 },
+    { 1986, 0, 586, 0 },
+    { 1986, -2000, 586, 0 },
+    { 4188, -2000, 586, 0 },
+    { 4188, 0, 586, 0 },
+    { -2250, -2781, 1250, 0 },
+    { 2250, -2781, 1250, 0 },
+    { 2250, -2781, -1250, 0 },
+    { -2250, -2781, -1250, 0 },
+    { -2250, 219, -1250, 0 },
+    { 2250, 219, -1250, 0 },
+    { 2250, 219, 1250, 0 },
+    { -182, 250, -5422, 0 },
+    { -182, -5181, -5422, 0 },
+    { -522, -5181, -5672, 0 },
+    { -522, 250, -5672, 0 },
+    { 80, 250, -5422, 0 },
+    { 80, -5181, -5422, 0 },
+    { 304, 250, -5672, 0 },
+    { 304, -5181, -5672, 0 },
+    { 3446, -313, -385, 0 },
+    { 3446, 187, -385, 0 },
+    { 3446, 187, 2745, 0 },
+    { 3446, -313, 2745, 0 },
+    { 4236, -313, -385, 0 },
+    { 4236, 187, -385, 0 },
+};
+
+GpGridFace D_shelter_b1_underground_parking_80189428[30] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 1, 0, 4, 5 }, 2, 0 },
+    { { 9, 10, 8, 11 }, 3, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 3, 0 },
+    { { 8, 11, 14, 18 }, 3, 0 },
+    { { 19, 15, 18, 14 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 22, 24, 23, 25 }, 3, 0 },
+    { { 24, 26, 25, 27 }, 5, 0 },
+    { { 20, 23, 27, 25 }, 1, 0 },
+    { { 29, 30, 28, 31 }, 4, 0 },
+    { { 33, 29, 32, 28 }, 2, 0 },
+    { { 35, 36, 34, 37 }, 5, 0 },
+    { { 36, 38, 37, 39 }, 2, 0 },
+    { { 41, 42, 40, 43 }, 5, 0 },
+    { { 45, 41, 44, 40 }, 3, 0 },
+    { { 47, 48, 46, 49 }, 4, 0 },
+    { { 51, 52, 50, 53 }, 4, 0 },
+    { { 55, 56, 54, 57 }, 5, 0 },
+    { { 59, 60, 58, 61 }, 2, 0 },
+    { { 63, 64, 62, 65 }, 0, 0 },
+    { { 65, 64, 66, 67 }, 2, 0 },
+    { { 64, 63, 67, 68 }, 4, 0 },
+    { { 70, 71, 69, 72 }, 6, 0 },
+    { { 74, 70, 73, 69 }, 3, 0 },
+    { { 76, 74, 75, 73 }, 7, 0 },
+    { { 78, 79, 77, 80 }, 5, 0 },
+    { { 82, 78, 81, 77 }, 2, 0 },
+};
+
+s16 D_shelter_b1_underground_parking_80189590[10] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    25,
+    26,
+    27,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801895A4[9] = {
+    0,
+    1,
+    5,
+    7,
+    18,
+    19,
+    22,
+    23,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801895B8[12] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    15,
+    18,
+    19,
+    22,
+    23,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801895D0[8] = {
+    0,
+    1,
+    2,
+    12,
+    13,
+    14,
+    19,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801895E0[19] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    18,
+    20,
+    25,
+    26,
+    27,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189608[20] = {
+    0,
+    5,
+    6,
+    7,
+    8,
+    11,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_80189630[14] = {
+    0,
+    1,
+    2,
+    14,
+    15,
+    18,
+    20,
+    21,
+    22,
+    23,
+    24,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018964C[8] = {
+    0,
+    1,
+    2,
+    12,
+    14,
+    15,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018965C[15] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    16,
+    17,
+    20,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018967C[16] = {
+    0,
+    3,
+    4,
+    6,
+    10,
+    11,
+    16,
+    17,
+    20,
+    21,
+    22,
+    23,
+    24,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_8018969C[12] = {
+    0,
+    1,
+    2,
+    15,
+    20,
+    21,
+    22,
+    23,
+    24,
+    28,
+    29,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896B4[7] = {
+    0,
+    1,
+    2,
+    15,
+    20,
+    28,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896C4[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896CC[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896D4[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896DC[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896E4[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896EC[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896F4[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_shelter_b1_underground_parking_801896FC[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_shelter_b1_underground_parking_80189704[20] = {
+    D_shelter_b1_underground_parking_80189590,
+    D_shelter_b1_underground_parking_801895A4,
+    D_shelter_b1_underground_parking_801895B8,
+    D_shelter_b1_underground_parking_801895D0,
+    D_shelter_b1_underground_parking_801895E0,
+    D_shelter_b1_underground_parking_80189608,
+    D_shelter_b1_underground_parking_80189630,
+    D_shelter_b1_underground_parking_8018964C,
+    D_shelter_b1_underground_parking_8018965C,
+    D_shelter_b1_underground_parking_8018967C,
+    D_shelter_b1_underground_parking_8018969C,
+    D_shelter_b1_underground_parking_801896B4,
+    D_shelter_b1_underground_parking_801896C4,
+    D_shelter_b1_underground_parking_801896CC,
+    D_shelter_b1_underground_parking_801896D4,
+    D_shelter_b1_underground_parking_801896DC,
+    D_shelter_b1_underground_parking_801896E4,
+    D_shelter_b1_underground_parking_801896EC,
+    D_shelter_b1_underground_parking_801896F4,
+    D_shelter_b1_underground_parking_801896FC,
+};
+
+GpGridParams D_shelter_b1_underground_parking_80189754[1] = {
+    { NULL, D_shelter_b1_underground_parking_80189150, D_shelter_b1_underground_parking_80189190, D_shelter_b1_underground_parking_80189428, D_shelter_b1_underground_parking_80189704, 5390, 8000, 5, 4, 4000, 30 },
+};
+
+GpViewRec D_shelter_b1_underground_parking_80189778[24] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 6700, 0x7530, 0 } }, 207 },
+    { { { { -3932, 0, 1145 }, { 423, 3805, 1453 }, { -1064, 1513, -3654 } }, { -2240, 3770, -1530 } }, 257 },
+    { { { { -4068, 0, 470 }, { 169, 3820, 1468 }, { -439, 1477, -3794 } }, { -2330, 3770, -5560 } }, 230 },
+    { { { { 3526, 0, 2083 }, { 477, 3987, -807 }, { -2028, 938, 3432 } }, { -2830, 3820, 5540 } }, 207 },
+    { { { { 3904, 0, 1237 }, { 348, 3930, -1099 }, { -1187, 1153, 3746 } }, { 1060, 3010, 580 } }, 257 },
+    { { { { -1166, 0, -3926 }, { -943, 3975, 280 }, { 3811, 984, -1132 } }, { 1170, 2400, -1600 } }, 257 },
+    { { { { -4068, 0, 470 }, { 169, 3820, 1468 }, { -439, 1477, -3794 } }, { -2330, 3770, -5560 } }, 230 },
+    { { { { 3526, 0, 2083 }, { 477, 3987, -807 }, { -2028, 938, 3432 } }, { -2830, 3820, 5540 } }, 207 },
+    { { { { -1166, 0, -3926 }, { -943, 3975, 280 }, { 3811, 984, -1132 } }, { 1170, 2400, -1600 } }, 257 },
+    { { { { -3932, 0, 1145 }, { 423, 3805, 1453 }, { -1064, 1513, -3654 } }, { -2240, 3770, -1530 } }, 257 },
+    { { { { -4068, 0, 470 }, { 169, 3820, 1468 }, { -439, 1477, -3794 } }, { -2330, 3770, -5560 } }, 230 },
+    { { { { -4068, 0, 470 }, { 169, 3820, 1468 }, { -439, 1477, -3794 } }, { -2330, 3770, -5560 } }, 230 },
+    { { { { 3526, 0, 2083 }, { 477, 3987, -807 }, { -2028, 938, 3432 } }, { -2830, 3820, 5540 } }, 207 },
+    { { { { 3526, 0, 2083 }, { 477, 3987, -807 }, { -2028, 938, 3432 } }, { -2830, 3820, 5540 } }, 207 },
+    { { { { -1166, 0, -3926 }, { -943, 3975, 280 }, { 3811, 984, -1132 } }, { 1170, 2400, -1600 } }, 257 },
+    { { { { -4017, 0, 796 }, { 361, 3649, 1824 }, { -709, 1859, -3579 } }, { -2610, 2710, 3680 } }, 257 },
+    { { { { -761, 0, -4024 }, { -1258, 3890, 237 }, { 3822, 1280, -722 } }, { 2770, 2710, 2400 } }, 257 },
+    { { { { -749, 0, 4026 }, { 1241, 3896, 231 }, { -3830, 1262, -712 } }, { -3820, 2710, 2400 } }, 257 },
+    { { { { 4075, 0, 405 }, { 192, 3605, -1934 }, { -357, 1944, 3587 } }, { -3190, 2710, 3250 } }, 257 },
+    { { { { -3796, 0, 1536 }, { 629, 3736, 1554 }, { -1402, 1676, -3463 } }, { -390, 1800, 4710 } }, 257 },
+    { { { { 0, 0, -4096 }, { 0, 4096, 0 }, { 4096, 0, 0 } }, { 0x4092, 1420, 3350 } }, 6874 },
+    { { { { -1166, 0, -3926 }, { -943, 3975, 280 }, { 3811, 984, -1132 } }, { 1170, 2400, -1600 } }, 257 },
+    { { { { 711, 0, 4033 }, { 2858, 2890, -504 }, { -2846, 2902, 502 } }, { 1620, 1430, 1640 } }, 257 },
+    { { { { -1166, 0, -3926 }, { -943, 3975, 280 }, { 3811, 984, -1132 } }, { 1170, 2400, -1600 } }, 257 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189AD8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189AE8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_80189AF8[13] = {
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -120, 1158, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -80, 1514, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 689, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 479, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -80, 823, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -160, -80, 493, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -24, 698, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 16, 666, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 32, 657, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 72, 651, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 88, 636, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, 88, 625, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 104, 683, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189BFC[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 13, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_80189C14[32] = {
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 1327, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 16, 1339, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 32, 1367, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 40, 1358, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 32, 1341, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 48, 1374, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 56, 1364, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 64, 1370, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 80, 1311, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 96, 1247, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 80, 1309, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 88, 1235, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 72, 1375, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 72, 1375, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 80, 1381, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 80, 1287, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 104, 1210, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 104, 1224, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 88, 1307, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 96, 1300, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 96, 1299, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -24, 2239, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 8, 2318, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -24, 2293, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -8, 2308, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 8, 2343, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 24, 2392, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 8, 2391, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 24, 2394, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 24, 2358, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 0, 2337, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -24, 2273, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189E94[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 21, 0, 0, { 0, 0 } },
+    { 21, 11, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189EB4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189EC4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189ED4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189EE4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189EF4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_80189F04[11] = {
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 104, 780, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 88, 772, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 88, 700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 80, 900, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, 72, 863, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 80, 950, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 96, 882, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 120, 104, 808, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 104, 873, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, 80, 786, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 104, 843, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189FE0[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 11, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_80189FF8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_8018A008[42] = {
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -120, 1158, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -80, 1514, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 689, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 479, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -80, 823, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -160, -80, 493, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -24, 698, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 16, 666, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 32, 657, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 72, 651, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 88, 636, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -128, 88, 625, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 104, 683, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 16, 40, 1491, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 48, 1471, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, 40, 1554, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 24, 1538, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 96, 24, 1494, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 72, 24, 1527, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 24, 1509, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 24, 1510, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 24, 1499, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 24, 1469, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 32, 1436, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 8, 1663, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, -16, 1640, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, -16, 1586, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 8, 1586, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 0, 1622, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 0, 1614, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, -8, 1542, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 8, 1543, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, -8, 1606, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 8, 1653, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 8, 1361, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -8, 1391, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -8, 1586, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 8, 1631, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 40, 1486, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 8, 1465, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 16, 1517, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 24, 1527, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018A350[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 13, 0, 0, { 1, 0 } },
+    { 13, 29, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_8018A370[65] = {
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 1327, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 16, 1339, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 32, 1367, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 40, 1358, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 32, 1341, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 48, 1374, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 56, 1364, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 64, 1370, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 80, 1311, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 96, 1247, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 80, 1309, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 88, 1235, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 72, 1375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 72, 1375, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 80, 1381, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 80, 1287, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 104, 1210, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 104, 1224, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 88, 1307, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 96, 1300, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 96, 1299, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -24, 2239, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 8, 2318, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -24, 2293, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -8, 2308, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 8, 2343, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 24, 2392, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 8, 2391, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 24, 2394, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 24, 2358, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 0, 2337, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -24, 2273, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, 72, 1465, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 56, 1587, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, 48, 1680, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 48, 1575, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 40, 1625, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1662, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -24, 24, 1813, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 32, 1692, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 56, 1575, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 40, 1584, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, 48, 1553, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 16, 48, 1496, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 64, 1777, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 56, 1428, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 56, 1383, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 72, 1345, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 72, 1350, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 48, 1394, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 48, 1532, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 40, 1384, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 40, 1578, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 32, 1595, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 16, 1540, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 16, 1558, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 16, 1733, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 16, 1659, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 32, 1400, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 16, 1702, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 16, 1598, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 24, 1576, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 32, 1589, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 56, 1393, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 56, 1403, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018A884[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 21, 0, 0, { 1, 0 } },
+    { 21, 11, 0, 0, { 2, 0 } },
+    { 32, 33, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018A8AC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018A8BC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018A8CC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b1_underground_parking_8018A8DC[28] = {
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -32, 1061, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, -8, 1084, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 8, 1096, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 24, 1149, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 40, 1131, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 56, 1136, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 64, 1122, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -80, 965, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -80, 1141, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -56, 1128, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, -32, 1206, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -8, 1169, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -120, 16, 1237, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, 24, 1181, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 32, 1152, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, 56, 1034, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, 64, 909, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, 16, 868, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 32, 1173, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, -16, 1125, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -32, 807, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -88, 757, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -56, 1125, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, -88, 1025, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, -80, 1060, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 0, 1171, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, -24, 1107, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, -48, 1103, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB0C[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 1, 0 } },
+    { 8, 20, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB2C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB3C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB4C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB5C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB6C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB7C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_underground_parking_8018AB8C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b1_underground_parking_8018AB9C[24] = {
+    { { .empty = D_shelter_b1_underground_parking_80189AD8 }, D_shelter_b1_underground_parking_80189AD8, NULL },
+    { { .empty = D_shelter_b1_underground_parking_80189AE8 }, D_shelter_b1_underground_parking_80189AE8, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189AF8 }, D_shelter_b1_underground_parking_80189BFC, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189C14 }, D_shelter_b1_underground_parking_80189E94, NULL },
+    { { .empty = D_shelter_b1_underground_parking_80189EB4 }, D_shelter_b1_underground_parking_80189EB4, NULL },
+    { { .empty = D_shelter_b1_underground_parking_80189EC4 }, D_shelter_b1_underground_parking_80189EC4, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189AF8 }, D_shelter_b1_underground_parking_80189BFC, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189C14 }, D_shelter_b1_underground_parking_80189E94, NULL },
+    { { .empty = D_shelter_b1_underground_parking_80189EF4 }, D_shelter_b1_underground_parking_80189EF4, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189F04 }, D_shelter_b1_underground_parking_80189FE0, NULL },
+    { { .elements = D_shelter_b1_underground_parking_80189AF8 }, D_shelter_b1_underground_parking_80189BFC, NULL },
+    { { .elements = D_shelter_b1_underground_parking_8018A008 }, D_shelter_b1_underground_parking_8018A350, NULL },
+    { { .elements = D_shelter_b1_underground_parking_8018A370 }, D_shelter_b1_underground_parking_8018A884, NULL },
+    { { .elements = D_shelter_b1_underground_parking_8018A370 }, D_shelter_b1_underground_parking_8018A884, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018A8BC }, D_shelter_b1_underground_parking_8018A8BC, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018A8CC }, D_shelter_b1_underground_parking_8018A8CC, NULL },
+    { { .elements = D_shelter_b1_underground_parking_8018A8DC }, D_shelter_b1_underground_parking_8018AB0C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB2C }, D_shelter_b1_underground_parking_8018AB2C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB3C }, D_shelter_b1_underground_parking_8018AB3C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB4C }, D_shelter_b1_underground_parking_8018AB4C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB5C }, D_shelter_b1_underground_parking_8018AB5C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB6C }, D_shelter_b1_underground_parking_8018AB6C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB7C }, D_shelter_b1_underground_parking_8018AB7C, NULL },
+    { { .empty = D_shelter_b1_underground_parking_8018AB8C }, D_shelter_b1_underground_parking_8018AB8C, NULL },
+};
+
+GpPointLight D_shelter_b1_underground_parking_8018ACBC[10] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1570, -2500, 1829 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2866, 2867, 2867, { 0, 0 } }, 2816, 4608 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2410, -2500, 2490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2816, 4608 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2410, -2500, -2730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2816, 4608 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1580, -2139, -2730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 2816, 4608 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2108, -1663, -6654 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2304, 2867, 2266, { 0, 0 } }, 1301, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7240, -2500, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2035, 2999 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x355C, -2500, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 4000, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4D1C, -2500, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 4000, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7370, -2138, 2730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 2560, 4352 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7370, -2138, -2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 2560, 4352 },
+};
+
+GpRoomCoordSet D_shelter_b1_underground_parking_8018B07C[1] = {
+    { 0, NULL, 10, D_shelter_b1_underground_parking_8018ACBC, 0, NULL },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018B094[8] = {
+    { NULL, NULL, NULL, { 608, -3744, -3072, 0 }, { { -4222, -4192, -311, 0 }, { 4204, -4192, 298, 0 }, { -4222, 4192, -311, 0 }, { 4204, 4192, 298, 0 } }, { 295, 0, -4093, 0 }, { 0, 0, 4096, 0 }, 5948, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 656, -3776, -3391, 0 }, { { 4534, -4192, 308, 0 }, { -4560, -4192, -330, 0 }, { 4534, 4192, 308, 0 }, { -4560, 4192, -330, 0 } }, { -287, 0, 4085, 0 }, { 0, 0, 4096, 0 }, 6186, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -2384, -3648, 2848, 0 }, { { -4080, -4192, -1088, 0 }, { 4080, -4192, 1088, 0 }, { -4080, 4192, -1088, 0 }, { 4080, 4192, 1088, 0 } }, { 1056, 0, -3964, 0 }, { 0, 0, 4096, 0 }, 5948, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { -448, -3616, -192, 0 }, { { 5232, -4192, 2624, 0 }, { -5232, -4192, -2624, 0 }, { 5232, 4192, 2624, 0 }, { -5232, 4192, -2624, 0 } }, { -1842, 0, 3672, 0 }, { 0, 0, 4096, 0 }, 7186, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -512, -3616, -90, 0 }, { { -5296, -4192, -2634, 0 }, { 5296, -4192, 2646, 0 }, { -5296, 4192, -2646, 0 }, { 5296, 4192, 2634, 0 } }, { 1833, -6, -3678, 0 }, { 0, 0, 4096, 0 }, 7240, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -2590, -3616, 2672, 0 }, { { 3440, -4192, 944, 0 }, { -3440, -4192, -944, 0 }, { 3440, 4192, 944, 0 }, { -3440, 4192, -944, 0 } }, { -1085, 0, 3951, 0 }, { 0, 0, 4096, 0 }, 5490, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 4176, -3552, -80, 0 }, { { 32, -4192, -2864, 0 }, { -32, -4192, 2864, 0 }, { 32, 4192, -2864, 0 }, { -32, 4192, 2864, 0 } }, { 4095, 0, 45, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 6, 3, 1, 0 },
+    { NULL, NULL, NULL, { 4288, -3520, -191, 0 }, { { -32, -4192, 2480, 0 }, { 32, -4192, -2480, 0 }, { -32, 4192, 2480, 0 }, { 32, 4192, -2480, 0 } }, { -4103, 0, -53, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 3, 6, 129, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018B2F4[8] = {
+    { NULL, NULL, NULL, { 774, -3744, -5703, 0 }, { { -1271, -4192, -842, 0 }, { 1272, -4192, 842, 0 }, { -1271, 4192, -842, 0 }, { 1272, 4192, 842, 0 } }, { 2265, 0, -3423, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 2, 17, 1, 0 },
+    { NULL, NULL, NULL, { 799, -3552, -5824, 0 }, { { 1272, -4192, 842, 0 }, { -1271, -4192, -842, 0 }, { 1272, 4192, 842, 0 }, { -1271, 4192, -842, 0 } }, { -2267, 0, 3422, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 17, 2, 1, 0 },
+    { NULL, NULL, NULL, { 3198, -3648, -5760, 0 }, { { -1221, -4192, 914, 0 }, { 1222, -4192, -914, 0 }, { -1221, 4192, 914, 0 }, { 1222, 4192, -914, 0 } }, { -2461, 0, -3289, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 2, 17, 1, 0 },
+    { NULL, NULL, NULL, { 3230, -3712, -5888, 0 }, { { 1222, -4192, -914, 0 }, { -1221, -4192, 914, 0 }, { 1222, 4192, -914, 0 }, { -1221, 4192, 914, 0 } }, { 2459, 0, 3287, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 17, 2, 1, 0 },
+    { NULL, NULL, NULL, { 2623, -3680, -1313, 0 }, { { -2005, -4192, 2, 0 }, { 2005, -4192, -1, 0 }, { -2005, 4192, 2, 0 }, { 2005, 4192, -1, 0 } }, { -4, 0, -4104, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 17, 19, 1, 0 },
+    { NULL, NULL, NULL, { 2656, -3616, -1441, 0 }, { { 2005, -4192, -1, 0 }, { -2005, -4192, 2, 0 }, { 2005, 4192, -1, 0 }, { -2005, 4192, 2, 0 } }, { 3, 0, 4103, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 19, 17, 1, 0 },
+    { NULL, NULL, NULL, { 591, -3712, -3985, 0 }, { { -178, -4192, -2803, 0 }, { 178, -4192, 2804, 0 }, { -178, 4192, -2803, 0 }, { 178, 4192, 2804, 0 } }, { 4089, 0, -260, 0 }, { 0, 0, 4096, 0 }, 5042, 0, 17, 18, 1, 0 },
+    { NULL, NULL, NULL, { 704, -3680, -3969, 0 }, { { 178, -4192, 2804, 0 }, { -178, -4192, -2803, 0 }, { 178, 4192, 2804, 0 }, { -178, 4192, -2803, 0 } }, { -4090, 0, 259, 0 }, { 0, 0, 4096, 0 }, 5042, 0, 18, 17, 129, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_underground_parking_8018B554[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_underground_parking_8018B560[1] = {
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_underground_parking_8018B570[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_underground_parking_8018B57C[1] = {
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_underground_parking_8018B58C[2] = {
+    { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_underground_parking_8018B5A4[2] = {
+    { 116, 0, 0, 3700, 0, -114, 2488, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22] = {
+    { NULL, NULL },
+    { D_shelter_b1_underground_parking_8018B560, D_shelter_b1_underground_parking_8018B554 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_underground_parking_8018B57C, D_shelter_b1_underground_parking_8018B570 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_underground_parking_8018B5A4, D_shelter_b1_underground_parking_8018B58C },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018B674[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4076, 0, -401, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4960, -64, 32, 0 }, { { -1568, 0, -2928, 0 }, { 1568, 0, -2928, 0 }, { -1568, 0, 2928, 0 }, { 1568, 0, 2928, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 3318, 2, 7, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3568, -64, 4064, 0 }, { { -624, 0, -720, 0 }, { 624, 0, -720, 0 }, { -624, 0, 720, 0 }, { 624, 0, 720, 0 } }, { 0, 4099, 0, 0 }, { 799, 0, -4017, 0 }, 951, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1712, -64, -4704, 0 }, { { -656, 0, -2288, 0 }, { 656, 0, -2288, 0 }, { -656, 0, 2288, 0 }, { 656, 0, 2288, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 2374, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3472, -64, -2656, 0 }, { { -2080, 0, -560, 0 }, { 2080, 0, -560, 0 }, { -2080, 0, 560, 0 }, { 2080, 0, 560, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, 4096, 0 }, 2141, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -160, -64, 4368, 0 }, { { -656, 0, -1376, 0 }, { 656, 0, -1376, 0 }, { -656, 0, 1376, 0 }, { 656, 0, 1376, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1519, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1936, -64, 3216, 0 }, { { -2272, 0, -496, 0 }, { 2272, 0, -496, 0 }, { -2272, 0, 496, 0 }, { 2272, 0, 496, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -4096, 0 }, 2318, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2106, 0, 3512, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3040, -64, 4688, 0 }, { { -576, 0, -992, 0 }, { 576, 0, -992, 0 }, { -576, 0, 992, 0 }, { 576, 0, 992, 0 } }, { 0, 4095, 0, 0 }, { 3920, 0, -1189, 0 }, 1144, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018BA04[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 5536, -64, 32, 0 }, { { -1376, 0, -1360, 0 }, { 1376, 0, -1360, 0 }, { -1376, 0, 1360, 0 }, { 1376, 0, 1360, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 1932, 2, 7, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3472, -64, 3936, 0 }, { { -688, 0, -720, 0 }, { 688, 0, -720, 0 }, { -688, 0, 720, 0 }, { 688, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { 798, 0, -4017, 0 }, 995, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3296, -64, -2784, 0 }, { { -1760, 0, -480, 0 }, { 1760, 0, -480, 0 }, { -1760, 0, 480, 0 }, { 1760, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1823, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1760, -64, -4448, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1792, -64, 3168, 0 }, { { -2208, 0, -480, 0 }, { 2208, 0, -480, 0 }, { -2208, 0, 480, 0 }, { 2208, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 2246, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { -192, -64, 4304, 0 }, { { 480, 0, -1296, 0 }, { 480, 0, 1296, 0 }, { -480, 0, -1296, 0 }, { -480, 0, 1296, 0 } }, { 0, 4117, 0, 0 }, { -4096, 0, 0, 0 }, 1378, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1752, 0, 3703, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3024, -64, 4640, 0 }, { { -560, 0, -912, 0 }, { 560, 0, -912, 0 }, { -560, 0, 912, 0 }, { 560, 0, 912, 0 } }, { 0, 4096, 0, 0 }, { 3973, 0, -996, 0 }, 1063, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018BD94[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4091, 0, 201, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 8000, -64, 32, 0 }, { { -3616, 0, -2928, 0 }, { 3616, 0, -2928, 0 }, { -3616, 0, 2928, 0 }, { 3616, 0, 2928, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, 4096, 0 }, 4636, 2, 7, 255, 3, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 601, 0, -4052, 0 }, 962, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3424, -64, -2816, 0 }, { { -1824, 0, -480, 0 }, { 1824, 0, -480, 0 }, { -1824, 0, 480, 0 }, { 1824, 0, 480, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1885, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1728, -64, -4176, 0 }, { { -480, 0, -1584, 0 }, { 480, 0, -1584, 0 }, { -480, 0, 1584, 0 }, { 480, 0, 1584, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1654, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1792, -64, 3232, 0 }, { { -2208, 0, -480, 0 }, { 2208, 0, -480, 0 }, { -2208, 0, 480, 0 }, { 2208, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 2246, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { -208, -64, 4384, 0 }, { { -496, 0, -1344, 0 }, { 496, 0, -1344, 0 }, { -496, 0, 1344, 0 }, { 496, 0, 1344, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1431, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -576, 0, -896, 0 }, { 576, 0, -896, 0 }, { -576, 0, 896, 0 }, { 576, 0, 896, 0 } }, { 0, 4095, 0, 0 }, { 4052, 0, -602, 0 }, 1063, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018C124[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4017, 0, -799, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4688, -64, 32, 0 }, { { -816, 0, -624, 0 }, { 816, 0, -624, 0 }, { -816, 0, 624, 0 }, { 816, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1024, 2, 7, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1380, 0, -3857, 0 }, 962, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3280, -64, -2752, 0 }, { { -1744, 0, -480, 0 }, { 1744, 0, -480, 0 }, { -1744, 0, 480, 0 }, { 1744, 0, 480, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1805, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1632, -64, -4240, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 1678, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1776, -64, 3072, 0 }, { { -2176, 0, -480, 0 }, { 2176, 0, -480, 0 }, { -2176, 0, 480, 0 }, { 2176, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 2217, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { -160, -64, 4608, 0 }, { { -464, 0, -1616, 0 }, { 464, 0, -1616, 0 }, { -464, 0, 1616, 0 }, { 464, 0, 1616, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 1678, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2276, 0, 3405, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3040, -64, 4656, 0 }, { { -544, 0, -896, 0 }, { 544, 0, -896, 0 }, { -544, 0, 896, 0 }, { 544, 0, 896, 0 } }, { 0, 4098, 0, 0 }, { 3784, 0, -1568, 0 }, 1047, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018C4B4[12] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -3973, 0, -995, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3472, -64, 3936, 0 }, { { -688, 0, -720, 0 }, { 688, 0, -720, 0 }, { -688, 0, 720, 0 }, { 688, 0, 720, 0 } }, { 0, 4101, 0, 0 }, { 995, 0, -3973, 0 }, 995, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { 4896, -64, 64, 0 }, { { -596, 0, -1135, 0 }, { 588, 0, -1138, 0 }, { -589, 0, 1137, 0 }, { 595, 0, 1134, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1280, 5, 11, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3408, -64, -2752, 0 }, { { -1840, 0, -480, 0 }, { 1840, 0, -480, 0 }, { -1840, 0, 480, 0 }, { 1840, 0, 480, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1898, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1792, -64, -4352, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 1680, -64, 3168, 0 }, { { -2112, 0, -480, 0 }, { 2112, 0, -480, 0 }, { -2112, 0, 480, 0 }, { 2112, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 2157, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { -192, -64, 4432, 0 }, { { 480, 0, -1360, 0 }, { 480, 0, 1360, 0 }, { -480, 0, -1360, 0 }, { -480, 0, 1360, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1436, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3552, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1752, 0, 3703, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { -2976, -64, 4720, 0 }, { { -608, 0, -928, 0 }, { 608, 0, -928, 0 }, { -608, 0, 928, 0 }, { 608, 0, 928, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1108, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018C844[20] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4076, 0, -401, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3936, -64, 4832, 0 }, { { -1024, 0, -1648, 0 }, { 1728, 0, -1648, 0 }, { -1024, 0, 464, 0 }, { 1728, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 2387, 2, 4, 255, 4, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3808, -64, -368, 0 }, { { -368, 0, -2176, 0 }, { 368, 0, -2176, 0 }, { -368, 0, 2176, 0 }, { 368, 0, 2176, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 2202, 2, 14, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3776, -64, 3776, 0 }, { { -1376, 0, -592, 0 }, { 1376, 0, -592, 0 }, { -1376, 0, 592, 0 }, { 1376, 0, 592, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1492, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { -2880, -64, 4480, 0 }, { { -672, 0, -1328, 0 }, { 672, 0, -1328, 0 }, { -672, 0, 1328, 0 }, { 672, 0, 1328, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 1487, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3840, -64, 3696, 0 }, { { -1376, 0, -1216, 0 }, { 1376, 0, -768, 0 }, { -1376, 0, 992, 0 }, { 1376, 0, 992, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1832, 5, 255, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2576, -64, 4448, 0 }, { { -1008, 0, -1328, 0 }, { 1008, 0, -1328, 0 }, { -1008, 0, 1328, 0 }, { 1008, 0, 1328, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1664, 5, 255, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3937, -64, 4832, 0 }, { { -1024, 0, -1904, 0 }, { 2368, 0, -1904, 0 }, { -1024, 0, 848, 0 }, { 2368, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 3029, 5, 255, 0, 4, 0 },
+    { NULL, NULL, NULL, { -1760, -64, -4512, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3840, -64, -2752, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -256, -64, 4384, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 2112, -64, 3232, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -1380, 0, 3856, 0 }, 1247, 2, 1, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018CE34[16] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -3536, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -4052, 0, -601, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 112, -64, 1120, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { -3424, -64, 3936, 0 }, { { -640, 0, -720, 0 }, { 640, 0, -720, 0 }, { -640, 0, 720, 0 }, { 640, 0, 720, 0 } }, { 0, 4102, 0, 0 }, { 1751, 0, -3703, 0 }, 962, 2, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { 96, -64, -1120, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2064, -64, -48, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { 2256, -64, -48, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, 5, 12, 0, 2, 0 },
+    { NULL, NULL, NULL, { -4096, -64, -2848, 0 }, { { -2416, 0, -368, 0 }, { 2416, 0, -368, 0 }, { -2416, 0, 368, 0 }, { 2416, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2442, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 2112, -64, 3168, 0 }, { { -2432, 0, -416, 0 }, { 2432, 0, -416, 0 }, { -2432, 0, 416, 0 }, { 2432, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 2455, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1728, -64, -4192, 0 }, { { -368, 0, -1392, 0 }, { 368, 0, -1392, 0 }, { -368, 0, 1392, 0 }, { 368, 0, 1392, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1436, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { -224, -64, 4480, 0 }, { { -400, 0, -1424, 0 }, { 400, 0, -1424, 0 }, { -400, 0, 1424, 0 }, { 400, 0, 1424, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3776, -64, -3520, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { -2106, 0, 3513, 0 }, 1247, 2, 1, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3744, -64, -192, 0 }, { { -400, 0, -2608, 0 }, { 400, 0, -2608, 0 }, { -400, 0, 2608, 0 }, { 400, 0, 2608, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2635, 2, 3, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3008, -64, 4688, 0 }, { { -512, 0, -960, 0 }, { 512, 0, -960, 0 }, { -512, 0, 960, 0 }, { 512, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { 3856, 0, -1381, 0 }, 1086, 2, 4, 255, 130, 0 },
+};
+
+GpObj4C D_shelter_b1_underground_parking_8018D2F4[11] = {
+    { NULL, NULL, NULL, { 1984, -48, -7360, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 0, 19, 19, 2, 0 },
+    { NULL, NULL, NULL, { -4448, -48, 128, 0 }, { { 480, 0, -1760, 0 }, { 480, 0, 1760, 0 }, { -480, 0, -1760, 0 }, { -480, 0, 1760, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1823, 5, 10, 1, 2, 0 },
+    { NULL, NULL, NULL, { 2496, -64, -240, 0 }, { { -608, 0, -848, 0 }, { 608, 0, -848, 0 }, { -608, 0, 848, 0 }, { 608, 0, 848, 0 } }, { 0, 4094, 0, 0 }, { 4076, 0, 401, 0 }, 1039, 2, 22, 255, 2, 0 },
+    { NULL, NULL, NULL, { -3808, -64, 3936, 0 }, { { -1024, 0, -720, 0 }, { 1024, 0, -720, 0 }, { -1024, 0, 720, 0 }, { 1024, 0, 720, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1247, 2, 4, 255, 3, 0 },
+    { NULL, NULL, NULL, { 0, -64, -5344, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1553, -64, -2208, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4096, 0, 0, 0 }, 1115, 2, 23, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3503, -64, -688, 0 }, { { -624, 0, -432, 0 }, { 624, 0, -432, 0 }, { -624, 0, 432, 0 }, { 624, 0, 432, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -4096, 0 }, 757, 5, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { -1632, -64, -4320, 0 }, { { -624, 0, -928, 0 }, { 624, 0, -928, 0 }, { -624, 0, 928, 0 }, { 624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4096, 0, 0, 0 }, 1115, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 2720, -64, 864, 0 }, { { -624, 0, -832, 0 }, { 624, 0, -832, 0 }, { -624, 0, 832, 0 }, { 624, 0, 832, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, -4091, 0 }, 1039, 2, 48, 255, 2, 0 },
+    { NULL, NULL, NULL, { 3936, -64, 416, 0 }, { { -1616, 0, -1568, 0 }, { 240, 0, -1568, 0 }, { -1616, 0, -160, 0 }, { 240, 0, -160, 0 } }, { 0, 4103, 0, 0 }, { -4091, 0, 201, 0 }, 2246, 5, 1, 0, 4, 0 },
+    { NULL, NULL, NULL, { 2848, -64, -288, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 701, 5, 1, 0, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_b1_underground_parking_8018D638[25] = {
+    { 24, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 2256, 2255, 2255, 2255 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+s32 D_shelter_b1_underground_parking_8018D700[3] = {
+    0x10000015,
+    0x10000017,
+    0x10000015,
+};
+
+GpRoomParamRec D_shelter_b1_underground_parking_8018D70C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b1_underground_parking_8018D714[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_underground_parking_8018D700 },
+};
+
+GpRoomParamRec D_shelter_b1_underground_parking_8018D71C[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec * D_shelter_b1_underground_parking_8018D724[8] = {
+    D_shelter_b1_underground_parking_8018D70C,
+    D_shelter_b1_underground_parking_8018D714,
+    D_shelter_b1_underground_parking_8018D71C,
+    D_shelter_b1_underground_parking_8018D70C,
+    D_shelter_b1_underground_parking_8018D70C,
+    D_shelter_b1_underground_parking_8018D70C,
+    D_shelter_b1_underground_parking_8018D70C,
+    D_shelter_b1_underground_parking_8018D70C,
+};
+
+s32 D_shelter_b1_underground_parking_8018D744 = 0;
+
+GpItemMap * D_shelter_b1_underground_parking_8018D748 = NULL;
+
+Task * D_shelter_b1_underground_parking_8018D74C = NULL;
+
+GpFadeWork D_shelter_b1_underground_parking_8018D750 = { 0 };
+
+Task * D_shelter_b1_underground_parking_8018D754 = NULL;
+
+s32 D_shelter_b1_underground_parking_8018D758 = 0;
+
+ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C = { { 0 }, { 0 } };
+
+RoomDeparture D_shelter_b1_underground_parking_8018D77C = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
+
+u8 D_shelter_b1_underground_parking_8018D788 = 0;
+
+u8 D_shelter_b1_underground_parking_8018D789 = 0;
+
+u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
+
+u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
 void func_shelter_b1_underground_parking_8017DA50(UiList* arg0, UiObject* arg1)
 {
@@ -927,7 +5148,7 @@ void func_shelter_b1_underground_parking_8017EC34(Task* task)
 /// "Telephone", followed by the non-zero padding the original toolchain left.
 static const char D_shelter_b1_underground_parking_8017D638[12] = "Telephone\0<\x9E";
 
-static void func_shelter_b1_underground_parking_8017EDE8(Task* task)
+void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 {
     UiObject* obj;
     UiList*   list;
@@ -2255,7 +6476,7 @@ void func_shelter_b1_underground_parking_8018184C(Task* task)
     price  = Gp_ItemDescs[itemId].price;
 
     if (task->state == 0) {
-        task->extraState = 1;
+        task->extraState.value = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
         task->state = task->state + 1;
     }
@@ -2295,7 +6516,7 @@ void func_shelter_b1_underground_parking_8018184C(Task* task)
         Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
     }
 
-    count = task->extraState;
+    count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, D_shelter_b1_underground_parking_80187094, 0x606060, 3, 2);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
@@ -2315,18 +6536,18 @@ void func_shelter_b1_underground_parking_8018184C(Task* task)
     if (obj->panel.field_0.w == 1) {
         parentObj = task->parent->spawnArg2.pointer;
         if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState < maxQty) {
-                task->extraState = task->extraState + 1;
+            if (task->extraState.value < maxQty) {
+                task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState >= 2) {
-                task->extraState = task->extraState - 1;
+            if (task->extraState.value >= 2) {
+                task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState;
-            for (i = 0; i < task->extraState; i++) {
+            Player_Status.bp -= price * task->extraState.value;
+            for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(0x16, 0, 0);
@@ -2601,7 +6822,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
                     if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(&D_shelter_b1_underground_parking_80188888);
+                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
                 }
@@ -2694,7 +6915,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
 /// `gDisplayState.pendingMode` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
 /// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
 /// takes the weapon away and runs the handoff.
-static void func_shelter_b1_underground_parking_801826C0(void)
+static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
 {
     Task*      task;
     GameActor* actor;
@@ -2742,7 +6963,7 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// Room event handler keyed on `msg->field_2`: 1 calls `func_80131E38` in
 /// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
-s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg)
+s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg * msg, GpMessageArg arg3)
 {
     if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
         func_80131E38();
@@ -2874,7 +7095,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
             break;
         case 13:
-            st           = &D_shelter_b1_underground_parking_8018D75C;
+            st           = &D_shelter_b1_underground_parking_8018D75C.value;
             st->field_4  = 0x5414000B;
             st->field_8  = 0x5414000E;
             st->field_10 = 0x5414000C;
@@ -2960,12 +7181,12 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
                 p           = &rec;
-                msg.msgId   = p->area;
+                msg.prefix.packed   = p->area;
                 msg.field_2 = p->warp;
                 msg.field_3 = p->room;
                 msg.field_5 = 0;
                 handler(&msg, &msg);
-                p->area                                   = msg.msgId;
+                p->area                                   = msg.prefix.packed;
                 p->warp                                   = msg.field_2;
                 p->room                                   = msg.field_3;
                 D_shelter_b1_underground_parking_8018D77C = rec;
@@ -3034,7 +7255,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
 static s32 func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_5 == 0) {
-        switch (in->msgId) {
+        switch (in->prefix.packed) {
             case 7:
                 out->field_3 = GameFlag_GetNibble(0xE1) + 1;
                 break;
@@ -3124,7 +7345,7 @@ void func_shelter_b1_underground_parking_801831F4(Task* task)
     }
 }
 
-s32 func_shelter_b1_underground_parking_80183284(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -3152,10 +7373,10 @@ s32 func_shelter_b1_underground_parking_80183284(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b1_underground_parking_80183360(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         return 1;
     }
@@ -3165,7 +7386,7 @@ s32 func_shelter_b1_underground_parking_80183360(s32 arg0, s32 arg1, RoomEventMs
     return 2;
 }
 
-s32 func_shelter_b1_underground_parking_801833DC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(0x54140010, 0, 0);
@@ -3231,7 +7452,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
                 gGameSession->at4.loc.room  = 6;
                 Mc_SaveData[0].state.at4.loc.room = 6;
                 gGameSession->roomObjsDirty = state;
-                func_800E8614((s32)&D_shelter_b1_underground_parking_801872D8, 1);
+                func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
                 GameFlag_SetNibble(0xF4, 1);
                 Gp_SetItemSeenBit(0x123, 1);
             } else {
@@ -3248,7 +7469,7 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
         SetDispMask(0);
         D_80115768            = 1;
         gGameSession->hideHud = 1;
-        func_800E8634(&D_shelter_b1_underground_parking_801873DC, 0, &D_shelter_b1_underground_parking_80187544);
+        func_800E8634(D_shelter_b1_underground_parking_801873DC, 0, D_shelter_b1_underground_parking_80187544);
         GameFlag_SetNibble(0xF4, 2);
         GameFlag_SetNibble(0x1B4, 0);
         arg0->state += 1;
@@ -3845,7 +8066,7 @@ static s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s
     return hit;
 }
 
-static void func_shelter_b1_underground_parking_80184A18(void)
+void func_shelter_b1_underground_parking_80184A18(Task* unused)
 {
     u8 view;
 
@@ -3878,11 +8099,11 @@ static void func_shelter_b1_underground_parking_80184A18(void)
             func_shelter_b1_underground_parking_80184C54(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
         case 4:
         case 14:
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187724[0], 0x200, -0x400, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187724[2], 0x200, -0x400, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187724[4], 0x200, 0x800, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187724[6], 0x200, 0x800, 0x111);
-            func_shelter_b1_underground_parking_80184C54(&D_shelter_b1_underground_parking_80187724[8], 0x200, 0, 0x111);
+            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
+            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
+            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
+            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
+            func_shelter_b1_underground_parking_80184C54(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
             break;
         case 9:
         case 15:
@@ -4270,7 +8491,7 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;

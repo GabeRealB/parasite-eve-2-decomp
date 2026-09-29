@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_neo_ark.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -15,30 +16,42 @@
 
 extern TaskDesc       D_80135E78;
 extern GpMsgEntry     D_shelter_b6_growth_room_8017F16C[];
-extern GpAreaApplyRec D_shelter_b6_growth_room_801807C8;
+extern GpAreaApplyRec D_shelter_b6_growth_room_801807C8[];
 extern u8             D_80136110[];
 extern u8             D_80136308[];
 
 extern void func_801327A8(void);
 extern void func_80132834(void);
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+
+s32 func_shelter_b6_growth_room_8017D5E8(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D5F0(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_shelter_b6_growth_room_8017D634(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D6C8(Task *, s32, RoomEventMsg *, GpMessageArg);
+
+GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
+    { 5102, func_shelter_b6_growth_room_8017D5F0 },
+    { 5105, func_shelter_b6_growth_room_8017D5E8 },
+    { 5103, func_shelter_b6_growth_room_8017D6C8 },
+    { 5104, func_shelter_b6_growth_room_8017D634 },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// The room's handler for message 0x13F1: accepts it and does nothing.
-s32 func_shelter_b6_growth_room_8017D5E8(void)
+s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
-/// the outgoing one, passes both to `func_80179B14`, and returns 1.
-s32 func_shelter_b6_growth_room_8017D5F0(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+/// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
+s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
-s32 func_shelter_b6_growth_room_8017D634(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0xD8) == 0) {
@@ -54,7 +67,7 @@ s32 func_shelter_b6_growth_room_8017D634(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b6_growth_room_8017D6C8(s32 arg0, s32 arg1, RoomEventMsg* arg2)
+s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         func_801327A8();
@@ -70,7 +83,7 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     arg0->msgTable = D_shelter_b6_growth_room_8017F16C;
     Game_SetPtrSlot(arg0, 7);
     Gp_FillAllyHp();
-    Gp_ApplyAreaRecs(&D_shelter_b6_growth_room_801807C8);
+    Gp_ApplyAreaRecs(D_shelter_b6_growth_room_801807C8);
     func_800E8634(D_80136110, 0, D_80136308);
     Task_SpawnFromTable(&D_80135E78, 1, 0, 0);
     Task_SpawnFromTable(&D_80135E78, 2, 0, 0);

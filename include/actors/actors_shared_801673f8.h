@@ -5,8 +5,8 @@
 
 #include "main/task_types.h"
 
-/// 8-byte spawn point in the absolute tables `D_8018B74C` (map 0x427) and
-/// `D_801874C4` (map 0x428), indexed by bits 8..11 of the 0x2C00 message
+/// 8-byte spawn point in the absolute tables `D_shelter_b3_dumping_hole_8018B74C` (map 0x427) and
+/// `D_shelter_b3_garbage_incinerator_801874C4` (map 0x428), indexed by bits 8..11 of the 0x2C00 message
 /// halfword (`ActorsShared80168d3cWork::field_44C`). `ActorsShared801673f8`
 /// places the model root at `x` / `y` / `z` facing `heading` + 0x800.
 typedef struct ActorsShared801673f8Spot {
@@ -17,8 +17,8 @@ typedef struct ActorsShared801673f8Spot {
 } ActorsShared801673f8Spot;
 STATIC_ASSERT_SIZEOF(ActorsShared801673f8Spot, 0x8);
 
-extern ActorsShared801673f8Spot D_801874C4[]; // absolute, map 0x428's spawn points
-extern ActorsShared801673f8Spot D_8018B74C[]; // absolute, map 0x427's spawn points
+extern ActorsShared801673f8Spot D_shelter_b3_garbage_incinerator_801874C4[16]; // absolute, map 0x428's spawn points
+extern ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12]; // absolute, map 0x427's spawn points
 
 /// Message 0x2C00 with low nibble 1 (see `field_44C`): reveals the model,
 /// places its root at the spawn point bits 8..11 select from the current map's

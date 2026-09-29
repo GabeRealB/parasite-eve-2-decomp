@@ -1,3 +1,5 @@
+#include "dryfield_gas_station_private.h"
+
 #include "common.h"
 
 #include "rooms/dryfield_gas_station.h"

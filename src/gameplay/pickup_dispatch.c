@@ -215,18 +215,18 @@ void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
     u8* text;
     s32 color;
     s32 one;
-    s32 val;
+    TaskSpawnArg val;
 
-    val = arg1->spawnArg1.value;
-    if (val != 0) {
-        if ((u32)val > 0xFFFF) {
+    val = arg1->spawnArg1;
+    if (val.value != 0) {
+        if (val.unsignedValue > 0xFFFF) {
             color = Ui_LookupTable(arg0, 1);
             one   = 1;
-            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
-            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0xF, val.pointer, color, one, 0);
+            text = Text_SkipLines(val.pointer, one);
             Text_DrawPrompt(arg0, arg0->panel.field_1C.s + 2, (s16)arg0->panel.field_18.u + 0x1E, text, color, one, 0);
-        } else if ((u32)(val - 0x300) < 0x100U) {
-            Gp_DrawCastCostLines(arg0, val);
+        } else if ((u32)(val.value - 0x300) < 0x100U) {
+            Gp_DrawCastCostLines(arg0, val.value);
         }
     }
 }

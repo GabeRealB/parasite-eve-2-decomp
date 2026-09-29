@@ -1,3 +1,5 @@
+#include "gameplay/message.h"
+#include "rooms/acropolis_fire_escape.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -39,8 +41,9 @@
 #include "overlay.h"
 #include <psyq/memory.h>
 
+#include "gameplay/animation.h"
+
 /// Psy-Q `RotMatrixY`.
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
@@ -83,17 +86,167 @@ typedef struct Actor311500Work {
 STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
 
 extern GpPairSrcE D_actor_311500_801692C0;
-extern u8         D_actor_311500_801692F4[];
-extern u32        D_actor_311500_80169330;
+extern GpAnimSet* D_actor_311500_801692F4[2];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *, s32, s32, u32 *);
+    } handler;
+} Actor311500MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor311500MessageEntry, 8);
 
-extern s32 D_80181E74;
-extern s32 D_80181EC4;
-extern s32 D_8018207C;
-extern s32 D_actor_311500_801692FC;
-extern s32 D_actor_311500_80169304;
-extern s32 D_actor_311500_80169324;
+extern Actor311500MessageEntry D_actor_311500_80169330[1];
 
-/// Walks the first `count` contact records (stopping at a zero key) and keeps,
+extern s32 D_actor_311500_801692FC[2];
+extern s32 D_actor_311500_80169304[8];
+extern s32 D_actor_311500_80169324[3];
+
+extern GpAnimSet D_actor_311500_80168FA8;
+extern GpAnimSet D_actor_311500_80169290;
+extern TmdSource D_actor_311500_80168BF8;
+void func_actor_311500_80163334(Task *);
+void func_actor_311500_801636A0(Task *, s32, s32, u32 *);
+
+TmdBone D_actor_311500_801636B4[19] = {
+#include "assets/actor_311500_model_06DD8_skeleton.inc"
+};
+
+u32 D_actor_311500_80163960[19] = {
+#include "assets/actor_311500_model_06DD8_partVerts.inc"
+};
+
+SVECTOR D_actor_311500_801639AC[311] = {
+#include "assets/actor_311500_model_06DD8_verts.inc"
+};
+
+SVECTOR D_actor_311500_80164364[309] = {
+#include "assets/actor_311500_model_06DD8_normals.inc"
+};
+
+u32 D_actor_311500_80164D0C[4027] = {
+#include "assets/actor_311500_model_06DD8_stream.inc"
+};
+
+TmdSource D_actor_311500_80168BF8 = {
+    0, 20180, 7860, 19,
+    D_actor_311500_80163960, D_actor_311500_801639AC, D_actor_311500_80164364, D_actor_311500_801636B4, D_actor_311500_80164D0C,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor311500PoseBank6DFC;
+
+Actor311500PoseBank6DFC D_actor_311500_80168C1C = { .poses = {
+#include "assets/actor_311500_animation_07188_bank1.inc"
+} };
+
+GpPackedSvec D_actor_311500_80168C64[81] = {
+#include "assets/actor_311500_animation_07188_bank4.inc"
+};
+
+GpAnimRec D_actor_311500_80168DA8[118] = {
+#include "assets/actor_311500_animation_07188_records.inc"
+};
+
+u16 D_actor_311500_80168F80[20] = {
+#include "assets/actor_311500_animation_07188_indices.inc"
+};
+
+GpAnimSet D_actor_311500_80168FA8 = {
+    D_actor_311500_80168DA8, D_actor_311500_80168F80,
+    { NULL, D_actor_311500_80168C1C.words, NULL, NULL, D_actor_311500_80168C64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor311500PoseBank71B0;
+
+Actor311500PoseBank71B0 D_actor_311500_80168FD0 = { .poses = {
+#include "assets/actor_311500_animation_07470_bank1.inc"
+} };
+
+GpPackedSvec D_actor_311500_8016900C[52] = {
+#include "assets/actor_311500_animation_07470_bank4.inc"
+};
+
+GpAnimRec D_actor_311500_801690DC[99] = {
+#include "assets/actor_311500_animation_07470_records.inc"
+};
+
+u16 D_actor_311500_80169268[20] = {
+#include "assets/actor_311500_animation_07470_indices.inc"
+};
+
+GpAnimSet D_actor_311500_80169290 = {
+    D_actor_311500_801690DC, D_actor_311500_80169268,
+    { NULL, D_actor_311500_80168FD0.words, NULL, NULL, D_actor_311500_8016900C, NULL, NULL, NULL },
+};
+
+GpU16Pair D_actor_311500_801692B8[2] = {
+    { 18, 7 },
+    { 18, 0 },
+};
+
+GpPairSrcE D_actor_311500_801692C0 = { D_actor_311500_801692B8, 30, 42, 82, 4, 250, 0, 100, 0, 0 };
+
+u16 D_actor_311500_801692D0[18] = {
+    20,
+    900,
+    12,
+    2000,
+    0,
+    0,
+    10,
+    800,
+    12,
+    2500,
+    0,
+    0,
+    0,
+    500,
+    12,
+    3000,
+    0,
+    0,
+};
+
+GpAnimSet * D_actor_311500_801692F4[2] = {
+    &D_actor_311500_80169290,
+    &D_actor_311500_80168FA8,
+};
+
+s32 D_actor_311500_801692FC[2] = {
+    0,
+    4096,
+};
+
+s32 D_actor_311500_80169304[8] = {
+    -0x12BF448,
+    0xFC18,
+    -0x12BFC18,
+    0xFC18,
+    3000,
+    0xFC18,
+    1000,
+    0xFC18,
+};
+
+s32 D_actor_311500_80169324[3] = {
+    0x10000,
+    0x30002,
+    0x60000,
+};
+
+Actor311500MessageEntry D_actor_311500_80169330[1] = {
+    { 2006, { .call0 = func_actor_311500_801636A0 } },
+};
+
+TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } };/// Walks the first `count` contact records (stopping at a zero key) and keeps,
 /// in a scratch block carved off `G_SCRATCH_HEAD`, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
@@ -257,7 +410,7 @@ static void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    func_8004BFF8(yaw, rotation);
+    RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
@@ -286,7 +439,7 @@ static void func_actor_311500_801629D8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     work2 = (Actor311500Work*)arg0->work;
     Mem_Set(work2, 0, 0x4D8);
     coords->sub = &gGfxViewCoord;
@@ -328,9 +481,9 @@ static void func_actor_311500_801629D8(Task* arg0)
     work2->field_43C.flags |= 0x8000;
     Gp_InitRec18Table(&work2->rec18[0], 1, 0);
     enemy->recs      = &work2->rec18[0];
-    arg0->msgTable   = &D_actor_311500_80169330;
+    arg0->msgTable   = D_actor_311500_80169330;
     work2->field_4D4 = 1;
-    place            = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place            = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     while (place->entryId != 0xFF && place->entryId != 0xA) {
         place++;
     }
@@ -652,9 +805,9 @@ case0:
     }
     switch (actor->state) {
         case 0:
-            Mem_CopyUnaligned(&D_actor_311500_80169304, &D_80181EC4, 0x20);
-            Mem_CopyUnaligned(&D_actor_311500_801692FC, &D_80181E74, 8);
-            Mem_CopyUnaligned(&D_actor_311500_80169324, &D_8018207C, 0xC);
+            Mem_CopyUnaligned(&D_actor_311500_80169304, D_acropolis_fire_escape_80181EC4, 0x20);
+            Mem_CopyUnaligned(&D_actor_311500_801692FC, D_acropolis_fire_escape_80181E74, 8);
+            Mem_CopyUnaligned(&D_actor_311500_80169324, D_acropolis_fire_escape_8018207C, 0xC);
             func_actor_311500_801629D8(actor);
             work = actor->work;
             anim = work;
@@ -688,9 +841,9 @@ case0:
                 goto case1;
             }
             if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
-                Mem_Set(&D_80181EC4, 0, 0x20);
-                Mem_Set(&D_80181E74, 0, 8);
-                Mem_Set(&D_8018207C, 0, 0xC);
+                Mem_Set(D_acropolis_fire_escape_80181EC4, 0, 0x20);
+                Mem_Set(D_acropolis_fire_escape_80181E74, 0, 8);
+                Mem_Set(D_acropolis_fire_escape_8018207C, 0, 0xC);
                 work->field_4D4 = 0;
                 work->field_4C0 = 0;
                 actor->state   += 1;

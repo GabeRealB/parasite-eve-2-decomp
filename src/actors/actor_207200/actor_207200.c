@@ -52,6 +52,115 @@ static void func_actor_207200_8014B128(Task* arg0);
 static void func_actor_207200_8014B21C(Task* task);
 static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 
+extern TmdSource D_actor_207200_8014E4C8;
+void func_actor_207200_8014AC9C(Task *);
+
+GpU16Pair D_actor_207200_8014DBB8[1] = { 0 };
+
+GpPairSrcE D_actor_207200_8014DBBC = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99, 0 };
+
+TmdBone D_actor_207200_8014DBCC[3] = {
+#include "assets/actor_207200_model_046A8_skeleton.inc"
+};
+
+u32 D_actor_207200_8014DC38[3] = {
+#include "assets/actor_207200_model_046A8_partVerts.inc"
+};
+
+SVECTOR D_actor_207200_8014DC44[37] = {
+#include "assets/actor_207200_model_046A8_verts.inc"
+};
+
+SVECTOR D_actor_207200_8014DD6C[47] = {
+#include "assets/actor_207200_model_046A8_normals.inc"
+};
+
+u32 D_actor_207200_8014DEE4[377] = {
+#include "assets/actor_207200_model_046A8_stream.inc"
+};
+
+TmdSource D_actor_207200_8014E4C8 = {
+    0, 2184, 332, 3,
+    D_actor_207200_8014DC38, D_actor_207200_8014DC44, D_actor_207200_8014DD6C, D_actor_207200_8014DBCC, D_actor_207200_8014DEE4,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} Actor207200PoseBank46CC;
+
+Actor207200PoseBank46CC D_actor_207200_8014E4EC = { .poses = {
+#include "assets/actor_207200_animation_04708_bank1.inc"
+} };
+
+GpPackedSvec D_actor_207200_8014E504[1] = {
+#include "assets/actor_207200_animation_04708_bank4.inc"
+};
+
+GpAnimRec D_actor_207200_8014E508[6] = {
+#include "assets/actor_207200_animation_04708_records.inc"
+};
+
+u16 D_actor_207200_8014E520[4] = {
+#include "assets/actor_207200_animation_04708_indices.inc"
+};
+
+GpAnimSet D_actor_207200_8014E528 = {
+    D_actor_207200_8014E508, D_actor_207200_8014E520,
+    { NULL, D_actor_207200_8014E4EC.words, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[24];
+    GpPackedSvec words[72];
+} Actor207200PoseBank4730;
+
+Actor207200PoseBank4730 D_actor_207200_8014E550 = { .poses = {
+#include "assets/actor_207200_animation_0495C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_207200_8014E670[10] = {
+#include "assets/actor_207200_animation_0495C_bank4.inc"
+};
+
+GpAnimRec D_actor_207200_8014E698[55] = {
+#include "assets/actor_207200_animation_0495C_records.inc"
+};
+
+u16 D_actor_207200_8014E774[4] = {
+#include "assets/actor_207200_animation_0495C_indices.inc"
+};
+
+GpAnimSet D_actor_207200_8014E77C = {
+    D_actor_207200_8014E698, D_actor_207200_8014E774,
+    { NULL, D_actor_207200_8014E550.words, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_207200_8014E7A4 = { 1, 96, func_actor_207200_8014AC9C, { .model = &D_actor_207200_8014E4C8 } };
+
+u8 D_actor_207200_8014E7B0[12] = {
+    0,
+    0,
+    0,
+    0,
+    40,
+    229,
+    20,
+    128,
+    124,
+    231,
+    20,
+    128,
+};
+
+SVECTOR D_actor_207200_8014E7BC = { 0, -100, 0, 0 };
+
+SVECTOR D_actor_207200_8014E7C4 = { 0, 0, 100, 0 };
+
+GpU16Pair D_actor_207200_8014E7CC[2] = { {25,11}, {10,0} };
+
 static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {
     ActorShared8014df20Work* work;
@@ -94,7 +203,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     work->field_28C          = 1;
     work->field_28E          = 1;
     work->field_2A6          = 1;

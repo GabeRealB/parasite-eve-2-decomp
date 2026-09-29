@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_1f_vehicular_airlock.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -32,7 +34,21 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern s32 func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern s8 D_shelter_1f_vehicular_airlock_80182AB0[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern s8 D_shelter_1f_vehicular_airlock_80182AB0_value __asm__("D_shelter_1f_vehicular_airlock_80182AB0");
 
 extern TaskDesc D_shelter_1f_vehicular_airlock_80182028;
 
@@ -44,19 +60,16 @@ extern SVECTOR D_shelter_1f_vehicular_airlock_8018206C[];
 
 /// The trail's two ends as offsets from the parent coordinate: `[0]` places
 /// the object itself and `[1]` the trail's far end.
-extern SVECTOR D_shelter_1f_vehicular_airlock_801820EC[];
 
 /// The far end's offset, `D_shelter_1f_vehicular_airlock_801820EC[1]` reached
 /// by its own name, as the task does on every tick after the first.
-extern SVECTOR D_shelter_1f_vehicular_airlock_801820F4;
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern GpFadeWork D_shelter_1f_vehicular_airlock_80182AA0;
+extern RoomFadeStorage D_shelter_1f_vehicular_airlock_80182AA0;
 
 /// The message and event the message handler latched for the room's event
 /// task.
 extern RoomEventMsg     D_shelter_1f_vehicular_airlock_80182AA8;
-extern s8               D_shelter_1f_vehicular_airlock_80182AB0;
 extern RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4;
 
 static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -66,6 +79,377 @@ static void func_shelter_1f_vehicular_airlock_8017EF60(GpCoord* arg0, s32 arg1, 
 static void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_vehicular_airlock_80180290(GpCoord* arg0, s16 arg1, u8* arg2);
+
+void func_shelter_1f_vehicular_airlock_8017D644(Task *);
+s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task *, s32, GpMessageArg, GpMessageArg);
+
+extern u32 D_shelter_1f_vehicular_airlock_80180C74[1];
+extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
+extern TmdBone D_shelter_1f_vehicular_airlock_80180C50[1];
+extern u32 D_shelter_1f_vehicular_airlock_80181018[1019];
+
+extern GpGridParams D_shelter_1f_vehicular_airlock_80182438[1];
+extern GpObj4C D_shelter_1f_vehicular_airlock_80182714[2];
+extern GpObj4C D_shelter_1f_vehicular_airlock_801827AC[7];
+extern GpRoomBoundVec D_shelter_1f_vehicular_airlock_801829C0[4];
+extern GpRoomCoordSet D_shelter_1f_vehicular_airlock_801826FC[1];
+
+TmdBone D_shelter_1f_vehicular_airlock_80180C50[1] = {
+#include "assets/shelter_1f_vehicular_airlock_model_04A44_skeleton.inc"
+};
+
+u32 D_shelter_1f_vehicular_airlock_80180C74[1] = {
+#include "assets/shelter_1f_vehicular_airlock_model_04A44_partVerts.inc"
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116] = {
+#include "assets/shelter_1f_vehicular_airlock_model_04A44_verts.inc"
+};
+
+u32 D_shelter_1f_vehicular_airlock_80181018[1019] = {
+#include "assets/shelter_1f_vehicular_airlock_model_04A44_stream.inc"
+};
+
+TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
+    0, 6672, 0, 1,
+    D_shelter_1f_vehicular_airlock_80180C74, D_shelter_1f_vehicular_airlock_80180C78, &D_shelter_1f_vehicular_airlock_80180C78[116],
+    D_shelter_1f_vehicular_airlock_80180C50, D_shelter_1f_vehicular_airlock_80181018,
+};
+
+TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, func_shelter_1f_vehicular_airlock_8017D644, { .model = NULL } };
+
+GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
+    { 5102, func_shelter_1f_vehicular_airlock_8017D7DC },
+    { 5105, func_shelter_1f_vehicular_airlock_8017D988 },
+    { 5103, func_shelter_1f_vehicular_airlock_8017D9F4 },
+    { 5104, func_shelter_1f_vehicular_airlock_8017D990 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_8018205C[2] = {
+    { -0x2774, -3090, 1790, 0 },
+    { -8900, -3090, 1790, 0 },
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_8018206C[16] = {
+    { -6600, -3090, 1790, 0 },
+    { -5400, -3090, 1790, 0 },
+    { -3100, -3090, 1790, 0 },
+    { -1900, -3090, 1790, 0 },
+    { -0x2774, -3090, -1790, 0 },
+    { -8900, -3090, -1790, 0 },
+    { -6600, -3090, -1790, 0 },
+    { -5400, -3090, -1790, 0 },
+    { -3100, -3090, -1790, 0 },
+    { -1900, -3090, -1790, 0 },
+    { -9400, -1960, -2250, 0 },
+    { -8600, -1960, -2250, 0 },
+    { -5000, -2130, 2240, 0 },
+    { -0x28AA, -3490, 100, 0 },
+    { -0x2882, -3610, 900, 0 },
+    { -0x2882, -3610, -900, 0 },
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_801820EC[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_shelter_1f_vehicular_airlock_801820FC[1] = {
+    { D_shelter_1f_vehicular_airlock_80182438, D_shelter_1f_vehicular_airlock_80182714, D_shelter_1f_vehicular_airlock_801827AC, NULL },
+};
+
+GpRoomCoordRec D_shelter_1f_vehicular_airlock_8018210C[1] = {
+    { D_shelter_1f_vehicular_airlock_801826FC, D_shelter_1f_vehicular_airlock_801829C0 },
+};
+
+u8 * D_shelter_1f_vehicular_airlock_80182114[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_1f_vehicular_airlock_80182118[1] = {
+    { { .bytes = { 3, 0 } } },
+};
+
+GpWarpRec D_shelter_1f_vehicular_airlock_8018211C[3] = {
+    { { .words = { 2048, -5000, 0, 1570 } }, { 0, 0, 0, 0 }, { .words = { 2048, -4960, 0, 1380 } }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, 0, 2, 0, 0 },
+    { { .words = { 0, -8900, 0, -1730 } }, { 0, 0, 0, 0 }, { .words = { 2048, -4960, 0, 1380 } }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, 0, 3, 0, 0 },
+    { { .words = { 1024, -0x2710, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 1024, -0x2710, 0, 0 } }, { 0, 0, 0, 0 }, 0x55020004, 0x55020003, 0, 3, 0, 428 },
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_801821C4[10] = {
+    { 0, -4096, 0, 0 },
+    { 0, -1206, 3914, 0 },
+    { 0, 3881, -1308, 0 },
+    { 0, 1659, 3745, 0 },
+    { 0, -1208, -3914, 0 },
+    { 0, 1659, -3745, 0 },
+    { 0, 3881, 1308, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 1295, 0, -3886, 0 },
+};
+
+SVECTOR D_shelter_1f_vehicular_airlock_80182214[33] = {
+    { -0x2CEC, 0, 2000, 0 },
+    { -1500, 0, 2000, 0 },
+    { -1500, 0, -2000, 0 },
+    { -0x2CEC, 0, -2000, 0 },
+    { -0x2CEC, 1, -1992, 0 },
+    { -1500, 1, -1992, 0 },
+    { -1500, -1654, -2502, 0 },
+    { -0x2CEC, -1654, -2502, 0 },
+    { -0x2CEC, -3905, 0, 0 },
+    { -1500, -3905, 0, 0 },
+    { -1500, -3309, 1769, 0 },
+    { -0x2CEC, -3309, 1769, 0 },
+    { -1500, -3309, -1769, 0 },
+    { -0x2CEC, -3309, -1769, 0 },
+    { -0x2CEC, -1654, 2502, 0 },
+    { -1500, -1654, 2502, 0 },
+    { -1500, 1, 1991, 0 },
+    { -0x2CEC, 1, 1991, 0 },
+    { -0x2904, -6000, 6250, 0 },
+    { -0x2904, 0, 6250, 0 },
+    { -0x2904, 0, -2850, 0 },
+    { -0x2904, -6000, -2850, 0 },
+    { -1500, 0, 3000, 0 },
+    { -1500, -6000, 3000, 0 },
+    { -1500, -6000, -3000, 0 },
+    { -1500, 0, -3000, 0 },
+    { -0x2904, -1360, 2500, 0 },
+    { -7500, -1360, 2500, 0 },
+    { -7500, -1360, 1380, 0 },
+    { -0x2904, -1360, 380, 0 },
+    { -0x2904, 0, 380, 0 },
+    { -7500, 0, 1380, 0 },
+    { -7500, 0, 2080, 0 },
+};
+
+GpGridFace D_shelter_1f_vehicular_airlock_8018231C[12] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 6, 12, 7, 13 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 4, 0 },
+    { { 10, 15, 11, 14 }, 5, 0 },
+    { { 12, 9, 13, 8 }, 6, 0 },
+    { { 19, 20, 18, 21 }, 7, 0 },
+    { { 23, 24, 22, 25 }, 8, 0 },
+    { { 27, 28, 26, 29 }, 0, 0 },
+    { { 29, 28, 30, 31 }, 9, 0 },
+    { { 28, 27, 31, 32 }, 7, 0 },
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823AC[10] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    9,
+    10,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823C0[9] = {
+    0,
+    2,
+    4,
+    5,
+    7,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823D4[2] = {
+    7,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823D8[7] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823E8[8] = {
+    0,
+    2,
+    4,
+    5,
+    9,
+    10,
+    11,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_801823F8[8] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    8,
+    -1,
+};
+
+s16 D_shelter_1f_vehicular_airlock_80182408[6] = {
+    0,
+    2,
+    4,
+    5,
+    8,
+    -1,
+};
+
+s16 * D_shelter_1f_vehicular_airlock_80182414[9] = {
+    D_shelter_1f_vehicular_airlock_801823AC,
+    D_shelter_1f_vehicular_airlock_801823C0,
+    D_shelter_1f_vehicular_airlock_801823D4,
+    D_shelter_1f_vehicular_airlock_801823D8,
+    D_shelter_1f_vehicular_airlock_801823E8,
+    NULL,
+    D_shelter_1f_vehicular_airlock_801823F8,
+    D_shelter_1f_vehicular_airlock_80182408,
+    NULL,
+};
+
+GpGridParams D_shelter_1f_vehicular_airlock_80182438[1] = {
+    { NULL, D_shelter_1f_vehicular_airlock_801821C4, D_shelter_1f_vehicular_airlock_80182214, D_shelter_1f_vehicular_airlock_8018231C, D_shelter_1f_vehicular_airlock_80182414, 0x2CEC, 3000, 3, 3, 4000, 12 },
+};
+
+GpViewRec D_shelter_1f_vehicular_airlock_8018245C[3] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
+    { { { { 723, 0, -4031 }, { -887, 3995, -159 }, { 3932, 901, 706 } }, { 9160, 2690, 790 } }, 257 },
+    { { { { 596, 0, 4052 }, { -95, 4094, 14 }, { -4051, -97, 596 } }, { 1760, 1260, 790 } }, 257 },
+};
+
+GpSprtCmd D_shelter_1f_vehicular_airlock_801824C8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_1f_vehicular_airlock_801824D8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_1f_vehicular_airlock_801824E8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_1f_vehicular_airlock_801824F8[3] = {
+    { { .empty = D_shelter_1f_vehicular_airlock_801824C8 }, D_shelter_1f_vehicular_airlock_801824C8, NULL },
+    { { .empty = D_shelter_1f_vehicular_airlock_801824D8 }, D_shelter_1f_vehicular_airlock_801824D8, NULL },
+    { { .empty = D_shelter_1f_vehicular_airlock_801824E8 }, D_shelter_1f_vehicular_airlock_801824E8, NULL },
+};
+
+GpPointLight D_shelter_1f_vehicular_airlock_8018251C[5] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -2130, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 1638, 1638, { 0, 0 } }, 500, 1000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9500, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 1638, 1064, { 0, 0 } }, 2000, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9000, -1635, -1950 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3276, 3276, 3276, { 0, 0 } }, 500, 1000 },
+};
+
+GpRoomCoordSet D_shelter_1f_vehicular_airlock_801826FC[1] = {
+    { 0, NULL, 5, D_shelter_1f_vehicular_airlock_8018251C, 0, NULL },
+};
+
+GpObj4C D_shelter_1f_vehicular_airlock_80182714[2] = {
+    { NULL, NULL, NULL, { -5709, -3248, -16, 0 }, { { -255, -3712, -3633, 0 }, { 254, -3712, 3632, 0 }, { -255, 3712, -3633, 0 }, { 254, 3712, 3632, 0 } }, { 4087, 0, -287, 0 }, { 0, 0, 4096, 0 }, 5196, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -5519, -3312, -32, 0 }, { { 238, -3712, 3884, 0 }, { -245, -3712, -3892, 0 }, { 238, 3712, 3884, 0 }, { -245, 3712, -3892, 0 } }, { -4090, 0, 253, 0 }, { 0, 0, 4096, 0 }, 5369, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_shelter_1f_vehicular_airlock_801827AC[7] = {
+    { NULL, NULL, NULL, { -4800, -48, 2080, 0 }, { { -576, 0, -416, 0 }, { 576, 0, -416, 0 }, { -576, 0, 416, 0 }, { 576, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 709, 0, 5, 18, 2, 0 },
+    { NULL, NULL, NULL, { -8864, -48, -2112, 0 }, { { -800, 0, -416, 0 }, { 800, 0, -416, 0 }, { -800, 0, 416, 0 }, { 800, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 900, 0, 6, 33, 2, 0 },
+    { NULL, NULL, NULL, { -0x2820, -48, 16, 0 }, { { 416, 0, -2512, 0 }, { 416, 0, 2512, 0 }, { -416, 0, -2512, 0 }, { -416, 0, 2512, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 2534, 0, 3, 49, 2, 0 },
+    { NULL, NULL, NULL, { -9072, -64, 704, 0 }, { { -1520, 0, -928, 0 }, { 1520, 0, 96, 0 }, { -1520, 0, -96, 0 }, { 1520, 0, 928, 0 } }, { 0, 4116, 0, 0 }, { 1380, 0, -3857, 0 }, 1778, 2, 3, 255, 2, 0 },
+    { NULL, NULL, NULL, { -7168, -64, 1736, 0 }, { { -416, 0, -936, 0 }, { 416, 0, -648, 0 }, { -416, 0, 792, 0 }, { 416, 0, 792, 0 } }, { 0, 4100, 0, 0 }, { 4052, 0, 601, 0 }, 1024, 2, 3, 255, 2, 0 },
+    { NULL, NULL, NULL, { -1920, -64, 0, 0 }, { { 416, 0, -2512, 0 }, { 416, 0, 2512, 0 }, { -416, 0, -2512, 0 }, { -416, 0, 2512, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2534, 2, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { -7312, -64, 1072, 0 }, { { -880, 0, -1080, 0 }, { 880, 0, -696, 0 }, { -880, 0, 840, 0 }, { 880, 0, 936, 0 } }, { 0, 4097, 0, 0 }, { 3166, 0, -2599, 0 }, 1390, 2, 3, 255, 130, 0 },
+};
+
+GpRoomBoundVec D_shelter_1f_vehicular_airlock_801829C0[4] = {
+    { 3, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 700, 700, 700, 700 },
+    { 700, 700, 700, 700 },
+};
+
+GpAreaTmdRec D_shelter_1f_vehicular_airlock_801829E0[3] = {
+    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
+    { NULL, NULL },
+    { D_map_neo_ark_8017AED0, D_shelter_1f_vehicular_airlock_801829E0 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_shelter_1f_vehicular_airlock_80182A64[3] = {
+    0x10000041,
+    0x10000043,
+    0x10000041,
+};
+
+GpRoomParamRec D_shelter_1f_vehicular_airlock_80182A70[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_1f_vehicular_airlock_80182A78[1] = {
+    { 0, 0, 1, 0, D_shelter_1f_vehicular_airlock_80182A64 },
+};
+
+GpRoomParamRec * D_shelter_1f_vehicular_airlock_80182A80[8] = {
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A78,
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A70,
+    D_shelter_1f_vehicular_airlock_80182A70,
+};
+
+RoomFadeStorage D_shelter_1f_vehicular_airlock_80182AA0 = { 0 };
+
+RoomEventMsg D_shelter_1f_vehicular_airlock_80182AA8 = { 0 };
+
+s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
+    0,
+    2,
+    -16,
+    65,
+};
+
+RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4 = { 0 };
 
 /// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
 /// argument names reads 2, and clears it otherwise.
@@ -98,10 +482,10 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_shelter_1f_vehicular_airlock_80182AB4.fade != 0) {
-                    D_shelter_1f_vehicular_airlock_80182AA0.field_0 = 0;
-                    D_shelter_1f_vehicular_airlock_80182AA0.field_1 = 0;
-                    D_shelter_1f_vehicular_airlock_80182AA0.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_vehicular_airlock_80182AA0);
+                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_0 = 0;
+                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_1 = 0;
+                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_vehicular_airlock_80182AA0.fade);
                 }
                 arg0->state++;
             }
@@ -122,7 +506,7 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -133,7 +517,7 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
 
 static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_vehicular_airlock_80182AB0 = 0;
+    D_shelter_1f_vehicular_airlock_80182AB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_shelter_1f_vehicular_airlock_80182AA8 = *dst;
@@ -142,20 +526,20 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
-            D_shelter_1f_vehicular_airlock_80182AB0 = 1;
+            D_shelter_1f_vehicular_airlock_80182AB0_value = 1;
         }
         return 2;
     }
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_80179B14(in, out);
-    if (in->msgId == 3) {
+    func_map_neo_ark_80179B14(in, out);
+    if (in->prefix.packed == 3) {
         if (GameFlag_GetNibble(0xB2) == 0) {
             if (in->field_5 == 0) {
                 Gp_SetNibbleIf(in->field_6, 2);
@@ -169,7 +553,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
         event.fade     = 0;
         return _shelter1fVehicularAirlockStartEvent(out, &event);
     }
-    if (in->msgId == 5) {
+    if (in->prefix.packed == 5) {
         event.capCmd   = 6;
         event.stageSnd = 0x55020001;
         event.flagId   = 0x15A;
@@ -179,12 +563,12 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D988(void)
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D990(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 3) {
         if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(0x7A) >= 6) {
@@ -195,7 +579,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D990(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(void)
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -234,7 +618,7 @@ void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
+void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 {
     u8 view;
 
@@ -589,7 +973,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             line->y1 = block->sy;
             line->x2 = block->sx - (block->halfWidth * t1);
             line->y2 = block->sy + (block->halfWidth * t2);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -604,7 +988,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
 /// shrinking billboard, 0x10 a tick, and releases its work block. It also
 /// releases it once the room's event state reaches 4, and is frozen while the
 /// event state is non-zero.
-static void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
+void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -780,7 +1164,7 @@ static void func_shelter_1f_vehicular_airlock_8017F38C(GpCoord* arg0, s16 arg1, 
 /// every tick it records the current ends in the next slot and draws the band
 /// between the histories, until its age reaches `spawnArg1`. It is frozen
 /// while the room's event state is 2 or more.
-static void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
+void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -838,9 +1222,12 @@ static void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_1f_vehicular_airlock_801820F4.vx;
-                coord.coord.t[1] = D_shelter_1f_vehicular_airlock_801820F4.vy;
-                coord.coord.t[2] = D_shelter_1f_vehicular_airlock_801820F4.vz;
+                {
+                    SVECTOR* edge = &D_shelter_1f_vehicular_airlock_801820EC[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -980,7 +1367,7 @@ static void func_shelter_1f_vehicular_airlock_8017FC10(GpCoord* arg0, GpCoord* a
 /// seven ticks of a fading, widening ring. It then releases its work block,
 /// as it does once the room's event state reaches 4; it is frozen while the
 /// event state is non-zero.
-static void func_shelter_1f_vehicular_airlock_80180008(Task* task)
+void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

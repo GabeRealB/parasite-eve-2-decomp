@@ -88,11 +88,9 @@ gpStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 // Code main calls in whichever overlay occupies a load slot at the time (the
 // map-UI, room, options and actor slots). No single overlay owns these
 // addresses, so they are declared here rather than in an overlay's map.
-func_80179954 = 0x80179954; // type:func absolute:True
 func_80179988 = 0x80179988; // type:func absolute:True
 func_801799BC = 0x801799BC; // type:func absolute:True
 func_80179BE4 = 0x80179BE4; // type:func absolute:True
-func_8017D6D4 = 0x8017D6D4; // type:func absolute:True
 func_801D4B64 = 0x801D4B64; // type:func absolute:True
 D_80136224 = 0x80136224; // type:func absolute:True
 D_80136500 = 0x80136500; // type:func absolute:True
@@ -307,3 +305,7 @@ D_80161E20 = 0x80161E20; // absolute:True
 D_80400000 = 0x80400000; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
+
+func_map_dryfield_80179954 = 0x80179954; // absolute:True
+
+func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // absolute:True

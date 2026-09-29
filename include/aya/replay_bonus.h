@@ -131,7 +131,10 @@ typedef struct ReplayBonusStfHdr {
 /// One STF credits row (`D_replay_bonus_80119298`). `y` is the line's
 /// vertical position; the last row's `y - 0x1E0` is the scroll stop.
 typedef struct ReplayBonusStfLine {
-    /* 0x0 */ ReplayBonusStfCmd* cmds;
+    /* 0x0 */ union {
+        s32 offset;
+        ReplayBonusStfCmd* pointer;
+    } cmds;
     /* 0x4 */ s32                y;
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
@@ -143,16 +146,39 @@ typedef struct ReplayBonusStfTable {
 } ReplayBonusStfTable;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfTable, 0x4);
 
-/// STF file offsets are relocated in place when `field_C` is positive.
+/// On disk these fields are signed byte offsets from the file base.
+/// Relocation replaces each offset with its pointer; the negative PSX RAM
+/// address in `field_C` then marks an already relocated file.
 typedef struct ReplayBonusStfFile {
     /* 0x00 */ char magic[4];
     /* 0x04 */ s32  unk4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ s32  field_14;
+    /* 0x08 */ union {
+        s32 offset;
+        ReplayBonusStfHdr* pointer;
+    } field_8;
+    /* 0x0C */ union {
+        s32 offset;
+        ReplayBonusStfGlyph* pointer;
+    } field_C;
+    /* 0x10 */ union {
+        s32 offset;
+        ReplayBonusStfTable* pointer;
+    } field_10;
+    /* 0x14 */ union {
+        s32 offset;
+        ReplayBonusStfSpr* pointer;
+    } field_14;
 } ReplayBonusStfFile;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfFile, 0x18);
+
+/// CPU address of an STF buffer, also used to relocate its encoded words.
+typedef union ReplayBonusStfAddress {
+    ReplayBonusStfFile* file;
+    s32 address;
+} ReplayBonusStfAddress __attribute__((transparent_union));
+STATIC_ASSERT_SIZEOF(ReplayBonusStfAddress, 4);
+
+extern ReplayBonusStfFile* D_replay_bonus_8011928C;
 
 /// TaskDesc table spawned from the credits task (hold / fade / stream workers).
 extern TaskDesc D_replay_bonus_8011922C;
@@ -213,7 +239,6 @@ extern ReplayBonusTotals D_replay_bonus_80119274;
 extern s32               D_replay_bonus_8011927C;
 
 extern UiList D_replay_bonus_80119130;
-extern s32    D_80067634;
 
 u16* func_replay_bonus_80115C68(void);
 s32  func_replay_bonus_80115CA4(void);

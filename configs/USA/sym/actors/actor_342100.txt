@@ -1,1 +1,39 @@
 // Overlay-local symbols for actor_342100.
+D_actor_342100_80164910 = 0x80164910; // size:0x8 defined:True
+D_actor_342100_80164918 = 0x80164918; // size:0x18 defined:True
+D_actor_342100_80164930 = 0x80164930; // size:0x18 defined:True
+D_actor_342100_80164948 = 0x80164948; // size:0x18 defined:True
+D_actor_342100_80164960 = 0x80164960; // size:0x20 defined:True
+D_actor_342100_80164980 = 0x80164980; // size:0x20 defined:True
+D_actor_342100_801649A0 = 0x801649A0; // size:0x8 defined:True
+D_actor_342100_801649A8 = 0x801649A8; // size:0x20 defined:True
+D_actor_342100_801649C8 = 0x801649C8; // size:0x1B0 defined:True
+D_actor_342100_80164B78 = 0x80164B78; // size:0x3C defined:True
+D_actor_342100_80164BB4 = 0x80164BB4; // size:0x4 defined:True
+D_actor_342100_80164BB8 = 0x80164BB8; // size:0x4 defined:True
+D_actor_342100_80164BBC = 0x80164BBC; // size:0x50 defined:True
+D_actor_342100_80164C0C = 0x80164C0C; // size:0xF0 defined:True
+D_actor_342100_80164CFC = 0x80164CFC; // size:0x4B00 defined:True
+D_actor_342100_80163534 = 0x80163534; // size:0x48 defined:True
+D_actor_342100_8016357C = 0x8016357C; // size:0xB8 defined:True
+D_actor_342100_80163634 = 0x80163634; // size:0x1B4 defined:True
+D_actor_342100_801637E8 = 0x801637E8; // size:0x28 defined:True
+D_actor_342100_80163810 = 0x80163810; // size:0x28 defined:True
+D_actor_342100_80163838 = 0x80163838; // size:0xC0 defined:True
+D_actor_342100_801638F8 = 0x801638F8; // size:0x3D8 defined:True
+D_actor_342100_80163CD0 = 0x80163CD0; // size:0x554 defined:True
+D_actor_342100_80164224 = 0x80164224; // size:0x28 defined:True
+D_actor_342100_8016424C = 0x8016424C; // size:0x28 defined:True
+D_actor_342100_80164274 = 0x80164274; // size:0xA8 defined:True
+D_actor_342100_8016431C = 0x8016431C; // size:0x250 defined:True
+D_actor_342100_8016456C = 0x8016456C; // size:0x320 defined:True
+D_actor_342100_8016488C = 0x8016488C; // size:0x28 defined:True
+D_actor_342100_801648B4 = 0x801648B4; // size:0x28 defined:True
+D_actor_342100_801648DC = 0x801648DC; // size:0x18 defined:True
+D_actor_342100_801648F4 = 0x801648F4; // size:0x4 defined:True
+D_actor_342100_801648F8 = 0x801648F8; // size:0x8 defined:True
+D_actor_342100_80164900 = 0x80164900; // size:0x10 defined:True
+
+D_shelter_b3_dumping_hole_8018B83C = 0x8018B83C; // absolute:True
+
+D_shelter_b3_dumping_hole_8018B57C = 0x8018B57C; // absolute:True

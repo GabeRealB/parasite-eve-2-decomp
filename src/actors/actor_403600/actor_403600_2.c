@@ -1,3 +1,6 @@
+#include "actor_403600.h"
+#include "rooms/shelter_b2_pod_bottom.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -9,6 +12,7 @@
 
 #include "actors/actor.h"
 #include "actors/actor_403600.h"
+#include "actors/actor_303600.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -171,9 +175,18 @@ extern SVECTOR            D_actor_403600_801605D4;
 extern SVECTOR            D_actor_403600_801605DC;
 extern SVECTOR            D_actor_403600_801605E4;
 extern SVECTOR            D_actor_403600_801605EC;
-extern TaskDesc           D_actor_403600_80160514;
+extern TaskDesc           D_actor_403600_80160514[];
 extern Task*              D_actor_403600_801606B0;
-extern GpXformArg         D_actor_403600_801606E0;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    GpXformArg value;
+    u8 retained[8];
+} Actor4036002Storage06E0;
+STATIC_ASSERT_SIZEOF(Actor4036002Storage06E0, 32);
+
+extern Actor4036002Storage06E0 D_actor_403600_801606E0;
 extern GpU16Pair          D_8016A408[];
 extern Actor403600ViewKey D_8016AEF8[];
 extern Actor403600ViewKey D_8016E450;
@@ -185,7 +198,6 @@ extern GpViewRec          D_actor_403600_80160700;
 
 static void func_actor_403600_80138EF8(struct GpEnemy* enemy, Task* task);
 static void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1);
-void        func_8004BFF8(s32 angle, MATRIX* matrix);
 static void func_actor_403600_8013C864(Task* arg0);
 static void func_actor_403600_80138C9C(ActorEffectState* arg0);
 static u8*  func_actor_403600_80138DCC(Task* arg0);
@@ -196,30 +208,23 @@ static s32  func_actor_403600_8013DDF4(Task* arg0, s16 arg1);
 static s32  func_actor_403600_8013DFE0(Task* arg0);
 static void func_actor_403600_8013E470(GpCoord* arg0, s32* arg1, s32* arg2);
 static s16  func_actor_403600_8013E66C(GpCoord* arg0);
-static s32  func_actor_403600_8013E7D4(s32 arg0, u16 arg1);
+static s32  func_actor_403600_8013E7D4(Task* arg0, u16 arg1);
 static void func_actor_403600_8013EA04(Task* arg0);
 static void func_actor_403600_8013F608(Task* arg0);
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1);
 static s32  func_actor_403600_80141840(Task* arg0);
 static void func_actor_403600_80141B60(Task* arg0);
-void        D_80181A48(Task* arg0);
 s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2);
 static void func_actor_403600_80140B4C(struct GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141F58(GpCoord* arg0, s32 arg1);
 
 extern TaskDesc D_80162E98;
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
-extern TmdSource D_80187B10;
-extern TmdSource D_80187E14;
-extern TmdSource D_80188264;
-extern TmdSource D_8018864C;
 extern Task*     D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
-extern TaskDesc             D_actor_403600_801421A0;
-extern s32                  D_actor_403600_8016056C;
 extern GpAnimArg            D_actor_403600_80160568;
-extern s32                  D_actor_403600_8016057C[];
+extern GpAnimSet* D_actor_403600_8016057C[22];
 extern Actor403600Point     D_actor_403600_801605F4[];
 extern GpU16Pair            D_actor_403600_801606A4;
 extern Task*                D_actor_403600_801606A8;
@@ -228,16 +233,33 @@ extern GpU16Pair            D_actor_403600_80150EB0;
 extern GpPairSrcE           D_actor_403600_80150EC8;
 extern GpPairSrcE           D_actor_403600_80150ED8;
 extern GpU16Pair            D_actor_403600_80150E9C;
-extern s32                  D_actor_403600_80160504[4];
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpCmdArg *);
+    } handler;
+} Actor4036002MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor4036002MessageEntry, 8);
+
+extern Actor4036002MessageEntry D_actor_403600_80160504[2];
 extern Actor403600Pair      D_actor_403600_801606B8;
 extern Task*                D_actor_403600_801606AC;
-extern s32                  D_actor_403600_801606BC;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    s32 value;
+    u8 retained[32];
+} Actor4036002Storage06BC;
+STATIC_ASSERT_SIZEOF(Actor4036002Storage06BC, 36);
+
+extern Actor4036002Storage06BC D_actor_403600_801606BC;
 
 static void func_actor_403600_80141598(Task* arg0);
 static void func_actor_403600_8014174C(Task* arg0);
 
 void        func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
-void        func_80181940(Task* arg0);
 static void func_actor_403600_8013A444(Task* arg0);
 static void func_actor_403600_801419E8(Task* arg0);
 static void func_actor_403600_8013955C(Task* arg0);
@@ -261,6 +283,158 @@ static void func_actor_403600_80141F28(Task* arg0);
 static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1);
 static void func_actor_403600_80141E78(GpEnemy* arg0, Task* arg1);
+
+extern GpAnimSet D_actor_403600_80151CD0;
+extern GpAnimSet D_actor_403600_8015270C;
+extern GpAnimSet D_actor_403600_801531BC;
+extern GpAnimSet D_actor_403600_80154244;
+extern GpAnimSet D_actor_403600_80154724;
+extern GpAnimSet D_actor_403600_801555C8;
+extern GpAnimSet D_actor_403600_80155FFC;
+extern GpAnimSet D_actor_403600_80156A74;
+extern GpAnimSet D_actor_403600_80157490;
+extern GpAnimSet D_actor_403600_80158470;
+extern GpAnimSet D_actor_403600_80158FA4;
+extern GpAnimSet D_actor_403600_80159880;
+extern GpAnimSet D_actor_403600_8015A218;
+extern GpAnimSet D_actor_403600_8015B054;
+extern GpAnimSet D_actor_403600_8015B494;
+extern GpAnimSet D_actor_403600_8015BAD4;
+extern GpAnimSet D_actor_403600_8015C528;
+extern GpAnimSet D_actor_403600_8015C70C;
+extern GpAnimSet D_actor_403600_8015D184;
+extern GpAnimSet D_actor_403600_8015DDAC;
+extern GpAnimSet D_actor_403600_8015DEE4;
+extern GpAnimSet D_actor_403600_8015E72C;
+extern GpAnimSet D_actor_403600_8015EEC8;
+extern GpAnimSet D_actor_403600_8015F6D4;
+extern GpAnimSet D_actor_403600_8015FEE8;
+extern GpAnimSet D_actor_403600_801604DC;
+extern TmdSource D_actor_403600_80149818;
+extern TmdSource D_actor_403600_80150E78;
+s32 func_actor_403600_801406A4(Task *, s32, GpCmdArg *);
+void func_actor_403600_80141180(Task *);
+void func_actor_403600_80141BE0(Task *);
+void func_actor_403600_80141CD4(Task *);
+
+Actor4036002MessageEntry D_actor_403600_80160504[2] = {
+    { 2011, { .call0 = func_actor_403600_801406A4 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_actor_403600_80160514[3] = {
+    { 257, 96, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
+    { 1, 96, func_actor_403600_80141BE0, { .model = &D_actor_403600_80150E78 } },
+    { 257, 96, func_actor_403600_80141CD4, { .value = -0x7FE96F5C } },
+};
+
+GpAnimSet * D_actor_403600_80160538[12] = {
+    NULL,
+    &D_actor_403600_8015DEE4,
+    &D_actor_403600_8015DDAC,
+    &D_actor_403600_8015E72C,
+    &D_actor_403600_8015EEC8,
+    &D_actor_403600_8015F6D4,
+    &D_actor_403600_8015FEE8,
+    &D_actor_403600_8015EEC8,
+    &D_actor_403600_8015FEE8,
+    &D_actor_303600_80169610,
+    &D_actor_303600_80169A50,
+    &D_actor_303600_80169C7C,
+};
+
+GpAnimArg D_actor_403600_80160568 = { { .ptr = D_actor_403600_80160538 }, 1, 0, 0, 1 };
+
+GpAnimSet * D_actor_403600_8016057C[22] = {
+    NULL,
+    &D_actor_403600_80151CD0,
+    &D_actor_403600_8015270C,
+    &D_actor_403600_801531BC,
+    &D_actor_403600_80154244,
+    &D_actor_403600_80154724,
+    &D_actor_403600_801555C8,
+    &D_actor_403600_80155FFC,
+    &D_actor_403600_80156A74,
+    &D_actor_403600_80157490,
+    &D_actor_403600_80158470,
+    &D_actor_403600_80158FA4,
+    &D_actor_403600_80159880,
+    &D_actor_403600_8015A218,
+    &D_actor_403600_8015B054,
+    &D_actor_403600_8015B494,
+    &D_actor_403600_8015BAD4,
+    &D_actor_403600_8015C528,
+    &D_actor_403600_8015C70C,
+    &D_actor_403600_8015D184,
+    &D_actor_403600_801604DC,
+    &D_actor_303600_801693C0,
+};
+
+SVECTOR D_actor_403600_801605D4 = { 8256, -0x61A8, 6883, 0 };
+
+SVECTOR D_actor_403600_801605DC = { 8000, -4000, 6600, 0 };
+
+SVECTOR D_actor_403600_801605E4 = { 2029, -5000, 0x332F, 0 };
+
+SVECTOR D_actor_403600_801605EC = { 0x36CD, -5000, 954, 0 };
+
+Actor403600Point D_actor_403600_801605F4[9] = {
+    { 4740, 0, 3740, 0 },
+    { 4220, 0, 7030, 0 },
+    { 8100, 0, 3060, 0 },
+    { 8380, 0, 7030, 0 },
+    { 0x2C38, 0, 0x2756, 0 },
+    { 0x2F44, 0, 7000, 0 },
+    { 7940, 0, 0x2AF8, 0 },
+    { 6080, 0, 4896, 0 },
+    { 0x2740, 0, 8736, 0 },
+};
+
+Actor403600TargetPair D_actor_403600_8016063C = { 1376, -9000, 0x3540, 0, 0x3860, -9000, 480, 0 };
+
+Actor403600TargetPair D_actor_403600_8016064C = { 2400, -1000, 1370, 0, 0x3520, -1000, 0x3138, 0 };
+
+SVECTOR D_actor_403600_8016065C = { 1024, 0, 0, 0 };
+
+SVECTOR D_actor_403600_80160664 = { 0, 1200, 0, 0 };
+
+Actor403600DamageRow D_actor_403600_8016066C[5] = {
+    { 40, 10, 5, 0 },
+    { 60, 20, 10, 0 },
+    { 80, 30, 15, 0 },
+    { 100, 40, 15, 0 },
+    { 120, 50, 15, 0 },
+};
+
+u8 D_actor_403600_80160694 = 0;
+
+u8 D_actor_403600_80160695 = 0;
+
+u16 D_actor_403600_80160696 = 0x2FBC;
+
+s32 D_actor_403600_80160698 = 0;
+
+u8* D_actor_403600_8016069C = NULL;
+
+GpCoord * D_actor_403600_801606A0 = NULL;
+
+GpU16Pair D_actor_403600_801606A4 = { 0, 0 };
+
+Task * D_actor_403600_801606A8 = NULL;
+
+Task * D_actor_403600_801606AC = NULL;
+
+Task * D_actor_403600_801606B0 = NULL;
+
+Task * D_actor_403600_801606B4 = NULL;
+
+Actor403600Pair D_actor_403600_801606B8 = { .fields = { 0, 0 } };
+
+Actor4036002Storage06BC D_actor_403600_801606BC = { 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+
+Actor4036002Storage06E0 D_actor_403600_801606E0 = { 0 };
+
+GpViewRec D_actor_403600_80160700 = { 0 };
 
 void func_actor_403600_80138C34(Task* arg0)
 {
@@ -367,6 +541,7 @@ static u8* func_actor_403600_80138DCC(Task* arg0)
 /// its model already had, and spawns its display task above it.
 static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
 {
+    s32 state;
     SVECTOR          rot;
     s16              temp_a0_2;
     s16              temp_s0_5;
@@ -444,7 +619,7 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
         Gp_AnimResetSlot(&temp_v0->rig.anim, var_s0, 1);
         var_s0 += 1;
     } while (var_s0 < 0x14);
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     temp_v0->field_736            = 1;
     temp_v0->field_658.coord      = &temp_v0->field_4B8;
     temp_v0->field_658.spawnArgLo = 0x600;
@@ -497,7 +672,7 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     rot.vz    = 0;
     RotMatrix(&rot, &temp_v0->field_4B8.coord);
     temp_v0->field_748      = temp_s0_5;
-    temp_v0_4               = Task_SpawnFromTable(&D_actor_403600_801421A0, 0, 0, 0);
+    temp_v0_4               = Task_SpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
     D_actor_403600_801606AC = temp_v0_4;
     if (temp_v0_4 != 0) {
         Task_Reparent(task, temp_v0_4);
@@ -509,14 +684,15 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     temp_v0->field_7A0      = 0;
     temp_v0->field_7AE      = 0;
     func_actor_403600_8014174C(task);
-    D_actor_403600_8016056C                = 0;
+    D_actor_403600_80160568.field_4                = 0;
     D_actor_403600_801606B8.fields.field_2 = 0;
     D_actor_403600_801606B8.fields.field_0 = 0;
     task->msgTable                         = D_actor_403600_80160504;
     task->exitCallback                     = func_actor_403600_80141598;
     temp_v0->field_730                     = 0;
-    D_actor_403600_801606BC                = 0;
-    task->state                            = (s32)(task->state + 1);
+    state = task->state;
+    D_actor_403600_801606BC.value = 0;
+    task->state = state + 1;
 }
 
 static void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1)
@@ -789,22 +965,22 @@ static void func_actor_403600_801396F8(Task* arg0)
                 sp10.vy = 0x64;
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, &sp10);
                 func_actor_403600_80141954(1);
-                D_800626EC[5].arg.model = &D_80187B10;
+                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80187B10;
                 temp_v0_5               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
                     func_actor_403600_801419E8(temp_v0_5->task);
                 }
-                D_800626EC[5].arg.model = &D_80187E14;
+                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80187E14;
                 temp_v0_6               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_6 != NULL) {
                     func_actor_403600_801419E8(temp_v0_6->task);
                 }
-                D_800626EC[5].arg.model = &D_80188264;
+                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80188264;
                 temp_v0_7               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_7 != NULL) {
                     func_actor_403600_801419E8(temp_v0_7->task);
                 }
-                D_800626EC[5].arg.model = &D_8018864C;
+                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_8018864C;
                 temp_v0_8               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_8 != NULL) {
                     func_actor_403600_801419E8(temp_v0_8->task);
@@ -870,10 +1046,10 @@ static void func_actor_403600_801396F8(Task* arg0)
                         SndEvt_EnqueueType6(temp_s2, temp_s0_2, (s32)(((temp_v0_10 >> 0x1F) + temp_v0_10) << 0x17) >> 0x18);
                     }
                     if (((u16)temp_s1->field_73A & 0xF) == 0xF) {
-                        func_80181940(arg0);
+                        func_shelter_b2_pod_bottom_80181940(arg0);
                     }
                 } else {
-                    func_80181940(arg0);
+                    func_shelter_b2_pod_bottom_80181940(arg0);
                     if (temp_s1->field_73A == 0x32) {
                         temp_s0_3  = &temp_s1->field_4B8;
                         temp_s2    = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54160014;
@@ -1309,7 +1485,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                 SndEvt_EnqueueType6(temp_s4, temp_s0_2, (s32)(((temp_v0 >> 0x1F) + temp_v0) << 0x17) >> 0x18);
             }
             if (temp_s3->field_73A >= 0x14) {
-                func_80181940(arg0);
+                func_shelter_b2_pod_bottom_80181940(arg0);
             }
             temp_s3->field_736 = 4U;
             temp_s3->field_73C = 0U;
@@ -1340,7 +1516,7 @@ static void func_actor_403600_8013A444(Task* arg0)
             break;
         case 0x2:
             if (temp_s3->field_73A < 0xC) {
-                func_80181940(arg0);
+                func_shelter_b2_pod_bottom_80181940(arg0);
             }
             temp_s3->field_736 = 5U;
             temp_v0_3          = temp_s3->field_73A;
@@ -1466,23 +1642,23 @@ static void func_actor_403600_8013A444(Task* arg0)
                                         var_v0_3 = -var_v0_3;
                                     }
                                     if (var_v0_3 >= 0x401) {
-                                        D_actor_403600_8016056C = 4;
-                                        func_actor_403600_8013E7D4((s32)arg0, 0);
+                                        D_actor_403600_80160568.field_4 = 4;
+                                        func_actor_403600_8013E7D4(arg0, 0);
                                         temp_s3->field_762 = 0x64;
                                     } else {
-                                        D_actor_403600_8016056C = 3;
-                                        func_actor_403600_8013E7D4((s32)arg0, 1);
+                                        D_actor_403600_80160568.field_4 = 3;
+                                        func_actor_403600_8013E7D4(arg0, 1);
                                         temp_s3->field_762 = -0x64;
                                     }
-                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
                                     var_s2             = 2;
                                     temp_s3->field_760 = 0;
                                 } else if (sp10 < 0x9C4U) {
                                     D_actor_403600_801606A4.field_2 = 0;
                                     D_actor_403600_80160568.field_4 = 1;
-                                    func_actor_403600_8013E7D4((s32)arg0, 1);
+                                    func_actor_403600_8013E7D4(arg0, 1);
                                     temp_s3->field_762 = -0x190;
-                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
                                     var_s2             = 3;
                                     temp_s3->field_760 = 0;
                                 }
@@ -1662,10 +1838,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_14 = (s8)Gp_GetObjPan(temp_s0_13);
                         temp_v0_15 = gpGetObjDepth(temp_s0_13);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_14, (s32)(((temp_v0_15 >> 0x1F) + temp_v0_15) << 0x17) >> 0x18);
-                        Task_SpawnFromTable(&D_actor_403600_801421A0, 1, (s32)((s16)((u16)temp_s3->field_75A | 0x10)), arg0);
+                        Task_SpawnFromTable(D_actor_403600_801421A0, 1, (s32)((s16)((u16)temp_s3->field_75A | 0x10)), arg0);
                     }
                     if ((temp_s3->field_73A == 0x2C) || (temp_s3->field_73A == 0x31)) {
-                        Task_SpawnFromTable(&D_actor_403600_801421A0, 1, (s32)(temp_s3->field_75A), arg0);
+                        Task_SpawnFromTable(D_actor_403600_801421A0, 1, (s32)(temp_s3->field_75A), arg0);
                     }
                     if (temp_s3->field_73A >= temp_s3->field_734) {
                         SndEvt_EnqueueType7(0x54160008, 1);
@@ -1787,11 +1963,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                             if (var_v0_8 >= 0x401) {
                                 temp_s3->field_762   = 0x28;
                                 temp_s0_msg->field_4 = 4;
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
                             } else {
                                 temp_s3->field_762   = -0x28;
                                 temp_s0_msg->field_4 = 3;
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s0_msg, 0);
                             }
                             temp_s4    = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                             temp_s0_17 = (s8)Gp_GetObjPan(temp_s6);
@@ -1874,7 +2050,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     break;
                 case 2:
-                    D_80181A48(arg0);
+                    func_shelter_b2_pod_bottom_80181A48(arg0);
                     temp_s3->field_736 = 0x13U;
                     if (temp_s3->field_73A == 0x19) {
                         temp_s0_18 = &temp_s3->field_4B8;
@@ -1947,9 +2123,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 D_actor_403600_801606A4.field_2 = 0xA;
                                 temp_s1_3->field_4              = 1;
                                 D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EAC;
-                                func_actor_403600_8013E7D4((s32)arg0, 1);
+                                func_actor_403600_8013E7D4(arg0, 1);
                                 temp_s3->field_762 = -0x190;
-                                Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
                                 temp_s3->field_760 = 0;
                                 temp_s4            = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                                 temp_s0_21         = (s8)Gp_GetObjPan(temp_s6);
@@ -1966,11 +2142,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 if (var_v0_10 >= 0x401) {
                                     temp_s3->field_762 = 0x28;
                                     temp_s1_3->field_4 = 4;
-                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
                                 } else {
                                     temp_s3->field_762 = -0x28;
                                     temp_s1_3->field_4 = 3;
-                                    Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
+                                    Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, temp_s1_3, 0);
                                 }
                                 temp_s4    = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
                                 temp_s0_22 = (s8)Gp_GetObjPan(temp_s6);
@@ -1984,7 +2160,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     temp_s1 = func_actor_403600_8013D9A8(arg0) & 0xFF;
                     if (temp_s1 == 2) {
-                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 0, arg0);
+                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 0, arg0);
                     }
                     if ((temp_s1 == 3) && (temp_s3->field_734 == 0xFF)) {
                         temp_s3->field_732 = 6;
@@ -2000,7 +2176,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_23         = (s8)Gp_GetObjPan(temp_s6);
                         temp_v0_24         = gpGetObjDepth(temp_s6);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_23, (s32)(((temp_v0_24 >> 0x1F) + temp_v0_24) << 0x17) >> 0x18);
-                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 1, arg0);
+                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 1, arg0);
                         temp_s3->field_776          = 0;
                         temp_s3->field_5C0.flags    = (u16)(temp_s3->field_5C0.flags & 0xBFFF);
                         temp_s7->node.state.b.flags = 1;
@@ -2023,7 +2199,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         func_actor_403600_8013C864(arg0);
                         temp_s3->field_746 = 3;
                         func_actor_403600_8013DFE0(arg0);
-                        Task_SpawnFromTable(&D_actor_403600_801421A0, 3, 2, arg0);
+                        Task_SpawnFromTable(D_actor_403600_801421A0, 3, 2, arg0);
                     }
                     temp_v0_26 = Player_Status.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
                     temp_lo_3  = temp_v0_26 * temp_v0_26;
@@ -2100,7 +2276,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_74A = 0;
                         temp_s3->field_73A = 0;
                         temp_s3->field_736 = 6U;
-                        Gp_SpawnEff(0x601BC, &arg0->extra.tmd->coords[1], temp_s3->field_734, NULL);
+                        Gp_SpawnEff(0x601BC, &arg0->extra.tmd->coords[1], (s32)(temp_s3->field_734), NULL);
                         return;
                     }
                     break;
@@ -2122,7 +2298,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 8:
                     if ((temp_s3->field_73A == 1) && (temp_s3->field_4B4 == 0)) {
-                        temp_s3->field_4B4 = Gp_SpawnEnemyFromTable(&D_actor_403600_80160514, 1, Gp_NodeSlotMask(&temp_s7->node), 0);
+                        temp_s3->field_4B4 = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 1, Gp_NodeSlotMask(&temp_s7->node), 0);
                     }
                     if (temp_s3->field_73A >= 0x1E) {
                         temp_s3->field_73C = -0xAU;
@@ -2197,7 +2373,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         SndEvt_EnqueueType6(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
                         Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
                         D_actor_403600_80160568.field_4 = 4;
-                        Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+                        Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
                         temp_v0_32   = temp_wip->mp - 0xFB;
                         temp_wip->mp = temp_v0_32;
                         if ((temp_v0_32 << 0x10) <= 0) {
@@ -2340,7 +2516,7 @@ static void func_actor_403600_8013A444(Task* arg0)
 }
 
 /// Starts the arc point: a vector 0x3A98 minus the anchor's depth along Z, and
-/// an identity turn matrix for `func_8004BFF8` to rotate.
+/// an identity turn matrix for `RotMatrixY` to rotate.
 static inline void _actor403600ArcStart(Actor403600TargetScratch* s)
 {
     Actor403600TurnMatrix* m;
@@ -2398,7 +2574,7 @@ static void func_actor_403600_8013C864(Task* arg0)
             s->angle = -s->angle;
         }
         _actor403600ArcStart(s);
-        func_8004BFF8(s->angle, (MATRIX*)&s->matrix);
+        RotMatrixY(s->angle, (MATRIX*)&s->matrix);
         _actor403600ArcFinish(work, s);
         if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
             (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
@@ -2418,7 +2594,7 @@ static void func_actor_403600_8013C864(Task* arg0)
         work->field_734++;
     } else {
         _actor403600ArcStart(s);
-        func_8004BFF8(work->field_780, (MATRIX*)&s->matrix);
+        RotMatrixY(work->field_780, (MATRIX*)&s->matrix);
         _actor403600ArcFinish(work, s);
         work->field_792 = 0x96;
         work->field_734++;
@@ -2819,7 +2995,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         temp_s1->field_588.flags &= 0x7FFF;
         Gp_PulseState1C80();
         gGameSession->eventState = 1;
-        D_actor_403600_8016056C  = 0;
+        D_actor_403600_80160568.field_4  = 0;
         Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
         temp_v0_3            = arg0->work;
         temp_v0_3->field_756 = 8;
@@ -3195,7 +3371,7 @@ static s16 func_actor_403600_8013E66C(GpCoord* arg0)
     return result;
 }
 
-static s32 func_actor_403600_8013E7D4(s32 arg0, u16 arg1)
+static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
 {
     Task*    temp_s7;
     GpCoord* temp_s3;
@@ -3229,35 +3405,36 @@ static s32 func_actor_403600_8013E7D4(s32 arg0, u16 arg1)
         var_v1 += 0x1000;
     }
     if ((arg1 & 1) ? (temp_s0_3 < temp_s5) : (temp_s5 < temp_s0_3)) {
-        D_actor_403600_801606E0.rot.vy = var_s2;
+        D_actor_403600_801606E0.value.rot.vy = var_s2;
     } else {
-        D_actor_403600_801606E0.rot.vy = var_v1;
+        D_actor_403600_801606E0.value.rot.vy = var_v1;
     }
     temp_s3->flg                   = 0;
-    D_actor_403600_801606E0.rot.vx = 0;
-    D_actor_403600_801606E0.rot.vz = 0;
+    D_actor_403600_801606E0.value.rot.vx = 0;
+    D_actor_403600_801606E0.value.rot.vz = 0;
     if (arg1 & 2) {
-        D_actor_403600_801606E0.pos.vy = temp_s3->coord.t[1];
-        if (D_actor_403600_801606E0.rot.vy == var_s2) {
-            D_actor_403600_801606E0.pos.vx = D_actor_403600_801605EC.vx;
-            D_actor_403600_801606E0.pos.vz = D_actor_403600_801605EC.vz;
+        D_actor_403600_801606E0.value.pos.vy = temp_s3->coord.t[1];
+        if (D_actor_403600_801606E0.value.rot.vy == var_s2) {
+            D_actor_403600_801606E0.value.pos.vx = D_actor_403600_801605EC.vx;
+            D_actor_403600_801606E0.value.pos.vz = D_actor_403600_801605EC.vz;
             var_s4                         = 0;
         } else {
-            D_actor_403600_801606E0.pos.vx = D_actor_403600_801605E4.vx;
-            D_actor_403600_801606E0.pos.vz = D_actor_403600_801605E4.vz;
+            D_actor_403600_801606E0.value.pos.vx = D_actor_403600_801605E4.vx;
+            D_actor_403600_801606E0.value.pos.vz = D_actor_403600_801605E4.vz;
             var_s4                         = 1;
         }
     } else {
-        D_actor_403600_801606E0.pos.vx = temp_s3->coord.t[0];
-        D_actor_403600_801606E0.pos.vy = temp_s3->coord.t[1];
-        D_actor_403600_801606E0.pos.vz = temp_s3->coord.t[2];
+        D_actor_403600_801606E0.value.pos.vx = temp_s3->coord.t[0];
+        D_actor_403600_801606E0.value.pos.vy = temp_s3->coord.t[1];
+        D_actor_403600_801606E0.value.pos.vz = temp_s3->coord.t[2];
     }
-    Gp_DispatchMsgPtr(temp_s7, 0x3E9, &D_actor_403600_801606E0, 0);
+    Gp_DispatchMsgPtr(temp_s7, 0x3E9, &D_actor_403600_801606E0.value, 0);
     return var_s4;
 }
 
 static void func_actor_403600_8013EA04(Task* arg0)
 {
+    s32 index;
     u32              temp_a0_3;
     s32              temp_lo;
     s32              temp_lo_3;
@@ -3378,8 +3555,9 @@ static void func_actor_403600_8013EA04(Task* arg0)
                (D_actor_403600_801606B8.values[1] != var_a2)))) {
             return;
         }
-        D_actor_403600_801606B8.values[D_actor_403600_801606BC] = (u16)var_a2;
-        D_actor_403600_801606BC                                ^= 1;
+        index = D_actor_403600_801606BC.value;
+        D_actor_403600_801606B8.values[index] = (u16)var_a2;
+        D_actor_403600_801606BC.value = index ^ 1;
     }
     var_v1 = var_a2 - 1;
     switch (var_v1) {
@@ -3500,7 +3678,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
 
     temp_s4 = Gp_ActorSlots[0]->extra.tmd->coords;
     temp_s3 = arg0->work;
-    switch (D_actor_403600_8016056C) {
+    switch (D_actor_403600_80160568.field_4) {
         case 1:
             temp_s3->field_760++;
             temp_a1 = arg0->work;
@@ -3511,7 +3689,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 (temp_a0->coord.m[2][2] * temp_a1->field_762) >> 0xC;
             if (((s16)temp_s3->field_760 >= 0xC) || (gGameSession->viewReady != 0)) {
                 temp_s3->field_760 = 0;
-                if (func_actor_403600_8013E7D4((s32)arg0, 3) == 0) {
+                if (func_actor_403600_8013E7D4(arg0, 3) == 0) {
                     Mc_SaveData[0].state.at4.loc.view = 7;
                 } else {
                     Mc_SaveData[0].state.at4.loc.view = 3;
@@ -3544,7 +3722,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             }
             if ((s16)temp_s3->field_760 >= 0x66) {
                 temp_s3->field_760      = 0;
-                D_actor_403600_8016056C = 0;
+                D_actor_403600_80160568.field_4 = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
             break;
@@ -3617,7 +3795,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             temp_s3->field_760 = temp_v0_2;
             if ((s16)temp_v0_2 >= 0x28) {
                 temp_s3->field_760      = 0;
-                D_actor_403600_8016056C = 0;
+                D_actor_403600_80160568.field_4 = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
             break;
@@ -3773,7 +3951,7 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vy         = 0;
     enemy->bodyPos.vz         = 0;
     enemy->param              = &D_actor_403600_80150ED8;
-    enemy->recs               = (s32)work->field_528;
+    enemy->recs               = work->field_528;
     enemy->hp                 = (s16)D_actor_403600_80150ED8.hpMax;
     func_800B3F84(&work->rig.anim, D_actor_403600_8016057C, model, work->rig.poses, work->rig.slots);
     i = 1;
@@ -3781,7 +3959,7 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
         Gp_AnimResetSlot(&work->rig.anim, i, 1);
         i += 1;
     } while (i < 0x14);
-    ((void (*)(s32))Gp_IncStateF0Ref)(0);
+    (Gp_IncStateF0Ref)(0);
     bodyRecs        = work->field_528;
     work->field_736 = 9;
     work->field_738 = 0;
@@ -4206,21 +4384,21 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             angles.vy                  = 0x200;
             angles.vz                  = 0;
             RotMatrix(&angles, &work->field_4B8.coord);
-            D_actor_403600_801606E0.rot.vx = 0;
-            D_actor_403600_801606E0.rot.vy = -0x600;
-            D_actor_403600_801606E0.rot.vz = 0;
-            D_actor_403600_801606E0.pos.vx = 0x1E8D;
-            D_actor_403600_801606E0.pos.vy = -0xF9F;
-            D_actor_403600_801606E0.pos.vz = 0x1AC6;
-            Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0, 0);
+            D_actor_403600_801606E0.value.rot.vx = 0;
+            D_actor_403600_801606E0.value.rot.vy = -0x600;
+            D_actor_403600_801606E0.value.rot.vz = 0;
+            D_actor_403600_801606E0.value.pos.vx = 0x1E8D;
+            D_actor_403600_801606E0.value.pos.vy = -0xF9F;
+            D_actor_403600_801606E0.value.pos.vz = 0x1AC6;
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
             D_actor_403600_80160568.field_4 = 9;
-            Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
             break;
         case 2:
             work->field_736                 = 0x15;
             work->field_738                 = 0;
             D_actor_403600_80160568.field_4 = 0xA;
-            Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
             break;
         case 3:
             work->field_77A = 0x3E8;
@@ -4228,21 +4406,21 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             break;
         case 4:
             D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
-            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F3, 0, 0);
+            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 0, 0);
             arg0->extra.tmd->flags |= 0x80;
             arg0->extra.tmd->flags |= 4;
-            work->field_4B4         = Gp_SpawnEnemyFromTable(&D_actor_403600_80160514, 2, 0, 0);
+            work->field_4B4         = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
             break;
         case 5:
-            D_actor_403600_801606E0.rot.vx = 0;
-            D_actor_403600_801606E0.rot.vy = 0;
-            D_actor_403600_801606E0.rot.vz = 0;
-            D_actor_403600_801606E0.pos.vx = 0;
-            D_actor_403600_801606E0.pos.vy = 0;
-            D_actor_403600_801606E0.pos.vz = 0;
-            Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0, 0);
+            D_actor_403600_801606E0.value.rot.vx = 0;
+            D_actor_403600_801606E0.value.rot.vy = 0;
+            D_actor_403600_801606E0.value.rot.vz = 0;
+            D_actor_403600_801606E0.value.pos.vx = 0;
+            D_actor_403600_801606E0.value.pos.vy = 0;
+            D_actor_403600_801606E0.value.pos.vz = 0;
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
             D_actor_403600_80160568.field_4 = 0xB;
-            Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
+            Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3F4, &D_actor_403600_80160568, 0);
             childWork               = work->field_4B4->task->work;
             childObject             = work->field_4B4->task->extra.tmd;
             childWork->field_730    = 0xD;
@@ -4335,7 +4513,7 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
         D_actor_403600_80160700.mtx.t[i] = key->pos[i];
     }
     D_actor_403600_80160700.field_20 = 0x149;
-    Gp_TrySpawnViewTask((s32)&D_actor_403600_80160700);
+    Gp_TrySpawnViewTask(&D_actor_403600_80160700);
     func_actor_403600_80141F58(&work->field_4B8, (s16)work->field_744);
     work->field_77C++;
     if (work->field_77C >= 0x2BC) {
@@ -4395,18 +4573,18 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
             }
         }
         if (work->field_73A == 0x2A8) {
-            Gp_DispatchMsg((Task*)Gp_ActorSlots[0], 0x3F3, 1, 0);
+            Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 1, 0);
         }
         if (work->field_73A >= 0x2A8 && work->field_73A < 0x385 && (work->field_73A & 3) == 3) {
             Gp_SpawnEff(0x601BF, &work->field_4B8, 0x10800, NULL);
         }
-        D_actor_403600_801606E0.rot.vx  = 0;
-        D_actor_403600_801606E0.rot.vz  = 0;
-        D_actor_403600_801606E0.pos.vx  = -0x1F4;
-        D_actor_403600_801606E0.pos.vy  = 0x3E8;
-        D_actor_403600_801606E0.pos.vz  = -0x1F4;
-        D_actor_403600_801606E0.rot.vy += 0x38;
-        Gp_DispatchMsgPtr((Task*)Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0, 0);
+        D_actor_403600_801606E0.value.rot.vx  = 0;
+        D_actor_403600_801606E0.value.rot.vz  = 0;
+        D_actor_403600_801606E0.value.pos.vx  = -0x1F4;
+        D_actor_403600_801606E0.value.pos.vy  = 0x3E8;
+        D_actor_403600_801606E0.value.pos.vz  = -0x1F4;
+        D_actor_403600_801606E0.value.rot.vy += 0x38;
+        Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
         if (work->field_73A >= 0x2BC && work->field_73A < 0x385) {
             s16 angle;
             s16 radius;
@@ -4697,7 +4875,7 @@ static void func_actor_403600_801419E8(Task* arg0)
     TmdObject* obj;
 
     obj               = arg0->extra.tmd;
-    *(s8*)&obj->tpage = -0xF;
+    *&obj->tpage = -0xF;
     obj->clut         = 2;
     if (obj->buffer != NULL) {
         tmdProcessStream(obj);

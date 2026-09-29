@@ -13,6 +13,9 @@
 /// Prompt panel whose owning task carries the current text in spawnArg1.
 extern UiObject* Wip_UiHolder;
 
+/// Current item-information panel, cleared when its owner closes.
+extern UiObject* D_80067634;
+
 UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3, s32 unused4);
 
 UiObject* Ui_SpawnFromDesc(UiObjectDesc* descriptor, TaskSpawnArg arg1, s32 arg2, s32 arg3, UiObject* object);

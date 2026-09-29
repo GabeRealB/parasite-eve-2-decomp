@@ -1,0 +1,4 @@
+
+func_apobiosis_8012EF4C = 0x8012EF4C; // type:func
+
+func_apobiosis_8012FE10 = 0x8012FE10; // type:func

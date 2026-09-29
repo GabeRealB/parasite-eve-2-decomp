@@ -1,3 +1,5 @@
+#include "shelter_b6_training_room_private.h"
+
 #include "common.h"
 
 #include "gameplay/display.h"

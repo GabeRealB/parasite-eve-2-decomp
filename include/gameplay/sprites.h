@@ -68,7 +68,11 @@ STATIC_ASSERT_SIZEOF(GpDrawAreaRec, 0xA);
 /// Indexed 1-based by the `Gp_ViewIndexTables` camera / view byte.
 /// `Gp_GetViewSprtExtra` returns `field_8`. `Gp_ViewSprtCmdEmpty` reads `field_4`.
 typedef struct _GpSprtRec {
-    /* 0x0 */ GpSprtElem*    field_0;
+    /* 0x0 */ union {
+        GpSprtElem* elements;
+        // Empty lists retain the command-table address here; no sprite is read.
+        GpSprtCmd* empty;
+    } field_0;
     /* 0x4 */ GpSprtCmd*     field_4;
     /* 0x8 */ GpDrawAreaRec* field_8;
 } GpSprtRec;

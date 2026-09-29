@@ -1,3 +1,5 @@
+#include "pe/ofuda.h"
+
 #include "common.h"
 
 #include "gameplay/attachments.h"
@@ -29,7 +31,7 @@
 /// below 9, then releases the block.
 ///
 /// A cancelled or interrupted cast stops the cue and releases immediately.
-static void ofudaEffectTask(Task* arg0)
+void ofudaEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;

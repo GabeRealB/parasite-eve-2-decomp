@@ -11,34 +11,51 @@
 #include "main/task.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_mist_r21_8017D770[];
+s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32 func_mist_r21_8017D60C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+s32 func_mist_r21_8017D614(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+void func_mist_r21_8017D760(Task* task);
+
+GpMsgEntry D_mist_r21_8017D770[] = {
+    { 0x13EE, func_mist_r21_8017D5E4 },
+    { 0x13F1, func_mist_r21_8017D5DC },
+    { 0x13EF, func_mist_r21_8017D614 },
+    { 0x13F0, func_mist_r21_8017D60C },
+    { 0x7FFFFFFF, NULL },
+};
 
 /// The one task the room task spawns on entry; its callback is the empty
 /// `func_mist_r21_8017D760`.
-extern TaskDesc D_mist_r21_8017D798[];
+TaskDesc D_mist_r21_8017D798[] = {
+    { 0, 0xC0, func_mist_r21_8017D760, { .value = 0 } },
+};
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_mist_r21_8017D5DC(void)
+s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EE: copies the location record it is given
 /// onto the reply record unchanged and answers 1.
-s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
+s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
+    GpSaveLoc* src = arg2.storage;
+    GpSaveLoc* dst = arg3.storage;
+
     *dst = *src;
     return 1;
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_mist_r21_8017D60C(void)
+s32 func_mist_r21_8017D60C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_mist_r21_8017D614(void)
+s32 func_mist_r21_8017D614(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

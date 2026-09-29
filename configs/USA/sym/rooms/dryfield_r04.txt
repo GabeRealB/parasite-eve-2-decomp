@@ -1,2 +1,3 @@
 // Overlay-local symbols for dryfield_r04.
-D_dryfield_r04_8017E1F4 = 0x8017E1F4; // collision grid header
+D_dryfield_r04_8017D61C = 0x8017D61C; // size:0xBD8 defined:True
+D_dryfield_r04_8017E1F4 = 0x8017E1F4; // size:0x24 defined:True

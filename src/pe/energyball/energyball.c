@@ -1,8 +1,9 @@
+#include "pe/energyball.h"
+
 #include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
-#include "pe/energyball.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/attachments.h"
@@ -63,7 +64,7 @@ static s16 D_energyball_801311A0[16] = { 0 };
 /// yaw each while `D_80115724` (the number of balls already in flight) allows
 /// it. Every later frame just releases the work block.
 
-static void func_energyball_8012EF48(Task* arg0)
+void func_energyball_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -122,7 +123,7 @@ static void func_energyball_8012EF48(Task* arg0)
 /// size or shrinking below one step. Cancel (`Gp_StateC08.field_3 == -2` or
 /// the fade at 4 or more) anywhere but combo 0x2B lets the ball go: the last
 /// ball in flight (`D_80115724`) queues the row's stop sound.
-static void func_energyball_8012F180(Task* arg0)
+void func_energyball_8012F180(Task* arg0)
 {
     GpEffWork*      mem;
     GpCoord*        coord;
@@ -694,7 +695,7 @@ static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_POP(GpBandScratch);
 }
 
-static void func_energyball_8013107C(Task* arg0)
+void func_energyball_8013107C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;

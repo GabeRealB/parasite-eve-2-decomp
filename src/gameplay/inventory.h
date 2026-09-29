@@ -25,13 +25,6 @@ typedef struct _GpItemAttr {
 } GpItemAttr;
 STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
-/// Final equipment slot, after its integer address bias and item id are combined.
-typedef union GpItemSlotAddress {
-    McItemSlot* slot;
-    s32         word;
-} GpItemSlotAddress;
-STATIC_ASSERT_SIZEOF(GpItemSlotAddress, 4);
-
 /// Cursor represented as either a row pointer or its 32-bit PS1 address.
 typedef union GpItemRowAddress {
     McItemRec* row;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b3_garbage_incinerator.h"
 #include "actors/actor.h"
 
 #include "gameplay/area_entry.h"
@@ -27,12 +28,21 @@ typedef struct Actor342400Limit {
 STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
 
 extern TaskDesc             D_801575F0;                // absolute, spawned by func_actor_342400_80162DA0
-extern u8                   D_actor_342400_8016BF48[]; // stored into `Task::msgTable` by func_actor_342400_801628F0
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        void (*call0)(Task *, s32, GpCmdArg *);
+    } handler;
+} Actor342400MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
+
+extern Actor342400MessageEntry D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
 extern OverlayEncounterSlot D_actor_342400_8016BF58[];
-extern TaskDesc             D_actor_342400_8016BFE0;
+extern TaskDesc             D_actor_342400_8016BFE0[];
 extern Actor342400Limit     D_actor_342400_8016C010[];
 extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
-extern TaskDesc             D_actor_342400_80173A54;
+extern TaskDesc             D_actor_342400_80173A54[];
 extern u16                  D_actor_342400_80173AAC;      // spawn counter, `<< 12` into `GpEnemy::placeKey`
 
 static s16  func_actor_342400_801624A4(void);
@@ -55,6 +65,182 @@ static void func_actor_342400_801630A4(Task* arg0);
 static void func_actor_342400_80163178(Task* arg0);
 static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
 static void func_actor_342400_801632D4(Task* arg0);
+
+void func_actor_342400_80162748(Task *);
+
+void func_actor_342400_801626AC(Task *, s32, GpCmdArg *);
+
+Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
+    { 2011, { .call0 = func_actor_342400_801626AC } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+OverlayEncounterSlot D_actor_342400_8016BF58[17] = {
+    { 1, 1, { 0, 0 }, 0 },
+    { 0, 1, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+    { 1, 1, { 0, 0 }, 0 },
+    { 0, 17, { 0, 0 }, 0 },
+    { 0, 33, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+    { 0, 1, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+    { 0, 1, { 0, 0 }, 0 },
+    { 1, 1, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+    { 1, 1, { 0, 0 }, 0 },
+    { 0, 17, { 0, 0 }, 0 },
+    { 0, 33, { 0, 0 }, 0 },
+    { 2, 1, { 0, 0 }, 0 },
+};
+
+void func_actor_342400_80162748(Task *);
+void func_actor_342400_801627C0(Task *);
+void func_actor_342400_80162824(Task *);
+void func_actor_342400_80162888(Task *);
+
+TaskDesc D_actor_342400_8016BFE0[4] = {
+    { 0, 32, func_actor_342400_80162748, { .model = NULL } },
+    { 0, 97, func_actor_342400_801627C0, { .model = NULL } },
+    { 0, 97, func_actor_342400_80162824, { .model = NULL } },
+    { 0, 97, func_actor_342400_80162888, { .model = NULL } },
+};
+
+Actor342400Limit D_actor_342400_8016C010[17] = {
+    { 0, 0 },
+    { 0, 1295 },
+    { 0, 2700 },
+    { 0, 4300 },
+    { 0, 5700 },
+    { 0, 7295 },
+    { 0, 8700 },
+    { 1, -7800 },
+    { 1, -9210 },
+    { 1, -0x2A35 },
+    { 1, -0x2FB2 },
+    { 1, -0x3D90 },
+    { 1, -0x4312 },
+    { 1, -0x4989 },
+    { 1, -0x4F0B },
+    { 1, -0x5CF8 },
+    { 1, -0x6275 },
+};
+
+s16 D_actor_342400_8016C054[6][4] = {
+    { 2, 3, 11, 12 },
+    { 3, 4, 12, 5 },
+    { 5, 6, 7, 13 },
+    { 7, 8, 13, 14 },
+    { 8, 9, 14, 15 },
+    { 9, 15, 9, 15 },
+};
+
+TmdBone D_actor_342400_8016C084[1] = {
+#include "assets/actor_342400_model_0AD4C_skeleton.inc"
+};
+
+u32 D_actor_342400_8016C0A8[1] = {
+#include "assets/actor_342400_model_0AD4C_partVerts.inc"
+};
+
+SVECTOR D_actor_342400_8016C0AC[48] = {
+#include "assets/actor_342400_model_0AD4C_verts.inc"
+};
+
+SVECTOR D_actor_342400_8016C22C[53] = {
+#include "assets/actor_342400_model_0AD4C_normals.inc"
+};
+
+u32 D_actor_342400_8016C3D4[486] = {
+#include "assets/actor_342400_model_0AD4C_stream.inc"
+};
+
+TmdSource D_actor_342400_8016CB6C = {
+    0, 3260, 0, 1,
+    D_actor_342400_8016C0A8, D_actor_342400_8016C0AC, D_actor_342400_8016C22C, D_actor_342400_8016C084, D_actor_342400_8016C3D4,
+};
+
+TmdBone D_actor_342400_8016CB90[1] = {
+#include "assets/actor_342400_model_0B3F0_skeleton.inc"
+};
+
+u32 D_actor_342400_8016CBB4[1] = {
+#include "assets/actor_342400_model_0B3F0_partVerts.inc"
+};
+
+SVECTOR D_actor_342400_8016CBB8[28] = {
+#include "assets/actor_342400_model_0B3F0_verts.inc"
+};
+
+SVECTOR D_actor_342400_8016CC98[37] = {
+#include "assets/actor_342400_model_0B3F0_normals.inc"
+};
+
+u32 D_actor_342400_8016CDC0[276] = {
+#include "assets/actor_342400_model_0B3F0_stream.inc"
+};
+
+TmdSource D_actor_342400_8016D210 = {
+    0, 1828, 0, 1,
+    D_actor_342400_8016CBB4, D_actor_342400_8016CBB8, D_actor_342400_8016CC98, D_actor_342400_8016CB90, D_actor_342400_8016CDC0,
+};
+
+TmdBone D_actor_342400_8016D234[1] = {
+#include "assets/actor_342400_model_0B960_skeleton.inc"
+};
+
+u32 D_actor_342400_8016D258[1] = {
+#include "assets/actor_342400_model_0B960_partVerts.inc"
+};
+
+SVECTOR D_actor_342400_8016D25C[25] = {
+#include "assets/actor_342400_model_0B960_verts.inc"
+};
+
+SVECTOR D_actor_342400_8016D324[32] = {
+#include "assets/actor_342400_model_0B960_normals.inc"
+};
+
+u32 D_actor_342400_8016D424[215] = {
+#include "assets/actor_342400_model_0B960_stream.inc"
+};
+
+TmdSource D_actor_342400_8016D780 = {
+    0, 1448, 0, 1,
+    D_actor_342400_8016D258, D_actor_342400_8016D25C, D_actor_342400_8016D324, D_actor_342400_8016D234, D_actor_342400_8016D424,
+};
+
+TmdBone D_actor_342400_8016D7A4[9] = {
+#include "assets/actor_342400_model_0E740_skeleton.inc"
+};
+
+u32 D_actor_342400_8016D8E8[9] = {
+#include "assets/actor_342400_model_0E740_partVerts.inc"
+};
+
+SVECTOR D_actor_342400_8016D90C[160] = {
+#include "assets/actor_342400_model_0E740_verts.inc"
+};
+
+SVECTOR D_actor_342400_8016DE0C[206] = {
+#include "assets/actor_342400_model_0E740_normals.inc"
+};
+
+u32 D_actor_342400_8016E47C[2105] = {
+#include "assets/actor_342400_model_0E740_stream.inc"
+};
+
+TmdSource D_actor_342400_80170560 = {
+    0, 11212, 3088, 9,
+    D_actor_342400_8016D8E8, D_actor_342400_8016D90C, D_actor_342400_8016DE0C, D_actor_342400_8016D7A4, D_actor_342400_8016E47C,
+};
+
+GpU16Pair D_actor_342400_80170584[1] = {
+    { 22, 0 },
+};
+
+GpPairSrcE D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
 
 static void func_actor_342400_80162084(Task* arg0)
 {
@@ -163,13 +349,13 @@ static void func_actor_342400_80162324(Task* arg0)
             arg  = D_actor_342400_8016BF58[idx].command;
             switch (type) {
                 case 0:
-                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
                 case 1:
-                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
                 case 2:
-                    Task_SpawnFromTable(&D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
+                    Task_SpawnFromTable(D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
                     break;
             }
             work->nextSlot++;
@@ -345,7 +531,7 @@ static void func_actor_342400_80162A34(Task* arg0)
     OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
 
     if (++work->frames == 15) {
-        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        (Gp_IncStateF0Ref)(0);
         gGameSession->spawnPhase[1] = 1;
         Gp_ArmStateF0(1);
         arg0->state++;
@@ -382,7 +568,7 @@ static void func_actor_342400_80162B60(Task* arg0)
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = (TaskIdMap*)work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_actor_342400_80173A54, 1, 0, 0);
+        enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             work->enemy                                                  = enemy;
@@ -596,28 +782,26 @@ static void func_actor_342400_80163178(Task* arg0)
     }
 }
 
-extern s8 D_80187329;
-
 static void func_actor_342400_801631DC(s16 arg0)
 {
     if (arg0 == 0) {
-        D_80187329 = 2;
+        D_shelter_b3_garbage_incinerator_80187328[1] = 2;
         return;
     }
-    D_80187329 = 0x11;
+    D_shelter_b3_garbage_incinerator_80187328[1] = 0x11;
 }
 
 static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
-            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
         case 1:
-            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            Task_SpawnFromTable(D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
         case 2:
-            Task_SpawnFromTable(&D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
+            Task_SpawnFromTable(D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (func_actor_342400_801624A4() << 8), 0);
             break;
     }
 }

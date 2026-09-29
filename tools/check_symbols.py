@@ -48,6 +48,13 @@ always resident with everything. The packages one manifest entry builds from a
 single source (its `slots`) count as one image, compared by file offset, since
 each slot may load them at a different address.
 
+An absolute import can specify `owner=IMAGE` in its symbol-map comment when
+retained code refers to another image in the same load slot. The owner must
+actually declare that name at that address; this does not infer ownership from
+an address shared by mutually exclusive overlays. Ownership does not
+prove runtime reachability: retained alternate-room branches still need their
+load-state and resource bounds reviewed separately.
+
 Exit status is 1 with --strict when anything is reported.
 """
 from __future__ import annotations
@@ -163,8 +170,22 @@ def parse_decls(root: Path, image: str, files: list[str]) -> list[Decl]:
             if not m:
                 continue
             attrs = dict(re.findall(r'\b(\w+):(\S+)', m.group(3).split('//', 1)[-1])) if '//' in m.group(3) else {}
+            explicit_owner = re.search(r'\bowner=([A-Za-z0-9_]+)\b', m.group(3))
+            if explicit_owner:
+                attrs['owner'] = explicit_owner.group(1)
             decls.append(Decl(image, m.group(1), int(m.group(2), 16), attrs, f'{f}:{n}'))
     return decls
+
+
+def has_explicit_owner(d: Decl, by_image: dict[str, list[Decl]], ranges) -> bool:
+    """An override must identify the owner's own definition at this address."""
+    owner = d.attrs.get('owner')
+    if d.attrs.get('absolute', '').lower() != 'true' or owner not in ranges:
+        return False
+    lo, hi = ranges[owner]
+    return any(t.name == d.name and t.addr == d.addr and lo <= t.addr <= hi and
+               t.attrs.get('absolute', '').lower() != 'true'
+               for t in by_image.get(owner, []))
 
 
 def main() -> None:
@@ -240,10 +261,19 @@ def main() -> None:
     by_image: dict[str, list[Decl]] = {}
     out_of_range = defaultdict(list)
     for image, cfg in configs.items():
-        ds = parse_decls(root, image, cfg['syms'])
-        by_image[image] = ds
+        by_image[image] = parse_decls(root, image, cfg['syms'])
+    for image, ds in by_image.items():
         for d in ds:
-            d.owner = owner_of(image, d.addr)
+            explicit_owner = d.attrs.get('owner')
+            if explicit_owner is not None:
+                if not has_explicit_owner(d, by_image, ranges):
+                    report('ownership', [image, explicit_owner],
+                           f'{d.where}: {d.name} has no matching definition in owner={explicit_owner}')
+                    d.owner = None
+                else:
+                    d.owner = explicit_owner
+            else:
+                d.owner = owner_of(image, d.addr)
             if d.owner is None:
                 out_of_range[(d.where, d.name, d.addr)].append(image)
         decls += ds
@@ -364,7 +394,7 @@ def main() -> None:
 
     wanted = set(a.image)
     total = 0
-    for check in ('layout', 'range', 'declared', 'names', 'addresses', 'interior'):
+    for check in ('layout', 'ownership', 'range', 'declared', 'names', 'addresses', 'interior'):
         items = [msg for imgs, msg in findings[check] if not wanted or imgs & wanted]
         total += len(items)
         print(f'{check}: {len(items)}')

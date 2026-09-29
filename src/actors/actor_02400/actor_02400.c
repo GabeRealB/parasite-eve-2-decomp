@@ -131,11 +131,9 @@ typedef struct Actor02400ScaleScratch {
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
-extern GpU16Pair  Actor02400_BodyPairs;
+extern GpU16Pair Actor02400_BodyPairs[4];
 extern GpPairSrcE Actor02400_Params0;
 extern GpPairSrcE Actor02400_Params1;
-extern u16        Actor02400_D045B8;
-extern u16        Actor02400_D045C8;
 /// Frames the grown body waits before it spawns, indexed by `variant`.
 extern s16      Actor02400_D045D4[];
 extern s16      Actor02400_D045D8[];
@@ -157,6 +155,73 @@ static void Actor02400_Fn03140(Task* task);
 static void Actor02400_Fn031D0(Task* task);
 static void Actor02400_Fn03228(Task* task);
 static void Actor02400_Fn03278(Task* task);
+
+extern TmdSource Actor02400_D04580;
+void Actor02400_Fn02DB0(Task *);
+void Actor02400_Fn03358(Task *);
+
+TmdBone Actor02400_D03448[4] = {
+#include "assets/actor_102400_model_04580_skeleton.inc"
+};
+
+u32 Actor02400_D034D8[4] = {
+#include "assets/actor_102400_model_04580_partVerts.inc"
+};
+
+SVECTOR Actor02400_D034E8[87] = {
+#include "assets/actor_102400_model_04580_verts.inc"
+};
+
+SVECTOR Actor02400_D037A0[58] = {
+#include "assets/actor_102400_model_04580_normals.inc"
+};
+
+u32 Actor02400_D03970[772] = {
+#include "assets/actor_102400_model_04580_stream.inc"
+};
+
+TmdSource Actor02400_D04580 = {
+    0, 4168, 1040, 4,
+    Actor02400_D034D8, Actor02400_D034E8, Actor02400_D037A0, Actor02400_D03448, Actor02400_D03970,
+};
+
+GpU16Pair Actor02400_BodyPairs[4] = {
+    { 0, 8 },
+    { 28, 6 },
+    { 0, 11 },
+    { 38, 6 },
+};
+
+GpPairSrcE Actor02400_Params0 = { Actor02400_BodyPairs, 80, 12, 86, 8, 0, 0, 100, 99, 0 };
+
+GpPairSrcE Actor02400_Params1 = { Actor02400_BodyPairs, 280, 16, 420, 30, 0, 0, 100, 99, 0 };
+
+s16 Actor02400_D045D4[2] = {
+    90, 30,
+};
+
+s16 Actor02400_D045D8[2] = {
+    2, 5,
+};
+
+s16 Actor02400_D045DC[48] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    3, 0, 3, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 2, 0, 2,
+    1, 1, 1, 1, 0, 1, 1, 1,
+    1, 2, 2, 2, 1, 0, 1, 1,
+    1, 1, 0, 1, 1, 0, 0, 0,
+};
+
+s16 Actor02400_D0463C[16] = {
+    0, 1, 0, 0, 1, 1, 1, 0,
+    1, 1, 0, 0, 0, 0, 0, 0,
+};
+
+TaskDesc Actor02400_D0465C[2] = {
+    { 1, 96, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
+    { 2, 96, Actor02400_Fn03358, { .model = NULL } },
+};
 
 /// Draws the glow around `coord`: lights `Gp_RoomCoords[2]` there
 /// with a randomly flickering intensity, then projects `coord` and queues two
@@ -435,7 +500,7 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
     work->objC0.pos.vx   = 0;
     work->objC0.pos.vy   = 0;
     work->objC0.pos.vz   = 0x1F4;
-    work->objC0.key      = Gp_PackPair(&Actor02400_BodyPairs, work->variant * 2);
+    work->objC0.key      = Gp_PackPair(Actor02400_BodyPairs, work->variant * 2);
     work->objC0.radius   = 0x64;
     work->objC0.flags    = 1;
     Gp_LinkObj(3, &work->objC0);
@@ -594,9 +659,9 @@ move_done:
                         work->field_13E    = 0;
                         work->objC0.flags &= 0x7FFF;
                         if (work->variant == 0) {
-                            damage = Actor02400_D045B8;
+                            damage = Actor02400_Params0.hpMax;
                         } else {
-                            damage = Actor02400_D045C8;
+                            damage = Actor02400_Params1.hpMax;
                         }
                         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                         damage     += (s16)(((Gp_LcgState >> 16) & 0x7F) + 200);
@@ -839,7 +904,7 @@ static void Actor02400_Fn01590(Task* task)
         sound = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40180002;
         pan   = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
-        eff             = (Task**)Gp_SpawnEff(D_80115734, coord, work->variant, NULL);
+        eff             = (Task**)Gp_SpawnEff(D_80115734, coord, (s32)(work->variant), NULL);
         work->field_130 = eff;
         if (eff != NULL) {
             Task_Reparent(task, *eff);
@@ -1336,7 +1401,7 @@ static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     work->obj_0.pos.vy   = 0;
     work->obj_0.pos.vz   = 0;
     work->obj_0.coord    = objCoord;
-    work->obj_0.key      = Gp_PackPair(&Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
+    work->obj_0.key      = Gp_PackPair(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
     work->obj_0.radius   = 0xC8;
     work->obj_0.flags    = 1;
     Gp_LinkObj(3, &work->obj_0);

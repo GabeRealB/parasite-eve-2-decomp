@@ -1,3 +1,8 @@
+#include "gameplay/evs.h"
+#include "rooms/neo_ark_forest_zone.h"
+#include "mapui/map_neo_ark.h"
+#include "neo_ark_forest_zone_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -33,7 +38,13 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+extern SVECTOR D_neo_ark_forest_zone_80182094[2];
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern s8 D_neo_ark_forest_zone_80182E40[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
 
 /// The room's message table, which the room setup task installs.
 extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[];
@@ -41,22 +52,19 @@ extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[];
 extern s32      D_neo_ark_forest_zone_80181E30;
 extern s32      D_neo_ark_forest_zone_80181E38;
 extern Task*    D_neo_ark_forest_zone_80181E68;
-extern u8       D_neo_ark_forest_zone_80181E6C[];
+extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[];
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 extern TaskDesc         D_neo_ark_forest_zone_80181DBC;
 extern GpSaveLoc        D_neo_ark_forest_zone_80182E38;
-extern s8               D_neo_ark_forest_zone_80182E40;
 extern RoomLatchedEvent D_neo_ark_forest_zone_80182E48;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern GpFadeWork D_neo_ark_forest_zone_80182E30;
+extern RoomFadeStorage D_neo_ark_forest_zone_80182E30;
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
-/// and `[1]` the second trail's frame. `D_neo_ark_forest_zone_8018209C` is
+/// and `[1]` the second trail's frame. `D_neo_ark_forest_zone_80182094[1]` is
 /// `[1]` under its own name, which the per-frame path reads directly.
-extern SVECTOR D_neo_ark_forest_zone_80182094[];
-extern SVECTOR D_neo_ark_forest_zone_8018209C;
 
 static void func_neo_ark_forest_zone_8017DA80(Task* arg0);
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0);
@@ -65,6 +73,29 @@ static void func_neo_ark_forest_zone_8017E6C4(GpCoord* arg0, s32 arg1, s32 arg2,
 static void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_forest_zone_8017F9F4(GpCoord* arg0, s16 arg1, u8* arg2);
+
+RoomFadeStorage D_neo_ark_forest_zone_80182E30 = { 0 };
+
+GpSaveLoc D_neo_ark_forest_zone_80182E38 = { 0 };
+
+s8 D_neo_ark_forest_zone_80182E40[4] = {
+    0,
+    123,
+    4,
+    20,
+};
+
+GpCmdArg D_neo_ark_forest_zone_80182E44 = { 0 };
+
+RoomLatchedEvent D_neo_ark_forest_zone_80182E48 = { 0 };
+
+u16 D_neo_ark_forest_zone_80182E54[5] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+};
 
 /// The room's event task, spawned when the room latches an event. State 0 runs
 /// the event's CAP command; state 1 waits for it to finish and, when the event
@@ -84,10 +115,10 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_neo_ark_forest_zone_80182E48.fade != 0) {
-                    D_neo_ark_forest_zone_80182E30.field_0 = 0;
-                    D_neo_ark_forest_zone_80182E30.field_1 = 0;
-                    D_neo_ark_forest_zone_80182E30.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_neo_ark_forest_zone_80182E30);
+                    D_neo_ark_forest_zone_80182E30.fade.field_0 = 0;
+                    D_neo_ark_forest_zone_80182E30.fade.field_1 = 0;
+                    D_neo_ark_forest_zone_80182E30.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_neo_ark_forest_zone_80182E30.fade);
                 }
                 arg0->state++;
             }
@@ -117,7 +148,7 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
     }
 }
 
-s32 func_neo_ark_forest_zone_8017D7DC(void)
+s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -130,7 +161,7 @@ s32 func_neo_ark_forest_zone_8017D7DC(void)
 /// back.
 static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event)
 {
-    D_neo_ark_forest_zone_80182E40 = 0;
+    D_neo_ark_forest_zone_80182E40_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
             D_neo_ark_forest_zone_80182E38 = *dst;
@@ -139,7 +170,7 @@ static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEve
                 GameFlag_SetNibble(event->flagId, 1);
             }
             Task_SpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
-            D_neo_ark_forest_zone_80182E40 = 1;
+            D_neo_ark_forest_zone_80182E40_value = 1;
         }
         return 2;
     }
@@ -147,18 +178,18 @@ static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEve
 }
 
 /// Room handler for the save-location message: copies the incoming record onto
-/// the outgoing one and forwards both to `func_80179B14`. On a first pass
+/// the outgoing one and forwards both to `func_map_neo_ark_80179B14`. On a first pass
 /// (`field_5` clear, the flag that asks a handler to only report what *would*
 /// happen) it also restarts the room's ambience sound. Message 0x1D builds the
 /// room's event record - cap command 2, the stage sound, flag 0x140 - and hands
 /// it to `NeoArkForestZone_StartEvent`; every other message is not consumed and
 /// answers 1.
-s32 func_neo_ark_forest_zone_8017D7E4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     if (in->field_5 == 0) {
         SndEvt_EnqueueType7(0x550B0006, 0x3C);
     }
@@ -172,7 +203,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveL
     return NeoArkForestZone_StartEvent(out, &event);
 }
 
-s32 func_neo_ark_forest_zone_8017D950(void)
+s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -182,7 +213,7 @@ s32 func_neo_ark_forest_zone_8017D950(void)
 /// 0xBD and starts the room's fade with the record at `D_..._80181E6C`. Then
 /// forwards the message to the room's own task, answering -1 while that task
 /// does not exist yet.
-s32 func_neo_ark_forest_zone_8017D958(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     u8 visit;
 
@@ -190,7 +221,7 @@ s32 func_neo_ark_forest_zone_8017D958(s32 arg0, s32 arg1, RoomEventMsg* in, Room
     if (visit == 1) {
         if (GameFlag_GetNibble(0xBD) == 0 && gGameSession->at4.loc.place == visit) {
             GameFlag_SetNibble(0xBD, 1);
-            func_800E8614((s32)D_neo_ark_forest_zone_80181E6C, 0);
+            func_800E8614(D_neo_ark_forest_zone_80181E6C, 0);
         }
     }
     if (D_neo_ark_forest_zone_80181E68 != NULL) {
@@ -284,7 +315,7 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
 /// 0x80, and state 3 fades it out, drawn semi-transparent at `angle` as that
 /// counts back down, before releasing the work block. Until the fade it is
 /// drawn as an opaque textured quad.
-static void func_neo_ark_forest_zone_8017DC20(Task* task)
+void func_neo_ark_forest_zone_8017DC20(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -458,7 +489,7 @@ static void func_neo_ark_forest_zone_8017E074(GpCoord* arg0, s32 arg1, s16 arg2)
 /// Keeps `Gp_State1C->roomEffectMode` at 2 every frame and, on its first run,
 /// stores 0x601D9, 0x601F5 and 0x60211 in three gameplay globals; the values
 /// have the form `Gp_SpawnEff` takes as effect ids.
-static void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
+void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 {
     Gp_State1C->roomEffectMode = 2;
     if (arg0->state == 0) {
@@ -476,7 +507,7 @@ static void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 /// State 2 draws a star glow at three times the radius while the level falls
 /// back to 0x10, then releases the work block. While the room's event state is
 /// set it draws nothing, and releases the block once that reaches 4.
-static void func_neo_ark_forest_zone_8017E420(Task* task)
+void func_neo_ark_forest_zone_8017E420(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -654,7 +685,7 @@ static void func_neo_ark_forest_zone_8017EAF0(GpCoord* arg0, s16 arg1, u8* rgb)
 /// re-derives all sixteen against the view and draws them. The task frees
 /// itself once its age reaches the spawn argument, and idles while the room's
 /// event state is 2 or more.
-static void func_neo_ark_forest_zone_8017EE84(Task* task)
+void func_neo_ark_forest_zone_8017EE84(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -712,9 +743,12 @@ static void func_neo_ark_forest_zone_8017EE84(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_neo_ark_forest_zone_8018209C.vx;
-                coord.coord.t[1] = D_neo_ark_forest_zone_8018209C.vy;
-                coord.coord.t[2] = D_neo_ark_forest_zone_8018209C.vz;
+                {
+                    SVECTOR* edge = &D_neo_ark_forest_zone_80182094[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -855,7 +889,7 @@ static void func_neo_ark_forest_zone_8017F374(GpCoord* arg0, GpCoord* arg1, s16 
 /// of rings whose radius grows and brightness falls each frame (state 2).
 /// Either way the task reaches state 3 after seven frames and releases its
 /// work block, or earlier once the room's event state reaches 4.
-static void func_neo_ark_forest_zone_8017F76C(Task* task)
+void func_neo_ark_forest_zone_8017F76C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

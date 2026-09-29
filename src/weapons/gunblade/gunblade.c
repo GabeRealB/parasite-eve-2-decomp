@@ -30,7 +30,7 @@ static SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-static void func_gunblade_8011D1E4(Task* task)
+void func_gunblade_8011D1E4(Task* task)
 {
     GpCoord    local;
     GpCoord*   coord;
@@ -214,7 +214,7 @@ static void func_gunblade_8011D70C(s16 slot, s16 flags)
 /// block once it falls under 0x20. The three grades differ only in which RGB
 /// channel gets the full brightness, so the tails are identical and the
 /// compiler cross-jumps them.
-static void func_gunblade_8011DAA4(Task* task)
+void func_gunblade_8011DAA4(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;

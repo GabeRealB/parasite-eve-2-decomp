@@ -1,3 +1,5 @@
+#include "gameplay/evs.h"
+#include "rooms/dryfield_night_junk_yard.h"
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -15,21 +17,67 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include "gameplay/world_targets.h"
+
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
 extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
 extern s32 D_dryfield_night_junk_yard_801805A0;
-extern s32 D_dryfield_night_junk_yard_801805A4;
+extern GpEvsCmd D_dryfield_night_junk_yard_801805A4[];
 
-static void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
+s32 func_dryfield_night_junk_yard_8017D5F4(Task *, s32, s32, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6A4(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6AC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_junk_yard_8017D82C(Task *, s32, RoomEventMsg *, GpMessageArg);
+
+extern GpAnimArg D_dryfield_night_junk_yard_80180584;
+extern GpCmdArg D_dryfield_night_junk_yard_80180598;
+extern GpCmdArg D_dryfield_night_junk_yard_8018059C;
+void func_dryfield_night_junk_yard_8017D894(u8);
+
+GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
+    { 5102, func_dryfield_night_junk_yard_8017D6AC },
+    { 5105, func_dryfield_night_junk_yard_8017D6A4 },
+    { 5103, func_dryfield_night_junk_yard_8017D82C },
+    { 5104, func_dryfield_night_junk_yard_8017D5F4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpAnimArg D_dryfield_night_junk_yard_80180584 = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpCmdArg D_dryfield_night_junk_yard_80180598 = { { .loc = { 3, 26 } }, 0 };
+
+GpCmdArg D_dryfield_night_junk_yard_8018059C = { { .loc = { 3, 26 } }, 1 };
+
+s32 D_dryfield_night_junk_yard_801805A0 = 0x21A03;
+
+GpEvsCmd D_dryfield_night_junk_yard_801805A4[17] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_junk_yard_80180584 }, { .value = 0 } },
+    { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_junk_yard_80180598 }, { .value = 2011 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 19, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_dryfield_night_junk_yard_8017D894 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_night_junk_yard_8018059C }, { .value = 2011 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
 
 /// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
 /// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8
 /// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
 /// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
 /// point's own CAP slot starts. Always returns 0.
-s32 func_dryfield_night_junk_yard_8017D5F4(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_junk_yard_8017D5F4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 6:
@@ -52,7 +100,7 @@ s32 func_dryfield_night_junk_yard_8017D5F4(s32 arg0, s32 arg1, s32 arg2)
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D6A4(void)
+s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -70,13 +118,13 @@ s32 func_dryfield_night_junk_yard_8017D6A4(void)
 /// 0x7A has reached it, latching 0x8F.
 ///
 /// `field_5` non-zero means "report only", which suppresses every side effect.
-s32 func_dryfield_night_junk_yard_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventMsg unused;
     s32          state;
     s32          value;
 
-    if (in->msgId == 0x18 && in->field_5 == 0) {
+    if (in->prefix.packed == 0x18 && in->field_5 == 0) {
         if (GameFlag_GetNibble(0x7A) >= 4) {
             out->field_3 = 2;
         } else {
@@ -84,7 +132,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in,
         }
     }
     *out = *in;
-    if (in->msgId != 0x1B) {
+    if (in->prefix.packed != 0x1B) {
         return 1;
     }
     if (GameFlag_GetNibble(0x46) == 1) {
@@ -125,11 +173,11 @@ s32 func_dryfield_night_junk_yard_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in,
 /// `field_2` is 3 on the visit whose `place` is 1, it latches nibble 0x9F once
 /// and passes `D_dryfield_night_junk_yard_801805A4` to `func_800E8614`. Always
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D82C(s32 arg0, s32 arg1, RoomEventMsg* in)
+s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg * in, GpMessageArg arg3)
 {
     if ((in->field_2 == 3) && (gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
         GameFlag_SetNibble(0x9F, 1);
-        func_800E8614((s32)&D_dryfield_night_junk_yard_801805A4, 0);
+        func_800E8614(D_dryfield_night_junk_yard_801805A4, 0);
     }
     return 0;
 }
@@ -184,7 +232,7 @@ void func_dryfield_night_junk_yard_8017D960(Task* task)
 /// Applies game flag nibble 0x9F to the sixth sprite command of view 0 in the
 /// current room's sprite record: a zero nibble draws the command, a nonzero one
 /// hides it (`Gp_LinkViewSprts` skips OT-linking when `field_4` is set).
-static void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
+void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
     GpAreaKey* sess = &gGameSession->at4.loc;
     GpSprtCmd* cmd;

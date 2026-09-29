@@ -1,3 +1,5 @@
+#include "dryfield_factory_private.h"
+
 #include "common.h"
 #include "rooms/dryfield_factory.h"
 #include "rooms/dryfield_night_factory.h"
@@ -30,6 +32,10 @@
 #include "main/task.h"
 #include "overlay.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/room.h"
+#include "rooms/stage_tables.h"
+
 /// The room script task's work block as the prompt-spawning state reads it:
 /// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
 typedef struct RoomUtil21Work {
@@ -38,7 +44,13 @@ typedef struct RoomUtil21Work {
 } RoomUtil21Work;
 
 extern TaskDesc       D_dryfield_factory_80186E88[];
-extern GpMsgEntry     D_dryfield_factory_80186EA0[];
+typedef struct {
+    s32 id;
+    void (*handler)(Task*);
+} FactoryControlMessageEntry;
+STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
+
+extern FactoryControlMessageEntry D_dryfield_factory_80186EA0[2];
 extern OverlayHotspot D_dryfield_factory_80186EB0[];
 extern SVECTOR        D_dryfield_factory_80186EF8;
 extern SVECTOR        D_dryfield_factory_80186F00;
@@ -69,6 +81,826 @@ static const TaskFuncTable7 D_dryfield_factory_8017D678 = {
         func_dryfield_factory_80181A24,
         func_dryfield_factory_80181AB8,
     },
+};
+
+extern GpGridParams D_dryfield_factory_80187BF8;
+extern GpObj4C D_dryfield_factory_80189694[14];
+extern GpObj4C D_dryfield_factory_80189ABC[20];
+extern GpRoomBoundVec D_dryfield_factory_8018A2A4[20];
+extern GpRoomCoordSet D_dryfield_factory_8018A28C[1];
+
+void func_dryfield_factory_8018169C(Task *);
+void func_dryfield_factory_80181718(Task *);
+void func_dryfield_factory_80181768(Task *);
+
+TaskDesc D_dryfield_factory_801826B0 = { 0, 32, func_dryfield_factory_8017D85C, { .model = NULL } };
+
+TaskDesc D_dryfield_factory_801826BC[2] = {
+    { 0, 32, func_dryfield_factory_8017DD00, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_dryfield_factory_801826D4[6] = {
+    { 5102, func_dryfield_factory_8017DB08 },
+    { 5105, func_dryfield_factory_8017DDA0 },
+    { 5104, func_dryfield_factory_8017DDA8 },
+    { 5106, func_dryfield_factory_8017DEA8 },
+    { 5103, func_dryfield_factory_8017DF14 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TmdBone D_dryfield_factory_80182704[1] = {
+#include "assets/dryfield_factory_model_091F0_skeleton.inc"
+};
+
+u32 D_dryfield_factory_80182728[1] = {
+#include "assets/dryfield_factory_model_091F0_partVerts.inc"
+};
+
+SVECTOR D_dryfield_factory_8018272C[306] = {
+#include "assets/dryfield_factory_model_091F0_verts.inc"
+};
+
+SVECTOR D_dryfield_factory_801830BC[353] = {
+#include "assets/dryfield_factory_model_091F0_normals.inc"
+};
+
+u32 D_dryfield_factory_80183BC4[2811] = {
+#include "assets/dryfield_factory_model_091F0_stream.inc"
+};
+
+TmdSource D_dryfield_factory_801867B0 = {
+    0, 19284, 0, 1,
+    D_dryfield_factory_80182728, D_dryfield_factory_8018272C, D_dryfield_factory_801830BC, D_dryfield_factory_80182704, D_dryfield_factory_80183BC4,
+};
+
+TmdBone D_dryfield_factory_801867D4[1] = {
+#include "assets/dryfield_factory_model_09610_skeleton.inc"
+};
+
+u32 D_dryfield_factory_801867F8[1] = {
+#include "assets/dryfield_factory_model_09610_partVerts.inc"
+};
+
+SVECTOR D_dryfield_factory_801867FC[25] = {
+#include "assets/dryfield_factory_model_09610_verts.inc"
+};
+
+SVECTOR D_dryfield_factory_801868C4[28] = {
+#include "assets/dryfield_factory_model_09610_normals.inc"
+};
+
+u32 D_dryfield_factory_801869A4[139] = {
+#include "assets/dryfield_factory_model_09610_stream.inc"
+};
+
+TmdSource D_dryfield_factory_80186BD0 = {
+    0, 856, 0, 1,
+    D_dryfield_factory_801867F8, D_dryfield_factory_801867FC, D_dryfield_factory_801868C4, D_dryfield_factory_801867D4, D_dryfield_factory_801869A4,
+};
+
+SVECTOR D_dryfield_factory_80186BF4[2] = {
+    { 0, 0, 4096, 0 },
+    { 0, 0, -4096, 0 },
+};
+
+SVECTOR D_dryfield_factory_80186C04[8] = {
+    { 6500, 286, 4350, 0 },
+    { 6500, -3308, 4350, 0 },
+    { 4464, -3308, 4350, 0 },
+    { 4464, 286, 4350, 0 },
+    { 4464, 286, 3949, 0 },
+    { 4464, -3308, 3949, 0 },
+    { 6500, -3308, 3949, 0 },
+    { 6500, 286, 3949, 0 },
+};
+
+GpGridFace D_dryfield_factory_80186C44[2] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+};
+
+s16 D_dryfield_factory_80186C5C[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 * D_dryfield_factory_80186C64[1] = {
+    D_dryfield_factory_80186C5C,
+};
+
+GpGridParams D_dryfield_factory_80186C68 = { NULL, D_dryfield_factory_80186BF4, D_dryfield_factory_80186C04, D_dryfield_factory_80186C44, D_dryfield_factory_80186C64, -4464, -3949, 1, 1, 4000, 2 };
+
+SVECTOR D_dryfield_factory_80186C8C[4] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_dryfield_factory_80186CAC[8] = {
+    { -750, 0, 1950, 0 },
+    { -750, -1100, 1950, 0 },
+    { -750, -1100, -2191, 0 },
+    { -750, 0, -2191, 0 },
+    { 750, -1100, -2191, 0 },
+    { 750, 0, -2191, 0 },
+    { 750, -1100, 1950, 0 },
+    { 750, 0, 1950, 0 },
+};
+
+GpGridFace D_dryfield_factory_80186CEC[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_dryfield_factory_80186D1C[5] = {
+    0,
+    1,
+    2,
+    3,
+    -1,
+};
+
+s16 D_dryfield_factory_80186D28[4] = {
+    0,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_dryfield_factory_80186D30[2] = {
+    D_dryfield_factory_80186D1C,
+    D_dryfield_factory_80186D28,
+};
+
+GpGridParams D_dryfield_factory_80186D38 = { NULL, D_dryfield_factory_80186C8C, D_dryfield_factory_80186CAC, D_dryfield_factory_80186CEC, D_dryfield_factory_80186D30, 750, 2191, 1, 2, 4000, 4 };
+
+SVECTOR D_dryfield_factory_80186D5C[4] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_dryfield_factory_80186D7C[8] = {
+    { -750, 0, 3050, 0 },
+    { -750, -1100, 3050, 0 },
+    { -750, -1100, -1950, 0 },
+    { -750, 0, -1950, 0 },
+    { 750, -1100, -1950, 0 },
+    { 750, 0, -1950, 0 },
+    { 750, -1100, 3050, 0 },
+    { 750, 0, 3050, 0 },
+};
+
+GpGridFace D_dryfield_factory_80186DBC[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_dryfield_factory_80186DEC[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 D_dryfield_factory_80186DF4[4] = {
+    0,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_dryfield_factory_80186DFC[2] = {
+    D_dryfield_factory_80186DEC,
+    D_dryfield_factory_80186DF4,
+};
+
+GpGridParams D_dryfield_factory_80186E04 = { NULL, D_dryfield_factory_80186D5C, D_dryfield_factory_80186D7C, D_dryfield_factory_80186DBC, D_dryfield_factory_80186DFC, 750, 1950, 1, 2, 4000, 4 };
+
+TaskDesc D_dryfield_factory_80186E28[8] = {
+    { 0, 192, func_dryfield_factory_8017FC18, { .model = NULL } },
+    { 0, 192, func_dryfield_factory_801807DC, { .model = NULL } },
+    { 0, 192, func_dryfield_factory_80180920, { .model = NULL } },
+    { 0, 192, func_dryfield_factory_8017FDDC, { .model = NULL } },
+    { 1, 192, func_dryfield_factory_8018072C, { .model = &D_dryfield_factory_801867B0 } },
+    { 2, 192, func_dryfield_factory_8018001C, { .model = NULL } },
+    { 0, 192, func_dryfield_factory_80180964, { .model = NULL } },
+    { 1, 192, func_dryfield_factory_80180784, { .model = &D_dryfield_factory_80186BD0 } },
+};
+
+TaskDesc D_dryfield_factory_80186E88[1] = {
+    { 0, 192, func_dryfield_factory_80181718, { .model = NULL } },
+};
+
+TaskDesc D_dryfield_factory_80186E94[1] = {
+    { 0, 192, func_dryfield_factory_8018169C, { .model = NULL } },
+};
+
+FactoryControlMessageEntry D_dryfield_factory_80186EA0[2] = {
+    { 5107, func_dryfield_factory_80181768 },
+    { 0x7FFFFFFF, NULL },
+};
+
+OverlayHotspot D_dryfield_factory_80186EB0[6] = {
+    { -68, -63, 16, 16, 0, 1, 0 },
+    { -27, -63, 16, 16, 1, 1, 0 },
+    { 13, -63, 16, 16, 2, 1, 0 },
+    { 46, -80, 34, 32, 3, 0, 0 },
+    { -38, 0, 72, 48, 4, 0, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+SVECTOR D_dryfield_factory_80186EF8 = { 395, -1630, 846, 0 };
+
+SVECTOR D_dryfield_factory_80186F00 = { 5910, -1308, 5649, 0 };
+
+SVECTOR D_dryfield_factory_80186F08 = { 5910, -1404, 5649, 0 };
+
+GpRoomObjRec D_dryfield_factory_80186F10[2] = {
+    { &D_dryfield_factory_80187BF8, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
+    { &D_dryfield_factory_80187BF8, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
+};
+
+u8 D_dryfield_factory_80186F30[20] = {
+    1,
+    13,
+    14,
+    15,
+    5,
+    16,
+    17,
+    8,
+    9,
+    10,
+    11,
+    12,
+    2,
+    3,
+    4,
+    6,
+    7,
+    18,
+    19,
+    0,
+};
+
+u8 * D_dryfield_factory_80186F44[2] = {
+    D_8010CAF8,
+    D_dryfield_factory_80186F30,
+};
+
+GpRoomCoordRec D_dryfield_factory_80186F4C[2] = {
+    { D_dryfield_factory_8018A28C, D_dryfield_factory_8018A2A4 },
+    { D_dryfield_factory_8018A28C, D_dryfield_factory_8018A2A4 },
+};
+
+GpViewCountRec D_dryfield_factory_80186F5C[2] = {
+    { { .bytes = { 19, 0 } } },
+    { { .bytes = { 19, 0 } } },
+};
+
+GpWarpRec D_dryfield_factory_80186F60[3] = {
+    { { .words = { 3072, 5178, 0, 1454 } }, { 0, 0, 0, 0 }, { .words = { 1024, 4530, 0, 1200 } }, { 0, 0, 0, 0 }, 0x52170002, 0x52170001, 0, 2, 0, 474 },
+    { { .words = { 1024, 642, 0, 7493 } }, { 0, 0, 0, 0 }, { .words = { 1024, 4530, 0, 1200 } }, { 0, 0, 0, 0 }, 0x52170004, 0x52170003, 0x52170005, 7, 0, 475 },
+    { { .words = { 3072, 5445, 0, 6866 } }, { 0, 0, 0, 0 }, { .words = { 2048, 5420, 0, 6000 } }, { 0, 0, 0, 0 }, 0x52170014, 0x52170006, 0, 6, 2, 473 },
+};
+
+SVECTOR D_dryfield_factory_80187008[28] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, -1936, -3610, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 2048, 0, -3547, 0 },
+    { 4096, 0, 0, 0 },
+    { 546, 0, -4059, 0 },
+    { 4094, 0, -140, 0 },
+    { -3577, 0, 1996, 0 },
+    { -1138, 0, 3935, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -3193, 0, 2565, 0 },
+    { 0, -1936, 3610, 0 },
+    { -1, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -3974, 0, 993, 0 },
+    { -835, 0, 4010, 0 },
+    { 0, 0, 4096, 0 },
+    { -4094, 0, 126, 0 },
+    { -3563, 0, 2021, 0 },
+    { 1832, 0, 3664, 0 },
+    { 1177, 0, -3923, 0 },
+};
+
+SVECTOR D_dryfield_factory_801870E8[170] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 2400, -1207, 6252, 0 },
+    { 2400, -1828, 6585, 0 },
+    { 4750, -1828, 6585, 0 },
+    { 4750, -1207, 6252, 0 },
+    { 700, -2100, 3950, 0 },
+    { 700, -3500, 3950, 0 },
+    { 1700, -3500, 3950, 0 },
+    { 1700, -2100, 3950, 0 },
+    { 4750, -1207, 5609, 0 },
+    { 2400, -1207, 5610, 0 },
+    { 6444, 0, 8733, 0 },
+    { 4950, 0, 8733, 0 },
+    { 4950, 0, 0x2F99, 0 },
+    { 6444, 0, 0x2F99, 0 },
+    { 4950, 0, 4741, 0 },
+    { 6444, 0, 4741, 0 },
+    { 6444, 0, -222, 0 },
+    { 4950, 0, -222, 0 },
+    { 2267, 0, 4741, 0 },
+    { 2267, 0, -222, 0 },
+    { 2267, 0, 8733, 0 },
+    { 2267, 0, 0x2F99, 0 },
+    { -444, 0, 4741, 0 },
+    { -444, 0, -222, 0 },
+    { -444, 0, 8733, 0 },
+    { -444, 0, 0x2F99, 0 },
+    { 808, 200, 9858, 0 },
+    { 808, -2391, 9858, 0 },
+    { 2672, -2391, 0x2AB7, 0 },
+    { 2672, 200, 0x2AB7, 0 },
+    { 4750, 200, 6728, 0 },
+    { 4750, -1207, 7473, 0 },
+    { 4750, -1207, 7950, 0 },
+    { 4750, 200, 7950, 0 },
+    { -169, 200, 8006, 0 },
+    { -169, -1200, 8006, 0 },
+    { 1000, -1200, 8163, 0 },
+    { 1000, 200, 8163, 0 },
+    { 1148, -1200, 0x30CC, 0 },
+    { 1148, 200, 0x30CC, 0 },
+    { 3980, 200, 9150, 0 },
+    { 3980, -1456, 9150, 0 },
+    { 3059, -1456, 7500, 0 },
+    { 3059, 200, 7500, 0 },
+    { 6111, -1456, 7500, 0 },
+    { 6111, 200, 7500, 0 },
+    { 400, 200, -56, 0 },
+    { 400, -1838, -56, 0 },
+    { 400, -1838, 2007, 0 },
+    { 400, 200, 2007, 0 },
+    { 6162, 200, 9780, 0 },
+    { 6162, -1456, 9780, 0 },
+    { 2400, -1207, 7473, 0 },
+    { 2400, -1828, 7139, 0 },
+    { 4750, -1828, 7139, 0 },
+    { 600, 200, 2717, 0 },
+    { 600, -1200, 2717, 0 },
+    { 600, -1200, 4259, 0 },
+    { 600, 200, 4259, 0 },
+    { 4500, -2100, 3950, 0 },
+    { 4500, 200, 3950, 0 },
+    { 1700, 200, 3950, 0 },
+    { 1505, -1200, 0x2E87, 0 },
+    { 6867, -1200, 0x2E87, 0 },
+    { 6668, -1200, 0x2A65, 0 },
+    { 1747, -1200, 0x2A65, 0 },
+    { 1747, 200, 0x2A65, 0 },
+    { 6668, 200, 0x2A65, 0 },
+    { 4500, 200, 4750, 0 },
+    { 4500, -1361, 4750, 0 },
+    { 1800, -1361, 4750, 0 },
+    { 1800, 200, 4750, 0 },
+    { 4500, -2100, 4350, 0 },
+    { 4500, 200, 4350, 0 },
+    { 2400, 200, 6976, 0 },
+    { 2400, 200, 5610, 0 },
+    { 6040, 200, 0x2B81, 0 },
+    { 6040, -1920, 0x2B81, 0 },
+    { 5825, -1920, 0x2A75, 0 },
+    { 5825, 200, 0x2A75, 0 },
+    { 5825, -1920, 8988, 0 },
+    { 5825, 200, 8988, 0 },
+    { 3997, -1888, 1982, 0 },
+    { 6132, -1888, 1982, 0 },
+    { 6132, -1, 1982, 0 },
+    { 3997, -1, 1982, 0 },
+    { 2400, 200, 7950, 0 },
+    { 2400, -1207, 7950, 0 },
+    { 4500, -3500, 3950, 0 },
+    { 4500, -3500, 4350, 0 },
+    { 5799, -4500, 4250, 0 },
+    { 5799, -4500, 0, 0 },
+    { 5799, 0, 0, 0 },
+    { 5799, 0, 4250, 0 },
+    { 6000, -4500, 4250, 0 },
+    { 6000, 0, 4250, 0 },
+    { 6000, 0, 4100, 0 },
+    { 6000, 0, 0x2EE0, 0 },
+    { 6000, -4500, 0x2EE0, 0 },
+    { 6000, -4500, 4100, 0 },
+    { 4750, 200, 5609, 0 },
+    { 4500, -1363, 4350, 0 },
+    { 0, -4500, 0x2E40, 0 },
+    { 6000, -4500, 0x2E40, 0 },
+    { 6000, 0, 0x2E40, 0 },
+    { 0, 0, 0x2E40, 0 },
+    { 700, 200, 3950, 0 },
+    { 700, -2100, 4350, 0 },
+    { 700, 200, 4350, 0 },
+    { 171, -4500, 0, 0 },
+    { 171, -4500, 0x2EE0, 0 },
+    { 171, 0, 0x2EE0, 0 },
+    { 171, 0, 0, 0 },
+    { 1700, -1363, 4350, 0 },
+    { 1700, 200, 4350, 0 },
+    { 6140, -1, 3391, 0 },
+    { 6140, -1888, 3391, 0 },
+    { 4027, -1888, 2951, 0 },
+    { 4027, -1, 2951, 0 },
+    { 6000, -4500, 172, 0 },
+    { 0, -4500, 172, 0 },
+    { 0, 0, 172, 0 },
+    { 6000, 0, 172, 0 },
+    { 6342, 200, 682, 0 },
+    { 6342, -2334, 682, 0 },
+    { 2770, -2334, 682, 0 },
+    { 2770, 200, 682, 0 },
+    { 2270, -2334, -200, 0 },
+    { 2270, 200, -200, 0 },
+    { 1700, -2100, 4350, 0 },
+    { 1700, -3500, 4350, 0 },
+    { 700, -3500, 4350, 0 },
+    { -50, -2100, 3950, 0 },
+    { -50, -3500, 3950, 0 },
+    { -50, 200, 3950, 0 },
+    { -50, -3500, 4350, 0 },
+    { -50, -2100, 4350, 0 },
+    { -50, 200, 4350, 0 },
+    { 900, 0, 2700, 0 },
+    { 900, -1900, 2700, 0 },
+    { -100, -1900, 3200, 0 },
+    { -100, 0, 3200, 0 },
+    { -100, 0, 1700, 0 },
+    { -100, -1900, 1700, 0 },
+    { 900, -1900, 2000, 0 },
+    { 900, 0, 2000, 0 },
+};
+
+GpGridFace D_dryfield_factory_80187638[72] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 25, 26, 24, 27 }, 6, 0 },
+    { { 29, 30, 28, 31 }, 7, 0 },
+    { { 32, 33, 27, 24 }, 8, 0 },
+    { { 35, 36, 34, 37 }, 8, 2 },
+    { { 39, 40, 38, 41 }, 8, 2 },
+    { { 38, 35, 39, 34 }, 8, 2 },
+    { { 38, 41, 42, 43 }, 8, 2 },
+    { { 42, 44, 38, 35 }, 8, 3 },
+    { { 44, 45, 35, 36 }, 8, 2 },
+    { { 42, 43, 46, 47 }, 8, 2 },
+    { { 46, 48, 42, 44 }, 8, 2 },
+    { { 48, 49, 44, 45 }, 8, 2 },
+    { { 51, 52, 50, 53 }, 9, 0 },
+    { { 55, 56, 54, 57 }, 10, 0 },
+    { { 59, 60, 58, 61 }, 11, 0 },
+    { { 60, 62, 61, 63 }, 12, 0 },
+    { { 65, 66, 64, 67 }, 13, 0 },
+    { { 66, 68, 67, 69 }, 7, 0 },
+    { { 71, 72, 70, 73 }, 10, 0 },
+    { { 75, 65, 74, 64 }, 14, 0 },
+    { { 76, 77, 24, 25 }, 15, 0 },
+    { { 27, 26, 55, 78 }, 10, 0 },
+    { { 80, 81, 79, 82 }, 10, 0 },
+    { { 84, 85, 83, 31 }, 7, 0 },
+    { { 87, 88, 86, 89 }, 8, 0 },
+    { { 89, 88, 90, 91 }, 7, 0 },
+    { { 93, 94, 92, 95 }, 16, 0 },
+    { { 97, 84, 96, 83 }, 10, 0 },
+    { { 24, 33, 98, 99 }, 15, 0 },
+    { { 101, 102, 100, 103 }, 17, 0 },
+    { { 102, 104, 103, 105 }, 15, 0 },
+    { { 107, 108, 106, 109 }, 7, 0 },
+    { { 98, 76, 24, 0xFFFF }, 15, 0 },
+    { { 98, 110, 76, 111 }, 15, 0 },
+    { { 55, 54, 27, 0xFFFF }, 10, 0 },
+    { { 112, 113, 83, 96 }, 10, 0 },
+    { { 115, 116, 114, 117 }, 15, 0 },
+    { { 78, 77, 55, 76 }, 18, 0 },
+    { { 114, 117, 118, 119 }, 16, 0 },
+    { { 121, 122, 120, 123 }, 15, 0 },
+    { { 54, 124, 27, 32 }, 10, 0 },
+    { { 125, 93, 97, 92 }, 10, 0 },
+    { { 127, 128, 126, 129 }, 7, 0 },
+    { { 28, 131, 130, 132 }, 10, 0 },
+    { { 33, 32, 99, 124 }, 19, 0 },
+    { { 134, 135, 133, 136 }, 20, 0 },
+    { { 94, 137, 95, 138 }, 21, 0 },
+    { { 140, 141, 139, 142 }, 22, 0 },
+    { { 144, 145, 143, 146 }, 23, 0 },
+    { { 141, 106, 142, 109 }, 24, 0 },
+    { { 111, 56, 76, 55 }, 8, 0 },
+    { { 148, 149, 147, 150 }, 16, 0 },
+    { { 152, 150, 151, 149 }, 25, 0 },
+    { { 56, 111, 57, 110 }, 16, 0 },
+    { { 154, 155, 153, 131 }, 16, 0 },
+    { { 157, 29, 156, 28 }, 7, 0 },
+    { { 130, 158, 28, 156 }, 7, 0 },
+    { { 155, 159, 131, 160 }, 16, 0 },
+    { { 161, 132, 160, 131 }, 16, 0 },
+    { { 85, 138, 31, 153 }, 15, 0 },
+    { { 138, 97, 153, 96 }, 16, 0 },
+    { { 113, 154, 96, 153 }, 16, 0 },
+    { { 30, 112, 31, 83 }, 7, 0 },
+    { { 163, 164, 162, 165 }, 26, 0 },
+    { { 167, 168, 166, 169 }, 27, 0 },
+    { { 168, 163, 169, 162 }, 10, 0 },
+};
+
+s16 D_dryfield_factory_80187998[44] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    10,
+    12,
+    13,
+    15,
+    16,
+    24,
+    28,
+    29,
+    32,
+    33,
+    34,
+    37,
+    41,
+    47,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    57,
+    58,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    -1,
+};
+
+s16 D_dryfield_factory_801879F0[58] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    26,
+    27,
+    28,
+    29,
+    32,
+    33,
+    34,
+    38,
+    39,
+    40,
+    41,
+    43,
+    46,
+    47,
+    49,
+    50,
+    51,
+    52,
+    53,
+    55,
+    56,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    -1,
+};
+
+s16 D_dryfield_factory_80187A64[35] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    11,
+    13,
+    14,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    25,
+    26,
+    27,
+    30,
+    31,
+    34,
+    38,
+    39,
+    40,
+    43,
+    48,
+    51,
+    56,
+    59,
+    -1,
+};
+
+s16 D_dryfield_factory_80187AAC[16] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    9,
+    14,
+    17,
+    18,
+    21,
+    30,
+    31,
+    48,
+    51,
+    -1,
+};
+
+s16 D_dryfield_factory_80187ACC[32] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    10,
+    11,
+    12,
+    13,
+    15,
+    29,
+    32,
+    33,
+    37,
+    41,
+    42,
+    44,
+    45,
+    46,
+    47,
+    50,
+    53,
+    54,
+    55,
+    57,
+    58,
+    66,
+    67,
+    68,
+    -1,
+};
+
+s16 D_dryfield_factory_80187B0C[48] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    19,
+    22,
+    23,
+    25,
+    26,
+    27,
+    29,
+    32,
+    33,
+    34,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    50,
+    52,
+    53,
+    55,
+    56,
+    59,
+    66,
+    67,
+    68,
+    -1,
 };
 
 /// Idle state of the room's script task. It counts down the delay the prompt
@@ -847,7 +1679,7 @@ static void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// `gGameSession->at4.loc.view` taken as a bit index, and each group also gates on a
 /// story flag, so a disc only appears on the visits and after the event that
 /// the flag records.
-static void func_dryfield_factory_801825F0(Task* task)
+void func_dryfield_factory_801825F0(Task* task)
 {
     s32 state;
 

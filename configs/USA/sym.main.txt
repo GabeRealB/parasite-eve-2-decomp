@@ -1797,9 +1797,9 @@ SquareSL0                   = 0x8004BE28;
 RotMatrixX                  = 0x8004BE58;
 
 //--------------------------------------------------------------------
-//--- PA: 0x3C7F8   VA: 0x8004BDD8   subsegment: o, libgte/fgo_05
+//--- PA: 0x3C7F8   VA: 0x8004BFF8   subsegment: o, libgte/fgo_05
 //--------------------------------------------------------------------
-RotMatrixY                  = 0x8004BDD8;
+RotMatrixY                  = 0x8004BFF8;
 
 //--------------------------------------------------------------------
 //--- PA: 0x3C998   VA: 0x8004C198   subsegment: o, libgte/smp_02
@@ -3269,3 +3269,5 @@ GameFlag_DryfieldFullBanks = 0x80073628; // size:0x48
 GameFlag_ShelterBanks = 0x80073670; // size:0x1C8
 GameFlag_NeoArkBanks = 0x80073838; // size:0x148
 Gp_FlagBanks = 0x80060A30; // size:0x18
+
+D_80067634 = 0x80067634; // size:0x4 defined:True

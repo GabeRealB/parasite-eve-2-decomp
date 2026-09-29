@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/shelter_b1_sleeping_quarters.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -40,7 +41,7 @@ static void func_shelter_b1_sleeping_quarters_8017FF6C(GpCoord* arg0, s32 arg1);
 /// disc while an orange ring expands and drifts off, releasing the work block
 /// once dark, and state 4 releases it at once. It pauses while the room's
 /// event state is set and releases the block when that state reaches 4.
-static void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
+void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -79,7 +80,7 @@ static void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player = gameGetPtrSlot(3);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], (s32)coord, NULL);
+                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -156,7 +157,7 @@ static void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
 /// frame by it, drawing a sparkle on every other tick with an advancing
 /// animation frame. The work block is released after 20 ticks, or when the
 /// room's event state reaches 4; the task pauses while that state is set.
-static void func_shelter_b1_sleeping_quarters_8017EC34(Task* task)
+void func_shelter_b1_sleeping_quarters_8017EC34(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -165,7 +166,7 @@ static void func_shelter_b1_sleeping_quarters_8017EC34(Task* task)
 
     work   = task->spawnArg2.pointer;
     coord  = task->extra.tmd->coords;
-    target = (GpCoord*)task->spawnArg1.value;
+    target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
         switch (task->state) {
@@ -379,7 +380,7 @@ static void func_shelter_b1_sleeping_quarters_8017F500(GpCoord* arg0, s32 arg1, 
 /// once that ring is gone the main level falls 0x18 a tick and the work block
 /// is released. It pauses while the room's event state is set and releases
 /// the block when that state reaches 4.
-static void func_shelter_b1_sleeping_quarters_8017F894(Task* arg0)
+void func_shelter_b1_sleeping_quarters_8017F894(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;

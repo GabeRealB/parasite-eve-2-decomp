@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b1_transfer_tunnel.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -30,7 +32,23 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "actors/task_tables.h"
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+extern SVECTOR D_shelter_b1_transfer_tunnel_80182944[2];
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16 retained;
+} ShelterB1TransferTunnelHaloStorage;
+STATIC_ASSERT_SIZEOF(ShelterB1TransferTunnelHaloStorage, 20);
+extern ShelterB1TransferTunnelHaloStorage D_shelter_b1_transfer_tunnel_80182930;
 
 /// The room's message table, installed in `Task::msgTable` by
 /// `func_shelter_b1_transfer_tunnel_8017D62C`.
@@ -43,13 +61,10 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 
 /// Per-palette right shifts that turn the halo's level into its red, green
 /// and blue channels.
-extern RoomHaloShade D_shelter_b1_transfer_tunnel_80182930[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the effect's own
 /// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
 /// under its own name.
-extern SVECTOR D_shelter_b1_transfer_tunnel_80182944[];
-extern SVECTOR D_shelter_b1_transfer_tunnel_8018294C;
 
 static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
 static void func_shelter_b1_transfer_tunnel_8017D670(Task* task);
@@ -73,26 +88,300 @@ static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
     { func_shelter_b1_transfer_tunnel_8017D62C, func_shelter_b1_transfer_tunnel_8017D670, taskKill }
 };
 
-s32 func_shelter_b1_transfer_tunnel_8017D5D0(void)
+s32 func_shelter_b1_transfer_tunnel_8017D5D0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_transfer_tunnel_8017D61C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_transfer_tunnel_8017D624(Task *, s32, GpMessageArg, GpMessageArg);
+
+GpMsgEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
+    { 5102, func_shelter_b1_transfer_tunnel_8017D5D8 },
+    { 5105, func_shelter_b1_transfer_tunnel_8017D5D0 },
+    { 5103, func_shelter_b1_transfer_tunnel_8017D624 },
+    { 5104, func_shelter_b1_transfer_tunnel_8017D61C },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_shelter_b1_transfer_tunnel_801828E8[2] = {
+    { 5017, -196, 1184, 0 },
+    { 4172, -196, 1184, 0 },
+};
+
+SVECTOR D_shelter_b1_transfer_tunnel_801828F8[7] = {
+    { 2313, -196, 1184, 0 },
+    { 1527, -196, 1184, 0 },
+    { 5017, -196, -1028, 0 },
+    { 4172, -196, -1028, 0 },
+    { 2313, -196, -1028, 0 },
+    { 1527, -196, -1028, 0 },
+    { 6559, -1206, -1163, 0 },
+};
+
+ShelterB1TransferTunnelHaloStorage D_shelter_b1_transfer_tunnel_80182930 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 31 };
+
+// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
+SVECTOR D_shelter_b1_transfer_tunnel_80182944[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+u8 * D_shelter_b1_transfer_tunnel_80182954[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b1_transfer_tunnel_80182958[1] = {
+    { { .bytes = { 4, 0 } } },
+};
+
+GpWarpRec D_shelter_b1_transfer_tunnel_8018295C[2] = {
+    { { .words = { 3072, 6214, 0, 60 } }, { 0, 0, 0, 0 }, { .words = { 3072, 5570, 0, 20 } }, { 0, 0, 0, 0 }, 0x54180002, 0x54180001, 0, 2, 0, 454 },
+    { { .words = { 1024, 971, 0, 18 } }, { 0, 0, 0, 0 }, { .words = { 1024, 971, 0, 18 } }, { 0, 0, 0, 0 }, 0x54180004, 0x54180003, 0, 4, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_transfer_tunnel_801829CC[6] = {
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_shelter_b1_transfer_tunnel_801829FC[12] = {
+    { 363, -2143, 977, 0 },
+    { 363, 1000, 977, 0 },
+    { 363, 1000, -807, 0 },
+    { 363, -2143, -807, 0 },
+    { 6836, 1000, -807, 0 },
+    { 6836, -2143, -807, 0 },
+    { 6836, 1000, 977, 0 },
+    { 6836, -2143, 977, 0 },
+    { -642, 0, 2339, 0 },
+    { 8024, 0, 2339, 0 },
+    { 8024, 0, -1736, 0 },
+    { -642, 0, -1736, 0 },
+};
+
+GpGridFace D_shelter_b1_transfer_tunnel_80182A5C[6] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+    { { 0, 3, 7, 5 }, 4, 0 },
+    { { 9, 10, 8, 11 }, 5, 1 },
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AA4[6] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    -1,
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AB0[2] = {
+    5,
+    -1,
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AB4[6] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    -1,
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AC0[2] = {
+    5,
+    -1,
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AC4[6] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    -1,
+};
+
+s16 D_shelter_b1_transfer_tunnel_80182AD0[2] = {
+    5,
+    -1,
+};
+
+s16 * D_shelter_b1_transfer_tunnel_80182AD4[6] = {
+    D_shelter_b1_transfer_tunnel_80182AA4,
+    D_shelter_b1_transfer_tunnel_80182AB0,
+    D_shelter_b1_transfer_tunnel_80182AB4,
+    D_shelter_b1_transfer_tunnel_80182AC0,
+    D_shelter_b1_transfer_tunnel_80182AC4,
+    D_shelter_b1_transfer_tunnel_80182AD0,
+};
+
+GpGridParams D_shelter_b1_transfer_tunnel_80182AEC = { NULL, D_shelter_b1_transfer_tunnel_801829CC, D_shelter_b1_transfer_tunnel_801829FC, D_shelter_b1_transfer_tunnel_80182A5C, D_shelter_b1_transfer_tunnel_80182AD4, 642, 1736, 3, 2, 4000, 6 };
+
+GpViewRec D_shelter_b1_transfer_tunnel_80182B10[4] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3722, 8164, -144 } }, 235 },
+    { { { { 440, 0, -4072 }, { -84, 4095, -9 }, { 4071, 85, 439 } }, { -3438, 1111, 45 } }, 225 },
+    { { { { 510, 0, -4064 }, { 176, 4092, 22 }, { 4060, -177, 510 } }, { -982, 799, 335 } }, 235 },
+    { { { { 1227, 0, 3907 }, { -265, 4086, 83 }, { -3898, -278, 1224 } }, { -4511, 770, 374 } }, 235 },
+};
+
+GpSprtCmd D_shelter_b1_transfer_tunnel_80182BA0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_transfer_tunnel_80182BB0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_transfer_tunnel_80182BC0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b1_transfer_tunnel_80182BD0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b1_transfer_tunnel_80182BE0[4] = {
+    { { .empty = D_shelter_b1_transfer_tunnel_80182BA0 }, D_shelter_b1_transfer_tunnel_80182BA0, NULL },
+    { { .empty = D_shelter_b1_transfer_tunnel_80182BB0 }, D_shelter_b1_transfer_tunnel_80182BB0, NULL },
+    { { .empty = D_shelter_b1_transfer_tunnel_80182BC0 }, D_shelter_b1_transfer_tunnel_80182BC0, NULL },
+    { { .empty = D_shelter_b1_transfer_tunnel_80182BD0 }, D_shelter_b1_transfer_tunnel_80182BD0, NULL },
+};
+
+GpPointLight D_shelter_b1_transfer_tunnel_80182C10[4] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5609, -223, 118 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2498, 2539, 2560, { 0, 0 } }, 799, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3663, -526, 7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2720, 2900, 3122, { 0, 0 } }, 1460, 3061 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2537, -85, -1 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2416, 2539, 2560, { 0, 0 } }, 1721, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1219, -223, -250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2498, 2539, 2560, { 0, 0 } }, 1101, 2000 },
+};
+
+GpRoomCoordSet D_shelter_b1_transfer_tunnel_80182D90 = { 0, NULL, 4, D_shelter_b1_transfer_tunnel_80182C10, 0, NULL };
+
+GpObj4C D_shelter_b1_transfer_tunnel_80182DA8[4] = {
+    { NULL, NULL, NULL, { 5257, -576, 234, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 5441, -576, 272, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 2784, -512, 160, 0 }, { { -164, -2016, 2742, 0 }, { 165, -2016, -2742, 0 }, { -164, 2016, 2742, 0 }, { 165, 2016, -2742, 0 } }, { -4100, 0, -247, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 2560, -576, 128, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 3, 4, 129, 0 },
+};
+
+GpObj4C D_shelter_b1_transfer_tunnel_80182ED8[2] = {
+    { NULL, NULL, NULL, { 6416, -48, 160, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1180, 0, 15, 20, 2, 0 },
+    { NULL, NULL, NULL, { 864, -48, 96, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { 4096, 0, 0, 0 }, 1180, 0, 19, 36, 130, 0 },
+};
+
+GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F70[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 3, 3, 1, 0, { 0, 0 }, D_80160110 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F94[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b1_transfer_tunnel_80182FB8[8] = {
+    { 21, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
+    { 21, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
+    { 21, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
+    { 21, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
+    { 21, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
+    { 21, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
+    { 3, 0, 0, 4500, 0, 80, 3072, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b1_transfer_tunnel_80183038[8] = {
+    { 21, 3, 0, 600, -1900, 770, 1024, 0, 0, 2, 4 },
+    { 21, 3, 0, 600, -1900, -700, 1024, 0, 0, 2, 4 },
+    { 21, 1, 0, 1900, -1900, 970, 2048, 0, 0, 2, 2 },
+    { 21, 1, 0, 1900, -1900, -800, 0, 0, 0, 2, 2 },
+    { 21, 1, 0, 2700, -1900, 970, 2048, 0, 0, 2, 1 },
+    { 21, 1, 0, 2700, -1900, -800, 0, 0, 0, 2, 1 },
+    { 23, 4, 1, 1500, 0, 0, 1024, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b1_transfer_tunnel_801830B8[22] = {
+    { NULL, NULL },
+    { D_shelter_b1_transfer_tunnel_80182FB8, D_shelter_b1_transfer_tunnel_80182F70 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b1_transfer_tunnel_80183038, D_shelter_b1_transfer_tunnel_80182F94 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+s32 D_shelter_b1_transfer_tunnel_80183168[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b1_transfer_tunnel_80183174[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b1_transfer_tunnel_8018317C[1] = {
+    { 0, 0, 1, 0, D_shelter_b1_transfer_tunnel_80183168 },
+};
+
+GpRoomParamRec * D_shelter_b1_transfer_tunnel_80183184[8] = {
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_8018317C,
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_80183174,
+    D_shelter_b1_transfer_tunnel_80183174,
+};
+
+s32 func_shelter_b1_transfer_tunnel_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `func_80179A04` and returns 1.
-s32 func_shelter_b1_transfer_tunnel_8017D5D8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// passes both to `func_map_shelter_80179A04` and returns 1.
+s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
-s32 func_shelter_b1_transfer_tunnel_8017D61C(void)
+s32 func_shelter_b1_transfer_tunnel_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_transfer_tunnel_8017D624(void)
+s32 func_shelter_b1_transfer_tunnel_8017D624(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -124,7 +413,7 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
 /// On its first tick stores seven effect ids in gameplay's `D_801157xx`
 /// slots; every tick then draws the room's gouraud cones and discs for
 /// the current camera view (views 2, 3 and 4).
-static void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
+void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
 {
     u8 view;
 
@@ -351,7 +640,7 @@ static void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
 /// out). Each tick moves the coordinate vertically and draws every other
 /// tick; the work block is released once dark, or when the room's event
 /// state reaches 4.
-static void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
+void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -608,7 +897,7 @@ static void func_shelter_b1_transfer_tunnel_8017ECBC(GpCoord* arg0, s16 arg1, u8
 /// argument; state 1 ramps the level up, drawing the halo, a half-bright echo
 /// on odd ticks and a shrinking ring; state 2 fades the afterglow out and then
 /// releases the work block.
-static void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
+void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -652,9 +941,9 @@ static void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].b;
+                rgb[0]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].r;
+                rgb[1]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].g;
+                rgb[2]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].b;
                 func_shelter_b1_transfer_tunnel_8017ECBC(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -672,9 +961,9 @@ static void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].r;
-                    rgb[1] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].g;
-                    rgb[2] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930[mem->index].b;
+                    rgb[0] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].r;
+                    rgb[1] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].g;
+                    rgb[2] = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].b;
                     func_shelter_b1_transfer_tunnel_8017FE38(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
@@ -695,7 +984,7 @@ kill:
 /// the halo and a second ring at the growing angle while a wider, dimmer ring
 /// fades out behind them, releasing the work block once the main level runs
 /// down (or the room's event state reaches 4).
-static void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
+void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1074,7 +1363,7 @@ static void func_shelter_b1_transfer_tunnel_8017FE38(GpCoord* arg0, s16 arg1, u8
 /// growing with age, and spawns the effect `D_80115728` at the task's
 /// coordinate. Releases the work block after 0x15 ticks, or when the room's
 /// event state reaches 4.
-static void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
+void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1111,7 +1400,7 @@ static void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 /// drawing two fans and an inward-shrinking ring in a colour derived from the
 /// level, and queues a fade quad in that colour when it peaks; state 2 fades
 /// out through the star draw before the work block is released.
-static void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
+void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1286,7 +1575,7 @@ static void func_shelter_b1_transfer_tunnel_80180FFC(GpCoord* arg0, s16 arg1, u8
 /// slot of each trail per tick (cycling every eight ticks), updates all
 /// sixteen and draws the ribbon between the two trails. The work block is
 /// released once the tick count reaches the spawn argument.
-static void func_shelter_b1_transfer_tunnel_80181390(Task* task)
+void func_shelter_b1_transfer_tunnel_80181390(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1344,9 +1633,12 @@ static void func_shelter_b1_transfer_tunnel_80181390(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_b1_transfer_tunnel_8018294C.vx;
-                coord.coord.t[1] = D_shelter_b1_transfer_tunnel_8018294C.vy;
-                coord.coord.t[2] = D_shelter_b1_transfer_tunnel_8018294C.vz;
+                {
+                    SVECTOR* edge = &D_shelter_b1_transfer_tunnel_80182944[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1484,7 +1776,7 @@ static void func_shelter_b1_transfer_tunnel_80181880(GpCoord* arg0, GpCoord* arg
 /// jittered sparks (state 1, non-zero spawn argument) or expands a pair of
 /// dimming rings (state 2); both end in state 3 after seven ticks, which
 /// releases the work block, as does the room's event state reaching 4.
-static void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
+void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

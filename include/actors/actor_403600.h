@@ -146,4 +146,6 @@ STATIC_ASSERT_SIZEOF(Actor403600ProjectileWork, 0x15C);
 void func_actor_403600_801320F8(s32 otz);
 void func_actor_403600_80138C68(Task* arg0);
 
+extern u8* D_actor_403600_8016069C;
+
 #endif

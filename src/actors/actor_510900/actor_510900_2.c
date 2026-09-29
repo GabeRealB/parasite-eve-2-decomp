@@ -1,3 +1,6 @@
+#include "actor_510900_private.h"
+#include "rooms/acropolis_helicopter_landing_pad.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -46,6 +49,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
+
+// Only the leading view ID is read; retain the following halfwords.
+extern u16 D_actor_510900_80167CE4[4];
 
 /// 0x10-byte scratch `func_actor_510900_80138F44` takes from `G_SCRATCH_HEAD`
 /// to rebuild the collision face this actor occupies. `center` starts as the
@@ -272,14 +278,412 @@ static void func_actor_510900_8013C430(Task* arg0);
 
 /// The script block pair `Gp_SpawnScript18` is handed at blend 0x58; both live
 /// in the room overlay, not here.
-extern s32 D_80187D34;
-extern s32 D_80187D3C;
-
-void func_80180A64(GpCoord* arg0);
 
 /// `field_59C` reload tables, indexed by four bits of `Gp_LcgState`.
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
+
+extern GpAnimSet D_actor_510900_801597B4;
+extern GpAnimSet D_actor_510900_80159DFC;
+extern GpAnimSet D_actor_510900_80167294;
+extern GpAnimSet D_actor_510900_80167940;
+
+extern TmdSource D_actor_510900_80141B64;
+extern TmdSource D_actor_510900_80141E08;
+extern TmdSource D_actor_510900_80142124;
+extern TmdSource D_actor_510900_80142480;
+extern TmdSource D_actor_510900_801427AC;
+extern TmdSource D_actor_510900_8014313C;
+s16 func_actor_510900_8013BE84(Task *);
+s32 func_actor_510900_801391B8(Task *, s32, s32);
+s32 func_actor_510900_8013BD5C(Task *);
+s32 func_actor_510900_8013BD84(Task *, s32, GpAnimArg *);
+s32 func_actor_510900_8013BE00(Task *, s32, GpXformArg *);
+s32 func_actor_510900_8013BE64(Task *, s32, s32);
+void func_actor_510900_8013B3D0(Task *);
+void func_actor_510900_8013BE98(Task *);
+void func_actor_510900_8013BF90(Task *);
+void func_actor_510900_8013C090(Task *);
+void func_actor_510900_8013C190(Task *);
+void func_actor_510900_8013C1EC(Task *);
+void func_actor_510900_8013C3DC(Task *);
+
+GpU16Pair D_actor_510900_8016796C[5] = {
+    { 24, 6 },
+    { 20, 7 },
+    { 999, 6 },
+    { 0, 2 },
+    { 1, 6 },
+};
+
+GpPairSrcE D_actor_510900_80167980 = { &D_actor_510900_80167968, 1600, 500, 800, 30, 50, 3, 0, 0, 0 };
+
+s16 D_actor_510900_80167990[16] = {
+    2000,
+    2100,
+    2200,
+    2300,
+    2400,
+    2500,
+    2600,
+    2700,
+    2800,
+    2900,
+    3000,
+    3200,
+    3400,
+    3600,
+    3800,
+    4000,
+};
+
+s16 D_actor_510900_801679B0[16] = {
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30,
+    32,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+};
+
+u16 D_actor_510900_801679D0[16] = {
+    5,
+    5,
+    5,
+    5,
+    10,
+    10,
+    10,
+    10,
+    15,
+    15,
+    15,
+    15,
+    20,
+    20,
+    30,
+    30,
+};
+
+u16 D_actor_510900_801679F0[16] = {
+    15,
+    15,
+    15,
+    15,
+    25,
+    25,
+    25,
+    25,
+    35,
+    35,
+    35,
+    35,
+    45,
+    45,
+    45,
+    45,
+};
+
+s16 D_actor_510900_80167A10[4] = {
+    14,
+    12,
+    10,
+    0,
+};
+
+TaskDesc D_actor_510900_80167A18[7] = {
+    { 1, 96, func_actor_510900_8013B3D0, { .model = &D_actor_510900_80141B64 } },
+    { 1, 96, func_actor_510900_8013BE98, { .model = &D_actor_510900_80142124 } },
+    { 1, 96, func_actor_510900_8013BF90, { .model = &D_actor_510900_80141E08 } },
+    { 1, 96, func_actor_510900_8013C090, { .model = &D_actor_510900_80142480 } },
+    { 1, 96, func_actor_510900_8013C190, { .model = &D_actor_510900_801427AC } },
+    { 1, 96, func_actor_510900_8013C1EC, { .model = &D_actor_510900_8014313C } },
+    { 2, 96, func_actor_510900_8013C3DC, { .model = NULL } },
+};
+
+Actor510900MessageEntry D_actor_510900_80167A6C[7] = {
+    { 2014, { .call1 = func_actor_510900_8013BD5C } },
+    { 2003, { .call2 = func_actor_510900_8013BD84 } },
+    { 2004, { .call3 = func_actor_510900_8013BE00 } },
+    { 2005, { .call4 = func_actor_510900_8013BE64 } },
+    { 2007, { .call4 = func_actor_510900_801391B8 } },
+    { 2006, { .call0 = func_actor_510900_8013BE84 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+u8 D_actor_510900_80167AA4[136] = {
+    0,
+    0,
+    0,
+    0,
+    224,
+    58,
+    20,
+    128,
+    216,
+    61,
+    20,
+    128,
+    208,
+    71,
+    20,
+    128,
+    164,
+    86,
+    20,
+    128,
+    192,
+    96,
+    20,
+    128,
+    108,
+    108,
+    20,
+    128,
+    252,
+    144,
+    20,
+    128,
+    216,
+    154,
+    20,
+    128,
+    0,
+    165,
+    20,
+    128,
+    124,
+    169,
+    20,
+    128,
+    112,
+    192,
+    20,
+    128,
+    180,
+    199,
+    20,
+    128,
+    200,
+    221,
+    20,
+    128,
+    200,
+    233,
+    20,
+    128,
+    136,
+    246,
+    20,
+    128,
+    140,
+    3,
+    21,
+    128,
+    156,
+    13,
+    21,
+    128,
+    124,
+    33,
+    21,
+    128,
+    92,
+    39,
+    21,
+    128,
+    4,
+    50,
+    21,
+    128,
+    196,
+    53,
+    21,
+    128,
+    148,
+    62,
+    21,
+    128,
+    24,
+    66,
+    21,
+    128,
+    72,
+    95,
+    21,
+    128,
+    8,
+    110,
+    21,
+    128,
+    200,
+    133,
+    21,
+    128,
+    216,
+    145,
+    21,
+    128,
+    136,
+    190,
+    21,
+    128,
+    32,
+    214,
+    21,
+    128,
+    252,
+    7,
+    22,
+    128,
+    36,
+    218,
+    21,
+    128,
+    224,
+    66,
+    22,
+    128,
+    204,
+    113,
+    22,
+    128,
+};
+
+GpAnimSet * D_actor_510900_80167B2C[3] = {
+    NULL,
+    &D_actor_510900_801597B4,
+    &D_actor_510900_80159DFC,
+};
+
+s16 D_actor_510900_80167B38[34] = {
+    0, 8, 8, 4, 4, 0, 8, 0,
+    0, 0, 0, 0, 0, 0, 4, 4,
+    3, 3, 3, 3, 0, 8, 4, 4,
+    8, 8, 8, 0, 0, 0, 0, 0,
+    0, 0,
+};
+
+GpEffArg D_actor_510900_80167B7C = { NULL, 300, 1 };
+
+Actor510900PatrolCorner D_actor_510900_80167B84[4] = {
+    { -6600, -6600 },
+    { 6600, -6600 },
+    { 6600, 6600 },
+    { -6600, 6600 },
+};
+
+Actor510900PatrolStep D_actor_510900_80167B94[4] = {
+    { 1, 0 },
+    { 0, 1 },
+    { -1, 0 },
+    { 0, -1 },
+};
+
+u16 D_actor_510900_80167B9C[4] = {
+    1024, 0, 3072, 2048,
+};
+
+Actor510900PatrolBox D_actor_510900_80167BA4[4] = {
+    { -7200, 7200, -7200, -6000 },
+    { 6000, 7200, -6000, 7200 },
+    { -7200, 6000, 6000, 7200 },
+    { -7200, -4608, -6000, 6000 },
+};
+
+SVECTOR D_actor_510900_80167BC4[3] = {
+    { 0, 0, 4096, 0 },
+    { -2896, 0, 2896, 0 },
+    { -4096, 0, 0, 0 },
+};
+
+SVECTOR D_actor_510900_80167BDC[12] = {
+    { 1600, -900, 0, 0 },
+    { -500, -900, 0, 0 },
+    { -500, 300, 0, 0 },
+    { 1600, 300, 0, 0 },
+    { 1600, -1500, 700, 0 },
+    { 900, -1500, 0, 0 },
+    { 900, 300, 0, 0 },
+    { 1600, 300, 700, 0 },
+    { 1300, -1500, 1300, 0 },
+    { 1300, -1500, 400, 0 },
+    { 1300, 300, 400, 0 },
+    { 1300, 300, 1300, 0 },
+};
+
+GpGridFace D_actor_510900_80167C3C[3] = {
+    { { 1, 2, 0, 3 }, 0, 5 },
+    { { 5, 6, 4, 7 }, 1, 5 },
+    { { 9, 10, 8, 11 }, 2, 5 },
+};
+
+SVECTOR D_actor_510900_80167C60 = { -4096, 0, 0, 0 };
+
+SVECTOR D_actor_510900_80167C68[4] = {
+    { -5952, -200, -1248, 0 },
+    { -5952, -200, -2500, 0 },
+    { -5952, 0, -1248, 0 },
+    { -5952, 0, -2500, 0 },
+};
+
+GpGridFace D_actor_510900_80167C88 = { { 12, 13, 14, 15 }, 3, 0 };
+
+u16 D_actor_510900_80167C94[12] = {
+    25, 20, 15, 12, 10, 9, 8, 7,
+    6, 5, 5, 5,
+};
+
+GpAnimSet * D_actor_510900_80167CAC[3] = {
+    NULL,
+    &D_actor_510900_80167294,
+    &D_actor_510900_80167940,
+};
+
+SVECTOR D_actor_510900_80167CB8[3] = {
+    { 6458, -2658, 535, 0 },
+    { -1336, -2658, 6552, 0 },
+    { -6441, -2658, -100, 0 },
+};
+
+u16 D_actor_510900_80167CD0[4] = {
+    2048,
+    1024,
+    0,
+    0,
+};
+
+u16 D_actor_510900_80167CD8[2][3] = {
+    { 5, 6, 7 },
+    { 7, 8, 9 },
+};
+
+u16 D_actor_510900_80167CE4[4] = {
+    10,
+    10,
+    10,
+    0,
+};
+
+u16 D_actor_510900_80167CEC[7][4] = {
+    { 0, 1, 2, 6 },
+    { 0, 1, 2, 6 },
+    { 0, 4, 4, 6 },
+    { 0, 4, 4, 6 },
+    { 0, 5, 5, 6 },
+    { 0, 5, 5, 6 },
+    { 0, 0, 0, 0 },
+};
 
 /// Applies this frame's hits from the three `rec49C` collision records. A
 /// type-2 id lands only while the `field_58C` cooldown is clear: its damage
@@ -1373,7 +1777,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 }
             }
             if (work->field_58A == 0x58) {
-                Gp_SpawnScript18(&D_80187D34, &D_80187D3C);
+                Gp_SpawnScript18(D_acropolis_helicopter_landing_pad_80187D34, &D_acropolis_helicopter_landing_pad_80187D3C);
             }
             if (work->field_58A == 0x60) {
                 work->obj4E4.flags &= 0x7FFF;
@@ -2086,7 +2490,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            ((void (*)(s32))Gp_IncStateF0Ref)(0x1B);
+            (Gp_IncStateF0Ref)(0x1B);
             obj->flags                        = 0;
             work->field_568->extra.tmd->flags = 0;
             work->field_56C->extra.tmd->flags = 0;
@@ -2186,7 +2590,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 /// frame 0xE re-deriving the stashed local matrix from the view) and the stashed
 /// matrix parented to the view, lifted along y by `3*(n - 0xC)^2 - 0x1B0`.
 /// Weight 0x52 restores the parented identity frame.
-static void func_actor_510900_801395AC(void* enemy, Task* task)
+static void func_actor_510900_801395AC(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
@@ -2899,10 +3303,10 @@ case1:
         work->obj2F4.flags &= 0x7FFF;
     }
     Gp_ClearRec18Occupied(&work->rec314);
-    func_80180A64(&task->extra.tmd->coords[9]);
-    func_80180A64(&task->extra.tmd->coords[8]);
-    func_80180A64(&task->extra.tmd->coords[7]);
-    func_80180A64(&task->extra.tmd->coords[6]);
+    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[9]);
+    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[8]);
+    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[7]);
+    func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[6]);
     work->field_332--;
     next = 2;
     if (work->field_332 <= 0) {
@@ -3008,7 +3412,6 @@ static void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
 static void func_actor_510900_8013B0D8(Task* arg0);
 
 /// View index the child keeps running in; any other view parks it.
-extern u16 D_actor_510900_80167CE4;
 /// Game-flag nibble 0xD values, indexed by the child's `field_74` and the
 /// parent work's `field_5C2`.
 extern u16 D_actor_510900_80167CEC[][4];
@@ -3042,7 +3445,7 @@ ge2:
     }
     goto body;
 case0:
-    if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4) {
+    if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
         arg0->node.state.b.flags = one;
         work->obj0.flags        &= 0x7FFF;
         work->obj38.flags       &= 0x7FFF;
@@ -3615,16 +4018,16 @@ s16 func_actor_510900_8013BE84(Task* arg0)
     return ((Actor510900Work*)arg0->work)->field_592;
 }
 
-static void func_actor_510900_8013BEEC(void* enemy, Task* task);
+static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task);
 
 void func_actor_510900_8013BE98(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_510900_8013BEEC, func_actor_510900_801395AC };
+    GpEnemyTaskFunc fns[2] = { func_actor_510900_8013BEEC, func_actor_510900_801395AC };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013BEEC(void* enemy, Task* task)
+static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
@@ -3644,17 +4047,17 @@ static void func_actor_510900_8013BEEC(void* enemy, Task* task)
     task->state   = 1;
 }
 
-static void func_actor_510900_8013BFE4(void* enemy, Task* task);
-static void func_actor_510900_8013C034(void* enemy, Task* task);
+static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013C034(GpEnemy* enemy, Task* task);
 
 void func_actor_510900_8013BF90(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_510900_8013BFE4, func_actor_510900_8013C034 };
+    GpEnemyTaskFunc fns[2] = { func_actor_510900_8013BFE4, func_actor_510900_8013C034 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013BFE4(void* enemy, Task* task)
+static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
@@ -3668,24 +4071,24 @@ static void func_actor_510900_8013BFE4(void* enemy, Task* task)
     task->state      = 1;
 }
 
-static void func_actor_510900_8013C034(void* enemy, Task* task)
+static void func_actor_510900_8013C034(GpEnemy* enemy, Task* task)
 {
     task->extra.tmd->flags       = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->flg = 0;
     Gp_UpdateCoord(task->extra.tmd->coords);
 }
 
-static void func_actor_510900_8013C0E4(void* enemy, Task* task);
-static void func_actor_510900_8013C134(void* enemy, Task* task);
+static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task);
+static void func_actor_510900_8013C134(GpEnemy* enemy, Task* task);
 
 void func_actor_510900_8013C090(Task* task)
 {
-    void (*fns[2])(void*, Task*) = { func_actor_510900_8013C0E4, func_actor_510900_8013C134 };
+    GpEnemyTaskFunc fns[2] = { func_actor_510900_8013C0E4, func_actor_510900_8013C134 };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013C0E4(void* enemy, Task* task)
+static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task)
 {
     TmdObject*       obj;
     Actor510900Work* work;
@@ -3699,7 +4102,7 @@ static void func_actor_510900_8013C0E4(void* enemy, Task* task)
     task->state      = 1;
 }
 
-static void func_actor_510900_8013C134(void* enemy, Task* task)
+static void func_actor_510900_8013C134(GpEnemy* enemy, Task* task)
 {
     task->extra.tmd->flags       = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->flg = 0;
@@ -3718,9 +4121,9 @@ void func_actor_510900_8013C190(Task* task)
 
 void func_actor_510900_8013C1EC(Task* task)
 {
-    void (*fns[2])(void*, Task*) = {
-        (void (*)(void*, Task*))func_actor_510900_8013A5B8,
-        (void (*)(void*, Task*))func_actor_510900_8013A85C,
+    GpEnemyTaskFunc fns[2] = {
+        func_actor_510900_8013A5B8,
+        func_actor_510900_8013A85C,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
@@ -3794,9 +4197,9 @@ static void func_actor_510900_8013C380(Task* arg0)
 
 void func_actor_510900_8013C3DC(Task* task)
 {
-    void (*fns[2])(void*, Task*) = {
-        (void (*)(void*, Task*))func_actor_510900_8013AD90,
-        (void (*)(void*, Task*))func_actor_510900_8013AF38,
+    GpEnemyTaskFunc fns[2] = {
+        func_actor_510900_8013AD90,
+        func_actor_510900_8013AF38,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);

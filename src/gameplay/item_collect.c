@@ -87,8 +87,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     if (table == NULL) {
         return;
     }
-    rec = table->field_0;
-    if (rec == (GpBit2Rec*)-1) {
+    rec = table->field_0.records;
+    if (table->field_0.sentinel == -1) {
         return;
     }
     do {
@@ -102,8 +102,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
             }
         }
         table++;
-        rec = table->field_0;
-    } while (rec != (GpBit2Rec*)-1);
+        rec = table->field_0.records;
+    } while (table->field_0.sentinel != -1);
 }
 static inline s32 _gpReadBit2Flag(u32* p, s32 index)
 {
@@ -560,22 +560,16 @@ static void Gp_SetPlayerScan(s32 arg0)
 
 void Gp_SyncHeldRelated(void)
 {
-    PlayerStatus*     p;
-    s32               slots;
-    GpItemSlotAddress selected;
-    s32               idx;
-    u8                item;
+    PlayerStatus* p;
+    s32           idx;
+    u8            item;
 
     p = &Player_Status;
     if (p->weapon == 0) {
         p->weaponSlotItem = 0;
     } else {
-        /* Keep the item-id bias in an address word. Only the final slot is
-         * a pointer into weaponItems; there is no pointer before the array. */
-        slots         = (s32)Mc_SaveData[0].state.weaponItems - 0x80 * (s32)sizeof(McItemSlot);
-        idx           = p->weapon + 0x7F;
-        selected.word = idx * (s32)sizeof(McItemSlot) + slots;
-        item          = selected.slot->ammoId;
+        idx  = p->weapon + 0x7F;
+        item = gpItemSlot(idx)->ammoId;
         if (item == 0) {
             p->weaponSlotItem = 0;
         } else {

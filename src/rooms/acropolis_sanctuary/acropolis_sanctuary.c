@@ -1,3 +1,6 @@
+#include "gameplay/animation.h"
+#include "rooms/acropolis_sanctuary.h"
+#include "actors/actor_210700.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -42,6 +45,19 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include "overlay.h"
+
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+extern GpAnimSet* D_acropolis_sanctuary_80180918[9];
+
+extern GpObj4C D_acropolis_sanctuary_80183AE4[17];
 
 /// 0xC work block of the sanctuary's cutscene task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -172,10 +188,10 @@ extern GpMsgEntry     D_acropolis_sanctuary_8018081C[];
 extern GpXformArg     D_acropolis_sanctuary_801808BC;
 extern GpAnimArg      D_acropolis_sanctuary_801809F8;
 extern GpAnimArg      D_acropolis_sanctuary_80180A0C;
-extern s32            D_acropolis_sanctuary_80180AE8;
-extern s32            D_acropolis_sanctuary_80180B0C;
-extern s32            D_acropolis_sanctuary_80181664;
-extern u8             D_acropolis_sanctuary_80181814[];
+extern GpAnimArg D_acropolis_sanctuary_80180AE8;
+extern GpEvsCmd D_acropolis_sanctuary_80180B0C[];
+extern GpEvsCmd D_acropolis_sanctuary_80181664[];
+extern GpEvsCmd D_acropolis_sanctuary_80181814[];
 extern TaskDesc       D_acropolis_sanctuary_80182240;
 extern GpGridParams   D_acropolis_sanctuary_801822EC;
 extern GpMsgEntry     D_acropolis_sanctuary_80182310[];
@@ -186,7 +202,6 @@ extern s32            D_acropolis_sanctuary_80182770;
 extern SVECTOR        D_acropolis_sanctuary_80182774[];
 extern u16            D_acropolis_sanctuary_801827D4[];
 extern GpGridParams   D_acropolis_sanctuary_80183568;
-extern GpObj4A        D_acropolis_sanctuary_80183CAC[];
 extern GpAreaApplyRec D_acropolis_sanctuary_80186418[];
 extern Task*          D_acropolis_sanctuary_80186C90;
 
@@ -197,9 +212,9 @@ extern SVECTOR D_acropolis_sanctuary_80186C94;
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
 /// `func_800E8634` is started on.
-extern s32 D_acropolis_sanctuary_801820E4;
-extern s32 D_acropolis_sanctuary_801820F0;
-extern s32 D_acropolis_sanctuary_801821C8;
+extern GpAnimSet* D_acropolis_sanctuary_801820E4[1];
+extern GpEvsCmd D_acropolis_sanctuary_801820F0[];
+extern GpEvsCmd D_acropolis_sanctuary_801821C8[];
 
 static void func_acropolis_sanctuary_8017D5E0(Task* task);
 static void func_acropolis_sanctuary_8017D930(Task* arg0);
@@ -222,6 +237,2015 @@ static const AcsSpriteLevels D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
+s32 func_acropolis_sanctuary_8017F918(Task *, s32, GpMessageArg, GpMessageArg);
+
+void func_acropolis_sanctuary_8017DA40(Task *);
+
+void func_acropolis_sanctuary_8017DCE0(s32);
+
+extern GpGridParams D_acropolis_sanctuary_80183568;
+extern GpObj4C D_acropolis_sanctuary_8018358C[18];
+extern GpRoomCoordSet D_acropolis_sanctuary_801843EC[1];
+
+extern GpAnimArg D_acropolis_sanctuary_80180904;
+extern GpAnimArg D_acropolis_sanctuary_80180944;
+extern GpAnimArg D_acropolis_sanctuary_80180958;
+extern GpAnimArg D_acropolis_sanctuary_8018096C;
+extern GpAnimArg D_acropolis_sanctuary_80180980;
+extern GpAnimArg D_acropolis_sanctuary_80180994;
+extern GpAnimArg D_acropolis_sanctuary_801809A8;
+extern GpAnimArg D_acropolis_sanctuary_801809BC;
+extern GpAnimArg D_acropolis_sanctuary_801809D0;
+extern GpAnimArg D_acropolis_sanctuary_801809E4;
+extern GpAnimArg D_acropolis_sanctuary_80180A20;
+extern GpAnimArg D_acropolis_sanctuary_80180A34;
+extern GpAnimArg D_acropolis_sanctuary_80180A48;
+extern GpAnimArg D_acropolis_sanctuary_80180A5C;
+extern GpAnimArg D_acropolis_sanctuary_80180A70;
+extern GpAnimArg D_acropolis_sanctuary_80180A84;
+extern GpAnimArg D_acropolis_sanctuary_80180A98;
+extern GpAnimArg D_acropolis_sanctuary_80180AAC;
+extern GpAnimArg D_acropolis_sanctuary_80180AC0;
+extern GpAnimArg D_acropolis_sanctuary_80180AD4;
+extern GpCopyArg D_acropolis_sanctuary_8018093C;
+extern GpOverlayIds D_acropolis_sanctuary_80180AFC;
+extern GpXformArg D_acropolis_sanctuary_80180844;
+extern GpXformArg D_acropolis_sanctuary_8018085C;
+extern GpXformArg D_acropolis_sanctuary_8018088C;
+extern GpXformArg D_acropolis_sanctuary_801808A4;
+extern GpXformArg D_acropolis_sanctuary_801808D4;
+extern GpXformArg D_acropolis_sanctuary_801808EC;
+void func_acropolis_sanctuary_8017D8A0(u32);
+void func_acropolis_sanctuary_8017D8CC(void);
+
+s32 func_acropolis_sanctuary_8017D73C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_sanctuary_8017D808(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_sanctuary_8017D810(Task *, s32, s32, GpMessageArg);
+s32 func_acropolis_sanctuary_8017D848(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} AcropolisSanctuaryPoseBank2D88;
+
+AcropolisSanctuaryPoseBank2D88 D_acropolis_sanctuary_80180348 = { .poses = {
+#include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_sanctuary_801803A8[115] = {
+#include "assets/acropolis_sanctuary_animation_03234_bank4.inc"
+};
+
+GpAnimRec D_acropolis_sanctuary_80180574[150] = {
+#include "assets/acropolis_sanctuary_animation_03234_records.inc"
+};
+
+u16 D_acropolis_sanctuary_801807CC[20] = {
+#include "assets/acropolis_sanctuary_animation_03234_indices.inc"
+};
+
+GpAnimSet D_acropolis_sanctuary_801807F4 = {
+    D_acropolis_sanctuary_80180574, D_acropolis_sanctuary_801807CC,
+    { NULL, D_acropolis_sanctuary_80180348.words, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
+};
+
+GpMsgEntry D_acropolis_sanctuary_8018081C[5] = {
+    { 5102, func_acropolis_sanctuary_8017D73C },
+    { 5104, func_acropolis_sanctuary_8017D810 },
+    { 5105, func_acropolis_sanctuary_8017D808 },
+    { 5103, func_acropolis_sanctuary_8017D848 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpXformArg D_acropolis_sanctuary_80180844 = { { -9700, 0, -7910, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_8018085C = { 0 };
+
+GpXformArg D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_8018088C = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_801808A4 = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_801808BC = { { 0, 0, 480, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
+
+GpAnimArg D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimSet * D_acropolis_sanctuary_80180918[9] = {
+    &D_actor_210700_8014BC4C,
+    &D_actor_210700_8014C618,
+    &D_actor_210700_8014C974,
+    &D_actor_210700_8014CC2C,
+    &D_actor_210700_8014CFAC,
+    &D_actor_210700_8014D244,
+    &D_actor_210700_8014D9F0,
+    &D_actor_210700_80150608,
+    &D_acropolis_sanctuary_801807F4,
+};
+
+GpCopyArg D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, 9 };
+
+GpAnimArg D_acropolis_sanctuary_80180944 = { { .index = 1 }, 47, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180958 = { { .index = 1 }, 48, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_8018096C = { { .index = 1 }, 49, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180980 = { { .index = 1 }, 50, 1, 5, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180994 = { { .index = 1 }, 51, 1, 5, 0 };
+
+GpAnimArg D_acropolis_sanctuary_801809A8 = { { .index = 1 }, 52, 1, 5, 0 };
+
+GpAnimArg D_acropolis_sanctuary_801809BC = { { .index = 1 }, 52, 1, 15, 0 };
+
+GpAnimArg D_acropolis_sanctuary_801809D0 = { { .index = 1 }, 53, 1, 5, 0 };
+
+GpAnimArg D_acropolis_sanctuary_801809E4 = { { .index = 1 }, 54, 0, 0, 0 };
+
+GpAnimArg D_acropolis_sanctuary_801809F8 = { { .index = 1 }, 55, 0, 0, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A0C = { { .index = 1 }, 7, 0, 0, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A20 = { { .index = 0 }, 1, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A34 = { { .index = 0 }, 2, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A48 = { { .index = 0 }, 3, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A5C = { { .index = 0 }, 4, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A70 = { { .index = 0 }, 1, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A84 = { { .index = 0 }, 2, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180A98 = { { .index = 0 }, 3, 1, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180AAC = { { .index = 0 }, 4, 0, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180AC0 = { { .index = 0 }, 5, 1, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, 1, 1, 0 };
+
+GpAnimArg D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, 0, 0, 0 };
+
+GpOverlayIds D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
+
+GpOverlayIds D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
+
+GpEvsCmd D_acropolis_sanctuary_80180B0C[121] = {
+    { 32, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_sanctuary_8018085C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_sanctuary_8018093C }, { .value = 0 } },
+    { 12, { .overlays = &D_acropolis_sanctuary_80180AFC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 31, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A70 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A20 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_80180844 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_sanctuary_8017D8CC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A84 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A34 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A48 }, { .value = 0 } },
+    { 17, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A5C }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_8018085C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180944 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 272 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 268 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 5 }, { .value = 0 }, { .value = 3101 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 17, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_8018088C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180958 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_sanctuary_801808BC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AAC }, { .value = 0 } },
+    { 4, { .value = 73 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_801808A4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_8018096C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180980 }, { .value = 0 } },
+    { 4, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AC0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AD4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_8018096C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180980 }, { .value = 0 } },
+    { 4, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AC0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AD4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_8018096C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180980 }, { .value = 0 } },
+    { 4, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AC0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AD4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180994 }, { .value = 0 } },
+    { 4, { .value = 71 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809BC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809D0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_801808D4 }, { .value = 0 } },
+    { 4, { .value = 56 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809E4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AD4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_801808EC }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_sanctuary_80181664[18] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_sanctuary_801808EC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_sanctuary_801808BC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AE8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_sanctuary_80181814[11] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { 12, { .overlays = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AC0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180AD4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_sanctuary_80180A98 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[7];
+    GpPackedSvec words[21];
+} AcropolisSanctuaryPoseBank435C;
+
+AcropolisSanctuaryPoseBank435C D_acropolis_sanctuary_8018191C = { .poses = {
+#include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_sanctuary_80181970[84] = {
+#include "assets/acropolis_sanctuary_animation_04708_bank4.inc"
+};
+
+GpAnimRec D_acropolis_sanctuary_80181AC0[120] = {
+#include "assets/acropolis_sanctuary_animation_04708_records.inc"
+};
+
+u16 D_acropolis_sanctuary_80181CA0[20] = {
+#include "assets/acropolis_sanctuary_animation_04708_indices.inc"
+};
+
+GpAnimSet D_acropolis_sanctuary_80181CC8 = {
+    D_acropolis_sanctuary_80181AC0, D_acropolis_sanctuary_80181CA0,
+    { NULL, D_acropolis_sanctuary_8018191C.words, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} AcropolisSanctuaryPoseBank4730;
+
+AcropolisSanctuaryPoseBank4730 D_acropolis_sanctuary_80181CF0 = { .poses = {
+#include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_sanctuary_80181D50[88] = {
+#include "assets/acropolis_sanctuary_animation_04AFC_bank4.inc"
+};
+
+GpAnimRec D_acropolis_sanctuary_80181EB0[121] = {
+#include "assets/acropolis_sanctuary_animation_04AFC_records.inc"
+};
+
+u16 D_acropolis_sanctuary_80182094[20] = {
+#include "assets/acropolis_sanctuary_animation_04AFC_indices.inc"
+};
+
+GpAnimSet D_acropolis_sanctuary_801820BC = {
+    D_acropolis_sanctuary_80181EB0, D_acropolis_sanctuary_80182094,
+    { NULL, D_acropolis_sanctuary_80181CF0.words, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_acropolis_sanctuary_801820E4[1] = {
+    &D_acropolis_sanctuary_80181CC8,
+};
+
+GpOverlayIds D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
+
+GpEvsCmd D_acropolis_sanctuary_801820F0[9] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 12, { .overlays = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_sanctuary_8017DCE0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_sanctuary_8017DCE0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_sanctuary_801821C8[5] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_acropolis_sanctuary_80182240 = { 0, 192, func_acropolis_sanctuary_8017DA40, { .model = NULL } };
+
+SVECTOR D_acropolis_sanctuary_8018224C[4] = {
+    { -3763, 0, -1619, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+    { -1699, 0, 3727, 0 },
+};
+
+SVECTOR D_acropolis_sanctuary_8018226C[8] = {
+    { -4941, 250, -8099, 0 },
+    { -4941, -853, -8099, 0 },
+    { -4590, -853, -8914, 0 },
+    { -4590, 250, -8914, 0 },
+    { -4180, -853, -8914, 0 },
+    { -4180, 250, -8914, 0 },
+    { -4180, -853, -7752, 0 },
+    { -4180, 250, -7752, 0 },
+};
+
+GpGridFace D_acropolis_sanctuary_801822AC[4] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+};
+
+s16 D_acropolis_sanctuary_801822DC[5] = {
+    0,
+    1,
+    2,
+    3,
+    -1,
+};
+
+s16 * D_acropolis_sanctuary_801822E8[1] = {
+    D_acropolis_sanctuary_801822DC,
+};
+
+GpGridParams D_acropolis_sanctuary_801822EC = { NULL, D_acropolis_sanctuary_8018224C, D_acropolis_sanctuary_8018226C, D_acropolis_sanctuary_801822AC, D_acropolis_sanctuary_801822E8, 4941, 8914, 1, 1, 4000, 4 };
+
+GpMsgEntry D_acropolis_sanctuary_80182310[2] = {
+    { 3101, func_acropolis_sanctuary_8017F918 },
+    { 0x7FFFFFFF, NULL },
+};
+
+AcsTile D_acropolis_sanctuary_80182320[72] = {
+    { 29, 31, 0, 0, 0, 24, 1 },
+    { 29, 31, 30, 0, 0, 16, 1 },
+    { 14, 15, 60, 0, 0, 16, 0 },
+    { 14, 15, 75, 0, 0, 16, 0 },
+    { 14, 15, 90, 0, 0, 16, 0 },
+    { 14, 15, 105, 0, 0, 16, 0 },
+    { 29, 31, 120, 0, 0, 16, 1 },
+    { 29, 31, 150, 0, 0, 24, 1 },
+    { 29, 31, 60, 16, 0, 8, 1 },
+    { 29, 31, 90, 16, 0, 8, 1 },
+    { 29, 31, 0, 32, 0, 16, 1 },
+    { 29, 31, 30, 32, 0, 8, 1 },
+    { 29, 31, 120, 32, 0, 8, 1 },
+    { 29, 31, 150, 32, 0, 16, 1 },
+    { 29, 31, 60, 48, 1, 0, 1 },
+    { 29, 31, 90, 48, 1, 0, 1 },
+    { 29, 31, 0, 64, 0, 8, 1 },
+    { 29, 31, 30, 64, 1, 0, 1 },
+    { 29, 31, 120, 64, 1, 0, 1 },
+    { 29, 31, 150, 64, 0, 8, 1 },
+    { 14, 15, 60, 80, 1, 0, 0 },
+    { 29, 31, 75, 80, 1, 0, 1 },
+    { 14, 15, 105, 80, 1, 0, 0 },
+    { 14, 15, 0, 96, 0, 8, 0 },
+    { 29, 31, 15, 96, 1, 0, 1 },
+    { 14, 15, 45, 96, 1, 0, 0 },
+    { 14, 15, 60, 96, 1, 0, 0 },
+    { 14, 15, 105, 96, 1, 0, 0 },
+    { 14, 15, 120, 96, 1, 0, 0 },
+    { 29, 31, 135, 96, 1, 0, 1 },
+    { 14, 15, 165, 96, 0, 8, 0 },
+    { 14, 15, 0, 112, 0, 16, 0 },
+    { 29, 31, 45, 112, 1, 0, 1 },
+    { 14, 15, 75, 112, 1, 0, 0 },
+    { 14, 15, 90, 112, 1, 0, 0 },
+    { 29, 31, 105, 112, 1, 0, 1 },
+    { 14, 15, 165, 112, 0, 16, 0 },
+    { 14, 15, 0, 128, 0, 24, 0 },
+    { 29, 31, 15, 128, 1, 0, 1 },
+    { 14, 15, 75, 128, 1, 0, 0 },
+    { 14, 15, 90, 128, 1, 0, 0 },
+    { 29, 31, 135, 128, 1, 0, 1 },
+    { 14, 15, 165, 128, 0, 24, 0 },
+    { 14, 15, 0, 144, 0, 16, 0 },
+    { 14, 15, 45, 144, 1, 0, 0 },
+    { 14, 15, 60, 144, 1, 0, 0 },
+    { 29, 31, 75, 144, 1, 0, 1 },
+    { 14, 15, 105, 144, 1, 0, 0 },
+    { 14, 15, 120, 144, 1, 0, 0 },
+    { 14, 15, 165, 144, 0, 16, 0 },
+    { 29, 31, 0, 160, 0, 8, 1 },
+    { 29, 31, 30, 160, 1, 0, 1 },
+    { 14, 15, 60, 160, 1, 0, 0 },
+    { 14, 15, 105, 160, 1, 0, 0 },
+    { 29, 31, 120, 160, 1, 0, 1 },
+    { 29, 31, 150, 160, 0, 8, 1 },
+    { 29, 31, 60, 178, 1, 0, 1 },
+    { 29, 31, 90, 178, 1, 0, 1 },
+    { 29, 31, 0, 192, 0, 16, 1 },
+    { 29, 31, 30, 192, 1, 0, 1 },
+    { 29, 31, 120, 192, 1, 0, 1 },
+    { 29, 31, 150, 192, 0, 16, 1 },
+    { 29, 31, 60, 208, 1, 0, 1 },
+    { 29, 31, 90, 208, 1, 0, 1 },
+    { 29, 31, 0, 224, 0, 24, 1 },
+    { 29, 31, 30, 224, 0, 8, 1 },
+    { 29, 31, 120, 224, 0, 8, 1 },
+    { 29, 31, 150, 224, 0, 24, 1 },
+    { 14, 15, 60, 240, 0, 8, 0 },
+    { 14, 15, 75, 240, 0, 16, 0 },
+    { 14, 15, 90, 240, 0, 16, 0 },
+    { 14, 15, 105, 240, 0, 8, 0 },
+};
+
+AcsQuad D_acropolis_sanctuary_80182710[2] = {
+    { { { 0, 0xFFB8, 63, 0 }, { 0, 0xFFB8, 0xFFC2, 0 }, { 0, 71, 63, 0 }, { 0, 71, 0xFFC2, 0 } } },
+    { { { 0, 0xFF71, 126, 0 }, { 0, 0xFF71, 0xFF83, 0 }, { 0, 143, 126, 0 }, { 0, 143, 0xFF83, 0 } } },
+};
+
+s16 D_acropolis_sanctuary_80182750[16] = {
+    20, 22, 25, 26, 27, 28, 33, 34,
+    39, 40, 44, 45, 47, 48, 52, 53,
+};
+
+s32 D_acropolis_sanctuary_80182770 = 0;
+
+SVECTOR D_acropolis_sanctuary_80182774[12] = {
+    { -0x2738, -2088, -6680, 0 },
+    { -0x2738, -2088, -9280, 0 },
+    { -2720, -2088, -6460, 0 },
+    { -2720, -2088, -9570, 0 },
+    { -6690, -2088, -4220, 0 },
+    { -8310, -2028, -4220, 0 },
+    { -2420, -1630, -7210, 0 },
+    { -2420, -1680, -7330, 0 },
+    { -2420, -1630, -7450, 0 },
+    { -2420, -1630, -8490, 0 },
+    { -2420, -1680, -8600, 0 },
+    { -2420, -1630, -8730, 0 },
+};
+
+u16 D_acropolis_sanctuary_801827D4[12] = {
+    2626,
+    2130,
+    5420,
+    300,
+    0x3460,
+    0x3440,
+    4524,
+    4524,
+    4524,
+    428,
+    428,
+    428,
+};
+
+GpRoomObjRec D_acropolis_sanctuary_801827EC[1] = {
+    { &D_acropolis_sanctuary_80183568, D_acropolis_sanctuary_8018358C, D_acropolis_sanctuary_80183AE4, NULL },
+};
+
+u8 * D_acropolis_sanctuary_801827FC[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_acropolis_sanctuary_80182800[1] = {
+    { { .bytes = { 16, 0 } } },
+};
+
+GpRoomCoordRec D_acropolis_sanctuary_80182804[1] = {
+    { D_acropolis_sanctuary_801843EC, NULL },
+};
+
+GpWarpRec D_acropolis_sanctuary_8018280C[3] = {
+    { { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, 0, 2, 0, 493 },
+    { { .words = { 2048, -7465, 2, -4239 } }, { 0, 0, 0, 0 }, { .words = { 2048, -7465, 2, -4239 } }, { 0, 0, 0, 0 }, 0x510C0004, 0x510C0003, 0, 7, 0, 492 },
+    { { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, { .words = { 1024, -9757, 2, -8070 } }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, 0, 2, 0, 493 },
+};
+
+SVECTOR D_acropolis_sanctuary_801828B4[42] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 4096, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { -3868, 0, 1348, 0 },
+    { -3868, 0, -1348, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 3155, 2612, 0 },
+    { 0, 3095, -2682, 0 },
+    { -4064, 508, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 3974, -993, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { -4064, 508, 0, 0 },
+    { 3974, -993, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { -4064, 508, 0, 0 },
+    { 3974, -993, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { -4064, 508, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 3974, -993, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { -4064, 508, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { -4064, 508, 0, 0 },
+    { 0, -4096, 0, 0 },
+    { 3974, -993, 0, 0 },
+    { 4096, -21, 0, 0 },
+    { 791, -4019, 0, 0 },
+};
+
+SVECTOR D_acropolis_sanctuary_80182A04[136] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { -3304, -6642, -0x2EB6, 0 },
+    { -0x2800, -6642, -0x2EB6, 0 },
+    { -0x2800, 0, -0x2EB6, 0 },
+    { -3304, 0, -0x2EB6, 0 },
+    { -3304, 0, -3998, 0 },
+    { -2764, 0, -5548, 0 },
+    { -2764, 0, -0x28A8, 0 },
+    { -0x2800, 0, -3998, 0 },
+    { -0x2800, -6642, -3998, 0 },
+    { -3304, -6642, -3998, 0 },
+    { -2764, -6642, -0x28A8, 0 },
+    { -2764, -6642, -5548, 0 },
+    { -0x2800, 0, -8889, 0 },
+    { -4002, 0, -7102, 0 },
+    { -0x2800, 0, -7097, 0 },
+    { -4002, 0, -8894, 0 },
+    { -820, -6570, -8393, 0 },
+    { -0x2A44, -6570, -8393, 0 },
+    { -0x2A44, -2673, -0x332D, 0 },
+    { -820, -2673, -0x332D, 0 },
+    { -0x2A44, -6570, -7598, 0 },
+    { -820, -6570, -7598, 0 },
+    { -820, -2673, -3101, 0 },
+    { -0x2A44, -2673, -3101, 0 },
+    { -8640, 0, -7189, 0 },
+    { -8640, 0, -4881, 0 },
+    { -8740, -800, -4881, 0 },
+    { -8740, -800, -7189, 0 },
+    { -8640, -800, -4881, 0 },
+    { -8640, -800, -7189, 0 },
+    { -8540, -400, -7189, 0 },
+    { -8540, -400, -4881, 0 },
+    { -8090, -400, -4881, 0 },
+    { -8090, -400, -7189, 0 },
+    { -8088, 0, -4881, 0 },
+    { -8088, 0, -7189, 0 },
+    { -7140, 0, -7189, 0 },
+    { -7140, 0, -4881, 0 },
+    { -7240, -800, -4881, 0 },
+    { -7240, -800, -7189, 0 },
+    { -7140, -800, -4881, 0 },
+    { -7140, -800, -7189, 0 },
+    { -7040, -400, -7189, 0 },
+    { -7040, -400, -4881, 0 },
+    { -6590, -400, -4881, 0 },
+    { -6590, -400, -7189, 0 },
+    { -6588, 0, -4881, 0 },
+    { -6588, 0, -7189, 0 },
+    { -5640, 0, -7189, 0 },
+    { -5640, 0, -4881, 0 },
+    { -5740, -800, -4881, 0 },
+    { -5740, -800, -7189, 0 },
+    { -5640, -800, -4881, 0 },
+    { -5640, -800, -7189, 0 },
+    { -5540, -400, -7189, 0 },
+    { -5540, -400, -4881, 0 },
+    { -5090, -400, -4881, 0 },
+    { -5090, -400, -7189, 0 },
+    { -5088, 0, -4881, 0 },
+    { -5088, 0, -7189, 0 },
+    { -5640, 0, -0x2B79, 0 },
+    { -5640, 0, -8841, 0 },
+    { -5740, -800, -8841, 0 },
+    { -5740, -800, -0x2B79, 0 },
+    { -5640, -800, -8841, 0 },
+    { -5640, -800, -0x2B79, 0 },
+    { -5540, -400, -0x2B79, 0 },
+    { -5540, -400, -8841, 0 },
+    { -5090, -400, -8841, 0 },
+    { -5090, -400, -0x2B79, 0 },
+    { -5088, 0, -8841, 0 },
+    { -5088, 0, -0x2B79, 0 },
+    { -7140, 0, -0x2B79, 0 },
+    { -7140, 0, -8841, 0 },
+    { -7240, -800, -8841, 0 },
+    { -7240, -800, -0x2B79, 0 },
+    { -7140, -800, -8841, 0 },
+    { -7140, -800, -0x2B79, 0 },
+    { -7040, -400, -0x2B79, 0 },
+    { -7040, -400, -8841, 0 },
+    { -6590, -400, -8841, 0 },
+    { -6590, -400, -0x2B79, 0 },
+    { -6588, 0, -8841, 0 },
+    { -6588, 0, -0x2B79, 0 },
+    { -8640, 0, -0x2B79, 0 },
+    { -8640, 0, -8841, 0 },
+    { -8740, -800, -8841, 0 },
+    { -8740, -800, -0x2B79, 0 },
+    { -8640, -800, -8841, 0 },
+    { -8640, -800, -0x2B79, 0 },
+    { -8540, -400, -0x2B79, 0 },
+    { -8540, -400, -8841, 0 },
+    { -8090, -400, -8841, 0 },
+    { -8090, -400, -0x2B79, 0 },
+    { -8088, 0, -8841, 0 },
+    { -8088, 0, -0x2B79, 0 },
+    { -4200, 0, -7560, 0 },
+    { -4200, -1090, -7560, 0 },
+    { -4200, -1090, -8460, 0 },
+    { -4200, 0, -8460, 0 },
+    { -3809, -1013, -8460, 0 },
+    { -3809, 0, -8460, 0 },
+    { -3809, -1013, -7560, 0 },
+    { -3809, 0, -7560, 0 },
+    { -8720, 0, -4898, 0 },
+    { -5613, 0, -4898, 0 },
+    { -5613, -1050, -4898, 0 },
+    { -8720, -1050, -4898, 0 },
+    { -8720, -1050, -7186, 0 },
+    { -5613, -1050, -7186, 0 },
+    { -5613, 0, -7186, 0 },
+    { -8720, 0, -7186, 0 },
+    { -8720, 0, -8815, 0 },
+    { -5613, 0, -8815, 0 },
+    { -5613, -1050, -8815, 0 },
+    { -8720, -1050, -8815, 0 },
+    { -8720, -1050, -0x2B61, 0 },
+    { -5613, -1050, -0x2B61, 0 },
+    { -5613, 0, -0x2B61, 0 },
+    { -8720, 0, -0x2B61, 0 },
+};
+
+GpGridFace D_acropolis_sanctuary_80182E44[85] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 17, 18, 16, 19 }, 4, 0 },
+    { { 20, 21, 19, 22 }, 5, 2 },
+    { { 23, 24, 20, 25 }, 6, 0 },
+    { { 16, 26, 25, 27 }, 7, 0 },
+    { { 17, 28, 18, 0xFFFF }, 8, 0 },
+    { { 26, 16, 22, 19 }, 9, 0 },
+    { { 21, 20, 27, 25 }, 10, 0 },
+    { { 22, 21, 26, 27 }, 11, 0 },
+    { { 25, 24, 16, 17 }, 7, 0 },
+    { { 29, 30, 20, 23 }, 12, 2 },
+    { { 31, 19, 28, 18 }, 13, 2 },
+    { { 31, 28, 29, 30 }, 14, 1 },
+    { { 20, 19, 29, 31 }, 15, 2 },
+    { { 33, 34, 32, 35 }, 16, 0 },
+    { { 37, 38, 36, 39 }, 17, 0 },
+    { { 32, 37, 33, 36 }, 7, 0 },
+    { { 41, 42, 40, 43 }, 18, 0 },
+    { { 42, 44, 43, 45 }, 19, 0 },
+    { { 40, 43, 46, 45 }, 6, 0 },
+    { { 47, 44, 41, 42 }, 4, 0 },
+    { { 46, 45, 47, 44 }, 20, 0 },
+    { { 49, 46, 48, 47 }, 21, 0 },
+    { { 50, 51, 48, 49 }, 22, 0 },
+    { { 46, 49, 40, 51 }, 6, 0 },
+    { { 41, 50, 47, 48 }, 4, 0 },
+    { { 53, 54, 52, 55 }, 23, 0 },
+    { { 54, 56, 55, 57 }, 19, 0 },
+    { { 52, 55, 58, 57 }, 6, 0 },
+    { { 59, 56, 53, 54 }, 4, 0 },
+    { { 58, 57, 59, 56 }, 24, 0 },
+    { { 61, 58, 60, 59 }, 21, 0 },
+    { { 62, 63, 60, 61 }, 25, 0 },
+    { { 58, 61, 52, 63 }, 6, 0 },
+    { { 53, 62, 59, 60 }, 4, 0 },
+    { { 65, 66, 64, 67 }, 26, 0 },
+    { { 66, 68, 67, 69 }, 5, 0 },
+    { { 64, 67, 70, 69 }, 6, 0 },
+    { { 71, 68, 65, 66 }, 4, 0 },
+    { { 70, 69, 71, 68 }, 27, 0 },
+    { { 73, 70, 72, 71 }, 21, 0 },
+    { { 74, 75, 72, 73 }, 28, 0 },
+    { { 70, 73, 64, 75 }, 6, 0 },
+    { { 65, 74, 71, 72 }, 4, 0 },
+    { { 77, 78, 76, 79 }, 29, 0 },
+    { { 78, 80, 79, 81 }, 30, 0 },
+    { { 76, 79, 82, 81 }, 6, 0 },
+    { { 83, 80, 77, 78 }, 4, 0 },
+    { { 82, 81, 83, 80 }, 31, 0 },
+    { { 85, 82, 84, 83 }, 32, 0 },
+    { { 86, 87, 84, 85 }, 33, 0 },
+    { { 82, 85, 76, 87 }, 6, 0 },
+    { { 77, 86, 83, 84 }, 4, 0 },
+    { { 89, 90, 88, 91 }, 34, 0 },
+    { { 90, 92, 91, 93 }, 35, 0 },
+    { { 88, 91, 94, 93 }, 6, 0 },
+    { { 95, 92, 89, 90 }, 4, 0 },
+    { { 94, 93, 95, 92 }, 31, 0 },
+    { { 97, 94, 96, 95 }, 32, 0 },
+    { { 98, 99, 96, 97 }, 36, 0 },
+    { { 94, 97, 88, 99 }, 6, 0 },
+    { { 89, 98, 95, 96 }, 4, 0 },
+    { { 101, 102, 100, 103 }, 37, 0 },
+    { { 102, 104, 103, 105 }, 38, 0 },
+    { { 100, 103, 106, 105 }, 6, 0 },
+    { { 107, 104, 101, 102 }, 4, 0 },
+    { { 106, 105, 107, 104 }, 39, 0 },
+    { { 109, 106, 108, 107 }, 35, 0 },
+    { { 110, 111, 108, 109 }, 40, 0 },
+    { { 106, 109, 100, 111 }, 6, 0 },
+    { { 101, 110, 107, 108 }, 4, 0 },
+    { { 113, 114, 112, 115 }, 11, 0 },
+    { { 114, 116, 115, 117 }, 6, 0 },
+    { { 116, 118, 117, 119 }, 8, 0 },
+    { { 118, 113, 119, 112 }, 4, 0 },
+    { { 118, 116, 113, 114 }, 41, 0 },
+    { { 121, 122, 120, 123 }, 4, 0 },
+    { { 125, 126, 124, 127 }, 6, 0 },
+    { { 129, 130, 128, 131 }, 4, 0 },
+    { { 133, 134, 132, 135 }, 6, 0 },
+    { { 30, 24, 23, 0xFFFF }, 8, 0 },
+    { { 30, 28, 24, 17 }, 8, 0 },
+};
+
+s16 D_acropolis_sanctuary_80183240[52] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    8,
+    12,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    27,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    80,
+    81,
+    82,
+    84,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_801832A8[69] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    8,
+    12,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    50,
+    51,
+    52,
+    55,
+    56,
+    57,
+    59,
+    60,
+    61,
+    62,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_80183334[36] = {
+    0,
+    1,
+    2,
+    3,
+    6,
+    12,
+    13,
+    15,
+    18,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    35,
+    37,
+    38,
+    39,
+    41,
+    42,
+    43,
+    46,
+    79,
+    80,
+    83,
+    84,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_8018337C[59] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    9,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    38,
+    39,
+    40,
+    42,
+    43,
+    44,
+    45,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    80,
+    81,
+    82,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_801833F4[75] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    59,
+    60,
+    61,
+    62,
+    64,
+    68,
+    69,
+    70,
+    71,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_8018348C[34] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    10,
+    11,
+    12,
+    13,
+    15,
+    16,
+    18,
+    25,
+    26,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    35,
+    37,
+    38,
+    39,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    79,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_801834D0[20] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    9,
+    11,
+    12,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    75,
+    76,
+    78,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_801834F8[24] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    74,
+    75,
+    76,
+    77,
+    78,
+    -1,
+};
+
+s16 D_acropolis_sanctuary_80183528[14] = {
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    10,
+    11,
+    12,
+    13,
+    16,
+    18,
+    -1,
+};
+
+s16 * D_acropolis_sanctuary_80183544[9] = {
+    D_acropolis_sanctuary_80183240,
+    D_acropolis_sanctuary_801832A8,
+    D_acropolis_sanctuary_80183334,
+    D_acropolis_sanctuary_8018337C,
+    D_acropolis_sanctuary_801833F4,
+    D_acropolis_sanctuary_8018348C,
+    D_acropolis_sanctuary_801834D0,
+    D_acropolis_sanctuary_801834F8,
+    D_acropolis_sanctuary_80183528,
+};
+
+GpGridParams D_acropolis_sanctuary_80183568 = { NULL, D_acropolis_sanctuary_801828B4, D_acropolis_sanctuary_80182A04, D_acropolis_sanctuary_80182E44, D_acropolis_sanctuary_80183544, 0x2A44, 0x332D, 3, 3, 4000, 85 };
+
+GpObj4C D_acropolis_sanctuary_8018358C[18] = {
+    { NULL, NULL, NULL, { -7168, -1376, -8000, 0 }, { { 0, -2048, -1504, 0 }, { 0, 2048, -1504, 0 }, { 0, -2048, 1504, 0 }, { 0, 2048, 1504, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 0, 0 }, 2534, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -9729, -1344, -5953, 0 }, { { 1242, -2048, -514, 0 }, { 1242, 2048, -514, 0 }, { -1241, -2048, 515, 0 }, { -1241, 2048, 515, 0 } }, { -1570, 0, -3788, 0 }, { 0, 0, 0, 0 }, 2442, 0, 2, 7, 1, 0 },
+    { NULL, NULL, NULL, { -9665, -1376, -0x2721, 0 }, { { -1241, -2048, -514, 0 }, { -1241, 2048, -514, 0 }, { 1242, -2048, 514, 0 }, { 1242, 2048, 514, 0 } }, { -1569, 0, 3787, 0 }, { 0, 0, 0, 0 }, 2442, 0, 2, 5, 1, 0 },
+    { NULL, NULL, NULL, { -7456, -1088, -7981, 0 }, { { 0, -2048, 1376, 0 }, { 0, 2048, 1376, 0 }, { 0, -2048, -1376, 0 }, { 0, 2048, -1376, 0 } }, { 4105, 0, 0, 0 }, { 0, 0, 0, 0 }, 2455, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -9953, -1344, -9504, 0 }, { { 1242, -2048, 514, 0 }, { 1242, 2048, 514, 0 }, { -1241, -2048, -514, 0 }, { -1241, 2048, -514, 0 } }, { 1568, 0, -3788, 0 }, { 0, 0, 0, 0 }, 2442, 0, 5, 2, 1, 0 },
+    { NULL, NULL, NULL, { -9985, -1216, -6529, 0 }, { { -1265, -2048, 453, 0 }, { -1265, 2048, 453, 0 }, { 1265, -2048, -453, 0 }, { 1265, 2048, -453, 0 } }, { 1382, 0, 3859, 0 }, { 0, 0, 0, 0 }, 2442, 0, 7, 2, 1, 0 },
+    { NULL, NULL, NULL, { -7203, -1248, -0x2D63, 0 }, { { -5, -2048, 1057, 0 }, { -5, 2048, 1057, 0 }, { 5, -2048, -1056, 0 }, { 5, 2048, -1056, 0 } }, { 4099, 0, 19, 0 }, { 0, 0, 0, 0 }, 2304, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { -6850, -1312, -0x2D81, 0 }, { { 5, -2048, -1184, 0 }, { 5, 2048, -1184, 0 }, { -5, -2048, 1185, 0 }, { -5, 2048, 1185, 0 } }, { -4112, 0, -18, 0 }, { 0, 0, 0, 0 }, 2360, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { -6704, -1280, -4259, 0 }, { { -5, -2048, 1217, 0 }, { -5, 2048, 1217, 0 }, { 5, -2048, -1216, 0 }, { 5, 2048, -1216, 0 } }, { 4103, 0, 16, 0 }, { 0, 0, 0, 0 }, 2374, 0, 6, 7, 1, 0 },
+    { NULL, NULL, NULL, { -6399, -1344, -4258, 0 }, { { 5, -2048, -1312, 0 }, { 5, 2048, -1312, 0 }, { -5, -2048, 1313, 0 }, { -5, 2048, 1313, 0 } }, { -4098, 0, -16, 0 }, { 0, 0, 0, 0 }, 2428, 0, 7, 6, 1, 0 },
+    { NULL, NULL, NULL, { -4337, -1344, -5456, 0 }, { { -1472, -2048, -864, 0 }, { -1472, 2048, -864, 0 }, { 1473, -2048, 864, 0 }, { 1473, 2048, 864, 0 } }, { -2078, 0, 3540, 0 }, { 0, 0, 0, 0 }, 2660, 0, 6, 3, 1, 0 },
+    { NULL, NULL, NULL, { -4401, -1312, -4928, 0 }, { { 1457, -2048, 896, 0 }, { 1457, 2048, 896, 0 }, { -1456, -2048, -896, 0 }, { -1456, 2048, -896, 0 } }, { 2149, 0, -3494, 0 }, { 0, 0, 0, 0 }, 2660, 0, 3, 6, 1, 0 },
+    { NULL, NULL, NULL, { -3907, -1312, -0x2763, 0 }, { { 1810, -2048, -622, 0 }, { 1810, 2048, -622, 0 }, { -1809, -2048, 623, 0 }, { -1809, 2048, 623, 0 } }, { -1334, 0, -3877, 0 }, { 0, 0, 0, 0 }, 2792, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -3970, -1312, -0x2884, 0 }, { { -2065, -2048, 751, 0 }, { -2065, 2048, 751, 0 }, { 2066, -2048, -750, 0 }, { 2066, 2048, -750, 0 } }, { 1405, 0, 3867, 0 }, { 0, 0, 0, 0 }, 2996, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -2955, -1312, -8921, 0 }, { { 1025, -2048, -671, 0 }, { 1025, 2048, -671, 0 }, { -1026, -2048, 670, 0 }, { -1026, 2048, 670, 0 } }, { -2250, 0, -3441, 0 }, { 0, 0, 0, 0 }, 2374, 0, 3, 8, 1, 0 },
+    { NULL, NULL, NULL, { -3298, -1344, -6786, 0 }, { { 958, -2048, 764, 0 }, { 958, 2048, 764, 0 }, { -958, -2048, -764, 0 }, { -958, 2048, -764, 0 } }, { 2562, 0, -3214, 0 }, { 0, 0, 0, 0 }, 2374, 0, 8, 3, 1, 0 },
+    { NULL, NULL, NULL, { -2979, -1280, -6915, 0 }, { { -953, -2048, -769, 0 }, { -953, 2048, -769, 0 }, { 954, -2048, 770, 0 }, { 954, 2048, 770, 0 } }, { -2582, 0, 3198, 0 }, { 0, 0, 0, 0 }, 2374, 0, 3, 8, 1, 0 },
+    { NULL, NULL, NULL, { -3201, -1344, -9089, 0 }, { { -1013, -2048, 690, 0 }, { -1013, 2048, 690, 0 }, { 1013, -2048, -690, 0 }, { 1013, 2048, -690, 0 } }, { 2314, 0, 3398, 0 }, { 0, 0, 0, 0 }, 2374, 0, 8, 3, 129, 0 },
+};
+
+GpObj4C D_acropolis_sanctuary_80183AE4[17] = {
+    { NULL, NULL, NULL, { -9920, -42, -7968, 0 }, { { -287, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -287, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 1063, 0, 11, 18, 2, 0 },
+    { NULL, NULL, NULL, { -7728, -24, -4448, 0 }, { { -735, 0, -256, 0 }, { 736, 0, -256, 0 }, { -735, 0, 256, 0 }, { 736, 0, 256, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 778, 0, 13, 33, 2, 0 },
+    { NULL, NULL, NULL, { -3648, -64, -8016, 0 }, { { -319, 0, -432, 0 }, { 320, 0, -432, 0 }, { -319, 0, 432, 0 }, { 320, 0, 432, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 535, 2, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { -5312, -64, -8288, 0 }, { { -543, 0, -896, 0 }, { 544, 0, -896, 0 }, { -543, 0, 896, 0 }, { 544, 0, 896, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1047, 2, 0, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2736, -61, -7896, 0 }, { { -655, 0, -680, 0 }, { 656, 0, -1448, 0 }, { -655, 0, 856, 0 }, { 656, 0, 1272, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1588, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { -7712, -32, -4416, 0 }, { { -895, 0, -672, 0 }, { 896, 0, -672, 0 }, { -895, 0, 672, 0 }, { 896, 0, 672, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1115, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { -6608, -64, -8086, 0 }, { { -3, 0, 125, 0 }, { -105, 0, -3, 0 }, { 113, 0, -14, 0 }, { -2, 0, -106, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4095, 0 }, 124, 6, 7, 0, 3, 0 },
+    { NULL, NULL, NULL, { -4768, -64, -6992, 0 }, { { -751, 0, -720, 0 }, { 752, 0, -720, 0 }, { -751, 0, 720, 0 }, { 752, 0, 720, 0 } }, { 0, 4097, 0, 0 }, { -995, 0, 3973, 0 }, 1039, 2, 0, 0, 2, 0 },
+    { NULL, NULL, NULL, { -4768, -64, -8864, 0 }, { { -751, 0, -624, 0 }, { 752, 0, -624, 0 }, { -751, 0, 624, 0 }, { 752, 0, 624, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 976, 2, 0, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6446, -64, -7903, 0 }, { { -115, 0, 362, 0 }, { -377, 0, 99, 0 }, { 385, 0, -104, 0 }, { 110, 0, -356, 0 } }, { 0, 4100, 0, 0 }, { 2895, 0, 2895, 0 }, 398, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6800, -64, -8240, 0 }, { { -99, 0, 378, 0 }, { -393, 0, 83, 0 }, { 401, 0, -88, 0 }, { 94, 0, -372, 0 } }, { 0, 4106, 0, 0 }, { -2896, 0, -2896, 0 }, 409, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6802, -64, -7904, 0 }, { { 58, 0, 362, 0 }, { -364, 0, -61, 0 }, { 371, 0, 56, 0 }, { -64, 0, -356, 0 } }, { 0, 4095, 0, 0 }, { -2897, 0, 2895, 0 }, 374, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6448, -64, -8256, 0 }, { { 74, 0, 346, 0 }, { -348, 0, -77, 0 }, { 355, 0, 72, 0 }, { -80, 0, -340, 0 } }, { 0, 4095, 0, 0 }, { 2896, 0, -2896, 0 }, 362, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6633, -64, -7809, 0 }, { { 1, 0, 277, 0 }, { -186, 0, 5, 0 }, { 178, 0, -9, 0 }, { 10, 0, -270, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4093, 0 }, 275, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6617, -64, -8385, 0 }, { { -15, 0, 277, 0 }, { -170, 0, 5, 0 }, { 194, 0, -9, 0 }, { -6, 0, -270, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4093, 0 }, 277, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6305, -64, -8097, 0 }, { { -276, 0, -8, 0 }, { -4, 0, -163, 0 }, { 10, 0, 170, 0 }, { 270, 0, 1, 0 } }, { 0, 4094, 0, 0 }, { 4093, 0, 0, 0 }, 275, 6, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { -6912, -64, -8073, 0 }, { { -276, 0, 0, 0 }, { -4, 0, -155, 0 }, { 10, 0, 146, 0 }, { 270, 0, 9, 0 } }, { 0, 4095, 0, 0 }, { -4093, 0, 0, 0 }, 275, 6, 7, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_acropolis_sanctuary_80183FF0[3] = {
+    { 27, 107, 0, 0, { 0, 0 }, D_8013BF94 },
+    { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_sanctuary_80184014[2] = {
+    { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_acropolis_sanctuary_8018402C[12] = {
+    { NULL, NULL },
+    { D_map_akropolis_8017BA5C, D_acropolis_sanctuary_80183FF0 },
+    { D_map_akropolis_8017BA8C, D_acropolis_sanctuary_80184014 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpPointLight D_acropolis_sanctuary_8018408C[9] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7720, -3500, -5973 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 500, 4575 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4989, -3500, -6313 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 500, 4488 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5050, -3500, -0x2732 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 500, 4671 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7720, -3500, -0x2732 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2867, 2867, { 0, 0 } }, 500, 4284 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2788, -2000, -9282 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 3276, { 0, 0 } }, 100, 4500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x277E, -2000, -6674 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 3276, { 0, 0 } }, 100, 4499 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2870, -2000, -6481 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 3276, { 0, 0 } }, 100, 4500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2870, -2000, -9568 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 3276, { 0, 0 } }, 100, 4500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6180, -3500, -8019 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2048, 2048, 2048, { 0, 0 } }, 0x2710, 0x2710 },
+};
+
+GpRoomCoordSet D_acropolis_sanctuary_801843EC[1] = {
+    { 0, NULL, 9, D_acropolis_sanctuary_8018408C, 0, NULL },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80184404[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80184414[40] = {
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -48, 16, 883, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, -56, 16, 701, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, -64, 32, 503, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -72, 48, 480, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, 64, 411, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, 72, 343, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 88, 328, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 104, 312, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, 16, 853, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 16, 863, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, 16, 843, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 80, 24, 736, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 88, 32, 691, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, 32, 638, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 32, 626, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 88, 516, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 112, 48, 504, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 48, 522, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 128, 56, 512, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 136, 64, 480, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 64, 450, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 64, 117, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 112, 56 } }, -160, 0, 857, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -64, -16, 852, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 853, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 56, 874, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 80, 48 } }, 80, 0, 862, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 56, -16, 859, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 40, 852, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 48, 867, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 48, 510, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 72, 512, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 96 } }, -160, 24, 523, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -88, 0, 510, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, -88, 24, 523, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 96, 383, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 104 } }, 112, 16, 504, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 104, 0, 504, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 513, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 192, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80184734[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 22, 0, 0, { 3, 0 } },
+    { 22, 8, 0, 0, { 0, 0 } },
+    { 30, 9, 0, 0, { 2, 0 } },
+    { 39, 1, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80184764[50] = {
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -8, -24, 1316, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 0, 1351, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 48, 974, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 112, 317, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, 8, 970, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 16, 877, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, 16, 789, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -72, 24, 726, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, 32, 693, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, 40, 610, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, 40, 602, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -104, 48, 450, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -112, 48, 510, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, 56, 427, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -128, 56, 427, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -136, 56, 445, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, 64, 418, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, 72, 385, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, 80, 387, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, 16, 915, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 64, 16, 734, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 72, 32, 636, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 80, 48, 512, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 64, 447, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, 64, 388, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, 72, 352, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 88, 336, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 40 } }, -152, -8, 1073, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -152, 32, 681, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, -80, 0, 1043, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, -16, 1000, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, 0, 1100, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, -16, 931, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 56, 0, 924, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 24, 729, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 40 } }, 72, 0, 937, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 626, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 48 } }, -160, 16, 628, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -112, 0, 631, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, -96, 16, 632, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -72, 32, 790, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, 0, 562, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 80, 80, 478, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 72, 48, 548, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 56 } }, 80, 24, 585, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 88, 387, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 64, 207, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 88, 210, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 112, 337, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 668, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80184B4C[8] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 2, 0, 0, { 3, 0 } },
+    { 2, 25, 0, 0, { 0, 0 } },
+    { 27, 9, 0, 0, { 5, 0 } },
+    { 36, 9, 0, 0, { 1, 0 } },
+    { 45, 4, 0, 0, { 4, 0 } },
+    { 49, 1, 0, 0, { 2, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80184B8C[46] = {
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, -128, -32, 1356, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -24, 979, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, 0, 571, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 40 } }, -104, -16, 960, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 24, 575, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -32, -16, 921, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, -8, 918, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, 0, 571, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 56 } }, -104, 8, 565, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -40, 8, 601, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, 72, 537, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 187, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 112, 278, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 112, 208, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, -16, 880, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 32, 906, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 0, -16, 901, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 0, 818, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, 8, 697, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 104 } }, -24, 0, 527, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, 80, 545, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 88, 554, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, 8, 510, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, 32, 460, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 40, 420, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 48, 391, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 64, 361, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 64, 341, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 72, 325, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 80, 305, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 88, 288, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 88, 277, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 96, 263, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 96, 253, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 104, 243, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 104, 235, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 104, 228, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 104, 228, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, 8, 612, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, 8, 606, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 8, 598, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, 0, 588, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, 0, 583, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 32, 670, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 56 } }, 56, -120, 354, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -80, 600, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80184F24[10] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 6, 0 } },
+    { 1, 6, 0, 0, { 1, 0 } },
+    { 7, 4, 0, 0, { 4, 0 } },
+    { 11, 2, 0, 0, { 0, 0 } },
+    { 13, 25, 0, 0, { 5, 0 } },
+    { 38, 6, 0, 0, { 3, 0 } },
+    { 44, 1, 0, 0, { 7, 0 } },
+    { 45, 1, 0, 0, { 2, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80184F74[41] = {
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, 24, 600, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, 0, 754, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, 0, 607, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 0, 611, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 0, 614, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 0, 619, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 40, 961, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -8, -16, 945, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 32, 916, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 0, 879, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 0, 711, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 16, 0, 579, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, 56, 651, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 80, 563, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, 16, 572, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 32, 545, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 534, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 48, 48, 473, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 56, 442, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 413, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 72, 393, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 80, 72, 374, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 88, 72, 360, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 80, 347, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 80, 341, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 64, 322, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 104, 329, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, 64, 318, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, 72, 319, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 88, 314, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -8, -16, 882, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, -24, 886, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 40, 887, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 128, 56 } }, 8, -16, 882, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 112, 88 } }, 48, 0, 592, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 88 } }, 16, 8, 582, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 24, 96, 478, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 316, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -88, -96, 583, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, -120, 202, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -120, 230, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_801852A8[9] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 3, 0 } },
+    { 6, 24, 0, 0, { 4, 0 } },
+    { 30, 4, 0, 0, { 1, 0 } },
+    { 34, 3, 0, 0, { 5, 0 } },
+    { 37, 1, 0, 0, { 0, 0 } },
+    { 38, 1, 0, 0, { 6, 0 } },
+    { 39, 2, 0, 0, { 2, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_801852F0[32] = {
+    { 143, 0x3FC0, { .fields = { 56, 56 } }, 88, -8, 1250, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 24, 659, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -8, 0, 779, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, 64, 776, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 64, 772, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 16, 727, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 16, 619, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, 24, 0, 565, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, 32, 0, 510, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 473, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 40, 422, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 48, 403, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 48, 389, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 56, 350, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 56, 337, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 64, 325, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 64, 315, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 64, 307, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 72, 275, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 72, 265, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, 72, 259, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 72, 252, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 520, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 24, 492, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, 8, 791, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, 8, 813, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 112, 40 } }, 32, 8, 816, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 96, 48, 811, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -8, 805, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 16, 32, 575, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 112 } }, 32, 8, 5021, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 112, 80 } }, 48, 8, 455, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185570[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 3, 0 } },
+    { 1, 23, 0, 0, { 0, 0 } },
+    { 24, 5, 0, 0, { 2, 0 } },
+    { 29, 3, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_801855A0[24] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 56, 893, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 80, 735, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 80, 804, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 112 } }, -72, 8, 488, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 16, 451, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 112 } }, -64, 8, 514, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 16, 618, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 32, 670, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 701, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 32, 726, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 16, 755, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, -16, 8, 808, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 8, 876, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 0, 8, 875, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 0, 835, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 48, 894, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 24, 817, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 48, 899, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 120, 40 } }, -112, 8, 887, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 144, 64 } }, -160, 8, 760, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 72, 750, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 80, 750, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -8, 636, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 96, 104 } }, -160, 16, 634, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185780[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 14, 0, 0, { 0, 0 } },
+    { 14, 5, 0, 0, { 3, 0 } },
+    { 19, 4, 0, 0, { 2, 0 } },
+    { 23, 1, 0, 0, { 4, 0 } },
+    { 24, 0, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_801857B8[9] = {
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -80, 24, 614, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -48, 32, 607, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -16, 40, 600, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -64, 766, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -96, 785, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -32, -88, 663, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 0, -80, 651, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -72, 666, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -64, 748, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_8018586C[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 3, 0, 0, { 1, 0 } },
+    { 3, 6, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_8018588C[4] = {
+    { 143, 0x3FC0, { .fields = { 48, 32 } }, -48, -48, 585, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 32 } }, 0, -48, 591, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 80 } }, -40, -16, 587, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 80 } }, 0, -16, 591, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_801858DC[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 4, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_sanctuary_801858F4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80185904[8] = {
+    { 142, 0x3FC0, { .fields = { 72, 40 } }, -152, -24, 230, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, -128, 16, 239, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 96, 64 } }, -152, 32, 227, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, -112, 96, 248, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 96 } }, -56, 24, 302, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 96 } }, 24, 16, 423, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 136 } }, 88, -40, 432, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, 136, -8, 394, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_801859A4[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_801859BC[32] = {
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -40, -112, 1294, { .fields = { 88, 88 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, -96, 1195, { .fields = { 64, 136 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 72, 16 } }, -48, -80, 1110, { .fields = { 56, 72 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -40, -64, 1036, { .fields = { 64, 104 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, -48, 1026, { .fields = { 88, 120 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 8, -32, 1021, { .fields = { 104, 184 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, -96, 1373, { .fields = { 120, 248 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -40, 978, { .fields = { 112, 248 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -40, -112, 1329, { .fields = { 88, 168 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -96, 992, { .fields = { 112, 200 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -80, 671, { .fields = { 112, 48 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -64, 913, { .fields = { 112, 152 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -80, 1379, { .fields = { 112, 0 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -56, 1231, { .fields = { 120, 216 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, -40, 1095, { .fields = { 112, 24 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 16 } }, -24, -112, 1380, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 16 } }, -8, -96, 1415, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 16 } }, 8, -80, 1388, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 16 } }, -48, -120, 1200, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -104, 1059, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -56, -88, 907, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 8 } }, -56, -72, 671, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 40, 8 } }, -56, -64, 664, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 40, 8 } }, -48, -56, 807, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 48, 8 } }, -40, -48, 832, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 8 } }, -24, -40, 845, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 8 } }, -16, -32, 852, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 16, -64, 1293, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 16 } }, 8, -48, 1164, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 8 } }, 8, -32, 1027, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 32, 8 } }, 0, -24, 904, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 24, 8 } }, 8, -16, 906, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185C3C[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 1, 0 } },
+    { 6, 9, 0, 0, { 2, 0 } },
+    { 15, 17, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80185C64[5] = {
+    { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, 32, 488, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, -120, 32, 499, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 104 } }, -80, -8, 410, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 80 } }, -24, 40, 497, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -64, 96, 305, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185CC8[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80185CE0[8] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 338, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -8, 88, 325, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 80, 325, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, 72, 325, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 72, 48, 325, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, 64, 350, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -112, 96, 325, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -64, 96, 325, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185D80[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_sanctuary_80185D98[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_sanctuary_80185DA8[38] = {
+    { 143, 0x3FC0, { .fields = { 64, 112 } }, -48, -104, 674, { .fields = { 64, 0 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 64, 88 } }, 16, -112, 618, { .fields = { 0, 0 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 72, 80 } }, -56, 8, 622, { .fields = { 112, 88 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 72, 112 } }, 16, -24, 566, { .fields = { 56, 112 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 16, -112, 659, { .fields = { 112, 56 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, -104, 637, { .fields = { 40, 8 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, -96, 616, { .fields = { 40, 248 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -88, 581, { .fields = { 88, 224 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -56, 554, { .fields = { 104, 224 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 72, -24, 544, { .fields = { 72, 128 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 64, -8, 559, { .fields = { 72, 0 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 16, 546, { .fields = { 8, 232 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, 80, 40, 506, { .fields = { 112, 168 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -16, -104, 690, { .fields = { 40, 16 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -96, 705, { .fields = { 24, 240 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -48, -88, 716, { .fields = { 64, 224 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -48, -56, 697, { .fields = { 120, 224 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -24, 675, { .fields = { 56, 224 } }, 128, 128, 128, 2 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -56, 8, 651, { .fields = { 24, 168 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -40, 64, 606, { .fields = { 56, 104 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -8, 80, 578, { .fields = { 64, 48 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 24, 48, 562, { .fields = { 88, 104 } }, 128, 128, 128, 2 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, 48, 80, 534, { .fields = { 40, 0 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 48, 16 } }, 0, -120, 647, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 32, 24 } }, 48, -120, 599, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 24, 32 } }, 64, -96, 568, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 16, 56 } }, 72, -64, 554, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 24, 24 } }, 72, -8, 534, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 64 } }, 80, 16, 513, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -32, -112, 688, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -48, -96, 699, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 32, 56 } }, -64, -80, 685, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 8, 16 } }, -56, -24, 672, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 80 } }, -64, -8, 644, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 16, 24 } }, -72, 72, 604, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -56, 72, 508, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x4000, { .fields = { 96, 40 } }, -8, 80, 475, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 88, 80, 481, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_sanctuary_801860A0[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 4, 0, 0, { 1, 0 } },
+    { 4, 19, 0, 0, { 2, 0 } },
+    { 23, 15, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_acropolis_sanctuary_801860C8[16] = {
+    { { .empty = D_acropolis_sanctuary_80184404 }, D_acropolis_sanctuary_80184404, NULL },
+    { { .elements = D_acropolis_sanctuary_80184414 }, D_acropolis_sanctuary_80184734, NULL },
+    { { .elements = D_acropolis_sanctuary_80184764 }, D_acropolis_sanctuary_80184B4C, NULL },
+    { { .elements = D_acropolis_sanctuary_80184B8C }, D_acropolis_sanctuary_80184F24, NULL },
+    { { .elements = D_acropolis_sanctuary_80184F74 }, D_acropolis_sanctuary_801852A8, NULL },
+    { { .elements = D_acropolis_sanctuary_801852F0 }, D_acropolis_sanctuary_80185570, NULL },
+    { { .elements = D_acropolis_sanctuary_801855A0 }, D_acropolis_sanctuary_80185780, NULL },
+    { { .elements = D_acropolis_sanctuary_801857B8 }, D_acropolis_sanctuary_8018586C, NULL },
+    { { .elements = D_acropolis_sanctuary_8018588C }, D_acropolis_sanctuary_801858DC, NULL },
+    { { .empty = D_acropolis_sanctuary_801858F4 }, D_acropolis_sanctuary_801858F4, NULL },
+    { { .elements = D_acropolis_sanctuary_80185904 }, D_acropolis_sanctuary_801859A4, NULL },
+    { { .elements = D_acropolis_sanctuary_801859BC }, D_acropolis_sanctuary_80185C3C, NULL },
+    { { .elements = D_acropolis_sanctuary_80185C64 }, D_acropolis_sanctuary_80185CC8, NULL },
+    { { .elements = D_acropolis_sanctuary_80185CE0 }, D_acropolis_sanctuary_80185D80, NULL },
+    { { .empty = D_acropolis_sanctuary_80185D98 }, D_acropolis_sanctuary_80185D98, NULL },
+    { { .elements = D_acropolis_sanctuary_80185DA8 }, D_acropolis_sanctuary_801860A0, NULL },
+};
+
+GpViewRec D_acropolis_sanctuary_80186188[16] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 6200, 0x7530, 8000 } }, 589 },
+    { { { { 345, 0, 4081 }, { 546, 4059, -46 }, { -4044, 548, 342 } }, { 4961, 1400, 8451 } }, 230 },
+    { { { { 559, 0, -4057 }, { -549, 4058, -75 }, { 4020, 554, 554 } }, { 9472, 1403, 8386 } }, 230 },
+    { { { { 775, 0, -4021 }, { -623, 4046, -120 }, { 3973, 635, 766 } }, { 9087, 1276, 0x2D59 } }, 230 },
+    { { { { 656, 0, 4043 }, { 635, 4045, -103 }, { -3992, 643, 648 } }, { 4960, 1280, 0x2D3A } }, 230 },
+    { { { { -795, 0, -4017 }, { 65, 4095, -13 }, { 4017, -66, -795 } }, { 8714, 919, 4418 } }, 230 },
+    { { { { -580, 0, 4054 }, { -150, 4093, -21 }, { -4051, -151, -579 } }, { 4402, 920, 4439 } }, 230 },
+    { { { { 1227, 0, -3907 }, { -3609, 1569, -1134 }, { 1496, 3783, 470 } }, { 4250, 3534, 8412 } }, 230 },
+    { { { { -186, 0, -4091 }, { -25, 4095, 1 }, { 4091, 25, -186 } }, { 6573, 667, 7896 } }, 230 },
+    { { { { 1471, 0, 3822 }, { 944, 3969, -363 }, { -3704, 1012, 1425 } }, { 7110, 2190, 9120 } }, 680 },
+    { { { { 3484, 0, -2153 }, { -524, 3972, -847 }, { 2089, 996, 3379 } }, { 8712, 1215, 9980 } }, 230 },
+    { { { { 2699, 0, 3080 }, { -2257, 2787, 1978 }, { -2096, -3001, 1837 } }, { 8528, 459, 9285 } }, 230 },
+    { { { { 4014, 0, -810 }, { -213, 3951, -1058 }, { 782, 1079, 3873 } }, { 5552, 1588, 0x2BBF } }, 230 },
+    { { { { 4014, 0, -810 }, { -213, 3951, -1058 }, { 782, 1079, 3873 } }, { 8025, 1652, 6179 } }, 230 },
+    { { { { 4071, 0, -446 }, { -158, 3830, -1440 }, { 417, 1449, 3808 } }, { 4926, 1150, 9330 } }, 230 },
+    { { { { 1261, 0, -3896 }, { 704, 4028, 228 }, { 3832, -740, 1240 } }, { 0x310A, 4285, 8624 } }, 207 },
+};
+
+s32 D_acropolis_sanctuary_801863C8[3] = {
+    0x1000002D,
+    0x1000002F,
+    0x1000002D,
+};
+
+s32 D_acropolis_sanctuary_801863D4[3] = {
+    0x10000011,
+    0x10000013,
+    0x10000011,
+};
+
+GpRoomParamRec D_acropolis_sanctuary_801863E0[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_sanctuary_801863E8[1] = {
+    { 0, 0, 1, 0, D_acropolis_sanctuary_801863C8 },
+};
+
+GpRoomParamRec D_acropolis_sanctuary_801863F0[1] = {
+    { 0, 0, 1, 0, D_acropolis_sanctuary_801863D4 },
+};
+
+GpRoomParamRec * D_acropolis_sanctuary_801863F8[8] = {
+    D_acropolis_sanctuary_801863E0,
+    D_acropolis_sanctuary_801863E8,
+    D_acropolis_sanctuary_801863F0,
+    D_acropolis_sanctuary_801863E0,
+    D_acropolis_sanctuary_801863E0,
+    D_acropolis_sanctuary_801863E0,
+    D_acropolis_sanctuary_801863E0,
+    D_acropolis_sanctuary_801863E0,
+};
+
+GpAreaApplyRec D_acropolis_sanctuary_80186418[11] = {
+    { 1, 3, 4, 1 },
+    { 1, 4, 4, 1 },
+    { 1, 7, 4, 1 },
+    { 1, 9, 3, 17 },
+    { 1, 9, 7, 33 },
+    { 1, 10, 2, 17 },
+    { 1, 10, 7, 33 },
+    { 1, 11, 2, 17 },
+    { 1, 11, 7, 33 },
+    { 1, 13, 7, 33 },
+    { 255, 0, 0, 0 },
+};
+
+TmdBone D_acropolis_sanctuary_80186444[3] = {
+#include "assets/acropolis_sanctuary_model_09448_skeleton.inc"
+};
+
+u32 D_acropolis_sanctuary_801864B0[3] = {
+#include "assets/acropolis_sanctuary_model_09448_partVerts.inc"
+};
+
+SVECTOR D_acropolis_sanctuary_801864BC[56] = {
+#include "assets/acropolis_sanctuary_model_09448_verts.inc"
+};
+
+SVECTOR D_acropolis_sanctuary_8018667C[6] = {
+#include "assets/acropolis_sanctuary_model_09448_normals.inc"
+};
+
+u32 D_acropolis_sanctuary_801866AC[215] = {
+#include "assets/acropolis_sanctuary_model_09448_stream.inc"
+};
+
+TmdSource D_acropolis_sanctuary_80186A08 = {
+    0, 1768, 0, 3,
+    D_acropolis_sanctuary_801864B0, D_acropolis_sanctuary_801864BC, D_acropolis_sanctuary_8018667C, D_acropolis_sanctuary_80186444, D_acropolis_sanctuary_801866AC,
+};
+
+TmdBone D_acropolis_sanctuary_80186A2C[1] = {
+#include "assets/acropolis_sanctuary_model_096A8_skeleton.inc"
+};
+
+u32 D_acropolis_sanctuary_80186A50[1] = {
+#include "assets/acropolis_sanctuary_model_096A8_partVerts.inc"
+};
+
+SVECTOR D_acropolis_sanctuary_80186A54[19] = {
+#include "assets/acropolis_sanctuary_model_096A8_verts.inc"
+};
+
+SVECTOR D_acropolis_sanctuary_80186AEC[11] = {
+#include "assets/acropolis_sanctuary_model_096A8_normals.inc"
+};
+
+u32 D_acropolis_sanctuary_80186B44[73] = {
+#include "assets/acropolis_sanctuary_model_096A8_stream.inc"
+};
+
+TmdSource D_acropolis_sanctuary_80186C68 = {
+    0, 440, 0, 1,
+    D_acropolis_sanctuary_80186A50, D_acropolis_sanctuary_80186A54, D_acropolis_sanctuary_80186AEC, D_acropolis_sanctuary_80186A2C, D_acropolis_sanctuary_80186B44,
+};
+
+u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
+
+Task * D_acropolis_sanctuary_80186C90 = NULL;
+
+SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
+
 /// The room task's per-frame state. Once the session reaches phase 3
 /// (`GameFlag_GetNibble(2)` still 0), advances that flag and applies the
 /// room's one-shot state, then clears the `GpObj4A` bit 0x40 render filter on
@@ -243,7 +2267,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 
     if (GameFlag_GetNibble(2) == 0 && gGameSession->at4.loc.warp == 3) {
         GameFlag_SetNibble(2, 2);
-        func_800E8634(&D_acropolis_sanctuary_80180B0C, 0, &D_acropolis_sanctuary_80181664);
+        func_800E8634(D_acropolis_sanctuary_80180B0C, 0, D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
         Mc_SaveData[0].state.sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
@@ -254,15 +2278,15 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
     }
     if (Gp_GetCurBit2Flag(0x1C) == 2) {
         mask = ~0x40;
-        p0   = &D_acropolis_sanctuary_80183CAC[0];
-        p3   = &D_acropolis_sanctuary_80183CAC[3];
-        p4   = &D_acropolis_sanctuary_80183CAC[4];
-        p5   = &D_acropolis_sanctuary_80183CAC[5];
-        p6   = &D_acropolis_sanctuary_80183CAC[6];
-        p7   = &D_acropolis_sanctuary_80183CAC[7];
-        p8   = &D_acropolis_sanctuary_80183CAC[8];
-        p9   = &D_acropolis_sanctuary_80183CAC[9];
-        p10  = &D_acropolis_sanctuary_80183CAC[10];
+        p0   = &(D_acropolis_sanctuary_80183AE4 + 6)[0];
+        p3   = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
+        p4   = &(D_acropolis_sanctuary_80183AE4 + 6)[4];
+        p5   = &(D_acropolis_sanctuary_80183AE4 + 6)[5];
+        p6   = &(D_acropolis_sanctuary_80183AE4 + 6)[6];
+        p7   = &(D_acropolis_sanctuary_80183AE4 + 6)[7];
+        p8   = &(D_acropolis_sanctuary_80183AE4 + 6)[8];
+        p9   = &(D_acropolis_sanctuary_80183AE4 + 6)[9];
+        p10  = &(D_acropolis_sanctuary_80183AE4 + 6)[10];
 
         p0->field_4A  &= mask;
         p3->field_4A  &= mask;
@@ -281,19 +2305,19 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 /// seen for real (`field_5` == 0) it latches nibble 7 to 2 and raises the room's
 /// 0x13 bit-2 flag; the answer written back into `field_3` is 1 while nibble 2
 /// is still clear and 2 once it is set.
-s32 func_acropolis_sanctuary_8017D73C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     s32 nib;
 
     *out = *in;
-    if (in->msgId == 0xB) {
+    if (in->prefix.packed == 0xB) {
         if (in->field_5 == 0) {
             if (GameFlag_GetNibble(7) == 0) {
                 GameFlag_SetNibble(7, 2);
                 Gp_SetCurBit2Flag(0x13, 2);
             }
         }
-        if (in->msgId == 0xB && in->field_5 == 0) {
+        if (in->prefix.packed == 0xB && in->field_5 == 0) {
             nib = GameFlag_GetNibble(2);
             if (nib == 0) {
                 nib = 1;
@@ -307,15 +2331,15 @@ s32 func_acropolis_sanctuary_8017D73C(s32 arg0, s32 arg1, RoomEventMsg* in, Room
 }
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_acropolis_sanctuary_8017D808(void)
+s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_sanctuary_8017D810(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0 && GameFlag_GetNibble(6) == 0) {
-        func_800E8614((s32)&D_acropolis_sanctuary_80181814, 0);
+        func_800E8614(D_acropolis_sanctuary_80181814, 0);
     }
     return 0;
 }
@@ -324,7 +2348,7 @@ s32 func_acropolis_sanctuary_8017D810(s32 arg0, s32 arg1, s32 arg2)
 /// arms the room's own task the first time it is seen, latching nibble 7 so a
 /// second visit does nothing. The record is not copied to the outgoing one -
 /// this handler only ever consumes the message (returns 0).
-s32 func_acropolis_sanctuary_8017D848(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     if (in->field_2 == 1 && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 1);
@@ -435,7 +2459,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weapon.rec.field_10        = 0;
                 Gp_DispatchMsgPtr(slot->target, 0x3E8, &weapon, 0);
                 SndEvt_EnqueueType6(0x510C0007, 0, 0);
-                func_800E8634(&D_acropolis_sanctuary_801820F0, 0, &D_acropolis_sanctuary_801821C8);
+                func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -463,7 +2487,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         Gp_KillPlayerEffs();
                         target = (AcsCutsceneWork*)arg0->work;
                         if (target->target != NULL) {
-                            rec.rec.animBlock.ptr = &D_acropolis_sanctuary_801820E4;
+                            rec.rec.animBlock.ptr = D_acropolis_sanctuary_801820E4;
                             rec.rec.field_4       = 0;
                             rec.rec.field_8       = 0;
                             msg->rec.field_C      = 0xF;
@@ -582,7 +2606,7 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// once. Every frame after that it mirrors the session's stage byte into
 /// `D_acropolis_sanctuary_80182770`: 1 while the byte is 0x10, held while it is
 /// 0xC, 0 otherwise.
-static void func_acropolis_sanctuary_8017E00C(Task* task)
+void func_acropolis_sanctuary_8017E00C(Task* task)
 {
     GpCoord*   coord;
     GpAreaKey* sess;
@@ -617,7 +2641,7 @@ static void func_acropolis_sanctuary_8017E00C(Task* task)
 /// `GpEffWork` offset triple: x is always 0, y and z come from the tile's grid
 /// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
 /// the size class in `quad`. Any state but 0 just releases the work block.
-static void func_acropolis_sanctuary_8017E134(Task* arg0)
+void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -678,7 +2702,7 @@ static void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// bounces it by halving and inverting the vertical step. Either split costs
 /// 0x64 of life. Once the room flag is set and the session is not in mode
 /// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
-static void func_acropolis_sanctuary_8017E338(Task* arg0)
+void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
     GpEffWork*      mem;
     GpCoord*        coord;
@@ -859,7 +2883,7 @@ static void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// splitting into two. Either way the split costs 0x3C of life. Once the room
 /// flag is set and the session is not in mode 0x10, shards past x = -0x28C0
 /// also age by 0x3C, so they clear away.
-static void func_acropolis_sanctuary_8017EC90(Task* arg0)
+void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -1014,7 +3038,7 @@ static void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// as the index into `D_acropolis_sanctuary_801827D4`, the per-variant mask of
 /// camera views the flame is visible from. The grey level is the variant's base
 /// level plus its flicker amplitude on odd frames.
-static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
+void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -1098,7 +3122,7 @@ static void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 /// Spawns effect 0x60078 on the room task's model coordinate, seeded with the
 /// fixed offset vector `D_acropolis_sanctuary_8017D5D0`. Always consumes the event
 /// (returns 0).
-s32 func_acropolis_sanctuary_8017F918(Task* task)
+s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     GpCoord* coord = task->extra.tmd->coords;
     SVECTOR  vec   = D_acropolis_sanctuary_8017D5D0;

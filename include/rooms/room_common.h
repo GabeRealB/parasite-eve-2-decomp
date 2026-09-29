@@ -6,12 +6,22 @@
 #include <psyq/libgte.h>
 #include "overlay.h"
 
+#include "gameplay/display.h"
 #include "gameplay/inventory.h"
 #include "gameplay/message.h"
 
 #include "main/coord.h"
 #include "main/task_types.h"
 #include "main/ui_types.h"
+
+/// Repeated room allocation containing fade work and the following zero word.
+/// Only `fade` has established accesses. `retained` preserves the original
+/// bytes; an unused field and padding at a TU boundary remain possible.
+typedef struct RoomFadeStorage {
+    GpFadeWork fade;
+    u32 retained;
+} RoomFadeStorage;
+STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);
 
 /// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
 /// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a
@@ -108,23 +118,6 @@ typedef struct RoomMirrorWork {
     /* 0xA8 */ s32     configRev;
 } RoomMirrorWork;
 STATIC_ASSERT_SIZEOF(RoomMirrorWork, 0xAC);
-
-/// 8-byte message record a room's message handlers receive alongside the
-/// request. Handlers registered in a room's `(msgId, handler)` dispatch table
-/// are passed the incoming record and an outgoing copy of it, and answer by
-/// editing `field_3` of the copy. `field_5` non-zero suppresses the side
-/// effects (the handler only reports what *would* happen); `field_6` is the
-/// nibble index passed to `Gp_SetNibbleIf`. Alignment is 2, which is why the
-/// whole-record copies compile to `lwl`/`lwr` pairs.
-typedef struct _RoomEventMsg {
-    /* 0x0 */ u16 msgId;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ s8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-    /* 0x6 */ u16 field_6;
-} RoomEventMsg;
-STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 
 /// 0x14-byte request record the room's event scripts build on the stack and
 /// hand to the gate at `RoomsShared8017d638`. `flagId` is a

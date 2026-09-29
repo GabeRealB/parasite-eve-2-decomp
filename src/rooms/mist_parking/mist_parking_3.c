@@ -1,3 +1,5 @@
+#include "mist_parking_private.h"
+
 #include "common.h"
 #include "rooms/room_common.h"
 #include "rooms/mist_parking.h"
@@ -20,9 +22,135 @@
 #include "main/task.h"
 #include "main/text.h"
 
+#include "gameplay/collision.h"
+
+#include "gameplay/animation.h"
+
 extern GpXformArg D_mist_parking_8018FC3C;
 
 static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3);
+
+void func_mist_parking_801837B8(Task *);
+void func_mist_parking_8018397C(Task *);
+
+TaskDesc D_mist_parking_8018FC24[2] = {
+    { 0, 192, func_mist_parking_8018397C, { .model = NULL } },
+    { 0, 192, func_mist_parking_801837B8, { .model = NULL } },
+};
+
+GpXformArg D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
+
+SVECTOR D_mist_parking_8018FC54[2] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+};
+
+SVECTOR D_mist_parking_8018FC64[6] = {
+    { 4800, 100, -5558, 0 },
+    { 4800, -1463, -5558, 0 },
+    { 4800, -1463, -6558, 0 },
+    { 4800, 100, -6558, 0 },
+    { 5800, 100, -5558, 0 },
+    { 5800, -1463, -5558, 0 },
+};
+
+GpGridFace D_mist_parking_8018FC94[2] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 5, 1, 4, 0 }, 1, 0 },
+};
+
+s16 D_mist_parking_8018FCAC[3] = {
+    0,
+    1,
+    -1,
+};
+
+s16 * D_mist_parking_8018FCB4[1] = {
+    D_mist_parking_8018FCAC,
+};
+
+GpGridParams D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MistParkingPoseBank1271C;
+
+MistParkingPoseBank1271C D_mist_parking_8018FCDC = { .poses = {
+#include "assets/mist_parking_animation_129F8_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_8018FD24[46] = {
+#include "assets/mist_parking_animation_129F8_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8018FDDC[109] = {
+#include "assets/mist_parking_animation_129F8_records.inc"
+};
+
+u16 D_mist_parking_8018FF90[20] = {
+#include "assets/mist_parking_animation_129F8_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8018FFB8 = {
+    D_mist_parking_8018FDDC, D_mist_parking_8018FF90,
+    { NULL, D_mist_parking_8018FCDC.words, NULL, NULL, D_mist_parking_8018FD24, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[8];
+    GpPackedSvec words[24];
+} MistParkingPoseBank12A20;
+
+MistParkingPoseBank12A20 D_mist_parking_8018FFE0 = { .poses = {
+#include "assets/mist_parking_animation_12DCC_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_80190040[84] = {
+#include "assets/mist_parking_animation_12DCC_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_80190190[117] = {
+#include "assets/mist_parking_animation_12DCC_records.inc"
+};
+
+u16 D_mist_parking_80190364[20] = {
+#include "assets/mist_parking_animation_12DCC_indices.inc"
+};
+
+GpAnimSet D_mist_parking_8019038C = {
+    D_mist_parking_80190190, D_mist_parking_80190364,
+    { NULL, D_mist_parking_8018FFE0.words, NULL, NULL, D_mist_parking_80190040, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} MistParkingPoseBank12DF4;
+
+MistParkingPoseBank12DF4 D_mist_parking_801903B4 = { .poses = {
+#include "assets/mist_parking_animation_1323C_bank1.inc"
+} };
+
+GpPackedSvec D_mist_parking_801903F0[99] = {
+#include "assets/mist_parking_animation_1323C_bank4.inc"
+};
+
+GpAnimRec D_mist_parking_8019057C[150] = {
+#include "assets/mist_parking_animation_1323C_records.inc"
+};
+
+u16 D_mist_parking_801907D4[20] = {
+#include "assets/mist_parking_animation_1323C_indices.inc"
+};
+
+GpAnimSet D_mist_parking_801907FC = {
+    D_mist_parking_8019057C, D_mist_parking_801907D4,
+    { NULL, D_mist_parking_801903B4.words, NULL, NULL, D_mist_parking_801903F0, NULL, NULL, NULL },
+};
 
 void func_mist_parking_80183634(s32 arg0)
 {
@@ -46,7 +174,7 @@ kill:
 
 void func_mist_parking_80183688(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_8018D75C, 5U), arg0, 0, 0);
+    Display_InitModeObj(Task_GetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, 0);
 }
 
 void func_mist_parking_801836CC(Task* arg0)
@@ -162,7 +290,7 @@ void func_mist_parking_801837B8(Task* task)
 /// `spawnArg1`, sets `gDisplayState.at100.flags.flipMode`, respawns the view tasks and kills itself.
 void func_mist_parking_8018397C(Task* arg0)
 {
-    Display_SpawnWithOt(&D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
+    Display_SpawnWithOt(D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);

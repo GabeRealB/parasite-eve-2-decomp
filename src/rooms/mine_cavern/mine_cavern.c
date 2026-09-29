@@ -1,3 +1,7 @@
+#include "mine_cavern_private.h"
+#include "mapui/map_shelter.h"
+
+#include "gameplay/message.h"
 #include "common.h"
 #include "rooms/mine_cavern.h"
 #include "rooms/room.h"
@@ -22,29 +26,191 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/collision.h"
+#include "gameplay/pairsrc.h"
 
 extern TaskDesc D_mine_cavern_80183CA4[];
 
-extern s32            D_mine_cavern_80183C6C;
-extern s32            D_mine_cavern_80187C74;
-extern s32            D_mine_cavern_8018804C;
-extern s32            D_mine_cavern_80188214;
-extern s32            D_mine_cavern_801887B4;
-extern s32            D_mine_cavern_80188A3C;
-extern s32            D_mine_cavern_80188D24;
+// Message-table callbacks use the argument views required by this TU.
+
+extern GpEvsCmd D_mine_cavern_80187C74[];
+extern GpEvsCmd D_mine_cavern_8018804C[];
+extern GpEvsCmd D_mine_cavern_80188214[];
+extern GpEvsCmd D_mine_cavern_801887B4[];
+extern GpEvsCmd D_mine_cavern_80188A3C[];
+extern GpEvsCmd D_mine_cavern_80188D24[];
 extern TaskDesc       D_mine_cavern_8018E3F4;
 extern s32            D_mine_cavern_8018EB50;
-extern GpAreaApplyRec D_mine_cavern_8018E32C;
+extern GpAreaApplyRec D_mine_cavern_8018E32C[];
+
+u16 D_mine_cavern_8018E360 = 6016;
+
+u16 D_mine_cavern_8018E362 = 2048;
+
+u16 D_mine_cavern_8018E364 = 2048;
+
+u16 D_mine_cavern_8018E366 = 950;
+
+u16 D_mine_cavern_8018E368 = 2710;
+
+SVECTOR D_mine_cavern_8018E36C[6] = {
+    { 200, -2060, 5160, 0 },
+    { 9000, -2040, 8710, 0 },
+    { 0x4560, -2060, 5000, 0 },
+    { 0x36B0, -2060, 290, 0 },
+    { 4550, -2090, 280, 0 },
+    { 6910, -2780, 3700, 0 },
+};
+
+SVECTOR D_mine_cavern_8018E39C[4] = {
+    { 4550, -700, 340, 0 },
+    { 0x3566, -800, 330, 0 },
+    { 4340, -800, 8710, 0 },
+    { 0x3552, -800, 8710, 0 },
+};
+
+u8 D_mine_cavern_8018E3BC[4][8] = {
+    { 4, 22, 5, 23, 24, 25, 18, 19 },
+    { 3, 2, 0, 0, 0, 0, 0, 0 },
+    { 6, 21, 16, 0, 0, 0, 0, 0 },
+    { 7, 8, 20, 17, 0, 0, 0, 0 },
+};
+
+s16 D_mine_cavern_8018E3DC = 0;
+
+MineCavernTint D_mine_cavern_8018E3E0[5] = {
+    { 30, 30, 30, 0 },
+    { 25, 25, 25, 0 },
+    { 17, 21, 22, 0 },
+    { 7, 15, 16, 0 },
+    { 0, 9, 11, 0 },
+};
+
+TaskDesc D_mine_cavern_8018E3F4 = { 0, 96, func_mine_cavern_80182DC8, { .model = NULL } };
+
+TmdBone D_mine_cavern_8018E400[1] = {
+#include "assets/mine_cavern_model_11100_skeleton.inc"
+};
+
+u32 D_mine_cavern_8018E424[1] = {
+#include "assets/mine_cavern_model_11100_partVerts.inc"
+};
+
+SVECTOR D_mine_cavern_8018E428[20] = {
+#include "assets/mine_cavern_model_11100_verts.inc"
+};
+
+SVECTOR D_mine_cavern_8018E4C8[11] = {
+#include "assets/mine_cavern_model_11100_normals.inc"
+};
+
+u32 D_mine_cavern_8018E520[104] = {
+#include "assets/mine_cavern_model_11100_stream.inc"
+};
+
+TmdSource D_mine_cavern_8018E6C0 = {
+    0, 728, 0, 1,
+    D_mine_cavern_8018E424, D_mine_cavern_8018E428, D_mine_cavern_8018E4C8, D_mine_cavern_8018E400, D_mine_cavern_8018E520,
+};
+
+TmdBone D_mine_cavern_8018E6E4[1] = {
+#include "assets/mine_cavern_model_114FC_skeleton.inc"
+};
+
+u32 D_mine_cavern_8018E708[1] = {
+#include "assets/mine_cavern_model_114FC_partVerts.inc"
+};
+
+SVECTOR D_mine_cavern_8018E70C[20] = {
+#include "assets/mine_cavern_model_114FC_verts.inc"
+};
+
+SVECTOR D_mine_cavern_8018E7AC[11] = {
+#include "assets/mine_cavern_model_114FC_normals.inc"
+};
+
+u32 D_mine_cavern_8018E804[174] = {
+#include "assets/mine_cavern_model_114FC_stream.inc"
+};
+
+TmdSource D_mine_cavern_8018EABC = {
+    0, 1248, 0, 1,
+    D_mine_cavern_8018E708, D_mine_cavern_8018E70C, D_mine_cavern_8018E7AC, D_mine_cavern_8018E6E4, D_mine_cavern_8018E804,
+};
+
+GpU16Pair D_mine_cavern_8018EAE0[1] = {
+    { 18, 0 },
+};
+
+GpPairSrcE D_mine_cavern_8018EAE4 = { D_mine_cavern_8018EAE0, 30, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+u8 D_mine_cavern_8018EAF4[36] = {
+    0,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    10,
+    10,
+    10,
+    30,
+    30,
+    30,
+    10,
+    30,
+    15,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    30,
+    30,
+    30,
+    30,
+    10,
+    1,
+    30,
+    30,
+    30,
+    0,
+    0,
+    0,
+};
+
+SVECTOR D_mine_cavern_8018EB18[4] = {
+    { 4550, 0, 310, 0 },
+    { 0x3566, 0, 330, 0 },
+    { 4340, 0, 8710, 0 },
+    { 0x3552, 0, 8710, 0 },
+};
+
+TaskDesc D_mine_cavern_8018EB38[2] = {
+    { 1, 96, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
+    { 1, 96, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
+};
+
+s32 D_mine_cavern_8018EB50 = 0;
+
+s32 D_mine_cavern_8018EB54 = 0;
+
+s32 D_mine_cavern_8018EB58 = 0;
+
+u16 D_mine_cavern_8018EB5C = 0;
 
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
 
 s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
 
-    if (in->msgId == 8) {
+    if (in->prefix.packed == 8) {
         if (GameFlag_GetNibble(0xBB) != 1) {
             if (in->field_5 != 0) {
                 return 0;
@@ -68,7 +234,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
         }
     }
 
-    if (in->msgId == 5) {
+    if (in->prefix.packed == 5) {
         if (gGameSession->at4.loc.place == 1 || gGameSession->at4.loc.place == 4) {
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 if (in->field_5 == 0) {
@@ -167,7 +333,7 @@ s32 func_mine_cavern_8017DC9C(void)
         D_mine_cavern_8018EB50 = 1;
     } else if (GameFlag_GetNibble(0xE6) == 1) {
         func_800E3FAC(0xA2, 0x3D);
-        func_800E8634(&D_mine_cavern_80188A3C, 0, &D_mine_cavern_80188D24);
+        func_800E8634(D_mine_cavern_80188A3C, 0, D_mine_cavern_80188D24);
         GameFlag_SetNibble(0xE6, 2);
     }
     return 0;
@@ -199,10 +365,10 @@ void func_mine_cavern_8017DD6C(Task* task)
 
 static void func_mine_cavern_8017DDFC(Task* arg0)
 {
-    arg0->msgTable = &D_mine_cavern_80183C6C;
+    arg0->msgTable = D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
-        func_800E8634(&D_mine_cavern_80187C74, 0, &D_mine_cavern_8018804C);
+        func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);
     } else {
@@ -224,7 +390,7 @@ static void func_mine_cavern_8017DEE4(Task* task)
 
     flag = GameFlag_GetNibble(0xE6);
     if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.field_A != D_mine_cavern_8018EB50)) {
-        func_800E8634(&D_mine_cavern_80188214, 0, &D_mine_cavern_801887B4);
+        func_800E8634(D_mine_cavern_80188214, 0, D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
     }
 }
@@ -268,7 +434,7 @@ void func_mine_cavern_8017E0B4(void)
 {
     Gp_StateF0.prefix.bytes.field_0 = 0;
     if (Gp_StateF0.field_6 == 0) {
-        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        (Gp_IncStateF0Ref)(0);
     }
     Gp_ArmStateF0(1);
 }
@@ -291,7 +457,7 @@ void func_mine_cavern_8017E150(s8 arg0)
 
 void func_mine_cavern_8017E15C(void)
 {
-    Gp_ApplyAreaRecs(&D_mine_cavern_8018E32C);
+    Gp_ApplyAreaRecs(D_mine_cavern_8018E32C);
 }
 
 /// Room script callback: selects its argument as the scene music entry

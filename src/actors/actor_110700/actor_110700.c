@@ -15,6 +15,8 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+#include "gameplay/animation.h"
+
 /// The actor's work block, allocated by the setup state and parked in
 /// `Task::work`. It holds the model's animation context and slot array and the
 /// light and colour matrices the model is drawn under.
@@ -28,13 +30,205 @@ STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
 
 /// The actor's message table: handlers for 0x7D3 (start an animation), 0x7D4
 /// (place the actor) and 0x7D5 (visibility), then the terminator.
-extern GpMsgEntry D_actor_110700_8013BFA0[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpAnimArg *);
+        s32 (*call1)(Task *, s32, GpXformArg *);
+        s32 (*call2)(Task *, s32, s32);
+    } handler;
+} Actor110700MsgEntry;
+STATIC_ASSERT_SIZEOF(Actor110700MsgEntry, 8);
+
+extern Actor110700MsgEntry D_actor_110700_8013BFA0[];
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_110700_8013BFC0[];
 
 static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task);
 static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task);
+
+extern TmdSource D_actor_110700_801377C8;
+s32 func_actor_110700_8013201C(Task *, s32, GpAnimArg *);
+s32 func_actor_110700_80132074(Task *, s32, GpXformArg *);
+s32 func_actor_110700_801320D8(Task *, s32, s32);
+void func_actor_110700_80131E24(Task *);
+
+TmdBone D_actor_110700_80132120[19] = {
+#include "assets/actor_110700_model_059A8_skeleton.inc"
+};
+
+u32 D_actor_110700_801323CC[19] = {
+#include "assets/actor_110700_model_059A8_partVerts.inc"
+};
+
+SVECTOR D_actor_110700_80132418[358] = {
+#include "assets/actor_110700_model_059A8_verts.inc"
+};
+
+SVECTOR D_actor_110700_80132F48[356] = {
+#include "assets/actor_110700_model_059A8_normals.inc"
+};
+
+u32 D_actor_110700_80133A68[3928] = {
+#include "assets/actor_110700_model_059A8_stream.inc"
+};
+
+TmdSource D_actor_110700_801377C8 = {
+    0, 21588, 5944, 19,
+    D_actor_110700_801323CC, D_actor_110700_80132418, D_actor_110700_80132F48, D_actor_110700_80132120, D_actor_110700_80133A68,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor110700PoseBank59CC;
+
+Actor110700PoseBank59CC D_actor_110700_801377EC = { .poses = {
+#include "assets/actor_110700_animation_05D64_bank1.inc"
+} };
+
+GpPackedSvec D_actor_110700_80137834[80] = {
+#include "assets/actor_110700_animation_05D64_bank4.inc"
+};
+
+GpAnimRec D_actor_110700_80137974[122] = {
+#include "assets/actor_110700_animation_05D64_records.inc"
+};
+
+u16 D_actor_110700_80137B5C[20] = {
+#include "assets/actor_110700_animation_05D64_indices.inc"
+};
+
+GpAnimSet D_actor_110700_80137B84 = {
+    D_actor_110700_80137974, D_actor_110700_80137B5C,
+    { NULL, D_actor_110700_801377EC.words, NULL, NULL, D_actor_110700_80137834, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[14];
+    GpPackedSvec words[42];
+} Actor110700PoseBank5D8C;
+
+Actor110700PoseBank5D8C D_actor_110700_80137BAC = { .poses = {
+#include "assets/actor_110700_animation_0667C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_110700_80137C54[238] = {
+#include "assets/actor_110700_animation_0667C_bank4.inc"
+};
+
+GpAnimRec D_actor_110700_8013800C[282] = {
+#include "assets/actor_110700_animation_0667C_records.inc"
+};
+
+u16 D_actor_110700_80138474[20] = {
+#include "assets/actor_110700_animation_0667C_indices.inc"
+};
+
+GpAnimSet D_actor_110700_8013849C = {
+    D_actor_110700_8013800C, D_actor_110700_80138474,
+    { NULL, D_actor_110700_80137BAC.words, NULL, NULL, D_actor_110700_80137C54, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[53];
+    GpPackedSvec words[159];
+} Actor110700PoseBank66A4;
+
+Actor110700PoseBank66A4 D_actor_110700_801384C4 = { .poses = {
+#include "assets/actor_110700_animation_0820C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_110700_80138740[730] = {
+#include "assets/actor_110700_animation_0820C_bank4.inc"
+};
+
+GpAnimRec D_actor_110700_801392A8[855] = {
+#include "assets/actor_110700_animation_0820C_records.inc"
+};
+
+u16 D_actor_110700_8013A004[20] = {
+#include "assets/actor_110700_animation_0820C_indices.inc"
+};
+
+GpAnimSet D_actor_110700_8013A02C = {
+    D_actor_110700_801392A8, D_actor_110700_8013A004,
+    { NULL, D_actor_110700_801384C4.words, NULL, NULL, D_actor_110700_80138740, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} Actor110700PoseBank8234;
+
+Actor110700PoseBank8234 D_actor_110700_8013A054 = { .poses = {
+#include "assets/actor_110700_animation_08714_bank1.inc"
+} };
+
+GpPackedSvec D_actor_110700_8013A0D8[110] = {
+#include "assets/actor_110700_animation_08714_bank4.inc"
+};
+
+GpAnimRec D_actor_110700_8013A290[159] = {
+#include "assets/actor_110700_animation_08714_records.inc"
+};
+
+u16 D_actor_110700_8013A50C[20] = {
+#include "assets/actor_110700_animation_08714_indices.inc"
+};
+
+GpAnimSet D_actor_110700_8013A534 = {
+    D_actor_110700_8013A290, D_actor_110700_8013A50C,
+    { NULL, D_actor_110700_8013A054.words, NULL, NULL, D_actor_110700_8013A0D8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[51];
+    GpPackedSvec words[153];
+} Actor110700PoseBank873C;
+
+Actor110700PoseBank873C D_actor_110700_8013A55C = { .poses = {
+#include "assets/actor_110700_animation_0A14C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_110700_8013A7C0[692] = {
+#include "assets/actor_110700_animation_0A14C_bank4.inc"
+};
+
+GpAnimRec D_actor_110700_8013B290[813] = {
+#include "assets/actor_110700_animation_0A14C_records.inc"
+};
+
+u16 D_actor_110700_8013BF44[20] = {
+#include "assets/actor_110700_animation_0A14C_indices.inc"
+};
+
+GpAnimSet D_actor_110700_8013BF6C = {
+    D_actor_110700_8013B290, D_actor_110700_8013BF44,
+    { NULL, D_actor_110700_8013A55C.words, NULL, NULL, D_actor_110700_8013A7C0, NULL, NULL, NULL },
+};
+
+TaskDesc D_actor_110700_8013BF94 = { 1, 96, func_actor_110700_80131E24, { .model = &D_actor_110700_801377C8 } };
+
+Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
+    { 2003, { .call0 = func_actor_110700_8013201C } },
+    { 2004, { .call1 = func_actor_110700_80132074 } },
+    { 2005, { .call2 = func_actor_110700_801320D8 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+u8 D_actor_110700_8013BFC0[24] = {
+    0, 0, 0, 0, 132, 123, 19, 128, 156, 132, 19, 128, 44, 160, 19, 128,
+    52, 165, 19, 128, 108, 191, 19, 128,
+};
 
 /// The actor's task entry. Runs the handler for the task's current state,
 /// passing the `GpEnemy` the task was spawned with: state 0 sets the actor up,

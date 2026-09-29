@@ -1,3 +1,5 @@
+#include "gameplay/message.h"
+#include "mapui/map_shelter.h"
 #include "common.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -13,16 +15,187 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/animation.h"
 
-extern u8       D_shelter_b3_dumping_hole_80187574[];
-extern TaskDesc D_shelter_b3_dumping_hole_80189ADC;
-extern u8       D_shelter_b3_dumping_hole_8018B080[];
-extern u8       D_shelter_b3_dumping_hole_8018B428[];
-extern u8       D_shelter_b3_dumping_hole_8018F4A4;
+#include "actors/actor_403200.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b3_dumping_hole_8018F4A4[4];
+// Scalar symbol view preserves the original byte/halfword address formation.
+extern u8 D_shelter_b3_dumping_hole_8018F4A4_value __asm__("D_shelter_b3_dumping_hole_8018F4A4");
+
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(s32, s32, RoomEventMsg *, RoomEventMsg *);
+        s32 (*call2)(s32, s32, s32);
+    } handler;
+} ShelterB3DumpingHoleMessageEntry;
+STATIC_ASSERT_SIZEOF(ShelterB3DumpingHoleMessageEntry, 8);
+
+extern ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6];
+extern TaskDesc D_shelter_b3_dumping_hole_80189ADC[];
+extern GpEvsCmd D_shelter_b3_dumping_hole_8018B080[];
+extern GpEvsCmd D_shelter_b3_dumping_hole_8018B428[];
 extern TaskDesc D_80164B78;
 
-/// Message-table handler that accepts every message without acting on it.
+s32 func_shelter_b3_dumping_hole_8017D758(void);
+s32 func_shelter_b3_dumping_hole_8017D760(s32, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b3_dumping_hole_8017D82C(s32, s32, s32);
+s32 func_shelter_b3_dumping_hole_8017D868(void);
+s32 func_shelter_b3_dumping_hole_8017D870(void);
+
+extern GpAnimSet D_shelter_b3_dumping_hole_80188074;
+
+TmdBone D_shelter_b3_dumping_hole_80186F8C[3] = {
+#include "assets/shelter_b3_dumping_hole_model_09F90_skeleton.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80186FF8[3] = {
+#include "assets/shelter_b3_dumping_hole_model_09F90_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187004[56] = {
+#include "assets/shelter_b3_dumping_hole_model_09F90_verts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_801871C4[6] = {
+#include "assets/shelter_b3_dumping_hole_model_09F90_normals.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_801871F4[215] = {
+#include "assets/shelter_b3_dumping_hole_model_09F90_stream.inc"
+};
+
+TmdSource D_shelter_b3_dumping_hole_80187550 = {
+    0, 1768, 0, 3,
+    D_shelter_b3_dumping_hole_80186FF8, D_shelter_b3_dumping_hole_80187004, D_shelter_b3_dumping_hole_801871C4, D_shelter_b3_dumping_hole_80186F8C, D_shelter_b3_dumping_hole_801871F4,
+};
+
+ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
+    { 5102, { .call1 = func_shelter_b3_dumping_hole_8017D760 } },
+    { 5105, { .call0 = func_shelter_b3_dumping_hole_8017D758 } },
+    { 5103, { .call0 = func_shelter_b3_dumping_hole_8017D868 } },
+    { 5104, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
+    { 5108, { .call0 = func_shelter_b3_dumping_hole_8017D870 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TmdBone D_shelter_b3_dumping_hole_801875A4[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A234_skeleton.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_801875C8[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A234_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_801875CC[9] = {
+#include "assets/shelter_b3_dumping_hole_model_0A234_verts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187614[15] = {
+#include "assets/shelter_b3_dumping_hole_model_0A234_normals.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_8018768C[90] = {
+#include "assets/shelter_b3_dumping_hole_model_0A234_stream.inc"
+};
+
+TmdSource D_shelter_b3_dumping_hole_801877F4 = {
+    0, 560, 0, 1,
+    D_shelter_b3_dumping_hole_801875C8, D_shelter_b3_dumping_hole_801875CC, D_shelter_b3_dumping_hole_80187614, D_shelter_b3_dumping_hole_801875A4, D_shelter_b3_dumping_hole_8018768C,
+};
+
+TmdBone D_shelter_b3_dumping_hole_80187818[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A4B0_skeleton.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_8018783C[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A4B0_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187840[9] = {
+#include "assets/shelter_b3_dumping_hole_model_0A4B0_verts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187888[16] = {
+#include "assets/shelter_b3_dumping_hole_model_0A4B0_normals.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80187908[90] = {
+#include "assets/shelter_b3_dumping_hole_model_0A4B0_stream.inc"
+};
+
+TmdSource D_shelter_b3_dumping_hole_80187A70 = {
+    0, 560, 0, 1,
+    D_shelter_b3_dumping_hole_8018783C, D_shelter_b3_dumping_hole_80187840, D_shelter_b3_dumping_hole_80187888, D_shelter_b3_dumping_hole_80187818, D_shelter_b3_dumping_hole_80187908,
+};
+
+TmdBone D_shelter_b3_dumping_hole_80187A94[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A7B4_skeleton.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80187AB8[1] = {
+#include "assets/shelter_b3_dumping_hole_model_0A7B4_partVerts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187ABC[11] = {
+#include "assets/shelter_b3_dumping_hole_model_0A7B4_verts.inc"
+};
+
+SVECTOR D_shelter_b3_dumping_hole_80187B14[19] = {
+#include "assets/shelter_b3_dumping_hole_model_0A7B4_normals.inc"
+};
+
+u32 D_shelter_b3_dumping_hole_80187BAC[114] = {
+#include "assets/shelter_b3_dumping_hole_model_0A7B4_stream.inc"
+};
+
+TmdSource D_shelter_b3_dumping_hole_80187D74 = {
+    0, 720, 0, 1,
+    D_shelter_b3_dumping_hole_80187AB8, D_shelter_b3_dumping_hole_80187ABC, D_shelter_b3_dumping_hole_80187B14, D_shelter_b3_dumping_hole_80187A94, D_shelter_b3_dumping_hole_80187BAC,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} ShelterB3DumpingHolePoseBankA7D8;
+
+ShelterB3DumpingHolePoseBankA7D8 D_shelter_b3_dumping_hole_80187D98 = { .poses = {
+#include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank1.inc"
+} };
+
+GpPackedSvec D_shelter_b3_dumping_hole_80187DE0[46] = {
+#include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank4.inc"
+};
+
+GpAnimRec D_shelter_b3_dumping_hole_80187E98[109] = {
+#include "assets/shelter_b3_dumping_hole_animation_0AAB4_records.inc"
+};
+
+u16 D_shelter_b3_dumping_hole_8018804C[20] = {
+#include "assets/shelter_b3_dumping_hole_animation_0AAB4_indices.inc"
+};
+
+GpAnimSet D_shelter_b3_dumping_hole_80188074 = {
+    D_shelter_b3_dumping_hole_80187E98, D_shelter_b3_dumping_hole_8018804C,
+    { NULL, D_shelter_b3_dumping_hole_80187D98.words, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
+};
+
+s16 D_shelter_b3_dumping_hole_8018809C = 1;
+
+GpAnimSet * D_shelter_b3_dumping_hole_801880A0[6] = {
+    &D_shelter_b3_dumping_hole_80188074,
+    &D_actor_403200_8015ED84,
+    &D_actor_403200_8015EFF0,
+    &D_actor_403200_8015F748,
+    &D_actor_403200_8015EC00,
+    NULL,
+};/// Message-table handler that accepts every message without acting on it.
 s32 func_shelter_b3_dumping_hole_8017D758(void)
 {
     return 0;
@@ -31,8 +204,8 @@ s32 func_shelter_b3_dumping_hole_8017D758(void)
 s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0x28) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0x28) {
         if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x16);
@@ -63,7 +236,7 @@ s32 func_shelter_b3_dumping_hole_8017D868(void)
 
 s32 func_shelter_b3_dumping_hole_8017D870(void)
 {
-    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
+    Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
     return 0;
 }
 
@@ -86,12 +259,12 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
         Task_SpawnFromTable(&D_80164B78, 0, 0, 0);
     }
     arg0->state                       += 1;
-    D_shelter_b3_dumping_hole_8018F4A4 = 0;
+    D_shelter_b3_dumping_hole_8018F4A4_value = 0;
 }
 
 /// Empty function; the unused local reserves the 0x10-byte stack frame the
 /// original carries.
-static void func_shelter_b3_dumping_hole_8017D998(void)
+static void func_shelter_b3_dumping_hole_8017D998(Task* task)
 {
     char pad[0x10];
 }
@@ -101,7 +274,7 @@ static void func_shelter_b3_dumping_hole_8017D998(void)
 /// kill.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
     func_shelter_b3_dumping_hole_8017D8A0,
-    (TaskFunc)func_shelter_b3_dumping_hole_8017D998,
+    func_shelter_b3_dumping_hole_8017D998,
     taskKill,
 } };
 

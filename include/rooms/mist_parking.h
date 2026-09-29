@@ -1,6 +1,10 @@
 #ifndef ROOMS_MIST_PARKING_H
 #define ROOMS_MIST_PARKING_H
 
+#include "gameplay/area.h"
+
+#include "types.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -10,16 +14,15 @@
 #include "main/task_types.h"
 
 /// Task descriptor tables the room spawns its tasks from.
-extern TaskDesc D_mist_parking_801869B8;
-extern TaskDesc D_mist_parking_8018D75C;
-extern TaskDesc D_mist_parking_8018FC24;
-extern TaskDesc D_mist_parking_80190824;
+extern TaskDesc D_mist_parking_801869B8[];
+extern TaskDesc D_mist_parking_8018D75C[];
+extern TaskDesc D_mist_parking_8018FC24[];
+extern TaskDesc D_mist_parking_80190824[];
 
 /// Tasks the room keeps a handle on while they run.
 extern Task* D_mist_parking_80195318;
 extern Task* D_mist_parking_80195320;
 extern Task* D_mist_parking_80195324;
-extern Task* D_mist_parking_8019532C;
 
 /// The "%" suffix appended to the play-data percentages.
 extern u8 D_mist_parking_80186718[];
@@ -34,5 +37,15 @@ void func_mist_parking_80183708(s32 arg0);
 /// caller passes is unused.
 void func_mist_parking_801837A4(s32 arg0);
 void func_mist_parking_8018471C(s32 arg0);
+
+void func_mist_parking_80183BAC(s32 arg0);
+
+extern TaskDesc D_mist_parking_8018668C;
+
+void func_mist_parking_80181468(Task* task);
+
+void func_mist_parking_80184728(Task* unused);
+
+extern GpAreaVariant D_mist_parking_801951B4[13];
 
 #endif // ROOMS_MIST_PARKING_H

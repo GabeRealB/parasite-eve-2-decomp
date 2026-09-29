@@ -1,3 +1,5 @@
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include "common.h"
 
 /* The controller task this actor is reparented to is the Mist shooting
@@ -63,7 +65,7 @@ typedef struct Actor107600Work {
     /* 0x000 */ MATRIX  matrix_0;  // color matrix for the child models
     /* 0x020 */ MATRIX  matrix_20; // light matrix for the child models
     /* 0x040 */ u16     pitch;     // fed to RotMatrixX
-    /* 0x042 */ s16     yaw;       // fed to func_8004BFF8
+    /* 0x042 */ s16     yaw;       // fed to RotMatrixY
     /* 0x044 */ u16     roll;      // fed to RotMatrixZ
     /* 0x046 */ byte    pad_46[0x2];
     /* 0x048 */ u16     field_48;  // spawn position x
@@ -151,7 +153,6 @@ typedef struct Actor107600QuadScratch {
 } Actor107600QuadScratch;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 void        func_actor_107600_801328CC(Task* arg0);
 static void func_actor_107600_80132A7C(Task* arg0);
@@ -200,7 +201,7 @@ extern Actor107600Pair D_actor_107600_80135730[];
 
 /* Table `func_actor_107600_80132DF0` spawns from, indexed with `arg1 + 1`; it
  * is the trailing animation/data blob, not the leading rodata. */
-extern TaskDesc D_actor_107600_80134F94;
+extern TaskDesc D_actor_107600_80134F94[];
 
 /* The pair-source record the spawn state hangs off the enemy's `GpEnemy.param`
  * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
@@ -213,7 +214,6 @@ extern u16        D_actor_107600_80135750[];
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
-extern Task* D_8018E0C4;
 
 static void func_actor_107600_80131F10(Task* arg0);
 static void func_actor_107600_80132160(Task* arg0);
@@ -237,6 +237,530 @@ static const TaskFuncTable3 D_actor_107600_80131E34 = { {
     func_actor_107600_80132514,
     func_actor_107600_80132D54,
 } };
+
+void func_actor_107600_801328CC(Task *);
+void func_actor_107600_801348A0(Task *);
+
+GpU16Pair D_actor_107600_80134F80[1] = { 0 };
+
+GpPairSrcE D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
+
+TaskDesc D_actor_107600_80134F94[19] = {
+    { 1, 96, func_actor_107600_801328CC, { .value = -0x7FE77FCC } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE79520 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE79330 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE79140 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE78F50 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE78D60 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE78B70 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE78980 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE78790 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE785A0 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE783B0 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE7784C } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE7765C } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE7746C } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE7727C } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE77E68 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE77D04 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE77BA0 } },
+    { 1, 96, func_actor_107600_801348A0, { .value = -0x7FE77A3C } },
+};
+
+Actor107600Waypoint D_actor_107600_80135078[2] = {
+    { 0, 3000, 0 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135084[3] = {
+    { 1500, 6000, 40 },
+    { -1500, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135098[3] = {
+    { 1500, 4500, 40 },
+    { -1500, 4500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801350AC[3] = {
+    { 1500, 3000, 40 },
+    { -1500, 3000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801350C0[3] = {
+    { 1500, 1500, 40 },
+    { -1500, 1500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801350D4[3] = {
+    { 1500, 0, 40 },
+    { -1500, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801350E8[2] = {
+    { -1400, 5800, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801350F4[2] = {
+    { -1400, 3000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135100[2] = {
+    { -1400, 200, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013510C[3] = {
+    { 1500, 6000, 40 },
+    { 4500, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135120[3] = {
+    { 1500, 4500, 40 },
+    { 6000, 4500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135134[3] = {
+    { 1500, 3000, 40 },
+    { 6000, 3000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135148[3] = {
+    { 1500, 1500, 40 },
+    { 6000, 1500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013515C[3] = {
+    { 1500, 0, 40 },
+    { 4500, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135170[2] = {
+    { 4600, 5800, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013517C[2] = {
+    { 4600, 3000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135188[2] = {
+    { 4600, 200, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135194[3] = {
+    { 6000, 3000, 40 },
+    { 6000, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801351A8[3] = {
+    { 4500, 3000, 40 },
+    { 4500, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801351BC[3] = {
+    { 3000, 3000, 40 },
+    { 3000, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801351D0[3] = {
+    { 1500, 3000, 40 },
+    { 1500, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801351E4[3] = {
+    { 0, 3000, 40 },
+    { 0, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801351F8[3] = {
+    { -1500, 3000, 40 },
+    { -1500, 0, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013520C[2] = {
+    { 4600, 200, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135218[2] = {
+    { 1600, 200, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135224[2] = {
+    { -1400, 200, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135230[3] = {
+    { 6000, 3000, 40 },
+    { 6000, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135244[3] = {
+    { 4500, 3000, 40 },
+    { 4500, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135258[3] = {
+    { 3000, 3000, 40 },
+    { 3000, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013526C[3] = {
+    { 1500, 3000, 40 },
+    { 1500, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135280[3] = {
+    { 0, 3000, 40 },
+    { 0, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135294[3] = {
+    { -1500, 3000, 40 },
+    { -1500, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801352A8[2] = {
+    { 4600, 5800, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801352B4[2] = {
+    { 1600, 5800, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801352C0[2] = {
+    { -1400, 5800, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801352CC[5] = {
+    { 1500, 6000, 50 },
+    { 1500, 3000, 50 },
+    { 4500, 3000, 50 },
+    { 4500, 0, 50 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801352EC[5] = {
+    { 1500, 0, 50 },
+    { 1500, 3000, 50 },
+    { 4500, 3000, 50 },
+    { 4500, 6000, 50 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013530C[8] = {
+    { 0, 6000, 30 },
+    { 0, 4500, 30 },
+    { 1500, 4500, 40 },
+    { 1500, 6000, 40 },
+    { 4500, 6000, 50 },
+    { 4500, 4500, 50 },
+    { 6000, 4500, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013533C[8] = {
+    { 0, 0, 30 },
+    { 0, 1500, 30 },
+    { 1500, 1500, 40 },
+    { 1500, 0, 40 },
+    { 4500, 0, 50 },
+    { 4500, 1500, 50 },
+    { 6000, 1500, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013536C[10] = {
+    { -1500, 0, 40 },
+    { 0, 0, 40 },
+    { 0, 6000, 50 },
+    { 1500, 6000, 50 },
+    { 1500, 0, 70 },
+    { 3000, 0, 70 },
+    { 3000, 6000, 100 },
+    { 4500, 6000, 100 },
+    { 4500, 0, 100 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801353A8[7] = {
+    { 9000, 6000, 40 },
+    { 9000, 4500, 40 },
+    { 6000, 4500, 50 },
+    { 3000, 4500, 50 },
+    { 3000, 6000, 50 },
+    { -3000, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801353D4[7] = {
+    { 9000, 0, 40 },
+    { 9000, 1500, 40 },
+    { 6000, 1500, 50 },
+    { 3000, 1500, 50 },
+    { 3000, 0, 50 },
+    { -3000, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135400[6] = {
+    { 9000, 6000, 40 },
+    { 9000, 3000, 40 },
+    { 9000, 0, 40 },
+    { 0x2EE0, 0, 40 },
+    { 0x2EE0, 3000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135424[5] = {
+    { 7500, 4500, 40 },
+    { 7500, 6000, 70 },
+    { 0x2EE0, 6000, 70 },
+    { 0x2EE0, 4500, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135444[5] = {
+    { 7500, 1500, 40 },
+    { 7500, 0, 70 },
+    { 0x2EE0, 0, 70 },
+    { 0x2EE0, 1500, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135464[11] = {
+    { 4500, 6000, 140 },
+    { 4500, 4500, 140 },
+    { 7500, 4500, 140 },
+    { 7500, 1500, 140 },
+    { 4500, 1500, 140 },
+    { 4500, 0, 140 },
+    { -3000, 0, 140 },
+    { -3000, 3000, 140 },
+    { 4500, 3000, 140 },
+    { 7500, 3000, 140 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801354A8[7] = {
+    { -3000, 1500, 50 },
+    { 0, 1500, 50 },
+    { 0, 4500, 50 },
+    { 3000, 4500, 50 },
+    { 3000, 1500, 50 },
+    { 7500, 1500, 50 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801354D4[5] = {
+    { 1500, 6000, 40 },
+    { 4500, 6000, 40 },
+    { 4500, 4500, 40 },
+    { 7500, 4500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801354F4[5] = {
+    { 1500, 0, 40 },
+    { 4500, 1500, 40 },
+    { 4500, 1500, 40 },
+    { 7500, 1500, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135514[5] = {
+    { 0x2EE0, 0, 40 },
+    { 0x2EE0, 6000, 40 },
+    { 0x2EE0, 0, 40 },
+    { 0x2EE0, 6000, 40 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135534[3] = {
+    { 6000, 3000, 70 },
+    { 6000, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135548[3] = {
+    { 4500, 3000, 70 },
+    { 4500, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_8013555C[3] = {
+    { 3000, 3000, 70 },
+    { 3000, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135570[3] = {
+    { 1500, 3000, 70 },
+    { 1500, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135584[3] = {
+    { 0, 3000, 70 },
+    { 0, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135598[3] = {
+    { -1500, 3000, 70 },
+    { -1500, 0, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801355AC[3] = {
+    { 6000, 3000, 70 },
+    { 6000, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801355C0[3] = {
+    { 4500, 3000, 70 },
+    { 4500, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801355D4[3] = {
+    { 3000, 3000, 70 },
+    { 3000, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801355E8[3] = {
+    { 1500, 3000, 70 },
+    { 1500, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_801355FC[3] = {
+    { 0, 3000, 70 },
+    { 0, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint D_actor_107600_80135610[3] = {
+    { -1500, 3000, 70 },
+    { -1500, 6000, 70 },
+    { -1, 0, 0 },
+};
+
+Actor107600Waypoint * D_actor_107600_80135624[62] = {
+    D_actor_107600_80135078,
+    D_actor_107600_80135084,
+    D_actor_107600_80135098,
+    D_actor_107600_801350AC,
+    D_actor_107600_801350C0,
+    D_actor_107600_801350D4,
+    D_actor_107600_801350E8,
+    D_actor_107600_801350F4,
+    D_actor_107600_80135100,
+    D_actor_107600_8013510C,
+    D_actor_107600_80135120,
+    D_actor_107600_80135134,
+    D_actor_107600_80135148,
+    D_actor_107600_8013515C,
+    D_actor_107600_80135170,
+    D_actor_107600_8013517C,
+    D_actor_107600_80135188,
+    D_actor_107600_80135194,
+    D_actor_107600_801351A8,
+    D_actor_107600_801351BC,
+    D_actor_107600_801351D0,
+    D_actor_107600_801351E4,
+    D_actor_107600_801351F8,
+    D_actor_107600_8013520C,
+    D_actor_107600_80135218,
+    D_actor_107600_80135224,
+    D_actor_107600_80135230,
+    D_actor_107600_80135244,
+    D_actor_107600_80135258,
+    D_actor_107600_8013526C,
+    D_actor_107600_80135280,
+    D_actor_107600_80135294,
+    D_actor_107600_801352A8,
+    D_actor_107600_801352B4,
+    D_actor_107600_801352C0,
+    D_actor_107600_801352CC,
+    D_actor_107600_801352EC,
+    D_actor_107600_8013530C,
+    D_actor_107600_8013533C,
+    D_actor_107600_8013536C,
+    D_actor_107600_801353A8,
+    D_actor_107600_801353D4,
+    D_actor_107600_80135400,
+    D_actor_107600_80135424,
+    D_actor_107600_80135444,
+    D_actor_107600_80135464,
+    D_actor_107600_801354A8,
+    D_actor_107600_801354D4,
+    D_actor_107600_801354F4,
+    D_actor_107600_80135514,
+    D_actor_107600_80135534,
+    D_actor_107600_80135548,
+    D_actor_107600_8013555C,
+    D_actor_107600_80135570,
+    D_actor_107600_80135584,
+    D_actor_107600_80135598,
+    D_actor_107600_801355AC,
+    D_actor_107600_801355C0,
+    D_actor_107600_801355D4,
+    D_actor_107600_801355E8,
+    D_actor_107600_801355FC,
+    D_actor_107600_80135610,
+};
+
+GpU16Pair D_actor_107600_8013571C[1] = { 0 };
+
+GpPairSrcE D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
+
+Actor107600Pair D_actor_107600_80135730[8] = {
+    { 0, 0xFEE0 },
+    { 96, 0xFF60 },
+    { 0xFF90, 0xFFA0 },
+    { 192, 0xFEC0 },
+    { 0xFFE0, 0xFE40 },
+    { 0xFF60, 0xFEA0 },
+    { 224, 0xFFD0 },
+    { 0, 0 },
+};
+
+u16 D_actor_107600_80135750[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
 
 /// Spawn state of the `D_actor_107600_80131E24` table. The target is dropped
 /// (and the gallery's live count given back) when the player is within 0x400 on
@@ -290,7 +814,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     enemy->field_48    = 0;
     if (work->field_144 != 2) {
         /* retail passes a 0 the resident definition ignores */
-        ((void (*)(s32))Gp_IncStateF0Ref)(0);
+        (Gp_IncStateF0Ref)(0);
     }
     work->field_48 = coord->coord.t[0];
     work->field_4A = coord->coord.t[1];
@@ -570,7 +1094,7 @@ static void func_actor_107600_80132930(Task* arg0)
     TmdObject*       ext      = arg0->extra.tmd;
     GpCoord*         coord    = ext->coords;
     Actor107600Work* work     = (Actor107600Work*)arg0->work;
-    TaskFunc         funcs[2] = { (TaskFunc)func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
+    TaskFunc         funcs[2] = { func_actor_107600_80132CB8, func_actor_107600_80132CD4 };
     TmdObject*       obj;
 
     obj = ext;
@@ -667,7 +1191,7 @@ static void func_actor_107600_80132B7C(Task* arg0)
     SCRATCH_HEAD(MATRIX) = m;
     RotMatrixZ((s16)work->roll, m);
     RotMatrixX((s16)work->pitch, m);
-    func_8004BFF8((s16)work->yaw, m);
+    RotMatrixY((s16)work->yaw, m);
     func_actor_107600_80132C4C(m, &coord->coord);
     SCRATCH_POP_BYTES(0x20);
 }
@@ -752,7 +1276,7 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
     GpCoord*   coord;
     TmdObject* obj;
 
-    enemy = Gp_SpawnEnemyFromTable(&D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
+    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
     if (enemy != NULL) {
         Task_Reparent(arg0->task, enemy->task);
         coord                  = enemy->task->extra.tmd->coords;
@@ -775,9 +1299,11 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
 /// display object's `field_1C` / `field_20`, puts the actor's own light on the
 /// enemy and links its node in. Both failure paths - the 0xFF "already dead"
 /// marker in byte 0 of `Task::spawnArg1` and a failed allocation - destroy the
-/// enemy and return before the exit callback is installed. The variant is the
-/// low nibble of `spawnArg1`'s high halfword: it selects the HP from the
-/// 16-entry table and its model root later, in `func_actor_107600_80134958`.
+/// enemy and return before the exit callback is installed. The low nibble of
+/// `spawnArg1` selects the HP from thirteen serialized halfwords. The gallery
+/// demonstration also requests index 13, just beyond the package; the runtime
+/// backing of that read remains unresolved. The high halfword's low nibble is
+/// stored separately in `field_162` for `func_actor_107600_80134958`.
 static void func_actor_107600_80132ED0(Task* arg0)
 {
     Actor107600Work* work;
@@ -869,7 +1395,7 @@ static void func_actor_107600_80133024(Task* arg0)
             break;
     }
     if (work->field_162 != 2) {
-        ((MistShootingGalleryWork*)D_8018E0C4->work)->field_1D = Gp_NodeSlotMask(&enemy->node);
+        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_1D = Gp_NodeSlotMask(&enemy->node);
     }
     coord->flg = 0;
     func_actor_107600_80134A50(arg0);
@@ -987,7 +1513,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->field_954 != 1) {
                     if (Player_Status.hp < 11) {
-                        ((MistShootingGalleryWork*)D_8018E0C4->work)->field_22 = 1;
+                        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
                         actor->field_96E                                       = 0;
                     } else {
                         actor->field_96E = 10;
@@ -1118,7 +1644,7 @@ static void func_actor_107600_801339A4(Task* arg0)
     GpEnemy*                 enemy = arg0->spawnArg2.pointer;
     TmdObject*               tmd   = arg0->extra.tmd;
     GpCoord*                 obj   = tmd->coords;
-    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_8018E0C4->work;
+    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
     Actor107600HitPos*       pos;
     s32                      id;
     s32                      pan;

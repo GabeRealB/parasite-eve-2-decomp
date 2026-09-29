@@ -45,7 +45,7 @@ static SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
 /// brightness and the four flash quads, decays the light's range by 0x190 and
 /// releases the pool block after seven frames. Nothing runs at all once
 /// `Gp_State1C` is fading out (`field_4 >= 2`).
-static void func_p229_8011D1DC(Task* task)
+void func_p229_8011D1DC(Task* task)
 {
     GpEffWork*    work;
     GpCoord*      coord;

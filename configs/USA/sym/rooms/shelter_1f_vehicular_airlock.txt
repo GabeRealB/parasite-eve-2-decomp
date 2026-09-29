@@ -1,2 +1,59 @@
 // Overlay-local symbols for shelter_1f_vehicular_airlock.
-D_shelter_1f_vehicular_airlock_80182AB4 = 0x80182AB4; // type:RoomLatchedEvent size:0xC
+D_shelter_1f_vehicular_airlock_8018205C = 0x8018205C; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_8018206C = 0x8018206C; // size:0x80 defined:True
+D_shelter_1f_vehicular_airlock_80182028 = 0x80182028; // size:0xC defined:True
+D_shelter_1f_vehicular_airlock_80182034 = 0x80182034; // size:0x28 defined:True
+D_shelter_1f_vehicular_airlock_80182004 = 0x80182004; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_801820FC = 0x801820FC; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_8018210C = 0x8018210C; // size:0x8 defined:True
+D_shelter_1f_vehicular_airlock_80182114 = 0x80182114; // size:0x4 defined:True
+D_shelter_1f_vehicular_airlock_80182118 = 0x80182118; // size:0x2 defined:True
+D_shelter_1f_vehicular_airlock_8018211C = 0x8018211C; // size:0xA8 defined:True
+D_shelter_1f_vehicular_airlock_801821C4 = 0x801821C4; // size:0x50 defined:True
+D_shelter_1f_vehicular_airlock_80182214 = 0x80182214; // size:0x108 defined:True
+D_shelter_1f_vehicular_airlock_8018231C = 0x8018231C; // size:0x90 defined:True
+D_shelter_1f_vehicular_airlock_801823AC = 0x801823AC; // size:0x14 defined:True
+D_shelter_1f_vehicular_airlock_801823C0 = 0x801823C0; // size:0x12 defined:True
+D_shelter_1f_vehicular_airlock_801823D4 = 0x801823D4; // size:0x4 defined:True
+D_shelter_1f_vehicular_airlock_801823D8 = 0x801823D8; // size:0xE defined:True
+D_shelter_1f_vehicular_airlock_801823E8 = 0x801823E8; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_801823F8 = 0x801823F8; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_80182408 = 0x80182408; // size:0xC defined:True
+D_shelter_1f_vehicular_airlock_80182414 = 0x80182414; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_80182438 = 0x80182438; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_8018245C = 0x8018245C; // size:0x6C defined:True
+D_shelter_1f_vehicular_airlock_801824C8 = 0x801824C8; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_801824D8 = 0x801824D8; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_801824E8 = 0x801824E8; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_801824F8 = 0x801824F8; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_8018251C = 0x8018251C; // size:0x1E0 defined:True
+D_shelter_1f_vehicular_airlock_801826FC = 0x801826FC; // size:0x18 defined:True
+D_shelter_1f_vehicular_airlock_80182714 = 0x80182714; // size:0x98 defined:True
+D_shelter_1f_vehicular_airlock_801827AC = 0x801827AC; // size:0x214 defined:True
+D_shelter_1f_vehicular_airlock_801829C0 = 0x801829C0; // size:0x20 defined:True
+D_shelter_1f_vehicular_airlock_801829E0 = 0x801829E0; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_80182A04 = 0x80182A04; // size:0x60 defined:True
+D_shelter_1f_vehicular_airlock_80182A64 = 0x80182A64; // size:0xC defined:True
+D_shelter_1f_vehicular_airlock_80182A70 = 0x80182A70; // size:0x8 defined:True
+D_shelter_1f_vehicular_airlock_80182A78 = 0x80182A78; // size:0x8 defined:True
+D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // size:0x20 defined:True
+D_shelter_1f_vehicular_airlock_80182AA0 = 0x80182AA0; // size:0x8 defined:True
+D_80147DF0 = 0x80147DF0; // absolute:True
+D_801611F8 = 0x801611F8; // absolute:True
+D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True
+D_shelter_1f_vehicular_airlock_801820EC = 0x801820EC; // size:0x10 defined:True
+D_shelter_1f_vehicular_airlock_80180C50 = 0x80180C50; // size:0x24 defined:True
+D_shelter_1f_vehicular_airlock_80180C74 = 0x80180C74; // size:0x4 defined:True
+D_shelter_1f_vehicular_airlock_80180C78 = 0x80180C78; // size:0x3A0 defined:True
+D_shelter_1f_vehicular_airlock_80181018 = 0x80181018; // size:0xFEC defined:True
+D_shelter_1f_vehicular_airlock_80182AA8 = 0x80182AA8; // size:0x8 defined:True
+D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x4 defined:True
+D_shelter_1f_vehicular_airlock_80182AB4 = 0x80182AB4; // size:0xC defined:True
+
+func_shelter_1f_vehicular_airlock_8017ECBC = 0x8017ECBC; // type:func
+
+func_shelter_1f_vehicular_airlock_8017F720 = 0x8017F720; // type:func
+
+func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func
+
+func_shelter_1f_vehicular_airlock_8017DAA0 = 0x8017DAA0; // type:func

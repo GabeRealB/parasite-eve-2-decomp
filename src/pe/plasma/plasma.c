@@ -1,5 +1,6 @@
-#include "common.h"
 #include "pe/plasma.h"
+
+#include "common.h"
 
 #include <psyq/inline_c.h>
 #include "gte.h"
@@ -58,7 +59,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 /// `func_plasma_8012F568` has applied each jitter column. State 1 is the
 /// weaker combo (`index < 2`). Either state releases once brightness
 /// drops below 9.
-static void func_plasma_8012EF34(Task* arg0)
+void func_plasma_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
     GpCoord*    coord;

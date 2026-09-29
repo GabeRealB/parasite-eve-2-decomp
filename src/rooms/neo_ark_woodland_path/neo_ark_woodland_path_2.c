@@ -1,3 +1,5 @@
+#include "gameplay/pairsrc.h"
+#include "rooms/neo_ark_woodland_path.h"
 #include "common.h"
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -60,7 +62,6 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 /// Ceiling `func_neo_ark_woodland_path_8018046C` clamps a spawn slot to
 /// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
 /// continues into the room's parameter block, so the extent is splat's.
-extern u16 D_neo_ark_woodland_path_8018494C[18];
 
 /// The same run reached through its leading label, which is how
 /// `func_neo_ark_woodland_path_80180C6C` reads the ceiling: element 2 is
@@ -68,7 +69,8 @@ extern u16 D_neo_ark_woodland_path_8018494C[18];
 /// code names both, and the two are different code - an index keeps this
 /// symbol in a register and takes the offset as the load's displacement, while
 /// naming `D_...8494C` addresses it directly.
-extern u16 D_neo_ark_woodland_path_80184948[];
+extern GpPairSrcE D_neo_ark_woodland_path_80184948;
+extern GpU16Pair D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
 /// `func_neo_ark_woodland_path_80180C6C` adds the slot's spawn count to it and
@@ -99,7 +101,19 @@ extern u8 D_neo_ark_woodland_path_80184980[];
 /// the placement request `func_neo_ark_woodland_path_8018147C`, the spawn-slot
 /// filler `func_neo_ark_woodland_path_8018046C` and a 0x7DB handler that
 /// ignores the message.
-extern GpMsgEntry D_neo_ark_woodland_path_80184998[];
+// Handler views preserve the signatures used by this TU. The dispatcher
+// transports each argument in a word register.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task *, s32, GpMessageArg, GpMessageArg);
+        s32 (*call1)(Task *, s32, u8 *, GpMessageArg);
+        void (*call2)(Task *, s32, s32);
+    } handler;
+} NeoArkWoodlandPath2MsgEntry;
+STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
+
+extern NeoArkWoodlandPath2MsgEntry D_neo_ark_woodland_path_80184998[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 D_neo_ark_woodland_path_80184996;
@@ -157,6 +171,108 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
 static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
 
+s32 func_neo_ark_woodland_path_80180B18(Task *, s32, GpCmdArg *, GpMessageArg);
+s32 func_neo_ark_woodland_path_80181474(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_8018147C(Task *, s32, u8 *, GpMessageArg);
+s32 func_neo_ark_woodland_path_8018154C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_80181568(Task *, s32, u8 *, GpMessageArg);
+void func_neo_ark_woodland_path_8018046C(Task *, s32, s32);
+
+void func_neo_ark_woodland_path_801814E8(Task *);
+void func_neo_ark_woodland_path_801815D4(Task *);
+
+GpU16Pair D_neo_ark_woodland_path_80184930[6] = {
+    { 30, 7 },
+    { 30, 7 },
+    { 50, 7 },
+    { 50, 7 },
+    { 40, 0 },
+    { 40, 0 },
+};
+
+GpPairSrcE D_neo_ark_woodland_path_80184948 = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10, 0 };
+
+// Retained numeric records following the enemy parameters.
+u16 D_neo_ark_woodland_path_80184958[3][4] = {
+    { 0, 900, 3, 0 },
+    { 0, 800, 5, 0 },
+    { 0, 500, 7, 0 },
+};
+
+u8 D_neo_ark_woodland_path_80184970[16] = {
+    0, 1, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+u8 D_neo_ark_woodland_path_80184980[14] = {
+    0, 3, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+s16 D_neo_ark_woodland_path_8018498E = 30;
+
+s16 D_neo_ark_woodland_path_80184990 = 0;
+
+s16 D_neo_ark_woodland_path_80184992 = 0;
+
+s16 D_neo_ark_woodland_path_80184994 = 0;
+
+s16 D_neo_ark_woodland_path_80184996 = 0;
+
+NeoArkWoodlandPath2MsgEntry D_neo_ark_woodland_path_80184998[4] = {
+    { 5103, { .call0 = func_neo_ark_woodland_path_8018147C } },
+    { 5108, { .call2 = func_neo_ark_woodland_path_8018046C } },
+    { 2011, { .call0 = func_neo_ark_woodland_path_80181474 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_801849B8[7] = {
+    { -2000, 0, 8977, -1024 },
+    { 379, 0, 7700, 2048 },
+    { 7950, 0, 4650, -1024 },
+    { 7950, 0, -4650, -1024 },
+    { -633, 0, -1000, 2048 },
+    { -2280, 0, -6378, -1024 },
+    { 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF },
+};
+
+s16 D_neo_ark_woodland_path_801849F0 = 0;
+
+GpMsgEntry D_neo_ark_woodland_path_801849F4[4] = {
+    { 5103, func_neo_ark_woodland_path_80181568 },
+    { 5108, func_neo_ark_woodland_path_8018154C },
+    { 2011, func_neo_ark_woodland_path_80180B18 },
+    { 0x7FFFFFFF, NULL },
+};
+
+NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5] = {
+    { 8884, 0, 2200, 2048 },
+    { 0, 0, -2000, 200 },
+    { -4200, 0, -3000, 0 },
+    { -4100, 0, 2000, 1900 },
+    { -6500, 0, 2000, 2200 },
+};
+
+s16 D_neo_ark_woodland_path_80184A3C[4] = {
+    0x7FFF,
+    0x7FFF,
+    0x7FFF,
+    0x7FFF,
+};
+
+TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
+    { 0, 32, func_neo_ark_woodland_path_801815D4, { .model = NULL } },
+    { 0, 32, func_neo_ark_woodland_path_801814E8, { .model = NULL } },
+};
+
+GpCmdArg D_neo_ark_woodland_path_80184A5C = { { .loc = { 0, 0 } }, 0 };
+
+u16 D_neo_ark_woodland_path_80184A60[5] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+};
+
 /// Scatters effects around the slot-3 task's model while its root coordinate
 /// is at a y of 0x12C or more (y grows downward) and no event is running.
 /// Once per frame, the spawn chance is set from how far model parts 15 and 18
@@ -165,7 +281,7 @@ static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg
 /// `D_80115738` against the chance less 0x20. The same function also sets the
 /// room effect mode to 2 while the root y is below 0x11. On its first run it
 /// stores the two effect ids and the starting part positions.
-static void func_neo_ark_woodland_path_8017EA08(Task* task)
+void func_neo_ark_woodland_path_8017EA08(Task* task)
 {
     NeoArkWoodlandPathTrailObj* obj;
     Task*                       owner;
@@ -225,7 +341,7 @@ static void func_neo_ark_woodland_path_8017EA08(Task* task)
 /// gets there, and the tilt wanders by a random step. Once the mote has risen
 /// past the origin (`t[1] > 0`) state 2 fades it in by 0x10 a tick up to 0x80
 /// and state 3 fades it out, releasing the work block when the fade runs out.
-static void func_neo_ark_woodland_path_8017ED00(Task* task)
+void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -404,7 +520,7 @@ static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg
 /// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
 /// effect once the brightness falls under 2. Once the room's event state
 /// leaves zero it only draws, and releases at state 4.
-static void func_neo_ark_woodland_path_8017F4A0(Task* task)
+void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -525,7 +641,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
 /// `period` ticks, releasing the task after frame 7. While an event is
 /// running the task only draws, and it is released once the event state
 /// reaches 4.
-static void func_neo_ark_woodland_path_8017F928(Task* task)
+void func_neo_ark_woodland_path_8017F928(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -775,8 +891,8 @@ void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)
             if (((s16*)D_neo_ark_woodland_path_80184A60)[i] == 0) {
                 v                                           = arg2 * 0x6E / 100;
                 ((s16*)D_neo_ark_woodland_path_80184A60)[i] = v;
-                if (D_neo_ark_woodland_path_8018494C[0] < v) {
-                    ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_8018494C[0];
+                if (D_neo_ark_woodland_path_80184948.hpMax < v) {
+                    ((s16*)D_neo_ark_woodland_path_80184A60)[i] = D_neo_ark_woodland_path_80184948.hpMax;
                 }
                 if (Gp_StateF0.field_6 >= 2) {
                     Gp_ReleaseStateF0(task, 0xD);
@@ -821,7 +937,7 @@ static void func_neo_ark_woodland_path_80180568(Task* task)
     }
     for (i = 0; i < 5; i++) {
         if (i < D_neo_ark_woodland_path_80184990) {
-            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948[2];
+            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948.hpMax;
         } else {
             D_neo_ark_woodland_path_80184A60[i] = 0;
         }
@@ -935,7 +1051,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg * msg, GpMessageArg arg3)
 {
     s32      result;
     u16      cmd;
@@ -1006,7 +1122,7 @@ static void func_neo_ark_woodland_path_80180C6C(Task* task)
     }
     for (i = 0; i < 5; i++) {
         if (i < D_neo_ark_woodland_path_80184990) {
-            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948[2];
+            D_neo_ark_woodland_path_80184A60[i] = D_neo_ark_woodland_path_80184948.hpMax;
         } else {
             D_neo_ark_woodland_path_80184A60[i] = 0;
         }
@@ -1161,7 +1277,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
       func_neo_ark_woodland_path_801815C0, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80181474(void)
+s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -1170,7 +1286,7 @@ s32 func_neo_ark_woodland_path_80181474(void)
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg)
+s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8 * msg, GpMessageArg arg3)
 {
     s16 counter;
 
@@ -1205,7 +1321,7 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
     sp.funcs[task->state](task);
 }
 
-s32 func_neo_ark_woodland_path_8018154C(void)
+s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     D_neo_ark_woodland_path_8018498E += 0x5A;
     return 1;
@@ -1215,7 +1331,7 @@ s32 func_neo_ark_woodland_path_8018154C(void)
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg)
+s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8 * msg, GpMessageArg arg3)
 {
     s16 counter;
 

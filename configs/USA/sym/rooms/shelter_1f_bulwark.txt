@@ -1,2 +1,57 @@
 // Overlay-local symbols for shelter_1f_bulwark.
-D_shelter_1f_bulwark_80180ED0 = 0x80180ED0; // type:RoomLatchedEvent size:0xC
+D_shelter_1f_bulwark_80180378 = 0x80180378; // size:0x20 defined:True
+D_shelter_1f_bulwark_80180398 = 0x80180398; // size:0x8 defined:True
+D_shelter_1f_bulwark_801803B0 = 0x801803B0; // size:0x10 defined:True
+D_shelter_1f_bulwark_801803C0 = 0x801803C0; // size:0x8 defined:True
+D_shelter_1f_bulwark_801803C8 = 0x801803C8; // size:0x4 defined:True
+D_shelter_1f_bulwark_801803CC = 0x801803CC; // size:0x2 defined:True
+D_shelter_1f_bulwark_801803D0 = 0x801803D0; // size:0x70 defined:True
+D_shelter_1f_bulwark_80180440 = 0x80180440; // size:0x30 defined:True
+D_shelter_1f_bulwark_80180470 = 0x80180470; // size:0xB0 defined:True
+D_shelter_1f_bulwark_80180520 = 0x80180520; // size:0x90 defined:True
+D_shelter_1f_bulwark_801805B0 = 0x801805B0; // size:0x16 defined:True
+D_shelter_1f_bulwark_801805C8 = 0x801805C8; // size:0x16 defined:True
+D_shelter_1f_bulwark_801805E0 = 0x801805E0; // size:0x16 defined:True
+D_shelter_1f_bulwark_801805F8 = 0x801805F8; // size:0x14 defined:True
+D_shelter_1f_bulwark_8018060C = 0x8018060C; // size:0x12 defined:True
+D_shelter_1f_bulwark_80180620 = 0x80180620; // size:0xE defined:True
+D_shelter_1f_bulwark_80180630 = 0x80180630; // size:0x18 defined:True
+D_shelter_1f_bulwark_80180648 = 0x80180648; // size:0x24 defined:True
+D_shelter_1f_bulwark_8018066C = 0x8018066C; // size:0x6C defined:True
+D_shelter_1f_bulwark_801806D8 = 0x801806D8; // size:0x10 defined:True
+D_shelter_1f_bulwark_801806E8 = 0x801806E8; // size:0x10 defined:True
+D_shelter_1f_bulwark_801806F8 = 0x801806F8; // size:0xA0 defined:True
+D_shelter_1f_bulwark_80180798 = 0x80180798; // size:0x18 defined:True
+D_shelter_1f_bulwark_801807B0 = 0x801807B0; // size:0x24 defined:True
+D_shelter_1f_bulwark_801807D4 = 0x801807D4; // size:0x2A0 defined:True
+D_shelter_1f_bulwark_80180A74 = 0x80180A74; // size:0x18 defined:True
+D_shelter_1f_bulwark_80180A8C = 0x80180A8C; // size:0x98 defined:True
+D_shelter_1f_bulwark_80180B24 = 0x80180B24; // size:0x260 defined:True
+D_shelter_1f_bulwark_80180320 = 0x80180320; // size:0xC defined:True
+D_shelter_1f_bulwark_8018032C = 0x8018032C; // size:0x28 defined:True
+D_shelter_1f_bulwark_80180354 = 0x80180354; // size:0xC defined:True
+D_shelter_1f_bulwark_80180360 = 0x80180360; // size:0x18 defined:True
+D_shelter_1f_bulwark_80180D84 = 0x80180D84; // size:0x24 defined:True
+D_shelter_1f_bulwark_80180DA8 = 0x80180DA8; // size:0x60 defined:True
+D_shelter_1f_bulwark_80180E08 = 0x80180E08; // size:0x78 defined:True
+D_shelter_1f_bulwark_80180E80 = 0x80180E80; // size:0xC defined:True
+D_shelter_1f_bulwark_80180E8C = 0x80180E8C; // size:0x8 defined:True
+D_shelter_1f_bulwark_80180E94 = 0x80180E94; // size:0x8 defined:True
+D_shelter_1f_bulwark_80180E9C = 0x80180E9C; // size:0x20 defined:True
+D_shelter_1f_bulwark_80180EBC = 0x80180EBC; // size:0x4 defined:True
+D_shelter_1f_bulwark_80180EC0 = 0x80180EC0; // size:0x4 defined:True
+D_shelter_1f_bulwark_80180EC4 = 0x80180EC4; // size:0x8 defined:True
+D_80147AB8 = 0x80147AB8; // absolute:True
+D_801611F8 = 0x801611F8; // absolute:True
+D_map_neo_ark_8017AF00 = 0x8017AF00; // absolute:True
+D_shelter_1f_bulwark_801803A0 = 0x801803A0; // size:0x10 defined:True
+D_shelter_1f_bulwark_80180ECC = 0x80180ECC; // size:0x4 defined:True
+D_shelter_1f_bulwark_80180ED0 = 0x80180ED0; // size:0xC defined:True
+
+func_shelter_1f_bulwark_8017E38C = 0x8017E38C; // type:func
+
+func_shelter_1f_bulwark_8017EDF0 = 0x8017EDF0; // type:func
+
+func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func
+
+func_shelter_1f_bulwark_8017E2A4 = 0x8017E2A4; // type:func

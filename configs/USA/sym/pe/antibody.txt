@@ -1,0 +1,4 @@
+
+func_antibody_8012F734 = 0x8012F734; // type:func
+
+func_antibody_8012EF34 = 0x8012EF34; // type:func

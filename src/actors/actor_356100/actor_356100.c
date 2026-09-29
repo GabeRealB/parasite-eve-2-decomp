@@ -43,7 +43,6 @@
 #include <psyq/memory.h>
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 /// One XZ pair of `Actor356100Work::field_C`; same shape as
 /// `Actor01900Waypoint`.
@@ -227,6 +226,473 @@ typedef union Actor356100Event {
     u16 w[2];
 } Actor356100Event;
 
+typedef struct {
+    GpXformArg value;
+    u8 retained[8];
+} Actor356100Storage32B0;
+STATIC_ASSERT_SIZEOF(Actor356100Storage32B0, 32);
+
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(Task *);
+        s32 (*call2)(Task *, s32, Actor356100Event *);
+        s32 (*call3)(Task *, s32, GpXformArg *);
+        s32 (*call4)(Task *, s32, s32);
+    } handler;
+} Actor356100MessageEntry;
+STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
+
+extern TmdSource D_actor_356100_8016FC74;
+s32 func_actor_356100_80169E5C(void);
+s32 func_actor_356100_80169E64(Task *, s32, s32);
+s32 func_actor_356100_80169F24(Task *);
+s32 func_actor_356100_80169F74(Task *, s32, GpXformArg *);
+s32 func_actor_356100_8016A074(Task *);
+s32 func_actor_356100_8016A0B8(Task *, s32, Actor356100Event *);
+void func_actor_356100_8016A910(Task *);
+
+GpU16Pair D_actor_356100_8016A96C[6] = {
+    { 30, 7 },
+    { 30, 7 },
+    { 50, 7 },
+    { 50, 7 },
+    { 40, 0 },
+    { 40, 0 },
+};
+
+GpPairSrcE D_actor_356100_8016A984 = { D_actor_356100_8016A96C, 420, 115, 200, 5, 100, 10, 100, 10, 0 };
+
+Actor356100TintRow D_actor_356100_8016A994[3] = {
+    { 0, 900, 3, 0 },
+    { 0, 800, 5, 0 },
+    { 0, 500, 7, 0 },
+};
+
+TmdBone D_actor_356100_8016A9AC[21] = {
+#include "assets/actor_356100_model_0DE54_skeleton.inc"
+};
+
+u32 D_actor_356100_8016ACA0[21] = {
+#include "assets/actor_356100_model_0DE54_partVerts.inc"
+};
+
+SVECTOR D_actor_356100_8016ACF4[293] = {
+#include "assets/actor_356100_model_0DE54_verts.inc"
+};
+
+SVECTOR D_actor_356100_8016B61C[363] = {
+#include "assets/actor_356100_model_0DE54_normals.inc"
+};
+
+u32 D_actor_356100_8016C174[3776] = {
+#include "assets/actor_356100_model_0DE54_stream.inc"
+};
+
+TmdSource D_actor_356100_8016FC74 = {
+    0, 18488, 7600, 21,
+    D_actor_356100_8016ACA0, D_actor_356100_8016ACF4, D_actor_356100_8016B61C, D_actor_356100_8016A9AC, D_actor_356100_8016C174,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[75];
+    GpPackedSvec words[225];
+} Actor356100PoseBankDE78;
+
+Actor356100PoseBankDE78 D_actor_356100_8016FC98 = { .poses = {
+#include "assets/actor_356100_animation_0FE9C_bank1.inc"
+} };
+
+GpPackedSvec D_actor_356100_8017001C[657] = {
+#include "assets/actor_356100_animation_0FE9C_bank4.inc"
+};
+
+GpAnimRec D_actor_356100_80170A60[1164] = {
+#include "assets/actor_356100_animation_0FE9C_records.inc"
+};
+
+u16 D_actor_356100_80171C90[22] = {
+#include "assets/actor_356100_animation_0FE9C_indices.inc"
+};
+
+GpAnimSet D_actor_356100_80171CBC = {
+    D_actor_356100_80170A60, D_actor_356100_80171C90,
+    { NULL, D_actor_356100_8016FC98.words, NULL, NULL, D_actor_356100_8017001C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[28];
+    GpPackedSvec words[84];
+} Actor356100PoseBankFEC4;
+
+Actor356100PoseBankFEC4 D_actor_356100_80171CE4 = { .poses = {
+#include "assets/actor_356100_animation_10A84_bank1.inc"
+} };
+
+GpPackedSvec D_actor_356100_80171E34[263] = {
+#include "assets/actor_356100_animation_10A84_bank4.inc"
+};
+
+GpAnimRec D_actor_356100_80172250[394] = {
+#include "assets/actor_356100_animation_10A84_records.inc"
+};
+
+u16 D_actor_356100_80172878[22] = {
+#include "assets/actor_356100_animation_10A84_indices.inc"
+};
+
+GpAnimSet D_actor_356100_801728A4 = {
+    D_actor_356100_80172250, D_actor_356100_80172878,
+    { NULL, D_actor_356100_80171CE4.words, NULL, NULL, D_actor_356100_80171E34, NULL, NULL, NULL },
+};
+
+s8 D_actor_356100_801728CC[45][45] = {
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 8, 0, 0, 0, 0, 15, 5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 4, 0, 0, 4, 3, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 5, 3, 3, 3, 3, 5, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 3, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 12, 12, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 8, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+u8 D_actor_356100_801730B8[248] = {
+    0,
+    0,
+    0,
+    0,
+    188,
+    28,
+    23,
+    128,
+    164,
+    40,
+    23,
+    128,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+};
+
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+typedef struct {
+    s32 value;
+    u8 retained[116];
+} Actor356100Storage31B0;
+STATIC_ASSERT_SIZEOF(Actor356100Storage31B0, 120);
+
+Actor356100Storage31B0 D_actor_356100_801731B0 = { 0, { 0 } };
+
+GpAnimSet * D_actor_356100_80173228[7] = {
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
+GpAnimArg D_actor_356100_80173244 = { { .ptr = D_actor_356100_80173228 }, 1, 0, 3, 0 };
+
+Actor356100MessageEntry D_actor_356100_80173258[7] = {
+    { 2003, { .call0 = func_actor_356100_80169E5C } },
+    { 2005, { .call4 = func_actor_356100_80169E64 } },
+    { 2006, { .call1 = func_actor_356100_80169F24 } },
+    { 2004, { .call3 = func_actor_356100_80169F74 } },
+    { 2014, { .call1 = func_actor_356100_8016A074 } },
+    { 2011, { .call2 = func_actor_356100_8016A0B8 } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+u16 D_actor_356100_80173290 = 0;
+
+TaskDesc D_actor_356100_80173294 = { 1, 96, func_actor_356100_8016A910, { .model = &D_actor_356100_8016FC74 } };
+
+SVECTOR D_actor_356100_801732A0 = { 0, 0, 0, 0 };
+
+GpEffArg D_actor_356100_801732A8 = { NULL, 0, 0 };
+
+Actor356100Storage32B0 D_actor_356100_801732B0 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+
+GpDelayArg D_actor_356100_801732D0 = { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 };
+
 /// Binds the model's light and colour matrices to the pair kept in the work
 /// block. Same body as `Actor01900_BindMatrices`.
 static __inline__ void Actor356100_BindMatrices(Task* actor)
@@ -339,7 +805,11 @@ STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
 
 /// The overlay's only message-0x3E9 instance; all eight words are zero in the
 /// image, so it is a work area rather than a table.
-extern GpXformArg D_actor_356100_801732B0;
+// Only the leading value has established accesses. Preserve the following
+// zero bytes in this allocation; trailing fields versus TU padding remains
+// unresolved (see the local actors/rooms data review).
+
+extern Actor356100Storage32B0 D_actor_356100_801732B0;
 
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
 /// zero in the image.
@@ -348,8 +818,7 @@ extern GpDelayArg D_actor_356100_801732D0;
 /// Player-character flag selecting which animation block
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
 /// the second block when it is 1, the first otherwise.
-extern s32 D_actor_356100_80173228;
-extern s32 D_actor_356100_80173230;
+extern GpAnimSet* D_actor_356100_80173228[7];
 
 /// `s8` selector for those two blocks; same slot and role as
 /// `Actor403100AnimTable`'s base index.
@@ -357,7 +826,7 @@ extern s32 D_actor_356100_80173230;
 /// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
 /// The 0x74 bytes after it are zero in the image too, so the whole run is a
 /// work area rather than a table.
-extern s32 D_actor_356100_801731B0;
+extern Actor356100Storage31B0 D_actor_356100_801731B0;
 
 /// Free-running scroll `func_actor_356100_80164ACC` accumulates `field_B4C`
 /// into each frame, and zeroes on the live-actor entry. Same role as
@@ -387,7 +856,9 @@ extern Actor356100TintRow D_actor_356100_8016A994[];
 
 /// Event-handler table `func_actor_356100_8016382C` hands the task as
 /// `Task::msgTable`. Same shape and role as `Actor01900_D1728C`.
-extern void* D_actor_356100_80173258;
+// Message-table callbacks use the argument views required by this TU.
+
+extern Actor356100MessageEntry D_actor_356100_80173258[7];
 
 /// Initialisation for the state-0x10 clip run: allocates the work block, binds
 /// the light / colour matrices, re-seeds the enemy descriptor and both
@@ -405,7 +876,7 @@ static void func_actor_356100_8016382C(GpEnemy* enemy, Task* actor);
 static void func_actor_356100_801666B4(Task* arg0);
 
 /// Approach tick, and the sibling of `func_actor_356100_80167584` above it. Going
-/// live clears `D_actor_356100_801731B0` and re-seeds the animation slots at
+/// live clears `D_actor_356100_801731B0.value` and re-seeds the animation slots at
 /// clip 2 / speed 0x10 with the enemy's link node cleared; otherwise a single
 /// sound 0x51030008 is queued the first time through, keyed on the enemy's
 /// `field_8 >> 12` bank. Each frame then snapshots `field_5A & 0x3FF` into
@@ -561,7 +1032,7 @@ static void func_actor_356100_80161F4C(GpCoord* coord, s16 yaw)
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    func_8004BFF8(yaw, rotation);
+    RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->flg = 0;
@@ -901,8 +1372,8 @@ static void func_actor_356100_801633DC(Task* arg0)
         if (i < 0xB) {
             work->blendSlots[i].rate = (u8)work->field_98A;
             work->slots[i].rate      = (u8)(work->field_982 - 3);
-            func_800B3448(anim, i, (s32)&pose, 0);
-            func_800B3448(&work->blendAnim, i, (s32)&blendPose, 0);
+            func_800B3448(anim, i, &pose, 0);
+            func_800B3448(&work->blendAnim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (u8)(work->field_982 - 3);
@@ -1067,7 +1538,7 @@ static void func_actor_356100_8016382C(GpEnemy* enemy, Task* actor)
     gte_stsv(v);
     work->field_C[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
     work->field_C[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
-    actor->msgTable    = &D_actor_356100_80173258;
+    actor->msgTable    = D_actor_356100_80173258;
     root->sub          = &gGfxViewCoord;
     root->flg          = 0;
     Gp_UpdateCoord(root);
@@ -1442,6 +1913,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     s32                    diffPos;
     s32                    diffNeg;
     s32                    yaw;
+    GpRec18*               records;
     s32                    hit;
     s32                    paused;
 
@@ -1470,11 +1942,11 @@ static void func_actor_356100_80164ACC(Task* arg0)
     func_actor_356100_80163508(arg0);
     paused    = Mc_SaveData[0].state.field_5C1;
     pushCoord = arg0->extra.tmd->coords;
-    hit       = (s32)&work->field_A58;
+    records   = &work->field_A58;
     if (paused == 1) {
         hit = 0;
     } else {
-        hit = Actor356100_PushRecordsAlways(pushCoord, (GpRec18*)hit, 3, 0x10);
+        hit = Actor356100_PushRecordsAlways(pushCoord, records, 3, 0x10);
     }
     if (hit != 0) {
         work->field_8++;
@@ -1797,16 +2269,16 @@ static void func_actor_356100_80166018(Task* arg0)
         angle = actorMatrixPositionYaw(arg0, &pos, Player_Status.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (Mc_SaveData[0].state.characterId == 1) {
-                D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173230;
+                D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173228[2];
             } else {
-                D_actor_356100_80173244.animBlock.ptr = &D_actor_356100_80173228;
+                D_actor_356100_80173244.animBlock.ptr = D_actor_356100_80173228;
             }
             D_actor_356100_801732D0.field_14 = 8;
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F8, (s32)&D_actor_356100_801732D0, 0) == 0) {
+            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_356100_801732D0, 0) == 0) {
                 work->field_0                   = 0xC;
                 work->field_B68                 = 1;
                 D_actor_356100_80173244.field_4 = 1;
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
+                Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_356100_80173244, 0);
             }
         }
     }
@@ -1852,9 +2324,9 @@ static void func_actor_356100_801666B4(Task* arg0)
         work->field_97E                = 5;
         player->extra.tmd->coords->flg = 0;
         Gp_UpdateCoord(player->extra.tmd->coords);
-        D_actor_356100_801732B0.pos.vx = player->extra.tmd->coords->coord.t[0];
-        D_actor_356100_801732B0.pos.vy = player->extra.tmd->coords->coord.t[1];
-        D_actor_356100_801732B0.pos.vz = player->extra.tmd->coords->coord.t[2];
+        D_actor_356100_801732B0.value.pos.vx = player->extra.tmd->coords->coord.t[0];
+        D_actor_356100_801732B0.value.pos.vy = player->extra.tmd->coords->coord.t[1];
+        D_actor_356100_801732B0.value.pos.vz = player->extra.tmd->coords->coord.t[2];
         vecp                           = &vec;
         /* Order matters: the vy store must follow the vx loads in RTL, or
            sched1 fills its anti-dependency chain from the earlier stores and
@@ -1870,10 +2342,10 @@ static void func_actor_356100_801666B4(Task* arg0)
         arg0->extra.tmd->coords->coord.t[0] = player->extra.tmd->coords->coord.t[0] + vec.vx;
         arg0->extra.tmd->coords->coord.t[2] = player->extra.tmd->coords->coord.t[2] + vec.vz;
         arg0->extra.tmd->coords->flg        = 0;
-        D_actor_356100_801732B0.rot.vx      = 0;
-        D_actor_356100_801732B0.rot.vy      = ratan2(vec.vx, vec.vz);
-        D_actor_356100_801732B0.rot.vz      = 0;
-        Gp_DispatchMsg(player, 0x3E9, (s32)&D_actor_356100_801732B0, 0);
+        D_actor_356100_801732B0.value.rot.vx      = 0;
+        D_actor_356100_801732B0.value.rot.vy      = ratan2(vec.vx, vec.vz);
+        D_actor_356100_801732B0.value.rot.vz      = 0;
+        Gp_DispatchMsgPtr(player, 0x3E9, &D_actor_356100_801732B0.value, 0);
     }
     func_actor_356100_80163508(arg0);
     if (work->field_97E == 5 && (work->field_68 & 1)) {
@@ -1911,7 +2383,7 @@ static void func_actor_356100_801668FC(Task* arg0)
         func_actor_356100_80163508(arg0);
         D_actor_356100_80173244.field_4 = 3;
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)&D_actor_356100_80173244, 0);
+            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, &D_actor_356100_80173244, 0);
         }
         work->field_6 = 0;
     } else if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 &&
@@ -1941,7 +2413,7 @@ static void func_actor_356100_801668FC(Task* arg0)
             coord->coord.t[2]         += v->vz;
             coord->flg                 = 0;
             base                       = PSX_SCRATCH;
-            next                       = (SVECTOR*)(*(SVECTOR**)(base + 0x3FC) + 1);
+            next                       = (*(SVECTOR**)(base + 0x3FC) + 1);
             base                       = slot;
             base                       = PSX_SCRATCH;
             *(SVECTOR**)(base + 0x3FC) = next;
@@ -1984,7 +2456,7 @@ static void func_actor_356100_801668FC(Task* arg0)
                 s->moved = 1;
             }
             base2                                = PSX_SCRATCH;
-            next2                                = (OverlayDeltaFlag*)(*(OverlayDeltaFlag**)(base2 + 0x3FC) + 1);
+            next2                                = (*(OverlayDeltaFlag**)(base2 + 0x3FC) + 1);
             base2                                = slot2;
             base2                                = PSX_SCRATCH;
             *(OverlayDeltaFlag**)(base2 + 0x3FC) = next2;
@@ -2201,7 +2673,7 @@ static void func_actor_356100_80167818(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
-        D_actor_356100_801731B0 = 0;
+        D_actor_356100_801731B0.value = 0;
         work->field_97E         = 0x10;
         work->field_978         = 2;
         obj->flags              = 0;
@@ -3164,7 +3636,7 @@ static void func_actor_356100_8016A468(Task* arg0)
         work->field_978 = 2;
         msg             = &D_actor_356100_80173244;
         msg->field_4    = 2;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
+        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3FF, msg, 0);
         player = gameGetPtrSlot(3);
         Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
     }

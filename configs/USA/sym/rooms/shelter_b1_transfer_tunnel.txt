@@ -1,1 +1,59 @@
 // Overlay-local symbols for shelter_b1_transfer_tunnel.
+D_shelter_b1_transfer_tunnel_801828E8 = 0x801828E8; // size:0x10 defined:True
+D_shelter_b1_transfer_tunnel_801828F8 = 0x801828F8; // size:0x38 defined:True
+D_shelter_b1_transfer_tunnel_801828C0 = 0x801828C0; // size:0x28 defined:True
+D_shelter_b1_transfer_tunnel_80182930 = 0x80182930; // size:0x14 defined:True
+D_shelter_b1_transfer_tunnel_80182954 = 0x80182954; // size:0x4 defined:True
+D_shelter_b1_transfer_tunnel_80182958 = 0x80182958; // size:0x2 defined:True
+D_shelter_b1_transfer_tunnel_8018295C = 0x8018295C; // size:0x70 defined:True
+D_shelter_b1_transfer_tunnel_801829CC = 0x801829CC; // size:0x30 defined:True
+D_shelter_b1_transfer_tunnel_801829FC = 0x801829FC; // size:0x60 defined:True
+D_shelter_b1_transfer_tunnel_80182A5C = 0x80182A5C; // size:0x48 defined:True
+D_shelter_b1_transfer_tunnel_80182AA4 = 0x80182AA4; // size:0xC defined:True
+D_shelter_b1_transfer_tunnel_80182AB0 = 0x80182AB0; // size:0x4 defined:True
+D_shelter_b1_transfer_tunnel_80182AB4 = 0x80182AB4; // size:0xC defined:True
+D_shelter_b1_transfer_tunnel_80182AC0 = 0x80182AC0; // size:0x4 defined:True
+D_shelter_b1_transfer_tunnel_80182AC4 = 0x80182AC4; // size:0xC defined:True
+D_shelter_b1_transfer_tunnel_80182AD0 = 0x80182AD0; // size:0x4 defined:True
+D_shelter_b1_transfer_tunnel_80182AD4 = 0x80182AD4; // size:0x18 defined:True
+D_shelter_b1_transfer_tunnel_80182AEC = 0x80182AEC; // size:0x24 defined:True
+D_shelter_b1_transfer_tunnel_80182B10 = 0x80182B10; // size:0x90 defined:True
+D_shelter_b1_transfer_tunnel_80182BA0 = 0x80182BA0; // size:0x10 defined:True
+D_shelter_b1_transfer_tunnel_80182BB0 = 0x80182BB0; // size:0x10 defined:True
+D_shelter_b1_transfer_tunnel_80182BC0 = 0x80182BC0; // size:0x10 defined:True
+D_shelter_b1_transfer_tunnel_80182BD0 = 0x80182BD0; // size:0x10 defined:True
+D_shelter_b1_transfer_tunnel_80182BE0 = 0x80182BE0; // size:0x30 defined:True
+D_shelter_b1_transfer_tunnel_80182C10 = 0x80182C10; // size:0x180 defined:True
+D_shelter_b1_transfer_tunnel_80182D90 = 0x80182D90; // size:0x18 defined:True
+D_shelter_b1_transfer_tunnel_80182DA8 = 0x80182DA8; // size:0x130 defined:True
+D_shelter_b1_transfer_tunnel_80182ED8 = 0x80182ED8; // size:0x98 defined:True
+D_shelter_b1_transfer_tunnel_80182F70 = 0x80182F70; // size:0x24 defined:True
+D_shelter_b1_transfer_tunnel_80182F94 = 0x80182F94; // size:0x24 defined:True
+D_shelter_b1_transfer_tunnel_80182FB8 = 0x80182FB8; // size:0x80 defined:True
+D_shelter_b1_transfer_tunnel_80183038 = 0x80183038; // size:0x80 defined:True
+D_shelter_b1_transfer_tunnel_801830B8 = 0x801830B8; // size:0xB0 defined:True
+D_shelter_b1_transfer_tunnel_80183168 = 0x80183168; // size:0xC defined:True
+D_shelter_b1_transfer_tunnel_80183174 = 0x80183174; // size:0x8 defined:True
+D_shelter_b1_transfer_tunnel_8018317C = 0x8018317C; // size:0x8 defined:True
+D_shelter_b1_transfer_tunnel_80183184 = 0x80183184; // size:0x20 defined:True
+D_8010CAF8 = 0x8010CAF8; // absolute:True
+D_80135C30 = 0x80135C30; // absolute:True
+D_8015FAB8 = 0x8015FAB8; // absolute:True
+D_80160110 = 0x80160110; // absolute:True
+D_shelter_b1_transfer_tunnel_80182944 = 0x80182944; // size:0x10 defined:True
+
+func_shelter_b1_transfer_tunnel_8018092C = 0x8018092C; // type:func
+
+func_shelter_b1_transfer_tunnel_80181390 = 0x80181390; // type:func
+
+func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func
+
+func_shelter_b1_transfer_tunnel_8017E308 = 0x8017E308; // type:func
+
+func_shelter_b1_transfer_tunnel_8017F050 = 0x8017F050; // type:func
+
+func_shelter_b1_transfer_tunnel_8017F3E8 = 0x8017F3E8; // type:func
+
+func_shelter_b1_transfer_tunnel_801807F8 = 0x801807F8; // type:func
+
+func_shelter_b1_transfer_tunnel_8017D6D0 = 0x8017D6D0; // type:func

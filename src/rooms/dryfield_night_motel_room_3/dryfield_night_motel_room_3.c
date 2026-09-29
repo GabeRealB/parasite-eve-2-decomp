@@ -13,8 +13,21 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
+s32 func_dryfield_night_motel_room_3_8017D5F4(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_3_8017D5FC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_dryfield_night_motel_room_3_8017D684(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_3_8017D68C(Task *, s32, GpMessageArg, GpMessageArg);
+
+GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
+    { 5102, func_dryfield_night_motel_room_3_8017D5FC },
+    { 5105, func_dryfield_night_motel_room_3_8017D5F4 },
+    { 5103, func_dryfield_night_motel_room_3_8017D68C },
+    { 5104, func_dryfield_night_motel_room_3_8017D684 },
+    { 0x7FFFFFFF, NULL },
+};
+
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D5F4(void)
+s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -23,13 +36,13 @@ s32 func_dryfield_night_motel_room_3_8017D5F4(void)
 /// reply and, for a message 2 that is not report-only (`field_5 == 0`),
 /// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
 /// once it has reached 4. Returns 1.
-s32 func_dryfield_night_motel_room_3_8017D5FC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_night_motel_room_3_8017D5FC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     s32 val;
     s32 n;
 
     *out = *in;
-    if (in->msgId == 2 && in->field_5 == 0) {
+    if (in->prefix.packed == 2 && in->field_5 == 0) {
         n = GameFlag_GetNibble(0x7A);
         if (n >= 4) {
             val = 3;
@@ -42,13 +55,13 @@ s32 func_dryfield_night_motel_room_3_8017D5FC(s32 arg0, s32 arg1, RoomEventMsg* 
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D684(void)
+s32 func_dryfield_night_motel_room_3_8017D684(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D68C(void)
+s32 func_dryfield_night_motel_room_3_8017D68C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

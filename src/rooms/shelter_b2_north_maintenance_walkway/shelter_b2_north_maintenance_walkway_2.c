@@ -1,3 +1,6 @@
+#include "shelter_b2_north_maintenance_walkway_private.h"
+#include "rooms/shelter_b2_north_maintenance_walkway.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -28,6 +31,19 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 
+#include "gameplay/message.h"
+
+// Preserve the nonzero halfword after the three effect records.
+// Its role is unresolved; it may be retained exporter padding.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16 retained;
+} ShelterB2NorthMaintenanceWalkwayHaloStorage;
+STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayHaloStorage, 20);
+extern ShelterB2NorthMaintenanceWalkwayHaloStorage D_shelter_b2_north_maintenance_walkway_80183C38;
+
+extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[2];
+
 /// Anchor points of the glows the room task draws.
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[];
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183BB0[];
@@ -37,12 +53,9 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
-extern RoomHaloShade D_shelter_b2_north_maintenance_walkway_80183C38[];
 
 /// Offsets from the anchor of the two points the smoke trail follows. The
 /// second is also reached under its own name.
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[];
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C54;
 
 static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1);
@@ -56,11 +69,62 @@ static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s1
 static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2);
 
+TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D61C, { .model = NULL } };
+
+TaskDesc D_shelter_b2_north_maintenance_walkway_80183B54 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D918, { .model = NULL } };
+
+GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
+    { 5102, func_shelter_b2_north_maintenance_walkway_8017DA88 },
+    { 5105, func_shelter_b2_north_maintenance_walkway_8017DC44 },
+    { 5103, func_shelter_b2_north_maintenance_walkway_8017DC54 },
+    { 5104, func_shelter_b2_north_maintenance_walkway_8017DC4C },
+    { 5106, func_shelter_b2_north_maintenance_walkway_8017DCE4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[4] = {
+    { 894, -197, -2271, 0 },
+    { 894, -197, -3102, 0 },
+    { 894, -197, 376, 0 },
+    { 894, -197, -396, 0 },
+};
+
+SVECTOR D_shelter_b2_north_maintenance_walkway_80183BB0[14] = {
+    { 894, -197, 2648, 0 },
+    { 894, -197, 2036, 0 },
+    { 3106, -197, -2271, 0 },
+    { 3106, -197, -3102, 0 },
+    { 3106, -197, 376, 0 },
+    { 3106, -197, -396, 0 },
+    { 3106, -197, 2648, 0 },
+    { 3106, -197, 2036, 0 },
+    { 653, -197, 2896, 0 },
+    { -31, -197, 2896, 0 },
+    { -42, -197, 5113, 0 },
+    { 597, -197, 5113, 0 },
+    { -1562, -197, 5113, 0 },
+    { -2493, -197, 5113, 0 },
+};
+
+SVECTOR D_shelter_b2_north_maintenance_walkway_80183C20[1] = {
+    { 749, -1283, 2310, 0 },
+};
+
+SVECTOR D_shelter_b2_north_maintenance_walkway_80183C28[1] = {
+    { 1107, -1181, -4935, 0 },
+};
+
+SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
+    { 1107, -1125, -4900, 0 },
+};
+
+ShelterB2NorthMaintenanceWalkwayHaloStorage D_shelter_b2_north_maintenance_walkway_80183C38 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x9620 };
+
 /// The room's per-frame glow task. Its first tick sets the gameplay effect ids
 /// the room's effects use; every tick then draws the flares, discs and stars
 /// visible from the current camera view. One star turns from red to blue once
 /// flag 0xA8, the one the event gate writes for message 0x1D, is set.
-static void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
+void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024B;
@@ -487,7 +551,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s3
 /// and draws it, and within eight ticks of its lifetime it fades out, releasing
 /// its work block once dark. It pauses while the room's event state is set
 /// and releases the block when that state reaches 4.
-static void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
+void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -746,7 +810,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s1
 /// It then fades from full level through the afterglow, 0x10 a tick, and
 /// releases its work block. It pauses while the room's event state is set and
 /// releases the block when that state reaches 4.
-static void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
+void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -790,9 +854,9 @@ static void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
                 mem->scale      += mem->step;
                 mem->angle      += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].b;
+                rgb[0]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].r;
+                rgb[1]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].g;
+                rgb[2]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].b;
                 func_shelter_b2_north_maintenance_walkway_8017FF44(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -810,9 +874,9 @@ static void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
             case 2:
                 Gp_UpdateCoord(coord);
                 if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].r;
-                    rgb[1] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].g;
-                    rgb[2] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38[mem->index].b;
+                    rgb[0] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].r;
+                    rgb[1] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].g;
+                    rgb[2] = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].b;
                     func_shelter_b2_north_maintenance_walkway_801810C0(coord, (u16)mem->angle * 4, rgb);
                     mem->scale -= 0x10;
                     mem->angle += 8;
@@ -834,7 +898,7 @@ kill:
 /// once the echo is gone the main level falls 0x18 a tick and the work block
 /// is released. It pauses while the room's event state is set and releases the
 /// block when that state reaches 4.
-static void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
+void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1213,7 +1277,7 @@ static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s1
 /// outwards along that heading at 3/16 speed with a vertical velocity of -0x80
 /// per tick of age, then releases its work block. It pauses while the room's
 /// event state is set and releases the block when that state reaches 4.
-static void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
+void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1250,7 +1314,7 @@ static void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 /// drawing two fans and an inward-shrinking ring in a colour derived from the
 /// level, and queues a fade quad in that colour when it peaks; state 2 fades
 /// out through the star draw before the work block is released.
-static void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
+void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1428,7 +1492,7 @@ static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s1
 /// between the rings as a beam. The work block is released once the tick count
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
-static void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
+void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1486,9 +1550,12 @@ static void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_b2_north_maintenance_walkway_80183C54.vx;
-                coord.coord.t[1] = D_shelter_b2_north_maintenance_walkway_80183C54.vy;
-                coord.coord.t[2] = D_shelter_b2_north_maintenance_walkway_80183C54.vz;
+                {
+                    SVECTOR* edge = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1627,7 +1694,7 @@ static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, Gp
 /// it draws a fixed ring and one widening by 0x30 a tick, both dimming by 0x20
 /// a tick. Either way it releases its work block after seven ticks. It pauses while the
 /// room's event state is set and releases the block when that state reaches 4.
-static void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
+void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

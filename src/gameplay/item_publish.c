@@ -123,10 +123,10 @@ s32 Gp_LookupBit2Item(s32 arg0)
     lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {
-        if (lists->field_0 != (GpBit2Rec*)0x7FFFFFFF) {
+        if (lists->field_0.sentinel != 0x7FFFFFFF) {
             term = 0xFFFF;
             do {
-                rec     = lists->field_0;
+                rec     = lists->field_0.records;
                 matched = 0;
                 if (rec != NULL) {
                     if (rec->field_0 != term) {
@@ -175,7 +175,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
                     break;
                 }
                 lists++;
-            } while (lists->field_0 != (GpBit2Rec*)0x7FFFFFFF);
+            } while (lists->field_0.sentinel != 0x7FFFFFFF);
         }
     }
     return found;

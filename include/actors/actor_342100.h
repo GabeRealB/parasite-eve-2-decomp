@@ -51,13 +51,12 @@ STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
 extern Task* D_actor_342100_80164BB8;
 
 /// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
-extern TaskDesc D_actor_342100_80164B78;
+extern TaskDesc D_actor_342100_80164B78[];
 
 /// Record the fade task `func_actor_342100_80162748` parks in its own
 /// `Task::msgTable`: the message id `0x7DB` followed by the handler
 /// `func_actor_342100_80163344`. The same shape `src/gameplay/item_menu.c` stores
 /// there, and all this overlay does with it is take its address.
-extern u8 D_actor_342100_801648F8[];
 
 void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2);
 void func_actor_342100_8016334C(s32 arg0);

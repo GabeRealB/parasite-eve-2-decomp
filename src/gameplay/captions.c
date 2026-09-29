@@ -27,14 +27,6 @@
 #include "main/task.h"
 #include "main/text.h"
 
-/// Initialize a display mode with an object payload in its first data word.
-static __inline__ s32 Display_InitModeObjPtr(TaskDesc* desc, s32 mode, const void* data, s32 arg3)
-{
-    TaskSpawnArg arg;
-    arg.constPointer = data;
-    return Display_InitModeObj(desc, mode, arg.value, arg3);
-}
-
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 D_80115688;
 
@@ -70,15 +62,13 @@ void Gp_CapExit(Task* arg0);
 /// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
 /// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
-void Gp_DrawCapCaret(void);
+void Gp_DrawCapCaret(s32 unusedX, s32 unusedY);
 
 s16 Gp_CapCenterX(u16* text);
 
 s16 Gp_CapCenterXLine(u16* arg0, s32 arg1);
 
 s32 func_800E6BB8(u16* arg0);
-
-static void func_800E6E44(GpCapTextCb arg0);
 
 void func_800E704C(void);
 
@@ -252,7 +242,7 @@ resumeView:
                         if (viewPending != 0) {
                             viewPhase  = D_801155BB;
                             D_801155BB = viewPhase + 1;
-                            if (D_801156F4 != NULL) {
+                            if (D_801156F4.overlays != NULL) {
                                 CdCmd_UnusedStub3();
                             }
                         } else if (!(eventFlags & 0x40)) {
@@ -309,7 +299,7 @@ resumeView:
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
                     } else {
-                        Display_InitModeObjPtr(Task_GetDesc(9U, 0xBU), 0, &D_801155A0, 0);
+                        Display_InitModeObj(Task_GetDesc(9U, 0xBU), 0, &D_801155A0, 0);
                     }
                 waitDialog:
                     D_801155AC = 1;
@@ -379,7 +369,7 @@ resumeView:
                 checkCaret:
                     if (Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 4) {
                     drawCaret:
-                        ((void (*)(s32, s32))Gp_DrawCapCaret)(0xA0, 0xDC);
+                        Gp_DrawCapCaret(0xA0, 0xDC);
                     } else {
                         D_80115664 = 0;
                     }
@@ -493,7 +483,7 @@ resumeView:
                     D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].field_8.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_0 | ((Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 0x12) << 8));
                     nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
                     if (((Gp_CapTable[nextTextIndex].field_8.offset != -1) && (Gp_CapTable[nextTextIndex].field_6 == 0) && ((Gp_CapTable[nextTextIndex].prefix.bytes.field_2 != 0) || (Gp_CapTable[nextTextIndex].prefix.bytes.field_3 == 0))) || (Gp_CapTable[(s16)D_801155AE].prefix.bytes.field_1 & 4)) {
-                        ((void (*)(s32, s32))Gp_DrawCapCaret)(0xA0, 0xDC);
+                        Gp_DrawCapCaret(0xA0, 0xDC);
                         return;
                     }
                     D_80115664 = 0;
@@ -905,10 +895,10 @@ void Gp_CapExit(Task* arg0)
         }
     } else {
     block_11:
-        if (gDisplayState.field_112 != 0 && D_801156F4 != 0) {
+        if (gDisplayState.field_112 != 0 && D_801156F4.overlays != 0) {
             sprintf(
-                buf, Gp_StrEvsFmt, D_801156F4->field_0, D_801156F4->field_2,
-                D_801156F4->field_4);
+                buf, Gp_StrEvsFmt, D_801156F4.overlays->field_0, D_801156F4.overlays->field_2,
+                D_801156F4.overlays->field_4);
             func_807244CC(buf);
         }
     }
@@ -921,7 +911,7 @@ void Gp_CapExit(Task* arg0)
 /// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
 /// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
-void Gp_DrawCapCaret(void)
+void Gp_DrawCapCaret(s32 unusedX, s32 unusedY)
 {
     POLY_G3* p;
     s32      color;
@@ -1199,7 +1189,7 @@ void Gp_ResetCap(void)
     D_8011569C = 0;
 }
 
-static void func_800E6E44(GpCapTextCb arg0)
+void func_800E6E44(GpCapTextCb arg0)
 {
     D_80115660 = arg0;
 }

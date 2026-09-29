@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_neo_ark.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -20,9 +21,7 @@
 #include "main/task.h"
 
 /// 0xFF-terminated area-record list applied the first time the altar fires.
-extern GpAreaApplyRec D_neo_ark_altar_801800A0;
-
-extern void func_80179B14(GpSaveLoc* src, GpSaveLoc* dst);
+extern GpAreaApplyRec D_neo_ark_altar_801800A0[];
 
 /// The room's own `GpMsgEntry[]` - the message table this task publishes.
 extern GpMsgEntry D_neo_ark_altar_8017EF98[];
@@ -42,6 +41,22 @@ static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
     func_neo_ark_altar_8017D974,
     func_neo_ark_altar_8017D9E0,
     taskKill,
+};
+
+void func_neo_ark_altar_8017D668(Task *);
+s32 func_neo_ark_altar_8017D8BC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_altar_8017D8C4(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_neo_ark_altar_8017D908(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_altar_8017D910(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+
+TaskDesc D_neo_ark_altar_8017EF8C = { 0, 32, func_neo_ark_altar_8017D668, { .model = NULL } };
+
+GpMsgEntry D_neo_ark_altar_8017EF98[5] = {
+    { 5102, func_neo_ark_altar_8017D8C4 },
+    { 5105, func_neo_ark_altar_8017D8BC },
+    { 5103, func_neo_ark_altar_8017D910 },
+    { 5104, func_neo_ark_altar_8017D908 },
+    { 0x7FFFFFFF, NULL },
 };
 
 /// Altar cutscene driver: silences the player's weapon, runs cap command 2,
@@ -89,7 +104,7 @@ void func_neo_ark_altar_8017D668(Task* task)
         case 5:
             if ((GameFlag_GetNibble(0xF9) == 0) && (GameFlag_GetNibble(0xDF) == 0)) {
                 GameFlag_SetNibble(0xF9, 1);
-                Gp_ApplyAreaRecs(&D_neo_ark_altar_801800A0);
+                Gp_ApplyAreaRecs(D_neo_ark_altar_801800A0);
             }
             SndEvt_EnqueueType6(0x5514000D, 0, 0);
             task->killCountdown = 0x1E;
@@ -126,22 +141,22 @@ void func_neo_ark_altar_8017D668(Task* task)
     }
 }
 
-s32 func_neo_ark_altar_8017D8BC(void)
+s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `GpSaveLoc` onto the outgoing one and passes both on to `func_80179B14`.
+/// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_altar_8017D8C4(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     *out = *in;
-    func_80179B14(in, out);
+    func_map_neo_ark_80179B14(in, out);
     return 1;
 }
 
-s32 func_neo_ark_altar_8017D908(void)
+s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -153,7 +168,7 @@ s32 func_neo_ark_altar_8017D908(void)
 /// cutscene-driver task through `D_neo_ark_altar_8017EF8C`. Any other byte is
 /// ignored, and the outgoing record is never written - this handler only
 /// consumes the message.
-s32 func_neo_ark_altar_8017D910(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     if (in->field_2 == 1) {
         if (gGameSession->at4.loc.room == in->field_2) {

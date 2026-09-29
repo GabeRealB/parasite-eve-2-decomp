@@ -185,8 +185,6 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 /// onto the parent (`6` also restores status).
 static void Gp_CloseItemPane(UiObject* arg0, Task* arg1);
 
-extern UiObject* D_80067634;
-
 UiList         Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiListItemFunc D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
 UiList         Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
@@ -1168,8 +1166,7 @@ void func_800BDF6C(Task* task)
             Ui_AllocTile(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
         }
     }
-    Ui_LayoutWithMode0(obj, (void*)((s32)-width / 2), (void*)(textY - 0xA), (void*)width, (void*)8,
-                       (void*)0x102010);
+    Ui_LayoutWithMode0(obj, (s32)-width / 2, textY - 0xA, width, 8, 0x102010);
     message = task->status;
     if (message == 1) {
         task->killCountdown = 0xBC;
@@ -1311,7 +1308,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     item    = obj->field_A;
     coord   = extra->coords;
     rot     = coord + 2;
-    room    = *(u8*)&session->at4.loc.view;
+    room    = *&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {
         extra->flags |= 0x80;
     } else {
@@ -1474,10 +1471,10 @@ void Gp_ItemPickupTilt(Task* arg0)
         rot->flg = 0;
         if (arg0->killCountdown == 0) {
             arg0->status = 0;
-            done         = (GpCmdReply*)arg0->extraState;
+            done         = arg0->extraState.pointer;
             if (done != NULL) {
                 done->done       = 1;
-                arg0->extraState = 0;
+                arg0->extraState.value = 0;
             }
             arg0->state = 1;
         }
@@ -1582,7 +1579,7 @@ void Gp_ItemMenuListTask(Task* arg0)
 void Gp_HolderPromptTask(Task* arg0)
 {
     UiObject* obj;
-    s32       val;
+    u8*       val;
     s32       color;
     s32       one;
     u8*       text;
@@ -1593,12 +1590,12 @@ void Gp_HolderPromptTask(Task* arg0)
         Wip_UiHolder = obj;
         arg0->state += 1;
     }
-    val = arg0->spawnArg1.value;
+    val = arg0->spawnArg1.pointer;
     if (val != 0) {
         color = 0x606060;
         one   = 1;
-        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, (u8*)val, color, one, 0);
-        text = Text_SkipLines((u8*)val, one);
+        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, val, color, one, 0);
+        text = Text_SkipLines(val, one);
         Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, color, one, 0);
     }
 }
@@ -1611,7 +1608,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
     obj              = arg0->spawnArg2.pointer;
     flag             = 1;
     arg0->status     = flag;
-    arg0->extraState = (s32)arg2;
+    arg0->extraState.pointer = arg2;
     if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
         arg2->done = flag;
     }

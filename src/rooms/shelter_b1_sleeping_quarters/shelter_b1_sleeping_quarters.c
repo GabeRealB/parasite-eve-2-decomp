@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/shelter_b1_sleeping_quarters.h"
+#include "mapui/map_shelter.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -12,11 +14,55 @@
 #include "main/task.h"
 #include "main/text.h"
 
-extern s32      func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+void func_shelter_b1_sleeping_quarters_8017D778(Task* task);
+
 extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 
 /// The room's message table, which its cap scripts index.
 extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
+
+s32 func_shelter_b1_sleeping_quarters_8017D668(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D670(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task *, s32, s32, GpMessageArg);
+s32 func_shelter_b1_sleeping_quarters_8017D770(Task *, s32, GpMessageArg, GpMessageArg);
+
+extern u32 D_shelter_b1_sleeping_quarters_80180308[1];
+extern SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22];
+extern TmdBone D_shelter_b1_sleeping_quarters_801802E4[1];
+extern u32 D_shelter_b1_sleeping_quarters_801803BC[78];
+
+TmdBone D_shelter_b1_sleeping_quarters_801802E4[1] = {
+#include "assets/shelter_b1_sleeping_quarters_model_02F34_skeleton.inc"
+};
+
+u32 D_shelter_b1_sleeping_quarters_80180308[1] = {
+#include "assets/shelter_b1_sleeping_quarters_model_02F34_partVerts.inc"
+};
+
+SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22] = {
+#include "assets/shelter_b1_sleeping_quarters_model_02F34_verts.inc"
+};
+
+u32 D_shelter_b1_sleeping_quarters_801803BC[78] = {
+#include "assets/shelter_b1_sleeping_quarters_model_02F34_stream.inc"
+
+};
+
+TmdSource D_shelter_b1_sleeping_quarters_801804F4 = {
+    0, 552, 0, 1,
+    D_shelter_b1_sleeping_quarters_80180308, D_shelter_b1_sleeping_quarters_8018030C, &D_shelter_b1_sleeping_quarters_8018030C[22],
+    D_shelter_b1_sleeping_quarters_801802E4, D_shelter_b1_sleeping_quarters_801803BC,
+};
+
+GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
+    { 5102, func_shelter_b1_sleeping_quarters_8017D670 },
+    { 5105, func_shelter_b1_sleeping_quarters_8017D668 },
+    { 5103, func_shelter_b1_sleeping_quarters_8017D770 },
+    { 5104, func_shelter_b1_sleeping_quarters_8017D6FC },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { 0, 192, func_shelter_b1_sleeping_quarters_8017D778, { .model = NULL } };
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
@@ -31,16 +77,16 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
     }
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(void)
+s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D670(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId != 0xC) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed != 0xC) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
@@ -53,7 +99,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(s32 arg0, s32 arg1, RoomEventMsg*
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D6FC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 8) {
         Gp_MsgPlayerWeapon(0);
@@ -65,7 +111,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D6FC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D770(void)
+s32 func_shelter_b1_sleeping_quarters_8017D770(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }

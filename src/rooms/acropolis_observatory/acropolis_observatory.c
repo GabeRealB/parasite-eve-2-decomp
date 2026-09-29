@@ -27,6 +27,19 @@ extern TaskDesc D_acropolis_observatory_8017E7DC[];
 /// The observatory scene task's descriptor.
 extern TaskDesc D_acropolis_observatory_8017FE6C;
 
+s32 func_acropolis_observatory_8017D618(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_observatory_8017D7BC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_observatory_8017D7C4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+
+GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
+    { 5102, func_acropolis_observatory_8017D618 },
+    { 5105, func_acropolis_observatory_8017D7BC },
+    { 5103, func_acropolis_observatory_8017D7C4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+s32 D_acropolis_observatory_8017E7D8 = 0;
+
 /// Message gate for the observatory's two hotspots: copies the incoming record
 /// to the outgoing one, then edits the copy according to the message id and the
 /// game's progress nibbles.
@@ -38,12 +51,12 @@ extern TaskDesc D_acropolis_observatory_8017FE6C;
 /// each also advances that nibble, so the refusal only shows on later visits.
 /// `field_5` non-zero means "report only", which suppresses both the nibble
 /// writes and the refusals.
-s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     s32 answer;
 
     *out = *in;
-    if (in->msgId == 9 && in->field_5 == 0) {
+    if (in->prefix.packed == 9 && in->field_5 == 0) {
         if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
             out->field_2 = 5;
         }
@@ -52,13 +65,13 @@ s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
         } else {
             out->field_2 = 5;
         }
-        if (in->msgId == 9) {
+        if (in->prefix.packed == 9) {
             if (GameFlag_GetNibble(9) & 1) {
                 out->field_3 = 2;
             }
         }
     }
-    if (in->msgId == 0xB) {
+    if (in->prefix.packed == 0xB) {
         if (gDisplayState.field_112 < 0 || D_8006AC30.sector == 0) {
             if (in->field_5 == 0) {
                 out->field_2 = 1;
@@ -71,7 +84,7 @@ s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
                 out->field_2 = 1;
             }
         }
-        if (in->msgId == 0xB && in->field_5 == 0) {
+        if (in->prefix.packed == 0xB && in->field_5 == 0) {
             answer = GameFlag_GetNibble(2);
             if (answer == 0) {
                 answer = 1;
@@ -85,7 +98,7 @@ s32 func_acropolis_observatory_8017D618(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 }
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_acropolis_observatory_8017D7BC(void)
+s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -94,7 +107,7 @@ s32 func_acropolis_observatory_8017D7BC(void)
 /// first time it fires during session phase 2, latching nibble 0xCA so a later
 /// visit does nothing. The outgoing record is never written - this handler only
 /// consumes the message.
-s32 func_acropolis_observatory_8017D7C4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     if ((in->field_2 == 1) && (gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         GameFlag_SetNibble(0xCA, 1);

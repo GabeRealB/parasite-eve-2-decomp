@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/acropolis_roof_garden.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -42,6 +43,17 @@
 #include "main/task.h"
 #include "overlay.h"
 
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+#include "gameplay/animation.h"
+
 /// Grey level of each of the three variants the ambient sprite task can be
 /// spawned as, picked by bits 8..9 of `Task::spawnArg1`.
 typedef struct RgSpriteLevels {
@@ -51,11 +63,11 @@ typedef struct RgSpriteLevels {
 /// Messages the room task answers, terminated by id 0x7FFFFFFF.
 extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
 extern Task*      D_acropolis_roof_garden_80183C0C;
-extern TaskDesc   D_acropolis_roof_garden_80183C10;
-extern s32        D_acropolis_roof_garden_80183D74;
-extern s32        D_acropolis_roof_garden_80184194;
+extern TaskDesc   D_acropolis_roof_garden_80183C10[];
+extern GpEvsCmd D_acropolis_roof_garden_80183D74[];
+extern GpEvsCmd D_acropolis_roof_garden_80184194[];
 extern s32        D_acropolis_roof_garden_8018432C;
-extern s32        D_acropolis_roof_garden_80184B08;
+extern GpEvsCmd D_acropolis_roof_garden_80184B08[];
 
 /// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by
 /// the effect task's first-frame burst.
@@ -83,6 +95,1136 @@ static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
 };
 
 static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
+
+extern GpGridParams D_acropolis_roof_garden_801854A4[1];
+extern GpObj3A D_acropolis_roof_garden_80186D14[2];
+extern GpObj4C D_acropolis_roof_garden_801854C8[6];
+extern GpObj4C D_acropolis_roof_garden_80185690[7];
+extern GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1];
+
+extern GpAnimArg D_acropolis_roof_garden_80184ACC;
+extern GpAnimArg D_acropolis_roof_garden_80184AE0;
+extern GpCopyArg D_acropolis_roof_garden_80184AB0;
+void func_acropolis_roof_garden_8017DCCC(void);
+
+extern GpAnimArg D_acropolis_roof_garden_80183C44;
+extern GpAnimArg D_acropolis_roof_garden_80183CCC;
+extern GpAnimArg D_acropolis_roof_garden_80183CE0;
+extern GpAnimArg D_acropolis_roof_garden_80183CF4;
+extern GpAnimArg D_acropolis_roof_garden_80183D08;
+extern GpAnimArg D_acropolis_roof_garden_80183D1C;
+extern GpAnimArg D_acropolis_roof_garden_80183D30;
+extern GpAnimArg D_acropolis_roof_garden_80183D44;
+extern GpAnimArg D_acropolis_roof_garden_80183D58;
+extern GpCopyArg D_acropolis_roof_garden_80183CC4;
+extern GpXformArg D_acropolis_roof_garden_80183C58;
+extern GpXformArg D_acropolis_roof_garden_80183C70;
+extern GpXformArg D_acropolis_roof_garden_80183CA0;
+void func_acropolis_roof_garden_8017DAD4(s32);
+
+extern GpAnimSet D_acropolis_roof_garden_80181724;
+extern GpAnimSet D_acropolis_roof_garden_801836BC;
+extern GpAnimSet D_acropolis_roof_garden_80183BB4;
+
+s32 func_acropolis_roof_garden_8017D71C(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_roof_garden_8017D798(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_roof_garden_8017D7A0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_roof_garden_8017D868(Task *, s32, s32, s32);
+s32 func_acropolis_roof_garden_8017D8AC(Task *, s32, s32, GpMessageArg);
+void func_acropolis_roof_garden_8017D5D4(Task *);
+void func_acropolis_roof_garden_8017D970(Task *);
+void func_acropolis_roof_garden_8017DA48(Task *);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[38];
+    GpPackedSvec words[114];
+} AcropolisRoofGardenPoseBank2C20;
+
+AcropolisRoofGardenPoseBank2C20 D_acropolis_roof_garden_801801E0 = { .poses = {
+#include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_roof_garden_801803A8[571] = {
+#include "assets/acropolis_roof_garden_animation_04164_bank4.inc"
+};
+
+GpAnimRec D_acropolis_roof_garden_80180C94[666] = {
+#include "assets/acropolis_roof_garden_animation_04164_records.inc"
+};
+
+u16 D_acropolis_roof_garden_801816FC[20] = {
+#include "assets/acropolis_roof_garden_animation_04164_indices.inc"
+};
+
+GpAnimSet D_acropolis_roof_garden_80181724 = {
+    D_acropolis_roof_garden_80180C94, D_acropolis_roof_garden_801816FC,
+    { NULL, D_acropolis_roof_garden_801801E0.words, NULL, NULL, D_acropolis_roof_garden_801803A8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[40];
+    GpPackedSvec words[120];
+} AcropolisRoofGardenPoseBank418C;
+
+AcropolisRoofGardenPoseBank418C D_acropolis_roof_garden_8018174C = { .poses = {
+#include "assets/acropolis_roof_garden_animation_060FC_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_roof_garden_8018192C[860] = {
+#include "assets/acropolis_roof_garden_animation_060FC_bank4.inc"
+};
+
+GpAnimRec D_acropolis_roof_garden_8018269C[1022] = {
+#include "assets/acropolis_roof_garden_animation_060FC_records.inc"
+};
+
+u16 D_acropolis_roof_garden_80183694[20] = {
+#include "assets/acropolis_roof_garden_animation_060FC_indices.inc"
+};
+
+GpAnimSet D_acropolis_roof_garden_801836BC = {
+    D_acropolis_roof_garden_8018269C, D_acropolis_roof_garden_80183694,
+    { NULL, D_acropolis_roof_garden_8018174C.words, NULL, NULL, D_acropolis_roof_garden_8018192C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} AcropolisRoofGardenPoseBank6124;
+
+AcropolisRoofGardenPoseBank6124 D_acropolis_roof_garden_801836E4 = { .poses = {
+#include "assets/acropolis_roof_garden_animation_065F4_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_roof_garden_8018372C[87] = {
+#include "assets/acropolis_roof_garden_animation_065F4_bank4.inc"
+};
+
+GpAnimRec D_acropolis_roof_garden_80183888[193] = {
+#include "assets/acropolis_roof_garden_animation_065F4_records.inc"
+};
+
+u16 D_acropolis_roof_garden_80183B8C[20] = {
+#include "assets/acropolis_roof_garden_animation_065F4_indices.inc"
+};
+
+GpAnimSet D_acropolis_roof_garden_80183BB4 = {
+    D_acropolis_roof_garden_80183888, D_acropolis_roof_garden_80183B8C,
+    { NULL, D_acropolis_roof_garden_801836E4.words, NULL, NULL, D_acropolis_roof_garden_8018372C, NULL, NULL, NULL },
+};
+
+GpMsgEntry D_acropolis_roof_garden_80183BDC[6] = {
+    { 5102, func_acropolis_roof_garden_8017D71C },
+    { 5103, func_acropolis_roof_garden_8017D7A0 },
+    { 5104, func_acropolis_roof_garden_8017D8AC },
+    { 5105, func_acropolis_roof_garden_8017D798 },
+    { 5106, func_acropolis_roof_garden_8017D868 },
+    { 0x7FFFFFFF, NULL },
+};
+
+Task * D_acropolis_roof_garden_80183C0C = NULL;
+
+TaskDesc D_acropolis_roof_garden_80183C10[4] = {
+    { 0, 32, func_acropolis_roof_garden_8017D5D4, { .model = NULL } },
+    { 0, 32, func_acropolis_roof_garden_8017D970, { .model = NULL } },
+    { 0, 32, func_acropolis_roof_garden_8017DA48, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpCmdArg D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183C44 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpXformArg D_acropolis_roof_garden_80183C58 = { 0 };
+
+GpXformArg D_acropolis_roof_garden_80183C70 = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
+
+GpXformArg D_acropolis_roof_garden_80183CA0 = { { -7508, 0, -8572, 0 }, { 0, 407, 0, 0 } };
+
+GpAnimSet * D_acropolis_roof_garden_80183CB8[3] = {
+    &D_acropolis_roof_garden_80181724,
+    &D_acropolis_roof_garden_801836BC,
+    &D_acropolis_roof_garden_80183BB4,
+};
+
+GpCopyArg D_acropolis_roof_garden_80183CC4 = { { .sets = D_acropolis_roof_garden_80183CB8 }, 3 };
+
+GpAnimArg D_acropolis_roof_garden_80183CCC = { { .index = 1 }, 47, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183CE0 = { { .index = 1 }, 48, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183CF4 = { { .index = 1 }, 49, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183D08 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183D1C = { { .index = 0 }, 2, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183D30 = { { .index = 0 }, 3, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183D44 = { { .index = 0 }, 4, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80183D58 = { { .index = 0 }, 5, 0, 0, 0 };
+
+GpOverlayIds D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
+
+GpEvsCmd D_acropolis_roof_garden_80183D74[44] = {
+    { 12, { .overlays = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_roof_garden_80183CC4 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_roof_garden_80183C70 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CCC }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x31080005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CF4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_roof_garden_80183C58 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D08 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D1C }, { .value = 0 } },
+    { 15, { .value = 0x31080004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D30 }, { .value = 0 } },
+    { 4, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D44 }, { .value = 0 } },
+    { 4, { .value = 79 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D58 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x31080001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x31080002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x31080003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CE0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 115 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183C44 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_roof_garden_80183CA0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_roof_garden_80184194[17] = {
+    { 16, { .value = 0x30000000 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_roof_garden_80183CA0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183C44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_roof_garden_80183D08 }, { .value = 0 } },
+    { 18, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+s32 D_acropolis_roof_garden_8018432C = 0;
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} AcropolisRoofGardenPoseBank6D70;
+
+AcropolisRoofGardenPoseBank6D70 D_acropolis_roof_garden_80184330 = { .poses = {
+#include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_roof_garden_80184378[46] = {
+#include "assets/acropolis_roof_garden_animation_0704C_bank4.inc"
+};
+
+GpAnimRec D_acropolis_roof_garden_80184430[109] = {
+#include "assets/acropolis_roof_garden_animation_0704C_records.inc"
+};
+
+u16 D_acropolis_roof_garden_801845E4[20] = {
+#include "assets/acropolis_roof_garden_animation_0704C_indices.inc"
+};
+
+GpAnimSet D_acropolis_roof_garden_8018460C = {
+    D_acropolis_roof_garden_80184430, D_acropolis_roof_garden_801845E4,
+    { NULL, D_acropolis_roof_garden_80184330.words, NULL, NULL, D_acropolis_roof_garden_80184378, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} AcropolisRoofGardenPoseBank7074;
+
+AcropolisRoofGardenPoseBank7074 D_acropolis_roof_garden_80184634 = { .poses = {
+#include "assets/acropolis_roof_garden_animation_074BC_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_roof_garden_801846AC[95] = {
+#include "assets/acropolis_roof_garden_animation_074BC_bank4.inc"
+};
+
+GpAnimRec D_acropolis_roof_garden_80184828[139] = {
+#include "assets/acropolis_roof_garden_animation_074BC_records.inc"
+};
+
+u16 D_acropolis_roof_garden_80184A54[20] = {
+#include "assets/acropolis_roof_garden_animation_074BC_indices.inc"
+};
+
+GpAnimSet D_acropolis_roof_garden_80184A7C = {
+    D_acropolis_roof_garden_80184828, D_acropolis_roof_garden_80184A54,
+    { NULL, D_acropolis_roof_garden_80184634.words, NULL, NULL, D_acropolis_roof_garden_801846AC, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_acropolis_roof_garden_80184AA4[3] = {
+    NULL,
+    &D_acropolis_roof_garden_8018460C,
+    &D_acropolis_roof_garden_80184A7C,
+};
+
+GpCopyArg D_acropolis_roof_garden_80184AB0 = { { .sets = D_acropolis_roof_garden_80184AA4 }, 3 };
+
+GpAnimArg D_acropolis_roof_garden_80184AB8 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80184ACC = { { .index = 1 }, 48, 1, 20, 0 };
+
+GpAnimArg D_acropolis_roof_garden_80184AE0 = { { .index = 1 }, 49, 1, 20, 0 };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+GpAnimArg D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, 1, 10, 0 };
+
+GpEvsCmd D_acropolis_roof_garden_80184B08[10] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_roof_garden_80184AB0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80184ACC }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_roof_garden_8017DCCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80184AE0 }, { .value = 0 } },
+    { 4, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_acropolis_roof_garden_80184BF8[10] = {
+    { -6750, -1970, -0x2896, 0 },
+    { -8220, -1970, -0x2896, 0 },
+    { -2680, -6600, -1240, 0 },
+    { -5840, -548, -9840, 0 },
+    { -8740, -548, -9840, 0 },
+    { -3430, -548, -7300, 0 },
+    { -7620, -548, -7200, 0 },
+    { -6300, -548, -6590, 0 },
+    { -2890, -548, -2250, 0 },
+    { -6470, -548, -2250, 0 },
+};
+
+u16 D_acropolis_roof_garden_80184C48[10] = {
+    2, 2, 4, 2, 2, 4, 4, 12,
+    16, 24,
+};
+
+s16 D_acropolis_roof_garden_80184C5C[24] = {
+    -4096,
+    -3784,
+    -2896,
+    -1567,
+    0,
+    1567,
+    2896,
+    3784,
+    4096,
+    3784,
+    2896,
+    1567,
+    0,
+    -1567,
+    -2896,
+    -3784,
+    -4096,
+    -3784,
+    -2896,
+    -1567,
+    0,
+    1567,
+    2896,
+    591,
+};
+
+GpRoomObjRec D_acropolis_roof_garden_80184C8C[1] = {
+    { D_acropolis_roof_garden_801854A4, D_acropolis_roof_garden_801854C8, D_acropolis_roof_garden_80185690, D_acropolis_roof_garden_80186D14 },
+};
+
+u8 * D_acropolis_roof_garden_80184C9C[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_acropolis_roof_garden_80184CA0[1] = {
+    { { .bytes = { 7, 0 } } },
+};
+
+GpRoomCoordRec D_acropolis_roof_garden_80184CA4[1] = {
+    { D_acropolis_roof_garden_80186BDC, NULL },
+};
+
+GpWarpRec D_acropolis_roof_garden_80184CAC[2] = {
+    { { .words = { 0, -7458, 0, -9712 } }, { 0, 0, 0, 0 }, { .words = { 0, -7458, 0, -9712 } }, { 0, 0, 0, 0 }, 0x510D0002, 0x510D0001, 0, 2, 0, 0 },
+    { { .words = { 0, -7458, 0, -9712 } }, { 0, 0, 0, 0 }, { .words = { 0, -7458, 0, -9712 } }, { 0, 0, 0, 0 }, 0, 0, 0, 3, 0, 0 },
+};
+
+SVECTOR D_acropolis_roof_garden_80184D1C[31] = {
+    { 0, -4096, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, 0, 4096, 0 },
+    { -4095, 0, -106, 0 },
+    { -3634, 0, 1890, 0 },
+    { 4051, 0, -602, 0 },
+    { -4096, 0, -19, 0 },
+    { -3855, 0, -1383, 0 },
+    { -1835, 0, -3662, 0 },
+    { 4096, 0, 18, 0 },
+    { 1990, 0, -3580, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, -2889, -2904, 0 },
+    { 4096, 0, 0, 0 },
+    { 4096, 0, -17, 0 },
+    { 3230, 0, 2518, 0 },
+    { 1173, 0, 3924, 0 },
+    { 3988, 0, -933, 0 },
+    { -26, 0, -4096, 0 },
+    { 1626, 0, -3759, 0 },
+    { 4096, 0, -7, 0 },
+    { 4096, 0, -32, 0 },
+    { 1203, 0, -3915, 0 },
+    { 3334, 0, -2380, 0 },
+    { -2948, 0, 2843, 0 },
+    { -719, 0, 4032, 0 },
+    { -4096, 0, -31, 0 },
+    { -2606, 0, 3160, 0 },
+    { -489, 0, 4067, 0 },
+    { -3459, 0, 2194, 0 },
+    { -4096, 0, -51, 0 },
+};
+
+SVECTOR D_acropolis_roof_garden_80184E14[92] = {
+    { -0x28DD, 0, -6824, 0 },
+    { -7969, 0, -7904, 0 },
+    { -7948, 0, -0x299C, 0 },
+    { -0x28DD, 0, -0x299C, 0 },
+    { -4227, 0, -6491, 0 },
+    { -1461, 0, -6824, 0 },
+    { -4293, 0, -7230, 0 },
+    { -7024, 0, -8571, 0 },
+    { -6994, 0, -0x299C, 0 },
+    { -0x28DD, 0, -1652, 0 },
+    { -5163, 0, -6520, 0 },
+    { -5242, 0, -7099, 0 },
+    { -6742, 0, -8183, 0 },
+    { -5287, 0, -7969, 0 },
+    { -1461, 0, -1652, 0 },
+    { -1461, 0, -0x299C, 0 },
+    { -4109, -6889, -2000, 0 },
+    { -4109, -3, -2000, 0 },
+    { -6963, -3, -2000, 0 },
+    { -6963, -6889, -2000, 0 },
+    { -8763, -6889, -0x2904, 0 },
+    { -8763, -3, -0x2904, 0 },
+    { -5403, -3, -0x2904, 0 },
+    { -5403, -6889, -0x2904, 0 },
+    { -4100, -6889, -2337, 0 },
+    { -4100, -3, -2337, 0 },
+    { -2950, -3, -5783, 0 },
+    { -2950, -6889, -5783, 0 },
+    { -8308, -6889, -7439, 0 },
+    { -8308, -3, -7439, 0 },
+    { -2961, -3, -3419, 0 },
+    { -2961, -6889, -3419, 0 },
+    { -3185, -3, -2795, 0 },
+    { -3185, -6889, -2795, 0 },
+    { -6943, -3, -6680, 0 },
+    { -6943, -6889, -6680, 0 },
+    { -5251, 50, -3921, 0 },
+    { -5251, -1000, -5088, 0 },
+    { -5251, 50, -5088, 0 },
+    { -3927, -1000, -5088, 0 },
+    { -5251, -1450, -4640, 0 },
+    { -3927, -1450, -4640, 0 },
+    { -3927, 50, -3921, 0 },
+    { -3927, -1450, -3921, 0 },
+    { -5251, -1450, -3921, 0 },
+    { -3927, 50, -5088, 0 },
+    { -6332, -665, -3163, 0 },
+    { -6332, 111, -3163, 0 },
+    { -6342, 111, -5572, 0 },
+    { -6342, -665, -5572, 0 },
+    { -5855, -665, -6195, 0 },
+    { -5855, 111, -6195, 0 },
+    { -5220, 111, -6385, 0 },
+    { -5220, -665, -6385, 0 },
+    { -5349, 111, -6940, 0 },
+    { -5349, -665, -6940, 0 },
+    { -6607, 111, -6932, 0 },
+    { -6607, -665, -6932, 0 },
+    { -8201, 111, -7621, 0 },
+    { -8201, -665, -7621, 0 },
+    { -8206, 111, -0x2904, 0 },
+    { -8206, -665, -0x2904, 0 },
+    { -5232, 111, -2354, 0 },
+    { -5232, -665, -2354, 0 },
+    { -5230, -665, -2029, 0 },
+    { -5230, 111, -2029, 0 },
+    { -5900, 111, -2559, 0 },
+    { -5900, -665, -2559, 0 },
+    { -3571, 112, -6270, 0 },
+    { -2963, 112, -5640, 0 },
+    { -2963, -544, -5640, 0 },
+    { -3571, -544, -6270, 0 },
+    { -4187, -544, -6380, 0 },
+    { -4187, 112, -6380, 0 },
+    { -4178, -544, -7480, 0 },
+    { -4178, 112, -7480, 0 },
+    { -5047, -544, -8197, 0 },
+    { -5047, 112, -8197, 0 },
+    { -6616, -544, -8385, 0 },
+    { -6616, 112, -8385, 0 },
+    { -6833, -544, -8727, 0 },
+    { -6833, 112, -8727, 0 },
+    { -6811, 112, -0x2928, 0 },
+    { -6811, -544, -0x2928, 0 },
+    { -4938, -1446, -4075, 0 },
+    { -4938, -2296, -4075, 0 },
+    { -4938, -2296, -4425, 0 },
+    { -4938, -1446, -4425, 0 },
+    { -4238, -2296, -4425, 0 },
+    { -4238, -1446, -4425, 0 },
+    { -4238, -2296, -4075, 0 },
+    { -4238, -1446, -4075, 0 },
+};
+
+GpGridFace D_acropolis_roof_garden_801850F4[53] = {
+    { { 1, 2, 0, 3 }, 0, 1 },
+    { { 4, 5, 6, 0xFFFF }, 0, 1 },
+    { { 7, 8, 1, 2 }, 0, 2 },
+    { { 9, 10, 0, 0xFFFF }, 0, 2 },
+    { { 0, 10, 1, 11 }, 0, 1 },
+    { { 11, 10, 6, 4 }, 0, 2 },
+    { { 1, 12, 7, 0xFFFF }, 0, 2 },
+    { { 6, 13, 11, 12 }, 0, 2 },
+    { { 12, 1, 11, 0xFFFF }, 0, 2 },
+    { { 4, 10, 14, 9 }, 0, 2 },
+    { { 15, 8, 12, 7 }, 0, 1 },
+    { { 13, 15, 12, 0xFFFF }, 0, 1 },
+    { { 5, 15, 6, 13 }, 0, 1 },
+    { { 5, 4, 14, 0xFFFF }, 0, 2 },
+    { { 17, 18, 16, 19 }, 1, 0 },
+    { { 21, 22, 20, 23 }, 2, 0 },
+    { { 25, 17, 24, 16 }, 3, 0 },
+    { { 27, 23, 26, 22 }, 4, 0 },
+    { { 29, 21, 28, 20 }, 5, 0 },
+    { { 31, 27, 30, 26 }, 6, 0 },
+    { { 33, 31, 32, 30 }, 7, 0 },
+    { { 24, 33, 25, 32 }, 8, 0 },
+    { { 35, 19, 34, 18 }, 9, 0 },
+    { { 34, 29, 35, 28 }, 10, 0 },
+    { { 36, 37, 38, 0xFFFF }, 11, 0 },
+    { { 37, 40, 39, 41 }, 12, 0 },
+    { { 39, 41, 42, 43 }, 13, 0 },
+    { { 43, 44, 42, 36 }, 2, 0 },
+    { { 39, 45, 37, 38 }, 1, 0 },
+    { { 43, 41, 44, 40 }, 0, 0 },
+    { { 39, 42, 45, 0xFFFF }, 13, 0 },
+    { { 36, 44, 37, 40 }, 11, 0 },
+    { { 47, 48, 46, 49 }, 14, 0 },
+    { { 49, 48, 50, 51 }, 15, 0 },
+    { { 51, 52, 50, 53 }, 16, 0 },
+    { { 52, 54, 53, 55 }, 17, 0 },
+    { { 54, 56, 55, 57 }, 18, 0 },
+    { { 56, 58, 57, 59 }, 19, 0 },
+    { { 58, 60, 59, 61 }, 20, 0 },
+    { { 63, 64, 62, 65 }, 21, 0 },
+    { { 67, 63, 66, 62 }, 22, 0 },
+    { { 46, 67, 47, 66 }, 23, 0 },
+    { { 69, 70, 68, 71 }, 24, 0 },
+    { { 71, 72, 68, 73 }, 25, 0 },
+    { { 72, 74, 73, 75 }, 26, 0 },
+    { { 74, 76, 75, 77 }, 27, 0 },
+    { { 76, 78, 77, 79 }, 28, 0 },
+    { { 78, 80, 79, 81 }, 29, 0 },
+    { { 81, 80, 82, 83 }, 30, 0 },
+    { { 85, 86, 84, 87 }, 11, 0 },
+    { { 86, 88, 87, 89 }, 1, 0 },
+    { { 88, 90, 89, 91 }, 13, 0 },
+    { { 90, 85, 91, 84 }, 2, 0 },
+};
+
+s16 D_acropolis_roof_garden_80185370[20] = {
+    0,
+    2,
+    3,
+    4,
+    6,
+    7,
+    8,
+    10,
+    11,
+    15,
+    18,
+    22,
+    23,
+    36,
+    37,
+    38,
+    46,
+    47,
+    48,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_80185398[11] = {
+    0,
+    3,
+    4,
+    9,
+    18,
+    22,
+    23,
+    32,
+    33,
+    41,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_801853B0[5] = {
+    3,
+    9,
+    14,
+    22,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_801853BC[28] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    15,
+    17,
+    33,
+    34,
+    35,
+    36,
+    37,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_801853F4[40] = {
+    1,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    12,
+    13,
+    14,
+    16,
+    17,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    49,
+    50,
+    51,
+    52,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_80185444[9] = {
+    9,
+    14,
+    16,
+    20,
+    21,
+    39,
+    40,
+    41,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_80185458[6] = {
+    1,
+    10,
+    11,
+    12,
+    13,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_80185464[9] = {
+    1,
+    9,
+    12,
+    13,
+    17,
+    19,
+    20,
+    42,
+    -1,
+};
+
+s16 D_acropolis_roof_garden_80185478[3] = {
+    9,
+    13,
+    -1,
+};
+
+s16 * D_acropolis_roof_garden_80185480[9] = {
+    D_acropolis_roof_garden_80185370,
+    D_acropolis_roof_garden_80185398,
+    D_acropolis_roof_garden_801853B0,
+    D_acropolis_roof_garden_801853BC,
+    D_acropolis_roof_garden_801853F4,
+    D_acropolis_roof_garden_80185444,
+    D_acropolis_roof_garden_80185458,
+    D_acropolis_roof_garden_80185464,
+    D_acropolis_roof_garden_80185478,
+};
+
+GpGridParams D_acropolis_roof_garden_801854A4[1] = {
+    { NULL, D_acropolis_roof_garden_80184D1C, D_acropolis_roof_garden_80184E14, D_acropolis_roof_garden_801850F4, D_acropolis_roof_garden_80185480, 0x28DD, 0x299C, 3, 3, 4000, 53 },
+};
+
+GpObj4C D_acropolis_roof_garden_801854C8[6] = {
+    { NULL, NULL, NULL, { -7264, -1440, -8768, 0 }, { { -1017, 5600, 185, 0 }, { 991, 5600, -215, 0 }, { -1017, -5600, 185, 0 }, { 991, -5600, -215, 0 } }, { 801, 0, 4025, 0 }, { 0, 0, 0, 0 }, 5678, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { -4544, -1536, -6880, 0 }, { { -1024, 5600, 0, 0 }, { 1024, 5600, 0, 0 }, { -1024, -5600, 0, 0 }, { 1024, -5600, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 0, 0 }, 5678, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -7296, -1696, -8448, 0 }, { { 982, 5600, -261, 0 }, { -1004, 5600, 237, 0 }, { 982, -5600, -261, 0 }, { -1004, -5600, 237, 0 } }, { -999, 0, -3982, 0 }, { 0, 0, 0, 0 }, 5678, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -4480, -1856, -6560, 0 }, { { 1024, 5600, 0, 0 }, { -1024, 5600, 0, 0 }, { 1024, -5600, 0, 0 }, { -1024, -5600, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 0, 0 }, 5678, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -4736, -1568, -4000, 0 }, { { 2496, 5600, 0, 0 }, { -2496, 5600, 0, 0 }, { 2496, -5600, 0, 0 }, { -2496, -5600, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, 0, 0 }, 6122, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { -4608, -1824, -4640, 0 }, { { -2496, 5600, 0, 0 }, { 2496, 5600, 0, 0 }, { -2496, -5600, 0, 0 }, { 2496, -5600, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 0, 0 }, 6122, 0, 5, 4, 129, 0 },
+};
+
+GpObj4C D_acropolis_roof_garden_80185690[7] = {
+    { NULL, NULL, NULL, { -7465, -32, -9928, 0 }, { { -752, 0, -416, 0 }, { 752, 0, -416, 0 }, { -752, 0, 416, 0 }, { 752, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 858, 0, 12, 18, 2, 0 },
+    { NULL, NULL, NULL, { -4608, -128, -4816, 0 }, { { -1040, 0, -608, 0 }, { 1040, 0, -608, 0 }, { -1040, 0, 608, 0 }, { 1040, 0, 608, 0 } }, { 0, 4116, 0, 0 }, { -201, 0, -4091, 0 }, 1200, 2, 3, 0, 4, 0 },
+    { NULL, NULL, NULL, { -4640, -96, -3776, 0 }, { { -752, 0, -368, 0 }, { 752, 0, -368, 0 }, { -752, 0, 368, 0 }, { 752, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { -1, 0, 4095, 0 }, 836, 6, 4, 255, 2, 0 },
+    { NULL, NULL, NULL, { -4400, -96, -2080, 0 }, { { -640, 0, -560, 0 }, { 640, 0, -560, 0 }, { -640, 0, 560, 0 }, { 640, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 849, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { -7697, -160, -8384, 0 }, { { -736, 0, -1136, 0 }, { 1280, 0, -1136, 0 }, { -1279, 0, 1136, 0 }, { 737, 0, 1136, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1707, 0x8005, 0, 0, 3, 0 },
+    { NULL, NULL, NULL, { -4640, -64, -6544, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { -4640, -64, -7104, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, 0x8005, 2, 0, 131, 0 },
+};
+
+GpAreaTmdRec D_acropolis_roof_garden_801858A4[3] = {
+    { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
+    { 55, 55, 1, 0, { 0, 0 }, D_801528DC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_roof_garden_801858C8[3] = {
+    { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
+    { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_roof_garden_801858EC[3] = {
+    { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
+    { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_roof_garden_80185910[3] = {
+    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+    { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_acropolis_roof_garden_80185934[12] = {
+    { NULL, NULL },
+    { D_map_akropolis_8017BABC, D_acropolis_roof_garden_801858A4 },
+    { D_map_akropolis_8017BB1C, D_acropolis_roof_garden_801858C8 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_akropolis_8017BB9C, D_acropolis_roof_garden_801858EC },
+    { D_map_akropolis_8017BBFC, D_acropolis_roof_garden_80185910 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80185994[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_roof_garden_801859A4[26] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 40, 729, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 40, 765, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, 40, 701, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -152, 40, 698, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, 40, 661, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, 40, 653, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 64, 658, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, 40, 650, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, 56, 645, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 56, 652, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 40, 686, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, 40, 751, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 40, 839, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 40, 883, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, 40, 950, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 48, 1072, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, 40, 1011, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 40, 817, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 40, 667, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 112, 40, 551, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, 120, 40, 473, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 104, 453, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 40, 421, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, 48, 388, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 64, 362, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 96, 352, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80185BAC[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 26, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_roof_garden_80185BC4[57] = {
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 32, 56, 563, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 551, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, 40, 80, 563, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 48, 40, 518, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 56, 48, 499, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 48, 479, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 72, 48, 456, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 80, 424, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 104, 471, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 80, 417, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 48, 418, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 403, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 96, 56, 412, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 104, 56, 401, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 112, 64, 392, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 120, 64, 377, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, 128, 64, 346, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 136, 64, 326, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, 136, 88, 349, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 104, 480, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 72, 561, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 56, 558, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 40, 599, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 72, 608, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 64 } }, 64, 40, 557, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, 136, 16, 560, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, -120, 855, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 40 } }, 32, -96, 920, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 40 } }, 32, -56, 1272, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 40 } }, 88, -120, 1111, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 32 } }, 88, -40, 1225, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, 112, -8, 1250, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 8 } }, 72, -16, 1275, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 88, -80, 1111, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, 112, -72, 1109, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 136, -80, 1112, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 56 } }, -16, 16, 1104, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 144 } }, -112, -64, 1064, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 120 } }, -56, -48, 1149, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 80, 16, 1285, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 112, 40, 1204, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, -8, 1563, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, 8, -32, 1580, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 32, 0, 1639, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 48, 600, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -144, 40, 650, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -128, 48, 700, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, 40, 750, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, 40, 800, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 40, 850, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, 32, 900, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -48, 32, 950, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, -24, 32, 1050, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, 32, 1100, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 32, 1100, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 32, 40, 1100, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 1100, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80186038[9] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 19, 0, 0, { 3, 0 } },
+    { 19, 7, 0, 0, { 4, 0 } },
+    { 26, 10, 0, 0, { 1, 0 } },
+    { 36, 3, 0, 0, { 5, 0 } },
+    { 39, 2, 0, 0, { 0, 0 } },
+    { 41, 3, 0, 0, { 6, 0 } },
+    { 44, 13, 0, 0, { 2, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_roof_garden_80186080[21] = {
+    { 143, 0x3FC0, { .fields = { 32, 104 } }, -160, -96, 462, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, -56, 462, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 104 } }, -160, 16, 472, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 112 } }, -40, 8, 525, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 88, 500, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 88 } }, -120, 32, 522, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 88 } }, -80, 32, 522, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 64, 664, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 96 } }, 96, 0, 624, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 136, 8, 663, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 48 } }, 136, 48, 599, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -24, 966, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, -40, -48, 1008, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -48, -48, 1105, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 152 } }, -32, -96, 974, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 96 } }, 8, -48, 963, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -96, -16, 1550, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -104, -8, 1500, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -8, 1450, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, -8, 1400, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 24, 1350, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80186224[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 7, 0, 0, { 3, 0 } },
+    { 7, 4, 0, 0, { 0, 0 } },
+    { 11, 5, 0, 0, { 2, 0 } },
+    { 16, 5, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_roof_garden_80186254[47] = {
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -48, -32, 950, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -8, -40, 1019, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 48 } }, -64, -80, 875, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -8, -80, 909, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 0, -104, 923, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 40 } }, -56, -120, 667, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 72 } }, -160, 48, 153, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 88, 296, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, -56, 96, 294, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 88, 298, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 24, 96, 298, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 88, 302, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 299, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1294, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -120, 1265, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -120, 1302, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -120, 1240, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -120, 1256, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -120, 1184, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -120, 1118, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -120, 1109, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -112, 1316, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -112, 1284, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -112, 1281, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -112, 1275, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -112, 1229, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -112, 1209, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -112, 1147, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -112, 1048, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -104, 1307, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -104, 1300, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -104, 1276, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -104, 1258, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -104, 1258, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -104, 1189, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -104, 1085, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -96, 1287, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -96, 1268, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -96, 1240, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -96, 1196, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -96, 1081, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -96, 1069, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, -88, 1267, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -88, 1199, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -88, 1174, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -88, 1070, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -88, 1054, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80186600[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 6, 0, 0, { 1, 0 } },
+    { 6, 7, 0, 0, { 2, 0 } },
+    { 13, 34, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80186628[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_roof_garden_80186638[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_acropolis_roof_garden_80186648[7] = {
+    { { .empty = D_acropolis_roof_garden_80185994 }, D_acropolis_roof_garden_80185994, NULL },
+    { { .elements = D_acropolis_roof_garden_801859A4 }, D_acropolis_roof_garden_80185BAC, NULL },
+    { { .elements = D_acropolis_roof_garden_80185BC4 }, D_acropolis_roof_garden_80186038, NULL },
+    { { .elements = D_acropolis_roof_garden_80186080 }, D_acropolis_roof_garden_80186224, NULL },
+    { { .elements = D_acropolis_roof_garden_80186254 }, D_acropolis_roof_garden_80186600, NULL },
+    { { .empty = D_acropolis_roof_garden_80186628 }, D_acropolis_roof_garden_80186628, NULL },
+    { { .empty = D_acropolis_roof_garden_80186638 }, D_acropolis_roof_garden_80186638, NULL },
+};
+
+GpPointLight D_acropolis_roof_garden_8018669C[14] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5884, -700, -9680 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6210, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4984, -100, -5134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 3276, 4096, { 0, 0 } }, 100, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4153, -100, -5134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 3276, 4096, { 0, 0 } }, 100, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4153, -1500, -4622 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 3276, 4096, { 0, 0 } }, 100, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5007, -1500, -4622 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 3276, 4096, { 0, 0 } }, 100, 1500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4654, -200, -3856 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 2457, 2867, { 0, 0 } }, 100, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4654, -2000, -2126 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 819, 1638, { 0, 0 } }, 100, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8188, -1800, -0x2864 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 3686, 4096, { 0, 0 } }, 200, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6846, -1800, -0x2864 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 3686, 4096, { 0, 0 } }, 200, 2000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8931, -700, -9680 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6248, -700, -6705 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3472, -700, -7111 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3202, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3686, 3276, { 0, 0 } }, 500, 4000 },
+};
+
+GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1] = {
+    { 0, NULL, 14, D_acropolis_roof_garden_8018669C, 0, NULL },
+};
+
+GpViewRec D_acropolis_roof_garden_80186BF4[8] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 5600, 0x7530, 5960 } }, 589 },
+    { { { { -3911, 0, -1216 }, { 204, 4037, -656 }, { 1199, -687, -3855 } }, { 7887, 505, 6331 } }, 230 },
+    { { { { 3788, 0, -1557 }, { 186, 4066, 454 }, { 1545, -491, 3761 } }, { 7879, 656, 0x29A1 } }, 230 },
+    { { { { 3851, 0, -1394 }, { -208, 4049, -576 }, { 1379, 612, 3807 } }, { 5932, 1317, 8463 } }, 230 },
+    { { { { -4010, 0, -830 }, { -785, 1329, 3793 }, { 269, 3874, -1302 } }, { 5201, 4187, 2281 } }, 230 },
+    { { { { -2305, 0, -3385 }, { -1984, 3319, 1350 }, { 2743, 2400, -1867 } }, { 5865, 2196, 2875 } }, 230 },
+    { { { { -3852, 0, -1389 }, { -827, 3291, 2292 }, { 1116, 2437, -3096 } }, { 4797, 459, 3558 } }, 230 },
+    { { { { -3750, 0, 1646 }, { 1161, 2905, 2643 }, { -1168, 2887, -2659 } }, { 3260, 3610, 2030 } }, 230 },
+};
+
+GpObj3A D_acropolis_roof_garden_80186D14[2] = {
+    { NULL, NULL, { -5888, -4064, -8128, 0 }, { { -4256, 0, -2848, 0 }, { 4256, 0, -2848, 0 }, { -4256, 0, 2848, 0 }, { 4256, 0, 2848, 0 } }, { 0, 4105, 0, 0 }, { 0, 20 }, 1, 0 },
+    { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, { 62, 4 }, 129, 0 },
+};
+
+s32 D_acropolis_roof_garden_80186D8C[3] = {
+    0x1000001D,
+    0x1000001F,
+    0x1000001D,
+};
+
+GpRoomParamRec D_acropolis_roof_garden_80186D98[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_roof_garden_80186DA0[1] = {
+    { 0, 0, 1, 0, D_acropolis_roof_garden_80186D8C },
+};
+
+GpRoomParamRec D_acropolis_roof_garden_80186DA8[1] = {
+    { 0, 0, 1, 0, D_acropolis_roof_garden_80186D8C },
+};
+
+GpRoomParamRec * D_acropolis_roof_garden_80186DB0[8] = {
+    D_acropolis_roof_garden_80186D98,
+    D_acropolis_roof_garden_80186DA0,
+    D_acropolis_roof_garden_80186DA8,
+    D_acropolis_roof_garden_80186D98,
+    D_acropolis_roof_garden_80186D98,
+    D_acropolis_roof_garden_80186D98,
+    D_acropolis_roof_garden_80186D98,
+    D_acropolis_roof_garden_80186D98,
+};
+
+TmdBone D_acropolis_roof_garden_80186DD0[1] = {
+#include "assets/acropolis_roof_garden_model_098B0_skeleton.inc"
+};
+
+u32 D_acropolis_roof_garden_80186DF4[1] = {
+#include "assets/acropolis_roof_garden_model_098B0_partVerts.inc"
+};
+
+SVECTOR D_acropolis_roof_garden_80186DF8[4] = {
+#include "assets/acropolis_roof_garden_model_098B0_verts.inc"
+};
+
+SVECTOR D_acropolis_roof_garden_80186E18[2] = {
+#include "assets/acropolis_roof_garden_model_098B0_normals.inc"
+};
+
+u32 D_acropolis_roof_garden_80186E28[18] = {
+#include "assets/acropolis_roof_garden_model_098B0_stream.inc"
+};
+
+TmdSource D_acropolis_roof_garden_80186E70 = {
+    0, 104, 0, 1,
+    D_acropolis_roof_garden_80186DF4, D_acropolis_roof_garden_80186DF8, D_acropolis_roof_garden_80186E18, D_acropolis_roof_garden_80186DD0, D_acropolis_roof_garden_80186E28,
+};
+
+s32 D_acropolis_roof_garden_80186E94 = 0;
+
+SVECTOR D_acropolis_roof_garden_80186E98 = { 0 };
 
 /// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
 /// session's weather/time state: state 5 plays it at 0x1E, state 7 at full
@@ -138,10 +1280,10 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 /// Message 0xC, when not a "report only" query (`field_5 == 0`) and its nibble
 /// is still clear, advances nibble 7 to 2 and sets collection bit 0x13 to 2.
 /// The copy itself is unedited, so the answer is always "allowed".
-s32 func_acropolis_roof_garden_8017D71C(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    if (in->msgId == 0xC && in->field_5 == 0 && GameFlag_GetNibble(7) == 0) {
+    if (in->prefix.packed == 0xC && in->field_5 == 0 && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 2);
         Gp_SetCurBit2Flag(0x13, 2);
     }
@@ -149,12 +1291,12 @@ s32 func_acropolis_roof_garden_8017D71C(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
 }
 
 /// Room script callback with nothing to do: always answers 0.
-s32 func_acropolis_roof_garden_8017D798(void)
+s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_roof_garden_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     switch (in->field_2) {
         case 1:
@@ -164,7 +1306,7 @@ s32 func_acropolis_roof_garden_8017D7A0(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
             break;
         case 2:
             if (((gGameSession->at4.loc.place == 1) || (gGameSession->at4.loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
-                func_800E8614((s32)&D_acropolis_roof_garden_80184B08, 1);
+                func_800E8614(D_acropolis_roof_garden_80184B08, 1);
                 GameFlag_SetNibble(0xCB, 2);
             }
             break;
@@ -186,7 +1328,7 @@ s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-s32 func_acropolis_roof_garden_8017D8AC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 2) {
         if ((Gp_GetCurBit2Flag(0x13) == 0) || (Gp_GetCurBit2Flag(0x13) == 1)) {
@@ -256,10 +1398,10 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
 {
     switch (arg0) {
         case 0:
-            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 1, 0, 0);
+            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(D_acropolis_roof_garden_80183C10, 1, 0, 0);
             break;
         case 1:
-            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 2, 0, 0);
+            D_acropolis_roof_garden_80183C0C = Task_SpawnFromTable(D_acropolis_roof_garden_80183C10, 2, 0, 0);
             break;
         case 2:
             if (D_acropolis_roof_garden_80183C0C != NULL) {
@@ -277,7 +1419,7 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
     if (Mc_SaveData[0].state.sceneEvent == 6) {
         Mc_SaveData[0].state.sceneEvent = 5;
     }
-    Task_SpawnFromTable(&D_acropolis_roof_garden_80183C10, 0, 0, 0);
+    Task_SpawnFromTable(D_acropolis_roof_garden_80183C10, 0, 0, 0);
     arg0->state += 1;
 }
 
@@ -287,7 +1429,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
 
     if ((gGameSession->at4.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
-        func_800E8634(&D_acropolis_roof_garden_80183D74, 0, &D_acropolis_roof_garden_80184194);
+        func_800E8634(D_acropolis_roof_garden_80183D74, 0, D_acropolis_roof_garden_80184194);
         GameFlag_SetNibble(6, 1);
         key.stage = 1;
         key.area  = 0xC;
@@ -316,7 +1458,7 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// one flagged 0x04000102, then seven more - and every frame after that it adds
 /// the two view-dependent effects: one while the current view is 5 or 6 (the
 /// `0x30 >> view - 1` bit test) and one while it is 7.
-static void func_acropolis_roof_garden_8017DCDC(Task* task)
+void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -369,7 +1511,7 @@ static void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// kept, as the index into the view mask. The grey level is the variant's own
 /// level from `D_acropolis_roof_garden_8017D5D0`, brightened by 0x10 on odd
 /// frames so the sprite flickers.
-static void func_acropolis_roof_garden_8017DE90(Task* arg0)
+void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
     GpEffWork*        mem;
     GpCoord*          coord;
@@ -454,7 +1596,7 @@ static void func_acropolis_roof_garden_8017DE90(Task* arg0)
 
 /// Pulsating roof-garden flare, projected into scratch memory and drawn with
 /// Gouraud polygons and optional rays.
-static void func_acropolis_roof_garden_8017E29C(Task* arg0)
+void func_acropolis_roof_garden_8017E29C(Task* arg0)
 {
     GpCoord*         coord;
     void*            mem;
@@ -569,8 +1711,8 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                         depth    = (((u32)blk->otz << shift) >> 2) & 0xFFC;
                         // Keep the shift and its source live through the first OT address.
                         __asm__("" : "+r"(depth) : "r"(shift), "m"(gDisplayState.otDepthShift));
-                        setaddr(prim, getaddr(Gpu_OtEntryAtByteOffset(depth)));
-                        ot  = Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC));
+                        setaddr(prim, getaddr(((u_long*)((depth) + (uintptr)gGpuCurrentOt))));
+                        ot  = ((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt));
                         tag = *ot;
                         tag = (tag & 0xFF000000) | ((u32)prim & 0xFFFFFF);
                         *ot = tag;
@@ -618,7 +1760,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
                 prim->x3            = blk->sx + blk->rOuter;
                 prim->y0 = prim->y2 = prim->y3 = blk->sy;
                 prim->y1                       = (blk->sy - blk->rOuter) + blk->rOuter * (i + i);
-                addPrim(Gpu_OtEntryAtByteOffset(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+                addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                         prim);
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
@@ -655,7 +1797,7 @@ static void func_acropolis_roof_garden_8017E29C(Task* arg0)
 /// gets there, and the tilt wanders by a random step. Once the frame has
 /// risen past the origin the mote fades in by 0x10 a tick up to 0x80, then
 /// fades back out and releases its work block.
-static void func_acropolis_roof_garden_8017F10C(Task* task)
+void func_acropolis_roof_garden_8017F10C(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;

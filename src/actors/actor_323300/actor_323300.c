@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/dryfield_toilet.h"
 
 #include <psyq/abs.h>
 #include <psyq/libgte.h>
@@ -33,6 +34,8 @@
 #include "overlay.h"
 #include <psyq/memory.h>
 
+#include "gameplay/animation.h"
+
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
 /// display node `obj` the exit callback hands back to `Gp_UnlinkObj`, the
@@ -52,24 +55,6 @@ typedef struct Actor323300Work {
     s16             field_502;
 } Actor323300Work;
 STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
-
-/// Vertex-morph source `func_actor_323300_80162A6C` blends the model with.
-/// `field_8` and `field_C` are the key vertex and key normal arrays -- 8-byte
-/// `SVECTOR`s, the stride `gteMIMefunc` itself takes -- which that function
-/// copies into the model's own vertex and normal arrays starting at part index
-/// `field_14`, `field_16` and `field_12` entries apiece; `field_0` is the second
-/// key-vertex array it interpolates the model's vertices against, and `field_4`
-/// gates the normal pass the way `field_8` gates the vertex one.
-typedef struct {
-    /* 0x00 */ SVECTOR* field_0;
-    /* 0x04 */ s32      field_4;
-    /* 0x08 */ SVECTOR* field_8;
-    /* 0x0C */ SVECTOR* field_C;
-    /* 0x10 */ s16      field_10;
-    /* 0x12 */ s16      field_12;
-    /* 0x14 */ s16      field_14;
-    /* 0x16 */ s16      field_16;
-} GpMimeSrc;
 
 /// The larger of the two work blocks this overlay parks in `Task::work`: the
 /// `memCalloc(0x6B0)` that `func_actor_323300_80162BE4` allocates, as opposed
@@ -111,7 +96,8 @@ extern GpMsgEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
 /// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
-extern void* D_actor_323300_80172558[];
+extern GpAnimSet* D_actor_323300_80172548[4];
+extern GpAnimSet** D_actor_323300_80172558[1];
 
 /// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
 /// task parked in `Actor323300Work::field_4B8`.
@@ -130,16 +116,15 @@ extern GpAnimArg D_actor_323300_801725DC;
 /// block's bank index, one `void*` per bank. `func_actor_323300_80162BE4`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
-extern void*      D_actor_323300_80174A70[];
+extern GpAnimSet* D_actor_323300_80174A60[4];
+extern GpAnimSet** D_actor_323300_80174A70[1];
 extern GpAnimArg  D_actor_323300_80174A74;
 extern GpXformArg D_actor_323300_80174AB0;
 
 /// Vertex-morph source `func_actor_323300_80162DF0` re-blends every frame off
 /// the 0x6B0 block's squash ramp. Absolute, so it lives outside the overlay.
-extern GpMimeSrc D_801865D0;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-void func_8004BFF8(s16 angle, MATRIX* matrix);
 
 static void func_actor_323300_80161E78(Task* arg0);
 static void func_actor_323300_80161FE8(Task* arg0);
@@ -165,6 +150,286 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
     func_actor_323300_80161FE8,
     func_actor_323300_8016269C,
 } };
+
+s32 func_actor_323300_80162208(Task *, s32, s32, s32);
+s32 func_actor_323300_80162360(Task *, s32, GpCmdArg *, GpXformArg *);
+s32 func_actor_323300_801628B8(Task *, s32, GpAnimArg *, s32);
+s32 func_actor_323300_801629F0(Task *, s32, GpXformArg *, s32);
+
+extern TmdSource D_actor_323300_80169200;
+extern TmdSource D_actor_323300_8017128C;
+void func_actor_323300_80162630(Task *);
+void func_actor_323300_80163840(Task *);
+
+extern GpAnimSet D_actor_323300_80173DE4;
+extern GpAnimSet D_actor_323300_80174200;
+extern GpAnimSet D_actor_323300_80174A38;
+
+extern GpAnimSet * D_actor_323300_80174A60[4];
+
+TmdBone D_actor_323300_801638AC[19] = {
+#include "assets/actor_323300_model_073E0_skeleton.inc"
+};
+
+u32 D_actor_323300_80163B58[19] = {
+#include "assets/actor_323300_model_073E0_partVerts.inc"
+};
+
+SVECTOR D_actor_323300_80163BA4[325] = {
+#include "assets/actor_323300_model_073E0_verts.inc"
+};
+
+SVECTOR D_actor_323300_801645CC[384] = {
+#include "assets/actor_323300_model_073E0_normals.inc"
+};
+
+u32 D_actor_323300_801651CC[4109] = {
+#include "assets/actor_323300_model_073E0_stream.inc"
+};
+
+TmdSource D_actor_323300_80169200 = {
+    0, 21132, 7444, 19,
+    D_actor_323300_80163B58, D_actor_323300_80163BA4, D_actor_323300_801645CC, D_actor_323300_801638AC, D_actor_323300_801651CC,
+};
+
+TmdBone D_actor_323300_80169224[19] = {
+#include "assets/actor_323300_model_0F46C_skeleton.inc"
+};
+
+u32 D_actor_323300_801694D0[19] = {
+#include "assets/actor_323300_model_0F46C_partVerts.inc"
+};
+
+SVECTOR D_actor_323300_8016951C[325] = {
+#include "assets/actor_323300_model_0F46C_verts.inc"
+};
+
+SVECTOR D_actor_323300_80169F44[1604] = {
+#include "assets/actor_323300_model_0F46C_normals.inc"
+};
+
+u32 D_actor_323300_8016D164[4170] = {
+#include "assets/actor_323300_model_0F46C_stream.inc"
+};
+
+TmdSource D_actor_323300_8017128C = {
+    0, 42312, 15928, 19,
+    D_actor_323300_801694D0, D_actor_323300_8016951C, D_actor_323300_80169F44, D_actor_323300_80169224, D_actor_323300_8016D164,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[18];
+    GpPackedSvec words[54];
+} Actor323300PoseBankF490;
+
+Actor323300PoseBankF490 D_actor_323300_801712B0 = { .poses = {
+#include "assets/actor_323300_animation_0FFC4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_80171388[274] = {
+#include "assets/actor_323300_animation_0FFC4_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_801717D0[379] = {
+#include "assets/actor_323300_animation_0FFC4_records.inc"
+};
+
+u16 D_actor_323300_80171DBC[20] = {
+#include "assets/actor_323300_animation_0FFC4_indices.inc"
+};
+
+GpAnimSet D_actor_323300_80171DE4 = {
+    D_actor_323300_801717D0, D_actor_323300_80171DBC,
+    { NULL, D_actor_323300_801712B0.words, NULL, NULL, D_actor_323300_80171388, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor323300PoseBankFFEC;
+
+Actor323300PoseBankFFEC D_actor_323300_80171E0C = { .poses = {
+#include "assets/actor_323300_animation_102C8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_80171E54[46] = {
+#include "assets/actor_323300_animation_102C8_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_80171F0C[109] = {
+#include "assets/actor_323300_animation_102C8_records.inc"
+};
+
+u16 D_actor_323300_801720C0[20] = {
+#include "assets/actor_323300_animation_102C8_indices.inc"
+};
+
+GpAnimSet D_actor_323300_801720E8 = {
+    D_actor_323300_80171F0C, D_actor_323300_801720C0,
+    { NULL, D_actor_323300_80171E0C.words, NULL, NULL, D_actor_323300_80171E54, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[5];
+    GpPackedSvec words[15];
+} Actor323300PoseBank102F0;
+
+Actor323300PoseBank102F0 D_actor_323300_80172110 = { .poses = {
+#include "assets/actor_323300_animation_10700_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_8017214C[92] = {
+#include "assets/actor_323300_animation_10700_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_801722BC[143] = {
+#include "assets/actor_323300_animation_10700_records.inc"
+};
+
+u16 D_actor_323300_801724F8[20] = {
+#include "assets/actor_323300_animation_10700_indices.inc"
+};
+
+GpAnimSet D_actor_323300_80172520 = {
+    D_actor_323300_801722BC, D_actor_323300_801724F8,
+    { NULL, D_actor_323300_80172110.words, NULL, NULL, D_actor_323300_8017214C, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_actor_323300_80172548[4] = {
+    NULL,
+    &D_actor_323300_80171DE4,
+    &D_actor_323300_80172520,
+    &D_actor_323300_801720E8,
+};
+
+GpAnimSet ** D_actor_323300_80172558[1] = {
+    D_actor_323300_80172548,
+};
+
+TaskDesc D_actor_323300_8017255C[2] = {
+    { 257, 192, func_actor_323300_80162630, { .model = &D_actor_323300_80169200 } },
+    { 1, 192, func_actor_323300_80163840, { .model = &D_actor_323300_8017128C } },
+};
+
+GpMsgEntry D_actor_323300_80172574[5] = {
+    { 2003, func_actor_323300_801628B8 },
+    { 2004, func_actor_323300_801629F0 },
+    { 2005, func_actor_323300_80162208 },
+    { 2011, func_actor_323300_80162360 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpXformArg D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };
+
+GpAnimArg D_actor_323300_801725B4 = { { .ptr = NULL }, 1, 0, 0, 0 };
+
+GpAnimArg D_actor_323300_801725C8 = { { .ptr = NULL }, 2, 1, 10, 0 };
+
+GpAnimArg D_actor_323300_801725DC = { { .ptr = NULL }, 3, 1, 10, 0 };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[58];
+    GpPackedSvec words[174];
+} Actor323300PoseBank107D0;
+
+Actor323300PoseBank107D0 D_actor_323300_801725F0 = { .poses = {
+#include "assets/actor_323300_animation_11FC4_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_801728A8[324] = {
+#include "assets/actor_323300_animation_11FC4_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_80172DB8[1025] = {
+#include "assets/actor_323300_animation_11FC4_records.inc"
+};
+
+u16 D_actor_323300_80173DBC[20] = {
+#include "assets/actor_323300_animation_11FC4_indices.inc"
+};
+
+GpAnimSet D_actor_323300_80173DE4 = {
+    D_actor_323300_80172DB8, D_actor_323300_80173DBC,
+    { NULL, D_actor_323300_801725F0.words, NULL, NULL, D_actor_323300_801728A8, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} Actor323300PoseBank11FEC;
+
+Actor323300PoseBank11FEC D_actor_323300_80173E0C = { .poses = {
+#include "assets/actor_323300_animation_123E0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_80173E3C[69] = {
+#include "assets/actor_323300_animation_123E0_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_80173F50[162] = {
+#include "assets/actor_323300_animation_123E0_records.inc"
+};
+
+u16 D_actor_323300_801741D8[20] = {
+#include "assets/actor_323300_animation_123E0_indices.inc"
+};
+
+GpAnimSet D_actor_323300_80174200 = {
+    D_actor_323300_80173F50, D_actor_323300_801741D8,
+    { NULL, D_actor_323300_80173E0C.words, NULL, NULL, D_actor_323300_80173E3C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[16];
+    GpPackedSvec words[48];
+} Actor323300PoseBank12408;
+
+Actor323300PoseBank12408 D_actor_323300_80174228 = { .poses = {
+#include "assets/actor_323300_animation_12C18_bank1.inc"
+} };
+
+GpPackedSvec D_actor_323300_801742E8[199] = {
+#include "assets/actor_323300_animation_12C18_bank4.inc"
+};
+
+GpAnimRec D_actor_323300_80174604[259] = {
+#include "assets/actor_323300_animation_12C18_records.inc"
+};
+
+u16 D_actor_323300_80174A10[20] = {
+#include "assets/actor_323300_animation_12C18_indices.inc"
+};
+
+GpAnimSet D_actor_323300_80174A38 = {
+    D_actor_323300_80174604, D_actor_323300_80174A10,
+    { NULL, D_actor_323300_80174228.words, NULL, NULL, D_actor_323300_801742E8, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_actor_323300_80174A60[4] = {
+    NULL,
+    &D_actor_323300_80173DE4,
+    &D_actor_323300_80174200,
+    &D_actor_323300_80174A38,
+};
+
+GpAnimSet ** D_actor_323300_80174A70[1] = {
+    D_actor_323300_80174A60,
+};
+
+GpAnimArg D_actor_323300_80174A74 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_actor_323300_80174A88[2] = {
+    { { .index = 0 }, 2, 1, 20, 0 },
+    { { .index = 0 }, 3, 1, 20, 0 },
+};
+
+GpXformArg D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `GpRec18` collision table and the display node at +0x480, then
@@ -607,7 +872,7 @@ s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3
 /// `arg1->field_14`, `arg2` being the 0..0x1000 ramp: the vertex pass runs
 /// through `gteMIMefunc` against `arg1->field_0`, the normal pass only while
 /// `arg1->field_4` is set.
-static void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
+static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2)
 {
     s32        i;
     s32        count;
@@ -627,10 +892,10 @@ static void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
     u16        vz;
 
     i     = 0;
-    count = arg1->field_16;
+    count = arg1->blendCount;
     src   = arg0->extra.tmd->source;
-    off   = arg1->field_14 * 8;
-    from  = (u16*)((u8*)arg1->field_8 + off);
+    off   = arg1->firstVertex * 8;
+    from  = (u16*)((u8*)arg1->savedVertices + off);
     nrm   = src->normals;
     dst   = (u16*)((u8*)src->verts + off);
     if (count > 0) {
@@ -651,11 +916,11 @@ static void func_actor_323300_80162A6C(Task* arg0, GpMimeSrc* arg1, s32 arg2)
     }
     blend = arg2;
     inv   = 0x1000 - blend;
-    gteMIMefunc(src->verts + arg1->field_14, arg1->field_0, arg1->field_16, blend);
-    nrmA = (SVECTOR*)arg1->field_4;
+    gteMIMefunc(src->verts + arg1->firstVertex, arg1->vertices, arg1->blendCount, blend);
+    nrmA = arg1->normals;
     if (nrmA != NULL) {
-        count = arg1->field_12;
-        nrmB  = arg1->field_C;
+        count = arg1->normalCount;
+        nrmB  = arg1->savedNormals;
         i     = 0;
         if (count > 0) {
             do {
@@ -681,7 +946,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     TmdObject*          extra;
     TmdSource*          src;
     GpCoord*            coord;
-    GpMimeSrc*          ctl;
+    ToiletMorphTarget*          ctl;
     SVECTOR*            dst;
     SVECTOR*            nrm;
     SVECTOR*            verts;
@@ -711,19 +976,19 @@ static void func_actor_323300_80162BE4(Task* arg0)
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
     func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
 
-    ctl   = &D_801865D0;
+    ctl   = &D_dryfield_toilet_801865D0;
     src   = arg0->extra.tmd->source;
-    dst   = ctl->field_8;
-    nrm   = ctl->field_C;
+    dst   = ctl->savedVertices;
+    nrm   = ctl->savedNormals;
     verts = src->verts;
-    for (i = 0; i < ctl->field_10; i++) {
+    for (i = 0; i < ctl->vertexCount; i++) {
         dst[i].vx = verts[i].vx;
         dst[i].vy = verts[i].vy;
         dst[i].vz = verts[i].vz;
     }
-    if (ctl->field_4 != 0) {
+    if (ctl->normals != 0) {
         normals = src->normals;
-        for (i = 0; i < ctl->field_12; i++) {
+        for (i = 0; i < ctl->normalCount; i++) {
             nrm[i].vx = normals[i].vx;
             nrm[i].vy = normals[i].vy;
             nrm[i].vz = normals[i].vz;
@@ -784,7 +1049,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
         blend = 0;
     }
 
-    func_actor_323300_80162A6C(arg0, &D_801865D0, blend);
+    func_actor_323300_80162A6C(arg0, &D_dryfield_toilet_801865D0, blend);
     extra->lightLevel = blend;
 
     if (work->field_44C < 0x1000) {
@@ -839,7 +1104,7 @@ static void func_actor_323300_80163188(GpCoord* coord, s16 angle)
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    func_8004BFF8(angle, rotation);
+    RotMatrixY(angle, rotation);
     RotMatrixX(angle / 2, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));

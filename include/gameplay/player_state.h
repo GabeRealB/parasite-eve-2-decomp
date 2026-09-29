@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "gameplay/actor.h"
+#include "gameplay/message.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
@@ -52,5 +53,16 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1);
 void func_8010BE5C(Task* arg0, VECTOR3* arg1);
 
 void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
+
+// Message handlers addressed by the companion overlays' dispatch tables.
+s32 func_8010C4F0(Task *, s32, GpAnimArg *);
+s32 func_8010C688(Task *, s32, GpXformArg *);
+s32 func_8010C30C(Task *);
+s32 func_8010C6C8(Task *, s32, GpXformArg *, GpOverrideArg *);
+s32 func_8010C648(Task *, s32, GpAnimArg *);
+s32 Gp_CopyAllyAnim(Task *, s32, GpCopyArg *);
+s32 func_8010C75C(Task *, s32, GpDelayArg *);
+void Gp_MoveActorByKeep(Task *, s32, GpMoveArg *);
+s32 func_8010C708(Task *, s32, GpXformArg *, GpOverrideArg *);
 
 #endif // GAMEPLAY_PLAYER_STATE_H

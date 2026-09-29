@@ -1,4 +1,5 @@
 #include "main/fs.h"
+#include "rooms/acropolis_plaza.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libcd.h>
@@ -32,8 +33,6 @@ static void* D_8006AC00;
 static u16 CdCmd_EntryIter;
 
 static s32* CdCmd_MapHeapSizes[];
-
-extern void func_8017D6D4(void);
 
 static void CdCmd_HandleStreamDecode(void);
 
@@ -685,7 +684,7 @@ static void CdCmd_ProcessPhase1(void)
         case 7:
             if (p->field_242 != 0) {
                 if ((p->field_40.cmd >> 4) == 7) {
-                    func_8017D6D4();
+                    func_acropolis_plaza_8017D6D4();
                     return;
                 }
                 CdCmd_HandleStreamDecode();
@@ -857,7 +856,7 @@ static void CdCmd_ProcessPhase2(void)
         case 7:
             if (p->field_242 != 0) {
                 if ((p->field_40.cmd >> 4) == 7) {
-                    func_8017D6D4();
+                    func_acropolis_plaza_8017D6D4();
                 } else {
                     CdCmd_HandleStreamDecode();
                 }
@@ -1395,7 +1394,7 @@ void CdCmd_Dispatch(void)
                         CdCmd_HandleStreamDecode();
                         break;
                     case 7:
-                        func_8017D6D4();
+                        func_acropolis_plaza_8017D6D4();
                         break;
                     case 5:
                         CdCmd_HandleMount();

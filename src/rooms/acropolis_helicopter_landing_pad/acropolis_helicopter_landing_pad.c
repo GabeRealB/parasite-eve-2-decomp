@@ -1,3 +1,5 @@
+#include "gameplay/animation.h"
+#include "actors/actor_511000.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -20,6 +22,8 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
+
+extern GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
 /// 0x54 work block of the helipad enemy task, hung off the `Task::work`
 /// slot -- it is the `memCalloc(0x54)` block that
@@ -47,8 +51,8 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 /// while it is non-zero.
 
 /// The `func_800E8634` script pair the phase tick starts on entering phase 2.
-extern s32 D_acropolis_helicopter_landing_pad_80184124;
-extern s32 D_acropolis_helicopter_landing_pad_801844B4;
+extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184124[];
+extern GpEvsCmd D_acropolis_helicopter_landing_pad_801844B4[];
 
 extern GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT  D_acropolis_helicopter_landing_pad_80182340[3];
@@ -60,7 +64,57 @@ extern GpXformArg D_acropolis_helicopter_landing_pad_80182394;
 extern GpXformArg D_acropolis_helicopter_landing_pad_801823AC;
 
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
-s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3);
+s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg * placement, s32 arg3);
+
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task *, s32, GpAnimArg *, GpMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task *, s32, GpXformArg *, s32);
+
+GpMsgEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
+    { 2003, func_acropolis_helicopter_landing_pad_8017D824 },
+    { 2004, func_acropolis_helicopter_landing_pad_8017D8E8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GsF_LIGHT D_acropolis_helicopter_landing_pad_80182340[3] = {
+    { 0, 4096, 0, 128, 128, 128 },
+    { 4096, 0, 0, 128, 128, 128 },
+    { 0, 0, 4096, 128, 128, 128 },
+};
+
+s8 D_acropolis_helicopter_landing_pad_80182370[36] = {
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+};
+
+GpXformArg D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
+
+TmdBone D_acropolis_helicopter_landing_pad_801823C4[1] = {
+#include "assets/acropolis_helicopter_landing_pad_model_0612C_skeleton.inc"
+};
+
+u32 D_acropolis_helicopter_landing_pad_801823E8[1] = {
+#include "assets/acropolis_helicopter_landing_pad_model_0612C_partVerts.inc"
+};
+
+SVECTOR D_acropolis_helicopter_landing_pad_801823EC[191] = {
+#include "assets/acropolis_helicopter_landing_pad_model_0612C_verts.inc"
+};
+
+SVECTOR D_acropolis_helicopter_landing_pad_801829E4[11] = {
+#include "assets/acropolis_helicopter_landing_pad_model_0612C_normals.inc"
+};
+
+u32 D_acropolis_helicopter_landing_pad_80182A3C[812] = {
+#include "assets/acropolis_helicopter_landing_pad_model_0612C_stream.inc"
+};
+
+TmdSource D_acropolis_helicopter_landing_pad_801836EC = {
+    0, 6956, 0, 1,
+    D_acropolis_helicopter_landing_pad_801823E8, D_acropolis_helicopter_landing_pad_801823EC, D_acropolis_helicopter_landing_pad_801829E4, D_acropolis_helicopter_landing_pad_801823C4, D_acropolis_helicopter_landing_pad_80182A3C,
+};
 
 /// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
 /// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of
@@ -135,7 +189,7 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 /// take the first / second placement, arm the 0x78 countdown and reset the
 /// work block's first three words with the step set to -0x19 / +0x19; phase 2
 /// returns to the first placement and clears the countdown.
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnimArg* msg)
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnimArg * msg, GpMessageArg arg3)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
 
@@ -166,7 +220,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnim
 /// task's model at `placement`: copies the position onto the coordinate's
 /// translation, the Euler angles onto its rotation, rebuilds the rotation
 /// matrix and marks the coordinate dirty.
-s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
+s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg * placement, s32 arg3)
 {
     GpCoord* coord;
 
@@ -214,8 +268,8 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
         if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
             if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == 0)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
-                func_800E8634(&D_acropolis_helicopter_landing_pad_80184124, 0,
-                              &D_acropolis_helicopter_landing_pad_801844B4);
+                func_800E8634(D_acropolis_helicopter_landing_pad_80184124, 0,
+                              D_acropolis_helicopter_landing_pad_801844B4);
                 func_800E3FAC(0xA2, 8);
             }
         }

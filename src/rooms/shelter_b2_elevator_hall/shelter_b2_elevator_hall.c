@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -38,7 +39,17 @@
 #include "main/task.h"
 #include "overlay.h"
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/collision.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+
+// Preserve the following nonzero bytes with this scalar's storage.
+// No separate references identify them; their role (including padding) is unresolved.
+extern u8 D_shelter_b2_elevator_hall_80184D84[4];
 
 extern TaskDesc D_shelter_b2_elevator_hall_8018379C;
 extern SVECTOR  D_shelter_b2_elevator_hall_801837D8[];
@@ -61,6 +72,624 @@ static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* 
 static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2);
 
+void func_shelter_b2_elevator_hall_8017D774(Task *);
+void func_shelter_b2_elevator_hall_8017D8E4(Task *);
+s32 func_shelter_b2_elevator_hall_8017DAD4(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b2_elevator_hall_8017DC70(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC78(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC80(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b2_elevator_hall_8017DC88(Task *, s32, s32, GpMessageArg);
+
+TaskDesc D_shelter_b2_elevator_hall_80183790 = { 0, 32, func_shelter_b2_elevator_hall_8017D774, { .model = NULL } };
+
+TaskDesc D_shelter_b2_elevator_hall_8018379C = { 0, 32, func_shelter_b2_elevator_hall_8017D8E4, { .model = NULL } };
+
+GpMsgEntry D_shelter_b2_elevator_hall_801837A8[6] = {
+    { 5102, func_shelter_b2_elevator_hall_8017DAD4 },
+    { 5105, func_shelter_b2_elevator_hall_8017DC70 },
+    { 5103, func_shelter_b2_elevator_hall_8017DC80 },
+    { 5104, func_shelter_b2_elevator_hall_8017DC78 },
+    { 5106, func_shelter_b2_elevator_hall_8017DC88 },
+    { 0x7FFFFFFF, NULL },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801837D8[4] = {
+    { -8291, -620, -1755, 0 },
+    { -7626, -620, -1755, 0 },
+    { -5333, -620, -1755, 0 },
+    { -4665, -620, -1755, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801837F8[2] = {
+    { -1331, -620, -1755, 0 },
+    { -663, -620, -1755, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_80183808[12] = {
+    { 1669, -620, -1755, 0 },
+    { 2328, -620, -1755, 0 },
+    { 5664, -620, -1755, 0 },
+    { 6336, -620, -1755, 0 },
+    { 8672, -620, -1755, 0 },
+    { 9336, -620, -1755, 0 },
+    { -1331, -620, 1757, 0 },
+    { -663, -620, 1757, 0 },
+    { 1669, -620, 1757, 0 },
+    { 2328, -620, 1757, 0 },
+    { -9760, -620, -235, 0 },
+    { -9760, -620, 368, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_80183868[8] = {
+    { 0x280E, -620, 2564, 0 },
+    { 0x280E, -620, 3170, 0 },
+    { 0x2749, -2342, 3789, 0 },
+    { 0x2749, -2342, 4279, 0 },
+    { 0x2735, -2342, -255, 0 },
+    { 0x2735, -2342, -744, 0 },
+    { -5622, -2399, 1652, 0 },
+    { -5249, -2399, 1652, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801838A8[1] = {
+    { 9936, -1250, 3234, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801838B0[1] = {
+    { 9901, -1195, 3234, 0 },
+};
+
+RoomHaloShade D_shelter_b2_elevator_hall_801838B8[3] = {
+    { 0, 1, 2 },
+    { 2, 1, 0 },
+    { 0, 2, 1 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801838CC[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+u8 * D_shelter_b2_elevator_hall_801838DC[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_shelter_b2_elevator_hall_801838E0[1] = {
+    { { .bytes = { 7, 0 } } },
+};
+
+GpWarpRec D_shelter_b2_elevator_hall_801838E4[3] = {
+    { { .words = { 2048, -5465, 0, 1040 } }, { 0, 0, 0, 0 }, { .words = { 2048, -5465, 0, 1040 } }, { 0, 0, 0, 0 }, 0x541B0006, 0x541B0005, 0, 2, 0, 455 },
+    { { .words = { 3072, 9400, 0, -600 } }, { 0, 0, 0, 0 }, { .words = { 3072, 9400, 0, -600 } }, { 0, 0, 0, 0 }, 0x541B0002, 0x541B0001, 0, 5, 0, 443 },
+    { { .words = { 3072, 9484, 0, 3743 } }, { 0, 0, 0, 0 }, { .words = { 3072, 9484, 0, 3743 } }, { 0, 0, 0, 0 }, 0x541B0004, 0x541B0003, 0x541B0008, 6, 0, 457 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_8018398C[7] = {
+    { 0, 4096, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { 3483, 0, -2155, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+};
+
+SVECTOR D_shelter_b2_elevator_hall_801839C4[48] = {
+    { 0x28B5, -2852, 5252, 0 },
+    { -9350, -2852, 5252, 0 },
+    { -9350, -2852, -1481, 0 },
+    { 0x28B5, -2852, -1481, 0 },
+    { -9139, -2873, -1382, 0 },
+    { -9139, -2873, 1364, 0 },
+    { -9139, 0, 1364, 0 },
+    { -9139, 0, -1382, 0 },
+    { 9910, -2873, 4918, 0 },
+    { 9910, -2873, -1382, 0 },
+    { 9910, 0, -1382, 0 },
+    { 9910, 0, 4918, 0 },
+    { 4648, -2873, 1535, 0 },
+    { 4648, 0, 1535, 0 },
+    { 4542, 0, 1364, 0 },
+    { 4542, -2873, 1364, 0 },
+    { 4648, -2873, 4918, 0 },
+    { 4648, 0, 4918, 0 },
+    { 6752, 1175, 4119, 0 },
+    { 6752, -825, 4119, 0 },
+    { 6752, -825, 6119, 0 },
+    { 6752, 1175, 6119, 0 },
+    { 4610, 1175, 4119, 0 },
+    { 4610, -825, 4119, 0 },
+    { 9910, 0, 1364, 0 },
+    { 9096, 0, 1364, 0 },
+    { 9096, 0, 4918, 0 },
+    { 7867, 0, 4918, 0 },
+    { 7867, 0, 1364, 0 },
+    { 4481, 0, 4918, 0 },
+    { 4481, 0, 1364, 0 },
+    { -6038, 0, 1364, 0 },
+    { -6038, 0, 684, 0 },
+    { -9139, 0, 684, 0 },
+    { -6038, 0, -951, 0 },
+    { -9139, 0, -222, 0 },
+    { -6038, 0, -1382, 0 },
+    { 4481, 0, 684, 0 },
+    { 4648, 0, -951, 0 },
+    { 4648, 0, -1382, 0 },
+    { 7867, 0, 679, 0 },
+    { 9096, 0, 673, 0 },
+    { 9910, 0, 614, 0 },
+    { 7867, 0, -950, 0 },
+    { 9096, 0, -950, 0 },
+    { 9910, 0, -947, 0 },
+    { 7867, 0, -1382, 0 },
+    { 9096, 0, -1382, 0 },
+};
+
+GpGridFace D_shelter_b2_elevator_hall_80183B44[28] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 13, 14, 12, 15 }, 3, 0 },
+    { { 4, 7, 9, 10 }, 4, 0 },
+    { { 15, 14, 5, 6 }, 5, 0 },
+    { { 8, 11, 16, 17 }, 5, 0 },
+    { { 19, 20, 18, 21 }, 1, 0 },
+    { { 23, 19, 22, 18 }, 5, 0 },
+    { { 12, 16, 13, 17 }, 1, 0 },
+    { { 25, 26, 24, 11 }, 6, 1 },
+    { { 26, 25, 27, 28 }, 6, 2 },
+    { { 27, 28, 29, 30 }, 6, 1 },
+    { { 32, 33, 31, 6 }, 6, 1 },
+    { { 34, 35, 32, 33 }, 6, 1 },
+    { { 35, 34, 7, 36 }, 6, 1 },
+    { { 37, 32, 30, 31 }, 6, 1 },
+    { { 38, 34, 37, 32 }, 6, 2 },
+    { { 34, 38, 36, 39 }, 6, 1 },
+    { { 28, 40, 30, 37 }, 6, 1 },
+    { { 25, 41, 28, 40 }, 6, 2 },
+    { { 41, 25, 42, 24 }, 6, 1 },
+    { { 40, 43, 37, 38 }, 6, 1 },
+    { { 41, 44, 40, 43 }, 6, 2 },
+    { { 44, 41, 45, 42 }, 6, 1 },
+    { { 43, 46, 38, 39 }, 6, 1 },
+    { { 47, 44, 10, 45 }, 6, 1 },
+    { { 44, 47, 43, 46 }, 6, 2 },
+};
+
+s16 D_shelter_b2_elevator_hall_80183C94[11] = {
+    0,
+    1,
+    4,
+    5,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183CAC[8] = {
+    0,
+    1,
+    5,
+    13,
+    14,
+    16,
+    17,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183CBC[10] = {
+    0,
+    4,
+    5,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183CD0[5] = {
+    0,
+    5,
+    16,
+    17,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183CDC[11] = {
+    0,
+    3,
+    4,
+    5,
+    12,
+    16,
+    17,
+    18,
+    19,
+    22,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183CF4[9] = {
+    0,
+    5,
+    6,
+    8,
+    9,
+    12,
+    16,
+    17,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183D08[18] = {
+    0,
+    3,
+    4,
+    5,
+    8,
+    9,
+    11,
+    12,
+    16,
+    17,
+    18,
+    19,
+    20,
+    22,
+    23,
+    25,
+    27,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183D2C[14] = {
+    0,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    11,
+    12,
+    16,
+    17,
+    19,
+    22,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183D48[18] = {
+    0,
+    2,
+    4,
+    7,
+    8,
+    10,
+    11,
+    12,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    -1,
+};
+
+s16 D_shelter_b2_elevator_hall_80183D6C[16] = {
+    0,
+    2,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    -1,
+};
+
+s16 * D_shelter_b2_elevator_hall_80183D8C[10] = {
+    D_shelter_b2_elevator_hall_80183C94,
+    D_shelter_b2_elevator_hall_80183CAC,
+    D_shelter_b2_elevator_hall_80183CBC,
+    D_shelter_b2_elevator_hall_80183CD0,
+    D_shelter_b2_elevator_hall_80183CDC,
+    D_shelter_b2_elevator_hall_80183CF4,
+    D_shelter_b2_elevator_hall_80183D08,
+    D_shelter_b2_elevator_hall_80183D2C,
+    D_shelter_b2_elevator_hall_80183D48,
+    D_shelter_b2_elevator_hall_80183D6C,
+};
+
+GpGridParams D_shelter_b2_elevator_hall_80183DB4 = { NULL, D_shelter_b2_elevator_hall_8018398C, D_shelter_b2_elevator_hall_801839C4, D_shelter_b2_elevator_hall_80183B44, D_shelter_b2_elevator_hall_80183D8C, 9350, 1481, 5, 2, 4000, 28 };
+
+GpViewRec D_shelter_b2_elevator_hall_80183DD8[7] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -20, 0x7530, -890 } }, 358 },
+    { { { { 1273, 0, 3893 }, { 27, 4095, -8 }, { -3893, 28, 1273 } }, { 2681, 1099, 981 } }, 230 },
+    { { { { 1056, 0, 3957 }, { 303, 4083, -81 }, { -3945, 314, 1053 } }, { -2887, 1466, 974 } }, 230 },
+    { { { { 1008, 0, -3969 }, { -238, 4088, -60 }, { 3962, 246, 1006 } }, { 2609, 1438, 888 } }, 230 },
+    { { { { 1006, 0, -3970 }, { -325, 4082, -82 }, { 3957, 335, 1003 } }, { -1476, 1537, 851 } }, 230 },
+    { { { { 3845, 0, -1410 }, { -107, 4084, -293 }, { 1406, 312, 3834 } }, { -4795, 1541, 1484 } }, 230 },
+    { { { { -1552, 0, -3790 }, { -270, 4085, 110 }, { 3780, 292, -1548 } }, { -8355, 1552, -250 } }, 257 },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80183ED4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80183EE4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80183EF4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_shelter_b2_elevator_hall_80183F04[10] = {
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -96, -8, 1410, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -96, -48, 1362, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -64, 0, 1605, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -64, -48, 1559, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -48, 1616, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, 0, 1672, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -8, 1660, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -24, -48, 1646, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -48, 1815, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -8, 1799, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80183FCC[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 10, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpDrawAreaRec D_shelter_b2_elevator_hall_80183FE4[2] = {
+    { { 147, 70, 103, 94 }, 1850 },
+    { { 0, 0, 0, 0 }, 0xFFFF },
+};
+
+GpSprtElem D_shelter_b2_elevator_hall_80183FF8[12] = {
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -88, 72, 822, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, -160, -120, 645, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, -112, -120, 780, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -64, 809, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -24, 825, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 654, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, -64, 651, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 658, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 667, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 24, 835, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 72, 834, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, 72, 822, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_801840E8[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 12, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80184100[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_shelter_b2_elevator_hall_80184110[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_shelter_b2_elevator_hall_80184120[7] = {
+    { { .empty = D_shelter_b2_elevator_hall_80183ED4 }, D_shelter_b2_elevator_hall_80183ED4, NULL },
+    { { .empty = D_shelter_b2_elevator_hall_80183EE4 }, D_shelter_b2_elevator_hall_80183EE4, NULL },
+    { { .empty = D_shelter_b2_elevator_hall_80183EF4 }, D_shelter_b2_elevator_hall_80183EF4, NULL },
+    { { .elements = D_shelter_b2_elevator_hall_80183F04 }, D_shelter_b2_elevator_hall_80183FCC, D_shelter_b2_elevator_hall_80183FE4 },
+    { { .elements = D_shelter_b2_elevator_hall_80183FF8 }, D_shelter_b2_elevator_hall_801840E8, NULL },
+    { { .empty = D_shelter_b2_elevator_hall_80184100 }, D_shelter_b2_elevator_hall_80184100, NULL },
+    { { .empty = D_shelter_b2_elevator_hall_80184110 }, D_shelter_b2_elevator_hall_80184110, NULL },
+};
+
+GpPointLight D_shelter_b2_elevator_hall_80184174[14] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -681, -659, -1106 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -681, -659, 1137 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1648, -659, 1137 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1047, -659, -1192 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6077, -659, -1034 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8608, -659, -855 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8600, -659, 2166 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4834, -659, 2957 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7805, -6652, 1436 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3279, 3368, 3448, { 0, 0 } }, 2000, 8000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2330, -6652, -263 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3267, 3308, 3588, { 0, 0 } }, 2000, 8000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5813, -5652, -97 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3366, 3466, 3708, { 0, 0 } }, 2000, 0x2801 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8513, -659, 35 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7513, -659, -1106 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4617, -659, -1134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2457, { 0, 0 } }, 900, 1900 },
+};
+
+GpRoomCoordSet D_shelter_b2_elevator_hall_801846B4 = { 0, NULL, 14, D_shelter_b2_elevator_hall_80184174, 0, NULL };
+
+GpObj4C D_shelter_b2_elevator_hall_801846CC[8] = {
+    { NULL, NULL, NULL, { -4678, 64, -197, 0 }, { { 115, -2016, 2533, 0 }, { -124, -2016, -2543, 0 }, { 115, 2016, 2533, 0 }, { -124, 2016, -2543, 0 } }, { -4101, 0, 192, 0 }, { 0, 0, 4096, 0 }, 3238, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -4865, 0, -144, 0 }, { { -141, -2016, -2631, 0 }, { 126, -2016, 2616, 0 }, { -141, 2016, -2631, 0 }, { 126, 2016, 2616, 0 } }, { 4090, 0, -209, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 64, 0, 0, 0 }, { { -5, -2016, -2627, 0 }, { 5, -2016, 2627, 0 }, { -5, 2016, -2627, 0 }, { 5, 2016, 2627, 0 } }, { 4095, 0, -8, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { 256, 0, 0, 0 }, { { -5, -2016, 2541, 0 }, { 5, -2016, -2541, 0 }, { -5, 2016, 2541, 0 }, { 5, 2016, -2541, 0 } }, { -4106, 0, -9, 0 }, { 0, 0, 4096, 0 }, 3238, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 4256, 0, 0, 0 }, { { -259, -2016, 2523, 0 }, { 249, -2016, -2533, 0 }, { -259, 2016, 2523, 0 }, { 249, 2016, -2533, 0 } }, { -4084, 0, -412, 0 }, { 0, 0, 4096, 0 }, 3238, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 4065, 0, 0, 0 }, { { 249, -2016, -2620, 0 }, { -257, -2016, 2609, 0 }, { 249, 2016, -2620, 0 }, { -257, 2016, 2609, 0 } }, { 4076, 0, 394, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 7680, 0, 2320, 0 }, { { -3429, -2016, -371, 0 }, { 3429, -2016, 371, 0 }, { -3429, 2016, -371, 0 }, { 3429, 2016, 371, 0 } }, { 441, 0, -4083, 0 }, { 0, 0, 4096, 0 }, 3990, 0, 5, 6, 1, 0 },
+    { NULL, NULL, NULL, { 7808, 0, 2097, 0 }, { { 3515, -2016, 381, 0 }, { -3515, -2016, -381, 0 }, { 3515, 2016, 381, 0 }, { -3515, 2016, -381, 0 } }, { -443, 0, 4080, 0 }, { 0, 0, 4096, 0 }, 4063, 0, 6, 5, 129, 0 },
+};
+
+GpObj3A D_shelter_b2_elevator_hall_8018492C[1] = {
+    { NULL, NULL, { 2560, -1344, 3856, 0 }, { { -1664, 2368, 2096, 0 }, { 1664, 2368, -2096, 0 }, { -1664, -2368, 2096, 0 }, { 1664, -2368, -2096, 0 } }, { 3208, 0, 2546, 0 }, { -19, 13 }, 129, 0 },
+};
+
+GpObj4C D_shelter_b2_elevator_hall_80184968[3] = {
+    { NULL, NULL, NULL, { -5632, -48, 1072, 0 }, { { -832, 0, -464, 0 }, { 833, 0, -464, 0 }, { -832, 0, 464, 0 }, { 833, 0, 464, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 951, 0, 33, 17, 2, 0 },
+    { NULL, NULL, NULL, { 9712, -48, -464, 0 }, { { 384, 0, -624, 0 }, { 384, 0, 624, 0 }, { -384, 0, -624, 0 }, { -384, 0, 624, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 732, 0, 26, 33, 2, 0 },
+    { NULL, NULL, NULL, { 9648, -48, 4272, 0 }, { { 384, 0, -752, 0 }, { 384, 0, 752, 0 }, { -384, 0, -752, 0 }, { -384, 0, 752, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 844, 0, 28, 49, 130, 0 },
+};
+
+GpAreaTmdRec D_shelter_b2_elevator_hall_80184A4C[2] = {
+    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b2_elevator_hall_80184A64[2] = {
+    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b2_elevator_hall_80184A7C[2] = {
+    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b2_elevator_hall_80184A94[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_shelter_b2_elevator_hall_80184AB8[3] = {
+    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_shelter_b2_elevator_hall_80184ADC[8] = {
+    { 26, 0, 0, 7500, 0, 4150, 1800, 0, 0, 2, 0 },
+    { 26, 0, 0, 7000, 0, 1950, 1300, 0, 0, 2, 0 },
+    { 26, 0, 0, 5300, 0, 3600, 1700, 0, 0, 2, 0 },
+    { 26, 0, 0, 5400, 0, 1700, 1500, 0, 0, 2, 0 },
+    { 26, 0, 0, 1850, 0, 350, 1250, 0, 0, 2, 0 },
+    { 26, 0, 0, 300, 0, 600, 1200, 0, 0, 2, 0 },
+    { 26, 0, 0, 300, 0, -800, 900, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b2_elevator_hall_80184B5C[3] = {
+    { 3, 0, 0, 6500, 0, 3300, 2048, 0, 0, 2, 0 },
+    { 3, 0, 1, -4000, 0, 0, 1024, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b2_elevator_hall_80184B8C[4] = {
+    { 49, 2, 0, -7800, 0, -200, 1200, 0, 0, 2, 0 },
+    { 49, 2, 0, 250, 0, 600, 1600, 0, 0, 2, 0 },
+    { 49, 2, 0, 4350, 0, 500, 1800, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b2_elevator_hall_80184BCC[6] = {
+    { 21, 3, 0, 7500, -1800, -1400, 0, 0, 0, 2, 0 },
+    { 21, 3, 0, 5500, -1800, -1400, 0, 0, 0, 2, 0 },
+    { 21, 3, 0, 7500, -1800, 4900, 2048, 0, 0, 2, 0 },
+    { 21, 3, 0, 5500, -1800, 4900, 2048, 0, 0, 2, 0 },
+    { 57, 3, 1, 6500, 0, 3000, 2048, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_shelter_b2_elevator_hall_80184C2C[5] = {
+    { 21, 3, 0, 8500, -1800, 4900, 2048, 0, 0, 2, 7 },
+    { 21, 3, 0, 6500, -1800, 4900, 2048, 0, 0, 2, 7 },
+    { 57, 9, 1, -2000, 0, 0, 1024, 0, 2, 4, 0 },
+    { 57, 0, 0, 9600, 0, -500, 3072, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_shelter_b2_elevator_hall_80184C7C[22] = {
+    { NULL, NULL },
+    { D_shelter_b2_elevator_hall_80184ADC, D_shelter_b2_elevator_hall_80184A4C },
+    { D_shelter_b2_elevator_hall_80184B5C, D_shelter_b2_elevator_hall_80184A64 },
+    { D_shelter_b2_elevator_hall_80184B8C, D_shelter_b2_elevator_hall_80184A7C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b2_elevator_hall_80184BCC, D_shelter_b2_elevator_hall_80184A94 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_shelter_b2_elevator_hall_80184C2C, D_shelter_b2_elevator_hall_80184AB8 },
+};
+
+s32 D_shelter_b2_elevator_hall_80184D2C[3] = {
+    0x10000059,
+    0x1000005B,
+    0x10000059,
+};
+
+s32 D_shelter_b2_elevator_hall_80184D38[3] = {
+    0x1000005D,
+    0x1000005F,
+    0x1000005D,
+};
+
+GpRoomParamRec D_shelter_b2_elevator_hall_80184D44[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_shelter_b2_elevator_hall_80184D4C[1] = {
+    { 0, 0, 1, 0, D_shelter_b2_elevator_hall_80184D2C },
+};
+
+GpRoomParamRec D_shelter_b2_elevator_hall_80184D54[1] = {
+    { 0, 0, 1, 0, D_shelter_b2_elevator_hall_80184D38 },
+};
+
+GpRoomParamRec * D_shelter_b2_elevator_hall_80184D5C[8] = {
+    D_shelter_b2_elevator_hall_80184D44,
+    D_shelter_b2_elevator_hall_80184D4C,
+    D_shelter_b2_elevator_hall_80184D54,
+    D_shelter_b2_elevator_hall_80184D44,
+    D_shelter_b2_elevator_hall_80184D44,
+    D_shelter_b2_elevator_hall_80184D44,
+    D_shelter_b2_elevator_hall_80184D44,
+    D_shelter_b2_elevator_hall_80184D44,
+};
+
+RoomEventMsg D_shelter_b2_elevator_hall_80184D7C = { 0 };
+
+u8 D_shelter_b2_elevator_hall_80184D84[4] = {
+    0,
+    253,
+    152,
+    217,
+};
+
+RoomEventReq D_shelter_b2_elevator_hall_80184D88 = { 0 };
+
 /// Gates an event on a game-flag nibble and a collected item: returns 1 when
 /// the nibble already shows the event done, 0 (running the request's refusal
 /// cap command) when the item is missing, and 2 when it fires, which unless
@@ -76,7 +705,7 @@ static s32 func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMs
     s32 neg;
 
     flag                                = req->flagId;
-    D_shelter_b2_elevator_hall_80184D84 = 0;
+    D_shelter_b2_elevator_hall_80184D84[0] = 0;
     neg                                 = flag < 0;
     got                                 = (s16)flag;
     if (neg) {
@@ -100,7 +729,7 @@ static s32 func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMs
                 }
                 GameFlag_SetNibble(id, mode);
                 Task_SpawnFromTable(&D_shelter_b2_elevator_hall_80183790, 0, 0, 0);
-                D_shelter_b2_elevator_hall_80184D84 = 1;
+                D_shelter_b2_elevator_hall_80184D84[0] = 1;
                 return 2;
             }
             return ret;
@@ -154,7 +783,7 @@ void func_shelter_b2_elevator_hall_8017D774(Task* task)
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
             gDisplayState.roomVariant   = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.msgId;
+            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_elevator_hall_80184D7C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_elevator_hall_80184D7C.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -167,7 +796,7 @@ void func_shelter_b2_elevator_hall_8017D774(Task* task)
 /// idle, then picks the destination from the cap event key (0xB: area 9 warp 3,
 /// 0xC: area 0x1B warp 2, 0xD: area 0x2A warp 3; any other key sends message 1
 /// and ends the task). Once the voice line in `spawnArg1` has finished it
-/// resolves the destination through `func_80179A04`, stores the resolved warp
+/// resolves the destination through `func_map_shelter_80179A04`, stores the resolved warp
 /// and room in the save location and spawns task 0x11.
 void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
 {
@@ -218,10 +847,10 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.field_3 = 1;
             msg.field_5 = 0;
-            msg.msgId   = Mc_SaveData[0].state.at4.loc.area;
+            msg.prefix.packed   = Mc_SaveData[0].state.at4.loc.area;
             msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
             msg2        = msg;
-            func_80179A04(&msg, &msg2);
+            func_map_shelter_80179A04(&msg, &msg2);
             gDisplayState.roomVariant   = 1;
             Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
             Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
@@ -232,7 +861,7 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_80179A04`. Messages 0x21 and 0x1C build a request for the gate
+/// `func_map_shelter_80179A04`. Messages 0x21 and 0x1C build a request for the gate
 /// `func_shelter_b2_elevator_hall_8017D610` (nibble 0xAB with no item, and
 /// nibble 0xA9 with item 0x21, which also sets item-seen bit 0x121 when the
 /// gate reports the event fired). Message 0x1A
@@ -240,14 +869,14 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
 /// message's nibble and runs CAP command 4 while nibble 0xBA is clear, or runs
 /// CAP command 5 and spawns the room's task once it is set. Anything else
 /// answers 1.
-s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     RoomEventReq req;
     s32          ret;
 
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0x21) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0x21) {
         req.field_0 = 1;
         req.field_4 = 1;
         req.field_8 = 0x541B0007;
@@ -256,7 +885,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.itemId  = 0;
         return func_shelter_b2_elevator_hall_8017D610(&req, out);
     }
-    if (in->msgId == 0x1C) {
+    if (in->prefix.packed == 0x1C) {
         req.field_0 = 3;
         req.field_4 = 2;
         req.field_8 = 0x541B0009;
@@ -264,12 +893,12 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in,
         req.flagId  = 0xA9;
         req.itemId  = 0x21;
         ret         = func_shelter_b2_elevator_hall_8017D610(&req, out);
-        if (D_shelter_b2_elevator_hall_80184D84 != 0) {
+        if (D_shelter_b2_elevator_hall_80184D84[0] != 0) {
             Gp_SetItemSeenBit(0x121, 1);
         }
         return ret;
     }
-    if (in->msgId == 0x1A) {
+    if (in->prefix.packed == 0x1A) {
         if (GameFlag_GetNibble(0xBA) == 0) {
             if (in->field_5 == 0) {
                 Gp_SetNibbleIf(in->field_6, 2);
@@ -286,22 +915,22 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(s32 arg0, s32 arg1, RoomEventMsg* in,
     return 1;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC70(void)
+s32 func_shelter_b2_elevator_hall_8017DC70(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC78(void)
+s32 func_shelter_b2_elevator_hall_8017DC78(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC80(void)
+s32 func_shelter_b2_elevator_hall_8017DC80(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC88(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b2_elevator_hall_8017DC88(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x541B0000 | 1, 0, 0);
@@ -341,7 +970,7 @@ void func_shelter_b2_elevator_hall_8017DD08(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
+void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115728  = 0x6024A;
@@ -703,7 +1332,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
     SCRATCH_POP_BYTES(0x14);
 }
 
-static void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
+void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -957,7 +1586,7 @@ static void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* 
     SCRATCH_POP_BYTES(0x18);
 }
 
-static void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
+void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
@@ -1040,7 +1669,7 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-static void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
+void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
@@ -1414,7 +2043,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* 
     SCRATCH_POP(RoomBillboardScratch);
 }
 
-static void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
+void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1451,7 +2080,7 @@ static void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 /// drawing two fans and an inward-shrinking ring in a colour derived from the
 /// level, and queues a fade quad in that colour when it peaks; state 2 fades
 /// out through the star draw before the work block is released.
-static void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
+void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
 {
     GpEffWork* mem;
     GpCoord*   coord;
@@ -1619,7 +2248,7 @@ static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* 
     SCRATCH_POP_BYTES(0x18);
 }
 
-static void func_shelter_b2_elevator_hall_80182260(Task* task)
+void func_shelter_b2_elevator_hall_80182260(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1677,9 +2306,12 @@ static void func_shelter_b2_elevator_hall_80182260(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_shelter_b2_elevator_hall_801838D4.vx;
-                coord.coord.t[1] = D_shelter_b2_elevator_hall_801838D4.vy;
-                coord.coord.t[2] = D_shelter_b2_elevator_hall_801838D4.vz;
+                {
+                    SVECTOR* edge = &D_shelter_b2_elevator_hall_801838CC[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1811,7 +2443,7 @@ static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1,
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-static void func_shelter_b2_elevator_hall_80182B48(Task* task)
+void func_shelter_b2_elevator_hall_80182B48(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -11,8 +12,6 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
-
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
 
 /// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
 /// to the room's handlers, closed by id 0x7FFFFFFF.
@@ -27,16 +26,31 @@ static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
     { func_shelter_b1_storeroom_8017D740, func_shelter_b1_storeroom_8017D78C, taskKill }
 };
 
-s32 func_shelter_b1_storeroom_8017D5FC(void)
+s32 func_shelter_b1_storeroom_8017D5FC(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D604(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b1_storeroom_8017D6E0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D6E8(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_storeroom_8017D6F0(Task *, s32, s32, GpMessageArg);
+
+GpMsgEntry D_shelter_b1_storeroom_80184968[6] = {
+    { 5102, func_shelter_b1_storeroom_8017D604 },
+    { 5105, func_shelter_b1_storeroom_8017D5FC },
+    { 5103, func_shelter_b1_storeroom_8017D6E8 },
+    { 5104, func_shelter_b1_storeroom_8017D6E0 },
+    { 5106, func_shelter_b1_storeroom_8017D6F0 },
+    { 0x7FFFFFFF, NULL },
+};
+
+s32 func_shelter_b1_storeroom_8017D5FC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId == 0xD && GameFlag_GetNibble(0xA6) == 0) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed == 0xD && GameFlag_GetNibble(0xA6) == 0) {
         if (in->field_5 != 0) {
             return 0;
         }
@@ -44,7 +58,7 @@ s32 func_shelter_b1_storeroom_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         Gp_RunCapCmd1(1);
         return 0;
     }
-    if (in->msgId != 0xC && in->msgId != 0xA) {
+    if (in->prefix.packed != 0xC && in->prefix.packed != 0xA) {
         return 1;
     }
     if (GameFlag_GetNibble(0x7A) < 6) {
@@ -57,17 +71,17 @@ s32 func_shelter_b1_storeroom_8017D604(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6E0(void)
+s32 func_shelter_b1_storeroom_8017D6E0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6E8(void)
+s32 func_shelter_b1_storeroom_8017D6E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_storeroom_8017D6F0(s32 arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b1_storeroom_8017D6F0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) {
         case 8:

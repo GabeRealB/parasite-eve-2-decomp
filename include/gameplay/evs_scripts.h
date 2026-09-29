@@ -11,7 +11,7 @@ extern u8 D_801156F9;
 
 Task* Gp_LookupSlot4(s32 arg0);
 
-void func_800E8614(s32 arg0, s32 arg1);
+void func_800E8614(GpEvsAddress arg0, s32 arg1);
 
 void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2);
 

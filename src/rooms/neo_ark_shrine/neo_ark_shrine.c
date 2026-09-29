@@ -1,3 +1,6 @@
+#include "neo_ark_shrine_private.h"
+#include "mapui/map_neo_ark.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -23,12 +26,10 @@
 #include "main/task.h"
 #include "overlay.h"
 
-extern void func_80179B14(RoomEventMsg* in, RoomEventMsg* out);
-
 /// Message table installed at `Task::msgTable` by the room task's state 0.
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
 
-extern TaskDesc D_neo_ark_shrine_80181E5C;
+extern TaskDesc D_neo_ark_shrine_80181E5C[];
 
 /// Task spawned in state 0, polled by `Task_PollKill` and cleared in state 1.
 extern Task* D_neo_ark_shrine_80186864;
@@ -48,17 +49,206 @@ extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
 /// Steps the currently selected group and returns which kind of step it was.
 static s16 func_neo_ark_shrine_8017E254(void);
 
+s32 func_neo_ark_shrine_8017D6A4(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_shrine_8017D6AC(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_neo_ark_shrine_8017D740(Task *, s32, s32, GpMessageArg);
+s32 func_neo_ark_shrine_8017D7F0(Task *, s32, GpMsg13EF *, GpMessageArg);
+void func_neo_ark_shrine_8017D84C(Task *);
+
+GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
+    { 5102, func_neo_ark_shrine_8017D6AC },
+    { 5105, func_neo_ark_shrine_8017D6A4 },
+    { 5103, func_neo_ark_shrine_8017D7F0 },
+    { 5104, func_neo_ark_shrine_8017D740 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_neo_ark_shrine_80181E5C[2] = {
+    { 0, 32, func_neo_ark_shrine_8017D84C, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+s32 D_neo_ark_shrine_80181E74 = 2;
+
+TmdBone D_neo_ark_shrine_80181E78[1] = {
+#include "assets/neo_ark_shrine_model_04B90_skeleton.inc"
+};
+
+u32 D_neo_ark_shrine_80181E9C[1] = {
+#include "assets/neo_ark_shrine_model_04B90_partVerts.inc"
+};
+
+SVECTOR D_neo_ark_shrine_80181EA0[33] = {
+#include "assets/neo_ark_shrine_model_04B90_verts.inc"
+};
+
+u32 D_neo_ark_shrine_80181FA8[106] = {
+#include "assets/neo_ark_shrine_model_04B90_stream.inc"
+};
+
+TmdSource D_neo_ark_shrine_80182150 = {
+    0, 800, 0, 1,
+    D_neo_ark_shrine_80181E9C, D_neo_ark_shrine_80181EA0, &D_neo_ark_shrine_80181EA0[33], D_neo_ark_shrine_80181E78, D_neo_ark_shrine_80181FA8,
+};
+
+TmdBone D_neo_ark_shrine_80182174[1] = {
+#include "assets/neo_ark_shrine_model_04E20_skeleton.inc"
+};
+
+u32 D_neo_ark_shrine_80182198[1] = {
+#include "assets/neo_ark_shrine_model_04E20_partVerts.inc"
+};
+
+SVECTOR D_neo_ark_shrine_8018219C[18] = {
+#include "assets/neo_ark_shrine_model_04E20_verts.inc"
+};
+
+u32 D_neo_ark_shrine_8018222C[109] = {
+#include "assets/neo_ark_shrine_model_04E20_stream.inc"
+};
+
+TmdSource D_neo_ark_shrine_801823E0 = {
+    0, 672, 0, 1,
+    D_neo_ark_shrine_80182198, D_neo_ark_shrine_8018219C, &D_neo_ark_shrine_8018219C[18], D_neo_ark_shrine_80182174, D_neo_ark_shrine_8018222C,
+};
+
+TaskDesc D_neo_ark_shrine_80182404[1] = {
+    { 0, 192, func_neo_ark_shrine_8017EA70, { .model = NULL } },
+};
+
+u16 D_neo_ark_shrine_80182410[16] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    0,
+};
+
+OverlayHotspot D_neo_ark_shrine_80182430[18] = {
+    { -64, -64, 32, 32, 0, 0, 0 },
+    { -32, -64, 32, 32, 1, 0, 0 },
+    { 0, -64, 32, 32, 2, 0, 0 },
+    { 32, -64, 32, 32, 3, 0, 0 },
+    { -64, -32, 32, 32, 4, 0, 0 },
+    { -32, -32, 32, 32, 5, 0, 0 },
+    { 0, -32, 32, 32, 6, 0, 0 },
+    { 32, -32, 32, 32, 7, 0, 0 },
+    { -64, 0, 32, 32, 8, 0, 0 },
+    { -32, 0, 32, 32, 9, 0, 0 },
+    { 0, 0, 32, 32, 10, 0, 0 },
+    { 32, 0, 32, 32, 11, 0, 0 },
+    { -64, 32, 32, 32, 12, 0, 0 },
+    { -32, 32, 32, 32, 13, 0, 0 },
+    { 0, 32, 32, 32, 14, 0, 0 },
+    { 32, 32, 32, 32, 15, 0, 0 },
+    { -160, -120, 320, 240, 16, 0, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+TaskDesc D_neo_ark_shrine_80182508[3] = {
+    { 0, 192, func_neo_ark_shrine_8017EAE0, { .model = NULL } },
+    { 1, 192, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
+    { 1, 192, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
+};
+
+NeoArkShrineSlot D_neo_ark_shrine_8018252C[16] = {
+    { 0xFFC0, 0xFFC0 },
+    { 0xFFE0, 0xFFC0 },
+    { 0, 0xFFC0 },
+    { 32, 0xFFC0 },
+    { 0xFFC0, 0xFFE0 },
+    { 0xFFE0, 0xFFE0 },
+    { 0, 0xFFE0 },
+    { 32, 0xFFE0 },
+    { 0xFFC0, 0 },
+    { 0xFFE0, 0 },
+    { 0, 0 },
+    { 32, 0 },
+    { 0xFFC0, 32 },
+    { 0xFFE0, 32 },
+    { 0, 32 },
+    { 32, 32 },
+};
+
+NeoArkShrineSlot D_neo_ark_shrine_8018256C[16] = {
+    { 32, 32 },
+    { 0xFFC0, 0xFFC0 },
+    { 0xFFE0, 0xFFC0 },
+    { 0, 0xFFC0 },
+    { 32, 0xFFC0 },
+    { 0xFFC0, 0xFFE0 },
+    { 0xFFE0, 0xFFE0 },
+    { 0, 0xFFE0 },
+    { 32, 0xFFE0 },
+    { 0xFFC0, 0 },
+    { 0xFFE0, 0 },
+    { 0, 0 },
+    { 32, 0 },
+    { 0xFFC0, 32 },
+    { 0xFFE0, 32 },
+    { 0, 32 },
+};
+
+NeoArkShrineSlot D_neo_ark_shrine_801825AC[16] = {
+    { 96, 96 },
+    { 0, 0 },
+    { 32, 0 },
+    { 64, 0 },
+    { 96, 0 },
+    { 0, 32 },
+    { 32, 32 },
+    { 64, 32 },
+    { 96, 32 },
+    { 0, 64 },
+    { 32, 64 },
+    { 64, 64 },
+    { 96, 64 },
+    { 0, 96 },
+    { 32, 96 },
+    { 64, 96 },
+};
+
+s16 D_neo_ark_shrine_801825EC[16][5] = {
+    { 1, 4, 255, 255, 255 },
+    { 0, 2, 5, 255, 255 },
+    { 1, 3, 6, 255, 255 },
+    { 2, 7, 255, 255, 255 },
+    { 0, 5, 8, 255, 255 },
+    { 1, 4, 6, 9, 255 },
+    { 2, 5, 7, 10, 255 },
+    { 3, 6, 11, 255, 255 },
+    { 4, 9, 12, 255, 255 },
+    { 5, 8, 10, 13, 255 },
+    { 6, 9, 11, 14, 255 },
+    { 7, 10, 15, 255, 255 },
+    { 8, 13, 255, 255, 255 },
+    { 9, 12, 14, 255, 255 },
+    { 10, 13, 15, 255, 255 },
+    { 11, 14, 255, 255, 255 },
+};
+
 /// Always returns 0.
-s32 func_neo_ark_shrine_8017D6A4(void)
+s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179B14(in, out);
-    if (in->msgId != 0x11) {
+    func_map_neo_ark_80179B14(in, out);
+    if (in->prefix.packed != 0x11) {
         return 1;
     }
     if (GameFlag_GetNibble(0xDB) != 0) {
@@ -72,7 +262,7 @@ s32 func_neo_ark_shrine_8017D6AC(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEvent
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D740(s32 arg0, s32 arg1, s32 arg2)
+s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     s32 bit2;
 
@@ -93,11 +283,11 @@ s32 func_neo_ark_shrine_8017D740(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         if (GameFlag_GetNibble(0xDF) == 0) {
-            Task_SpawnFromTable(&D_neo_ark_shrine_80181E5C, 0, 0, 0);
+            Task_SpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(9);
         }
@@ -113,7 +303,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            D_neo_ark_shrine_80186864 = Task_SpawnFromTable(&D_neo_ark_shrine_80182508, 0, 0, 0);
+            D_neo_ark_shrine_80186864 = Task_SpawnFromTable(D_neo_ark_shrine_80182508, 0, 0, 0);
             task->state++;
             return;
         case 1:

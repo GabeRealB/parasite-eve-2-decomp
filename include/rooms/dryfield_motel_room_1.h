@@ -1,6 +1,8 @@
 #ifndef ROOMS_DRYFIELD_MOTEL_ROOM_1_H
 #define ROOMS_DRYFIELD_MOTEL_ROOM_1_H
 
+#include "gameplay/area.h"
+
 #include "common.h"
 
 #include "rooms/room.h"
@@ -115,5 +117,9 @@ void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
 /// Arm the player's weapon, then re-issue the room task's messages: the 0x7DA
 /// poke at the slot-4 task and both 0x7D4 placements.
 void func_dryfield_motel_room_1_8017DF08(void);
+
+extern GpAreaVariant D_dryfield_motel_room_1_801814DC[13];
+
+void func_dryfield_motel_room_1_8017E0A0(Task* unused);
 
 #endif // ROOMS_DRYFIELD_MOTEL_ROOM_1_H

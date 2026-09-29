@@ -118,7 +118,7 @@ s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 arg1, s32 unused3)
     return arg1;
 }
 
-Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
     DisplayState* temp;
     GsOT*         ot;
@@ -149,7 +149,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
     DisplayState* temp;
     GsOT*         ot;

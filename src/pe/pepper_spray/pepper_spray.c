@@ -1,3 +1,5 @@
+#include "pe/pepper_spray.h"
+
 #include "common.h"
 
 #include <psyq/inline_c.h>
@@ -5,7 +7,6 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
-#include "pe/pepper_spray.h"
 
 #include "gameplay/attachments.h"
 #include "gameplay/display.h"
@@ -40,7 +41,7 @@ static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 /// ends after nine frames, or immediately if the player is dying
 /// (`Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 
-static void func_pepper_spray_8012EF34(Task* arg0)
+void func_pepper_spray_8012EF34(Task* arg0)
 {
     GpEffWork*    mem;
     GpCoord*      coord;

@@ -17,7 +17,7 @@ void Gp_TriggerPeIfArmed(void);
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 
-s32 Gp_TrySpawnViewTask(s32 arg0);
+s32 Gp_TrySpawnViewTask(GpViewRec* arg0);
 
 void Gp_ApplyView(GpViewRec* arg0);
 

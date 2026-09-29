@@ -1,4 +1,5 @@
 #include "common.h"
+#include "rooms/acropolis_hallway.h"
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -28,6 +29,15 @@
 #include "main/tmd.h"
 #include "overlay.h"
 
+#include "actors/task_tables.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "mapui/stage_tables.h"
+#include "rooms/stage_tables.h"
+
 extern GpMsgEntry D_acropolis_hallway_8017E238[];
 extern SVECTOR    D_acropolis_hallway_8017FA4C;
 
@@ -39,30 +49,374 @@ static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
     { func_acropolis_hallway_8017D784, func_acropolis_hallway_8017D7C8, taskKill },
 };
 
+extern u32 D_acropolis_hallway_8017F8A4[1];
+extern SVECTOR D_acropolis_hallway_8017F8A8[21];
+extern SVECTOR D_acropolis_hallway_8017F950[6];
+extern TmdBone D_acropolis_hallway_8017F880[1];
+extern u32 D_acropolis_hallway_8017F980[42];
+
+extern GpGridParams D_acropolis_hallway_8017E5D0[1];
+extern GpObj4C D_acropolis_hallway_8017E5F4[4];
+extern GpObj4C D_acropolis_hallway_8017E724[9];
+extern GpRoomCoordSet D_acropolis_hallway_8017EBC4[1];
+s32 func_acropolis_hallway_8017D5D0(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_acropolis_hallway_8017D72C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_hallway_8017D734(Task *, s32, s32, GpMessageArg);
+
+GpMsgEntry D_acropolis_hallway_8017E238[4] = {
+    { 5102, func_acropolis_hallway_8017D5D0 },
+    { 5105, func_acropolis_hallway_8017D72C },
+    { 5106, func_acropolis_hallway_8017D734 },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpRoomObjRec D_acropolis_hallway_8017E258[1] = {
+    { D_acropolis_hallway_8017E5D0, D_acropolis_hallway_8017E5F4, D_acropolis_hallway_8017E724, NULL },
+};
+
+u8 * D_acropolis_hallway_8017E268[1] = {
+    D_8010CAF8,
+};
+
+GpViewCountRec D_acropolis_hallway_8017E26C[1] = {
+    { { .bytes = { 5, 0 } } },
+};
+
+GpRoomCoordRec D_acropolis_hallway_8017E270[1] = {
+    { D_acropolis_hallway_8017EBC4, NULL },
+};
+
+GpWarpRec D_acropolis_hallway_8017E278[4] = {
+    { { .words = { 3072, 3012, -937, -698 } }, { 0, 0, 0, 0 }, { .words = { 3072, 3012, -937, -698 } }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 4, 0, 497 },
+    { { .words = { 2048, 2271, -937, 970 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2271, -937, 970 } }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 4, 0, 498 },
+    { { .words = { 2048, -748, -937, 970 } }, { 0, 0, 0, 0 }, { .words = { 2048, -748, -937, 970 } }, { 0, 0, 0, 0 }, 0x51070002, 0x51070001, 0, 3, 0, 499 },
+    { { .words = { 1024, -2963, -937, -623 } }, { 0, 0, 0, 0 }, { .words = { 1024, -2963, -937, -623 } }, { 0, 0, 0, 0 }, 0x51070004, 0x51070003, 0, 2, 0, 500 },
+};
+
+SVECTOR D_acropolis_hallway_8017E358[10] = {
+    { 4096, 0, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 0, -4096, 0, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, -1, -4096, 0 },
+    { 0, -4096, 2, 0 },
+    { 0, -1, -4096, 0 },
+    { 0, -4096, 2, 0 },
+};
+
+SVECTOR D_acropolis_hallway_8017E3A8[35] = {
+    { -3250, -3500, 1250, 0 },
+    { -3250, -1000, 1250, 0 },
+    { -3250, -1000, -1250, 0 },
+    { -3250, -3500, -1250, 0 },
+    { 3250, -1000, -1250, 0 },
+    { 3250, -3500, -1250, 0 },
+    { 3250, -1000, 1250, 0 },
+    { 3250, -3500, 1250, 0 },
+    { -1582, -1000, 594, 0 },
+    { -1582, -3514, 594, 0 },
+    { -1582, -3514, 1250, 0 },
+    { -1582, -1000, 1250, 0 },
+    { -3250, -1000, 594, 0 },
+    { -3250, -3514, 594, 0 },
+    { -3250, -1804, 596, 0 },
+    { -1621, -1804, 596, 0 },
+    { -1621, -1804, 31, 0 },
+    { -3250, -1804, 31, 0 },
+    { -3250, -1000, 31, 0 },
+    { -1621, -1000, 31, 0 },
+    { -1621, -1000, 596, 0 },
+    { 2739, -1000, 489, 0 },
+    { 2739, -1703, 489, 0 },
+    { 3250, -1703, 489, 0 },
+    { 3250, -1000, 489, 0 },
+    { 2739, -1000, 1249, 0 },
+    { 2739, -1703, 1250, 0 },
+    { 3250, -1703, 1250, 0 },
+    { 2733, -1000, -55, 0 },
+    { 2733, -2502, -55, 0 },
+    { 3250, -2502, -55, 0 },
+    { 3250, -1000, -55, 0 },
+    { 2733, -1000, 486, 0 },
+    { 2733, -2502, 487, 0 },
+    { 3250, -2502, 487, 0 },
+};
+
+GpGridFace D_acropolis_hallway_8017E4C0[17] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+    { { 6, 1, 7, 0 }, 3, 0 },
+    { { 6, 4, 1, 2 }, 4, 4 },
+    { { 0, 3, 7, 5 }, 5, 0 },
+    { { 9, 10, 8, 11 }, 0, 0 },
+    { { 13, 9, 12, 8 }, 3, 0 },
+    { { 15, 16, 14, 17 }, 4, 1 },
+    { { 17, 16, 18, 19 }, 3, 1 },
+    { { 16, 15, 19, 20 }, 0, 1 },
+    { { 22, 23, 21, 24 }, 6, 0 },
+    { { 26, 22, 25, 21 }, 2, 0 },
+    { { 26, 27, 22, 23 }, 7, 0 },
+    { { 29, 30, 28, 31 }, 8, 0 },
+    { { 33, 29, 32, 28 }, 2, 0 },
+    { { 33, 34, 29, 30 }, 9, 0 },
+};
+
+s16 D_acropolis_hallway_8017E58C[17] = {
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 D_acropolis_hallway_8017E5B0[12] = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    -1,
+};
+
+s16 * D_acropolis_hallway_8017E5C8[2] = {
+    D_acropolis_hallway_8017E58C,
+    D_acropolis_hallway_8017E5B0,
+};
+
+GpGridParams D_acropolis_hallway_8017E5D0[1] = {
+    { NULL, D_acropolis_hallway_8017E358, D_acropolis_hallway_8017E3A8, D_acropolis_hallway_8017E4C0, D_acropolis_hallway_8017E5C8, 3250, 1250, 2, 1, 4000, 17 },
+};
+
+GpObj4C D_acropolis_hallway_8017E5F4[4] = {
+    { NULL, NULL, NULL, { -1984, -2016, 0, 0 }, { { 0, -1792, -1760, 0 }, { 0, 1792, -1760, 0 }, { 0, -1792, 1760, 0 }, { 0, 1792, 1760, 0 } }, { -4106, 0, 0, 0 }, { 0, 0, 0, 0 }, 2508, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { 320, -2016, 0, 0 }, { { -174, -1792, -1752, 0 }, { -174, 1792, -1752, 0 }, { 172, -1792, 1750, 0 }, { 172, 1792, 1750, 0 } }, { -4086, 0, 402, 0 }, { 0, 0, 0, 0 }, 2508, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { 192, -1920, 0, 0 }, { { -174, 1792, -1752, 0 }, { -174, -1792, -1752, 0 }, { 172, 1792, 1750, 0 }, { 172, -1792, 1750, 0 } }, { 4084, 0, -404, 0 }, { 0, 0, 0, 0 }, 2508, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -2112, -1952, 0, 0 }, { { 0, 1792, -1760, 0 }, { 0, -1792, -1760, 0 }, { 0, 1792, 1760, 0 }, { 0, -1792, 1760, 0 } }, { 4105, 0, 0, 0 }, { 0, 0, 0, 0 }, 2508, 0, 3, 2, 129, 0 },
+};
+
+GpObj4C D_acropolis_hallway_8017E724[9] = {
+    { NULL, NULL, NULL, { -2960, -1024, -384, 0 }, { { -272, 0, -736, 0 }, { 272, 0, -736, 0 }, { -272, 0, 736, 0 }, { 272, 0, 736, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 783, 0, 4, 67, 2, 0 },
+    { NULL, NULL, NULL, { -768, -1016, 920, 0 }, { { -496, 0, -352, 0 }, { 496, 0, -352, 0 }, { -496, 0, 352, 0 }, { 496, 0, 352, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 607, 0, 4, 49, 2, 0 },
+    { NULL, NULL, NULL, { 2304, -1024, 928, 0 }, { { -496, 0, -352, 0 }, { 496, 0, -352, 0 }, { -496, 0, 352, 0 }, { 496, 0, 352, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 607, 0, 6, 33, 2, 0 },
+    { NULL, NULL, NULL, { 2944, -1024, -672, 0 }, { { 288, 0, -496, 0 }, { 288, 0, 496, 0 }, { -288, 0, -496, 0 }, { -288, 0, 496, 0 } }, { 0, 4108, 0, 0 }, { -4096, 0, 0, 0 }, 572, 0, 8, 19, 2, 0 },
+    { NULL, NULL, NULL, { 800, -1088, -928, 0 }, { { -560, 0, -288, 0 }, { 560, 0, -288, 0 }, { -560, 0, 288, 0 }, { 560, 0, 288, 0 } }, { 0, 4101, 0, 0 }, { -201, 0, 4091, 0 }, 627, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3184, -1056, 368, 0 }, { { -1056, 0, -912, 0 }, { 128, 0, -912, 0 }, { -1056, 0, 208, 0 }, { 128, 0, 208, 0 } }, { 0, 4113, 0, 0 }, { -4076, 0, 401, 0 }, 1390, 2, 3, 0, 4, 0 },
+    { NULL, NULL, NULL, { 736, -1056, 848, 0 }, { { -528, 0, -240, 0 }, { 528, 0, -240, 0 }, { -528, 0, 432, 0 }, { 528, 0, 432, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 680, 2, 4, 0, 2, 0 },
+    { NULL, NULL, NULL, { -784, -1056, -864, 0 }, { { -832, 0, -368, 0 }, { 832, 0, -368, 0 }, { -832, 0, 240, 0 }, { 832, 0, 240, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, 4091, 0 }, 909, 2, 5, 0, 2, 0 },
+    { NULL, NULL, NULL, { -2128, -1042, -1024, 0 }, { { -400, 0, -304, 0 }, { 400, 0, -304, 0 }, { -400, 0, 304, 0 }, { 400, 0, 304, 0 } }, { 0, 4100, 0, 0 }, { 200, 0, 4090, 0 }, 501, 2, 6, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_acropolis_hallway_8017E9D0[2] = {
+    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_hallway_8017E9E8[2] = {
+    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_hallway_8017EA00[2] = {
+    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_hallway_8017EA18[3] = {
+    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {
+    { NULL, NULL },
+    { D_map_akropolis_8017B04C, D_acropolis_hallway_8017E9D0 },
+    { D_map_akropolis_8017B0DC, D_acropolis_hallway_8017E9E8 },
+    { D_map_akropolis_8017B0FC, D_acropolis_hallway_8017EA00 },
+    { D_map_akropolis_8017B11C, D_acropolis_hallway_8017EA18 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+};
+
+GpPointLight D_acropolis_hallway_8017EAA4[3] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2374, -2432, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1360, 2384 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1360, 2384 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2297, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 4096, 4096, { 0, 0 } }, 1360, 2384 },
+};
+
+GpRoomCoordSet D_acropolis_hallway_8017EBC4[1] = {
+    { 0, NULL, 3, D_acropolis_hallway_8017EAA4, 0, NULL },
+};
+
+GpSprtCmd D_acropolis_hallway_8017EBDC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_hallway_8017EBEC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_hallway_8017EBFC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_hallway_8017EC0C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_hallway_8017EC1C[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_acropolis_hallway_8017EC2C[5] = {
+    { { .empty = D_acropolis_hallway_8017EBDC }, D_acropolis_hallway_8017EBDC, NULL },
+    { { .empty = D_acropolis_hallway_8017EBEC }, D_acropolis_hallway_8017EBEC, NULL },
+    { { .empty = D_acropolis_hallway_8017EBFC }, D_acropolis_hallway_8017EBFC, NULL },
+    { { .empty = D_acropolis_hallway_8017EC0C }, D_acropolis_hallway_8017EC0C, NULL },
+    { { .empty = D_acropolis_hallway_8017EC1C }, D_acropolis_hallway_8017EC1C, NULL },
+};
+
+GpViewRec D_acropolis_hallway_8017EC68[5] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6590, 0 } }, 911 },
+    { { { { -908, 0, 3994 }, { -529, 4059, -120 }, { -3958, -542, -900 } }, { 240, 1610, -240 } }, 207 },
+    { { { { -481, 0, 4067 }, { 891, 3996, 105 }, { -3968, 897, -469 } }, { -2520, 2700, -240 } }, 207 },
+    { { { { -624, 0, -4048 }, { -1848, 3644, 285 }, { 3601, 1870, -555 } }, { 1430, 3260, -240 } }, 207 },
+    { { { { -4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, -4096 } }, { -880, 2360, 640 } }, 207 },
+};
+
+s32 D_acropolis_hallway_8017ED1C[3] = {
+    0x10000009,
+    0x1000000B,
+    0x10000009,
+};
+
+GpRoomParamRec D_acropolis_hallway_8017ED28[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_hallway_8017ED30[1] = {
+    { 0, 1, 0, 0, D_acropolis_hallway_8017ED1C },
+};
+
+GpRoomParamRec D_acropolis_hallway_8017ED38[1] = {
+    { 0, 0, 1, 0, D_acropolis_hallway_8017ED1C },
+};
+
+GpRoomParamRec * D_acropolis_hallway_8017ED40[8] = {
+    D_acropolis_hallway_8017ED28,
+    D_acropolis_hallway_8017ED30,
+    D_acropolis_hallway_8017ED28,
+    D_acropolis_hallway_8017ED28,
+    D_acropolis_hallway_8017ED38,
+    D_acropolis_hallway_8017ED28,
+    D_acropolis_hallway_8017ED28,
+    D_acropolis_hallway_8017ED28,
+};
+
+TmdBone D_acropolis_hallway_8017ED60[1] = {
+#include "assets/acropolis_hallway_model_0229C_skeleton.inc"
+};
+
+u32 D_acropolis_hallway_8017ED84[1] = {
+#include "assets/acropolis_hallway_model_0229C_partVerts.inc"
+};
+
+SVECTOR D_acropolis_hallway_8017ED88[99] = {
+#include "assets/acropolis_hallway_model_0229C_verts.inc"
+};
+
+u32 D_acropolis_hallway_8017F0A0[495] = {
+#include "assets/acropolis_hallway_model_0229C_stream.inc"
+};
+
+TmdSource D_acropolis_hallway_8017F85C = {
+    0, 3728, 0, 1,
+    D_acropolis_hallway_8017ED84, D_acropolis_hallway_8017ED88, &D_acropolis_hallway_8017ED88[99], D_acropolis_hallway_8017ED60, D_acropolis_hallway_8017F0A0,
+};
+
+TmdBone D_acropolis_hallway_8017F880[1] = {
+#include "assets/acropolis_hallway_model_02468_skeleton.inc"
+};
+
+u32 D_acropolis_hallway_8017F8A4[1] = {
+#include "assets/acropolis_hallway_model_02468_partVerts.inc"
+};
+
+SVECTOR D_acropolis_hallway_8017F8A8[21] = {
+#include "assets/acropolis_hallway_model_02468_verts.inc"
+};
+
+SVECTOR D_acropolis_hallway_8017F950[6] = {
+#include "assets/acropolis_hallway_model_02468_normals.inc"
+};
+
+u32 D_acropolis_hallway_8017F980[42] = {
+#include "assets/acropolis_hallway_model_02468_stream.inc"
+};
+
+TmdSource D_acropolis_hallway_8017FA28 = {
+    0, 312, 0, 1,
+    D_acropolis_hallway_8017F8A4, D_acropolis_hallway_8017F8A8, D_acropolis_hallway_8017F950,
+    D_acropolis_hallway_8017F880, D_acropolis_hallway_8017F980,
+};
+
+SVECTOR D_acropolis_hallway_8017FA4C = { 0 };
+
 /// Message gate for the hallway's first hotspot: copies the incoming record to
 /// the outgoing one, then edits the copy's `field_3` (the answer the caller
 /// acts on) according to the message id and the room's progress nibbles.
 /// Returning 0 means the message was consumed.
-s32 func_acropolis_hallway_8017D5D0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     u16 msgId;
 
     *out = *in;
-    if (in->msgId == 8) {
+    if (in->prefix.packed == 8) {
         if ((GameFlag_GetNibble(9) & 2) && in->field_5 == 0) {
             out->field_3 = 2;
         }
     }
-    if (in->msgId == 4 && in->field_2 == 3 && GameFlag_GetNibble(0) < 3) {
+    if (in->prefix.packed == 4 && in->field_2 == 3 && GameFlag_GetNibble(0) < 3) {
         if (in->field_5 == 0) {
             Gp_RunCapCmd1(1);
         }
         return 0;
     }
-    if (in->msgId == 8 && GameFlag_GetNibble(0) == 3) {
+    if (in->prefix.packed == 8 && GameFlag_GetNibble(0) == 3) {
         return 1;
     }
-    msgId = in->msgId;
+    msgId = in->prefix.packed;
     if (msgId == 4 && in->field_5 == 0) {
         if (GameFlag_GetNibble(0) >= 3) {
             out->field_3 = msgId;
@@ -75,12 +429,12 @@ s32 func_acropolis_hallway_8017D5D0(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEv
 }
 
 /// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_hallway_8017D72C(void)
+s32 func_acropolis_hallway_8017D72C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_hallway_8017D734(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     switch (arg2) { /* irregular */
         case 6:
@@ -117,7 +471,7 @@ void func_acropolis_hallway_8017D7D0(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_acropolis_hallway_8017D828(void)
+void func_acropolis_hallway_8017D828(Task* unused)
 {
 }
 

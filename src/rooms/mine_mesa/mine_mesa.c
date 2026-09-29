@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mapui/map_shelter.h"
 #include "rooms/mine_mesa.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
@@ -53,6 +54,37 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#include "gameplay/direction_input.h"
+#include "gameplay/light.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+
+void func_mine_mesa_8017E15C(Task* arg0);
+
+extern SVECTOR D_mine_mesa_80186528[2];
+
+// Related spawn counters with an unreferenced trailing zero word. Original struct/adjacent globals and tail fields/TU padding remain unresolved.
+typedef struct { s16 remaining; s16 cooldown; u32 retained; } MineMesaSpawnCounters;
+STATIC_ASSERT_SIZEOF(MineMesaSpawnCounters, 8);
+extern MineMesaSpawnCounters D_mine_mesa_80189B6C;
+// Keep independently addressed counter views of the bounded allocation.
+extern s16 MineMesaRemaining __asm__("D_mine_mesa_80189B6C");
+extern s16 MineMesaCooldown __asm__("D_mine_mesa_80189B6C+2");
+
+// One live spotlight is followed by retained exporter data in whole
+// spotlight-sized slots. Its original role is unresolved; keep the bytes
+// without treating stale pointer-looking words as live C pointers.
+typedef struct {
+    GpSpotLight active[1];
+    u8 retained[756];
+} MineMesaSpotLightStorage;
+STATIC_ASSERT_SIZEOF(MineMesaSpotLightStorage, 864);
+
+extern GpObj4C D_mine_mesa_801890A0[19];
+
 /// A place an enemy can be spawned at: its position and the yaw it faces.
 typedef struct {
     s16 x;
@@ -71,24 +103,22 @@ typedef struct {
 
 extern TaskDesc D_8014D8A4;
 
-extern s32 func_80179A04(GpSaveLoc* in, GpSaveLoc* out);
-
 extern TaskDesc   D_mine_mesa_801818F8;
 extern GpMsgEntry D_mine_mesa_80181904[];
-extern TaskDesc   D_mine_mesa_80181990;
+extern TaskDesc   D_mine_mesa_80181990[];
 
 /// The mesa's run: one `SVECTOR` position per frame, sent as a `GpXformArg`.
 extern SVECTOR D_mine_mesa_80184184[];
 
-extern s32 D_mine_mesa_80184664;
-extern s32 D_mine_mesa_80184BA4;
-extern s32 D_mine_mesa_80184D9C;
-extern s32 D_mine_mesa_80184FF4;
-extern s32 D_mine_mesa_801850E4;
-extern s32 D_mine_mesa_801854BC;
-extern s32 D_mine_mesa_801856B4;
-extern s32 D_mine_mesa_8018578C;
-extern s32 D_mine_mesa_801861DC;
+extern GpEvsCmd D_mine_mesa_80184664[];
+extern GpEvsCmd D_mine_mesa_80184BA4[];
+extern GpEvsCmd D_mine_mesa_80184D9C[];
+extern GpEvsCmd D_mine_mesa_80184FF4[];
+extern GpEvsCmd D_mine_mesa_801850E4[];
+extern GpEvsCmd D_mine_mesa_801854BC[];
+extern GpEvsCmd D_mine_mesa_801856B4[];
+extern GpEvsCmd D_mine_mesa_8018578C[];
+extern GpEvsCmd D_mine_mesa_801861DC[];
 
 /// The mesa's emitter placements, one `SVECTOR` per position, 8 bytes apart.
 /// The runs overlap: `864F0`'s fourth and seventh positions are `864F0` itself
@@ -101,24 +131,17 @@ extern SVECTOR D_mine_mesa_801864F0[];
 extern SVECTOR D_mine_mesa_80186508[];
 
 /// The two offsets `func_mine_mesa_8017FC94` places its trail origins at, from
-/// the task's parent coordinate. `D_mine_mesa_80186530` is the second entry
+/// the task's parent coordinate. `D_mine_mesa_80186528[1]` is the second entry
 /// under its own name: the per-frame path addresses it directly.
-extern SVECTOR D_mine_mesa_80186528[];
-extern SVECTOR D_mine_mesa_80186530;
 
-extern GpObj4A             D_mine_mesa_801890EC[4];
 extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
-extern s32                 D_mine_mesa_80189B1C;
+extern GpMsgEntry D_mine_mesa_80189B1C[2];
 extern TaskDesc            D_mine_mesa_80189B2C;
-extern GpFadeWork          D_mine_mesa_80189B38;
+extern RoomFadeStorage          D_mine_mesa_80189B38;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;
-extern u32                 D_mine_mesa_80189B64;
-extern u8                  D_mine_mesa_80189B6A;
-extern s16                 D_mine_mesa_80189B6C;
-extern s16                 D_mine_mesa_80189B6E;
 extern GpEnemy*            D_mine_mesa_80189B74[2];
 
 #define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
@@ -132,6 +155,2348 @@ static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb);
 static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2);
+
+void func_mine_mesa_8017E074(Task *);
+
+extern GpAnimSet D_mine_mesa_80181C90;
+
+extern GpAnimSet D_mine_mesa_80181F0C;
+extern GpAnimSet D_mine_mesa_80182114;
+extern GpAnimSet D_mine_mesa_80182498;
+extern GpAnimSet D_mine_mesa_8018271C;
+extern GpAnimSet D_mine_mesa_80183720;
+extern GpAnimSet D_mine_mesa_80183A1C;
+extern GpAnimSet D_mine_mesa_80183BBC;
+extern GpAnimSet D_mine_mesa_80183EA4;
+extern GpAnimSet D_mine_mesa_8018415C;
+
+void func_mine_mesa_8017DE38(Task *);
+void func_mine_mesa_8017DFC4(Task *);
+void func_mine_mesa_8017E024(Task *);
+
+extern GpAnimArg D_mine_mesa_80184360;
+extern GpAnimArg D_mine_mesa_80184374;
+extern GpAnimArg D_mine_mesa_8018439C;
+extern GpAnimArg D_mine_mesa_801844B4;
+extern GpAnimArg D_mine_mesa_801844C8;
+extern GpAnimArg D_mine_mesa_801844DC;
+extern GpAnimArg D_mine_mesa_801844F0;
+extern GpAnimArg D_mine_mesa_80184504;
+extern GpAnimArg D_mine_mesa_8018452C;
+extern GpAnimArg D_mine_mesa_80184540;
+extern GpAnimArg D_mine_mesa_80184554;
+extern GpCmdArg D_mine_mesa_80184650;
+extern GpCmdArg D_mine_mesa_80184654;
+extern GpCopyArg D_mine_mesa_80184344;
+extern GpCopyArg D_mine_mesa_80184484;
+extern GpScriptCmd D_mine_mesa_80189A80[4];
+extern GpScriptRec D_mine_mesa_80189A90[3];
+extern GpXformArg D_mine_mesa_801843C4;
+extern GpXformArg D_mine_mesa_801843DC;
+extern GpXformArg D_mine_mesa_80184590;
+extern GpXformArg D_mine_mesa_801845A8;
+extern GpXformArg D_mine_mesa_801845C0;
+void func_mine_mesa_8017DDF0(void);
+void func_mine_mesa_8017E5A0(void);
+void func_mine_mesa_8017E5C0(void);
+void func_mine_mesa_8017E5E0(void);
+void func_mine_mesa_8017E620(void);
+void func_mine_mesa_8017E650(void);
+void func_mine_mesa_8017E684(s32);
+void func_mine_mesa_8017E6D8(void);
+void func_mine_mesa_8017E70C(s32);
+void func_mine_mesa_8017E760(void);
+void func_mine_mesa_8017E91C(void);
+void func_mine_mesa_8017E93C(u8);
+void func_mine_mesa_8017E948(void);
+void func_mine_mesa_8017EA24(void);
+void func_mine_mesa_8017EA78(void);
+void func_mine_mesa_8017EAAC(void);
+void func_mine_mesa_8017EB54(s32);
+
+extern GpAnimArg D_mine_mesa_80184360;
+extern GpAnimArg D_mine_mesa_801843B0;
+extern GpAnimArg D_mine_mesa_801844A0;
+extern GpAnimArg D_mine_mesa_80184518;
+extern GpAnimArg D_mine_mesa_8018452C;
+extern GpAnimArg D_mine_mesa_80184540;
+extern GpAnimArg D_mine_mesa_80184568;
+extern GpAnimArg D_mine_mesa_8018457C;
+extern GpCmdArg D_mine_mesa_80184650;
+extern GpCopyArg D_mine_mesa_80184344;
+extern GpCopyArg D_mine_mesa_80184484;
+extern GpEvsCmd D_mine_mesa_8018515C[17];
+extern GpGridParams D_mine_mesa_8018700C;
+extern GpObj3A D_mine_mesa_801899B4[2];
+extern GpObj4C D_mine_mesa_80188E40[8];
+extern GpRoomBoundVec D_mine_mesa_80189954[12];
+extern GpRoomCoordSet D_mine_mesa_80188E28[1];
+extern GpXformArg D_mine_mesa_801843F4;
+extern GpXformArg D_mine_mesa_80184424;
+extern GpXformArg D_mine_mesa_8018443C;
+extern GpXformArg D_mine_mesa_801845F0;
+extern GpXformArg D_mine_mesa_80184608;
+extern GpXformArg D_mine_mesa_80184620;
+extern GpXformArg D_mine_mesa_80184638;
+void func_mine_mesa_8017E600(void);
+void func_mine_mesa_8017E650(void);
+void func_mine_mesa_8017E684(s32);
+void func_mine_mesa_8017E6D8(void);
+void func_mine_mesa_8017E70C(s32);
+void func_mine_mesa_8017E8B0(s32);
+void func_mine_mesa_8017E8FC(s32);
+void func_mine_mesa_8017E93C(u8);
+void func_mine_mesa_8017EAC0(void);
+void func_mine_mesa_8017EB18(void);
+void func_mine_mesa_8017EB54(s32);
+
+extern GpPointLight D_mine_mesa_801887C8[8];
+extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
+s32 func_mine_mesa_80181800(Task *, s32, s32, s32);
+void func_mine_mesa_80181894(Task *);
+
+s32 func_mine_mesa_8017D8F0(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_mesa_8017D8F8(Task *, s32, GpSaveLoc *, GpSaveLoc *);
+s32 func_mine_mesa_8017DA7C(Task *, s32, s32, GpMessageArg);
+s32 func_mine_mesa_8017DABC(Task *, s32, GpMsg13EF *, s32);
+s32 func_mine_mesa_8017DBC4(Task *, s32, s32, s32);
+void func_mine_mesa_8017D670(Task *);
+
+TaskDesc D_mine_mesa_801818F8 = { 0, 32, func_mine_mesa_8017D670, { .model = NULL } };
+
+GpMsgEntry D_mine_mesa_80181904[6] = {
+    { 5102, func_mine_mesa_8017D8F8 },
+    { 5105, func_mine_mesa_8017D8F0 },
+    { 5103, func_mine_mesa_8017DABC },
+    { 5104, func_mine_mesa_8017DA7C },
+    { 5108, func_mine_mesa_8017DBC4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+s32 D_mine_mesa_80181934[11] = {
+    1,
+    1,
+    0,
+    0,
+    0,
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+};
+
+GpEvsCmd D_mine_mesa_80181960[2] = {
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_mine_mesa_80181990[2] = {
+    { 0, 192, func_mine_mesa_8017E024, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017DE38, { .model = NULL } },
+};
+
+TaskDesc D_mine_mesa_801819A8 = { 0, 192, func_mine_mesa_8017DFC4, { .model = NULL } };
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MineMesaPoseBank43F4;
+
+MineMesaPoseBank43F4 D_mine_mesa_801819B4 = { .poses = {
+#include "assets/mine_mesa_animation_046D0_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_801819FC[46] = {
+#include "assets/mine_mesa_animation_046D0_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80181AB4[109] = {
+#include "assets/mine_mesa_animation_046D0_records.inc"
+};
+
+u16 D_mine_mesa_80181C68[20] = {
+#include "assets/mine_mesa_animation_046D0_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80181C90 = {
+    D_mine_mesa_80181AB4, D_mine_mesa_80181C68,
+    { NULL, D_mine_mesa_801819B4.words, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MineMesaPoseBank46F8;
+
+MineMesaPoseBank46F8 D_mine_mesa_80181CB8 = { .poses = {
+#include "assets/mine_mesa_animation_0494C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80181CD0[32] = {
+#include "assets/mine_mesa_animation_0494C_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80181D50[101] = {
+#include "assets/mine_mesa_animation_0494C_records.inc"
+};
+
+u16 D_mine_mesa_80181EE4[20] = {
+#include "assets/mine_mesa_animation_0494C_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80181F0C = {
+    D_mine_mesa_80181D50, D_mine_mesa_80181EE4,
+    { NULL, D_mine_mesa_80181CB8.words, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineMesaPoseBank4974;
+
+MineMesaPoseBank4974 D_mine_mesa_80181F34 = { .poses = {
+#include "assets/mine_mesa_animation_04B54_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80181F64[34] = {
+#include "assets/mine_mesa_animation_04B54_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80181FEC[64] = {
+#include "assets/mine_mesa_animation_04B54_records.inc"
+};
+
+u16 D_mine_mesa_801820EC[20] = {
+#include "assets/mine_mesa_animation_04B54_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80182114 = {
+    D_mine_mesa_80181FEC, D_mine_mesa_801820EC,
+    { NULL, D_mine_mesa_80181F34.words, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} MineMesaPoseBank4B7C;
+
+MineMesaPoseBank4B7C D_mine_mesa_8018213C = { .poses = {
+#include "assets/mine_mesa_animation_04ED8_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80182184[71] = {
+#include "assets/mine_mesa_animation_04ED8_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_801822A0[116] = {
+#include "assets/mine_mesa_animation_04ED8_records.inc"
+};
+
+u16 D_mine_mesa_80182470[20] = {
+#include "assets/mine_mesa_animation_04ED8_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80182498 = {
+    D_mine_mesa_801822A0, D_mine_mesa_80182470,
+    { NULL, D_mine_mesa_8018213C.words, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[3];
+    GpPackedSvec words[9];
+} MineMesaPoseBank4F00;
+
+MineMesaPoseBank4F00 D_mine_mesa_801824C0 = { .poses = {
+#include "assets/mine_mesa_animation_0515C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_801824E4[34] = {
+#include "assets/mine_mesa_animation_0515C_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_8018256C[98] = {
+#include "assets/mine_mesa_animation_0515C_records.inc"
+};
+
+u16 D_mine_mesa_801826F4[20] = {
+#include "assets/mine_mesa_animation_0515C_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_8018271C = {
+    D_mine_mesa_8018256C, D_mine_mesa_801826F4,
+    { NULL, D_mine_mesa_801824C0.words, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[28];
+    GpPackedSvec words[84];
+} MineMesaPoseBank5184;
+
+MineMesaPoseBank5184 D_mine_mesa_80182744 = { .poses = {
+#include "assets/mine_mesa_animation_06160_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80182894[423] = {
+#include "assets/mine_mesa_animation_06160_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80182F30[498] = {
+#include "assets/mine_mesa_animation_06160_records.inc"
+};
+
+u16 D_mine_mesa_801836F8[20] = {
+#include "assets/mine_mesa_animation_06160_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80183720 = {
+    D_mine_mesa_80182F30, D_mine_mesa_801836F8,
+    { NULL, D_mine_mesa_80182744.words, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineMesaPoseBank6188;
+
+MineMesaPoseBank6188 D_mine_mesa_80183748 = { .poses = {
+#include "assets/mine_mesa_animation_0645C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80183778[56] = {
+#include "assets/mine_mesa_animation_0645C_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80183858[103] = {
+#include "assets/mine_mesa_animation_0645C_records.inc"
+};
+
+u16 D_mine_mesa_801839F4[20] = {
+#include "assets/mine_mesa_animation_0645C_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80183A1C = {
+    D_mine_mesa_80183858, D_mine_mesa_801839F4,
+    { NULL, D_mine_mesa_80183748.words, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MineMesaPoseBank6484;
+
+MineMesaPoseBank6484 D_mine_mesa_80183A44 = { .poses = {
+#include "assets/mine_mesa_animation_065FC_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80183A5C[18] = {
+#include "assets/mine_mesa_animation_065FC_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80183AA4[60] = {
+#include "assets/mine_mesa_animation_065FC_records.inc"
+};
+
+u16 D_mine_mesa_80183B94[20] = {
+#include "assets/mine_mesa_animation_065FC_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80183BBC = {
+    D_mine_mesa_80183AA4, D_mine_mesa_80183B94,
+    { NULL, D_mine_mesa_80183A44.words, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[4];
+    GpPackedSvec words[12];
+} MineMesaPoseBank6624;
+
+MineMesaPoseBank6624 D_mine_mesa_80183BE4 = { .poses = {
+#include "assets/mine_mesa_animation_068E4_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80183C14[45] = {
+#include "assets/mine_mesa_animation_068E4_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80183CC8[109] = {
+#include "assets/mine_mesa_animation_068E4_records.inc"
+};
+
+u16 D_mine_mesa_80183E7C[20] = {
+#include "assets/mine_mesa_animation_068E4_indices.inc"
+};
+
+GpAnimSet D_mine_mesa_80183EA4 = {
+    D_mine_mesa_80183CC8, D_mine_mesa_80183E7C,
+    { NULL, D_mine_mesa_80183BE4.words, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} MineMesaPoseBank690C;
+
+MineMesaPoseBank690C D_mine_mesa_80183ECC = { .poses = {
+#include "assets/mine_mesa_animation_06B9C_bank1.inc"
+} };
+
+GpPackedSvec D_mine_mesa_80183EE4[39] = {
+#include "assets/mine_mesa_animation_06B9C_bank4.inc"
+};
+
+GpAnimRec D_mine_mesa_80183F80[109] = {
+#include "assets/mine_mesa_animation_06B9C_records.inc"
+};
+
+u16 D_mine_mesa_80184134[20] = {
+#include "assets/mine_mesa_animation_06B9C_indices.inc"
+
+};
+
+GpAnimSet D_mine_mesa_8018415C = {
+    D_mine_mesa_80183F80, D_mine_mesa_80184134,
+    { NULL, D_mine_mesa_80183ECC.words, NULL, NULL, D_mine_mesa_80183EE4, NULL, NULL, NULL },
+};
+
+SVECTOR D_mine_mesa_80184184[46] = {
+    { 8870, 0, 2500, 0 },
+    { 8845, 0, 2488, 0 },
+    { 8821, 0, 2477, 0 },
+    { 8796, 0, 2466, 0 },
+    { 8772, 0, 2455, 0 },
+    { 8747, 0, 2444, 0 },
+    { 8723, 0, 2433, 0 },
+    { 8698, 0, 2422, 0 },
+    { 8674, 0, 2411, 0 },
+    { 8650, 0, 2400, 0 },
+    { 8625, 0, 2388, 0 },
+    { 8601, 0, 2377, 0 },
+    { 8576, 0, 2366, 0 },
+    { 8552, 0, 2355, 0 },
+    { 8527, 0, 2344, 0 },
+    { 8503, 0, 2333, 0 },
+    { 8478, 0, 2322, 0 },
+    { 8454, 0, 2311, 0 },
+    { 8430, 0, 2300, 0 },
+    { 8405, 0, 2288, 0 },
+    { 8381, 0, 2277, 0 },
+    { 8356, 0, 2266, 0 },
+    { 8332, 0, 2255, 0 },
+    { 8307, 0, 2244, 0 },
+    { 8283, 0, 2233, 0 },
+    { 8258, 0, 2222, 0 },
+    { 8234, 0, 2211, 0 },
+    { 8210, 0, 2200, 0 },
+    { 8185, 0, 2188, 0 },
+    { 8161, 0, 2177, 0 },
+    { 8136, 0, 2166, 0 },
+    { 8112, 0, 2155, 0 },
+    { 8087, 0, 2144, 0 },
+    { 8063, 0, 2133, 0 },
+    { 8038, 0, 2122, 0 },
+    { 8014, 0, 2111, 0 },
+    { 7990, 0, 2100, 0 },
+    { 7965, 0, 2088, 0 },
+    { 7941, 0, 2077, 0 },
+    { 7916, 0, 2066, 0 },
+    { 7892, 0, 2055, 0 },
+    { 7867, 0, 2044, 0 },
+    { 7843, 0, 2033, 0 },
+    { 7818, 0, 2022, 0 },
+    { 7794, 0, 2011, 0 },
+    { 7770, 0, 2000, 0 },
+};
+
+void func_mine_mesa_8017E074(Task *);
+void func_mine_mesa_8017E2A4(Task *);
+void func_mine_mesa_8017E3E0(Task *);
+void func_mine_mesa_8017E7B0(Task *);
+void func_mine_mesa_8017E978(Task *);
+
+TaskDesc D_mine_mesa_801842F4[6] = {
+    { 0, 192, func_mine_mesa_8017E074, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017E15C, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017E2A4, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017E7B0, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017E3E0, { .model = NULL } },
+    { 0, 192, func_mine_mesa_8017E978, { .model = NULL } },
+};
+
+GpAnimSet * D_mine_mesa_8018433C[2] = {
+    NULL,
+    &D_mine_mesa_80181C90,
+};
+
+GpCopyArg D_mine_mesa_80184344 = { { .sets = D_mine_mesa_8018433C }, 2 };
+
+// Retained data: Same five-field layout as the following animation arguments; retained unreferenced entry.
+GpAnimArg D_mine_mesa_8018434C = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_80184360 = { { .index = 1 }, 48, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_80184374 = { { .index = 1 }, 9, 1, 20, 1 };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+GpAnimArg D_mine_mesa_80184388 = { { .index = 1 }, 3, 1, 20, 1 };
+
+GpAnimArg D_mine_mesa_8018439C = { { .index = 1 }, 13, 1, 20, 1 };
+
+GpAnimArg D_mine_mesa_801843B0 = { { .index = 1 }, 9, 0, 0, 1 };
+
+GpXformArg D_mine_mesa_801843C4 = { { 8780, 0, 2700, 0 }, { 0, 785, 0, 0 } };
+
+GpXformArg D_mine_mesa_801843DC = { { 7670, 0, 2200, 0 }, { 0, 785, 0, 0 } };
+
+GpXformArg D_mine_mesa_801843F4 = { { 9550, 0, 1700, 0 }, { 0, -774, 0, 0 } };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+GpXformArg D_mine_mesa_8018440C = { { 7770, 0, 2000, 0 }, { 0, 685, 0, 0 } };
+
+GpXformArg D_mine_mesa_80184424 = { { 6280, 0, 5370, 0 }, { 0, 1420, 0, 0 } };
+
+GpXformArg D_mine_mesa_8018443C = { { 9630, 0, 1570, 0 }, { 0, 1024, 0, 0 } };
+
+GpAnimSet * D_mine_mesa_80184454[12] = {
+    NULL,
+    &D_mine_mesa_80181F0C,
+    &D_mine_mesa_80182114,
+    &D_mine_mesa_80182498,
+    &D_mine_mesa_8018271C,
+    &D_mine_mesa_80183720,
+    &D_mine_mesa_80183A1C,
+    NULL,
+    &D_mine_mesa_80183EA4,
+    &D_mine_mesa_8018415C,
+    &D_mine_mesa_80183BBC,
+    &D_mine_mesa_80183EA4,
+};
+
+GpCopyArg D_mine_mesa_80184484 = { { .sets = D_mine_mesa_80184454 }, 12 };
+
+GpAnimArg D_mine_mesa_8018448C = { { .index = 1 }, 1, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_801844A0 = { { .index = 1 }, 48, 1, 20, 0 };
+
+GpAnimArg D_mine_mesa_801844B4 = { { .index = 1 }, 49, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_801844C8 = { { .index = 1 }, 50, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_801844DC = { { .index = 1 }, 51, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_801844F0 = { { .index = 1 }, 52, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_80184504 = { { .index = 1 }, 53, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_80184518 = { { .index = 1 }, 9, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_8018452C = { { .index = 1 }, 55, 1, 20, 0 };
+
+GpAnimArg D_mine_mesa_80184540 = { { .index = 1 }, 56, 1, 20, 0 };
+
+GpAnimArg D_mine_mesa_80184554 = { { .index = 1 }, 57, 0, 0, 1 };
+
+GpAnimArg D_mine_mesa_80184568 = { { .index = 1 }, 58, 0, 0, 0 };
+
+GpAnimArg D_mine_mesa_8018457C = { { .index = 1 }, 10, 0, 0, 1 };
+
+GpXformArg D_mine_mesa_80184590 = { { 6320, 0, 1770, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_mine_mesa_801845A8 = { { 6320, 0, 1770, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_mine_mesa_801845C0 = { { 6320, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+GpXformArg D_mine_mesa_801845D8 = { { 4600, 0, 1770, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mine_mesa_801845F0 = { { 6172, 0, 2800, 0 }, { 0, 2047, 0, 0 } };
+
+GpXformArg D_mine_mesa_80184608 = { { 4820, 0, 2500, 0 }, { 0, 1054, 0, 0 } };
+
+GpXformArg D_mine_mesa_80184620 = { { 6172, 0, 2800, 0 }, { 0, 1024, 0, 0 } };
+
+GpXformArg D_mine_mesa_80184638 = { { 6172, 0, 2800, 0 }, { 0, 2048, 0, 0 } };
+
+GpCmdArg D_mine_mesa_80184650 = { { .loc = { 4, 1 } }, 0 };
+
+GpCmdArg D_mine_mesa_80184654 = { { .loc = { 4, 1 } }, 1 };
+
+GpCmdArg D_mine_mesa_80184658 = { { .loc = { 4, 1 } }, 2 };
+
+GpOverlayIds D_mine_mesa_8018465C = { 4, 1, 11 };
+
+GpEvsCmd D_mine_mesa_80184664[56] = {
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EA78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 50 }, { .value = 50 }, { .value = 50 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801843C4 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_80184590 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018439C }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184554 }, { .value = 0 } },
+    { 3, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E620 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E948 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184374 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E760 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844B4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844C8 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845A8 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184504 }, { .value = 0 } },
+    { 4, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844DC }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845C0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844F0 }, { .value = 0 } },
+    { 15, { .value = 0x54010003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184374 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017EB54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017DDF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EA24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_80184BA4[21] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EA78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801843DC }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845A8 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184374 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017EB54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017DDF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EA24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_80184D9C[25] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184540 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E650 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018452C }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_80184FF4[10] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_801850E4[5] = {
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184654 }, { .value = 2011 } },
+    { 13, { .callback = Gp_IncStateF0Ref }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_8018515C[17] = {
+    { 12, { .overlays = &D_mine_mesa_8018465C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E5A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E91C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184650 }, { .value = 2011 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E5C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 14, { .padCommands = D_mine_mesa_80189A80 }, { .padRecords = D_mine_mesa_80189A90 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E5E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 45, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_801852F4[19] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801843F4 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845F0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_801854BC[21] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184540 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E650 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018452C }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_801856B4[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_8018578C[110] = {
+    { 13, { .callback = func_mine_mesa_8017E8B0 }, { .value = 900 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844A0 }, { .value = 0 } },
+    { 44, { .commands = D_mine_mesa_8018515C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_80184424 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_80184608 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801843B0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184518 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_mine_mesa_80184650 }, { .value = 2011 } },
+    { 3, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8B0 }, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54010006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8B0 }, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x40010012 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_8018443C }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_80184620 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184518 }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EAC0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018457C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8B0 }, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_80184638 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8B0 }, { .value = 1110 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801843F4 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845F0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_mesa_801861DC[24] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017E600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mine_mesa_8017EB18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801843F4 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mine_mesa_801845F0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184344 }, { .value = 0 } },
+    { 1, { .value = 10 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_mesa_80184484 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
+    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
+    { 13, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_mine_mesa_8018641C[3] = {
+    { -4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { 4096, 0, 0, 0 },
+};
+
+SVECTOR D_mine_mesa_80186434[8] = {
+    { -250, 250, 400, 0 },
+    { -250, -1601, 400, 0 },
+    { -250, -1601, -150, 0 },
+    { -250, 250, -150, 0 },
+    { 256, -1601, -150, 0 },
+    { 256, 250, -150, 0 },
+    { 256, -1601, 400, 0 },
+    { 256, 250, 400, 0 },
+};
+
+GpGridFace D_mine_mesa_80186474[3] = {
+    { { 1, 2, 0, 3 }, 0, 0 },
+    { { 2, 4, 3, 5 }, 1, 0 },
+    { { 4, 6, 5, 7 }, 2, 0 },
+};
+
+s16 D_mine_mesa_80186498[4] = {
+    0,
+    1,
+    2,
+    -1,
+};
+
+s16 * D_mine_mesa_801864A0[1] = {
+    D_mine_mesa_80186498,
+};
+
+GpGridParams D_mine_mesa_801864A4 = { NULL, D_mine_mesa_8018641C, D_mine_mesa_80186434, D_mine_mesa_80186474, D_mine_mesa_801864A0, 250, 150, 1, 1, 4000, 3 };
+
+SVECTOR D_mine_mesa_801864C8[1] = {
+    { 4000, -650, 4780, 0 },
+};
+
+SVECTOR D_mine_mesa_801864D0[1] = {
+    { 4000, -650, 3270, 0 },
+};
+
+SVECTOR D_mine_mesa_801864D8[3] = {
+    { 0x71DE, -3310, 0x3C82, 0 },
+    { 0x3A7A, -3350, 2270, 0 },
+    { 0x2C4C, -3320, 6720, 0 },
+};
+
+SVECTOR D_mine_mesa_801864F0[3] = {
+    { 6170, -1710, 7860, 0 },
+    { 2550, -3190, 6380, 0 },
+    { 5050, -3350, 540, 0 },
+};
+
+SVECTOR D_mine_mesa_80186508[4] = {
+    { 560, -1930, 380, 0 },
+    { -2210, -1890, 5620, 0 },
+    { -6860, -1920, 5390, 0 },
+    { -4060, -1920, 2820, 0 },
+};
+
+// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
+SVECTOR D_mine_mesa_80186528[2] = {
+    { 0, 190, -15, 0 },
+    { 0, 1085, 180, 0 },
+};
+
+GpRoomObjRec D_mine_mesa_80186538[1] = {
+    { &D_mine_mesa_8018700C, D_mine_mesa_80188E40, D_mine_mesa_801890A0, D_mine_mesa_801899B4 },
+};
+
+u8 * D_mine_mesa_80186548[1] = {
+    D_8010CAF8,
+};
+
+GpRoomCoordRec D_mine_mesa_8018654C[1] = {
+    { D_mine_mesa_80188E28, D_mine_mesa_80189954 },
+};
+
+GpViewCountRec D_mine_mesa_80186554[1] = {
+    { { .bytes = { 11, 0 } } },
+};
+
+GpWarpRec D_mine_mesa_80186558[2] = {
+    { { .words = { 2048, 7060, 0, 2570 } }, { 0, 0, 0, 0 }, { .words = { 2048, 7060, 0, 2570 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { .words = { 1024, 315, 0, 3562 } }, { 0, 0, 0, 0 }, { .words = { 1024, 315, 0, 3562 } }, { 0, 0, 0, 0 }, 0x54010002, 0x54010001, 0, 5, 0, 0 },
+};
+
+SVECTOR D_mine_mesa_801865C8[37] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { -3807, 0, -1512, 0 },
+    { -1143, 0, -3933, 0 },
+    { 0, 0, -4096, 0 },
+    { 3481, 0, -2158, 0 },
+    { 0, 0, 4096, 0 },
+    { 1650, 0, -3749, 0 },
+    { 4096, 0, -41, 0 },
+    { -4096, 0, -42, 0 },
+    { -34, 0, -4096, 0 },
+    { 1184, 0, -3921, 0 },
+    { 2712, 0, 3070, 0 },
+    { 4096, 0, -13, 0 },
+    { 1924, 0, -3616, 0 },
+    { 3629, 0, -1900, 0 },
+    { 3664, 0, -1832, 0 },
+    { 3970, 0, 1009, 0 },
+    { 0, -4096, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 1363, 0, 3862, 0 },
+    { -278, -3054, 2715, 0 },
+    { -303, -4085, 0, 0 },
+    { -269, -2964, -2814, 0 },
+    { 1363, 0, -3862, 0 },
+    { -3581, -1989, 0, 0 },
+    { -4096, 0, 0, 0 },
+    { -241, -4089, 0, 0 },
+    { 89, 0, 4095, 0 },
+    { -894, 0, 3997, 0 },
+    { -894, 0, 3997, 0 },
+    { -4096, 0, -42, 0 },
+};
+
+SVECTOR D_mine_mesa_801866F0[117] = {
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
+    { 0x297C, 20, 8270, 0 },
+    { 0x297C, -1000, 8270, 0 },
+    { 0x2CE2, -1000, 6080, 0 },
+    { 0x2CE2, 20, 6080, 0 },
+    { 0x303E, -1000, 5830, 0 },
+    { 0x303E, 20, 5830, 0 },
+    { 1890, 20, 7170, 0 },
+    { 1890, -1000, 7170, 0 },
+    { 2930, -1000, 7170, 0 },
+    { 2930, 20, 7170, 0 },
+    { 3550, -1000, 8170, 0 },
+    { 3550, 20, 8170, 0 },
+    { 5650, 200, 5150, 0 },
+    { 5050, -1200, 5150, 0 },
+    { 3700, -1100, 5150, 0 },
+    { 3700, 200, 5150, 0 },
+    { 5650, 200, 2900, 0 },
+    { 6150, -1300, 2900, 0 },
+    { 8250, -1300, 2900, 0 },
+    { 8250, 200, 2900, 0 },
+    { -320, 20, 4970, 0 },
+    { -320, -1000, 4970, 0 },
+    { 680, -1000, 5410, 0 },
+    { 680, 20, 5410, 0 },
+    { 690, -1000, 6410, 0 },
+    { 690, 20, 6410, 0 },
+    { 0x2E5E, 2000, 7900, 0 },
+    { 0x2E5E, -1630, 7900, 0 },
+    { 0x2EAE, -1630, 70, 0 },
+    { 0x2EAE, 2000, 70, 0 },
+    { 2550, 170, 7800, 0 },
+    { 2550, -3000, 7800, 0 },
+    { 0x3016, -3000, 7720, 0 },
+    { 0x3016, 170, 7720, 0 },
+    { 430, 170, 7160, 0 },
+    { 430, -3000, 7160, 0 },
+    { 1020, 170, 1600, 0 },
+    { 1020, -4000, 1600, 0 },
+    { -10, -4000, 2510, 0 },
+    { -10, 170, 2510, 0 },
+    { 0, -4000, 5780, 0 },
+    { 0, 170, 5780, 0 },
+    { 2030, -4000, 6860, 0 },
+    { 2030, 170, 6860, 0 },
+    { 2700, -4000, 8140, 0 },
+    { 2700, 170, 8140, 0 },
+    { 540, 170, 640, 0 },
+    { 540, -4000, 640, 0 },
+    { 690, 170, 50, 0 },
+    { 690, -4000, 50, 0 },
+    { 5050, -1200, 2900, 0 },
+    { 3700, 200, 2900, 0 },
+    { 3700, -1100, 2900, 0 },
+    { 6150, -1300, 5150, 0 },
+    { 8250, 200, 5150, 0 },
+    { 8250, -1300, 5150, 0 },
+    { 8680, 0, 460, 0 },
+    { 0x3A98, 0, 8700, 0 },
+    { 0x3A98, 0, 612, 0 },
+    { 0x2738, 0, -230, 0 },
+    { -740, 0, -4040, 0 },
+    { 5440, 0, -830, 0 },
+    { 5360, 0, -4070, 0 },
+    { 6620, 0, 340, 0 },
+    { -800, 0, 8700, 0 },
+    { 9100, 200, 3200, 0 },
+    { 9100, -1300, 3200, 0 },
+    { 9100, -1300, 4850, 0 },
+    { 9100, 200, 4850, 0 },
+    { 6150, -1700, 4700, 0 },
+    { 5300, -1650, 4700, 0 },
+    { 5300, -1650, 3350, 0 },
+    { 6150, -1700, 3350, 0 },
+    { 5750, 170, -60, 0 },
+    { 5750, -1440, -60, 0 },
+    { 690, -1440, 50, 0 },
+    { 6510, 170, 110, 0 },
+    { 6510, -1090, 110, 0 },
+    { 5750, -3050, -60, 0 },
+    { 690, -3050, 50, 0 },
+    { 6510, -2700, 110, 0 },
+    { 0x2E5E, -3430, 7900, 0 },
+    { 0x2EAE, -3430, 70, 0 },
+    { 0x2EAE, -3430, -4010, 0 },
+    { 0x2EAE, 2000, -4010, 0 },
+    { -320, -1000, 6410, 0 },
+    { 1930, -1000, 8170, 0 },
+    { 1930, -1000, 7170, 0 },
+    { 0x303E, -1000, 8270, 0 },
+};
+
+GpGridFace D_mine_mesa_80186A98[53] = {
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 0, 0, 0, 0 }, 0, 0 },
+    { { 29, 30, 28, 31 }, 7, 0 },
+    { { 30, 32, 31, 33 }, 8, 0 },
+    { { 35, 36, 34, 37 }, 9, 0 },
+    { { 36, 38, 37, 39 }, 10, 0 },
+    { { 41, 42, 40, 43 }, 11, 0 },
+    { { 45, 46, 44, 47 }, 9, 0 },
+    { { 49, 50, 48, 51 }, 12, 0 },
+    { { 50, 52, 51, 53 }, 13, 0 },
+    { { 55, 56, 54, 57 }, 14, 0 },
+    { { 59, 60, 58, 61 }, 15, 1 },
+    { { 63, 59, 62, 58 }, 16, 1 },
+    { { 65, 66, 64, 67 }, 17, 0 },
+    { { 66, 68, 67, 69 }, 18, 0 },
+    { { 68, 70, 69, 71 }, 19, 0 },
+    { { 70, 72, 71, 73 }, 20, 0 },
+    { { 75, 65, 74, 64 }, 21, 0 },
+    { { 74, 76, 75, 77 }, 22, 0 },
+    { { 44, 78, 45, 0xFFFF }, 9, 0 },
+    { { 44, 79, 78, 80 }, 9, 0 },
+    { { 41, 40, 81, 0xFFFF }, 11, 0 },
+    { { 40, 82, 81, 83 }, 11, 0 },
+    { { 85, 86, 84, 87 }, 23, 2 },
+    { { 88, 89, 90, 0xFFFF }, 23, 2 },
+    { { 92, 85, 91, 84 }, 23, 2 },
+    { { 88, 92, 89, 91 }, 23, 2 },
+    { { 94, 95, 93, 96 }, 24, 0 },
+    { { 95, 83, 96, 82 }, 25, 0 },
+    { { 81, 97, 41, 98 }, 26, 0 },
+    { { 42, 41, 80, 78 }, 27, 0 },
+    { { 78, 99, 45, 100 }, 28, 0 },
+    { { 46, 94, 47, 93 }, 29, 0 },
+    { { 99, 78, 98, 41 }, 30, 0 },
+    { { 83, 95, 46, 94 }, 23, 0 },
+    { { 81, 83, 45, 46 }, 23, 0 },
+    { { 97, 81, 100, 45 }, 24, 0 },
+    { { 80, 79, 42, 43 }, 31, 0 },
+    { { 98, 97, 99, 100 }, 32, 0 },
+    { { 102, 103, 101, 76 }, 33, 0 },
+    { { 105, 102, 104, 101 }, 34, 0 },
+    { { 106, 107, 102, 103 }, 33, 4 },
+    { { 108, 106, 105, 102 }, 35, 4 },
+    { { 109, 110, 55, 56 }, 36, 4 },
+    { { 110, 111, 57, 112 }, 31, 4 },
+    { { 52, 50, 113, 49 }, 23, 0 },
+    { { 38, 36, 114, 115 }, 23, 0 },
+    { { 116, 32, 29, 30 }, 23, 0 },
+};
+
+s16 D_mine_mesa_80186D14[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    18,
+    22,
+    23,
+    29,
+    31,
+    44,
+    46,
+    -1,
+};
+
+s16 D_mine_mesa_80186D34[27] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    11,
+    13,
+    14,
+    18,
+    19,
+    20,
+    22,
+    23,
+    24,
+    25,
+    30,
+    31,
+    35,
+    36,
+    38,
+    42,
+    44,
+    46,
+    50,
+    -1,
+};
+
+s16 D_mine_mesa_80186D6C[29] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    11,
+    13,
+    14,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    25,
+    26,
+    30,
+    31,
+    34,
+    35,
+    38,
+    42,
+    50,
+    51,
+    -1,
+};
+
+s16 D_mine_mesa_80186DA8[19] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    14,
+    16,
+    17,
+    20,
+    21,
+    30,
+    31,
+    50,
+    51,
+    -1,
+};
+
+s16 D_mine_mesa_80186DD0[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    29,
+    30,
+    31,
+    44,
+    45,
+    46,
+    47,
+    -1,
+};
+
+s16 D_mine_mesa_80186DF0[33] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    11,
+    12,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    -1,
+};
+
+s16 D_mine_mesa_80186E34[34] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    11,
+    12,
+    16,
+    17,
+    20,
+    21,
+    24,
+    25,
+    26,
+    27,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    51,
+    -1,
+};
+
+s16 D_mine_mesa_80186E78[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+    10,
+    16,
+    17,
+    21,
+    30,
+    51,
+    -1,
+};
+
+s16 D_mine_mesa_80186E98[19] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    15,
+    28,
+    29,
+    30,
+    31,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    -1,
+};
+
+s16 D_mine_mesa_80186EC0[30] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    12,
+    15,
+    24,
+    25,
+    27,
+    28,
+    30,
+    31,
+    32,
+    33,
+    36,
+    37,
+    39,
+    40,
+    41,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    -1,
+};
+
+s16 D_mine_mesa_80186EFC[30] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    11,
+    12,
+    15,
+    16,
+    26,
+    27,
+    28,
+    30,
+    32,
+    33,
+    34,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    43,
+    48,
+    52,
+    -1,
+};
+
+s16 D_mine_mesa_80186F38[14] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    15,
+    16,
+    30,
+    48,
+    52,
+    -1,
+};
+
+s16 D_mine_mesa_80186F54[12] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    15,
+    28,
+    48,
+    49,
+    -1,
+};
+
+s16 D_mine_mesa_80186F6C[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    15,
+    28,
+    30,
+    48,
+    49,
+    52,
+    -1,
+};
+
+s16 D_mine_mesa_80186F8C[16] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    15,
+    16,
+    28,
+    30,
+    48,
+    52,
+    -1,
+};
+
+s16 D_mine_mesa_80186FAC[15] = {
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    15,
+    16,
+    28,
+    30,
+    48,
+    52,
+    -1,
+};
+
+s16 * D_mine_mesa_80186FCC[16] = {
+    D_mine_mesa_80186D14,
+    D_mine_mesa_80186D34,
+    D_mine_mesa_80186D6C,
+    D_mine_mesa_80186DA8,
+    D_mine_mesa_80186DD0,
+    D_mine_mesa_80186DF0,
+    D_mine_mesa_80186E34,
+    D_mine_mesa_80186E78,
+    D_mine_mesa_80186E98,
+    D_mine_mesa_80186EC0,
+    D_mine_mesa_80186EFC,
+    D_mine_mesa_80186F38,
+    D_mine_mesa_80186F54,
+    D_mine_mesa_80186F6C,
+    D_mine_mesa_80186F8C,
+    D_mine_mesa_80186FAC,
+};
+
+GpGridParams D_mine_mesa_8018700C = { NULL, D_mine_mesa_801865C8, D_mine_mesa_801866F0, D_mine_mesa_80186A98, D_mine_mesa_80186FCC, 800, 4070, 4, 4, 4000, 53 };
+
+GpViewRec D_mine_mesa_80187030[11] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },
+    { { { { 1615, 0, -3764 }, { -1626, 3693, -698 }, { 3394, 1769, 1456 } }, { -1831, 3462, 352 } }, 230 },
+    { { { { 4051, 0, -602 }, { -488, 2401, -3281 }, { 353, 3317, 2375 } }, { -0x286F, 4490, -1950 } }, 230 },
+    { { { { -1260, 0, 3897 }, { 246, 4087, 79 }, { -3889, 258, -1258 } }, { -0x2E41, 1458, -7495 } }, 230 },
+    { { { { 3993, 0, 908 }, { 440, 3582, -1936 }, { -794, 1985, 3493 } }, { -3173, 3846, 2544 } }, 230 },
+    { { { { 2243, 0, 3426 }, { 258, 4084, -169 }, { -3416, 308, 2237 } }, { -9512, 1162, -648 } }, 257 },
+    { { { { 1893, 0, -3632 }, { -1039, 3924, -541 }, { 3480, 1171, 1814 } }, { 1379, 3414, 1712 } }, 911 },
+    { { { { 4007, 0, -846 }, { -480, 3371, -2275 }, { 696, 2325, 3299 } }, { -8537, 4380, 3541 } }, 269 },
+    { { { { -802, 0, 4016 }, { -5, 4095, -1 }, { -4016, -6, -802 } }, { -0x3297, 1019, -5195 } }, 541 },
+    { { { { 3671, 0, -1816 }, { 548, 3904, 1108 }, { 1731, -1237, 3499 } }, { -0x2B85, 434, -1934 } }, 269 },
+    { { { { 639, 0, 4045 }, { 392, 4076, -61 }, { -4026, 396, 636 } }, { -0x33D2, 1931, -1371 } }, 230 },
+};
+
+GpSprtCmd D_mine_mesa_801871BC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_801871CC[48] = {
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -24, -48, 2094, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -48, 1954, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -48, 1938, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, -24, 1755, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -56, -24, 1693, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -72, -24, 1435, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -104, -40, 1393, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -136, -40, 1409, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -16, 1320, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -128, -16, 1317, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, -16, 1427, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -136, 0, 1239, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 0, 1254, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, 16, 1118, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -136, 16, 1152, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 32, 1075, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -144, 32, 1100, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, 32, 1122, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, 48, 1239, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 48, 1103, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -16, 1274, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -104, 24, 1200, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, 24, 1065, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 40, 1137, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 48, 1064, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, 88, 890, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 48, 987, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 96, 907, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 48, 1002, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, 72, 900, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, 80, 825, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 80, 750, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 104, 675, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -72, -80, 3082, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -48, -72, 2993, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -24, -72, 2834, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, -72, 2711, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 32, -72, 2604, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -64, 2488, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 32, 1445, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, 24, 1388, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 32, 1383, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 64, 96, 1019, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, 96, 1011, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 104, 1006, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, 80, 1099, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 64, 1122, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 48, 1125, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_8018758C[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 22, 0, 0, { 0, 0 } },
+    { 22, 11, 0, 0, { 3, 0 } },
+    { 33, 6, 0, 0, { 2, 0 } },
+    { 39, 3, 0, 0, { 4, 0 } },
+    { 42, 6, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_801875C4[39] = {
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 8, 1183, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 908, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 80, 1085, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 80, 931, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 64, 811, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 48, 864, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 32, 902, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 16, 954, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 0, 998, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, -16, 1024, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 1028, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 0, 1008, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 16, 983, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 32, 1002, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 48, 979, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 64, 957, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, -96, 1690, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -120, 1440, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, -80, 1510, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -112, 1210, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -72, 1224, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -24, 1398, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -48, 1507, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -72, 1068, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, -40, 1065, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 8, 1119, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -40, 959, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, -8, 943, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 40, 1009, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 40, 1191, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -8, 864, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 24, 846, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, 96, 72, 890, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 24, 777, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 56, 713, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 88, 665, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 96, 695, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 112, 64, 776, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 88, 1051, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_801878D0[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 16, 0, 0, { 1, 0 } },
+    { 16, 23, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_801878F0[18] = {
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 0, 2026, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, -8, 1828, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -32, -24, 1574, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -24, 1686, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, -24, 1640, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -24, 1605, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, 32, 1235, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 32, 1149, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 32, 1155, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 32, 963, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 971, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -8, 944, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, -8, 894, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -8, 904, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -8, 998, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -8, 1101, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -8, 1175, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -8, 1289, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_80187A58[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 18, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_80187A70[66] = {
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -40, 1440, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, -16, 1426, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 16, 1505, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, -24, 1755, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 72, 8, 1591, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 96, 8, 1554, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 120, 8, 1534, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, -8, 1562, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 96, -8, 1514, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 120, -8, 1450, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 72, -32, 1718, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, -40, 1696, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 120, -40, 1519, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, 8, 1437, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 0, 1446, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 16, 1363, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, 32, 1401, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 0, 1435, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -64, 16, 1370, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, -64, 32, 1408, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, 16, 1434, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, -56, 1229, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, -24, 1393, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, 8, 1410, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -72, 24, 1486, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -96, -64, 1256, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -112, -72, 1287, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, -80, 1313, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -56, 1032, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, -16, 1075, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, 56, 1075, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -16, 1127, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, -128, 40, 1212, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, -48, 1116, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, -24, 1315, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 24, 1370, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, -88, 1030, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 48, 827, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 152, 104, 697, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 128, 96, 749, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 80, 752, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, 104, 803, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 72, 785, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 64, 104, 842, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 80, 760, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 800, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 88, 866, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -8, 104, 888, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -8, 80, 814, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -8, 56, 797, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -24, 64, 832, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 80, 894, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 80, 900, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -64, 787, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -16, 781, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, 8, 796, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, 32, 916, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, 32, 908, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -64, 56, 843, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -64, 80, 935, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, 72, 980, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 56, 865, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, 48, 869, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -104, 72, 966, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 72, 950, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 832, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_80187F98[6] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 13, 0, 0, { 3, 0 } },
+    { 13, 8, 0, 0, { 0, 0 } },
+    { 21, 16, 0, 0, { 2, 0 } },
+    { 37, 29, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_80187FC8[23] = {
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -8, 1420, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -8, 1273, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -24, 1200, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -8, 1156, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -8, -48, 1191, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 8, -8, 1097, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, -56, 1074, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, -48, 1152, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -48, 1236, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 32, -24, 959, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 32, 16, 958, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -24, 832, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 0, 850, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 40, 775, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 80, 0, 785, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 80, 40, 702, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 0, 653, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 681, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 120, 0, 634, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, 0, 640, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -32, 754, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 104, -32, 691, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -32, 630, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_80188194[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 23, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_mesa_801881AC[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_801881BC[42] = {
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -72, 2064, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -48, 1903, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -32, 1974, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -88, -72, 2051, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -64, 1947, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, -72, 1814, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -48, 1843, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, -48, 1873, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -32, 1924, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -32, 1902, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, -16, 1861, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -32, 1765, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, -32, 1975, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, -56, 1779, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, -56, 1940, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 48, 1349, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 48, 1381, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 56, 1369, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 56, 1362, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 64, 1375, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 64, 1370, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 64, 1323, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 64, 1346, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 64, 1328, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 24, -112, 2958, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 32, -112, 2687, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, -104, 2468, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 48, -96, 2317, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 56, -88, 2171, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, -80, 2050, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 72, -72, 1939, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 80, -64, 1832, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 88, -64, 1758, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 96, -56, 1690, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, 104, -48, 1590, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, -48, 1501, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, 8, 1537, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, -24, 1345, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, -40, 1429, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 16, 1494, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 0, 1415, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, -32, 1359, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_80188504[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 15, 0, 0, { 1, 0 } },
+    { 15, 9, 0, 0, { 2, 0 } },
+    { 24, 18, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_mine_mesa_8018852C[24] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 64, 1327, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 32 } }, -120, 72, 1340, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -64, 72, 1580, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, 72, 1022, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 112, 1218, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 104 } }, -152, -32, 1064, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 96 } }, -88, -24, 1043, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 96 } }, -48, -24, 1023, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 104 } }, 16, -32, 1003, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -48, -48, 1778, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -16, -56, 1757, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, 16, -56, 1734, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 32, 72, 1329, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -56, 2000, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 64, 96, 1292, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 64, 1296, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, 64, 1246, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 56, 16, 1244, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 16, 1436, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, 64, 8, 1282, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -16, 1066, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, 8, 1966, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -16, 1878, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 64, -16, 1538, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_mine_mesa_8018870C[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 24, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_mesa_80188724[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_mine_mesa_80188734[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_mine_mesa_80188744[11] = {
+    { { .empty = D_mine_mesa_801871BC }, D_mine_mesa_801871BC, NULL },
+    { { .elements = D_mine_mesa_801871CC }, D_mine_mesa_8018758C, NULL },
+    { { .elements = D_mine_mesa_801875C4 }, D_mine_mesa_801878D0, NULL },
+    { { .elements = D_mine_mesa_801878F0 }, D_mine_mesa_80187A58, NULL },
+    { { .elements = D_mine_mesa_80187A70 }, D_mine_mesa_80187F98, NULL },
+    { { .elements = D_mine_mesa_80187FC8 }, D_mine_mesa_80188194, NULL },
+    { { .empty = D_mine_mesa_801881AC }, D_mine_mesa_801881AC, NULL },
+    { { .elements = D_mine_mesa_801881BC }, D_mine_mesa_80188504, NULL },
+    { { .elements = D_mine_mesa_8018852C }, D_mine_mesa_8018870C, NULL },
+    { { .empty = D_mine_mesa_80188724 }, D_mine_mesa_80188724, NULL },
+    { { .empty = D_mine_mesa_80188734 }, D_mine_mesa_80188734, NULL },
+};
+
+GpPointLight D_mine_mesa_801887C8[8] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7697, -4012, 1391 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1173, 1575, 1726, { 0, 0 } }, 1258, 8401 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -812, -1993, 3861 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3194, 2867, 2129, { 0, 0 } }, 0, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6812, -1806, 8035 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4014, 3522, 2703, { 0, 0 } }, 600, 3000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2536, -1993, 6425 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3768, 3112, { 0, 0 } }, 1000, 3600 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 930, -1993, 94 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3932, 3440, 2621, { 0, 0 } }, 600, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4276, -2312, 970 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3768, 2949, { 0, 0 } }, 359, 4501 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2842, -1832, -687 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3440, 3276, 2867, { 0, 0 } }, 0, 4702 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x28E1, -1993, 5842 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4096, 3850, 3276, { 0, 0 } }, 1000, 3200 },
+};
+
+MineMesaSpotLightStorage D_mine_mesa_80188AC8 = {
+    {
+    { { { .coord = { 0, { { { -540, 0, -4069 }, { -4075, 0, 534 }, { 0, 4105, 0 } }, { 7565, -1101, 4051 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 8192, 8192, 8192, { 0, 0 } }, { -4061, 533, 0, 0 }, 0x2EE0, 0x2EE0, 318 },
+},
+    {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x1C, 0xBC, 0x18, 0x80,
+        0x01, 0x00, 0x00, 0x00, 0x1C, 0xBF, 0x00, 0x00, 0x1C, 0xC1, 0x18, 0x80, 0x24, 0xBA, 0x11, 0x80,
+        0xD8, 0x17, 0x07, 0x80, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x50, 0x01, 0x00, 0x00, 0xE0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x05, 0x00, 0x00,
+        0x03, 0x21, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x30, 0x05, 0xC0, 0xFF, 0x90, 0x0E, 0x00, 0x00, 0x40, 0xFD, 0x00, 0x00, 0x50, 0xF0, 0x00, 0x00,
+        0xC0, 0x02, 0x00, 0x00, 0x50, 0xF0, 0x00, 0x00, 0x40, 0xFD, 0x00, 0x00, 0xB0, 0x0F, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x2C, 0xC0, 0xFF,
+        0xE0, 0x0E, 0x00, 0x00, 0x40, 0xFD, 0x00, 0x00, 0x50, 0xF0, 0x00, 0x00, 0xC0, 0x02, 0x00, 0x00,
+        0x50, 0xF0, 0x00, 0x00, 0x40, 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x02, 0x00, 0x00,
+        0xB0, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x05, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0xE7, 0x0F, 0x05, 0x80, 0x01, 0x00, 0x03, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0xFB, 0x00, 0x00,
+        0x60, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x10, 0x00, 0x00, 0x10, 0x04, 0x00, 0x00,
+        0x00, 0x00, 0x06, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x16, 0x11, 0x05, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0xD8, 0x17, 0x07, 0x80, 0xA0, 0x18, 0xC0, 0xFF, 0xA0, 0x1E, 0x00, 0x00, 0x60, 0xEF, 0x00, 0x00,
+        0xF0, 0xFB, 0x00, 0x00, 0xA0, 0x10, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x11, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x68, 0xC1, 0x18, 0x80, 0xA0, 0xBF, 0x00, 0x00, 0xD8, 0x17, 0x07, 0x80,
+        0x10, 0x18, 0x00, 0x00, 0x90, 0x09, 0x00, 0x00, 0x5C, 0xFB, 0x00, 0x00, 0xF3, 0xFB, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0xEC, 0xFB, 0x00, 0x00, 0x63, 0xFB, 0x00, 0x00, 0x13, 0x04, 0x00, 0x00,
+        0xA3, 0x04, 0x00, 0x00, 0x0C, 0x04, 0x00, 0x00, 0x00, 0x00, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0xB0, 0xFE, 0x00, 0x00, 0xD0, 0xFA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0xD0, 0xFA, 0x00, 0x00, 0xB0, 0xFE, 0x00, 0x00, 0x30, 0x05, 0x00, 0x00, 0x50, 0x01, 0x00, 0x00,
+        0x30, 0x05, 0x00, 0x00, 0x00, 0x00, 0x07, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x56, 0x05, 0x02, 0x40, 0x01, 0x00, 0x62, 0x00, 0x00, 0xC2, 0x18, 0x80,
+        0x68, 0xC1, 0x00, 0x00, 0xD8, 0x17, 0x07, 0x80, 0x50, 0x20, 0xC0, 0xFF, 0x10, 0x13, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x14, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x0F, 0x06, 0x00, 0x00, 0x01, 0x00, 0x62, 0x00, 0x4C, 0xC2, 0x00, 0x00, 0xB4, 0xC1, 0x18, 0x80,
+        0xD8, 0x17, 0x07, 0x80, 0x40, 0x20, 0xC0, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xFA, 0x00, 0x00,
+        0xF0, 0xFC, 0x00, 0x00, 0x40, 0x05, 0x00, 0x00, 0xF0, 0xFC, 0x00, 0x00, 0xC0, 0xFA, 0x00, 0x00,
+        0x10, 0x03, 0x00, 0x00, 0x40, 0x05, 0x00, 0x00, 0x10, 0x03, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD8, 0x17, 0x07, 0x80,
+        0x40, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xB0, 0xFE, 0x00, 0x00, 0xE0, 0xFD, 0x00, 0x00,
+        0x50, 0x01, 0x00, 0x00, 0xE0, 0xFD, 0x00, 0x00, 0xB0, 0xFE, 0x00, 0x00, 0x20, 0x02, 0x00, 0x00,
+        0x50, 0x01, 0x00, 0x00,
+    },
+};
+
+GpRoomCoordSet D_mine_mesa_80188E28[1] = {
+    { 0, NULL, 8, D_mine_mesa_801887C8, 1, D_mine_mesa_80188AC8.active },
+};
+
+GpObj4C D_mine_mesa_80188E40[8] = {
+    { NULL, NULL, NULL, { 4507, -976, 1532, 0 }, { { -43, -1616, -2266, 0 }, { 31, -1616, 2256, 0 }, { -42, 1616, -2267, 0 }, { 31, 1616, 2255, 0 } }, { 4097, -3, -68, 0 }, { 0, 0, 4096, 0 }, 2769, 0, 2, 5, 1, 0 },
+    { NULL, NULL, NULL, { 4685, -992, 1484, 0 }, { { 33, -1616, 2236, 0 }, { -55, -1616, -2261, 0 }, { 36, 1616, 2236, 0 }, { -54, 1616, -2262, 0 } }, { -4097, 3, 79, 0 }, { 0, 0, 4096, 0 }, 2769, 0, 5, 2, 1, 0 },
+    { NULL, NULL, NULL, { 3859, -960, 6795, 0 }, { { 659, -1616, -2165, 0 }, { -669, -1616, 2158, 0 }, { 658, 1616, -2166, 0 }, { -669, 1616, 2157, 0 } }, { 3917, 1, 1202, 0 }, { 0, 0, 4096, 0 }, 2769, 0, 4, 5, 1, 0 },
+    { NULL, NULL, NULL, { 4019, -960, 6734, 0 }, { { -747, -1616, 2261, 0 }, { 724, -1616, -2275, 0 }, { -747, 1616, 2263, 0 }, { 723, 1616, -2275, 0 } }, { -3897, 0, -1264, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 5, 4, 1, 0 },
+    { NULL, NULL, NULL, { 7116, -960, 845, 0 }, { { 6, -1616, -2645, 0 }, { -6, -1616, 2645, 0 }, { 6, 1616, -2644, 0 }, { -5, 1616, 2647, 0 } }, { 4109, -1, 8, 0 }, { 0, 0, 4096, 0 }, 3093, 0, 8, 2, 1, 0 },
+    { NULL, NULL, NULL, { 7247, -928, 947, 0 }, { { 1, -1616, 2546, 0 }, { 1, -1616, -2544, 0 }, { 0, 1616, 2545, 0 }, { 0, 1616, -2544, 0 } }, { -4098, -3, 0, 0 }, { 0, 0, 4096, 0 }, 3007, 0, 2, 8, 1, 0 },
+    { NULL, NULL, NULL, { 9024, -960, 6432, 0 }, { { 334, -1616, 2171, 0 }, { -334, -1616, -2170, 0 }, { 334, 1616, 2170, 0 }, { -334, 1616, -2171, 0 } }, { -4052, 0, 623, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 4, 8, 1, 0 },
+    { NULL, NULL, NULL, { 8880, -896, 6528, 0 }, { { -312, -1616, -2184, 0 }, { 313, -1616, 2186, 0 }, { -311, 1616, -2185, 0 }, { 313, 1616, 2185, 0 } }, { 4055, -3, -582, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 8, 4, 129, 0 },
+};
+
+GpObj4C D_mine_mesa_801890A0[19] = {
+    { NULL, NULL, NULL, { 336, -48, 3872, 0 }, { { -336, 0, -1248, 0 }, { 336, 0, -1248, 0 }, { -336, 0, 1248, 0 }, { 336, 0, 1248, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 1286, 0, 3, 33, 2, 0 },
+    { NULL, NULL, NULL, { 1328, -64, 3728, 0 }, { { -704, 0, -4016, 0 }, { 704, 0, -4016, 0 }, { -704, 0, 4016, 0 }, { 704, 0, 4016, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 4071, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 0x2C60, -64, 3808, 0 }, { { -704, 0, -4016, 0 }, { 704, 0, -4016, 0 }, { -704, 0, 4016, 0 }, { 704, 0, 4016, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 4071, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 6304, -64, 224, 0 }, { { -4256, 0, -1040, 0 }, { 4256, 0, -1040, 0 }, { -4256, 0, 1040, 0 }, { 4256, 0, 1040, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 4374, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 6304, -64, 7840, 0 }, { { -4256, 0, -1040, 0 }, { 4256, 0, -1040, 0 }, { -4256, 0, 1040, 0 }, { 4256, 0, 1040, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 4374, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { 6159, -64, 2959, 0 }, { { -1187, 0, -1676, 0 }, { 1181, 0, -1683, 0 }, { -1180, 0, -12, 0 }, { 1188, 0, -19, 0 } }, { 0, 4103, 0, 0 }, { 4096, 0, 0, 0 }, 2048, 5, 2, 0, 4, 0 },
+    { NULL, NULL, NULL, { 9248, -64, 4016, 0 }, { { -336, 0, -1328, 0 }, { 336, 0, -1328, 0 }, { -336, 0, 1328, 0 }, { 336, 0, 1328, 0 } }, { 0, 4103, 0, 0 }, { 4096, 0, 0, 0 }, 1366, 0x4002, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 8272, -64, 4880, 0 }, { { -1344, 0, -784, 0 }, { 1344, 0, -784, 0 }, { -1344, 0, 784, 0 }, { 1344, 0, 784, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, 4096, 0 }, 1551, 0x4002, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 8256, -64, 3072, 0 }, { { -1344, 0, -784, 0 }, { 1344, 0, -784, 0 }, { -1344, 0, 784, 0 }, { 1344, 0, 784, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, -4096, 0 }, 1551, 0x4002, 1, 0, 2, 0 },
+    { NULL, NULL, NULL, { 832, -64, 416, 0 }, { { -336, 0, -544, 0 }, { 336, 0, -544, 0 }, { -336, 0, 544, 0 }, { 336, 0, 544, 0 } }, { 0, 4107, 0, 0 }, { 4096, 0, 0, 0 }, 636, 2, 10, 0, 2, 0 },
+    { NULL, NULL, NULL, { -16, -64, 1560, 0 }, { { -128, 0, -1240, 0 }, { 1184, 0, -1240, 0 }, { 96, 0, 1640, 0 }, { 1888, 0, 264, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1902, 2, 7, 0, 4, 0 },
+    { NULL, NULL, NULL, { 1567, -64, 6527, 0 }, { { -1599, 0, -23, 0 }, { -869, 0, -1111, 0 }, { 870, 0, 1112, 0 }, { 1600, 0, 24, 0 } }, { 0, 4103, 0, 0 }, { 1380, 0, -3857, 0 }, 1598, 2, 8, 0, 2, 0 },
+    { NULL, NULL, NULL, { 5008, -64, 3984, 0 }, { { -1952, 0, -1680, 0 }, { 1952, 0, -1680, 0 }, { -1952, 0, 1680, 0 }, { 1952, 0, 1680, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 2572, 2, 6, 0, 4, 0 },
+    { NULL, NULL, NULL, { 8440, -64, 360, 0 }, { { -2424, 0, 520, 0 }, { -3640, 0, -952, 0 }, { 840, 0, 808, 0 }, { 5224, 0, -376, 0 } }, { 0, 4098, 0, 0 }, { -799, 0, 4017, 0 }, 5221, 2, 11, 0, 2, 0 },
+    { NULL, NULL, NULL, { 0x2D70, -64, 3456, 0 }, { { -464, 0, -3728, 0 }, { 464, 0, -3728, 0 }, { -464, 0, 3728, 0 }, { 464, 0, 3728, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 3753, 2, 13, 255, 2, 0 },
+    { NULL, NULL, NULL, { 6111, -64, 7503, 0 }, { { -803, 0, -444, 0 }, { 797, 0, -451, 0 }, { -796, 0, 452, 0 }, { 804, 0, 445, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 918, 2, 9, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4992, 0, 5376, 0 }, { { -1952, 0, -272, 0 }, { 1952, 0, -272, 0 }, { -1952, 0, 272, 0 }, { 1952, 0, 272, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4096, 0 }, 1970, 2, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { 4992, 0, 2592, 0 }, { { -1952, 0, -272, 0 }, { 1952, 0, -272, 0 }, { -1952, 0, 272, 0 }, { 1952, 0, 272, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 1970, 2, 6, 0, 2, 0 },
+    { NULL, NULL, NULL, { 3328, 0, 4032, 0 }, { { -272, 0, 1440, 0 }, { -272, 0, -1440, 0 }, { 272, 0, 1440, 0 }, { 272, 0, -1440, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1465, 2, 6, 0, 130, 0 },
+};
+
+GpAreaTmdRec D_mine_mesa_80189644[2] = {
+    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_mesa_8018965C[2] = {
+    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_mesa_80189674[3] = {
+    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_mesa_80189698[3] = {
+    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_mesa_801896BC[3] = {
+    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_mine_mesa_801896E0[3] = {
+    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+    { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaPlace D_mine_mesa_80189704[2] = {
+    { 1, 1, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_mesa_80189724[5] = {
+    { 16, 0, 0, 5900, -1670, 3600, 400, 0, 0, 2, 0 },
+    { 16, 0, 0, 6700, -1300, 4600, 1200, 0, 0, 2, 0 },
+    { 16, 0, 0, 7800, -1300, 3550, 2600, 0, 0, 2, 0 },
+    { 16, 0, 0, 9000, 0, 4200, 1024, 0, 0, 2, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_mesa_80189774[7] = {
+    { 25, 0, 2, 9200, 0, 6800, 2800, 0, 0, 2, 2 },
+    { 25, 0, 2, 9700, 0, 1200, 3300, 0, 0, 2, 2 },
+    { 15, 0, 2, 2200, -3000, 7800, 3950, 0, 2, 4, 0 },
+    { 15, 0, 2, 0x2EE0, -2500, 7800, 500, 0, 2, 4, 0 },
+    { 15, 0, 2, 6300, -1800, 8350, -200, 0, 2, 4, 0 },
+    { 15, 0, 2, 0x2EE0, -1500, 200, 700, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_mesa_801897E4[7] = {
+    { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
+    { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
+    { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
+    { 15, 0, 2, 8700, -2000, 8000, 0, 0, 2, 4, 0 },
+    { 15, 0, 2, 5000, -3000, 0, 2048, 0, 2, 4, 0 },
+    { 15, 0, 2, 0x2EE0, -2000, 500, 1024, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_mesa_80189854[3] = {
+    { 20, 3, 1, 7000, 0, 6500, 1024, 0, 0, 2, 0 },
+    { 57, 4, 1, 6000, 0, 2000, 1024, 0, 3, 5, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaPlace D_mine_mesa_80189884[7] = {
+    { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
+    { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
+    { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
+    { 37, 0, 0, 1600, -1800, 3500, 0, 0, 2, 4, 0 },
+    { 37, 0, 0, 2800, -1800, 1400, 0, 0, 2, 4, 0 },
+    { 37, 0, 0, 5000, -1800, 6500, 0, 0, 2, 4, 0 },
+    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+GpAreaVariant D_mine_mesa_801898F4[12] = {
+    { NULL, NULL },
+    { D_mine_mesa_80189704, D_mine_mesa_80189644 },
+    { D_mine_mesa_80189724, D_mine_mesa_8018965C },
+    { D_mine_mesa_80189774, D_mine_mesa_80189674 },
+    { D_mine_mesa_801897E4, D_mine_mesa_80189698 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_mine_mesa_80189854, D_mine_mesa_801896BC },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_mine_mesa_80189884, D_mine_mesa_801896E0 },
+};
+
+GpRoomBoundVec D_mine_mesa_80189954[12] = {
+    { 11, 0, 0, 0 },
+    { 16, 16, 16, 16 },
+    { 700, 900, 850, 818 },
+    { 200, 300, 320, 265 },
+    { 460, 460, 650, 483 },
+    { 300, 300, 300, 300 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+    { 16, 16, 16, 16 },
+};
+
+GpObj3A D_mine_mesa_801899B4[2] = {
+    { NULL, NULL, { 6128, -144, 4048, 0 }, { { -2224, 1168, 912, 0 }, { 2224, 1168, -912, 0 }, { -2224, -1167, 912, 0 }, { 2224, -1167, -912, 0 } }, { 1556, 0, 3798, 0 }, { 100, 10 }, 1, 0 },
+    { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, { -95, 10 }, 129, 0 },
+};
+
+s32 D_mine_mesa_80189A2C[3] = {
+    0x10000039,
+    0x1000003B,
+    0x10000039,
+};
+
+GpRoomParamRec D_mine_mesa_80189A38[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_mine_mesa_80189A40[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_mine_mesa_80189A48[1] = {
+    { 0, 0, 1, 0, D_mine_mesa_80189A2C },
+};
+
+GpRoomParamRec D_mine_mesa_80189A50[1] = {
+    { 0, 1, 0, 0, D_mine_mesa_80189A2C },
+};
+
+GpRoomParamRec D_mine_mesa_80189A58[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec * D_mine_mesa_80189A60[8] = {
+    D_mine_mesa_80189A38,
+    D_mine_mesa_80189A40,
+    D_mine_mesa_80189A48,
+    D_mine_mesa_80189A50,
+    D_mine_mesa_80189A58,
+    D_mine_mesa_80189A38,
+    D_mine_mesa_80189A38,
+    D_mine_mesa_80189A38,
+};
+
+GpScriptCmd D_mine_mesa_80189A80[4] = {
+    { 0, 513 },
+    { 0, 257 },
+    { 0, 513 },
+    { 0, 0 },
+};
+
+GpScriptRec D_mine_mesa_80189A90[3] = {
+    { 0, 0, 1, 0 },
+    { 255, 66, 20, 1 },
+    { 255, 255, 10, 1 },
+};
+
+_MineMesaWall D_mine_mesa_80189A9C[4] = {
+    { { 5440, 200, -830, 0 }, { 6620, 200, 340, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
+    { { 6620, 200, 340, 0 }, { 8680, 200, 460, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
+    { { 8680, 200, 460, 0 }, { 0x2738, 200, -230, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
+    { { 0x2738, 200, -230, 0 }, { 0x3A98, 200, 610, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
+};
+
+_MineMesaSpawnPoint D_mine_mesa_80189AFC[4] = {
+    { 2247, 0, -7235, 0 },
+    { 1247, 0, -6535, 256 },
+    { 0x4A38, 0, 4300, -800 },
+    { 0x490C, 0, 5300, -1200 },
+};
+
+GpMsgEntry D_mine_mesa_80189B1C[2] = {
+    { 5108, func_mine_mesa_80181800 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_mine_mesa_80189B2C = { 0, 32, func_mine_mesa_80181894, { .model = NULL } };
+
+RoomFadeStorage D_mine_mesa_80189B38 = { 0 };
+
+GpSaveLoc D_mine_mesa_80189B40 = { 0 };
+
+s8 D_mine_mesa_80189B48 = 0;
+
+Task * D_mine_mesa_80189B4C = NULL;
+
+s32 D_mine_mesa_80189B50 = 0;
+
+Task * D_mine_mesa_80189B54 = NULL;
+
+Task * D_mine_mesa_80189B58 = NULL;
+
+Task * D_mine_mesa_80189B5C = NULL;
+
+RoomLatchedEvent D_mine_mesa_80189B60 = { 0 };
+
+MineMesaSpawnCounters D_mine_mesa_80189B6C = { 0 };
+
+GpEnemy * D_mine_mesa_80189B74[2] = {
+    NULL,
+    NULL,
+};
 
 /// Runs this room's pending event once the request for it has been accepted.
 /// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and
@@ -151,25 +2516,25 @@ void func_mine_mesa_8017D670(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                if (D_mine_mesa_80189B6A != 0) {
-                    D_mine_mesa_80189B38.field_0 = 0;
-                    D_mine_mesa_80189B38.field_1 = 0;
-                    D_mine_mesa_80189B38.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_mine_mesa_80189B38);
+                if (D_mine_mesa_80189B60.fade != 0) {
+                    D_mine_mesa_80189B38.fade.field_0 = 0;
+                    D_mine_mesa_80189B38.fade.field_1 = 0;
+                    D_mine_mesa_80189B38.fade.field_2 = 0x1E;
+                    Task_Spawn(1, 0x31, 0, &D_mine_mesa_80189B38.fade);
                 }
                 arg0->state++;
             }
             break;
         case 2:
-            if (D_mine_mesa_80189B64 != 0) {
-                Gp_EnqueueStageSnd6(D_mine_mesa_80189B64, 0, 0);
+            if (D_mine_mesa_80189B60.stageSnd != 0) {
+                Gp_EnqueueStageSnd6(D_mine_mesa_80189B60.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_mine_mesa_80189B64)) == 0) {
+            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_mine_mesa_80189B60.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;
@@ -193,7 +2558,7 @@ static void func_mine_mesa_8017D808(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->at4.loc.place, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
             if (gameGetPtrSlot(0xA) != NULL) {
-                func_800E8634(&D_mine_mesa_8018578C, 0, &D_mine_mesa_801861DC);
+                func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);
             GameFlag_SetNibble(0x90, 1);
@@ -201,13 +2566,13 @@ static void func_mine_mesa_8017D808(Task* task)
         }
         nibble = GameFlag_GetNibble(0xCD);
         if ((nibble == field9) && (D_mine_mesa_80189B50 == nibble)) {
-            func_800E8634(&D_mine_mesa_80184664, 0, &D_mine_mesa_80184BA4);
+            func_800E8634(D_mine_mesa_80184664, 0, D_mine_mesa_80184BA4);
             D_mine_mesa_80189B50 = 2;
         }
     }
 }
 
-s32 func_mine_mesa_8017D8F0(void)
+s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -232,19 +2597,19 @@ static __inline__ s32 MineMesa_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* even
 
 /// Handler id 0x13EE of this room's copy of the `GpMsgEntry` table
 /// `D_mine_mesa_80181904`: copies the requested location to `dst` and forwards
-/// both to `func_80179A04`. A stage-3 request latches the outgoing location and
+/// both to `func_map_shelter_80179A04`. A stage-3 request latches the outgoing location and
 /// the event parameters below into the room's pending event and starts the
 /// controller task; `field_5` set only suppresses that side effect. Answers 0
 /// without side effects while the request is already in flight (`field_9` is 1
 /// and `Gp_StateF0.prefix.bytes.field_0` agrees with it), 2 for a stage-3 request and 1 for
 /// every other one.
-s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
+s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
 {
     RoomLatchedEvent event;
     u8               field9;
 
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     if (*(u16*)in != 3) {
         return 1;
     }
@@ -259,7 +2624,7 @@ s32 func_mine_mesa_8017D8F8(s32 arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
     return MineMesa_StartEvent(out, &event);
 }
 
-s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0xD) {
         Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);
@@ -267,13 +2632,13 @@ s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF * msg, s32 arg3)
 {
     switch (msg->field_2) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {
                 if (gameGetPtrSlot(0xA) != NULL) {
-                    func_800E8614((s32)&D_mine_mesa_801850E4, 0);
+                    func_800E8614(D_mine_mesa_801850E4, 0);
                 }
                 func_800E3FAC(0xA2, 0x1C);
                 GameFlag_SetNibble(0x71, 1);
@@ -284,11 +2649,11 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
             if (GameFlag_GetNibble(0x71) <= 0) {
                 if (GameFlag_GetNibble(0x91) == 0) {
                     if (gameGetPtrSlot(0xA) != NULL) {
-                        func_800E8634(&D_mine_mesa_80184D9C, 1, &D_mine_mesa_80184FF4);
+                        func_800E8634(D_mine_mesa_80184D9C, 1, D_mine_mesa_80184FF4);
                     }
                     GameFlag_SetNibble(0x91, 1);
                 } else if (gameGetPtrSlot(0xA) != NULL) {
-                    func_800E8634(&D_mine_mesa_801854BC, 1, &D_mine_mesa_801856B4);
+                    func_800E8634(D_mine_mesa_801854BC, 1, D_mine_mesa_801856B4);
                 }
             }
             break;
@@ -323,7 +2688,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetPtrSlot(0xA) != NULL) {
             Mc_SaveData[0].state.companionHp = 5;
-            Task_SpawnFromTable(&D_mine_mesa_80181990, 0, 0, 0);
+            Task_SpawnFromTable(D_mine_mesa_80181990, 0, 0, 0);
         }
         GameFlag_SetNibble(0x1BD, 0);
     } else {
@@ -339,10 +2704,10 @@ static void func_mine_mesa_8017DC80(Task* arg0)
 
 static void func_mine_mesa_8017DD44(void)
 {
-    Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[0]);
-    Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[1]);
-    Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[2]);
-    Gp_UnlinkObj4A(0, &D_mine_mesa_801890EC[3]);
+    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[0]);
+    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[1]);
+    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[2]);
+    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[3]);
 }
 
 /// State handlers of the room task `func_mine_mesa_8017DD98` drives: the
@@ -453,7 +2818,7 @@ void func_mine_mesa_8017DFC4(Task* arg0)
 
 void func_mine_mesa_8017E024(Task* arg0)
 {
-    Display_SpawnWithOt(&D_mine_mesa_80181990, 1, 0, 0);
+    Display_SpawnWithOt(D_mine_mesa_80181990, 1, 0, 0);
     gDisplayState.at100.flags.flipMode = 1;
     Gp_SpawnViewTasks();
     taskKill(arg0);
@@ -682,12 +3047,12 @@ void func_mine_mesa_8017E600(void)
 
 void func_mine_mesa_8017E620(void)
 {
-    Task_SpawnFromTable(&D_mine_mesa_801842F4, 0, 0, 0);
+    Task_SpawnFromTable(D_mine_mesa_801842F4, 0, 0, 0);
 }
 
 void func_mine_mesa_8017E650(void)
 {
-    D_mine_mesa_80189B54 = Task_SpawnFromTable(&D_mine_mesa_801842F4, 1, 0, 0);
+    D_mine_mesa_80189B54 = Task_SpawnFromTable(D_mine_mesa_801842F4, 1, 0, 0);
 }
 
 /// Hands `arg0` to the task in `D_mine_mesa_80189B54` as its `spawnArg1` when
@@ -714,7 +3079,7 @@ kill:
 
 void func_mine_mesa_8017E6D8(void)
 {
-    D_mine_mesa_80189B58 = Task_SpawnFromTable(&D_mine_mesa_801842F4, 2, 0, 0);
+    D_mine_mesa_80189B58 = Task_SpawnFromTable(D_mine_mesa_801842F4, 2, 0, 0);
 }
 
 void func_mine_mesa_8017E70C(s32 arg0)
@@ -736,7 +3101,7 @@ void func_mine_mesa_8017E760(void)
     if (D_mine_mesa_80189B54 != NULL) {
         taskKill(D_mine_mesa_80189B54);
     }
-    D_mine_mesa_80189B54 = Task_SpawnFromTable(&D_mine_mesa_801842F4, 3, 0, 0);
+    D_mine_mesa_80189B54 = Task_SpawnFromTable(D_mine_mesa_801842F4, 3, 0, 0);
 }
 
 /// Head-aim driver for the slot-3 skeleton: turns its head toward the slot-A
@@ -781,7 +3146,7 @@ void func_mine_mesa_8017E7B0(Task* task)
 
 void func_mine_mesa_8017E8B0(s32 arg0)
 {
-    D_mine_mesa_80189B5C = Task_SpawnFromTable(&D_mine_mesa_801842F4, 4, arg0, 0);
+    D_mine_mesa_80189B5C = Task_SpawnFromTable(D_mine_mesa_801842F4, 4, arg0, 0);
     Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
 }
 
@@ -804,7 +3169,7 @@ void func_mine_mesa_8017E93C(u8 arg0)
 
 void func_mine_mesa_8017E948(void)
 {
-    Task_SpawnFromTable(&D_mine_mesa_801842F4, 5, 0, 0);
+    Task_SpawnFromTable(D_mine_mesa_801842F4, 5, 0, 0);
 }
 
 void func_mine_mesa_8017E978(Task* arg0)
@@ -913,7 +3278,7 @@ void func_mine_mesa_8017EB54(s32 arg0)
 /// shows: one `func_mine_mesa_8017EFA8` quad per position, texture column 1
 /// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
 /// 5.
-static void func_mine_mesa_8017ED08(Task* arg0)
+void func_mine_mesa_8017ED08(Task* arg0)
 {
     if (arg0->state == 0) {
         D_80115758                 = 0x600E9;
@@ -1043,7 +3408,7 @@ static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 /// its `GpEffWork` block back. It releases the block early while
 /// `Gp_State1C->eventState` is 4 or more, and draws nothing while it is
 /// non-zero.
-static void func_mine_mesa_8017F230(Task* task)
+void func_mine_mesa_8017F230(Task* task)
 {
     GpEffWork* work;
     GpCoord*   coord;
@@ -1223,7 +3588,7 @@ static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
 /// `func_mine_mesa_80180184`. The task releases its `GpEffWork` block once
 /// `age` reaches `spawnArg1`, and idles while `Gp_State1C->eventState` is 2 or
 /// more.
-static void func_mine_mesa_8017FC94(Task* task)
+void func_mine_mesa_8017FC94(Task* task)
 {
     GpCoord    coord;
     GpCoord*   coords;
@@ -1281,9 +3646,12 @@ static void func_mine_mesa_8017FC94(Task* task)
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
                 coord.sub        = work->parent;
-                coord.coord.t[0] = D_mine_mesa_80186530.vx;
-                coord.coord.t[1] = D_mine_mesa_80186530.vy;
-                coord.coord.t[2] = D_mine_mesa_80186530.vz;
+                {
+                    SVECTOR* edge = &D_mine_mesa_80186528[1];
+                    coord.coord.t[0] = edge->vx;
+                    coord.coord.t[1] = edge->vy;
+                    coord.coord.t[2] = edge->vz;
+                }
                 coord.flg        = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
@@ -1419,7 +3787,7 @@ static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-static void func_mine_mesa_8018057C(Task* task)
+void func_mine_mesa_8018057C(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -1618,7 +3986,7 @@ static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
 /// the wall's two base points and whose upper corners sit `height` above them
 /// (the grid's y axis points down), with a horizontal normal perpendicular to
 /// the base.
-static void func_mine_mesa_801811C4(s32 height)
+void func_mine_mesa_801811C4(s32 height)
 {
     SVECTOR*    normals;
     SVECTOR*    verts;
@@ -1653,10 +4021,10 @@ static void func_mine_mesa_801811C4(s32 height)
 }
 
 /// Keeps the room's two enemy slots in `D_mine_mesa_80189B74` filled while the
-/// kill counter `D_mine_mesa_80189B6C` is non-zero. An empty slot gets a new
+/// kill counter `MineMesaRemaining` is non-zero. An empty slot gets a new
 /// enemy placed at one of the spawn points in `D_mine_mesa_80189AFC`, drawn at
 /// random from the subset the current view allows, textured from the area's
-/// place record; `D_mine_mesa_80189B6E` then delays the next spawn. When one
+/// place record; `MineMesaCooldown` then delays the next spawn. When one
 /// kill remains, nothing spawns until both slots are empty. Once the counter
 /// is zero the task hands `Gp_ReleaseStateF0` an empty enemy record and
 /// advances its state.
@@ -1676,14 +4044,14 @@ static void func_mine_mesa_80181358(Task* arg0)
     GpEnemy*             enemy;
 
     for (i = 0; i < 2; i++) {
-        if (D_mine_mesa_80189B6E > 0) {
-            D_mine_mesa_80189B6E--;
+        if (MineMesaCooldown > 0) {
+            MineMesaCooldown--;
             break;
         }
-        if (D_mine_mesa_80189B6C == 0) {
+        if (MineMesaRemaining == 0) {
             goto end;
         }
-        if (D_mine_mesa_80189B6C == 1 &&
+        if (MineMesaRemaining == 1 &&
             (D_mine_mesa_80189B74[0] != NULL || D_mine_mesa_80189B74[1] != NULL)) {
             break;
         }
@@ -1733,7 +4101,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         key.room                                                     = loc->room;
         key.view                                                     = gGameSession->at4.loc.view;
         Gp_SyncAreaKeyIndex(&key);
-        place      = (GpAreaPlace*)Gp_GetNestedAreaRec(&key)->field_0;
+        place      = Gp_GetNestedAreaRec(&key)->field_0;
         tmd->tpage = place->tpage;
         tmd->clut  = place->clut;
         if (Mc_SaveData[0].state.demoScene == 10) {
@@ -1746,10 +4114,10 @@ static void func_mine_mesa_80181358(Task* arg0)
         Gfx_RotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
                        pt->yaw, 1);
         coords               = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
-        D_mine_mesa_80189B6E = 0x50;
+        MineMesaCooldown = 0x50;
         coords->flg          = 0;
     }
-    if (D_mine_mesa_80189B6C > 0) {
+    if (MineMesaRemaining > 0) {
         return;
     }
 end:
@@ -1785,21 +4153,21 @@ s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
 {
     if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->hp <= 0) {
         D_mine_mesa_80189B74[slot] = NULL;
-        D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
+        MineMesaRemaining       = (u16)MineMesaRemaining - 1;
     }
     return 1;
 }
 
-/// Starts the room's slot countdown: seeds `D_mine_mesa_80189B6C` to 10, clears
+/// Starts the room's slot countdown: seeds `MineMesaRemaining` to 10, clears
 /// the two slots at `D_mine_mesa_80189B74`, points the task at the room's state
 /// descriptor and advances a state. `func_mine_mesa_80181800` later empties a
 /// slot and decrements the counter once the thing in it is gone.
 static void func_mine_mesa_80181848(Task* arg0)
 {
-    D_mine_mesa_80189B6C    = 10;
+    MineMesaRemaining    = 10;
     D_mine_mesa_80189B74[1] = 0;
     D_mine_mesa_80189B74[0] = 0;
-    arg0->msgTable          = &D_mine_mesa_80189B1C;
+    arg0->msgTable          = D_mine_mesa_80189B1C;
     arg0->state++;
 }
 

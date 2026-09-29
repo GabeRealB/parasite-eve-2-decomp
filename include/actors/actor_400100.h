@@ -36,10 +36,9 @@ typedef struct Actor00100Obj {
 STATIC_ASSERT_SIZEOF(Actor00100Obj, 0x98);
 
 typedef struct Actor00100AnimCommand {
-    /* 0x00 */ byte pad_0[0x10];
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ s32  field_14;
+    GpAnimSet* sets[9];
 } Actor00100AnimCommand;
+STATIC_ASSERT_SIZEOF(Actor00100AnimCommand, 0x24);
 
 typedef struct Actor00100Work {
     /* 0x000 */ s16  field_0;
@@ -232,14 +231,13 @@ STATIC_ASSERT_SIZEOF(Actor00100PoseSrc, 0x20);
 
 extern Actor00100PoseSrc Actor00100_D0BDB4;
 
-extern s8         Actor00100_D1BA54;
 extern GpPairSrcE Actor00100_D0BDA4;
-extern char       Actor00100_D1B944;
+extern GpAnimSet* Actor00100_D1B944[26];
 
-extern char Actor00100_D10D60;
-extern char Actor00100_D11234;
-extern char Actor00100_D11F90;
-extern char Actor00100_D12470;
+extern TmdSource Actor00100_D10D60;
+extern TmdSource Actor00100_D11234;
+extern TmdSource Actor00100_D11F90;
+extern TmdSource Actor00100_D12470;
 
 s32 Actor00100_Fn0B264(Task* task);
 s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);

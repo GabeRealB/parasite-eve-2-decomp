@@ -1,3 +1,5 @@
+#include "dryfield_breezeway_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -44,6 +46,8 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 #include "overlay.h"
+
+extern GpImgRec D_dryfield_breezeway_80183144[2];
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -252,6 +256,196 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
     }
 };
 
+void func_dryfield_breezeway_8017E2D4(void);
+void func_dryfield_breezeway_8017E350(void);
+void func_dryfield_breezeway_8017E370(s16);
+
+void func_dryfield_breezeway_8017E010(Task *);
+void func_dryfield_breezeway_8017E114(Task *);
+void func_dryfield_breezeway_8017E350(void);
+void func_dryfield_breezeway_8017E390(void);
+
+s32 func_dryfield_breezeway_8017FBC8(Task *, s32, s32, s32);
+void func_dryfield_breezeway_8017FA80(Task *);
+void func_dryfield_breezeway_8017FC38(Task *);
+
+TaskDesc D_dryfield_breezeway_80181DD4 = { 0, 32, func_dryfield_breezeway_8017D79C, { .model = NULL } };
+
+GpMsgEntry D_dryfield_breezeway_80181DE0[6] = {
+    { 5102, func_dryfield_breezeway_8017D940 },
+    { 5105, func_dryfield_breezeway_8017D90C },
+    { 5104, func_dryfield_breezeway_8017DA48 },
+    { 5106, func_dryfield_breezeway_8017DBA4 },
+    { 5103, func_dryfield_breezeway_8017DBD8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_dryfield_breezeway_80181E10[2] = {
+    { 0, 32, func_dryfield_breezeway_8017DC3C, { .model = NULL } },
+    { 0, 32, func_dryfield_breezeway_8017DCE4, { .model = NULL } },
+};
+
+GpXformArg D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
+
+GpXformArg D_dryfield_breezeway_80181E40[2] = {
+    { { 0x4074, 0, 1500, 0 }, { 0, 1024, 0, 0 } },
+    { { 0x4074, 0, 1500, 0 }, { 0, 512, 0, 0 } },
+};
+
+GpEvsCmd D_dryfield_breezeway_80181E70[12] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_breezeway_8017E370 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackS16 = func_dryfield_breezeway_8017E370 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_breezeway_8017E2D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_breezeway_8017E350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_dryfield_breezeway_80181F90[12] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_breezeway_8017E390 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_dryfield_breezeway_8017E350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+TaskDesc D_dryfield_breezeway_801820B0[2] = {
+    { 0, 192, func_dryfield_breezeway_8017E010, { .model = NULL } },
+    { 0, 192, func_dryfield_breezeway_8017E114, { .model = NULL } },
+};
+
+TaskDesc D_dryfield_breezeway_801820C8 = { 0, 192, taskKill, { .model = NULL } };
+
+TmdBone D_dryfield_breezeway_801820D4[1] = {
+#include "assets/dryfield_breezeway_model_057DC_skeleton.inc"
+};
+
+u32 D_dryfield_breezeway_801820F8[1] = {
+#include "assets/dryfield_breezeway_model_057DC_partVerts.inc"
+};
+
+SVECTOR D_dryfield_breezeway_801820FC[88] = {
+#include "assets/dryfield_breezeway_model_057DC_verts.inc"
+};
+
+SVECTOR D_dryfield_breezeway_801823BC[18] = {
+#include "assets/dryfield_breezeway_model_057DC_normals.inc"
+};
+
+u32 D_dryfield_breezeway_8018244C[596] = {
+#include "assets/dryfield_breezeway_model_057DC_stream.inc"
+};
+
+TmdSource D_dryfield_breezeway_80182D9C = {
+    0, 4324, 0, 1,
+    D_dryfield_breezeway_801820F8, D_dryfield_breezeway_801820FC, D_dryfield_breezeway_801823BC, D_dryfield_breezeway_801820D4, D_dryfield_breezeway_8018244C,
+};
+
+TaskDesc D_dryfield_breezeway_80182DC0 = { 0, 192, func_dryfield_breezeway_8017FA80, { .model = NULL } };
+
+GpMsgEntry D_dryfield_breezeway_80182DCC[2] = {
+    { 5105, func_dryfield_breezeway_8017FBC8 },
+    { 0x7FFFFFFF, NULL },
+};
+
+OverlayHotspot D_dryfield_breezeway_80182DDC[3] = {
+    { 102, -80, 34, 30, 1, 0, 0 },
+    { 115, -50, 20, 30, 1, 0, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+OverlayHotspot D_dryfield_breezeway_80182E00[2] = {
+    { -16, 20, 32, 48, 1, 0, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+TaskDesc D_dryfield_breezeway_80182E18 = { 1, 192, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
+
+u_long D_dryfield_breezeway_80182E24[64] = {
+    0,
+    0x30A0903,
+    0x70C0D07,
+    3,
+    0,
+    0x3070B04,
+    0x7090F0C,
+    5,
+    0,
+    0x7040A05,
+    0x9060D0E,
+    7,
+    0,
+    0xC040806,
+    0xB060B0F,
+    7,
+    0x1000000,
+    0xE060607,
+    0xC08060E,
+    5,
+    0x1000000,
+    0xE090305,
+    0xC0C040A,
+    3,
+    0x2000000,
+    0xC0B0303,
+    0xB0D0605,
+    2,
+    0x1000000,
+    0x70C0601,
+    0x80D0B04,
+    3,
+    0,
+    0x40A0903,
+    0x70C0D06,
+    3,
+    0,
+    0x3070B04,
+    0x7080F0C,
+    5,
+    0,
+    0x7040A05,
+    0x9060D0E,
+    7,
+    0,
+    0xC040806,
+    0xB060B0F,
+    7,
+    0x1000000,
+    0xE060607,
+    0xC08060E,
+    5,
+    0x1000000,
+    0xE090305,
+    0xC0C040A,
+    3,
+    0x1000000,
+    0xC0B0303,
+    0xB0D0605,
+    2,
+    0x2000000,
+    0x80C0602,
+    0x80D0B04,
+    3,
+};
+
+GpImgRec D_dryfield_breezeway_80182F24[2] = {
+    { 0, 0, { 896, 0, 8, 16 }, D_dryfield_breezeway_80182E24 },
+    { 255, 0, { 0, 0, 0, 0 }, NULL },
+};
+
 /// The one state machine that arms the breezeway, switched on the room task's
 /// `DbwWork.field_C`:
 ///
@@ -330,9 +524,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 work->field_0                 = gameGetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
-                work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
+                work->field_4                 = Gp_FindWorkById(id)->field_0;
                 id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
-                work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
+                work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
             arg0->state += 1;
             return;
@@ -346,8 +540,8 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// type 7): the table the spawned task starts from and the event-command
 /// stream it parks in `D_801156D0` for the task that follows it. Both live in
 /// the room's trailing data blob.
-extern s32 D_dryfield_breezeway_80181E70;
-extern s32 D_dryfield_breezeway_80181F90;
+extern GpEvsCmd D_dryfield_breezeway_80181E70[];
+extern GpEvsCmd D_dryfield_breezeway_80181F90[];
 
 /// The long-lived half of the arming pair: `func_dryfield_breezeway_8017E010`
 /// is the same state 0 with no sequencer and no cutscene behind it, and is the
@@ -388,9 +582,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 work->field_0                 = gameGetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
-                work->field_4                 = (void*)Gp_FindWorkById(id)->field_0;
+                work->field_4                 = Gp_FindWorkById(id)->field_0;
                 id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
-                work->field_8                 = (void*)Gp_FindWorkById(id)->field_0;
+                work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
             id                  = Player_Status.weapon;
             buf.animBlock.index = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
@@ -399,7 +593,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             buf.field_C         = 0xA;
             buf.field_10        = 0;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &buf, 0);
-            func_800E8634(&D_dryfield_breezeway_80181E70, 0, &D_dryfield_breezeway_80181F90);
+            func_800E8634(D_dryfield_breezeway_80181E70, 0, D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
         case 1:
@@ -587,19 +781,16 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 }
 
 /// Main-executable symbols with no module header yet: `gDisplayState.animFrame` is the
-/// frame counter the prop's swing angle is derived from, and `func_8004BFF8`
+/// frame counter the prop's swing angle is derived from, and `RotMatrixY`
 /// is the Y rotation builder `ActorsShared80139948` also reaches.
 ///
 /// Its `angle` parameter is declared `s32` rather than the `s16` the actor
 /// headers use because the calls below feed it `rsin`'s `int` result, which
 /// the target passes through untruncated.
-void func_8004BFF8(s32 angle, MATRIX* matrix);
 
 /// The two image records the key-item prompt's scan uploads the first time it
 /// runs, taken from the room's trailing data blob: the confirm and cancel
 /// artwork `Gp_LoadImages` stages into VRAM.
-extern GpImgRec D_dryfield_breezeway_80182F24;
-extern GpImgRec D_dryfield_breezeway_80183144;
 
 /// Runs the key-item prompt's scan state: uploads this room's two prompt
 /// `GpImgRec`s the first time it runs (`Task::killCountdown` is zero, and the
@@ -632,19 +823,19 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     prompt = D_80114D28;
 
     if (task->killCountdown == 0) {
-        Gp_LoadImages(&D_dryfield_breezeway_80182F24);
-        Gp_LoadImages(&D_dryfield_breezeway_80183144);
+        Gp_LoadImages(&D_dryfield_breezeway_80182F24[0]);
+        Gp_LoadImages(&D_dryfield_breezeway_80183144[0]);
         task->killCountdown = (u16)task->killCountdown + 1;
     }
 
     m                    = &coord->coord;
     MATRIX_PAIR(m, 0, 0) = 0x1000;
     MATRIX_PAIR(m, 1, 1) = 0x1000;
-    *(s16*)&m->m[2][2]   = 0x1000;
+    *&m->m[2][2]   = 0x1000;
     MATRIX_PAIR(m, 0, 2) = 0;
     MATRIX_PAIR(m, 2, 0) = 0;
 
-    func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
+    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
     coord->flg = 0;
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
     gGameSession->hideHud    = 1;
@@ -704,11 +895,11 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     m                                = &coord->coord;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
     MATRIX_PAIR(m, 1, 1)             = 0x1000;
-    *(s16*)&m->m[2][2]               = 0x1000;
+    *&m->m[2][2]               = 0x1000;
     MATRIX_PAIR(m, 0, 2)             = 0;
     MATRIX_PAIR(m, 2, 0)             = 0;
 
-    func_8004BFF8(rsin(gDisplayState.animFrame * 0x10), m);
+    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (func_dryfield_breezeway_8017FCB4(hs, work->cursorX, work->cursorY) != 0) {
@@ -1472,7 +1663,7 @@ static void func_dryfield_breezeway_8017FF1C(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_dryfield_breezeway_8017FF7C(Task* task)
+void func_dryfield_breezeway_8017FF7C(Task* task)
 {
     s32        mask;
     GpEffWork* eff;
@@ -1627,7 +1818,7 @@ static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2,
             line->y1 = block->sy;
             line->x2 = block->sx - (block->halfWidth * t);
             line->y2 = block->sy + (block->halfWidth * t2);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;
@@ -1785,7 +1976,7 @@ static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2,
 /// come close together at low speed. A miss adds `0x5000 / scale` to the
 /// direction's y component. Over `age` the sprite fades from 30 to 60 and
 /// is then released. The age does not advance while an event is running.
-static void func_dryfield_breezeway_80181264(Task* task)
+void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
     GpCoord*   coord = task->extra.tmd->coords;

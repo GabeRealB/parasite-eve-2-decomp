@@ -99,21 +99,13 @@ void Gp_ApplyItemMap(void)
 
 s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 {
-    McItemSlot* slots;
     McItemSlot* slot;
-    s32*        counts;
     s32*        counter;
     McSaveData* save;
     s32         count;
-    s32         off8;
-    s32         off4;
 
-    off8    = arg0 << 3;
-    slots   = (McItemSlot*)((s32)Mc_SaveData[0].state.weaponItems - 0x400);
-    slot    = (McItemSlot*)(off8 + (s32)slots);
-    off4    = arg0 << 2;
-    counts  = (s32*)((s32)slots + 0x4C0);
-    counter = (s32*)(off4 + (s32)counts);
+    slot    = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
+    counter = &Mc_SaveData[0].state.weaponUseCounts[arg0 - 0x80];
 
     if (arg1 == 1) {
         if (slot->ammoId != 0) {

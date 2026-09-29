@@ -85,6 +85,8 @@ void Gp_ResetCap(void);
 
 void Gp_LoadCapFile(s32 arg0);
 
+void func_800E6E44(GpCapTextCb arg0);
+
 /// Key of the event the running cap script stopped on (`Gp_CapEventKey`).
 s32 Gp_GetCapEventKey(void);
 

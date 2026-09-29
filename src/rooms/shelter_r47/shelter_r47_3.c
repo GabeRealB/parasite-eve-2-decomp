@@ -1,3 +1,5 @@
+#include "shelter_r47_private.h"
+
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -27,6 +29,8 @@
 #include "main/task.h"
 #include "overlay.h"
 
+#include "gameplay/message.h"
+
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
 extern OverlayHotspot D_shelter_r47_801873D8[];
@@ -38,8 +42,6 @@ extern u8 D_shelter_r47_801873FC[];
 extern TaskDesc D_shelter_r47_8018760C;
 
 /// World-space points the room's glow drawers mark, picked by the current view.
-extern SVECTOR D_shelter_r47_80187624[];
-extern SVECTOR D_shelter_r47_80187664[];
 
 static void func_shelter_r47_8018431C(Task* task);
 static void func_shelter_r47_801844A0(Task* task);
@@ -77,6 +79,1083 @@ static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
         func_shelter_r47_80185028,
         func_shelter_r47_80185098,
     },
+};
+
+extern ShelterR47SpritePart D_shelter_r47_8018702C[2];
+extern ShelterR47SpritePart D_shelter_r47_80187044[2];
+extern ShelterR47SpritePart D_shelter_r47_8018705C[2];
+extern ShelterR47SpritePart D_shelter_r47_80187074[3];
+extern ShelterR47SpritePart D_shelter_r47_80187098[3];
+extern ShelterR47SpritePart D_shelter_r47_801870BC[3];
+extern ShelterR47SpritePart D_shelter_r47_801870E0[3];
+extern ShelterR47SpritePart D_shelter_r47_80187104[3];
+extern ShelterR47SpritePart D_shelter_r47_80187128[3];
+extern ShelterR47SpritePart D_shelter_r47_8018714C[3];
+extern ShelterR47SpritePart D_shelter_r47_80187170[3];
+extern ShelterR47SpritePart D_shelter_r47_80187194[3];
+extern ShelterR47SpritePart D_shelter_r47_801871B8[3];
+extern ShelterR47SpritePart D_shelter_r47_801871DC[2];
+extern ShelterR47SpritePart D_shelter_r47_801871F4[2];
+extern ShelterR47SpritePart D_shelter_r47_8018720C[2];
+extern ShelterR47SpritePart D_shelter_r47_80187224[2];
+extern ShelterR47SpritePart D_shelter_r47_8018723C[2];
+extern ShelterR47SpritePart D_shelter_r47_80187254[2];
+extern ShelterR47SpritePart D_shelter_r47_8018726C[2];
+extern ShelterR47SpritePart D_shelter_r47_80187284[2];
+
+u8 D_shelter_r47_80186BE8[8] = {
+    83,
+    97,
+    118,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186BF0[12] = {
+    80,
+    108,
+    97,
+    121,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186BFC[12] = {
+    87,
+    101,
+    97,
+    112,
+    111,
+    110,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_shelter_r47_80186C08[8] = {
+    80,
+    69,
+    32,
+    68,
+    97,
+    116,
+    97,
+    0,
+};
+
+u8 D_shelter_r47_80186C10[8] = {
+    84,
+    105,
+    109,
+    101,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C18[4] = {
+    87,
+    111,
+    110,
+    0,
+};
+
+u8 D_shelter_r47_80186C1C[8] = {
+    69,
+    115,
+    99,
+    97,
+    112,
+    101,
+    100,
+    0,
+};
+
+u8 D_shelter_r47_80186C24[12] = {
+    66,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    0,
+};
+
+u8 D_shelter_r47_80186C30[16] = {
+    69,
+    120,
+    116,
+    101,
+    114,
+    109,
+    105,
+    110,
+    97,
+    116,
+    101,
+    100,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C40[8] = {
+    83,
+    97,
+    118,
+    101,
+    100,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C48[8] = {
+    67,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    0,
+};
+
+u8 D_shelter_r47_80186C50[8] = {
+    77,
+    97,
+    120,
+    32,
+    69,
+    88,
+    80,
+    0,
+};
+
+u8 D_shelter_r47_80186C58[8] = {
+    77,
+    97,
+    120,
+    32,
+    66,
+    80,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C60[8] = {
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C68[4] = {
+    37,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C6C[44] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    10,
+    116,
+    105,
+    109,
+    101,
+    32,
+    115,
+    112,
+    101,
+    110,
+    116,
+    32,
+    102,
+    111,
+    114,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186C98[36] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    115,
+    97,
+    118,
+    101,
+    115,
+    10,
+    117,
+    115,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186CBC[48] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    10,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186CEC[52] = {
+    84,
+    111,
+    116,
+    97,
+    108,
+    32,
+    110,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    101,
+    115,
+    99,
+    97,
+    112,
+    101,
+    115,
+    10,
+    102,
+    114,
+    111,
+    109,
+    32,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186D20[52] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    98,
+    97,
+    116,
+    116,
+    108,
+    101,
+    115,
+    32,
+    119,
+    111,
+    110,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186D54[56] = {
+    67,
+    117,
+    114,
+    114,
+    101,
+    110,
+    116,
+    32,
+    112,
+    101,
+    114,
+    99,
+    101,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    116,
+    111,
+    116,
+    97,
+    108,
+    10,
+    101,
+    110,
+    101,
+    109,
+    105,
+    101,
+    115,
+    32,
+    100,
+    101,
+    102,
+    101,
+    97,
+    116,
+    101,
+    100,
+    32,
+    105,
+    110,
+    32,
+    116,
+    104,
+    105,
+    115,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_shelter_r47_80186D8C[52] = {
+    78,
+    117,
+    109,
+    98,
+    101,
+    114,
+    32,
+    111,
+    102,
+    32,
+    116,
+    105,
+    109,
+    101,
+    115,
+    32,
+    121,
+    111,
+    117,
+    32,
+    104,
+    97,
+    118,
+    101,
+    10,
+    99,
+    108,
+    101,
+    97,
+    114,
+    101,
+    100,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    32,
+    115,
+    111,
+    32,
+    102,
+    97,
+    114,
+    46,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80186DC0[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    69,
+    88,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+};
+
+u8 D_shelter_r47_80186DF8[56] = {
+    71,
+    114,
+    101,
+    97,
+    116,
+    101,
+    115,
+    116,
+    32,
+    97,
+    109,
+    111,
+    117,
+    110,
+    116,
+    32,
+    111,
+    102,
+    32,
+    66,
+    80,
+    32,
+    103,
+    97,
+    116,
+    104,
+    101,
+    114,
+    101,
+    100,
+    10,
+    98,
+    121,
+    32,
+    116,
+    104,
+    101,
+    32,
+    101,
+    110,
+    100,
+    32,
+    111,
+    102,
+    32,
+    116,
+    104,
+    101,
+    32,
+    103,
+    97,
+    109,
+    101,
+    46,
+    0,
+    0,
+};
+
+UiListItemFunc D_shelter_r47_80186E30[1] = {
+    func_shelter_r47_8017D86C,
+};
+
+UiList D_shelter_r47_80186E34 = { D_shelter_r47_80186E30, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiListItemFunc D_shelter_r47_80186E58[1] = {
+    func_shelter_r47_8017E038,
+};
+
+UiList D_shelter_r47_80186E5C = { D_shelter_r47_80186E58, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+UiObjectDesc D_shelter_r47_80186E80 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_r47_8017EEFC, 0 };
+
+UiObjectDesc D_shelter_r47_80186E9C = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_r47_8017F0BC, 0 };
+
+UiObjectDesc D_shelter_r47_80186EB8 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_r47_8017EA50, 0 };
+
+UiListItemFunc D_shelter_r47_80186ED4[4] = {
+    func_shelter_r47_8017F2B0,
+    func_shelter_r47_8017F394,
+    func_shelter_r47_8017F45C,
+    func_shelter_r47_8017F524,
+};
+
+UiList D_shelter_r47_80186EE4 = { D_shelter_r47_80186ED4, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+
+TaskDesc D_shelter_r47_80186F08[3] = {
+    { 0, 32, func_shelter_r47_8017F628, { .model = NULL } },
+    { 0, 32, func_shelter_r47_80180540, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpMsgEntry D_shelter_r47_80186F2C[6] = {
+    { 5102, func_shelter_r47_801805D8 },
+    { 5105, func_shelter_r47_801805D0 },
+    { 5103, func_shelter_r47_8017FE84 },
+    { 5104, func_shelter_r47_801801DC },
+    { 5106, func_shelter_r47_8018061C },
+    { 0x7FFFFFFF, NULL },
+};
+
+GpAnimArg D_shelter_r47_80186F5C = { { .index = 6 }, 1, 0, 0, 0 };
+
+TaskDesc D_shelter_r47_80186F70[3] = {
+    { 0, 192, func_shelter_r47_80180714, { .model = NULL } },
+    { 0, 192, func_shelter_r47_80180324, { .model = NULL } },
+    { 0, 192, func_shelter_r47_80180650, { .model = NULL } },
+};
+
+TaskDesc D_shelter_r47_80186F94[2] = {
+    { 0, 192, func_shelter_r47_8018080C, { .model = NULL } },
+    { 0, 192, func_shelter_r47_801808D4, { .model = NULL } },
+};
+
+u8 D_shelter_r47_80186FAC[5] = {
+    16,
+    18,
+    17,
+    20,
+    19,
+};
+
+OverlayHotspot D_shelter_r47_80186FB4[9] = {
+    { 128, -104, 20, 20, 1025, 0, 0 },
+    { -152, -104, 68, 20, 769, 0, 0 },
+    { -152, 72, 72, 16, 257, 1, 0 },
+    { 124, -83, 26, 16, 0, 1, 0 },
+    { 124, -67, 26, 16, 1, 1, 0 },
+    { 124, -51, 26, 16, 2, 1, 0 },
+    { 124, -35, 26, 16, 3, 1, 0 },
+    { 124, -19, 26, 16, 4, 1, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+TaskDesc D_shelter_r47_80187020 = { 0, 192, func_shelter_r47_80182B18, { .model = NULL } };
+
+ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
+    { 32, 255, 0, 0, 120, 160, 72, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187044[2] = {
+    { 96, 255, 0, 0, 0, 184, 72, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_8018705C[2] = {
+    { 128, 255, 0, 0, 0, 184, 72, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187074[3] = {
+    { 0, 255, 0, 0, 0, 0, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187098[3] = {
+    { 0, 255, 0, 0, 0, 16, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_801870BC[3] = {
+    { 0, 255, 0, 0, 0, 32, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_801870E0[3] = {
+    { 0, 255, 0, 0, 0, 48, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187104[3] = {
+    { 0, 255, 0, 0, 0, 64, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187128[3] = {
+    { 0, 255, 0, 0, 0, 80, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_8018714C[3] = {
+    { 0, 255, 0, 0, 0, 96, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187170[3] = {
+    { 0, 255, 0, 0, 0, 112, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187194[3] = {
+    { 0, 255, 0, 0, 0, 128, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_801871B8[3] = {
+    { 0, 255, 0, 0, 0, 144, 255, 16 },
+    { 48, 255, 255, 0, 72, 184, 48, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_801871DC[2] = {
+    { 16, 255, 0, 0, 0, 160, 24, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_801871F4[2] = {
+    { 16, 255, 0, 0, 24, 160, 24, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_8018720C[2] = {
+    { 16, 255, 0, 0, 48, 160, 24, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187224[2] = {
+    { 16, 255, 0, 0, 72, 160, 24, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_8018723C[2] = {
+    { 16, 255, 0, 0, 96, 160, 24, 24 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187254[2] = {
+    { 80, 255, 0, 0, 120, 184, 40, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_8018726C[2] = {
+    { 112, 255, 0, 0, 120, 184, 40, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart D_shelter_r47_80187284[2] = {
+    { 64, 255, 0, 0, 160, 184, 16, 16 },
+    { 0xFFFF, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+ShelterR47SpritePart * D_shelter_r47_8018729C[21] = {
+    D_shelter_r47_8018702C,
+    D_shelter_r47_80187044,
+    D_shelter_r47_8018705C,
+    D_shelter_r47_80187074,
+    D_shelter_r47_80187098,
+    D_shelter_r47_801870BC,
+    D_shelter_r47_801870E0,
+    D_shelter_r47_80187128,
+    D_shelter_r47_80187104,
+    D_shelter_r47_8018714C,
+    D_shelter_r47_80187170,
+    D_shelter_r47_80187194,
+    D_shelter_r47_801871B8,
+    D_shelter_r47_801871DC,
+    D_shelter_r47_801871F4,
+    D_shelter_r47_8018720C,
+    D_shelter_r47_80187224,
+    D_shelter_r47_8018723C,
+    D_shelter_r47_80187254,
+    D_shelter_r47_8018726C,
+    D_shelter_r47_80187284,
+};
+
+TaskDesc D_shelter_r47_801872F0 = { 0, 192, func_shelter_r47_80183234, { .model = NULL } };
+
+u8 D_shelter_r47_801872FC[8] = {
+    0,
+    13,
+    20,
+    30,
+    39,
+    48,
+    57,
+    255,
+};
+
+u8 D_shelter_r47_80187304[8] = {
+    0,
+    13,
+    22,
+    30,
+    40,
+    255,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_8018730C[12] = {
+    0,
+    10,
+    14,
+    24,
+    33,
+    41,
+    50,
+    55,
+    59,
+    70,
+    79,
+    255,
+};
+
+u8 D_shelter_r47_80187318[4] = {
+    255,
+    0,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_8018731C[12] = {
+    0,
+    11,
+    14,
+    22,
+    30,
+    35,
+    39,
+    49,
+    58,
+    65,
+    255,
+    0,
+};
+
+u8 D_shelter_r47_80187328[12] = {
+    0,
+    11,
+    14,
+    22,
+    30,
+    35,
+    39,
+    49,
+    58,
+    255,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80187334[16] = {
+    0,
+    11,
+    21,
+    32,
+    41,
+    50,
+    59,
+    63,
+    67,
+    76,
+    79,
+    90,
+    98,
+    107,
+    255,
+    0,
+};
+
+u8 D_shelter_r47_80187344[16] = {
+    0,
+    11,
+    21,
+    32,
+    41,
+    50,
+    59,
+    63,
+    67,
+    76,
+    79,
+    90,
+    98,
+    107,
+    255,
+    0,
+};
+
+u8 D_shelter_r47_80187354[16] = {
+    0,
+    12,
+    20,
+    30,
+    39,
+    49,
+    52,
+    60,
+    70,
+    74,
+    78,
+    88,
+    98,
+    255,
+    0,
+    0,
+};
+
+u8 D_shelter_r47_80187364[16] = {
+    0,
+    12,
+    20,
+    30,
+    39,
+    49,
+    52,
+    60,
+    70,
+    74,
+    78,
+    88,
+    96,
+    104,
+    255,
+    0,
+};
+
+u8 * D_shelter_r47_80187374[10] = {
+    D_shelter_r47_801872FC,
+    D_shelter_r47_80187304,
+    D_shelter_r47_8018730C,
+    D_shelter_r47_80187318,
+    D_shelter_r47_8018731C,
+    D_shelter_r47_80187328,
+    D_shelter_r47_80187334,
+    D_shelter_r47_80187344,
+    D_shelter_r47_80187354,
+    D_shelter_r47_80187364,
+};
+
+OverlayHotspot D_shelter_r47_8018739C[5] = {
+    { -156, -103, 78, 10, 4, 0, 0 },
+    { -150, 63, 56, 14, 2, 1, 0 },
+    { -144, 80, 56, 14, 3, 1, 0 },
+    { -155, -90, 68, 84, 1, 0, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+OverlayHotspot D_shelter_r47_801873D8[3] = {
+    { -150, 63, 56, 14, 2, 1, 0 },
+    { -144, 80, 56, 14, 3, 1, 0 },
+    { 0, 0, 0, 0, -1, 0, 0 },
+};
+
+u8 D_shelter_r47_801873FC[8] = {
+    37, 38, 39, 40, 41, 0, 0, 0,
 };
 
 /// State-0 entry of the second cap script. It allocates the `ShelterR47State2`
@@ -810,7 +1889,7 @@ static void func_shelter_r47_8018585C(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_shelter_r47_801858BC(void)
+void func_shelter_r47_801858BC(Task* unused)
 {
     u8 view;
 
@@ -829,8 +1908,8 @@ static void func_shelter_r47_801858BC(void)
             func_shelter_r47_80185A4C(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 13:
-            func_shelter_r47_80185A4C(&D_shelter_r47_80187664[0], 0x280, 0x344);
-            func_shelter_r47_80185A4C(&D_shelter_r47_80187664[1], 0x180, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            func_shelter_r47_80185A4C(&D_shelter_r47_80187624[9], 0x180, 0x344);
             break;
         case 14:
             func_shelter_r47_80185DEC(&D_shelter_r47_80187624[0], 0x60, 0xA0);
@@ -997,7 +2076,7 @@ static void func_shelter_r47_80185DEC(SVECTOR* arg0, s32 arg1, s32 arg2)
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim(Gpu_OtEntryAtByteOffset(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) + (uintptr)gGpuCurrentOt)),
                     line);
             Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
             i = t2;

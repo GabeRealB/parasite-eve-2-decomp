@@ -1,4 +1,6 @@
 #include "common.h"
+#include "rooms/mine_gorge.h"
+#include "mapui/map_shelter.h"
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
@@ -23,7 +25,10 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+#include "gameplay/animation.h"
+#include "gameplay/message.h"
+
+void func_mine_gorge_8017D828(Task* arg0);
 
 /// The room's message table, installed by the room task's first state.
 extern GpMsgEntry D_mine_gorge_8017E280[];
@@ -32,12 +37,139 @@ extern GpMsgEntry D_mine_gorge_8017E280[];
 /// terminator.
 extern TaskDesc D_mine_gorge_8017E2B0[];
 
-extern s32 D_mine_gorge_8017E2F0;
-extern s32 D_mine_gorge_8017E500;
-extern s32 D_mine_gorge_8017E610;
+extern GpEvsCmd D_mine_gorge_8017E2F0[];
+extern GpEvsCmd D_mine_gorge_8017E500[];
+extern GpEvsCmd D_mine_gorge_8017E610[];
 
 static void func_mine_gorge_8017D8D4(Task* arg0);
 static void func_mine_gorge_8017D998(Task* task);
+
+s32 func_mine_gorge_8017D5F8(Task *, s32, s32, GpMessageArg);
+s32 func_mine_gorge_8017D6E8(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_mine_gorge_8017D77C(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_gorge_8017D784(Task *, s32, GpMsg13EF *, GpMessageArg);
+s32 func_mine_gorge_8017D7F4(Task *, s32, s32, GpMessageArg);
+
+void func_mine_gorge_8017D8BC(u8);
+
+extern GpAnimSet D_mine_gorge_8017E258;
+
+extern GpAnimArg D_mine_gorge_8017E2DC;
+extern GpAnimArg D_mine_gorge_8017E5E8;
+extern GpCopyArg D_mine_gorge_8017E5E0;
+void func_mine_gorge_8017D8C8(s32);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[10];
+    GpPackedSvec words[30];
+} MineGorgePoseBank850;
+
+MineGorgePoseBank850 D_mine_gorge_8017DE10 = { .poses = {
+#include "assets/mine_gorge_animation_00C98_bank1.inc"
+} };
+
+GpPackedSvec D_mine_gorge_8017DE88[95] = {
+#include "assets/mine_gorge_animation_00C98_bank4.inc"
+};
+
+GpAnimRec D_mine_gorge_8017E004[139] = {
+#include "assets/mine_gorge_animation_00C98_records.inc"
+};
+
+u16 D_mine_gorge_8017E230[20] = {
+#include "assets/mine_gorge_animation_00C98_indices.inc"
+
+};
+
+GpAnimSet D_mine_gorge_8017E258 = {
+    D_mine_gorge_8017E004, D_mine_gorge_8017E230,
+    { NULL, D_mine_gorge_8017DE10.words, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
+};
+
+GpMsgEntry D_mine_gorge_8017E280[6] = {
+    { 5102, func_mine_gorge_8017D6E8 },
+    { 5105, func_mine_gorge_8017D5F8 },
+    { 5103, func_mine_gorge_8017D784 },
+    { 5104, func_mine_gorge_8017D77C },
+    { 5106, func_mine_gorge_8017D7F4 },
+    { 0x7FFFFFFF, NULL },
+};
+
+TaskDesc D_mine_gorge_8017E2B0[2] = {
+    { 0, 32, func_mine_gorge_8017D828, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpAnimArg D_mine_gorge_8017E2C8 = { { .index = 1 }, 24, 0, 0, 0 };
+
+GpAnimArg D_mine_gorge_8017E2DC = { { .index = 1 }, 1, 1, 10, 0 };
+
+GpEvsCmd D_mine_gorge_8017E2F0[22] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 41, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_mine_gorge_8017D8BC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54050009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2C8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mine_gorge_8017E500[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 11, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpAnimSet * D_mine_gorge_8017E5D8[2] = {
+    &D_mine_gorge_8017E258,
+    NULL,
+};
+
+GpCopyArg D_mine_gorge_8017E5E0 = { { .sets = D_mine_gorge_8017E5D8 }, 2 };
+
+GpAnimArg D_mine_gorge_8017E5E8 = { { .index = 1 }, 47, 1, 7, 1 };
+
+// Retained parameter record; layout follows the adjacent script arguments.
+GpAnimArg D_mine_gorge_8017E5FC = { { .index = 1 }, 48, 1, 7, 1 };
+
+GpEvsCmd D_mine_gorge_8017E610[14] = {
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mine_gorge_8017E5E0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x54050007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mine_gorge_8017D8C8 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E5E8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
 
 /// Answers message `0x13F1` with argument `0x11F`: while flag nibble `0xA4` is
 /// clear and a pending `GpObj4C` of kind 5 with `field_48 == 0xFF` and a
@@ -45,7 +177,7 @@ static void func_mine_gorge_8017D998(Task* task);
 /// `D_mine_gorge_8017E2B0`, moves the session to room 2 with the HUD hidden and
 /// the room objects dirty, and starts the session event. Returns 1 when it
 /// did so, 0 otherwise.
-s32 func_mine_gorge_8017D5F8(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -76,15 +208,15 @@ s32 func_mine_gorge_8017D5F8(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// Answers message `0x13EE`: copies the event message to `out` and passes both
-/// to `func_80179A04`. A message of id 2 arriving while flag nibble `0xB5` is
+/// to `func_map_shelter_80179A04`. A message of id 2 arriving while flag nibble `0xB5` is
 /// clear and `field_5` is zero sets nibble `field_6` to 2, runs cap command 3
 /// and returns 0; every other case returns 1, except that a set `field_5`
 /// returns 0 without acting.
-s32 func_mine_gorge_8017D6E8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
-    if (in->msgId != 2) {
+    func_map_shelter_80179A04(in, out);
+    if (in->prefix.packed != 2) {
         return 1;
     }
     if (GameFlag_GetNibble(0xB5) != 0) {
@@ -99,7 +231,7 @@ s32 func_mine_gorge_8017D6E8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
 }
 
 /// Answers message `0x13F0` by doing nothing.
-s32 func_mine_gorge_8017D77C(void)
+s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -108,19 +240,19 @@ s32 func_mine_gorge_8017D77C(void)
 /// direction byte is 1, flag nibble `0xC5` is still clear and the session is in
 /// place 1, raises the nibble and starts the script blob at
 /// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
 {
     u8 temp_s0 = arg2->field_2;
 
     if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.place == temp_s0) {
         GameFlag_SetNibble(0xC5, 1);
-        func_800E8614((s32)&D_mine_gorge_8017E610, 0);
+        func_800E8614(D_mine_gorge_8017E610, 0);
     }
     return 0;
 }
 
 /// Answers message `0x13F2`: argument `0xA` queues event sound `0x5405000A`.
-s32 func_mine_gorge_8017D7F4(s32 arg0, s32 arg1, s32 arg2)
+s32 func_mine_gorge_8017D7F4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
     if (arg2 == 0xA) {
         SndEvt_EnqueueType6(0x54050000 | arg2, 0, 0);
@@ -138,7 +270,7 @@ void func_mine_gorge_8017D828(Task* arg0)
         D_80115768 = 1;
         SetDispMask(0);
         gGameSession->hideHud = 1;
-        func_800E8634(&D_mine_gorge_8017E2F0, 0, &D_mine_gorge_8017E500);
+        func_800E8634(D_mine_gorge_8017E2F0, 0, D_mine_gorge_8017E500);
     } else {
         taskKill(arg0);
         Gp_ClearCollectedBit(0x11F);

@@ -1,6 +1,8 @@
 #ifndef M4A1_JAVELIN_H
 #define M4A1_JAVELIN_H
 
+#include "main/task_types.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include "overlay.h"
@@ -37,5 +39,9 @@ extern s16     D_m4a1_javelin_8012EB64;
 extern s16     D_m4a1_javelin_8012EB66;
 extern SVECTOR D_m4a1_javelin_8012EB68;
 extern s32     D_m4a1_javelin_8012EB70;
+
+void func_m4a1_javelin_8011D1E4(Task* task);
+
+void func_m4a1_javelin_8011F4E8(Task* arg0);
 
 #endif

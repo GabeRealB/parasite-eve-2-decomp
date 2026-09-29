@@ -1,3 +1,6 @@
+#include "gameplay/evs.h"
+#include "mist_parking_private.h"
+
 #include "common.h"
 #include <psyq/libgte.h>
 #include "rooms/room_common.h"
@@ -20,22 +23,23 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-extern s32 D_mist_parking_8018F374;
-extern s32 D_mist_parking_8018F4AC;
-extern s32 D_mist_parking_8018F5E4;
-extern s32 D_mist_parking_8018F824;
-extern s32 D_mist_parking_8018F9A4;
-extern s32 D_mist_parking_8018FA4C;
-extern s32 D_mist_parking_8018FB3C;
+#include "gameplay/item_menu.h"
+#include "gameplay/message.h"
+
+#include "gameplay/animation.h"
+
+void func_mist_parking_8018345C(Task* arg0);
+
+
+extern GpEvsCmd D_mist_parking_8018F374[];
+extern GpEvsCmd D_mist_parking_8018F4AC[];
+extern GpEvsCmd D_mist_parking_8018F5E4[];
+extern GpEvsCmd D_mist_parking_8018F824[];
+extern GpEvsCmd D_mist_parking_8018F9A4[];
+extern GpEvsCmd D_mist_parking_8018FA4C[];
+extern GpEvsCmd D_mist_parking_8018FB3C[];
 extern s32 D_mist_parking_8018FBFC[];
 extern s32 D_mist_parking_8018FC10[];
-
-typedef struct {
-    /* 0x0 */ s16 timer;
-    /* 0x2 */ s16 index;
-} MistParkingScanState;
-
-extern MistParkingScanState D_mist_parking_80195328;
 
 static void func_mist_parking_801833F8(Task* task);
 
@@ -62,6 +66,701 @@ static const TaskFuncTable3 D_mist_parking_8017D7F4 = {
     },
 };
 
+extern GpAnimArg D_mist_parking_8018D848;
+extern GpAnimArg D_mist_parking_8018DE38;
+extern GpAnimArg D_mist_parking_8018DE88;
+extern GpAnimArg D_mist_parking_8018DEB0;
+extern GpAnimArg D_mist_parking_8018DEC4;
+extern GpAnimArg D_mist_parking_8018DED8;
+extern GpCopyArg D_mist_parking_8018D82C;
+
+extern GpAnimSet D_mist_parking_80187594;
+extern GpAnimSet D_mist_parking_80187D34;
+extern GpAnimSet D_mist_parking_8018821C;
+extern GpAnimSet D_mist_parking_801886F8;
+extern GpAnimSet D_mist_parking_80188CC0;
+extern GpAnimSet D_mist_parking_80189074;
+extern GpAnimSet D_mist_parking_80189770;
+extern GpAnimSet D_mist_parking_80189C48;
+extern GpAnimSet D_mist_parking_8018A340;
+extern GpAnimSet D_mist_parking_8018A620;
+extern GpAnimSet D_mist_parking_8018A9A4;
+extern GpAnimSet D_mist_parking_8018AC64;
+extern GpAnimSet D_mist_parking_8018B054;
+extern GpAnimSet D_mist_parking_8018B454;
+extern GpAnimSet D_mist_parking_8018B790;
+extern GpAnimSet D_mist_parking_8018BCA0;
+extern GpAnimSet D_mist_parking_8018BFCC;
+extern GpAnimSet D_mist_parking_8018C3A0;
+extern GpAnimSet D_mist_parking_8018C70C;
+extern GpAnimSet D_mist_parking_8018CB34;
+extern GpAnimSet D_mist_parking_8018CDB0;
+extern GpAnimSet D_mist_parking_8018D220;
+extern GpAnimSet D_mist_parking_8018D41C;
+extern GpAnimSet D_mist_parking_8018D734;
+extern TmdSource D_mist_parking_80187294;
+void func_mist_parking_80182A44(Task *);
+void func_mist_parking_80182F60(Task *);
+void func_mist_parking_80183100(s32);
+void func_mist_parking_8018312C(s32);
+void func_mist_parking_8018316C(s32);
+void func_mist_parking_801831F0(s32);
+void func_mist_parking_8018326C(s32);
+void func_mist_parking_801832AC(Task *);
+void func_mist_parking_801834D4(Task *);
+void func_mist_parking_8018354C(void);
+void func_mist_parking_8018357C(Task *);
+void func_mist_parking_80183600(void);
+
+TaskDesc D_mist_parking_8018D75C[9] = {
+    { 1, 192, func_mist_parking_80183B40, { .model = &D_mist_parking_80187294 } },
+    { 0, 192, func_mist_parking_801832AC, { .model = NULL } },
+    { 0, 192, func_mist_parking_8018345C, { .model = NULL } },
+    { 0, 192, func_mist_parking_8018357C, { .model = NULL } },
+    { 0, 97, func_mist_parking_801828F0, { .model = NULL } },
+    { 0, 192, func_mist_parking_801836CC, { .model = NULL } },
+    { 0, 192, func_mist_parking_801834D4, { .model = NULL } },
+    { 0, 192, func_mist_parking_80182A44, { .model = NULL } },
+    { 0, 192, func_mist_parking_80182F60, { .model = NULL } },
+};
+
+GpAnimSet * D_mist_parking_8018D7C8[25] = {
+    NULL,
+    &D_mist_parking_80187594,
+    &D_mist_parking_80187D34,
+    &D_mist_parking_8018821C,
+    &D_mist_parking_801886F8,
+    &D_mist_parking_80188CC0,
+    &D_mist_parking_80189074,
+    &D_mist_parking_80189770,
+    &D_mist_parking_80189C48,
+    &D_mist_parking_8018A340,
+    &D_mist_parking_8018A620,
+    &D_mist_parking_8018AC64,
+    &D_mist_parking_8018B054,
+    &D_mist_parking_8018B454,
+    &D_mist_parking_8018B790,
+    &D_mist_parking_8018BCA0,
+    &D_mist_parking_8018BFCC,
+    &D_mist_parking_8018C3A0,
+    &D_mist_parking_8018C70C,
+    &D_mist_parking_8018CB34,
+    &D_mist_parking_8018CDB0,
+    &D_mist_parking_8018D220,
+    &D_mist_parking_8018D41C,
+    &D_mist_parking_8018D734,
+    &D_mist_parking_8018A9A4,
+};
+
+GpCopyArg D_mist_parking_8018D82C = { { .sets = D_mist_parking_8018D7C8 }, 25 };
+
+GpAnimArg D_mist_parking_8018D834 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018D848 = { { .index = 1 }, 48, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018D85C = { { .index = 1 }, 49, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D870 = { { .index = 1 }, 50, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D884 = { { .index = 1 }, 51, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D898 = { { .index = 1 }, 52, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D8AC = { { .index = 1 }, 53, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D8C0 = { { .index = 1 }, 54, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D8D4 = { { .index = 1 }, 55, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D8E8 = { { .index = 1 }, 56, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D8FC = { { .index = 1 }, 57, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D910 = { { .index = 1 }, 58, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018D924 = { { .index = 1 }, 59, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018D938 = { { .index = 1 }, 60, 1, 30, 0 };
+
+GpAnimArg D_mist_parking_8018D94C = { { .index = 1 }, 61, 1, 30, 0 };
+
+GpAnimArg D_mist_parking_8018D960 = { { .index = 1 }, 62, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D974 = { { .index = 1 }, 63, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D988 = { { .index = 1 }, 64, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D99C = { { .index = 1 }, 65, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D9B0 = { { .index = 1 }, 66, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D9C4 = { { .index = 1 }, 67, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D9D8 = { { .index = 1 }, 68, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018D9EC = { { .index = 1 }, 69, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018DA00 = { { .index = 1 }, 70, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_8018DA14 = { { .index = 1 }, 71, 1, 6, 0 };
+
+s8 D_mist_parking_8018DA28[28] = {
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+};
+
+GpXformArg D_mist_parking_8018DA44 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DA5C = { { 4494, 0, -3867, 0 }, { 0, 1365, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DA74 = { { 3270, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DA8C = { { 4370, 0, -4000, 0 }, { 0, 1365, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DAA4 = { { 4560, 0, -4916, 0 }, { 0, 1630, 0, 0 } };
+
+GpAnimArg D_mist_parking_8018DABC = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018DAD0 = { { .index = 0 }, 1, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DAE4[3] = {
+    { { .index = 0 }, 2, 1, 20, 1 },
+    { { .index = 0 }, 3, 1, 20, 1 },
+    { { .index = 0 }, 4, 1, 20, 1 },
+};
+
+GpAnimArg D_mist_parking_8018DB20 = { { .index = 0 }, 5, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DB34 = { { .index = 0 }, 6, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DB48 = { { .index = 0 }, 7, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DB5C = { { .index = 0 }, 8, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DB70[6] = {
+    { { .index = 0 }, 9, 1, 20, 1 },
+    { { .index = 0 }, 10, 1, 20, 1 },
+    { { .index = 0 }, 11, 1, 20, 1 },
+    { { .index = 0 }, 12, 1, 20, 1 },
+    { { .index = 0 }, 13, 1, 20, 1 },
+    { { .index = 0 }, 14, 1, 20, 1 },
+};
+
+GpAnimArg D_mist_parking_8018DBE8 = { { .index = 0 }, 15, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DBFC = { { .index = 0 }, 16, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DC10 = { { .index = 0 }, 17, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DC24 = { { .index = 0 }, 18, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DC38 = { { .index = 0 }, 19, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DC4C = { { .index = 0 }, 20, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DC60[6] = {
+    { { .index = 0 }, 21, 1, 20, 1 },
+    { { .index = 0 }, 22, 1, 20, 1 },
+    { { .index = 0 }, 23, 1, 20, 1 },
+    { { .index = 0 }, 24, 1, 20, 1 },
+    { { .index = 0 }, 25, 1, 20, 1 },
+    { { .index = 0 }, 26, 1, 20, 1 },
+};
+
+GpAnimArg D_mist_parking_8018DCD8 = { { .index = 0 }, 27, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DCEC = { { .index = 0 }, 28, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DD00 = { { .index = 0 }, 29, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DD14 = { { .index = 0 }, 30, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DD28 = { { .index = 0 }, 31, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DD3C[2] = {
+    { { .index = 0 }, 32, 1, 20, 1 },
+    { { .index = 0 }, 33, 1, 20, 1 },
+};
+
+GpAnimArg D_mist_parking_8018DD64 = { { .index = 0 }, 34, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DD78 = { { .index = 0 }, 35, 1, 20, 1 };
+
+GpXformArg D_mist_parking_8018DD8C = { { 6400, 0, -4800, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DDA4 = { { 5150, 0, -4450, 0 }, { 0, -515, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DDBC = { { 5030, 0, -5680, 0 }, { 0, -296, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DDD4 = { { -1960, 0, -4650, 0 }, { 0, -1024, 0, 0 } };
+
+GpXformArg D_mist_parking_8018DDEC = { { 5150, 0, -4450, 0 }, { 0, -715, 0, 0 } };
+
+GpSpawnAnimArg D_mist_parking_8018DE04 = { 2, 26 };
+
+GpSpawnAnimArg D_mist_parking_8018DE0C = { 2, 33 };
+
+GpCmdArg D_mist_parking_8018DE14 = { { .loc = { 0, 0 } }, 0 };
+
+GpCmdArg D_mist_parking_8018DE18 = { { .loc = { 0, 0 } }, 1 };
+
+GpCmdArg D_mist_parking_8018DE1C = { { .loc = { 0, 0 } }, 2 };
+
+GpCmdArg D_mist_parking_8018DE20 = { { .loc = { 0, 0 } }, 3 };
+
+GpAnimArg D_mist_parking_8018DE24 = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8018DE38 = { { .index = 0 }, 1, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DE4C[3] = {
+    { { .index = 0 }, 2, 1, 20, 1 },
+    { { .index = 0 }, 3, 1, 20, 1 },
+    { { .index = 0 }, 4, 1, 10, 1 },
+};
+
+GpAnimArg D_mist_parking_8018DE88 = { { .index = 0 }, 5, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_8018DE9C = { { .index = 0 }, 6, 0, 0, 1 };
+
+GpAnimArg D_mist_parking_8018DEB0 = { { .index = 0 }, 7, 1, 10, 1 };
+
+GpAnimArg D_mist_parking_8018DEC4 = { { .index = 0 }, 8, 1, 5, 1 };
+
+GpAnimArg D_mist_parking_8018DED8 = { { .index = 0 }, 9, 1, 15, 1 };
+
+GpXformArg D_mist_parking_8018DEEC = { { 8460, 0, 92, 0 }, { 0, 2047, 0, 0 } };
+
+u8 D_mist_parking_8018DF04[8] = {
+    130,
+    220,
+    130,
+    190,
+    130,
+    230,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018DF0C[8] = {
+    130,
+    166,
+    130,
+    166,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018DF14[8] = {
+    130,
+    205,
+    130,
+    162,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_mist_parking_8018DF1C[8] = {
+    130,
+    162,
+    130,
+    162,
+    130,
+    166,
+    0,
+    0,
+};
+
+u8 * D_mist_parking_8018DF24[4] = {
+    D_mist_parking_8018DF04,
+    D_mist_parking_8018DF0C,
+    D_mist_parking_8018DF14,
+    D_mist_parking_8018DF1C,
+};
+
+GpEvsCmd D_mist_parking_8018DF34[155] = {
+    { 32, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DD8C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DEEC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE14 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE88 }, { .value = 0 } },
+    { 3, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_801831F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D884 }, { .value = 0 } },
+    { 15, { .value = 0x51130005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_8018326C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA74 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D898 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDA4 }, { .storage = &D_mist_parking_8018DE0C } },
+    { 4, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8AC }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8C0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DCEC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5113000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 16, { .value = 0x5113000C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8D4 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5113000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DCD8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DD64 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8E8 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130011 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA5C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D924 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DC10 }, { .value = 0 } },
+    { 4, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x51130008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA5C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DC24 }, { .value = 0 } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D8FC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE1C }, { .value = 0 } },
+    { 4, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5113000E }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DC4C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D924 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9B0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DCD8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D870 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9C4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DD00 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DD28 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9B0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DCD8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D938 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D94C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DD64 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9C4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA8C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DC38 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D924 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9C4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDEC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB34 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA5C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018DA00 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018DA14 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D848 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB34 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D848 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9C4 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D974 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183BAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 36, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183780 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018EDBC[23] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_8018326C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183BAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DA5C }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183780 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018EFE4[8] = {
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DDA4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE18 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDBC }, { .storage = &D_mist_parking_8018DE04 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_mist_parking_8018DEEC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE88 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F0A4[10] = {
+    { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0xF0000 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB5C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F194[10] = {
+    { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0xF0001 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB5C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F284[10] = {
+    { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0xF0002 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB5C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F374[13] = {
+    { 13, { .callbackNoArg = func_mist_parking_80183600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE1C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183708 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_mist_parking_8018DAA4 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D988 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DB20 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F4AC[13] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0x50001 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9D8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DBE8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9D8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183708 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F5E4[24] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0x50002 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018DA00 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DBE8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_mist_parking_8018DA44 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_mist_parking_8018DDD4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_8018DE20 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 5, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183688 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183708 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_8018312C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_parking_8018354C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F824[16] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183100 }, { .value = 0x50003 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D9D8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DAD0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DBE8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183634 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 5, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183688 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_8018316C }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80183708 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018F9A4[7] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D848 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE38 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DEB0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018FA4C[10] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 13, { .callbackResult = func_800D4D2C }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D848 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DEC4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DED8 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE88 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_8018FB3C[8] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_8018D82C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D848 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DEC4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DED8 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_mist_parking_8018DE88 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+s32 D_mist_parking_8018FBFC[5] = {
+    161, 61, 63, 11, 108,
+};
+
+s32 D_mist_parking_8018FC10[5] = {
+    50, 1, 1, 1, 1,
+};
+
 void func_mist_parking_80182A44(Task* task)
 {
     s32                   i;
@@ -72,7 +771,7 @@ void func_mist_parking_80182A44(Task* task)
     switch (task->state) {
         case 0:
             Mem_Set(st, 0, 4);
-            func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+            func_800E8614(D_mist_parking_8018F9A4, 1);
             Gp_RunCapCmd(2, 0);
             task->state++;
             break;
@@ -93,7 +792,7 @@ void func_mist_parking_80182A44(Task* task)
             break;
         case 2:
             func_mist_parking_80183708(2);
-            func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+            func_800E8614(D_mist_parking_8018F9A4, 1);
             Gp_RunCapCmd(6, 0);
             task->state++;
             break;
@@ -117,7 +816,7 @@ void func_mist_parking_80182A44(Task* task)
                             GameFlag_SetNibble(flag, 3);
                         }
                     }
-                    func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                    func_800E8614(D_mist_parking_8018F9A4, 1);
                     Gp_RunCapCmd(8, 0);
                     task->state = 6;
                     break;
@@ -135,7 +834,7 @@ void func_mist_parking_80182A44(Task* task)
                             Gp_SetCurBit2Flag(0x24, 2);
                         }
                     }
-                    func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                    func_800E8614(D_mist_parking_8018F9A4, 1);
                     Gp_RunCapCmd(4, 0);
                     task->state = 6;
                     break;
@@ -171,7 +870,7 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             if (Gp_CapBusy() == 0) {
-                func_800E8614((s32)&D_mist_parking_8018F9A4, 1);
+                func_800E8614(D_mist_parking_8018F9A4, 1);
                 Gp_RunCapCmd(2, 0);
                 task->state++;
             }
@@ -199,9 +898,9 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             if (Gp_GetCapEventKey() == 1) {
-                func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
+                func_800E8614(D_mist_parking_8018FA4C, 1);
             } else {
-                func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
+                func_800E8614(D_mist_parking_8018FB3C, 1);
             }
             task->state++;
             break;
@@ -228,7 +927,7 @@ void func_mist_parking_80182F60(Task* task)
 
     switch (task->state) {
         case 0:
-            func_800E8614((s32)&D_mist_parking_8018F374, 1);
+            func_800E8614(D_mist_parking_8018F374, 1);
             task->state++;
             break;
         case 1:
@@ -243,13 +942,13 @@ void func_mist_parking_80182F60(Task* task)
             task->spawnArg1.value = key;
             switch (key) {
                 case 4:
-                    func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
+                    func_800E8614(D_mist_parking_8018F4AC, 1);
                     break;
                 case 5:
-                    func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
+                    func_800E8614(D_mist_parking_8018F5E4, 1);
                     break;
                 case 6:
-                    func_800E8614((s32)&D_mist_parking_8018F824, 1);
+                    func_800E8614(D_mist_parking_8018F824, 1);
                     break;
             }
             task->state++;
@@ -301,7 +1000,7 @@ void func_mist_parking_80183100(s32 arg0)
 
 void func_mist_parking_8018312C(s32 arg0)
 {
-    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
+    Task_SpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
@@ -332,7 +1031,7 @@ void func_mist_parking_801831F0(s32 arg0)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(&D_mist_parking_8018D75C, arg0, 0, 0);
+        task  = Task_SpawnFromTable(D_mist_parking_8018D75C, arg0, 0, 0);
         *slot = task;
         if (task != NULL) {
             obj         = task->extra.tmd;
@@ -442,9 +1141,9 @@ void func_mist_parking_8018345C(Task* arg0)
 {
     if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
-            func_800E8614((s32)&D_mist_parking_8018F5E4, 1);
+            func_800E8614(D_mist_parking_8018F5E4, 1);
         } else {
-            func_800E8614((s32)&D_mist_parking_8018F4AC, 1);
+            func_800E8614(D_mist_parking_8018F4AC, 1);
         }
         taskKill(arg0);
     }
@@ -454,9 +1153,9 @@ void func_mist_parking_801834D4(Task* arg0)
 {
     if (gGameSession->eventState == 0 && Gp_CapBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
-            func_800E8614((s32)&D_mist_parking_8018FB3C, 1);
+            func_800E8614(D_mist_parking_8018FB3C, 1);
         } else {
-            func_800E8614((s32)&D_mist_parking_8018FA4C, 1);
+            func_800E8614(D_mist_parking_8018FA4C, 1);
         }
         taskKill(arg0);
     }
@@ -465,7 +1164,7 @@ void func_mist_parking_801834D4(Task* arg0)
 /// Spawns entry 3 of `D_mist_parking_8018D75C`.
 void func_mist_parking_8018354C(void)
 {
-    Task_SpawnFromTable(&D_mist_parking_8018D75C, 3, 0, 0);
+    Task_SpawnFromTable(D_mist_parking_8018D75C, 3, 0, 0);
 }
 
 void func_mist_parking_8018357C(Task* arg0)
@@ -486,5 +1185,5 @@ void func_mist_parking_8018357C(Task* arg0)
 /// `D_mist_parking_80195324`.
 void func_mist_parking_80183600(void)
 {
-    D_mist_parking_80195324 = Task_SpawnFromTable(&D_mist_parking_8018D75C, 4, 0, 0);
+    D_mist_parking_80195324 = Task_SpawnFromTable(D_mist_parking_8018D75C, 4, 0, 0);
 }

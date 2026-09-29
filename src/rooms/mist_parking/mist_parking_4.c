@@ -1,3 +1,6 @@
+#include "mist_parking_private.h"
+
+#include "gameplay/evs.h"
 #include "common.h"
 #include "rooms/mist_parking.h"
 
@@ -22,29 +25,214 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
+#include "gameplay/message.h"
+
 /// Scratch state of the parking-lot cap script driven by
 /// `func_mist_parking_80183EAC`, cleared with `Mem_Set` when the task starts.
-typedef struct {
-    /* 0x0 */ u16 timer; // ticks down between companion slots
-    /* 0x2 */ s16 slot;  // companion slot 0..4 being walked
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 cmd;   // cap command replayed by state 5
-} MistParkingCapState;
-void                       func_mist_parking_801846A4(s32 arg0);
-extern s32                 D_mist_parking_80190C74;
-extern s32                 D_mist_parking_80190D64;
-extern s32                 D_mist_parking_80190E84;
-extern s32                 D_mist_parking_80191034;
-extern s32                 D_mist_parking_80191154;
-extern s32                 D_mist_parking_80191214;
-extern s32                 D_mist_parking_80191304;
-extern s32                 D_mist_parking_801913C4;
-extern MistParkingCapState D_mist_parking_80195334;
 
-extern s32          D_mist_parking_80190874;
+void                       func_mist_parking_801846A4(s32 arg0);
+extern GpEvsCmd D_mist_parking_80190C74[];
+extern GpEvsCmd D_mist_parking_80190D64[];
+extern GpEvsCmd D_mist_parking_80190E84[];
+extern GpEvsCmd D_mist_parking_80191034[];
+extern GpEvsCmd D_mist_parking_80191154[];
+extern GpEvsCmd D_mist_parking_80191214[];
+extern GpEvsCmd D_mist_parking_80191304[];
+extern GpEvsCmd D_mist_parking_801913C4[];
+
+extern GpCopyArg D_mist_parking_80190870;
 extern s8           D_mist_parking_801908C8[];
 extern GpGridParams D_mist_parking_8018FCB8;
 extern GpGridParams D_mist_parking_80192204;
+
+extern GpAnimSet D_mist_parking_8018FFB8;
+extern GpAnimSet D_mist_parking_8019038C;
+extern GpAnimSet D_mist_parking_801907FC;
+void func_mist_parking_80183D58(Task *);
+void func_mist_parking_80183EAC(Task *);
+void func_mist_parking_801842DC(Task *);
+void func_mist_parking_8018451C(Task *);
+void func_mist_parking_80184668(Task *);
+
+extern GpAnimArg D_mist_parking_801908A0;
+extern GpAnimArg D_mist_parking_801908B4;
+extern GpAnimArg D_mist_parking_80190944;
+extern GpAnimArg D_mist_parking_801909F8;
+extern GpCmdArg D_mist_parking_80190BA4;
+extern GpCmdArg D_mist_parking_80190BA8;
+extern GpCopyArg D_mist_parking_80190870;
+void func_mist_parking_80184408(s32);
+void func_mist_parking_80184428(s32);
+void func_mist_parking_80184468(s32);
+void func_mist_parking_801844EC(void);
+void func_mist_parking_8018459C(void);
+void func_mist_parking_801845D0(s32);
+void func_mist_parking_80184624(s32);
+void func_mist_parking_801846A4(s32);
+
+TaskDesc D_mist_parking_80190824[5] = {
+    { 0, 192, func_mist_parking_8018451C, { .model = NULL } },
+    { 0, 97, func_mist_parking_80183D58, { .model = NULL } },
+    { 0, 192, func_mist_parking_80184668, { .model = NULL } },
+    { 0, 192, func_mist_parking_80183EAC, { .model = NULL } },
+    { 0, 192, func_mist_parking_801842DC, { .model = NULL } },
+};
+
+GpAnimSet * D_mist_parking_80190860[4] = {
+    NULL,
+    &D_mist_parking_8018FFB8,
+    &D_mist_parking_8019038C,
+    &D_mist_parking_801907FC,
+};
+
+GpCopyArg D_mist_parking_80190870 = { { .sets = D_mist_parking_80190860 }, 4 };
+
+GpAnimArg D_mist_parking_80190878 = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_8019088C = { { .index = 1 }, 48, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_801908A0 = { { .index = 1 }, 49, 1, 6, 0 };
+
+GpAnimArg D_mist_parking_801908B4 = { { .index = 1 }, 50, 1, 6, 0 };
+
+s8 D_mist_parking_801908C8[124] = {
+    0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+    2, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0,
+    20, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0,
+    1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0,
+};
+
+GpAnimArg D_mist_parking_80190944 = { { .ptr = NULL }, 6, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_80190958[8] = {
+    { { .index = 0 }, 7, 1, 20, 1 },
+    { { .index = 0 }, 8, 1, 20, 1 },
+    { { .index = 0 }, 9, 1, 20, 1 },
+    { { .index = 0 }, 10, 1, 20, 1 },
+    { { .index = 0 }, 11, 1, 20, 1 },
+    { { .index = 0 }, 12, 1, 20, 1 },
+    { { .index = 0 }, 13, 1, 20, 1 },
+    { { .index = 0 }, 14, 1, 20, 1 },
+};
+
+GpAnimArg D_mist_parking_801909F8 = { { .index = 0 }, 15, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_80190A0C[20] = {
+    { { .index = 0 }, 16, 1, 20, 1 },
+    { { .index = 0 }, 17, 1, 20, 1 },
+    { { .index = 0 }, 18, 1, 20, 1 },
+    { { .index = 0 }, 19, 1, 20, 1 },
+    { { .index = 0 }, 20, 1, 20, 1 },
+    { { .index = 0 }, 21, 1, 20, 1 },
+    { { .index = 0 }, 22, 1, 20, 1 },
+    { { .index = 0 }, 23, 1, 20, 1 },
+    { { .index = 0 }, 24, 1, 20, 1 },
+    { { .index = 0 }, 25, 1, 20, 1 },
+    { { .index = 0 }, 26, 1, 20, 1 },
+    { { .index = 0 }, 27, 1, 20, 1 },
+    { { .index = 0 }, 28, 1, 20, 1 },
+    { { .index = 0 }, 29, 1, 20, 1 },
+    { { .index = 0 }, 30, 1, 20, 1 },
+    { { .index = 0 }, 31, 1, 20, 1 },
+    { { .index = 0 }, 32, 1, 20, 1 },
+    { { .index = 0 }, 33, 1, 20, 1 },
+    { { .index = 0 }, 34, 1, 20, 1 },
+    { { .index = 0 }, 35, 1, 20, 1 },
+};
+
+GpOverrideArg D_mist_parking_80190B9C = { 0, 0x10000 };
+
+GpCmdArg D_mist_parking_80190BA4 = { { .loc = { 0, 0 } }, 2 };
+
+GpCmdArg D_mist_parking_80190BA8 = { { .loc = { 0, 0 } }, 3 };
+
+GpAnimArg D_mist_parking_80190BAC = { { .index = 0 }, 1, 0, 0, 0 };
+
+GpAnimArg D_mist_parking_80190BC0 = { { .index = 0 }, 1, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_80190BD4[3] = {
+    { { .index = 0 }, 2, 1, 20, 1 },
+    { { .index = 0 }, 3, 0, 0, 1 },
+    { { .index = 0 }, 4, 1, 10, 1 },
+};
+
+GpAnimArg D_mist_parking_80190C10 = { { .index = 0 }, 5, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_80190C24 = { { .index = 0 }, 6, 0, 0, 1 };
+
+GpAnimArg D_mist_parking_80190C38 = { { .index = 0 }, 7, 0, 0, 1 };
+
+GpAnimArg D_mist_parking_80190C4C = { { .index = 0 }, 8, 1, 20, 1 };
+
+GpAnimArg D_mist_parking_80190C60 = { { .index = 0 }, 9, 1, 15, 1 };
+
+GpEvsCmd D_mist_parking_80190C74[10] = {
+    { 13, { .callbackNoArg = func_mist_parking_8018459C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_80190BA4 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908A0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_80190944 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_80190D64[12] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184408 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_801909F8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_801845D0 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_mist_parking_80190BA8 }, { .value = 0 } },
+    { 3, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_80190E84[18] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184408 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_801909F8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 5, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184624 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_801846A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184428 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_mist_parking_801844EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_mist_parking_80191034[12] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184408 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_mist_parking_801909F8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 5, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184624 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_mist_parking_80184468 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
 
 void func_mist_parking_80183BAC(s32 arg0)
 {
@@ -96,7 +284,7 @@ void func_mist_parking_80183D58(Task* task)
     actor = (GameActor*)(gameGetPtrSlot(3))->work;
     if (D_801156F9 == 0) {
         idx = actor->field_438[1].nextSet - 0x2F;
-        if ((idx > 0) && (idx < D_mist_parking_80190874)) {
+        if ((idx > 0) && (idx < D_mist_parking_80190870.count)) {
             flag = D_mist_parking_801908C8[idx];
         } else {
             flag = 0;
@@ -116,7 +304,7 @@ void func_mist_parking_80183D58(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
-            func_800B0928(gameGetPtrSlot(3), (Task*)work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(gameGetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }
@@ -141,7 +329,7 @@ void func_mist_parking_80183EAC(Task* task)
         case 0:
             Mem_Set(st, 0, 8);
             func_mist_parking_801846A4(1);
-            func_800E8614((s32)&D_mist_parking_80191154, 1);
+            func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(6, 0);
             task->state++;
             break;
@@ -162,7 +350,7 @@ void func_mist_parking_80183EAC(Task* task)
             break;
         case 2:
             func_mist_parking_801846A4(2);
-            func_800E8614((s32)&D_mist_parking_80191154, 1);
+            func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(1, 0);
             st->field_4 = 1;
             task->state++;
@@ -213,7 +401,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             break;
         case 5:
-            func_800E8614((s32)&D_mist_parking_80191154, 1);
+            func_800E8614(D_mist_parking_80191154, 1);
             Gp_RunCapCmd(st->cmd, 0);
             task->state++;
             break;
@@ -242,13 +430,13 @@ void func_mist_parking_80183EAC(Task* task)
             key             = Gp_GetCapEventKey();
             task->spawnArg1.value = key;
             if (key == 6) {
-                func_800E8614((s32)&D_mist_parking_80191214, 1);
+                func_800E8614(D_mist_parking_80191214, 1);
                 st->field_4 = 1;
             } else if (key == 7) {
-                func_800E8614((s32)&D_mist_parking_80191304, 1);
+                func_800E8614(D_mist_parking_80191304, 1);
                 st->field_4 = 1;
             } else {
-                func_800E8614((s32)&D_mist_parking_801913C4, 1);
+                func_800E8614(D_mist_parking_801913C4, 1);
             }
             task->state++;
             break;
@@ -300,7 +488,7 @@ void func_mist_parking_801842DC(Task* task)
     switch (task->state) {
         case 0:
             func_mist_parking_801846A4(1);
-            func_800E8614((s32)&D_mist_parking_80190C74, 1);
+            func_800E8614(D_mist_parking_80190C74, 1);
             task->state++;
             break;
         case 1:
@@ -315,13 +503,13 @@ void func_mist_parking_801842DC(Task* task)
             task->spawnArg1.value = key;
             switch (key) {
                 case 1:
-                    func_800E8614((s32)&D_mist_parking_80190D64, 1);
+                    func_800E8614(D_mist_parking_80190D64, 1);
                     break;
                 case 2:
-                    func_800E8614((s32)&D_mist_parking_80190E84, 1);
+                    func_800E8614(D_mist_parking_80190E84, 1);
                     break;
                 case 3:
-                    func_800E8614((s32)&D_mist_parking_80191034, 1);
+                    func_800E8614(D_mist_parking_80191034, 1);
                     break;
             }
             task->state++;
@@ -343,7 +531,7 @@ void func_mist_parking_80184408(s32 arg0)
 
 void func_mist_parking_80184428(s32 arg0)
 {
-    Task_SpawnFromTable(&D_mist_parking_8018FC24, 0, arg0, 0);
+    Task_SpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
@@ -364,10 +552,10 @@ void func_mist_parking_80184468(s32 arg0)
 /// Spawns entry 0 of `D_mist_parking_80190824`.
 void func_mist_parking_801844EC(void)
 {
-    Task_SpawnFromTable(&D_mist_parking_80190824, 0, 0, 0);
+    Task_SpawnFromTable(D_mist_parking_80190824, 0, 0, 0);
 }
 
-void func_mist_parking_8018451C(void)
+void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
     Player_Status.field_26       = 1;
@@ -382,17 +570,17 @@ void func_mist_parking_8018451C(void)
 }
 
 /// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in
-/// `D_mist_parking_8019532C`.
+/// `D_mist_parking_8019532C.value`.
 void func_mist_parking_8018459C(void)
 {
-    D_mist_parking_8019532C = Task_SpawnFromTable(&D_mist_parking_80190824, 1, 0, 0);
+    D_mist_parking_8019532C.value = Task_SpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
 }
 
-/// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C` as its
+/// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C.value` as its
 /// `spawnArg1`; any other value kills the task and drops the handle.
 void func_mist_parking_801845D0(s32 phase)
 {
-    Task* t = D_mist_parking_8019532C;
+    Task* t = D_mist_parking_8019532C.value;
 
     if (t == NULL) {
         return;
@@ -406,13 +594,13 @@ void func_mist_parking_801845D0(s32 phase)
     t->spawnArg1.value = phase;
     return;
 kill:
-    taskKill(D_mist_parking_8019532C);
-    D_mist_parking_8019532C = NULL;
+    taskKill(D_mist_parking_8019532C.value);
+    D_mist_parking_8019532C.value = NULL;
 }
 
 void func_mist_parking_80184624(s32 arg0)
 {
-    Display_InitModeObj(Task_GetDescAt(&D_mist_parking_80190824, 2U), arg0, 0, 0);
+    Display_InitModeObj(Task_GetDescAt(D_mist_parking_80190824, 2U), arg0, 0, 0);
 }
 
 void func_mist_parking_80184668(Task* arg0)
@@ -444,9 +632,9 @@ void func_mist_parking_801846A4(s32 arg0)
     }
 }
 
-/// Drops the handle in `D_mist_parking_8019532C` without killing the task.
+/// Drops the handle in `D_mist_parking_8019532C.value` without killing the task.
 /// Its caller passes an argument, which is unused.
 void func_mist_parking_8018471C(s32 arg0)
 {
-    D_mist_parking_8019532C = NULL;
+    D_mist_parking_8019532C.value = NULL;
 }

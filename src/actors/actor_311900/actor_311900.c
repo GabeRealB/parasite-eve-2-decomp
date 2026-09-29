@@ -22,6 +22,8 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "gameplay/animation.h"
+
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
@@ -72,6 +74,151 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
 static s32  func_actor_311900_80162658(GpCoord* arg0, s16 arg1);
 static void func_actor_311900_8016278C(Task* task);
 static void func_actor_311900_8016281C(Task* task);
+
+extern TmdSource D_actor_311900_80168784;
+extern TmdSource D_actor_311900_8016DF4C;
+void func_actor_311900_8016222C(Task *);
+void func_actor_311900_8016249C(Task *);
+
+TmdBone D_actor_311900_801628B0[20] = {
+#include "assets/actor_311900_model_06964_skeleton.inc"
+};
+
+u32 D_actor_311900_80162B80[20] = {
+#include "assets/actor_311900_model_06964_partVerts.inc"
+};
+
+SVECTOR D_actor_311900_80162BD0[386] = {
+#include "assets/actor_311900_model_06964_verts.inc"
+};
+
+SVECTOR D_actor_311900_801637E0[385] = {
+#include "assets/actor_311900_model_06964_normals.inc"
+};
+
+u32 D_actor_311900_801643E8[4327] = {
+#include "assets/actor_311900_model_06964_stream.inc"
+};
+
+TmdSource D_actor_311900_80168784 = {
+    0, 23980, 6012, 20,
+    D_actor_311900_80162B80, D_actor_311900_80162BD0, D_actor_311900_801637E0, D_actor_311900_801628B0, D_actor_311900_801643E8,
+};
+
+TmdBone D_actor_311900_801687A8[20] = {
+#include "assets/actor_311900_model_0C12C_skeleton.inc"
+};
+
+u32 D_actor_311900_80168A78[20] = {
+#include "assets/actor_311900_model_0C12C_partVerts.inc"
+};
+
+SVECTOR D_actor_311900_80168AC8[360] = {
+#include "assets/actor_311900_model_0C12C_verts.inc"
+};
+
+SVECTOR D_actor_311900_80169608[358] = {
+#include "assets/actor_311900_model_0C12C_normals.inc"
+};
+
+u32 D_actor_311900_8016A138[3973] = {
+#include "assets/actor_311900_model_0C12C_stream.inc"
+};
+
+TmdSource D_actor_311900_8016DF4C = {
+    0, 21176, 6792, 20,
+    D_actor_311900_80168A78, D_actor_311900_80168AC8, D_actor_311900_80169608, D_actor_311900_801687A8, D_actor_311900_8016A138,
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} Actor311900PoseBankC150;
+
+Actor311900PoseBankC150 D_actor_311900_8016DF70 = { .poses = {
+#include "assets/actor_311900_animation_0C9A8_bank1.inc"
+} };
+
+GpPackedSvec D_actor_311900_8016DFF4[201] = {
+#include "assets/actor_311900_animation_0C9A8_bank4.inc"
+};
+
+GpAnimRec D_actor_311900_8016E318[290] = {
+#include "assets/actor_311900_animation_0C9A8_records.inc"
+};
+
+u16 D_actor_311900_8016E7A0[20] = {
+#include "assets/actor_311900_animation_0C9A8_indices.inc"
+};
+
+GpAnimSet D_actor_311900_8016E7C8 = {
+    D_actor_311900_8016E318, D_actor_311900_8016E7A0,
+    { NULL, D_actor_311900_8016DF70.words, NULL, NULL, D_actor_311900_8016DFF4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} Actor311900PoseBankC9D0;
+
+Actor311900PoseBankC9D0 D_actor_311900_8016E7F0 = { .poses = {
+#include "assets/actor_311900_animation_0CDA0_bank1.inc"
+} };
+
+GpPackedSvec D_actor_311900_8016E838[75] = {
+#include "assets/actor_311900_animation_0CDA0_bank4.inc"
+};
+
+GpAnimRec D_actor_311900_8016E964[141] = {
+#include "assets/actor_311900_animation_0CDA0_records.inc"
+};
+
+u16 D_actor_311900_8016EB98[20] = {
+#include "assets/actor_311900_animation_0CDA0_indices.inc"
+};
+
+GpAnimSet D_actor_311900_8016EBC0 = {
+    D_actor_311900_8016E964, D_actor_311900_8016EB98,
+    { NULL, D_actor_311900_8016E7F0.words, NULL, NULL, D_actor_311900_8016E838, NULL, NULL, NULL },
+};
+
+u8 D_actor_311900_8016EBE8[12] = {
+    0,
+    0,
+    0,
+    0,
+    200,
+    231,
+    22,
+    128,
+    0,
+    0,
+    0,
+    0,
+};
+
+u8 D_actor_311900_8016EBF4[12] = {
+    0,
+    0,
+    0,
+    0,
+    192,
+    235,
+    22,
+    128,
+    0,
+    0,
+    0,
+    0,
+};
+
+TaskDesc D_actor_311900_8016EC00 = { 1, 96, func_actor_311900_8016249C, { .model = &D_actor_311900_8016DF4C } };
+
+TaskDesc D_actor_311900_8016EC0C = { 1, 96, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
+
+u16 D_actor_311900_8016EC18[4][256] = { 0 };
 
 /// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
 /// to grey, one step per call in the work block's `field_4C8`: step 0 reads the

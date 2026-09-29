@@ -33,6 +33,18 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#include "gameplay/collision.h"
+#include "gameplay/direction.h"
+#include "gameplay/direction_input.h"
+#include "gameplay/room.h"
+#include "gameplay/view.h"
+#include "rooms/stage_tables.h"
+
+#include "actors/task_tables.h"
+#include "mapui/stage_tables.h"
+
+#include "gameplay/animation.h"
+
 typedef struct {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -42,24 +54,36 @@ typedef struct {
     /* 0x6 */ u16 field_6;
 } AcropolisPatioMsg8;
 
-extern TaskDesc D_acropolis_patio_801802BC;
+extern TaskDesc D_acropolis_patio_801802BC[];
 extern TaskDesc D_acropolis_patio_80182800;
-extern s32      D_acropolis_patio_8018028C;
-extern s32      D_acropolis_patio_80180428;
+// Message-table callbacks use the argument views required by this TU.
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(void);
+        s32 (*call1)(s32, s32, AcropolisPatioMsg8 *, AcropolisPatioMsg8 *);
+        s32 (*call2)(s32, s32, s32);
+        void (*call3)(s32, s32, AcropolisPatioMsg8 *);
+    } handler;
+} AcropolisPatioMessageEntry;
+STATIC_ASSERT_SIZEOF(AcropolisPatioMessageEntry, 8);
+
+extern AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6];
+extern GpXformArg D_acropolis_patio_80180428;
 extern s32      D_acropolis_patio_80180440;
 extern s32      D_acropolis_patio_8018044C;
-extern s32      D_acropolis_patio_8018046C;
+extern GpXformArg D_acropolis_patio_8018046C;
 extern Task*    D_acropolis_patio_80187060;
-extern s32      D_acropolis_patio_80180DEC;
-extern s32      D_acropolis_patio_80180EDC;
+extern GpEvsCmd D_acropolis_patio_80180DEC[];
+extern GpEvsCmd D_acropolis_patio_80180EDC[];
 extern u8       D_acropolis_patio_80187064;
 extern u8       D_acropolis_patio_80187065;
-extern s32      D_acropolis_patio_80180484;
-extern s32      D_acropolis_patio_801806AC;
-extern s32      D_acropolis_patio_8018082C;
-extern s32      D_acropolis_patio_80180C64;
-extern s32      D_acropolis_patio_8018280C;
-extern s32      D_acropolis_patio_80182BE4;
+extern GpEvsCmd D_acropolis_patio_80180484[];
+extern GpEvsCmd D_acropolis_patio_801806AC[];
+extern GpEvsCmd D_acropolis_patio_8018082C[];
+extern GpEvsCmd D_acropolis_patio_80180C64[];
+extern GpEvsCmd D_acropolis_patio_8018280C[];
+extern GpEvsCmd D_acropolis_patio_80182BE4[];
 
 /// The 14 anchor points of the patio's fountain spray, in the room object's own
 /// space. The first three double as the jitter centres for the mist burst.
@@ -80,6 +104,2289 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
+extern GpGridParams D_acropolis_patio_80183DF8[1];
+extern GpObj3A D_acropolis_patio_80184964[2];
+extern GpObj4C D_acropolis_patio_80183E1C[14];
+extern GpObj4C D_acropolis_patio_80184244[12];
+extern GpObj4C D_acropolis_patio_801845D4[12];
+extern GpRoomCoordSet D_acropolis_patio_80186D44[1];
+
+extern GpAnimArg D_acropolis_patio_8018261C;
+extern GpXformArg D_acropolis_patio_80182690;
+extern GpXformArg D_acropolis_patio_801827BC;
+extern GpXformArg D_acropolis_patio_801827D4;
+void func_acropolis_patio_8017DFE4(s32);
+
+extern GpAnimArg D_acropolis_patio_8018270C;
+extern GpAnimArg D_acropolis_patio_80182720;
+extern GpCopyArg D_acropolis_patio_801825C4;
+extern GpXformArg D_acropolis_patio_80182630;
+extern GpXformArg D_acropolis_patio_80182678;
+void func_acropolis_patio_8017DFE4(s32);
+void func_acropolis_patio_8017E024(void);
+void func_acropolis_patio_8017E054(Task *);
+
+extern GpSprtCmd D_acropolis_patio_80184AF0[2];
+extern GpSprtCmd D_acropolis_patio_80184D1C[7];
+extern GpSprtCmd D_acropolis_patio_801850D8[15];
+extern GpSprtCmd D_acropolis_patio_8018527C[5];
+extern GpSprtCmd D_acropolis_patio_801852A4[2];
+extern GpSprtCmd D_acropolis_patio_801853B8[4];
+extern GpSprtCmd D_acropolis_patio_8018557C[5];
+extern GpSprtCmd D_acropolis_patio_80185A04[20];
+extern GpSprtCmd D_acropolis_patio_80185E50[15];
+extern GpSprtCmd D_acropolis_patio_80185EC8[2];
+extern GpSprtCmd D_acropolis_patio_80185ED8[2];
+extern GpSprtCmd D_acropolis_patio_80185EE8[2];
+extern GpSprtCmd D_acropolis_patio_80185F08[2];
+extern GpSprtCmd D_acropolis_patio_80185F18[2];
+extern GpSprtCmd D_acropolis_patio_80185F28[2];
+extern GpSprtElem D_acropolis_patio_80184B00[27];
+extern GpSprtElem D_acropolis_patio_80184D54[45];
+extern GpSprtElem D_acropolis_patio_80185150[15];
+extern GpSprtElem D_acropolis_patio_801852B4[13];
+extern GpSprtElem D_acropolis_patio_801853D8[21];
+extern GpSprtElem D_acropolis_patio_801855A4[56];
+extern GpSprtElem D_acropolis_patio_80185AA4[47];
+
+extern GpAnimArg D_acropolis_patio_8018037C;
+extern GpAnimSet * D_acropolis_patio_80180364[6];
+extern GpXformArg D_acropolis_patio_801802EC;
+extern GpXformArg D_acropolis_patio_80180304;
+extern GpXformArg D_acropolis_patio_8018031C;
+extern GpXformArg D_acropolis_patio_80180334;
+extern GpXformArg D_acropolis_patio_8018034C;
+void func_acropolis_patio_8017DF38(s32);
+void func_acropolis_patio_8017DF48(void);
+void func_acropolis_patio_8017DF70(u8);
+
+s32 func_acropolis_patio_8017D7D0(s32, s32, AcropolisPatioMsg8 *, AcropolisPatioMsg8 *);
+s32 func_acropolis_patio_8017DCE4(s32, s32, s32);
+s32 func_acropolis_patio_8017DD44(void);
+s32 func_acropolis_patio_8017DD4C(s32, s32, s32);
+void func_acropolis_patio_8017DA5C(Task *);
+void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8 *);
+void func_acropolis_patio_8017DD80(Task *);
+void func_acropolis_patio_8017DE2C(Task *);
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} AcropolisPatioPoseBank172C;
+
+AcropolisPatioPoseBank172C D_acropolis_patio_8017ECEC = { .poses = {
+#include "assets/acropolis_patio_animation_018A0_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_8017ED04[20] = {
+#include "assets/acropolis_patio_animation_018A0_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8017ED54[57] = {
+#include "assets/acropolis_patio_animation_018A0_records.inc"
+};
+
+u16 D_acropolis_patio_8017EE38[20] = {
+#include "assets/acropolis_patio_animation_018A0_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_8017EE60 = {
+    D_acropolis_patio_8017ED54, D_acropolis_patio_8017EE38,
+    { NULL, D_acropolis_patio_8017ECEC.words, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} AcropolisPatioPoseBank18C8;
+
+AcropolisPatioPoseBank18C8 D_acropolis_patio_8017EE88 = { .poses = {
+#include "assets/acropolis_patio_animation_01B48_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_8017EEA0[41] = {
+#include "assets/acropolis_patio_animation_01B48_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8017EF44[103] = {
+#include "assets/acropolis_patio_animation_01B48_records.inc"
+};
+
+u16 D_acropolis_patio_8017F0E0[20] = {
+#include "assets/acropolis_patio_animation_01B48_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_8017F108 = {
+    D_acropolis_patio_8017EF44, D_acropolis_patio_8017F0E0,
+    { NULL, D_acropolis_patio_8017EE88.words, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} AcropolisPatioPoseBank1B70;
+
+AcropolisPatioPoseBank1B70 D_acropolis_patio_8017F130 = { .poses = {
+#include "assets/acropolis_patio_animation_01CE4_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_8017F148[20] = {
+#include "assets/acropolis_patio_animation_01CE4_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8017F198[57] = {
+#include "assets/acropolis_patio_animation_01CE4_records.inc"
+};
+
+u16 D_acropolis_patio_8017F27C[20] = {
+#include "assets/acropolis_patio_animation_01CE4_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_8017F2A4 = {
+    D_acropolis_patio_8017F198, D_acropolis_patio_8017F27C,
+    { NULL, D_acropolis_patio_8017F130.words, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[12];
+    GpPackedSvec words[36];
+} AcropolisPatioPoseBank1D0C;
+
+AcropolisPatioPoseBank1D0C D_acropolis_patio_8017F2CC = { .poses = {
+#include "assets/acropolis_patio_animation_022B8_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_8017F35C[138] = {
+#include "assets/acropolis_patio_animation_022B8_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8017F584[179] = {
+#include "assets/acropolis_patio_animation_022B8_records.inc"
+};
+
+u16 D_acropolis_patio_8017F850[20] = {
+#include "assets/acropolis_patio_animation_022B8_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_8017F878 = {
+    D_acropolis_patio_8017F584, D_acropolis_patio_8017F850,
+    { NULL, D_acropolis_patio_8017F2CC.words, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[19];
+    GpPackedSvec words[57];
+} AcropolisPatioPoseBank22E0;
+
+AcropolisPatioPoseBank22E0 D_acropolis_patio_8017F8A0 = { .poses = {
+#include "assets/acropolis_patio_animation_02AD0_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_8017F984[189] = {
+#include "assets/acropolis_patio_animation_02AD0_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8017FC78[252] = {
+#include "assets/acropolis_patio_animation_02AD0_records.inc"
+};
+
+u16 D_acropolis_patio_80180068[20] = {
+#include "assets/acropolis_patio_animation_02AD0_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80180090 = {
+    D_acropolis_patio_8017FC78, D_acropolis_patio_80180068,
+    { NULL, D_acropolis_patio_8017F8A0.words, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[2];
+    GpPackedSvec words[6];
+} AcropolisPatioPoseBank2AF8;
+
+AcropolisPatioPoseBank2AF8 D_acropolis_patio_801800B8 = { .poses = {
+#include "assets/acropolis_patio_animation_02CA4_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_801800D0[15] = {
+#include "assets/acropolis_patio_animation_02CA4_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8018010C[76] = {
+#include "assets/acropolis_patio_animation_02CA4_records.inc"
+};
+
+u16 D_acropolis_patio_8018023C[20] = {
+#include "assets/acropolis_patio_animation_02CA4_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80180264 = {
+    D_acropolis_patio_8018010C, D_acropolis_patio_8018023C,
+    { NULL, D_acropolis_patio_801800B8.words, NULL, NULL, D_acropolis_patio_801800D0, NULL, NULL, NULL },
+};
+
+AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
+    { 5102, { .call1 = func_acropolis_patio_8017D7D0 } },
+    { 5104, { .call2 = func_acropolis_patio_8017DCE4 } },
+    { 5105, { .call0 = func_acropolis_patio_8017DD44 } },
+    { 5106, { .call2 = func_acropolis_patio_8017DD4C } },
+    { 5103, { .call3 = func_acropolis_patio_8017DBAC } },
+    { 0x7FFFFFFF, { .call0 = NULL } },
+};
+
+TaskDesc D_acropolis_patio_801802BC[4] = {
+    { 0, 192, func_acropolis_patio_8017DD80, { .model = NULL } },
+    { 0, 192, func_acropolis_patio_8017DA5C, { .model = NULL } },
+    { 0, 97, func_acropolis_patio_8017DE2C, { .model = NULL } },
+    { 0xFFFF, 0, NULL, { .model = NULL } },
+};
+
+GpXformArg D_acropolis_patio_801802EC = { { -5255, 1, -124, 0 }, { 0, -800, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80180304 = { { -7195, 1, 484, 0 }, { 0, -800, 0, 0 } };
+
+GpXformArg D_acropolis_patio_8018031C = { { -6852, 1, 345, 0 }, { 0, -800, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80180334 = { { -6612, 1, 315, 0 }, { 0, -800, 0, 0 } };
+
+GpXformArg D_acropolis_patio_8018034C = { { 1452, 1, 593, 0 }, { 0, -1024, 0, 0 } };
+
+GpAnimSet * D_acropolis_patio_80180364[6] = {
+    &D_acropolis_patio_8017EE60,
+    &D_acropolis_patio_8017F2A4,
+    &D_acropolis_patio_8017F108,
+    &D_acropolis_patio_80180264,
+    &D_acropolis_patio_8017F878,
+    &D_acropolis_patio_80180090,
+};
+
+GpAnimArg D_acropolis_patio_8018037C = { { .index = 1 }, 47, 1, 5, 0 };
+
+GpAnimArg D_acropolis_patio_80180390 = { { .index = 1 }, 48, 1, 5, 0 };
+
+GpAnimArg D_acropolis_patio_801803A4 = { { .index = 1 }, 49, 1, 5, 0 };
+
+GpAnimArg D_acropolis_patio_801803B8 = { { .index = 1 }, 50, 1, 5, 0 };
+
+GpAnimArg D_acropolis_patio_801803CC = { { .index = 1 }, 51, 1, 5, 0 };
+
+GpAnimArg D_acropolis_patio_801803E0 = { { .index = 1 }, 52, 0, 0, 0 };
+
+GpCopyArg D_acropolis_patio_801803F4 = { { .sets = D_acropolis_patio_80180364 }, 6 };
+
+GpAnimArg D_acropolis_patio_801803FC = { { .index = 1 }, 1, 0, 0, 0 };
+
+GpXformArg D_acropolis_patio_80180410 = { { -7960, 0, 320, 0 }, { 0, 2048, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80180428 = { { -7720, 0, 290, 0 }, { 0, 2048, 0, 0 } };
+
+s32 D_acropolis_patio_80180440 = 769;
+
+GpCmdArg D_acropolis_patio_80180444 = { { .loc = { 1, 3 } }, 1 };
+
+GpCmdArg D_acropolis_patio_80180448 = { { .loc = { 1, 3 } }, 2 };
+
+s32 D_acropolis_patio_8018044C = 0x30301;
+
+GpCmdArg D_acropolis_patio_80180450 = { { .loc = { 1, 3 } }, 4 };
+
+GpXformArg D_acropolis_patio_80180454 = { { -7960, 0, 320, 0 }, { 0, 0, 0, 0 } };
+
+GpXformArg D_acropolis_patio_8018046C = { { -7720, 0, 290, 0 }, { 0, 0, 0, 0 } };
+
+GpEvsCmd D_acropolis_patio_80180484[23] = {
+    { 15, { .value = 0x51030009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 32, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180444 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180454 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180410 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180444 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 34, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180428 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018034C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018046C }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_patio_801806AC[16] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180428 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018034C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018046C }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 33, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_patio_8018082C[45] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_patio_801803F4 }, { .value = 0 } },
+    { 39, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DF38 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180410 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180450 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_801802EC }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1010 }, { .storage = &D_acropolis_patio_80180304 }, { .value = 0 } },
+    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5103000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_80180448 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_8018031C }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803CC }, { .value = 0 } },
+    { 4, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_8018037C }, { .value = 0 } },
+    { 4, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803A4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803B8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5103000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_8018044C }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 15, { .value = 0x5103000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DF38 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_patio_8017DF48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_80180334 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_80180428 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DF38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803E0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_patio_80180C64[16] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_80180334 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_patio_8017DF48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 38, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DF38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 18, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpOverlayIds D_acropolis_patio_80180DE4 = { 1, 29, 11 };
+
+GpEvsCmd D_acropolis_patio_80180DEC[10] = {
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+    { 12, { .overlays = &D_acropolis_patio_80180DE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 30, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_patio_80180EDC[9] = {
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[6];
+    GpPackedSvec words[18];
+} AcropolisPatioPoseBank39F4;
+
+AcropolisPatioPoseBank39F4 D_acropolis_patio_80180FB4 = { .poses = {
+#include "assets/acropolis_patio_animation_03CD0_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_80180FFC[46] = {
+#include "assets/acropolis_patio_animation_03CD0_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_801810B4[109] = {
+#include "assets/acropolis_patio_animation_03CD0_records.inc"
+};
+
+u16 D_acropolis_patio_80181268[20] = {
+#include "assets/acropolis_patio_animation_03CD0_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80181290 = {
+    D_acropolis_patio_801810B4, D_acropolis_patio_80181268,
+    { NULL, D_acropolis_patio_80180FB4.words, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[13];
+    GpPackedSvec words[39];
+} AcropolisPatioPoseBank3CF8;
+
+AcropolisPatioPoseBank3CF8 D_acropolis_patio_801812B8 = { .poses = {
+#include "assets/acropolis_patio_animation_04470_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_80181354[179] = {
+#include "assets/acropolis_patio_animation_04470_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_80181620[250] = {
+#include "assets/acropolis_patio_animation_04470_records.inc"
+};
+
+u16 D_acropolis_patio_80181A08[20] = {
+#include "assets/acropolis_patio_animation_04470_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80181A30 = {
+    D_acropolis_patio_80181620, D_acropolis_patio_80181A08,
+    { NULL, D_acropolis_patio_801812B8.words, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[9];
+    GpPackedSvec words[27];
+} AcropolisPatioPoseBank4498;
+
+AcropolisPatioPoseBank4498 D_acropolis_patio_80181A58 = { .poses = {
+#include "assets/acropolis_patio_animation_0494C_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_80181AC4[109] = {
+#include "assets/acropolis_patio_animation_0494C_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_80181C78[155] = {
+#include "assets/acropolis_patio_animation_0494C_records.inc"
+};
+
+u16 D_acropolis_patio_80181EE4[20] = {
+#include "assets/acropolis_patio_animation_0494C_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80181F0C = {
+    D_acropolis_patio_80181C78, D_acropolis_patio_80181EE4,
+    { NULL, D_acropolis_patio_80181A58.words, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
+};
+
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    GpPackedPose poses[11];
+    GpPackedSvec words[33];
+} AcropolisPatioPoseBank4974;
+
+AcropolisPatioPoseBank4974 D_acropolis_patio_80181F34 = { .poses = {
+#include "assets/acropolis_patio_animation_04FC8_bank1.inc"
+} };
+
+GpPackedSvec D_acropolis_patio_80181FB8[161] = {
+#include "assets/acropolis_patio_animation_04FC8_bank4.inc"
+};
+
+GpAnimRec D_acropolis_patio_8018223C[201] = {
+#include "assets/acropolis_patio_animation_04FC8_records.inc"
+};
+
+u16 D_acropolis_patio_80182560[20] = {
+#include "assets/acropolis_patio_animation_04FC8_indices.inc"
+};
+
+GpAnimSet D_acropolis_patio_80182588 = {
+    D_acropolis_patio_8018223C, D_acropolis_patio_80182560,
+    { NULL, D_acropolis_patio_80181F34.words, NULL, NULL, D_acropolis_patio_80181FB8, NULL, NULL, NULL },
+};
+
+GpAnimSet * D_acropolis_patio_801825B0[5] = {
+    NULL,
+    &D_acropolis_patio_80181290,
+    &D_acropolis_patio_80181A30,
+    &D_acropolis_patio_80181F0C,
+    &D_acropolis_patio_80182588,
+};
+
+GpCopyArg D_acropolis_patio_801825C4 = { { .sets = D_acropolis_patio_801825B0 }, 5 };
+
+GpAnimArg D_acropolis_patio_801825CC[4] = {
+    { { .index = 1 }, 1, 0, 0, 0 },
+    { { .index = 1 }, 48, 0, 0, 0 },
+    { { .index = 1 }, 49, 1, 6, 0 },
+    { { .index = 1 }, 50, 1, 6, 0 },
+};
+
+GpAnimArg D_acropolis_patio_8018261C = { { .index = 1 }, 9, 1, 6, 0 };
+
+GpXformArg D_acropolis_patio_80182630 = { { -7100, 0, -1350, 0 }, { 0, 900, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80182648[2] = {
+    { { -6590, 0, -1000, 0 }, { 0, 0, 0, 0 } },
+    { { 3900, 0, 2300, 0 }, { 0, 0, 0, 0 } },
+};
+
+GpXformArg D_acropolis_patio_80182678 = { { -2300, 0, 700, 0 }, { 0, 1200, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80182690 = { { -2300, 0, 700, 0 }, { 0, -848, 0, 0 } };
+
+GpAnimArg D_acropolis_patio_801826A8[5] = {
+    { { .index = 0 }, 1, 0, 0, 0 },
+    { { .index = 0 }, 1, 1, 20, 1 },
+    { { .index = 0 }, 2, 1, 20, 1 },
+    { { .index = 0 }, 3, 1, 20, 1 },
+    { { .index = 0 }, 4, 1, 20, 1 },
+};
+
+GpAnimArg D_acropolis_patio_8018270C = { { .index = 0 }, 5, 1, 20, 1 };
+
+GpAnimArg D_acropolis_patio_80182720 = { { .index = 0 }, 6, 1, 20, 1 };
+
+GpAnimArg D_acropolis_patio_80182734[2] = {
+    { { .index = 0 }, 7, 1, 20, 1 },
+    { { .index = 0 }, 8, 1, 20, 1 },
+};
+
+GpXformArg D_acropolis_patio_8018275C = { { -6100, -3780, -1900, 0 }, { 0, -110, 0, 0 } };
+
+GpXformArg D_acropolis_patio_80182774 = { 0 };
+
+GpXformArg D_acropolis_patio_8018278C = { { -5100, -3780, -1900, 0 }, { 0, 80, 0, 0 } };
+
+GpXformArg D_acropolis_patio_801827A4 = { { 0, 0, 0, 0 }, { 0, 512, 0, 0 } };
+
+GpXformArg D_acropolis_patio_801827BC = { { -6100, 210, 20, 0 }, { 0, 896, 0, 0 } };
+
+GpXformArg D_acropolis_patio_801827D4 = { { -3743, 210, -543, 0 }, { 0, 512, 0, 0 } };
+
+GpSpawnAnimArg D_acropolis_patio_801827EC = { 7, 8 };
+
+GpCmdArg D_acropolis_patio_801827F4 = { { .loc = { 1, 3 } }, 0 };
+
+GpCmdArg D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
+
+GpCmdArg D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
+
+TaskDesc D_acropolis_patio_80182800 = { 0, 192, func_acropolis_patio_8017E054, { .model = NULL } };
+
+GpEvsCmd D_acropolis_patio_8018280C[41] = {
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_patio_801825C4 }, { .value = 0 } },
+    { 3, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_80182630 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018275C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2004 }, { .storage = &D_acropolis_patio_8018278C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_acropolis_patio_8018270C }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_acropolis_patio_80182720 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1019 }, { .storage = &D_acropolis_patio_80182678 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F8 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F8 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2013 }, { .storage = &D_acropolis_patio_80182774 }, { .storage = &D_acropolis_patio_801827EC } },
+    { 4, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2013 }, { .storage = &D_acropolis_patio_801827A4 }, { .storage = &D_acropolis_patio_801827EC } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F4 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827F4 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_8018261C }, { .value = 0 } },
+    { 4, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callbackNoArg = func_acropolis_patio_8017E024 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 46, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_acropolis_patio_801827BC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2004 }, { .storage = &D_acropolis_patio_801827D4 }, { .value = 0 } },
+    { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827FC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2011 }, { .storage = &D_acropolis_patio_801827FC }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+GpEvsCmd D_acropolis_patio_80182BE4[21] = {
+    { 13, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 48, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 2 }, { .value = 2004 }, { .storage = &D_acropolis_patio_801827BC }, { .value = 0 } },
+    { 1, { .value = 4 }, { .value = 3 }, { .value = 2004 }, { .storage = &D_acropolis_patio_801827D4 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_acropolis_patio_80182690 }, { .value = 0 } },
+    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_8018261C }, { .value = 0 } },
+    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 13, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+};
+
+SVECTOR D_acropolis_patio_80182DDC[14] = {
+    { 180, -1108, 3610, 0 },
+    { -6250, -1108, 2580, 0 },
+    { -9310, -1108, 1130, 0 },
+    { 1040, -2120, -4500, 0 },
+    { -2390, -2120, -4500, 0 },
+    { -6360, -2120, -4570, 0 },
+    { -7640, -2120, -4570, 0 },
+    { 0, -210, 2950, 0 },
+    { -2010, -210, 2600, 0 },
+    { -4010, -210, 2210, 0 },
+    { -6000, -210, 1720, 0 },
+    { -8010, -210, 1190, 0 },
+    { -8510, -210, 230, 0 },
+    { -8520, -210, -1000, 0 },
+};
+
+u16 D_acropolis_patio_80182E4C[14] = {
+    4,
+    8,
+    24,
+    384,
+    384,
+    192,
+    64,
+    4,
+    4,
+    12,
+    24,
+    24,
+    24,
+    88,
+};
+
+GpRoomObjRec D_acropolis_patio_80182E68[3] = {
+    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_80184244, D_acropolis_patio_80184964 },
+    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
+    { D_acropolis_patio_80183DF8, D_acropolis_patio_80183E1C, D_acropolis_patio_801845D4, D_acropolis_patio_80184964 },
+};
+
+u8 D_acropolis_patio_80182E98[20] = {
+    1,
+    2,
+    3,
+    17,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    0,
+};
+
+u8 D_acropolis_patio_80182EAC[20] = {
+    1,
+    2,
+    3,
+    17,
+    5,
+    6,
+    13,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    0,
+};
+
+u8 * D_acropolis_patio_80182EC0[3] = {
+    D_8010CAF8,
+    D_acropolis_patio_80182E98,
+    D_acropolis_patio_80182EAC,
+};
+
+GpViewCountRec D_acropolis_patio_80182ECC[3] = {
+    { { .bytes = { 19, 0 } } },
+    { { .bytes = { 19, 0 } } },
+    { { .bytes = { 19, 0 } } },
+};
+
+GpRoomCoordRec D_acropolis_patio_80182ED4[3] = {
+    { D_acropolis_patio_80186D44, NULL },
+    { D_acropolis_patio_80186D44, NULL },
+    { D_acropolis_patio_80186D44, NULL },
+};
+
+GpWarpRec D_acropolis_patio_80182EEC[4] = {
+    { { .words = { 2560, 3906, 1, 768 } }, { 0, 0, 0, 0 }, { .words = { 2560, 3906, 1, 768 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { .words = { 0, 4986, 1, -4079 } }, { 0, 0, 0, 0 }, { .words = { 0, 4986, 1, -4079 } }, { 0, 0, 0, 0 }, 0x51030002, 0x51030001, 0x51030007, 6, 0, 496 },
+    { { .words = { 0, -7014, -302, -4439 } }, { 0, 0, 0, 0 }, { .words = { 0, -7014, -302, -4439 } }, { 0, 0, 0, 0 }, 0x51030005, 0x51030004, 0x51030006, 7, 0, 501 },
+    { { .words = { 2304, 4223, -460, 1263 } }, { 0, 0, 0, 0 }, { .words = { 2304, 4408, -600, 1264 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
+};
+
+SVECTOR D_acropolis_patio_80182FCC[33] = {
+    { 0, -4096, 0, 0 },
+    { 4096, 0, 0, 0 },
+    { 0, 0, -4096, 0 },
+    { -4096, 0, 0, 0 },
+    { 803, 0, -4016, 0 },
+    { 3292, 0, -2437, 0 },
+    { -1411, 0, -3845, 0 },
+    { 2894, 0, 2899, 0 },
+    { 0, 4096, 0, 0 },
+    { 0, 0, 4096, 0 },
+    { 0, -4096, 0, 0 },
+    { -3782, 0, -1572, 0 },
+    { 858, 0, -4005, 0 },
+    { -958, 0, -3982, 0 },
+    { -3846, 0, 1409, 0 },
+    { 0, -3657, 1845, 0 },
+    { 3842, 0, -1420, 0 },
+    { -1956, 0, -3599, 0 },
+    { 3850, 0, -1397, 0 },
+    { -1397, 0, -3850, 0 },
+    { -3850, 0, 1397, 0 },
+    { -417, 0, -4075, 0 },
+    { -2896, 0, 2896, 0 },
+    { 2896, 0, 2896, 0 },
+    { 2951, 0, 2840, 0 },
+    { -770, -3417, -2123, 0 },
+    { -1949, 0, -3603, 0 },
+    { 838, 0, -4009, 0 },
+    { 1653, 0, 3748, 0 },
+    { 1911, 0, -3623, 0 },
+    { -1397, 0, -3850, 0 },
+    { -2048, 0, -3547, 0 },
+    { -2048, 0, 3547, 0 },
+};
+
+SVECTOR D_acropolis_patio_801830D4[201] = {
+    { -9000, 0, 5000, 0 },
+    { 9000, 0, 5000, 0 },
+    { 9000, 0, -5000, 0 },
+    { -9000, 0, -5000, 0 },
+    { -9000, 500, -5000, 0 },
+    { -9000, -5000, -5000, 0 },
+    { -9000, -5000, 3000, 0 },
+    { -9000, 500, 3000, 0 },
+    { -650, 2, -2600, 0 },
+    { -650, -7000, -2600, 0 },
+    { 150, -7000, -2600, 0 },
+    { 150, 2, -2600, 0 },
+    { -8500, 0, -5000, 0 },
+    { -8500, -3808, -5000, 0 },
+    { -8500, -3808, 1070, 0 },
+    { -8500, 0, 1070, 0 },
+    { 2000, 500, 5500, 0 },
+    { 2000, -3328, 5500, 0 },
+    { 2000, -3328, 1920, 0 },
+    { 2000, 500, 1920, 0 },
+    { -9000, 500, 2000, 0 },
+    { -9000, -7000, 2000, 0 },
+    { 2000, -7000, 4200, 0 },
+    { 2000, 500, 4200, 0 },
+    { -3620, -300, -3190, 0 },
+    { -3620, -1230, -3190, 0 },
+    { -3050, -1230, -2420, 0 },
+    { -3050, -300, -2420, 0 },
+    { -2650, 2, -2590, 0 },
+    { -2650, -7000, -2590, 0 },
+    { -2650, -7000, -1600, 0 },
+    { -2650, 2, -1600, 0 },
+    { 3750, 500, 3360, 0 },
+    { 3750, -3328, 3360, 0 },
+    { 5630, -3328, 2670, 0 },
+    { 5630, 500, 2670, 0 },
+    { 7000, -750, -7675, 0 },
+    { 7000, -750, 500, 0 },
+    { 0x45EC, -750, 500, 0 },
+    { 0x45EC, -750, -7675, 0 },
+    { 7000, 250, -7675, 0 },
+    { 7000, 250, 500, 0 },
+    { -7482, -299, -4789, 0 },
+    { -7482, -1248, -4789, 0 },
+    { -8332, -1248, -3941, 0 },
+    { -8332, -299, -3941, 0 },
+    { 520, 0, 2890, 0 },
+    { 520, -3853, 2890, 0 },
+    { 2000, -3853, 2890, 0 },
+    { 2000, 0, 2890, 0 },
+    { 3000, -5100, -1402, 0 },
+    { -9000, -5100, -1402, 0 },
+    { -9000, -5100, -2749, 0 },
+    { 3000, -5100, -2749, 0 },
+    { 1850, 2, -1600, 0 },
+    { 1850, -7000, -1600, 0 },
+    { 1850, -7000, -5100, 0 },
+    { 1850, 2, -5100, 0 },
+    { 4540, 0, -3510, 0 },
+    { 4540, -2200, -3510, 0 },
+    { 2600, -2200, -3510, 0 },
+    { 2600, 0, -3510, 0 },
+    { 3000, -5600, -1402, 0 },
+    { -9000, -5600, -1402, 0 },
+    { -8500, 0, -4789, 0 },
+    { 2500, 0, -4789, 0 },
+    { 2500, -7000, -4789, 0 },
+    { -8500, -7000, -4789, 0 },
+    { -9000, -300, -2150, 0 },
+    { 3030, -300, -2150, 0 },
+    { 3030, -300, -5000, 0 },
+    { -9000, -300, -5000, 0 },
+    { -9000, -5600, -2749, 0 },
+    { 3000, -5600, -2749, 0 },
+    { 150, 2, -1600, 0 },
+    { 150, -7000, -1600, 0 },
+    { -650, -7000, -1600, 0 },
+    { -650, 2, -1600, 0 },
+    { -5380, -300, -3190, 0 },
+    { -5380, -1230, -3190, 0 },
+    { -5700, -300, -2420, 0 },
+    { -5700, -1230, -2420, 0 },
+    { 4540, 0, -5000, 0 },
+    { 4540, -2200, -5000, 0 },
+    { 9000, -2200, -3510, 0 },
+    { 9000, -5000, -3510, 0 },
+    { 3000, -5000, -3510, 0 },
+    { 3000, -2200, -3510, 0 },
+    { 3080, 2, -5100, 0 },
+    { 3080, -7000, -5100, 0 },
+    { 3080, -7000, -1600, 0 },
+    { 3080, 2, -1600, 0 },
+    { -3336, 2, -2737, 0 },
+    { -3336, -7000, -2737, 0 },
+    { 7000, 500, 120, 0 },
+    { 7000, -3328, 120, 0 },
+    { 9000, -3328, 120, 0 },
+    { 9000, 500, 120, 0 },
+    { 7000, 500, 5500, 0 },
+    { 7000, -3328, 5500, 0 },
+    { 4880, 500, 670, 0 },
+    { 4880, -3328, 670, 0 },
+    { 7000, -3328, 160, 0 },
+    { 7000, 500, 160, 0 },
+    { 6650, 500, 5500, 0 },
+    { 6650, -3328, 5500, 0 },
+    { 3030, 0, -1555, 0 },
+    { -9000, 0, -1555, 0 },
+    { 3030, 500, 1360, 0 },
+    { 3030, -3328, 1360, 0 },
+    { 4560, -3328, 5500, 0 },
+    { 4560, 500, 5500, 0 },
+    { 4902, 495, 690, 0 },
+    { 4902, -200, 690, 0 },
+    { 5625, -1600, 2682, 0 },
+    { 5625, 495, 2682, 0 },
+    { 3028, 495, 1370, 0 },
+    { 3028, -200, 1370, 0 },
+    { 3751, 495, 3361, 0 },
+    { 3751, -1600, 3361, 0 },
+    { -6420, 2, -2620, 0 },
+    { -6420, -7000, -2620, 0 },
+    { -5150, -7000, -2750, 0 },
+    { -5150, 2, -2750, 0 },
+    { 5560, 0, -3510, 0 },
+    { 5560, -2200, -3510, 0 },
+    { 5560, -2200, -5000, 0 },
+    { 5560, 0, -5000, 0 },
+    { 7000, 0, -3510, 0 },
+    { 7000, -2200, -3510, 0 },
+    { -2980, -300, -4080, 0 },
+    { -2980, -1230, -4080, 0 },
+    { -3850, -1230, -4950, 0 },
+    { -3850, -300, -4950, 0 },
+    { 2580, 100, -4790, 0 },
+    { 2580, -5600, -4790, 0 },
+    { -9000, -5600, -4790, 0 },
+    { -9000, 100, -4790, 0 },
+    { -3800, -7000, -1600, 0 },
+    { -3800, 2, -1600, 0 },
+    { 90, -300, -4950, 0 },
+    { 90, -1230, -4950, 0 },
+    { -780, -1230, -4080, 0 },
+    { -780, -300, -4080, 0 },
+    { -8230, 2, -700, 0 },
+    { -8230, -7000, -700, 0 },
+    { -9000, -7000, 100, 0 },
+    { -9000, 2, 100, 0 },
+    { -8230, 2, -5000, 0 },
+    { -8230, -7000, -5000, 0 },
+    { -6420, 2, -1610, 0 },
+    { -6420, -7000, -1610, 0 },
+    { -5150, 2, -1610, 0 },
+    { -5150, -7000, -1610, 0 },
+    { 2960, 180, -1550, 0 },
+    { 2960, -1460, -1550, 0 },
+    { -5790, -1460, -1550, 0 },
+    { -5790, 180, -1550, 0 },
+    { -5790, 180, -2550, 0 },
+    { -5790, -1460, -2550, 0 },
+    { 2960, -1460, -2550, 0 },
+    { 2960, 180, -2550, 0 },
+    { 5580, 50, -4130, 0 },
+    { 5580, -2210, -4130, 0 },
+    { 4520, -2210, -4130, 0 },
+    { 4520, 50, -4130, 0 },
+    { -140, -300, -2550, 0 },
+    { -140, -1230, -2550, 0 },
+    { 2033, -1230, -3725, 0 },
+    { 2033, -300, -3725, 0 },
+    { 3000, -2200, -5000, 0 },
+    { 9000, -2200, -5000, 0 },
+    { -9000, 0, 900, 0 },
+    { -9000, -3853, 900, 0 },
+    { 9000, -7000, 120, 0 },
+    { 0x45EC, -7000, 120, 0 },
+    { 0x45EC, 500, 120, 0 },
+    { 0x45EC, -7000, 500, 0 },
+    { 0x45EC, -7000, -7675, 0 },
+    { 0x45EC, 500, -7675, 0 },
+    { 0x45EC, 500, 500, 0 },
+    { 3000, -7000, -7675, 0 },
+    { 3000, 500, -7675, 0 },
+    { -7740, 500, -1610, 0 },
+    { -7740, -5410, -1610, 0 },
+    { -9010, -5410, -1050, 0 },
+    { -9010, 500, -1050, 0 },
+    { -9010, 500, -3460, 0 },
+    { -9010, -5410, -3460, 0 },
+    { -7740, -5410, -2790, 0 },
+    { -7740, 500, -2790, 0 },
+    { 2970, -3400, 1423, 0 },
+    { 5030, -3400, 677, 0 },
+    { 5030, 500, 677, 0 },
+    { 2970, 500, 1423, 0 },
+    { -5960, 10, -2200, 0 },
+    { -5960, -5600, -2200, 0 },
+    { -5600, -5600, -2408, 0 },
+    { -5600, 10, -2408, 0 },
+    { -5600, 10, -1992, 0 },
+    { -5600, -5600, -1992, 0 },
+};
+
+GpGridFace D_acropolis_patio_8018371C[70] = {
+    { { 1, 2, 0, 3 }, 0, 4 },
+    { { 5, 6, 4, 7 }, 1, 0 },
+    { { 9, 10, 8, 11 }, 2, 0 },
+    { { 13, 14, 12, 15 }, 1, 0 },
+    { { 17, 18, 16, 19 }, 3, 0 },
+    { { 21, 22, 20, 23 }, 4, 0 },
+    { { 25, 26, 24, 27 }, 5, 0 },
+    { { 29, 30, 28, 31 }, 1, 0 },
+    { { 33, 34, 32, 35 }, 6, 0 },
+    { { 37, 38, 36, 39 }, 0, 0 },
+    { { 41, 37, 40, 36 }, 3, 0 },
+    { { 43, 44, 42, 45 }, 7, 0 },
+    { { 47, 48, 46, 49 }, 2, 0 },
+    { { 51, 52, 50, 53 }, 8, 0 },
+    { { 55, 56, 54, 57 }, 3, 0 },
+    { { 59, 60, 58, 61 }, 9, 0 },
+    { { 62, 63, 50, 51 }, 9, 0 },
+    { { 65, 66, 64, 67 }, 9, 0 },
+    { { 69, 70, 68, 71 }, 10, 4 },
+    { { 72, 73, 52, 53 }, 2, 0 },
+    { { 75, 76, 74, 77 }, 9, 0 },
+    { { 79, 25, 78, 24 }, 2, 0 },
+    { { 81, 79, 80, 78 }, 11, 0 },
+    { { 83, 59, 82, 58 }, 1, 0 },
+    { { 85, 86, 84, 87 }, 9, 0 },
+    { { 89, 90, 88, 91 }, 1, 0 },
+    { { 93, 29, 92, 28 }, 12, 0 },
+    { { 95, 96, 94, 97 }, 2, 0 },
+    { { 99, 95, 98, 94 }, 3, 0 },
+    { { 76, 9, 77, 8 }, 3, 0 },
+    { { 101, 102, 100, 103 }, 13, 0 },
+    { { 105, 101, 104, 100 }, 14, 0 },
+    { { 69, 68, 106, 107 }, 15, 4 },
+    { { 109, 110, 108, 111 }, 16, 0 },
+    { { 18, 109, 19, 108 }, 17, 0 },
+    { { 113, 114, 112, 115 }, 18, 0 },
+    { { 117, 113, 116, 112 }, 19, 4 },
+    { { 119, 117, 118, 116 }, 20, 0 },
+    { { 121, 122, 120, 123 }, 21, 2 },
+    { { 125, 126, 124, 127 }, 3, 0 },
+    { { 129, 125, 128, 124 }, 9, 0 },
+    { { 131, 132, 130, 133 }, 22, 0 },
+    { { 135, 136, 134, 137 }, 9, 0 },
+    { { 10, 75, 11, 74 }, 1, 0 },
+    { { 30, 138, 31, 139 }, 9, 0 },
+    { { 141, 142, 140, 143 }, 23, 0 },
+    { { 90, 55, 91, 54 }, 9, 0 },
+    { { 145, 146, 144, 147 }, 24, 0 },
+    { { 149, 145, 148, 144 }, 1, 0 },
+    { { 151, 121, 150, 120 }, 3, 2 },
+    { { 153, 151, 152, 150 }, 9, 2 },
+    { { 114, 113, 119, 117 }, 25, 4 },
+    { { 155, 156, 154, 157 }, 9, 0 },
+    { { 159, 160, 158, 161 }, 2, 0 },
+    { { 155, 160, 156, 159 }, 0, 0 },
+    { { 142, 131, 143, 130 }, 9, 0 },
+    { { 163, 164, 162, 165 }, 9, 0 },
+    { { 167, 168, 166, 169 }, 26, 0 },
+    { { 87, 170, 84, 171 }, 8, 0 },
+    { { 46, 172, 47, 173 }, 27, 0 },
+    { { 175, 176, 174, 97 }, 2, 3 },
+    { { 178, 179, 177, 180 }, 3, 3 },
+    { { 181, 182, 178, 179 }, 9, 3 },
+    { { 184, 185, 183, 186 }, 28, 2 },
+    { { 188, 189, 187, 190 }, 29, 2 },
+    { { 189, 184, 190, 183 }, 1, 2 },
+    { { 192, 193, 191, 194 }, 30, 1 },
+    { { 196, 197, 195, 198 }, 31, 0 },
+    { { 200, 196, 199, 195 }, 32, 0 },
+    { { 197, 200, 198, 199 }, 1, 0 },
+};
+
+s16 D_acropolis_patio_80183A64[25] = {
+    0,
+    1,
+    3,
+    11,
+    13,
+    17,
+    18,
+    19,
+    21,
+    22,
+    32,
+    38,
+    41,
+    42,
+    48,
+    49,
+    50,
+    53,
+    54,
+    64,
+    65,
+    67,
+    68,
+    69,
+    -1,
+};
+
+s16 D_acropolis_patio_80183A98[33] = {
+    0,
+    1,
+    3,
+    5,
+    6,
+    11,
+    13,
+    16,
+    17,
+    18,
+    19,
+    21,
+    22,
+    26,
+    32,
+    38,
+    42,
+    44,
+    47,
+    48,
+    49,
+    50,
+    52,
+    53,
+    54,
+    59,
+    63,
+    64,
+    65,
+    67,
+    68,
+    69,
+    -1,
+};
+
+s16 D_acropolis_patio_80183ADC[17] = {
+    0,
+    1,
+    3,
+    5,
+    13,
+    16,
+    32,
+    47,
+    48,
+    49,
+    50,
+    52,
+    54,
+    59,
+    63,
+    65,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B00[4] = {
+    0,
+    1,
+    5,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B08[22] = {
+    0,
+    2,
+    6,
+    7,
+    13,
+    17,
+    18,
+    19,
+    21,
+    22,
+    26,
+    29,
+    32,
+    38,
+    41,
+    42,
+    44,
+    45,
+    53,
+    54,
+    55,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B34[33] = {
+    0,
+    2,
+    6,
+    7,
+    13,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    26,
+    29,
+    32,
+    38,
+    41,
+    42,
+    43,
+    44,
+    45,
+    49,
+    50,
+    52,
+    53,
+    54,
+    55,
+    57,
+    59,
+    67,
+    68,
+    69,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B78[12] = {
+    0,
+    5,
+    7,
+    12,
+    13,
+    16,
+    32,
+    44,
+    52,
+    54,
+    59,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B90[4] = {
+    0,
+    5,
+    59,
+    -1,
+};
+
+s16 D_acropolis_patio_80183B98[24] = {
+    0,
+    2,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    23,
+    24,
+    25,
+    29,
+    32,
+    42,
+    43,
+    45,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    62,
+    -1,
+};
+
+s16 D_acropolis_patio_80183BC8[36] = {
+    0,
+    2,
+    4,
+    7,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    23,
+    24,
+    25,
+    26,
+    29,
+    32,
+    33,
+    34,
+    36,
+    37,
+    42,
+    43,
+    44,
+    45,
+    46,
+    51,
+    52,
+    53,
+    54,
+    55,
+    57,
+    58,
+    66,
+    -1,
+};
+
+s16 D_acropolis_patio_80183C10[22] = {
+    0,
+    4,
+    5,
+    8,
+    12,
+    13,
+    14,
+    16,
+    20,
+    32,
+    33,
+    34,
+    36,
+    37,
+    43,
+    46,
+    51,
+    52,
+    54,
+    59,
+    66,
+    -1,
+};
+
+s16 D_acropolis_patio_80183C3C[10] = {
+    0,
+    4,
+    5,
+    8,
+    12,
+    33,
+    37,
+    51,
+    59,
+    -1,
+};
+
+s16 D_acropolis_patio_80183C50[23] = {
+    0,
+    9,
+    10,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    23,
+    24,
+    25,
+    32,
+    39,
+    40,
+    42,
+    53,
+    54,
+    56,
+    57,
+    58,
+    62,
+    -1,
+};
+
+s16 D_acropolis_patio_80183C80[36] = {
+    0,
+    9,
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    23,
+    24,
+    25,
+    27,
+    28,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    39,
+    40,
+    42,
+    46,
+    51,
+    52,
+    53,
+    54,
+    56,
+    57,
+    58,
+    66,
+    -1,
+};
+
+s16 D_acropolis_patio_80183CC8[19] = {
+    0,
+    4,
+    5,
+    8,
+    9,
+    10,
+    12,
+    27,
+    28,
+    30,
+    31,
+    33,
+    34,
+    35,
+    36,
+    37,
+    51,
+    66,
+    -1,
+};
+
+s16 D_acropolis_patio_80183CF0[11] = {
+    0,
+    4,
+    5,
+    8,
+    28,
+    31,
+    33,
+    35,
+    37,
+    51,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D08[10] = {
+    0,
+    9,
+    10,
+    24,
+    39,
+    40,
+    56,
+    58,
+    62,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D1C[12] = {
+    0,
+    9,
+    10,
+    24,
+    27,
+    28,
+    30,
+    39,
+    40,
+    58,
+    60,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D34[12] = {
+    0,
+    8,
+    9,
+    10,
+    27,
+    28,
+    30,
+    31,
+    35,
+    51,
+    60,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D4C[4] = {
+    0,
+    28,
+    31,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D54[5] = {
+    0,
+    9,
+    58,
+    62,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D60[4] = {
+    0,
+    9,
+    60,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D68[4] = {
+    0,
+    9,
+    60,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D70[4] = {
+    9,
+    61,
+    62,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D78[4] = {
+    9,
+    60,
+    61,
+    -1,
+};
+
+s16 D_acropolis_patio_80183D80[4] = {
+    9,
+    60,
+    61,
+    -1,
+};
+
+s16 * D_acropolis_patio_80183D88[28] = {
+    D_acropolis_patio_80183A64,
+    D_acropolis_patio_80183A98,
+    D_acropolis_patio_80183ADC,
+    D_acropolis_patio_80183B00,
+    D_acropolis_patio_80183B08,
+    D_acropolis_patio_80183B34,
+    D_acropolis_patio_80183B78,
+    D_acropolis_patio_80183B90,
+    D_acropolis_patio_80183B98,
+    D_acropolis_patio_80183BC8,
+    D_acropolis_patio_80183C10,
+    D_acropolis_patio_80183C3C,
+    D_acropolis_patio_80183C50,
+    D_acropolis_patio_80183C80,
+    D_acropolis_patio_80183CC8,
+    D_acropolis_patio_80183CF0,
+    D_acropolis_patio_80183D08,
+    D_acropolis_patio_80183D1C,
+    D_acropolis_patio_80183D34,
+    D_acropolis_patio_80183D4C,
+    D_acropolis_patio_80183D54,
+    D_acropolis_patio_80183D60,
+    D_acropolis_patio_80183D68,
+    NULL,
+    D_acropolis_patio_80183D70,
+    D_acropolis_patio_80183D78,
+    D_acropolis_patio_80183D80,
+    NULL,
+};
+
+GpGridParams D_acropolis_patio_80183DF8[1] = {
+    { NULL, D_acropolis_patio_80182FCC, D_acropolis_patio_801830D4, D_acropolis_patio_8018371C, D_acropolis_patio_80183D88, 9010, 7675, 7, 4, 4000, 70 },
+};
+
+GpObj4C D_acropolis_patio_80183E1C[14] = {
+    { NULL, NULL, NULL, { 4988, -2288, -1890, 0 }, { { -2356, -3568, 233, 0 }, { 2357, -3568, -233, 0 }, { -2356, 3568, 233, 0 }, { 2357, 3568, -233, 0 } }, { -406, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 6, 2, 1, 0 },
+    { NULL, NULL, NULL, { 5052, -2528, -2276, 0 }, { { 2357, -3552, -233, 0 }, { -2356, -3552, 233, 0 }, { 2357, 3552, -233, 0 }, { -2356, 3552, 233, 0 } }, { 404, 0, 4087, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 6, 1, 0 },
+    { NULL, NULL, NULL, { 1938, -2400, 374, 0 }, { { 906, -3568, 2187, 0 }, { -905, -3568, -2187, 0 }, { 906, 3568, 2187, 0 }, { -905, 3568, -2187, 0 } }, { -3811, 0, 1577, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 3, 2, 1, 0 },
+    { NULL, NULL, NULL, { 1557, -2464, 439, 0 }, { { -797, -3568, -2230, 0 }, { 797, -3568, 2231, 0 }, { -797, 3568, -2230, 0 }, { 797, 3568, 2231, 0 } }, { 3885, 0, -1389, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, 1, 0 },
+    { NULL, NULL, NULL, { -3872, -2432, 256, 0 }, { { 0, -3568, -2368, 0 }, { 0, -3568, 2368, 0 }, { 0, 3568, -2368, 0 }, { 0, 3568, 2368, 0 } }, { 4125, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 3, 4, 1, 0 },
+    { NULL, NULL, NULL, { -3648, -2400, 192, 0 }, { { 0, -3568, 2368, 0 }, { 0, -3568, -2368, 0 }, { 0, 3568, 2368, 0 }, { 0, 3568, -2368, 0 } }, { -4126, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 4, 3, 1, 0 },
+    { NULL, NULL, NULL, { -7762, -2432, -2162, 0 }, { { 2171, -3568, -129, 0 }, { -2170, -3568, 130, 0 }, { 2171, 3568, -129, 0 }, { -2170, 3568, 130, 0 } }, { 244, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 4, 7, 1, 0 },
+    { NULL, NULL, NULL, { -7562, -2432, -1771, 0 }, { { -2121, -3568, 239, 0 }, { 2122, -3568, -239, 0 }, { -2121, 3568, 239, 0 }, { 2122, 3568, -239, 0 } }, { -459, 0, -4071, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 7, 4, 1, 0 },
+    { NULL, NULL, NULL, { -6435, -2400, -3410, 0 }, { { -107, -3568, -906, 0 }, { 107, -3568, 906, 0 }, { -107, 3568, -906, 0 }, { 107, 3568, 906, 0 } }, { 4068, 0, -481, 0 }, { 0, 0, 4096, 0 }, 3674, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { -6294, -2464, -3156, 0 }, { { 48, -3568, 561, 0 }, { -47, -3568, -560, 0 }, { 48, 3568, 561, 0 }, { -47, 3568, -560, 0 } }, { -4086, 0, 345, 0 }, { 0, 0, 4096, 0 }, 3611, 0, 7, 8, 1, 0 },
+    { NULL, NULL, NULL, { -1537, -2496, -3841, 0 }, { { 333, -3568, 1513, 0 }, { -333, -3568, -1513, 0 }, { 333, 3568, 1513, 0 }, { -333, 3568, -1513, 0 } }, { -4003, 0, 880, 0 }, { 0, 0, 4096, 0 }, 3882, 0, 8, 9, 1, 0 },
+    { NULL, NULL, NULL, { -2240, -2432, -3824, 0 }, { { -269, -3568, -1433, 0 }, { 269, -3568, 1433, 0 }, { -269, 3568, -1433, 0 }, { 269, 3568, 1433, 0 } }, { 4034, 0, -759, 0 }, { 0, 0, 4096, 0 }, 3848, 0, 9, 8, 1, 0 },
+    { NULL, NULL, NULL, { -5937, 0, -4513, 0 }, { { 787, -3568, -1098, 0 }, { -786, -3568, 1099, 0 }, { 787, 3568, -1098, 0 }, { -786, 3568, 1099, 0 } }, { 3340, 0, 2391, 0 }, { 0, 0, 4096, 0 }, 3814, 0, 8, 7, 1, 0 },
+    { NULL, NULL, NULL, { -5890, 0, -4385, 0 }, { { -463, -3568, 692, 0 }, { 463, -3568, -692, 0 }, { -463, 3568, 692, 0 }, { 463, 3568, -692, 0 } }, { -3411, 0, -2283, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 7, 8, 129, 0 },
+};
+
+GpObj4C D_acropolis_patio_80184244[12] = {
+    { NULL, NULL, NULL, { 3903, -96, 895, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, 1, 67, 16, 2, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 846, 0, 8, 33, 2, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1187, 0, 4, 50, 2, 0 },
+    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1459, 2, 2, 0, 2, 0 },
+    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, 2, 1, 0, 4, 0 },
+    { NULL, NULL, NULL, { 3999, -720, 1183, 0 }, { { -1187, -1164, 440, 0 }, { 1204, -1166, -401, 0 }, { -1204, 1166, 402, 0 }, { 1188, 1164, -440, 0 } }, { -1360, -74, -3864, 0 }, { -1189, 0, -3920, 0 }, 1722, 0x8000, 1, 21, 2, 0 },
+    { NULL, NULL, NULL, { 4064, -603, 1408, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, 0x8101, 66, 144, 2, 0 },
+    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2079, 2, 5, 0, 4, 0 },
+    { NULL, NULL, NULL, { -8066, -64, -881, 0 }, { { 621, 0, -386, 0 }, { 639, 0, 374, 0 }, { -637, 0, -372, 0 }, { -620, 0, 387, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 738, 2, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, 0x8005, 0, 0, 3, 0 },
+    { NULL, NULL, NULL, { -6543, 0, 48, 0 }, { { -749, 0, -1052, 0 }, { 956, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1165, 0, 1436, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1846, 0x8005, 1, 0, 3, 0 },
+    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, 0x8005, 2, 0, 131, 0 },
+};
+
+GpObj4C D_acropolis_patio_801845D4[12] = {
+    { NULL, NULL, NULL, { 3903, -96, 959, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, 1, 67, 16, 2, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 846, 0, 8, 33, 2, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1187, 0, 4, 50, 2, 0 },
+    { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1459, 2, 2, 255, 2, 0 },
+    { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, 2, 1, 0, 4, 0 },
+    { NULL, NULL, NULL, { 4128, -464, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1039, 0x8000, 1, 21, 2, 0 },
+    { NULL, NULL, NULL, { 4128, -475, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, 0x8101, 66, 152, 2, 0 },
+    { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2079, 2, 5, 0, 4, 0 },
+    { NULL, NULL, NULL, { -8066, -64, -849, 0 }, { { 621, 0, -418, 0 }, { 639, 0, 406, 0 }, { -637, 0, -404, 0 }, { -620, 0, 419, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 754, 2, 7, 0, 2, 0 },
+    { NULL, NULL, NULL, { 2064, -29, 31, 0 }, { { 325, 0, 1661, 0 }, { -997, 0, -1557, 0 }, { 933, 0, 1461, 0 }, { -261, 0, -1565, 0 } }, { 0, 4115, 0, 0 }, { 3856, 0, -1380, 0 }, 1846, 0x8005, 0, 0, 3, 0 },
+    { NULL, NULL, NULL, { -8239, 0, 592, 0 }, { { -749, 0, -1052, 0 }, { 1788, 0, -1517, 0 }, { -1372, 0, 1133, 0 }, { 1997, 0, 1436, 0 } }, { 0, 4101, 0, 0 }, { -1189, 0, -3920, 0 }, 2455, 6, 11, 0, 4, 0 },
+    { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, 0x8005, 2, 0, 131, 0 },
+};
+
+GpObj3A D_acropolis_patio_80184964[2] = {
+    { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, { 22, 17 }, 1, 0 },
+    { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, { 22, 17 }, 129, 0 },
+};
+
+GpAreaTmdRec D_acropolis_patio_801849DC[3] = {
+    { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
+    { 107, 122, 2, 0, { 0, 0 }, D_80169F7C },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_patio_80184A00[3] = {
+    { 10, 170, 2, 0, { 0, 0 }, D_8016CF44 },
+    { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_patio_80184A24[3] = {
+    { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
+    { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_patio_80184A48[3] = {
+    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+    { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_patio_80184A6C[2] = {
+    { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaTmdRec D_acropolis_patio_80184A84[1] = {
+    { 255, 0, 0, 0, { 0, 0 }, NULL },
+};
+
+GpAreaVariant D_acropolis_patio_80184A90[12] = {
+    { NULL, NULL },
+    { D_map_akropolis_8017ACFC, D_acropolis_patio_801849DC },
+    { D_map_akropolis_8017AD2C, D_acropolis_patio_80184A00 },
+    { D_map_akropolis_8017AD7C, D_acropolis_patio_80184A24 },
+    { D_map_akropolis_8017ADEC, D_acropolis_patio_80184A48 },
+    { D_map_akropolis_8017AE3C, D_acropolis_patio_80184A6C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_akropolis_8017AE6C, D_acropolis_patio_80184A84 },
+    { NULL, NULL },
+};
+
+GpSprtCmd D_acropolis_patio_80184AF0[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_80184B00[27] = {
+    { 143, 0x3FC0, { .fields = { 16, 96 } }, -88, -40, 1275, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 104 } }, -120, -40, 1200, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 112 } }, -160, -40, 1150, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, -104, -104, 1200, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, -96, 1175, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, -96, 1150, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -96, 1125, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -160, -112, 1075, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -112, 1100, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1150, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 32, 1125, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 56, 1125, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 64, 1100, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, 72, 1075, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 32, 1125, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 32, 1125, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 72, 1050, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 56, 1075, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 40, 1100, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 88 } }, 112, -48, 1100, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 72 } }, 112, -120, 1100, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 136, -16, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 144, -16, 975, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 104 } }, 152, -16, 950, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -88, 1250, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, -80, 1275, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -88, 1300, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_80184D1C[7] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 3, 0, 0, { 0, 0 } },
+    { 3, 6, 0, 0, { 3, 0 } },
+    { 9, 12, 0, 0, { 2, 0 } },
+    { 21, 3, 0, 0, { 4, 0 } },
+    { 24, 3, 0, 0, { 1, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_80184D54[45] = {
+    { 142, 0x3FC0, { .fields = { 120, 144 } }, -160, -120, 2625, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 48 } }, -112, -24, 2625, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -24, 2700, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -8, -24, 2750, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -48, -56, 2625, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -24, -48, 2700, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 32 } }, -48, -48, 2725, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 104 } }, -72, -120, 2650, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 64, -88, 1650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, 72, -112, 1625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 80, -120, 1375, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, -120, 1250, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 16 } }, 96, -120, 1250, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, -104, 1375, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { 141, 0x3FC0, { .fields = { 80, 16 } }, 80, -96, 1500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { 141, 0x3FC0, { .fields = { 88, 16 } }, 72, -80, 1625, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 141, 0x3FC0, { .fields = { 96, 8 } }, 64, -64, 1650, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, 72, -64, 1650, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 64, 8, 2500, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, 8, 1650, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 96 } }, 88, -80, 1450, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, 72, 16, 1625, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 80, 32, 1600, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, 32, 1425, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 80, 16, 1600, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 88, 16, 1450, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 160 } }, 128, -120, 1050, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, 120, 40, 1050, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, 88, 48, 1150, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 104, 64, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 80, 1075, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 120, 88, 1050, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, 104, 48, 1050, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 64, 1200, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 80, 1100, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, 128, 88, 1050, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -16, 1550, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -16, 1525, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -16, 1500, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, -8, 1300, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 56 } }, 104, -8, 1300, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 64 } }, 112, -8, 1250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, -8, 1200, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 32 } }, 96, -16, 2500, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 152, 8, 1500, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_801850D8[15] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 1, 0, 0, { 2, 0 } },
+    { 1, 5, 0, 0, { 7, 0 } },
+    { 6, 1, 0, 0, { 6, 0 } },
+    { 7, 1, 0, 0, { 8, 0 } },
+    { 8, 9, 0, 0, { 0, 0 } },
+    { 17, 3, 0, 0, { 9, 0 } },
+    { 20, 6, 0, 0, { 5, 0 } },
+    { 26, 10, 0, 0, { 10, 0 } },
+    { 36, 0, 0, 0, { 1, 0 } },
+    { 36, 3, 0, 0, { 11, 0 } },
+    { 39, 4, 0, 0, { 4, 0 } },
+    { 43, 1, 0, 0, { 12, 0 } },
+    { 44, 1, 0, 0, { 3, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_80185150[15] = {
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -152, -104, 1250, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, -136, -72, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 24, 1450, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 40, 1425, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -152, 24, 1250, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 32, 1200, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 40, 1175, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 48, 1350, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, -8, 1150, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 24, 1150, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -136, -8, 1100, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -8, 1050, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -8, 1000, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, 0, 950, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 32, 1375, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_8018527C[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 1, 0 } },
+    { 8, 6, 0, 0, { 2, 0 } },
+    { 14, 1, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_801852A4[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_801852B4[13] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 24, 1325, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -120, 1300, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, 128, -96, 1300, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 120, -32, 1300, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 8, 1325, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 24, 1250, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, 8, 1250, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 24, 1225, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -24, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, 0, 1200, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 136, -24, 1175, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 144, -24, 1150, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 152, -24, 1125, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_801853B8[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 8, 0, 0, { 1, 0 } },
+    { 8, 5, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_801853D8[21] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 32, 837, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 48, 920, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 862, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 72, 887, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, 56, 912, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, 16, 920, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 56, 912, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 72, 887, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, -128, 88, 862, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -88, 88, 862, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 72, 887, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 56, 912, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 40, 925, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -24, 920, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -128, -64, 920, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -104, 920, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -136, -120, 920, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 40, 950, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 950, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 40, 968, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -152, 24, 968, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_8018557C[5] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 17, 0, 0, { 1, 0 } },
+    { 17, 2, 0, 0, { 2, 0 } },
+    { 19, 2, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_801855A4[56] = {
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -120, 725, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 88 } }, -152, -80, 725, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 56 } }, -144, 8, 725, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 64, 775, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 88, 725, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, 80, 725, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 96, 700, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 8 } }, -152, 64, 775, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 72, 750, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 88, 16 } }, -160, 80, 725, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 80, 24 } }, -160, 96, 700, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -96, -104, 1375, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, -88, -80, 1375, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 32, 1375, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 8 } }, -96, 16, 1400, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 16 } }, -112, 24, 1375, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 16 } }, -112, 40, 1350, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, -80, 2250, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -64, 2250, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -48, 2250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 8 } }, -80, 0, 2250, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -80, 8, 2250, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -64, -64, 3125, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -72, -8, 3125, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, -8, 1200, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -88, -8, 1150, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, -96, -8, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, -120, 0, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, -24, 1950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, -24, 1825, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, -16, 1700, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, -24, 2350, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -24, 2325, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -16, -64, 3125, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, -56, 3125, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -8, -24, 3125, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -24, -8, 3125, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, -24, 3125, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -56, 40, 850, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -80, 32, 900, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -56, 8, 950, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 24, 975, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, 16, 1000, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 32, 1025, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -72, 8, 1025, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, -72, 40, 1025, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 0, 1625, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, -16, 1775, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 0, 1775, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 16, 1775, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -8, -8, 1950, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, -8, 2200, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 2375, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -48, -24, 2375, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 0, 2375, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -16, 2375, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_80185A04[20] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 11, 0, 0, { 17, 0 } },
+    { 11, 6, 0, 0, { 2, 0 } },
+    { 17, 5, 0, 0, { 9, 0 } },
+    { 22, 2, 0, 0, { 3, 0 } },
+    { 24, 4, 0, 0, { 11, 0 } },
+    { 28, 3, 0, 0, { 0, 0 } },
+    { 31, 2, 0, 0, { 12, 0 } },
+    { 33, 4, 0, 0, { 1, 0 } },
+    { 37, 1, 0, 0, { 15, 0 } },
+    { 38, 2, 0, 0, { 4, 0 } },
+    { 40, 3, 0, 0, { 13, 0 } },
+    { 43, 3, 0, 0, { 7, 0 } },
+    { 46, 1, 0, 0, { 10, 0 } },
+    { 47, 3, 0, 0, { 8, 0 } },
+    { 50, 1, 0, 0, { 14, 0 } },
+    { 51, 1, 0, 0, { 5, 0 } },
+    { 52, 3, 0, 0, { 16, 0 } },
+    { 55, 1, 0, 0, { 6, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_80185AA4[47] = {
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -88, 300, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -48, 300, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 0, 300, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 80 } }, -160, 40, 300, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 96, 300, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 8 } }, -120, -120, 1000, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -112, -112, 1000, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, -104, -96, 1000, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 80 } }, -104, -72, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -104, 8, 1000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 24, 980, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, -88, -104, 1575, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, -80, -88, 1575, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 32 } }, -96, -8, 1575, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, -104, 1612, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 0, -80, 1612, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, -16, -8, 1712, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, -88, -8, 850, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 112 } }, -96, -8, 825, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 128 } }, -104, -8, 700, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 120 } }, -112, 0, 625, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 104 } }, -128, 16, 475, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, -152, 24, 325, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -72, -32, 1500, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -80, -32, 1375, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, -24, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -48, -32, 1575, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 88, 80, 600, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 88, 64, 675, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 64, 675, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 56, 725, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 64, 725, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 8 } }, 48, 8, 875, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 8 } }, 48, 16, 825, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 16 } }, 48, 24, 725, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 40, 825, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 8 } }, 56, 64, 875, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, 56, 72, 750, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 16 } }, 32, 16, 950, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 32, 875, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 0, 1200, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 0, 1250, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -32, 1350, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 16 } }, -64, -24, 1350, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -8, 1350, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, 8, 1350, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, -56, -16, 1500, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_80185E50[15] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 5, 0, 0, { 2, 0 } },
+    { 5, 6, 0, 0, { 7, 0 } },
+    { 11, 3, 0, 0, { 6, 0 } },
+    { 14, 3, 0, 0, { 8, 0 } },
+    { 17, 6, 0, 0, { 0, 0 } },
+    { 23, 3, 0, 0, { 9, 0 } },
+    { 26, 1, 0, 0, { 5, 0 } },
+    { 27, 5, 0, 0, { 10, 0 } },
+    { 32, 6, 0, 0, { 1, 0 } },
+    { 38, 2, 0, 0, { 11, 0 } },
+    { 40, 2, 0, 0, { 4, 0 } },
+    { 42, 4, 0, 0, { 12, 0 } },
+    { 46, 1, 0, 0, { 3, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185EC8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185ED8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185EE8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185EF8[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185F08[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185F18[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185F28[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtCmd D_acropolis_patio_80185F38[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_80185F48[20] = {
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 800, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 800, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 80, 800, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 80, 800, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 64, 800, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 40, 800, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 40, 800, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 40, 800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 0, 800, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 0, 800, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 0, 800, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 800, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -40, 800, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, -40, 800, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 800, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -80, 800, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, -80, 800, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 800, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -120, 800, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, -120, 800, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_801860D8[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 20, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtElem D_acropolis_patio_801860F0[30] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -16, 1500, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -120, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -120, 750, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -120, 750, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -104, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -104, 750, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -96, -104, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -88, 750, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -88, 750, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -96, -88, 750, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -72, 1000, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -72, 1000, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, -96, -72, 1000, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -56, 1000, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -56, 1000, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -56, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -40, 1250, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -40, 1250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -40, 1250, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -24, 1500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -24, 1500, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -24, 1500, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -8, 1750, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -8, 1750, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, -8, 1750, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, -8, 1750, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 8, 2000, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, 8, 2000, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 2000, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, -96, 8, 2000, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+};
+
+GpSprtCmd D_acropolis_patio_80186348[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, 30, 0, 0, { 0, 0 } },
+    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+};
+
+GpSprtRec D_acropolis_patio_80186360[19] = {
+    { { .empty = D_acropolis_patio_80184AF0 }, D_acropolis_patio_80184AF0, NULL },
+    { { .elements = D_acropolis_patio_80184B00 }, D_acropolis_patio_80184D1C, NULL },
+    { { .elements = D_acropolis_patio_80184D54 }, D_acropolis_patio_801850D8, NULL },
+    { { .elements = D_acropolis_patio_80185150 }, D_acropolis_patio_8018527C, NULL },
+    { { .empty = D_acropolis_patio_801852A4 }, D_acropolis_patio_801852A4, NULL },
+    { { .elements = D_acropolis_patio_801852B4 }, D_acropolis_patio_801853B8, NULL },
+    { { .elements = D_acropolis_patio_801853D8 }, D_acropolis_patio_8018557C, NULL },
+    { { .elements = D_acropolis_patio_801855A4 }, D_acropolis_patio_80185A04, NULL },
+    { { .elements = D_acropolis_patio_80185AA4 }, D_acropolis_patio_80185E50, NULL },
+    { { .empty = D_acropolis_patio_80185EC8 }, D_acropolis_patio_80185EC8, NULL },
+    { { .empty = D_acropolis_patio_80185ED8 }, D_acropolis_patio_80185ED8, NULL },
+    { { .empty = D_acropolis_patio_80185EE8 }, D_acropolis_patio_80185EE8, NULL },
+    { { .elements = D_acropolis_patio_801853D8 }, D_acropolis_patio_8018557C, NULL },
+    { { .empty = D_acropolis_patio_80185F08 }, D_acropolis_patio_80185F08, NULL },
+    { { .empty = D_acropolis_patio_80185F18 }, D_acropolis_patio_80185F18, NULL },
+    { { .empty = D_acropolis_patio_80185F28 }, D_acropolis_patio_80185F28, NULL },
+    { { .elements = D_acropolis_patio_80185150 }, D_acropolis_patio_8018527C, NULL },
+    { { .elements = D_acropolis_patio_80185F48 }, D_acropolis_patio_801860D8, NULL },
+    { { .elements = D_acropolis_patio_801860F0 }, D_acropolis_patio_80186348, NULL },
+};
+
+GpPointLight D_acropolis_patio_80186444[24] = {
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -700, -200, 2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -700, -200, 2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2293, 2211, 2129, { 0, 0 } }, 150, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 450, -3147, -3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2293, 2293, 2211, { 0, 0 } }, 10, 7500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 450, -3147, -3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2293, 2293, 2211, { 0, 0 } }, 200, 7500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5250, -3150, -3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2293, 2293, 2211, { 0, 0 } }, 10, 7500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5250, -3150, -3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2293, 2293, 2211, { 0, 0 } }, 200, 7500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8050, -200, -50 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8050, -200, -50 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -200, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -200, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 5250 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6700, -200, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6700, -200, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2457, 2375, { 0, 0 } }, 150, 4200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3900, -200, 800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 3500 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3900, -200, 800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2457, 2375, 2211, { 0, 0 } }, 150, 4200 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5050, -200, -2950 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3194, 3194, 3112, { 0, 0 } }, 250, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5050, -200, -2950 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3194, 3194, 3112, { 0, 0 } }, 250, 4000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1050, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2949, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1050, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2785, 2785, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1600, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2949, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1600, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2867, 2785, 2785, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4300, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2949, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4300, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2949, 2867, 2867, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7200, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 3031, 2949, 2949, { 0, 0 } }, 500, 5000 },
+    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7200, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2949, 2867, 2867, { 0, 0 } }, 500, 5000 },
+};
+
+GpRoomCoordSet D_acropolis_patio_80186D44[1] = {
+    { 0, NULL, 24, D_acropolis_patio_80186444, 0, NULL },
+};
+
+GpViewRec D_acropolis_patio_80186D5C[19] = {
+    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1800, 0x61A8, 0 } }, 418 },
+    { { { { 592, 0, -4052 }, { -336, 4081, -49 }, { 4038, 340, 590 } }, { 1580, 1410, 820 } }, 257 },
+    { { { { 808, 0, -4015 }, { -361, 4079, -72 }, { 3999, 368, 805 } }, { 6730, 1610, 770 } }, 230 },
+    { { { { 752, 0, 4026 }, { 459, 4069, -85 }, { -3999, 467, 747 } }, { 120, 1700, 660 } }, 257 },
+    { { { { 613, 0, 4049 }, { 902, 3992, -136 }, { -3947, 912, 597 } }, { 2789, 1999, 659 } }, 257 },
+    { { { { -3922, 0, -1180 }, { -135, 4069, 449 }, { 1173, 469, -3896 } }, { -3690, 1390, -1590 } }, 257 },
+    { { { { -4025, 0, 756 }, { 139, 4025, 744 }, { -743, 757, -3956 } }, { 6520, 1860, -1120 } }, 246 },
+    { { { { -511, 0, -4063 }, { -552, 4057, 69 }, { 4026, 557, -507 } }, { 8420, 1740, 3180 } }, 240 },
+    { { { { -708, 0, -4034 }, { -947, 3981, 166 }, { 3921, 961, -688 } }, { 4300, 1970, 2910 } }, 240 },
+    { { { { -106, 0, -4094 }, { -2554, 3200, 66 }, { 3199, 2555, -83 } }, { 250, 2210, 2790 } }, 289 },
+    { { { { -4064, 0, -505 }, { -41, 4082, 331 }, { 503, 333, -4051 } }, { 5289, 2010, 2850 } }, 257 },
+    { { { { -106, 0, -4094 }, { -2554, 3200, 66 }, { 3199, 2555, -83 } }, { 250, 2209, 2789 } }, 289 },
+    { { { { -4025, 0, 756 }, { 139, 4025, 744 }, { -743, 757, -3956 } }, { 6520, 1860, -1120 } }, 246 },
+    { { { { 1658, 0, -3745 }, { -2445, 3102, -1083 }, { 2836, 2674, 1256 } }, { 8700, 1400, 10 } }, 348 },
+    { { { { 2052, 0, -3544 }, { 824, 3983, 477 }, { 3447, -952, 1995 } }, { 8980, 355, 460 } }, 235 },
+    { { { { -3617, 0, -1920 }, { 592, 3896, -1116 }, { 1826, -1263, -3441 } }, { 8540, 95, -2040 } }, 289 },
+    { { { { 752, 0, 4026 }, { 459, 4069, -85 }, { -3999, 467, 747 } }, { 120, 1700, 660 } }, 257 },
+    { { { { 491, 0, 4066 }, { 4013, 659, -485 }, { -654, 4042, 79 } }, { 5020, 6500, 1060 } }, 304 },
+    { { { { 362, 0, 4079 }, { -1549, 3789, 137 }, { -3774, -1555, 335 } }, { 220, 450, 460 } }, 216 },
+};
+
+s32 D_acropolis_patio_80187008[3] = {
+    0x10000001,
+    0x10000003,
+    0x10000011,
+};
+
+GpRoomParamRec D_acropolis_patio_80187014[1] = {
+    { 0, 0, 1, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_patio_8018701C[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_patio_80187024[1] = {
+    { 0, 1, 0, 0, NULL },
+};
+
+GpRoomParamRec D_acropolis_patio_8018702C[1] = { 0 };
+
+GpRoomParamRec D_acropolis_patio_80187034[1] = {
+    { 0, 0, 1, 0, D_acropolis_patio_80187008 },
+};
+
+GpRoomParamRec * D_acropolis_patio_8018703C[9] = {
+    D_acropolis_patio_80187014,
+    D_acropolis_patio_8018701C,
+    D_acropolis_patio_80187024,
+    D_acropolis_patio_8018702C,
+    D_acropolis_patio_80187034,
+    D_acropolis_patio_80187014,
+    D_acropolis_patio_80187014,
+    D_acropolis_patio_80187014,
+    NULL,
+};
+
+Task * D_acropolis_patio_80187060 = NULL;
+
+u8 D_acropolis_patio_80187064 = 0;
+
+u8 D_acropolis_patio_80187065 = 0;
+
 /// Room entry task tick. Publishes the room's own record at
 /// `Task::msgTable` / pointer slot 7, then re-issues the messages the room's
 /// actors need for the current point in the story: the first visit
@@ -91,14 +2398,14 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     GpCmdArg msg;
     Task*    temp;
 
-    arg0->msgTable = &D_acropolis_patio_8018028C;
+    arg0->msgTable = D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (Mc_SaveData[0].state.at4.loc.room == 1) {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
-            D_acropolis_patio_80187060 = Task_SpawnFromTable(&D_acropolis_patio_801802BC, 2, 0, 0);
+            D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
@@ -148,7 +2455,7 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
             var_v0 = 2;
             if (arg2->field_5 == 0) {
                 if (GameFlag_GetNibble(0x23) == 0) {
-                    func_800E8634(&D_acropolis_patio_80180DEC, 0, &D_acropolis_patio_80180EDC);
+                    func_800E8634(D_acropolis_patio_80180DEC, 0, D_acropolis_patio_80180EDC);
                     GameFlag_SetNibble(0x23, 1);
                     return 2;
                 }
@@ -160,7 +2467,7 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
         if (GameFlag_GetNibble(8) == 2) {
             var_v0 = 2;
             if (arg2->field_5 == 0) {
-                Task_SpawnFromTable(&D_acropolis_patio_801802BC, 1, 0, 0);
+                Task_SpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
                 Gp_SetItemSeenBit(0x101, 1);
                 D_acropolis_patio_80187064 = arg2->field_2;
                 D_acropolis_patio_80187065 = arg2->field_3;
@@ -246,19 +2553,19 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
 
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
-        func_800E8634(&D_acropolis_patio_80180484, 0, &D_acropolis_patio_801806AC);
+        func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         Mc_SaveData[0].state.sceneEvent = 3;
         gGameSession->flowFlags   = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
         GameFlag_SetNibble(0x21, 4);
-        func_800E8634(&D_acropolis_patio_8018082C, 0, &D_acropolis_patio_80180C64);
+        func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }
     state = arg2->field_2;
     if ((state == 2) && (GameFlag_GetNibble(0x26) == 0) && (GameFlag_GetNibble(0) == state)) {
         GameFlag_SetNibble(0x26, 1);
-        func_800E8634(&D_acropolis_patio_8018280C, 0, &D_acropolis_patio_80182BE4);
+        func_800E8634(D_acropolis_patio_8018280C, 0, D_acropolis_patio_80182BE4);
     }
 }
 s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
@@ -444,7 +2751,7 @@ void func_acropolis_patio_8017E054(Task* task)
 /// which is added to the jet's anchor before the spawn reads it. The work block
 /// is scratch, not state - each spawn copies the vector out immediately - so
 /// all nine puffs share it.
-static void func_acropolis_patio_8017E100(Task* task)
+void func_acropolis_patio_8017E100(Task* task)
 {
     GpCoord*   objCoord;
     GpEffWork* work;
@@ -496,7 +2803,7 @@ static void func_acropolis_patio_8017E100(Task* task)
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
 /// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
 /// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
-static void func_acropolis_patio_8017E324(Task* task)
+void func_acropolis_patio_8017E324(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
@@ -595,7 +2902,7 @@ static void func_acropolis_patio_8017E324(Task* task)
 /// The result is projected through `GsWSMATRIX` into a 0xC-byte scratch frame
 /// and drawn as a single grey `TILE_1` whose level is a fresh `rand[0,0xC0)`,
 /// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
-static void func_acropolis_patio_8017E730(Task* task)
+void func_acropolis_patio_8017E730(Task* task)
 {
     GpEffWork*       work;
     GpCoord*         coord;

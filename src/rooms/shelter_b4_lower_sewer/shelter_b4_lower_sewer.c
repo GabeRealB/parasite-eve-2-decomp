@@ -1,3 +1,5 @@
+#include "rooms/shelter_b4_lower_sewer.h"
+#include "mapui/map_shelter.h"
 #include "common.h"
 
 #include <psyq/libgte.h>
@@ -41,8 +43,6 @@ typedef struct {
     s16 z;
 } _SurfaceScratch;
 
-extern s32 func_80179A04(RoomEventMsg* in, RoomEventMsg* out);
-
 extern GpMsgEntry D_shelter_b4_lower_sewer_80181E44[];
 /// The room's water height: the level the surfaces are drawn at and the value
 /// the water task publishes to the session.
@@ -59,32 +59,62 @@ extern u8* D_shelter_b4_lower_sewer_80183E14;
 static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
 static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
 
+s32 func_shelter_b4_lower_sewer_8017D608(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b4_lower_sewer_8017D610(Task *, s32, RoomEventMsg *, RoomEventMsg *);
+s32 func_shelter_b4_lower_sewer_8017D654(Task *, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b4_lower_sewer_8017D65C(Task *, s32, GpMessageArg, GpMessageArg);
+void func_shelter_b4_lower_sewer_8017E2D4(Task *);
+
+GpMsgEntry D_shelter_b4_lower_sewer_80181E44[5] = {
+    { 5102, func_shelter_b4_lower_sewer_8017D610 },
+    { 5105, func_shelter_b4_lower_sewer_8017D608 },
+    { 5103, func_shelter_b4_lower_sewer_8017D65C },
+    { 5104, func_shelter_b4_lower_sewer_8017D654 },
+    { 0x7FFFFFFF, NULL },
+};
+
+s16 D_shelter_b4_lower_sewer_80181E6C = -1700;
+
+TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
+    { 0, 96, func_shelter_b4_lower_sewer_8017E2D4, { .model = NULL } },
+};
+
+_Surface D_shelter_b4_lower_sewer_80181E7C[2] = {
+    { -0x28A0, 0, 0x5B68, 2900, 0 },
+    { 0, 0, 0, 0, -1 },
+};
+
+_Surface D_shelter_b4_lower_sewer_80181E90[2] = {
+    { -0x32C8, 0, 3600, 1450, 0 },
+    { 0, 0, 0, 0, -1 },
+};
+
 /// Handler for message 0x13F1 in the room's message table
 /// `D_shelter_b4_lower_sewer_80181E44`: does nothing and returns 0.
-s32 func_shelter_b4_lower_sewer_8017D608(void)
+s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// passes both on to `func_80179A04`. Always returns 1.
-s32 func_shelter_b4_lower_sewer_8017D610(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// passes both on to `func_map_shelter_80179A04`. Always returns 1.
+s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
 {
     *out = *in;
-    func_80179A04(in, out);
+    func_map_shelter_80179A04(in, out);
     return 1;
 }
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D654(void)
+s32 func_shelter_b4_lower_sewer_8017D654(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D65C(void)
+s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
     return 0;
 }
@@ -136,8 +166,8 @@ void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
 static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
+    long             sxy0, sxy1, sxy2, sxy3;
+    long             p, flag;
     _Surface*        e;
     u8*              head;
     _SurfaceScratch* s;
@@ -199,15 +229,13 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
                 poly->r3              = 0x20;
                 poly->g3              = 0x20;
                 poly->b3              = 0x20;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }
@@ -248,15 +276,13 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
                 poly->r1              = 0x20;
                 poly->g1              = 0x20;
                 poly->b1              = 0x20;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }
@@ -274,8 +300,8 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 {
     SVECTOR          v0, v1, v2, v3;
-    s32              sxy0, sxy1, sxy2, sxy3;
-    s32              p, flag;
+    long             sxy0, sxy1, sxy2, sxy3;
+    long             p, flag;
     s32              phase;
     u8*              head;
     _SurfaceScratch* s;
@@ -337,15 +363,13 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
                 poly->r3              = 0x20;
                 poly->g3              = 0x20;
                 poly->b3              = 0x20;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         poly);
                 dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
                 D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
                 setlen(dr, 1);
                 dr->code[0] = 0xE100004A;
-                addPrim((u_long*)((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC) +
-                                  (s32)gGpuCurrentOt + 4),
+                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)) / sizeof(*gGpuCurrentOt) + 1]),
                         dr);
             }
         }
