@@ -674,8 +674,8 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     s32                       hiddenMode;
     s32                       textY;
     u16                       cd;
-    McItemScan*               scan;
-    McItemScan*               scanInit;
+    InventoryItemRange*       scan;
+    InventoryItemRange*       scanInit;
     GpUseCreateWork*          newWork;
     GpUseCreatePair*          p;
     GpUseCreatePair*          q;
@@ -1189,19 +1189,19 @@ void Gp_PeListPanelTask(Task* arg0)
 
 void Gp_ItemCountHeaderTask(Task* arg0)
 {
-    u8          buf[0x20];
-    u8          buf2[0x20];
-    TextDrawReq req;
-    TextDrawReq req2;
-    UiObject*   obj;
-    McItemScan* scan;
-    s32         cur;
-    s32         cap;
-    s32         color;
-    s32         yOff;
-    s32         x;
-    s32         y;
-    s32         y2;
+    u8                  buf[0x20];
+    u8                  buf2[0x20];
+    TextDrawReq         req;
+    TextDrawReq         req2;
+    UiObject*           obj;
+    InventoryItemRange* scan;
+    s32                 cur;
+    s32                 cap;
+    s32                 color;
+    s32                 yOff;
+    s32                 x;
+    s32                 y;
+    s32                 y2;
 
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -1416,14 +1416,14 @@ void Gp_PickupTitleTask(Task* arg0)
 
 void Gp_PickupAskTask(Task* arg0)
 {
-    UiObject*   obj;
-    UiObject*   spawned;
-    UiObject*   childObj;
-    Task*       child;
-    McItemScan* scan;
-    s32         color;
-    s32         one;
-    s32         flag;
+    UiObject*           obj;
+    UiObject*           spawned;
+    UiObject*           childObj;
+    Task*               child;
+    InventoryItemRange* scan;
+    s32                 color;
+    s32                 one;
+    s32                 flag;
 
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;

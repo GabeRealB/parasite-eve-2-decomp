@@ -125,7 +125,7 @@ void Gp_ItemMoveTask(Task* arg0);
 /// is masked to the low byte and `flags` is set so the title is
 /// `Gp_StrBattleField` ("Battle Field") instead of `Gp_StrItemBox` ("Item Box");
 /// dest (`spawnArg1 != 0`) uses `Gp_StrPlayerItem` ("Player Item"). Seeds the
-/// list from `Gp_MoveScanSrc[spawnArg1].field_1` (visible rows capped at 10).
+/// list from `Gp_MoveScanSrc[spawnArg1].rowCount` (visible rows capped at 10).
 /// First-state confirm/cancel is `field_2E = -1`; later states write
 /// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
 /// and play type-6 sound 2. Walks children through `Gp_CloseItemPane`.
@@ -166,7 +166,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
 
 /// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
 /// of the two side-by-side scans it shows.
-static inline McItemScan* _gpItemPaneScan(Task* task);
+static inline InventoryItemRange* _gpItemPaneScan(Task* task);
 
 /// Fills `Gp_ItemActionFns` and `arg0->field_4` / `field_5` from the selected
 /// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
@@ -209,35 +209,35 @@ GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { 0x7FFFFFFF, NULL
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
 static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
-    GpItemMoveState* mem;
-    UiObject*        obj;
-    McItemRec*       tbl;
-    McItemScan*      scanSrc;
-    s32              i;
-    s32              base;
-    s32              flag;
-    s32              val;
-    McItemScan*      dst;
-    McItemScan*      src;
-    McItemRec*       recDst;
-    McItemRec*       recSrc;
-    s32              rowDst;
-    s32              rowSrc;
-    s32              idDst;
-    s32              idSrc;
-    s32              qtyDst;
-    s32              qtySrc;
-    McItemScan*      scan;
-    McItemRec*       recA;
-    McItemRec*       recB;
-    s32              rowA;
-    s32              rowB;
-    s32              idA;
-    s32              idB;
-    s32              qtyA;
-    s32              qtyB;
-    s32              subA;
-    s32              subB;
+    GpItemMoveState*    mem;
+    UiObject*           obj;
+    McItemRec*          tbl;
+    InventoryItemRange* scanSrc;
+    s32                 i;
+    s32                 base;
+    s32                 flag;
+    s32                 val;
+    InventoryItemRange* dst;
+    InventoryItemRange* src;
+    McItemRec*          recDst;
+    McItemRec*          recSrc;
+    s32                 rowDst;
+    s32                 rowSrc;
+    s32                 idDst;
+    s32                 idSrc;
+    s32                 qtyDst;
+    s32                 qtySrc;
+    InventoryItemRange* scan;
+    McItemRec*          recA;
+    McItemRec*          recB;
+    s32                 rowA;
+    s32                 rowB;
+    s32                 idA;
+    s32                 idB;
+    s32                 qtyA;
+    s32                 qtyB;
+    s32                 subA;
+    s32                 subB;
 
     obj = arg1->parent->spawnArg2.pointer;
     mem = (GpItemMoveState*)arg1->parent->work;
@@ -367,19 +367,19 @@ static const char Gp_StrPlayerItem[]  = "Player Item";
 
 void Gp_ItemMoveTask(Task* arg0)
 {
-    UiObject*        obj;
-    GpItemMoveState* mem;
-    s32              i;
-    McItemScan*      src;
-    McItemScan**     scans;
-    u16              item;
-    s32              val;
-    s32              code;
-    Task*            owner;
-    Task*            child;
-    Task*            next;
-    Task*            head;
-    void             (*cb)(UiObject*, Task*);
+    UiObject*            obj;
+    GpItemMoveState*     mem;
+    s32                  i;
+    InventoryItemRange*  src;
+    InventoryItemRange** scans;
+    u16                  item;
+    s32                  val;
+    s32                  code;
+    Task*                owner;
+    Task*                child;
+    Task*                next;
+    Task*                head;
+    void                 (*cb)(UiObject*, Task*);
 
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -537,24 +537,24 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
 
 /// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
 /// of the two side-by-side scans it shows.
-static inline McItemScan* _gpItemPaneScan(Task* task)
+static inline InventoryItemRange* _gpItemPaneScan(Task* task)
 {
     return &Gp_MoveScanSrc + task->spawnArg1.value;
 }
 
 void Gp_ItemPaneTask(Task* arg0)
 {
-    UiObject*   obj;
-    UiList*     menu;
-    McItemScan* scan;
-    s32         count;
-    s32         n;
-    s32         status;
-    Task*       owner;
-    Task*       child;
-    Task*       next;
-    Task*       head;
-    void        (*cb)(UiObject*, Task*);
+    UiObject*           obj;
+    UiList*             menu;
+    InventoryItemRange* scan;
+    s32                 count;
+    s32                 n;
+    s32                 status;
+    Task*               owner;
+    Task*               child;
+    Task*               next;
+    Task*               head;
+    void                (*cb)(UiObject*, Task*);
 
     menu          = &Gp_InvLists[(u8)arg0->spawnArg1.value];
     obj           = arg0->spawnArg2.pointer;
@@ -828,13 +828,13 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
 /// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
 static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
 {
-    McItemRec*      rec;
-    s32             item;
-    s32             count;
-    s32             idx;
-    UiListItemFunc* table;
-    Task*           owner;
-    McItemScan*     scan;
+    McItemRec*          rec;
+    s32                 item;
+    s32                 count;
+    s32                 idx;
+    UiListItemFunc*     table;
+    Task*               owner;
+    InventoryItemRange* scan;
 
     owner = arg1->owner;
     idx   = owner->spawnArg1.value;
@@ -925,50 +925,50 @@ static const char Gp_StrBullet[] = "Bullet";
 
 void func_800BDF6C(Task* task)
 {
-    u8                buf[0x20];
-    s32               color;
-    s32               width;
-    s32               widthM2;
-    s32               half;
-    McItemScan*       consumeScan;
-    LINE_F2*          line;
-    UiObject*         obj;
-    s16               panelY;
-    s16               coord;
-    s32               srcLimit;
-    s32               remaining;
-    s32               dstLimit;
-    s32               moveAllLimit;
-    s32               sourceQty;
-    s32               equippedWidth;
-    s32               textY;
-    s32               splitWidth;
-    s32               caretX;
-    s32               status;
-    s32               caretY;
-    s32               usableWidth;
-    s32               srcTotal;
-    s32               dstTotal;
-    s32               destAfterStep;
-    s32               negWidth;
-    s32               halfWidth;
-    s32               qty;
-    s32               totalQty;
-    s32               equipped;
-    s32               srcAfterMove;
-    s32               destAfterClamp;
-    s32               sourceToMove;
-    s32               combinedQty;
-    s32               destQty;
-    s32               repeatStep;
-    s32               transferQty;
-    s32               stepToSource;
-    u8                message;
-    s16               result;
-    PadState*         pad;
-    McItemScan*       sourceScan;
-    McItemScan*       dstScan;
-    GpAmmoSplitState* state;
+    u8                  buf[0x20];
+    s32                 color;
+    s32                 width;
+    s32                 widthM2;
+    s32                 half;
+    InventoryItemRange* consumeScan;
+    LINE_F2*            line;
+    UiObject*           obj;
+    s16                 panelY;
+    s16                 coord;
+    s32                 srcLimit;
+    s32                 remaining;
+    s32                 dstLimit;
+    s32                 moveAllLimit;
+    s32                 sourceQty;
+    s32                 equippedWidth;
+    s32                 textY;
+    s32                 splitWidth;
+    s32                 caretX;
+    s32                 status;
+    s32                 caretY;
+    s32                 usableWidth;
+    s32                 srcTotal;
+    s32                 dstTotal;
+    s32                 destAfterStep;
+    s32                 negWidth;
+    s32                 halfWidth;
+    s32                 qty;
+    s32                 totalQty;
+    s32                 equipped;
+    s32                 srcAfterMove;
+    s32                 destAfterClamp;
+    s32                 sourceToMove;
+    s32                 combinedQty;
+    s32                 destQty;
+    s32                 repeatStep;
+    s32                 transferQty;
+    s32                 stepToSource;
+    u8                  message;
+    s16                 result;
+    PadState*           pad;
+    InventoryItemRange* sourceScan;
+    InventoryItemRange* dstScan;
+    GpAmmoSplitState*   state;
 
     obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -1193,11 +1193,11 @@ static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 /// counts when the carried items no longer include any of that item.
 static inline void _gpDropOrphanedWeaponLoads(void)
 {
-    McItemScan* scan;
-    McItemRec*  rec;
-    McItemSlot* slot;
-    s32         i;
-    s32         attach;
+    InventoryItemRange* scan;
+    McItemRec*          rec;
+    McItemSlot*         slot;
+    s32                 i;
+    s32                 attach;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     rec  = Gp_GetItemTable(scan);

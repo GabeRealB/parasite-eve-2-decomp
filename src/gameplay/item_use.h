@@ -69,7 +69,7 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 
 McItemRec* Gp_FindItemById(s32 arg0);
 
-McItemRec* Gp_FindItemInScan(s32 arg0, McItemScan* arg1);
+McItemRec* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1);
 
 void Gp_DrawWeaponLabel(Task* arg0);
 

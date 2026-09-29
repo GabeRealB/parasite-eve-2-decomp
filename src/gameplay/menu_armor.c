@@ -199,9 +199,9 @@ static inline s32 _gpIsEquippedItem(s32 id)
 
 void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 {
-    McItemScan* scan;
-    McItemRec*  rec;
-    s32         item;
+    InventoryItemRange* scan;
+    McItemRec*          rec;
+    s32                 item;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     rec  = Gp_NthEquippableRec(scan, prompt->field_8, 0);
@@ -315,10 +315,10 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
 static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
 {
-    McItemRec*  table;
-    s32         i;
-    s32         count;
-    McItemScan* scan;
+    McItemRec*          table;
+    s32                 i;
+    s32                 count;
+    InventoryItemRange* scan;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);

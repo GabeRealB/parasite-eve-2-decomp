@@ -13,76 +13,76 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
-extern McItemScan D_8010D524;
+extern InventoryItemRange D_8010D524;
 
-extern McItemScan D_8010D528;
+extern InventoryItemRange D_8010D528;
 
-extern McItemScan D_8010D52C;
+extern InventoryItemRange D_8010D52C;
 
-extern McItemScan D_8010D530;
+extern InventoryItemRange D_8010D530;
 
-extern McItemScan D_8010D534;
+extern InventoryItemRange D_8010D534;
 
-extern McItemScan D_8010D538;
+extern InventoryItemRange D_8010D538;
 
-extern McItemScan D_8010D53C;
+extern InventoryItemRange D_8010D53C;
 
-extern McItemScan D_8010D540;
+extern InventoryItemRange D_8010D540;
 
-extern McItemScan D_8010D544;
+extern InventoryItemRange D_8010D544;
 
-extern McItemScan D_8010D548;
+extern InventoryItemRange D_8010D548;
 
-extern McItemScan D_8010D54C;
+extern InventoryItemRange D_8010D54C;
 
-McItemScan  Gp_DefaultScan  = { 20, 10, 0, 0 };
-McItemScan  D_8010D524      = { 30, 10, 0, 0 };
-McItemScan  D_8010D528      = { 40, 10, 0, 0 };
-McItemScan  D_8010D52C      = { 50, 30, 0, 0 };
-McItemScan  D_8010D530      = { 80, 10, 0, 0 };
-McItemScan  D_8010D534      = { 90, 20, 0, 0 };
-McItemScan  D_8010D538      = { 110, 10, 0, 0 };
-McItemScan  D_8010D53C      = { 120, 10, 0, 0 };
-McItemScan  D_8010D540      = { 130, 20, 0, 0 };
-McItemScan  D_8010D544      = { 150, 10, 0, 0 };
-McItemScan  D_8010D548      = { 160, 10, 0, 0 };
-McItemScan  D_8010D54C      = { 170, 10, 0, 0 };
-McItemScan* Gp_ScanPtrs[12] = { &D_8010CA2C, &D_8010D524, &D_8010D528, &D_8010D52C, &D_8010D530, &D_8010D534, &D_8010D538, &D_8010D53C, &D_8010D540, &D_8010D544, &D_8010D548, &D_8010D54C };
+InventoryItemRange  Gp_DefaultScan  = { 20, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D524      = { 30, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D528      = { 40, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D52C      = { 50, 30, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D530      = { 80, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D534      = { 90, 20, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D538      = { 110, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D53C      = { 120, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D540      = { 130, 20, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D544      = { 150, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D548      = { 160, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange  D_8010D54C      = { 170, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
+InventoryItemRange* Gp_ScanPtrs[12] = { &D_8010CA2C, &D_8010D524, &D_8010D528, &D_8010D52C, &D_8010D530, &D_8010D534, &D_8010D538, &D_8010D53C, &D_8010D540, &D_8010D544, &D_8010D548, &D_8010D54C };
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 void Gp_InitStarterInv(void)
 {
-    McItemScan*   scan;
-    McSaveData*   save;
-    PlayerStatus* cfg;
-    PlayerStatus* cfg2;
-    McItemRec*    tmp;
-    McItemRec*    rec;
-    McItemRec*    added;
-    McItemScan**  scans;
-    McItemScan*   dest;
-    McItemSlot*   slots;
-    s32           i;
-    s32           j;
-    u8            item;
-    s32           three;
-    u16           hp;
-    u16           mp;
-    s32           flag105;
-    s32           flag107;
+    InventoryItemRange*  scan;
+    McSaveData*          save;
+    PlayerStatus*        cfg;
+    PlayerStatus*        cfg2;
+    McItemRec*           tmp;
+    McItemRec*           rec;
+    McItemRec*           added;
+    InventoryItemRange** scans;
+    InventoryItemRange*  dest;
+    McItemSlot*          slots;
+    s32                  i;
+    s32                  j;
+    u8                   item;
+    s32                  three;
+    u16                  hp;
+    u16                  mp;
+    s32                  flag105;
+    s32                  flag107;
 
     scan                          = &Mc_SaveData[0].state.carriedItems;
     save                          = &Mc_SaveData[0];
     save->state.itemLevelBonus[5] = 0;
     save->state.itemLevelBonus[0] = 0;
     cfg                           = &Player_Status;
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             tmp = Gp_ItemTable1;
             break;
         default:

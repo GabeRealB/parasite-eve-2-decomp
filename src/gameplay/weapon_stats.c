@@ -830,14 +830,14 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
 void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 {
-    McItemScan* scan;
-    McItemSlot* slot;
-    s32         mode;
-    s32         count;
-    s32         n;
-    s32         i;
-    s32         item;
-    s32         qty;
+    InventoryItemRange* scan;
+    McItemSlot*         slot;
+    s32                 mode;
+    s32                 count;
+    s32                 n;
+    s32                 i;
+    s32                 item;
+    s32                 qty;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     mode  = Gp_ReloadMode;

@@ -27,7 +27,7 @@ extern u8 D_8010D324[3];
 
 static inline s32 _gpRelatedQty(s32 item, s32 bank);
 
-static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item);
+static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item);
 
 static inline s32 _gpRelatedQty(s32 item, s32 bank)
 {
@@ -44,7 +44,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
     }
     return ret;
 }
-static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item)
+static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item)
 {
     s32 index;
     s32 found;
@@ -152,14 +152,14 @@ done:
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32         index;
-    McItemRec*  table;
-    McItemScan* scan;
-    McItemSlot* slot;
-    GpItemQty*  row;
-    s32         maxQty;
-    s32         have;
-    s32         i;
+    s32                 index;
+    McItemRec*          table;
+    InventoryItemRange* scan;
+    McItemSlot*         slot;
+    GpItemQty*          row;
+    s32                 maxQty;
+    s32                 have;
+    s32                 i;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
@@ -222,7 +222,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32         index;
     McItemRec*  table;
@@ -323,14 +323,14 @@ GpStatRow Gp_StatRows[4] = {
     { { 50 }, 30 },
 };
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 s32 func_800B7420(s32 arg0)
 {
-    McItemScan scan;
-    s32        i;
-    s32        id;
+    InventoryItemRange scan;
+    s32                i;
+    s32                id;
 
     switch (arg0) {
         case 0x8F:
@@ -475,11 +475,11 @@ void Gp_RecalcMaxMp(void)
 
 void Gp_EquipMod(s32 arg0)
 {
-    PlayerStatus* cfg;
-    McItemRec*    rec;
-    McItemRec*    tmp;
-    McItemScan*   scan;
-    s32           i;
+    PlayerStatus*       cfg;
+    McItemRec*          rec;
+    McItemRec*          tmp;
+    InventoryItemRange* scan;
+    s32                 i;
 
     cfg = &Player_Status;
     if ((u32)(arg0 - 0x60) < 0x20U) {
@@ -523,11 +523,11 @@ void Gp_EquipMod(s32 arg0)
 
                     scan = &save->state.carriedItems;
                     Gp_RecalcMaxMp();
-                    switch (scan->table) {
-                        case 2:
+                    switch (scan->tableId) {
+                        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                             tmp = Gp_ItemTable2;
                             break;
-                        case 1:
+                        case INVENTORY_ITEM_TABLE_INDIRECT:
                             tmp = Gp_ItemTable1;
                             break;
                         default:

@@ -28,9 +28,9 @@ u8 Gp_StrEnd[] = "End";
 
 u8 Gp_StrDiscard[] = "Discard";
 
-McItemScan Gp_MoveScanSrc = { 0, 60, 1, 0 };
+InventoryItemRange Gp_MoveScanSrc = { 0, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
-McItemScan Gp_MoveScanDst = { 60, 60, 1, 0 };
+InventoryItemRange Gp_MoveScanDst = { 60, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
 UiListItemFunc D_8010D630[1] = { Gp_ItemMoveRow };
 
@@ -45,8 +45,8 @@ UiListItemFunc Gp_ItemActionFns[3] = {
     NULL,
 };
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -75,13 +75,13 @@ UiListItemFunc Gp_ItemActionFns[3] = {
 
 s32 Gp_CanMoveItems(void)
 {
-    McItemScan* src;
-    McItemRec*  table;
-    s32         row;
-    s32         count;
-    s32         blocked;
-    s32         ret;
-    s32         i;
+    InventoryItemRange* src;
+    McItemRec*          table;
+    s32                 row;
+    s32                 count;
+    s32                 blocked;
+    s32                 ret;
+    s32                 i;
 
     src     = &Gp_MoveScanSrc;
     ret     = 0;

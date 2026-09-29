@@ -363,7 +363,7 @@ void Gp_WeaponMenuTask(Task* arg0);
 
 void Gp_ArmorMenuTask(Task* arg0);
 
-McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2);
+McItemRec* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
@@ -608,10 +608,10 @@ void Gp_EquipSelectMenuTask(Task* arg0);
 
 /// Source item-table scan (`Gp_CanMoveItems` / item-move UI). field_0 is the
 /// start index, field_1 the entry count, field_2 the table id.
-extern McItemScan Gp_MoveScanSrc;
+extern InventoryItemRange Gp_MoveScanSrc;
 
 /// Dest item-table scan immediately after `Gp_MoveScanSrc` (`Gp_CanMoveItems`).
-extern McItemScan Gp_MoveScanDst;
+extern InventoryItemRange Gp_MoveScanDst;
 
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
 /// `field_10` is the selected row passed to `Gp_GetScanSlot`.

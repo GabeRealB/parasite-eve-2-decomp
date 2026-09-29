@@ -13,7 +13,7 @@ void Gp_ResetLinkState(void);
 /// releasing the slot itself.
 void Gp_ClearSlotNodeFlags(void);
 
-s32 Gp_GrantLocationItems(McItemScan* arg0);
+s32 Gp_GrantLocationItems(InventoryItemRange* arg0);
 
 void Gp_InitStateF0(void);
 

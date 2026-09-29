@@ -31,13 +31,13 @@ extern u8 Gp_StrAttachAvail[];
 
 extern UiObjectDesc Gp_BoostPanelDesc;
 
-static inline McItemRec* _gpScanTable(McItemScan* scan);
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan);
 
 static inline void _gpClearEquipSlot(s32 item);
 
-static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n);
+static inline void _gpConsumeScanQty(InventoryItemRange* scan, s32 item, s32 n);
 
-static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2);
+static __inline void func_800B996C_RemoveItem(InventoryItemRange* arg0, McItemRec* arg1, s32 arg2);
 
 static inline s32 _gpGetModLevel(s32 item);
 
@@ -45,7 +45,7 @@ static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 i
 
 static __inline__ s32 Gp_HasStockedItemInline(s32 arg0);
 
-static inline void _gpClearScanItems(McItemScan* scan);
+static inline void _gpClearScanItems(InventoryItemRange* scan);
 
 static inline void _gpRecalcMaxHp(void);
 
@@ -53,14 +53,14 @@ static inline void _gpSetPlayerScan(s32 count);
 
 static inline void _gpApplyBit2List(GpBit2List* table, u32* dest);
 
-static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1);
+static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1);
 
 u8           Gp_StrMore[]        = "More ";
 u8           Gp_StrAttachAvail[] = "attachments available.";
 UiObjectDesc Gp_BoostPanelDesc   = { 2, 10, 20, 30, 40, 12, 0, 0, 192, Gp_TickBoostPanel, 0 };
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -87,15 +87,15 @@ UiObjectDesc Gp_BoostPanelDesc   = { 2, 10, 20, 30, 40, 12, 0, 0, 192, Gp_TickBo
 
 /* Item table a scan window lies in. */
 
-static inline McItemRec* _gpScanTable(McItemScan* scan)
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
 {
     McItemRec* table;
 
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -134,7 +134,7 @@ static inline void _gpClearEquipSlot(s32 item)
         slot->attachQty = 0;
     }
 }
-static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n)
+static inline void _gpConsumeScanQty(InventoryItemRange* scan, s32 item, s32 n)
 {
     McItemRec* table;
     s32        qty;
@@ -166,7 +166,7 @@ static inline void _gpConsumeScanQty(McItemScan* scan, s32 item, s32 n)
         }
     }
 }
-static __inline void func_800B996C_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
+static __inline void func_800B996C_RemoveItem(InventoryItemRange* arg0, McItemRec* arg1, s32 arg2)
 {
     s32 item;
 
@@ -207,19 +207,19 @@ static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 i
 }
 static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 {
-    McItemScan* scan;
-    McItemRec*  table;
-    s32         i;
-    s32         ret;
-    s32         count;
+    InventoryItemRange* scan;
+    McItemRec*          table;
+    s32                 i;
+    s32                 ret;
+    s32                 count;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     ret  = 0;
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -240,17 +240,17 @@ static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
     }
     return ret;
 }
-static inline void _gpClearScanItems(McItemScan* scan)
+static inline void _gpClearScanItems(InventoryItemRange* scan)
 {
     McItemRec* table;
     s32        i;
     s32        row;
 
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -295,7 +295,7 @@ static inline void _gpSetPlayerScan(s32 count)
     p                              = &Mc_SaveData[0];
     p->state.carriedItems.firstRow = 0;
     p->state.carriedItems.rowCount = count;
-    p->state.carriedItems.table    = 0;
+    p->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
 }
 static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
 {
@@ -603,10 +603,10 @@ void Gp_ResetInventory(void)
 
 void Gp_ClearInventory(void)
 {
-    PlayerStatus* status;
-    McItemScan*   scan;
-    McItemRec*    rec;
-    s32           i;
+    PlayerStatus*       status;
+    InventoryItemRange* scan;
+    McItemRec*          rec;
+    s32                 i;
 
     status = &Player_Status;
     if (status->weapon != 0) {
@@ -637,16 +637,16 @@ void Gp_ClearInventory(void)
 
 void Gp_InitModeEquip(void)
 {
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    McItemRec*    tmp;
-    McItemRec*    table;
-    McItemRec*    rec;
-    s32           i;
-    s32           acc;
-    s32           count;
-    s32           start;
-    s32           limit;
+    PlayerStatus*       cfg;
+    InventoryItemRange* scan;
+    McItemRec*          tmp;
+    McItemRec*          table;
+    McItemRec*          rec;
+    s32                 i;
+    s32                 acc;
+    s32                 count;
+    s32                 start;
+    s32                 limit;
 
     s32 item;
     u8  slotItem;
@@ -656,11 +656,11 @@ void Gp_InitModeEquip(void)
     if (cfg->weapon == 0) {
         scan = &Mc_SaveData[0].state.carriedItems;
         item = 0x81;
-        switch (scan->table) {
-            case 2:
+        switch (scan->tableId) {
+            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                 tmp = Gp_ItemTable2;
                 break;
-            case 1:
+            case INVENTORY_ITEM_TABLE_INDIRECT:
                 tmp = Gp_ItemTable1;
                 break;
             default:
@@ -725,17 +725,17 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     *p   |= mask;
 }
 
-void Gp_ClearScanItems(McItemScan* scan)
+void Gp_ClearScanItems(InventoryItemRange* scan)
 {
     _gpClearScanItems(scan);
 }
 
-McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     return Gp_AddItem(arg0, arg1, arg2);
 }
 
-s32 Gp_RemoveItem(McItemScan* arg0, McItemRec* arg1, s32 arg2)
+s32 Gp_RemoveItem(InventoryItemRange* arg0, McItemRec* arg1, s32 arg2)
 {
     McItemRec* table;
     s32        item;
@@ -839,7 +839,7 @@ s32 Gp_CountCollectedBits(void)
     return count;
 }
 
-s32 Gp_CountScanItems(McItemScan* arg0)
+s32 Gp_CountScanItems(InventoryItemRange* arg0)
 {
     McItemRec* tmp;
     McItemRec* table;
@@ -850,11 +850,11 @@ s32 Gp_CountScanItems(McItemScan* arg0)
     s32        start;
     s32        limit;
 
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             tmp = Gp_ItemTable1;
             break;
         default:
@@ -886,7 +886,7 @@ McItemSlot* Gp_GetItemSlot(s32 arg0)
     return &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
 }
 
-s32 Gp_CountEquippedRelated(McItemScan* arg0, s32 arg1)
+s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec*  table;
     McItemSlot* slot;
@@ -985,7 +985,7 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
     }
 }
 
-s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1)
+s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1)
 {
     s32        index;
     s32        ret;
@@ -1001,7 +1001,7 @@ s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1)
     return ret;
 }
 
-void Gp_ConsumeScanQty(McItemScan* arg0, s32 arg1, s32 arg2)
+void Gp_ConsumeScanQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* table;
     s32        qty;
@@ -1093,19 +1093,19 @@ s32 Gp_HasCollectedBit(s32 arg0)
     return val != 0;
 }
 
-McItemRec* Gp_GetItemTable(McItemScan* arg0)
+McItemRec* Gp_GetItemTable(InventoryItemRange* arg0)
 {
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             return Gp_ItemTable2;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             return Gp_ItemTable1;
         default:
             return Mc_SaveData[0].state.itemRows;
     }
 }
 
-s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
+s32 Gp_ScanIndexOf(InventoryItemRange* arg0, McItemRec* arg1)
 {
     McItemRec* table;
     s32        i;
@@ -1124,15 +1124,15 @@ s32 Gp_ScanIndexOf(McItemScan* arg0, McItemRec* arg1)
     return ret;
 }
 
-McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_GetScanSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* table;
 
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -1142,16 +1142,16 @@ McItemRec* Gp_GetScanSlot(McItemScan* arg0, s32 arg1, s32 arg2)
     return &table[arg0->firstRow + arg1];
 }
 
-static s32 Gp_GetScanItemId(McItemScan* arg0, s32 arg1)
+static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* table;
     McItemRec* rec;
 
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:

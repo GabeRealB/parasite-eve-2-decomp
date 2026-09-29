@@ -20,7 +20,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1);
 /// (ids `0x80..0x9F`) in the table selected by `arg0`. Tries `Gp_QtyById0`
 /// then `Gp_QtyById1` for a matching related id. `arg3 < 0` uses that
 /// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
-s32 Gp_EquipRelatedItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_800B7420(s32 arg0);
 
@@ -35,7 +35,7 @@ void Gp_RecalcMaxMp(void);
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void Gp_EquipMod(s32 arg0);
 
-McItemRec* Gp_GiveItem(McItemScan* arg0, s32 arg1, s32 arg2);
+McItemRec* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
@@ -54,13 +54,13 @@ void Gp_ClearInventory(void);
 
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);
 
-void Gp_ClearScanItems(McItemScan* arg0);
+void Gp_ClearScanItems(InventoryItemRange* arg0);
 
-s32 Gp_CountScanItems(McItemScan* arg0);
+s32 Gp_CountScanItems(InventoryItemRange* arg0);
 
 McItemSlot* Gp_GetItemSlot(s32 arg0);
 
-s32 Gp_ScanStackQty(McItemScan* arg0, s32 arg1);
+s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1);
 
 s32 Gp_GetCurBit2Flag(s32 arg0);
 
@@ -68,13 +68,13 @@ s32 Gp_HasCollectedBit(s32 arg0);
 
 void Gp_ClearCollectedBit(s32 arg0);
 
-McItemRec* Gp_GetItemTable(McItemScan* arg0);
+McItemRec* Gp_GetItemTable(InventoryItemRange* arg0);
 
 void Gp_SetCollectedBit(s32 arg0);
 
 s32 Gp_AgeFlag119(void);
 
-s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1);
+s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1);
 
 void Gp_SetItemSeenBit(s32 arg0, s32 arg1);
 
@@ -125,7 +125,7 @@ static inline GpItemA0* gpItemStock(s32 itemId)
 }
 
 /// True if `arg1` can be added to the item table selected by `arg0`.
-s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1);
+s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1);
 
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
 /// delimiters). `arg2 == 0` reads `Mc_SaveData[0].state.itemSeenBits` and adds 3 to

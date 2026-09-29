@@ -71,14 +71,14 @@ static inline GpItemA0* gpStackLimitAt(GpItemA0* rows, s32 index)
 }
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(McItemScan* scan);
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan);
 
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
 /// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
 /// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
 /// free slot.
-static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2);
+static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Whether item `item` has been seen. Ids at or above 0x180 have no bit in
 /// the save and always count as seen. Inline form of `Gp_HasItemSeenBit`.
@@ -250,8 +250,8 @@ u8 Gp_ItemSortKeyA0[33] = {
     255
 };
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -277,15 +277,15 @@ u8 Gp_ItemSortKeyA0[33] = {
     } while (0)
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(McItemScan* scan)
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
 {
     McItemRec* table;
 
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -295,7 +295,7 @@ static inline McItemRec* _gpScanTable(McItemScan* scan)
     return table;
 }
 
-void Gp_SortItems(McItemScan* arg0, s32 arg1)
+void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec*          tmp;
     register McItemRec* table;
@@ -318,11 +318,11 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
     i = 0;
     if ((arg0->rowCount - 1) > 0) {
         do {
-            switch (arg0->table) {
-                case 2:
+            switch (arg0->tableId) {
+                case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                     tmp = Gp_ItemTable2;
                     break;
-                case 1:
+                case INVENTORY_ITEM_TABLE_INDIRECT:
                     tmp = Gp_ItemTable1;
                     break;
                 default:
@@ -360,9 +360,9 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
             }
             minKey = key;
 
-            if (arg0->table != 1) {
+            if (arg0->tableId != INVENTORY_ITEM_TABLE_INDIRECT) {
                 tmp = Mc_SaveData[0].state.itemRows;
-                if (arg0->table == 2) {
+                if (arg0->tableId == INVENTORY_ITEM_TABLE_AREA_GRANTS) {
                     tmp = Gp_ItemTable2;
                 }
             } else {
@@ -425,7 +425,7 @@ void Gp_SortItems(McItemScan* arg0, s32 arg1)
 /// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
 /// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
 /// free slot.
-static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
+static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* tmp;
     McItemRec* table;
@@ -446,11 +446,11 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
     GpItemA0*  cap;
     s32        capacity;
 
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             tmp = Gp_ItemTable1;
             break;
         default:
@@ -483,11 +483,11 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
     if (arg1 >= 0xA0) {
         found  = 0;
         start2 = arg0->firstRow;
-        switch (arg0->table) {
-            case 2:
+        switch (arg0->tableId) {
+            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                 table2 = Gp_ItemTable2;
                 break;
-            case 1:
+            case INVENTORY_ITEM_TABLE_INDIRECT:
                 table2 = Gp_ItemTable1;
                 break;
             default:
@@ -529,7 +529,7 @@ static s32 Gp_CanAddItemQty(McItemScan* arg0, s32 arg1, s32 arg2)
     return used <= capacity;
 }
 
-s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
+s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* tmp;
     McItemRec* table;
@@ -550,11 +550,11 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
     GpItemA0*  cap;
     s32        capacity;
 
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             tmp = Gp_ItemTable1;
             break;
         default:
@@ -587,11 +587,11 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
     if (arg1 >= 0xA0) {
         found  = 0;
         start2 = arg0->firstRow;
-        switch (arg0->table) {
-            case 2:
+        switch (arg0->tableId) {
+            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                 table2 = Gp_ItemTable2;
                 break;
-            case 1:
+            case INVENTORY_ITEM_TABLE_INDIRECT:
                 table2 = Gp_ItemTable1;
                 break;
             default:
@@ -631,7 +631,7 @@ s32 Gp_CanAddItem(McItemScan* arg0, s32 arg1)
     return used <= capacity;
 }
 
-McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     McItemRec* table;
     McItemRec* dest;
@@ -684,7 +684,7 @@ McItemRec* Gp_SetScanItem(McItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
-McItemRec* Gp_AddItem(McItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* table;
     McItemRec* dest;
@@ -823,7 +823,7 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
     return str;
 }
 
-s32 Gp_NthRelatedId(McItemScan* arg0, s32 arg1, s32 arg2)
+s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec*    table;
     s32           idx;

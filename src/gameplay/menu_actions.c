@@ -129,15 +129,15 @@ extern char Gp_StrCheckMap[];
 
 static inline s32 _gpIsItemRowFree(McItemRec* arg0);
 
-static McItemRec* func_800CE980(McItemScan* arg0, s32 arg1);
+static McItemRec* func_800CE980(InventoryItemRange* arg0, s32 arg1);
 
-static s32 func_800CEA00(McItemScan* arg0, s32 arg1);
+static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1);
 
 static s32 Gp_IsEquippedItem(s32 arg0);
 
 static s32 func_800CEC5C(McItemRec* arg0);
 
-static McItemRec* func_800CECC0(McItemScan* arg0, s32 arg1);
+static McItemRec* func_800CECC0(InventoryItemRange* arg0, s32 arg1);
 
 static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, McItemRec* arg2, s32 arg3);
 
@@ -145,7 +145,7 @@ static void func_800CEE5C(UiObject* arg0);
 
 static s32 func_800CF204(CdCmdEntry* arg0);
 
-static s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2);
+static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1);
 
@@ -321,7 +321,7 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-static McItemRec* func_800CE980(McItemScan* arg0, s32 arg1)
+static McItemRec* func_800CE980(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* table;
     s32        i;
@@ -343,7 +343,7 @@ static McItemRec* func_800CE980(McItemScan* arg0, s32 arg1)
     return rec;
 }
 
-static s32 func_800CEA00(McItemScan* arg0, s32 arg1)
+static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* table;
     s32        i;
@@ -416,7 +416,7 @@ static s32 func_800CEC5C(McItemRec* arg0)
     return _gpIsItemRowFree(arg0);
 }
 
-static McItemRec* func_800CECC0(McItemScan* arg0, s32 arg1)
+static McItemRec* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* table;
     s32        i;
@@ -536,7 +536,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
 void func_800CF090(UiList* arg0, UiObject* arg1)
 {
     PlayerStatus*       p;
-    McItemScan*         scan;
+    InventoryItemRange* scan;
     volatile McItemRec* table;
     s32                 count;
     s32                 i;
@@ -683,7 +683,7 @@ void Gp_EquipHeld(s32 arg0)
     }
 }
 
-static s32 Gp_NthStockRelated(McItemScan* arg0, s32 arg1, s32 arg2)
+static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     s32 i;
     s32 result;

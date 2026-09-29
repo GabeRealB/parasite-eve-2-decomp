@@ -953,9 +953,9 @@ static void func_mist_shooting_gallery_8017FD40(Task* task);
 
 void func_mist_shooting_gallery_8017DCAC(s32 mode)
 {
-    McItemScan* scan;
-    s32         row;
-    s32         col;
+    InventoryItemRange* scan;
+    s32                 row;
+    s32                 col;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     for (row = 0; row < 4; row++) {
@@ -1001,15 +1001,15 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
 }
 void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
 {
-    s32         item;
-    s32         i;
-    s32         skip;
-    s32         status;
-    s32         selected;
-    s32         ammo;
-    GpItemQty*  row;
-    u8*         weaponIdx;
-    McItemScan* scan;
+    s32                 item;
+    s32                 i;
+    s32                 skip;
+    s32                 status;
+    s32                 selected;
+    s32                 ammo;
+    GpItemQty*          row;
+    u8*                 weaponIdx;
+    InventoryItemRange* scan;
 
     item = 0;
     skip = arg0->field_8;

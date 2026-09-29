@@ -48,7 +48,7 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 /// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
 /// not attached to a weapon and not the equipped armour or weapon - or NULL
 /// when there are fewer. The out-of-line copy is `func_800CECC0`.
-static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index);
+static inline McItemRec* _gpNthLooseRec(InventoryItemRange* scan, s32 index);
 
 static __inline__ void countItemRows(UiList* menu);
 
@@ -807,13 +807,13 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         Text_DrawString(&req5, Gp_StrAttachments);
 
         for (i = 0; i < Gp_GetModLevel(item); i++) {
-            McItemScan* scan;
-            McItemRec*  rec;
-            McItemRec*  found;
-            s32         col;
-            s32         row;
-            s32         j;
-            s32         id;
+            InventoryItemRange* scan;
+            McItemRec*          rec;
+            McItemRec*          found;
+            s32                 col;
+            s32                 row;
+            s32                 j;
+            s32                 id;
 
             col   = i % 5;
             row   = i / 5;
@@ -1136,7 +1136,7 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 /// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
 /// not attached to a weapon and not the equipped armour or weapon - or NULL
 /// when there are fewer. The out-of-line copy is `func_800CECC0`.
-static inline McItemRec* _gpNthLooseRec(McItemScan* scan, s32 index)
+static inline McItemRec* _gpNthLooseRec(InventoryItemRange* scan, s32 index)
 {
     PlayerStatus* p;
     McItemRec*    table;
@@ -1272,7 +1272,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
                 Gp_CheckItemInfoButton(arg1);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            McItemScan* scan2;
+            InventoryItemRange* scan2;
             scan2 = &Mc_SaveData[0].state.carriedItems;
             idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
             idx2  = Gp_ScanIndexOf(scan2, sel);
@@ -1299,7 +1299,7 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     s32                 limit;
     u8*                 rowBytes;
     McItemRec*          rec2;
-    McItemScan*         scan;
+    InventoryItemRange* scan;
     PlayerStatus*       cfg;
     u8*                 table0;
     u8*                 table1;
@@ -1385,12 +1385,12 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 
 static __inline__ void countItemRows(UiList* menu)
 {
-    McItemScan* scan;
-    McItemRec*  table;
-    s32         i;
-    u16         count;
-    s32         ok;
-    s32         id;
+    InventoryItemRange* scan;
+    McItemRec*          table;
+    s32                 i;
+    u16                 count;
+    s32                 ok;
+    s32                 id;
 
     scan          = &Mc_SaveData[0].state.carriedItems;
     table         = Gp_GetItemTable(scan);
@@ -1611,10 +1611,10 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
     if (status == 1) {
         mode = Gp_ItemOrderMode;
         if (mode == 0) {
-            McItemScan* scan;
-            McItemRec*  table;
-            s32         i;
-            s32         count;
+            InventoryItemRange* scan;
+            McItemRec*          table;
+            s32                 i;
+            s32                 count;
 
             scan  = &Mc_SaveData[0].state.carriedItems;
             table = Gp_GetItemTable(scan);
@@ -2037,11 +2037,11 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
     Task*      parent;
     UiObject*  parentObj;
     {
-        McItemScan* scan;
-        McItemRec*  table;
-        McItemRec*  found;
-        s32         row;
-        s32         i;
+        InventoryItemRange* scan;
+        McItemRec*          table;
+        McItemRec*          found;
+        s32                 row;
+        s32                 i;
         row   = prompt->field_8;
         scan  = &Mc_SaveData[0].state.carriedItems;
         table = Gp_GetItemTable(scan);
@@ -2337,9 +2337,9 @@ void Gp_ArmorMenuTask(Task* arg0)
                 s32 flag;
                 flag = Gp_ItemOrderMode;
                 if (flag == 0) {
-                    McItemScan* scan;
-                    McItemRec*  table;
-                    s32         i;
+                    InventoryItemRange* scan;
+                    McItemRec*          table;
+                    s32                 i;
 
                     scan  = &Mc_SaveData[0].state.carriedItems;
                     table = Gp_GetItemTable(scan);
@@ -2602,7 +2602,7 @@ static inline s32 _gpIsEquippedItem(s32 id)
     return ret;
 }
 
-McItemRec* Gp_NthEquippableRec(McItemScan* arg0, s32 arg1, s32 arg2)
+McItemRec* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     McItemRec* table;
     s32        i;

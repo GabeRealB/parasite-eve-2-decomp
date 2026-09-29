@@ -769,7 +769,7 @@ void Gp_ClearSlotNodeFlags(void)
     } while (i < 2);
 }
 
-s32 Gp_GrantLocationItems(McItemScan* arg0)
+s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
 {
     GameLocationKey* loc;
     GpGiveRec*       rec;

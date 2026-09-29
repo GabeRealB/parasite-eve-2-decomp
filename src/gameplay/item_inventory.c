@@ -8,8 +8,8 @@
 #include "gameplay/items.h"
 #include "gameplay/starter_inventory.h"
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 #include "main/mc.h"
 #include "main/session.h"
@@ -355,7 +355,7 @@ extern const u8 D_80096E28[];
 extern const u8 D_80096E38[];
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(McItemScan* scan);
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan);
 
 /* Item names and descriptions shared by the inventory tables. */
 const u8 D_80093E68[]   = "\n\n\n\n\n\n";
@@ -877,20 +877,20 @@ GpItemDesc Gp_KeyItemDescs[] = {
 
 void func_800B8014(void)
 {
-    McItemRec*    rec;
-    McSaveData*   save;
-    GpItemDesc*   desc;
-    u8*           str;
-    McItemSlot*   slots;
-    McItemScan*   scan;
-    McItemScan**  scans;
-    PlayerStatus* cfg;
-    s32           word;
-    s32           i;
-    s32           j;
-    s32           count;
-    s32           row;
-    s32           col;
+    McItemRec*           rec;
+    McSaveData*          save;
+    GpItemDesc*          desc;
+    u8*                  str;
+    McItemSlot*          slots;
+    InventoryItemRange*  scan;
+    InventoryItemRange** scans;
+    PlayerStatus*        cfg;
+    s32                  word;
+    s32                  i;
+    s32                  j;
+    s32                  count;
+    s32                  row;
+    s32                  col;
 
     for (j = 0, rec = Mc_SaveData[0].state.itemRows; j < 0x100; j++) {
         rec->itemId = 0;
@@ -938,7 +938,7 @@ void func_800B8014(void)
     Gp_ApplyItemMap();
     Mc_SaveData[0].state.carriedItems.firstRow = 0;
     Mc_SaveData[0].state.carriedItems.rowCount = 0x14;
-    Mc_SaveData[0].state.carriedItems.table    = 0;
+    Mc_SaveData[0].state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 3; col++) {
             Mc_SaveData[0].state.attachLevels[col + row * 3] = 0;
@@ -989,15 +989,15 @@ void func_800B8014(void)
 }
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(McItemScan* scan)
+static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
 {
     McItemRec* table;
 
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:
@@ -1007,7 +1007,7 @@ static inline McItemRec* _gpScanTable(McItemScan* scan)
     return table;
 }
 
-void Gp_MoveItemSlot(McItemScan* scan, s32 from, s32 to)
+void Gp_MoveItemSlot(InventoryItemRange* scan, s32 from, s32 to)
 {
     McItemRec* table;
     McItemRec  saved;

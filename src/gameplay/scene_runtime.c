@@ -333,7 +333,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank);
 
 /// How much of `item` the rows `scan` selects hold: the stack count for
 /// stackable ids (0xA0 and up), otherwise 1 if any row carries it and 0 if not.
-static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item);
+static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item);
 
 void Gp_BindSlot4(Task* task);
 
@@ -3723,7 +3723,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
 
 /// How much of `item` the rows `scan` selects hold: the stack count for
 /// stackable ids (0xA0 and up), otherwise 1 if any row carries it and 0 if not.
-static inline s16 _gpScanHeldQty(McItemRec* table, McItemScan* scan, s32 item)
+static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item)
 {
     s32 index;
     s32 found;

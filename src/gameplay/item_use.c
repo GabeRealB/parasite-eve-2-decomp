@@ -100,31 +100,31 @@ GpEdgePair Gp_FaceEdgePairs[5] = {
 
 static s32 Gp_ApplyItemUse(McItemRec* arg0)
 {
-    PlayerStatus* cfg;
-    GameActor*    actor;
-    McItemScan*   scanEquip;
-    McItemScan*   scanQty;
-    McItemScan*   scanRel;
-    McItemScan*   scanFree;
-    McItemScan*   scanId;
-    McItemSlot*   slot;
-    McItemRec*    table;
-    McItemRec*    rec;
-    McItemRec*    found;
-    s32           id;
-    s32           ret;
-    s32           flag;
-    s32           i;
-    u8            count;
-    s32           held;
-    s32           prevId;
-    s32           relId;
-    s32           qty;
-    s32           k;
-    s32           avail;
-    s32           slotNum;
-    s32           sel;
-    McItemRec*    hit;
+    PlayerStatus*       cfg;
+    GameActor*          actor;
+    InventoryItemRange* scanEquip;
+    InventoryItemRange* scanQty;
+    InventoryItemRange* scanRel;
+    InventoryItemRange* scanFree;
+    InventoryItemRange* scanId;
+    McItemSlot*         slot;
+    McItemRec*          table;
+    McItemRec*          rec;
+    McItemRec*          found;
+    s32                 id;
+    s32                 ret;
+    s32                 flag;
+    s32                 i;
+    u8                  count;
+    s32                 held;
+    s32                 prevId;
+    s32                 relId;
+    s32                 qty;
+    s32                 k;
+    s32                 avail;
+    s32                 slotNum;
+    s32                 sel;
+    McItemRec*          hit;
 
     ret   = 0;
     flag  = 1;
@@ -365,10 +365,10 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
 static s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
 {
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    s32           ret;
-    s32           val;
+    PlayerStatus*       cfg;
+    InventoryItemRange* scan;
+    s32                 ret;
+    s32                 val;
 
     ret = 1;
     cfg = &Player_Status;
@@ -444,35 +444,35 @@ static const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 
 
 void func_800D6334(Task* task)
 {
-    TextDrawReq name;
-    TextDrawReq label;
-    UiObject*   panel;
-    McItemRec*  selected;
-    McItemRec*  table;
-    McItemScan* scan;
-    McItemRec*  firstRec;
-    McItemRec*  firstTable;
-    McItemRec*  useRec;
-    McItemRec*  useTable;
-    McItemScan* firstScan;
-    McItemScan* useScan;
-    s32         firstI;
-    s32         firstCount;
-    s32         useI;
-    s32         useCount;
-    s32         useSlot;
-    s32         usable;
-    s32         armor;
-    s32         x;
-    s32         y;
-    s32         selectedX;
-    s32         item;
-    s32         flags;
-    s32         slot;
-    s32         i;
-    s32         selectedSlot;
-    s32         labelX;
-    s32         labelY;
+    TextDrawReq         name;
+    TextDrawReq         label;
+    UiObject*           panel;
+    McItemRec*          selected;
+    McItemRec*          table;
+    InventoryItemRange* scan;
+    McItemRec*          firstRec;
+    McItemRec*          firstTable;
+    McItemRec*          useRec;
+    McItemRec*          useTable;
+    InventoryItemRange* firstScan;
+    InventoryItemRange* useScan;
+    s32                 firstI;
+    s32                 firstCount;
+    s32                 useI;
+    s32                 useCount;
+    s32                 useSlot;
+    s32                 usable;
+    s32                 armor;
+    s32                 x;
+    s32                 y;
+    s32                 selectedX;
+    s32                 item;
+    s32                 flags;
+    s32                 slot;
+    s32                 i;
+    s32                 selectedSlot;
+    s32                 labelX;
+    s32                 labelY;
 
     scan                               = NULL;
     armor                              = Player_Status.armor + 0x5F;
@@ -640,11 +640,11 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
 
 McItemRec* Gp_FindItemById(s32 arg0)
 {
-    McItemScan* scan;
-    McItemRec*  table;
-    s32         i;
-    s32         count;
-    McItemRec*  rec;
+    InventoryItemRange* scan;
+    McItemRec*          table;
+    s32                 i;
+    s32                 count;
+    McItemRec*          rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData[0].state.carriedItems;
@@ -663,11 +663,11 @@ McItemRec* Gp_FindItemById(s32 arg0)
 
 static McItemRec* Gp_FindItemByKind(s32 arg0)
 {
-    McItemScan* scan;
-    McItemRec*  table;
-    s32         i;
-    s32         count;
-    McItemRec*  rec;
+    InventoryItemRange* scan;
+    McItemRec*          table;
+    s32                 i;
+    s32                 count;
+    McItemRec*          rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData[0].state.carriedItems;
@@ -685,7 +685,7 @@ static McItemRec* Gp_FindItemByKind(s32 arg0)
     return rec;
 }
 
-McItemRec* Gp_FindItemInScan(s32 arg0, McItemScan* arg1)
+McItemRec* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1)
 {
     McItemRec* table;
     s32        i;

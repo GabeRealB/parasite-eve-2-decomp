@@ -25316,7 +25316,7 @@ GpItemRec*   table;
 register s32 i asm("a2");
 s32          ret;
 
-switch (scan->table) {
+switch (scan->tableId) {
 case 2:
     table = D_case2;
     break;
@@ -26189,7 +26189,7 @@ keeps the walk on `$v1` with `sb 0` / `sb 1` / `sh 2`:
 GpItemRec*          tmp;
 register GpItemRec* table asm("v1");
 
-switch (scan->table) {
+switch (scan->tableId) {
 case 2:
     tmp = D_case2;
     break;
@@ -28600,8 +28600,8 @@ was 98.3% — same tests, but default landed before case 1.
 ## Assign the loop compare constant before the item-table switch
 
 A scan that compares `rec->itemId == K` after the usual
-`switch (scan->table)` table select wants `li tN, K` in the delay slot
-of the first `beq field_2, 1`. Writing `if (rec->itemId == 0x81)` (or
+`switch (scan->tableId)` table select wants `li tN, K` in the delay slot
+of the first `beq tableId, 1`. Writing `if (rec->itemId == 0x81)` (or
 assigning `item = 0x81` after the switch) materializes K later, often
 clobbering the table pointer's register and skipping the shared `i = 0`
 epilogue.
@@ -28612,7 +28612,7 @@ local. GCC keeps it live across the table select and plants it in the
 
 ```c
 item = 0x81;
-switch (scan->table) {
+switch (scan->tableId) {
     case 2:
         tmp = Gp_ItemTable2;
         break;
@@ -28842,7 +28842,7 @@ it. GCC 2.8.1 will not move that block into the hole between `case 1` and
 A regular label *inside* the switch, between those cases, is the hole:
 
 ```c
-switch (scan->table) {
+switch (scan->tableId) {
     case 2:
         tmp = Gp_ItemTable2;
         break;
@@ -32046,7 +32046,7 @@ if (attach != 0 && attach != 0xFF) {
 
 ## Inline a helper with literal `0` so field loads use `$zero`
 
-Copying `Gp_RemoveItem` and writing `scan = NULL` / `((GpItemScan*)0)->field`
+Copying `Gp_RemoveItem` and writing `scan = NULL` / `((InventoryItemRange*)0)->field`
 keeps a 0 in a GPR (`t1`) or CSEs that 0 with an earlier `state == 0` into
 `$s2`, so the target's `lbu r, off($zero)` never appears. A
 `static __inline` helper whose first argument is the scan pointer, called
@@ -32819,7 +32819,7 @@ The target keeps every case in `$v0` and copies once at the join
 register GpItemRec* tmp asm("v0");
 register GpItemRec* table asm("a3");
 
-switch (scan->table) {
+switch (scan->tableId) {
 case 2:
     tmp = Gp_ItemTable2;
     break;
@@ -34240,10 +34240,10 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
 ```c
 {
     register s32         val asm("v0");
-    register GpItemScan* s asm("v0");
+    register InventoryItemRange* s asm("v0");
 
     s             = &Gp_MoveScanSrc;
-    val           = s[arg0->spawnArg1].field_1;
+    val           = s[arg0->spawnArg1].rowCount;
     menu->field_4 = val;
     menu->field_5 = val;
     if ((s8)val >= 0xB) {
@@ -34337,7 +34337,7 @@ cannot reuse it:
 
 ```c
 register McSaveData* save asm("v0");
-register GpItemScan* src asm("t4");
+register InventoryItemRange* src asm("t4");
 register GpItemRec*  table asm("v1");
 
 save = &Mc_SaveData;
@@ -34950,9 +34950,9 @@ default) for the first copy hoists `s3=1`, `s2=2`, `s1=C20`, `s0=D70`,
 moves default out of the `bne` delay. Write the second copy as:
 
 ```c
-if (scan->table != 1) {
+if (scan->tableId != 1) {
     table = Mc_SaveData.itemRows;
-    if (scan->table == 2) {
+    if (scan->tableId == 2) {
         table = Gp_ItemTable2;
     }
 } else {
@@ -35776,7 +35776,7 @@ keeps the split `%hi` in `$s1` for the later `%lo` load:
 ```c
 scan  = &Mc_SaveData.carriedItems;
 table = Gp_GetItemTable(scan);
-idx   = ((volatile McItemScan*)&Mc_SaveData.carriedItems)->firstRow;
+idx   = ((volatile InventoryItemRange*)&Mc_SaveData.carriedItems)->firstRow;
 count = scan->rowCount;
 ```
 
@@ -37529,7 +37529,7 @@ ret = Gp_HealPending = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v
 Two register-allocation levers that together took `Gp_ApplyItemUse` from 99.2% to
 a byte match:
 
-* A single `GpItemScan* scan` reassigned `&Mc_SaveData.carriedItems` at five
+* A single `InventoryItemRange* scan` reassigned `&Mc_SaveData.carriedItems` at five
   different sites becomes **one** pseudo, so it is pinned in one callee-saved
   register for the whole function. The target used `s0` / `s1` / `s2` at
   different sites, i.e. five distinct locals. Splitting them (`scanEquip`,

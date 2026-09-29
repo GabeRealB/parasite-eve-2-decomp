@@ -257,18 +257,18 @@ static u16* Shop_SelectStock(s32 mode)
 /// panel.
 static void Shop_ItemRow(UiList* prompt, UiObject* obj)
 {
-    TextDrawReq   req;
-    u8            buf[0x20];
-    RoomShopList* shop;
-    McItemScan*   scan;
-    s32           y;
-    s32           scaled;
-    UiObject*     child;
-    UiObject*     child2;
-    s32           blocked;
-    s32           status;
-    s32           itemId;
-    s32           price;
+    TextDrawReq         req;
+    u8                  buf[0x20];
+    RoomShopList*       shop;
+    InventoryItemRange* scan;
+    s32                 y;
+    s32                 scaled;
+    UiObject*           child;
+    UiObject*           child2;
+    s32                 blocked;
+    s32                 status;
+    s32                 itemId;
+    s32                 price;
 
     shop    = (RoomShopList*)obj->owner->work;
     blocked = 0;
@@ -744,20 +744,20 @@ static void Shop_CategoryListTask(Task* task)
 /// caption with the carried item count over the inventory's row capacity.
 static void Shop_BalanceTask(Task* task)
 {
-    s8            digits[0x20];
-    s8            total[0x20];
-    TextDrawReq   req0;
-    TextDrawReq   req1;
-    UiObject*     obj;
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    s8*           p;
-    s32           x;
-    s32           y;
-    s32           y2;
-    s32           col;
-    s32           capacity;
-    s32           count;
+    s8                  digits[0x20];
+    s8                  total[0x20];
+    TextDrawReq         req0;
+    TextDrawReq         req1;
+    UiObject*           obj;
+    PlayerStatus*       cfg;
+    InventoryItemRange* scan;
+    s8*                 p;
+    s32                 x;
+    s32                 y;
+    s32                 y2;
+    s32                 col;
+    s32                 capacity;
+    s32                 count;
 
     obj = task->spawnArg2.pointer;
     cfg = &Player_Status;
@@ -807,13 +807,13 @@ static void Shop_BalanceTask(Task* task)
 /// it takes the price, gives one of the item and reports 6.
 static void Shop_BuyRow(UiList* prompt, UiObject* obj)
 {
-    TextDrawReq   req;
-    UiObject*     child;
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    s32           itemId;
-    s32           mode;
-    s32           price;
+    TextDrawReq         req;
+    UiObject*           child;
+    PlayerStatus*       cfg;
+    InventoryItemRange* scan;
+    s32                 itemId;
+    s32                 mode;
+    s32                 price;
 
     itemId = obj->owner->spawnArg1.value;
 
@@ -988,10 +988,10 @@ static void Shop_ChargeTask(Task* task)
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count)
 {
-    s32         i;
-    s32         n;
-    McItemRec*  rec;
-    McItemScan* scan;
+    s32                 i;
+    s32                 n;
+    McItemRec*          rec;
+    InventoryItemRange* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
         count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);

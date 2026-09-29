@@ -34,10 +34,10 @@ extern UiObjectDesc D_8010CA78[];
 
 void Gp_AreaEnterTask(Task* arg0);
 
-u8         Gp_StrItemObtained[] = "Item obtained!";
-u8         Gp_StrBonusItem[]    = "Bonus item!!";
-s32        Gp_ItemGrantCooldown = 0;
-McItemScan D_8010CA2C           = { 0, 5, 2, 0 };
+u8                 Gp_StrItemObtained[] = "Item obtained!";
+u8                 Gp_StrBonusItem[]    = "Bonus item!!";
+s32                Gp_ItemGrantCooldown = 0;
+InventoryItemRange D_8010CA2C           = { 0, 5, INVENTORY_ITEM_TABLE_AREA_GRANTS, 0 };
 
 /// Unreferenced halfword table following the item-grant scan.
 static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
@@ -56,13 +56,13 @@ TaskDesc D_8010CABC = { 0, 0xC0, Gp_AreaEnterTask };
 
 void Gp_AreaEnterTask(Task* arg0)
 {
-    u32               key;
-    GpEndWork*        work;
-    s32               i;
-    Task*             slot;
-    GameSession*      session;
-    StageMusicParams* pair;
-    McItemScan*       scan;
+    u32                 key;
+    GpEndWork*          work;
+    s32                 i;
+    Task*               slot;
+    GameSession*        session;
+    StageMusicParams*   pair;
+    InventoryItemRange* scan;
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2.pointer;

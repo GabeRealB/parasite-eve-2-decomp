@@ -164,8 +164,8 @@ u16 Gp_CollectedIds[41] = {
 /// Unreferenced nonzero halfword after the collected-item terminator.
 u16 D_80114B32 = 0x1131;
 
-/* Total quantity of item `id` held, via a fresh scan covering every row. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = 0xFF, Gp_SumScanQty(&(scan), (id)))
+/* Count item `id` in saved rows 0..254 through a cleared range. */
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -226,7 +226,7 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
     return ret;
 }
 
-s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
+s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
 {
     McItemRec* tmp;
     McItemRec* table;
@@ -242,11 +242,11 @@ s32 Gp_SumScanQty(McItemScan* arg0, s32 arg1)
     }
 
     acc = 0;
-    switch (arg0->table) {
-        case 2:
+    switch (arg0->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             tmp = Gp_ItemTable1;
             break;
         default:
@@ -451,7 +451,7 @@ void Gp_WaitItemFlag2(Task* arg0)
     }
 }
 
-s32 Gp_FindScanQty(McItemRec* arg0, McItemScan* arg1, s32* arg2, s32 arg3)
+s32 Gp_FindScanQty(McItemRec* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3)
 {
     s32 i;
     s32 ret;
@@ -477,9 +477,9 @@ s32 Gp_FindScanQty(McItemRec* arg0, McItemScan* arg1, s32* arg2, s32 arg3)
 
 s32 Gp_NextMappedSlot(s32 arg0)
 {
-    McItemScan* scan;
-    s32         i;
-    GpItemMap*  p;
+    InventoryItemRange* scan;
+    s32                 i;
+    GpItemMap*          p;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     if ((u32)arg0 >= 8) {
@@ -501,10 +501,10 @@ GpItemMap* Gp_GetItemMap(s32 arg0)
 
 s32 Gp_HasMappedItem(void)
 {
-    s32         found;
-    McItemScan* scan;
-    s32         i;
-    GpItemMap*  p;
+    s32                 found;
+    InventoryItemRange* scan;
+    s32                 i;
+    GpItemMap*          p;
 
     found = 0;
     scan  = &Mc_SaveData[0].state.carriedItems;
@@ -541,10 +541,10 @@ static void Gp_ResetAuxSlots(void)
 
 static s32 Gp_SumItemQty(s32 arg0)
 {
-    McItemScan query;
+    InventoryItemRange query;
 
     memset(&query, 0, sizeof(query));
-    query.rowCount = 0xFF;
+    query.rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS;
     return Gp_SumScanQty(&query, arg0);
 }
 
@@ -555,7 +555,7 @@ static void Gp_SetPlayerScan(s32 arg0)
     p                              = &Mc_SaveData[0];
     p->state.carriedItems.firstRow = 0;
     p->state.carriedItems.rowCount = arg0;
-    p->state.carriedItems.table    = 0;
+    p->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
 }
 
 void Gp_SyncHeldRelated(void)
@@ -666,7 +666,7 @@ void Gp_FillHpMp(void)
     p->mp = p->mpMax;
 }
 
-s32 Gp_GetScanCount(McItemScan* scan)
+s32 Gp_GetScanCount(InventoryItemRange* scan)
 {
     return scan->rowCount;
 }
@@ -757,19 +757,19 @@ void Gp_TickBoostPanel(Task* arg0)
 
 s32 Gp_HasStockedItem(s32 arg0)
 {
-    McItemScan* scan;
-    McItemRec*  table;
-    s32         i;
-    s32         ret;
-    s32         count;
+    InventoryItemRange* scan;
+    McItemRec*          table;
+    s32                 i;
+    s32                 ret;
+    s32                 count;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     ret  = 0;
-    switch (scan->table) {
-        case 2:
+    switch (scan->tableId) {
+        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
-        case 1:
+        case INVENTORY_ITEM_TABLE_INDIRECT:
             table = Gp_ItemTable1;
             break;
         default:

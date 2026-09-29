@@ -57,11 +57,11 @@ static inline s32 _gpIsArmorItem(u8 id)
     } while (0)
 #define GP_FIND_SPARE_ARMOR(found, index)                                               \
     do {                                                                                \
-        PlayerStatus* _cfg;                                                             \
-        McItemScan*   _scan;                                                            \
-        McItemRec*    _rec;                                                             \
-        s32           _i;                                                               \
-        s32           _n;                                                               \
+        PlayerStatus*       _cfg;                                                       \
+        InventoryItemRange* _scan;                                                      \
+        McItemRec*          _rec;                                                       \
+        s32                 _i;                                                         \
+        s32                 _n;                                                         \
                                                                                         \
         _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
         _cfg    = &Player_Status;                                                       \
@@ -82,10 +82,10 @@ static inline s32 _gpIsArmorItem(u8 id)
     } while (0)
 #define GP_COUNT_SPARE_ARMOR(count)                                                     \
     do {                                                                                \
-        PlayerStatus* _cfg;                                                             \
-        McItemScan*   _scan;                                                            \
-        McItemRec*    _rec;                                                             \
-        s32           _i;                                                               \
+        PlayerStatus*       _cfg;                                                       \
+        InventoryItemRange* _scan;                                                      \
+        McItemRec*          _rec;                                                       \
+        s32                 _i;                                                         \
                                                                                         \
         (count) = 0;                                                                    \
         _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
@@ -102,11 +102,11 @@ static inline s32 _gpIsArmorItem(u8 id)
     } while (0)
 static inline s32 _gpFindSpareArmor(s32 index)
 {
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    McItemRec*    rec;
-    s32           i;
-    s32           found;
+    PlayerStatus*       cfg;
+    InventoryItemRange* scan;
+    McItemRec*          rec;
+    s32                 i;
+    s32                 found;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     cfg   = &Player_Status;
