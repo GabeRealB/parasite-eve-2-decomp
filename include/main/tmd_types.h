@@ -8,43 +8,41 @@
 
 #include "main/coord.h"
 
-/// One entry of the `TmdSource.skeleton` array: a bone's rest transform and the
-/// bone it hangs from.
+/// Initial local transform and parent index for one TMD model part.
 ///
-/// The array is the model's rest pose, one bone per part. A part's vertices are
-/// authored around its own bone, so the skeleton is what puts the parts of a
-/// model back in one place: `Tmd_Create` builds the model's per-part coordinate
-/// array from these, and the matrices composed from it are what each part is
-/// drawn under.
+/// `TmdSource.skeleton` contains `partCount` entries in part order. Creation
+/// copies their matrices into the object's mutable coordinates and converts
+/// the indices to parent links; animation changes those coordinates rather
+/// than the source skeleton. Parent chains must reach a self-parented root,
+/// which is initially attached to the view coordinate.
+///
+/// Matrix coefficients have 12 fractional bits (4096 = 1.0); translations
+/// use the same integer model coordinates as the vertices.
 typedef struct {
-    MATRIX local;  // Rest transform, in the space of the bone it hangs from
-    s32    parent; // Bone it hangs from, as an index into the same array; its own index at the root
+    MATRIX local;       // Initial transform in parent space
+    s32    parentIndex; // Parent part index in [0, partCount); own index at a root
 } TmdBone;
 STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 
-/// One model as its package ships it: the vertex and normal arrays, the packet
-/// stream that draws its parts, and the bone rest pose that places them.
+/// Model geometry, packet stream, and initial per-part transform hierarchy.
 ///
-/// A package lays a model out as `[vertices][normals][packet stream][record]`
-/// with the record last, and every pointer here is an address into that same
-/// package, so a model stays whole at whatever address its package loads. A
-/// `TmdObject` points here, and the two divide the work between them: the
-/// record carries what shipped, while the buffer the model is decoded into and
-/// the per-part coordinate array belong to the object.
+/// Packaged sources reference arrays in the same image. A `TmdObject` borrows
+/// the source geometry and stream and owns its decoded buffers and mutable
+/// per-part coordinate array.
 ///
 /// The record is not all read-only. The packet stream is resolved to handlers
 /// in place the first time the model is used, and `handlersResolved` is how the
 /// record says that has happened.
 typedef struct {
-    s32      handlersResolved; // Zero as shipped, set once the packet stream has been resolved to handlers
-    s32      halfSize;         // Size of one half of the model's buffer in bytes; the object allocates both halves together
-    s32      firstRegionSize;  // Size of the first of a half's two prim regions, i.e. the offset the second starts at
-    s32      partCount;        // Parts the model is divided into; one bone each
-    u32*     partVerts;        // Vertex count per part, summing to the vertex array's length
-    SVECTOR* verts;            // Vertices, grouped by part
-    SVECTOR* normals;          // Normals, indexed independently of the vertices
-    TmdBone* skeleton;         // Rest pose: one bone per part, carrying its parent index
-    u32*     stream;           // Packet stream, the drawing instructions for the model's parts
+    s32            handlersResolved; // Zero as shipped, set once the packet stream has been resolved to handlers
+    s32            halfSize;         // Size of one half of the model's buffer in bytes; the object allocates both halves together
+    s32            firstRegionSize;  // Size of the first of a half's two prim regions, i.e. the offset the second starts at
+    s32            partCount;        // Parts the model is divided into; one bone each
+    u32*           partVerts;        // Vertex count per part, summing to the vertex array's length
+    SVECTOR*       verts;            // Vertices, grouped by part
+    SVECTOR*       normals;          // Normals, indexed independently of the vertices
+    const TmdBone* skeleton;         // Initial pose: partCount entries, copied during creation and never changed through this pointer
+    u32*           stream;           // Packet stream, the drawing instructions for the model's parts
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
@@ -78,8 +76,8 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// each pass flips it.
 typedef struct {
     TmdListHead link;        // Its place on `gTmdList`
-    GfxCoord*   coords;      // Per-part coordinate array, part of this object's own block
-    u16         flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
+    GfxCoord*    coords;      // Per-part coordinate array, part of this object's own block
+    u16         flags;       // State bits (0x2 semi-transparent primitives, 0x4 skip automatic buffer allocation, 0x8 selected by the flagged draw pass, 0x10 reverse face culling, 0x80 hidden)
     s8          otOffset;    // Ordering-table offset the model's primitives are linked at
     byte        unknown_F;
     TmdSource*  source;      // The model as its package shipped it

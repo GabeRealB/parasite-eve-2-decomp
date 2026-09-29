@@ -32,7 +32,7 @@ inverse direction for import. See §6.
 
 ---
 
-## 1. A model is four pieces
+## 1. A model's source data
 
 The face stream alone is not a model: the vertices live outside it. A
 `TmdSource` record ties the pieces together, and `Gp_AttachTmd` reaches one
@@ -40,8 +40,11 @@ through `TaskDesc.arg.model`:
 
 ```text
 TmdSource (0x24 bytes; handlersResolved is 0 on disc, set to 1 after first use)
+  +0x0C  s32     part count
+  +0x10  u32  -> vertex count per part
   +0x14  u32  -> vertex array   8 bytes per entry (SVECTOR-shaped)
   +0x18  u32  -> normal array   same shape
+  +0x1C  u32  -> skeleton      36 bytes per entry (TmdBone)
   +0x20  u32  -> face stream
 ```
 
@@ -52,7 +55,7 @@ A model is laid out contiguously with the record last, so the counts fall out
 of the gaps:
 
 ```text
-[ vertices ][ normals ][ face stream ][ TmdSource ]
+[ skeleton ][ part vertex counts ][ vertices ][ normals ][ face stream ][ TmdSource ]
   nverts   = (normals - vertices) / 8
   nnormals = (stream  - normals)  / 8
 ```
@@ -131,8 +134,12 @@ Two consequences:
   | `partVerts` (`+0x10`) | `partCount` x u32: how many vertices each part owns |
   | `skeleton` (`+0x1C`) | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
 
-  `TmdBone` is a `MATRIX` — a 3x3 rest rotation (identity on disc, `4096` = 1.0)
-  and a `t[3]` translating from the parent — followed by an `s32` parent index.
+  `TmdBone.local` is a `MATRIX` — a 3x3 rest rotation (identity on disc,
+  `4096` = 1.0) and a `t[3]` translating from the parent — followed by the
+  `s32` `TmdBone.parentIndex`. Every index is in `[0, partCount)`; a root names
+  its own index and initially attaches to the view coordinate. `Tmd_Create`
+  copies the matrices into `TmdObject.coords`, so animation changes the runtime
+  pose while the source skeleton remains unchanged.
   The `partVerts` counts sum exactly to the vertex-array length (352 for
   `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
   by part and each vertex's bone is known.

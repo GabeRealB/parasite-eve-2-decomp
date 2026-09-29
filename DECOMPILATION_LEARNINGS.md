@@ -132262,7 +132262,7 @@ two bytes of alignment padding before the translation spelled as a member of its
 own, and the tail an `s32`:
 
 ```c
-coord->coord = *(MATRIX*)bone;   /* bone: a MATRIX followed by an s32 parent */
+coord->coord = *(MATRIX*)bone;   /* bone: a MATRIX followed by an s32 parentIndex */
 ```
 
 Declaring the head as a member of that type and writing `coord->coord =

@@ -29,7 +29,19 @@ extern s32 D_80071210;
 
 void Tmd_InitLists(void);
 
-TmdObject* Tmd_Create(TmdSource* src, s32 flags);
+/// Creates a hidden model object with a mutable copy of its source skeleton.
+///
+/// The object owns its per-part coordinate array and borrows `src`, which must
+/// remain alive until the object is released. The skeleton is read only during
+/// creation: each local matrix is copied and each parent index becomes a link,
+/// with self-parented roots initially linked to the view coordinate.
+///
+/// Zero `bufferFlags` allocates and initializes both buffer halves. Nonzero
+/// values defer allocation; bit 0 also disables missing-buffer recovery for
+/// the object. These flags do not exempt an existing buffer from release.
+/// Returns NULL if the object allocation fails. A buffer allocation failure
+/// leaves a valid object with a NULL buffer for later allocation.
+TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags);
 
 /// Builds a model's primitives into one half of its buffer: it walks the model's
 /// packet stream and runs the handler the record's opcode selects, and the

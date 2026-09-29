@@ -5308,7 +5308,7 @@ ASSETS = {
 }
 
 EMBEDDED_ASSETS = {
-    'gameplay_effect_80111fc8_rest_pose': {"source": "gameplay.pe2pkg", "vram": 0x80111ED0, "size": 0x24, "ext": ".modelpart", "type": "model", "include": "u32"},
+    'gameplay_effect_80111fc8_rest_pose': {"source": "gameplay.pe2pkg", "vram": 0x80111ED0, "size": 0x24, "ext": ".modelpart", "type": "model", "include": "TmdBone"},
     'gameplay_effect_80111fc8_part_vertices': {"source": "gameplay.pe2pkg", "vram": 0x80111EF4, "size": 0x4, "ext": ".modelpart", "type": "model", "include": "u32"},
     'gameplay_effect_80111fc8_vertices': {"source": "gameplay.pe2pkg", "vram": 0x80111EF8, "size": 0x30, "ext": ".modelpart", "type": "model", "include": "u16"},
     'gameplay_effect_80111fc8_normals': {"source": "gameplay.pe2pkg", "vram": 0x80111F28, "size": 0x20, "ext": ".modelpart", "type": "model", "include": "u16"},

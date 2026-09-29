@@ -44,6 +44,13 @@ typedef union {
 } TmdStreamWord;
 STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
+enum {
+    TMD_CREATE_SKIP_AUTO_BUFFER = 1,    // Creation bit: defer allocation and skip missing-buffer recovery
+    TMD_OBJECT_SKIP_AUTO_BUFFER = 4,    // Object state: skip missing-buffer recovery
+    TMD_OBJECT_HIDDEN           = 0x80, // Exclude from the active-node draw pass
+    TMD_BUFFER_HALF_COUNT       = 2     // Primitive buffers alternate between two halves
+};
+
 static const TaskFuncTable3 Tmd_TaskStates;
 
 static void Tmd_InitSourceStream(TmdSource* src);
@@ -502,18 +509,18 @@ done:
     SCRATCH_POP(TmdScratchModelBlock);
 }
 
-TmdObject* Tmd_Create(TmdSource* src, s32 flags)
+TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    TmdBone*   bone;
-    u32        i;
-    void*      mem = NULL;
+    TmdObject*     obj;
+    GfxCoord*       coord;
+    const TmdBone* bone;
+    u32            partIndex;
+    void*          buffer = NULL;
 
     Tmd_InitSourceStream(src);
     obj = memCalloc((src->partCount * sizeof(GfxCoord)) + sizeof(TmdAllocation), 0);
     if (obj != NULL) {
-        obj->flags       = 0x80;
+        obj->flags       = TMD_OBJECT_HIDDEN;
         obj->partCount   = src->partCount;
         obj->coords      = PARENT_OF(obj, TmdAllocation, object)->coords;
         obj->bufferIndex = 0;
@@ -525,10 +532,11 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         obj->clut        = 0;
         obj->source      = src;
         bone             = src->skeleton;
-        for (i = 0; i < (u32)obj->partCount; i++) {
+        // Copy the initial pose; self-parented roots attach to the view coordinate.
+        for (partIndex = 0; partIndex < (u32)obj->partCount; partIndex++) {
             coord->coord = bone->local;
-            if (bone->parent != i) {
-                coord->parent = &obj->coords[bone->parent];
+            if (bone->parentIndex != partIndex) {
+                coord->parent = &obj->coords[bone->parentIndex];
             } else {
                 coord->parent = &gGfxViewCoord;
             }
@@ -537,15 +545,16 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
             bone++;
         }
         obj->buffer = NULL;
-        if (flags == 0) {
-            mem = memCalloc(src->halfSize * 2, 1);
-            if (mem != NULL) {
-                obj->buffer = mem;
+        if (bufferFlags == 0) {
+            buffer = memCalloc(src->halfSize * TMD_BUFFER_HALF_COUNT, 1);
+            if (buffer != NULL) {
+                obj->buffer = buffer;
+                // Initialize both buffer halves before the first draw.
                 tmdProcessStream(obj);
                 tmdProcessStream(obj);
             }
-        } else if (flags & 1) {
-            obj->flags |= 4;
+        } else if (bufferFlags & TMD_CREATE_SKIP_AUTO_BUFFER) {
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
     }
     return obj;
@@ -634,7 +643,7 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
 
     result = 0;
     if (obj->buffer == NULL) {
-        mem         = memCalloc(obj->source->halfSize * 2, 1);
+        mem         = memCalloc(obj->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
         obj->buffer = mem;
         if (mem != NULL) {
             obj->bufferIndex = 0;
@@ -656,7 +665,7 @@ static s32 Tmd_SumBufferBytes(void)
     node   = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer != NULL) {
-            result += node->source->halfSize * 2;
+            result += node->source->halfSize * TMD_BUFFER_HALF_COUNT;
         }
         node = PARENT_OF(node->link.next, TmdObject, link);
     }
@@ -727,7 +736,7 @@ static void Tmd_FlagAllNodes(Task* task)
 
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
-        node->flags |= 0x80;
+        node->flags |= TMD_OBJECT_HIDDEN;
         node         = PARENT_OF(node->link.next, TmdObject, link);
     }
     task->state++;
@@ -783,8 +792,8 @@ void Tmd_AllocMissingBuffers(void)
     CdCmd_SetupMdecBuffers();
     while (node != NULL) {
         if (node->buffer == NULL) {
-            if (!(node->flags & 4)) {
-                mem = memCalloc(node->source->halfSize * 2, 1);
+            if (!(node->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+                mem = memCalloc(node->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
                 if (mem != NULL) {
                     node->buffer      = mem;
                     node->bufferIndex = 0;
@@ -805,11 +814,11 @@ void Tmd_AllocNodeBuffers(Task* task)
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer == NULL) {
-            mem = memCalloc(node->source->halfSize * 2, 1);
+            mem = memCalloc(node->source->halfSize * TMD_BUFFER_HALF_COUNT, 1);
             if (mem != NULL) {
                 node->buffer      = mem;
                 node->bufferIndex = 0;
-                node->flags      &= ~0x80;
+                node->flags      &= ~TMD_OBJECT_HIDDEN;
                 tmdProcessStream(node);
                 tmdProcessStream(node);
             }
@@ -834,7 +843,7 @@ void Tmd_DrawFlaggedNodes(TmdObject* node)
 void Tmd_DrawActiveNodes(TmdObject* node)
 {
     while (node != NULL) {
-        if (!(node->flags & 0x80)) {
+        if (!(node->flags & TMD_OBJECT_HIDDEN)) {
             if (node->buffer != NULL) {
                 Tmd_SetupDraw(node);
             }

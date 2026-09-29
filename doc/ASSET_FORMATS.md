@@ -686,9 +686,10 @@ per-weapon clip data.
 packet stream, element layouts, the opcode bit structure and a per-opcode
 reference grouped by draw family.
 
-In brief: a model is `[vertices][normals][face stream][TmdSource]` laid out
-contiguously inside a package, with the record's `+0x14`/`+0x18`/`+0x20`
-pointing at the three parts. The stream is packets of
+A packaged model's arrays are laid out as
+`[skeleton][part vertex counts][vertices][normals][face stream][TmdSource]`,
+with the record pointing at each array. The skeleton holds one `TmdBone` per
+part: its initial local matrix and parent index. The stream is packets of
 `[id][handler slot][dims][payload]` terminated by `0xFFFFFFFF`. Geometry is
 solved for the `0x38` (triangle) and `0x78` (quad) families; texture
 coordinates and the remaining 21 families are open.

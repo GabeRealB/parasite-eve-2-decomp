@@ -24,6 +24,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/tmd_types.h"
 
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
 /// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.period` /
@@ -82,18 +83,9 @@ typedef struct _GpEffLineScratch {
 } GpEffLineScratch;
 STATIC_ASSERT_SIZEOF(GpEffLineScratch, 0x20);
 
-/// Typed view of an extracted model rest pose; its encoded words stay in assets.
-typedef union {
-    TmdBone bone;
-    u32     words[9];
-} GpEffectRestPose;
-STATIC_ASSERT_SIZEOF(GpEffectRestPose, 0x24);
-
 extern GpEffRec D_8011291C[];
 
 extern GpEffSprRec Gp_EffSprRecs[];
-
-extern GpEffectRestPose D_80111ED0;
 
 extern u32 D_80111EF4[1];
 
@@ -103,8 +95,6 @@ extern SVECTOR D_80111F28[4];
 
 extern u32 D_80111F48[32];
 
-extern GpEffectRestPose D_80111FEC;
-
 extern u32 D_80112010[1];
 
 extern SVECTOR D_80112014[6];
@@ -112,8 +102,6 @@ extern SVECTOR D_80112014[6];
 extern SVECTOR D_80112044[4];
 
 extern u32 D_80112064[32];
-
-extern GpEffectRestPose D_80112108;
 
 extern u32 D_8011212C[1];
 
@@ -123,8 +111,6 @@ extern SVECTOR D_80112160[4];
 
 extern u32 D_80112180[32];
 
-extern GpEffectRestPose D_80112224;
-
 extern u32 D_80112248[1];
 
 extern SVECTOR D_8011224C[6];
@@ -132,8 +118,6 @@ extern SVECTOR D_8011224C[6];
 extern SVECTOR D_8011227C[4];
 
 extern u32 D_8011229C[32];
-
-extern GpEffectRestPose D_80112340;
 
 extern u32 D_80112364[1];
 
@@ -3221,9 +3205,9 @@ void Gp_EffSprTask53(Task* arg0)
     }
 }
 
-GpEffectRestPose D_80111ED0 = { .words = {
+TmdBone D_80111ED0[1] = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
-                                } };
+};
 u32 D_80111EF4[1] = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
@@ -3236,10 +3220,10 @@ SVECTOR D_80111F28[4] = {
 u32 D_80111F48[32] = {
 #include "assets/gameplay_effect_80111fc8_packets.inc"
 };
-TmdSource        D_80111FC8 = { 0, 196, 0, 1, D_80111EF4, D_80111EF8, D_80111F28, &D_80111ED0.bone, D_80111F48 };
-GpEffectRestPose D_80111FEC = { .words = {
+TmdSource D_80111FC8    = { 0, 196, 0, 1, D_80111EF4, D_80111EF8, D_80111F28, D_80111ED0, D_80111F48 };
+TmdBone   D_80111FEC[1] = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
-                                } };
+};
 u32 D_80112010[1] = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
@@ -3252,10 +3236,10 @@ SVECTOR D_80112044[4] = {
 u32 D_80112064[32] = {
 #include "assets/gameplay_effect_801120e4_packets.inc"
 };
-TmdSource        D_801120E4 = { 0, 196, 0, 1, D_80112010, D_80112014, D_80112044, &D_80111FEC.bone, D_80112064 };
-GpEffectRestPose D_80112108 = { .words = {
+TmdSource D_801120E4    = { 0, 196, 0, 1, D_80112010, D_80112014, D_80112044, D_80111FEC, D_80112064 };
+TmdBone   D_80112108[1] = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
-                                } };
+};
 u32 D_8011212C[1] = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
@@ -3268,10 +3252,10 @@ SVECTOR D_80112160[4] = {
 u32 D_80112180[32] = {
 #include "assets/gameplay_effect_80112200_packets.inc"
 };
-TmdSource        D_80112200 = { 0, 196, 0, 1, D_8011212C, D_80112130, D_80112160, &D_80112108.bone, D_80112180 };
-GpEffectRestPose D_80112224 = { .words = {
+TmdSource D_80112200    = { 0, 196, 0, 1, D_8011212C, D_80112130, D_80112160, D_80112108, D_80112180 };
+TmdBone   D_80112224[1] = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
-                                } };
+};
 u32 D_80112248[1] = {
 #include "assets/gameplay_effect_80111fc8_part_vertices.inc"
 };
@@ -3284,10 +3268,10 @@ SVECTOR D_8011227C[4] = {
 u32 D_8011229C[32] = {
 #include "assets/gameplay_effect_8011231c_packets.inc"
 };
-TmdSource        D_8011231C = { 0, 196, 0, 1, D_80112248, D_8011224C, D_8011227C, &D_80112224.bone, D_8011229C };
-GpEffectRestPose D_80112340 = { .words = {
+TmdSource D_8011231C    = { 0, 196, 0, 1, D_80112248, D_8011224C, D_8011227C, D_80112224, D_8011229C };
+TmdBone   D_80112340[1] = {
 #include "assets/gameplay_effect_80111fc8_rest_pose.inc"
-                                } };
+};
 u32 D_80112364[1] = {
 #include "assets/gameplay_effect_801124b8_part_vertices.inc"
 };
@@ -3300,7 +3284,7 @@ SVECTOR D_801123A8[10] = {
 u32 D_801123F8[48] = {
 #include "assets/gameplay_effect_801124b8_packets.inc"
 };
-TmdSource D_801124B8     = { 0, 312, 0, 1, D_80112364, D_80112368, D_801123A8, &D_80112340.bone, D_801123F8 };
+TmdSource D_801124B8     = { 0, 312, 0, 1, D_80112364, D_80112368, D_801123A8, D_80112340, D_801123F8 };
 SVECTOR   D_801124DC[34] = {
     { 0, 0, 0, 0 },
     { 0, 384, 96, 0 },

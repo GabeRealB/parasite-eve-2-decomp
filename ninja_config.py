@@ -226,7 +226,7 @@ GEN_ANIMATION_INC = TOOLS_DIR / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "gen_collision_inc.py"
 
 
-def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
+def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     """(extracted file, generated initializer) for every catalogued embedded
     asset marked `include`: an asset a unit defines in its own C data, whose
     bytes come from the user's extraction rather than from git."""
@@ -244,7 +244,7 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int]]:
             # where only `.tmd` differs from its own name.
             type_dir = {".tmd": "model"}.get(rec["ext"], rec["ext"].lstrip("."))
             raw = ASSETS_DIR / version / "raw" / type_dir / f"{aid}{rec['ext']}"
-            width = {True: 1, "u8": 1, "u16": 2, "u32": 4}[rec["include"]]
+            width = {True: 1, "u8": 1, "u16": 2, "u32": 4, "TmdBone": "TmdBone"}[rec["include"]]
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
     return out
 
@@ -1180,7 +1180,8 @@ def ninja_build(
     for raw, inc, width in asset_includes(version):
         for writer in asset_writers:
             writer.build(
-                outputs=str(inc), rule="asset-inc", inputs=str(raw), implicit=[str(GEN_ASSET_INC)],
+                outputs=str(inc), rule="asset-inc", inputs=str(raw),
+                implicit=[str(GEN_ASSET_INC)] + ([str(GEN_MODEL_INC)] if width == "TmdBone" else []),
                 variables={"width": str(width)},
             )
         ASSET_INC_OUTPUTS.append(str(inc))
