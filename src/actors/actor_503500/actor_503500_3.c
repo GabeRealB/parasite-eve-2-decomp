@@ -248,9 +248,9 @@ Actor5035003Storage6574 D_actor_503500_80176574 = { 0 };
 
 u16 D_actor_503500_80176D64[18] = { 0 };
 
-Actor503500Work160 D_actor_503500_80176D88 = { 0 };
+Actor503500Work160 D_actor_503500_80176D88;
 
-Actor503500Work2EC D_actor_503500_80176EE8[2] = { 0 };
+Actor503500Work2EC D_actor_503500_80176EE8[2];
 
 static inline void func_actor_503500_SetBossState(Task* arg0, s16 state);
 static void        func_actor_503500_801360A4(s32 arg0, s16 arg1);

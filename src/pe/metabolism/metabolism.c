@@ -60,7 +60,7 @@ static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
 /// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
 /// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
-static s16 D_metabolism_8012FB78[16] = { 0 };
+static s16 D_metabolism_8012FB78[16];
 
 static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 

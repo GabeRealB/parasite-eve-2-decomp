@@ -2692,7 +2692,7 @@ u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
     0xD086,
 };
 
-s32 D_shelter_b3_dumping_hole_8018F4D8 = 0;
+s32 D_shelter_b3_dumping_hole_8018F4D8;
 
 static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y);
 static u16        func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,

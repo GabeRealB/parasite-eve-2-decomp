@@ -1513,11 +1513,11 @@ GpRoomParamRec * D_neo_ark_submarine_tunnel_801878EC[8] = {
 
 OverlayWaveCtx * D_neo_ark_submarine_tunnel_8018790C = NULL;
 
-OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13] = { 0 };
+OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13];
 
-OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32] = { 0 };
+OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187960[32];
 
-OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20 = { 0 }; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
+OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
 /// into `D_80115734`, `D_80115730` and `D_80115754` and then idles; the burst
 /// task below spawns its effects from `D_80115730`.
 void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)

@@ -2015,9 +2015,9 @@ static u8 CapCaption_Data_8015E66C[4] = {
     0,
 };
 
-Actor215100StorageE670 D_actor_215100_8015E670 = { 0 };
+Actor215100StorageE670 D_actor_215100_8015E670;
 
-Actor215100CharRec D_actor_215100_8015E678 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+Actor215100CharRec D_actor_215100_8015E678;
 
 static void func_actor_215100_8014A398(void);
 static void func_actor_215100_8014A908(void);

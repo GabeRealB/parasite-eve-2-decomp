@@ -579,9 +579,9 @@ OverlayWaveRec D_shelter_b6_corridor_801805BC[30] = { 0 };
 
 ShelterB6CorridorStorage06AC D_shelter_b6_corridor_801806AC = { { 0 }, { 0 } };
 
-ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0 = { 0, { 0, 0, 0, 0, 0, 0 } };
+ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
-s32 D_shelter_b6_corridor_801851B8 = 0;
+s32 D_shelter_b6_corridor_801851B8;
 
 static void func_shelter_b6_corridor_8017E064(Task* arg0);
 static void func_shelter_b6_corridor_8017E12C(Task* task);

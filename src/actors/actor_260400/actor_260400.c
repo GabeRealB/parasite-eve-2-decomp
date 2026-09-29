@@ -988,11 +988,11 @@ u8 D_actor_260400_80154C30[64] = {
     148, 242, 20, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-Actor260400Work * D_actor_260400_80154C70 = NULL;
+Actor260400Work * D_actor_260400_80154C70;
 
-Task * D_actor_260400_80154C74 = NULL;
+Task* D_actor_260400_80154C74;
 
-s16 D_actor_260400_80154C78 = 0;
+s16 D_actor_260400_80154C78;
 
 static void func_actor_260400_80149E38(void);
 static void func_actor_260400_80149FA4(void);

@@ -1,0 +1,10 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -602,5 +602,5 @@
+-                # only mark bss symbols as global
+-                if section == "bss":
++                # Preserve .lcomm's local binding for static BSS objects.
++                if section == "bss" and symbol in self.comm_symbols:
+                     res.append(
+                         f"\t.globl {symbol}",
+                     )

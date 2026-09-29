@@ -412,14 +412,15 @@ typedef struct {
 } Actor5035004Storage8AC0;
 STATIC_ASSERT_SIZEOF(Actor5035004Storage8AC0, 1104);
 
-extern Actor5035004Storage8AC0 D_actor_503500_80178AC0;
-
 static void func_actor_503500_80143F78(Task* arg0);
 static void func_actor_503500_8014473C(Task* arg0);
 static void func_actor_503500_80144DA8(Task* arg0);
 
-extern Actor503500Work3D8 D_actor_503500_80177B60[];
 static void               func_actor_503500_80141D04(Task* arg0);
+
+extern Actor503500Work3D8 D_actor_503500_80177B60[];
+
+extern Actor5035004Storage8AC0 D_actor_503500_80178AC0;
 
 /// Knock-back work block of `func_actor_503500_80143AC0`.
 extern Actor503500Work38 D_actor_503500_80178F10;
@@ -465,11 +466,11 @@ Actor503500Work774C0 D_actor_503500_8017797C = { 0 };
 
 Actor503500WorkF4 D_actor_503500_80177A6C = { 0 };
 
-Actor503500Work3D8 D_actor_503500_80177B60[4] = { 0 };
+Actor503500Work3D8 D_actor_503500_80177B60[4];
 
-Actor5035004Storage8AC0 D_actor_503500_80178AC0 = { 0 };
+Actor5035004Storage8AC0 D_actor_503500_80178AC0;
 
-Actor503500Work38 D_actor_503500_80178F10 = { 0 };
+Actor503500Work38 D_actor_503500_80178F10;
 
 static void func_actor_503500_8013D1CC(Task* arg0);
 static void func_actor_503500_8013D558(Task* arg0);

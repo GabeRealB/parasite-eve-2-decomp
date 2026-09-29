@@ -411,9 +411,9 @@ Actor403600Pair D_actor_403600_801606B8 = { .fields = { 0, 0 } };
 
 Actor4036002Storage06BC D_actor_403600_801606BC = { 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-Actor4036002Storage06E0 D_actor_403600_801606E0 = { 0 };
+Actor4036002Storage06E0 D_actor_403600_801606E0;
 
-GpViewRec D_actor_403600_80160700 = { 0 };
+GpViewRec D_actor_403600_80160700;
 
 static s32             func_actor_403600_80138D9C(s16* arg0);
 static __inline__ u8*  _actor403600ProjectDepth(GpCoord* coord);

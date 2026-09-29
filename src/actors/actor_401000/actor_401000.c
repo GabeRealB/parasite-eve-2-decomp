@@ -314,8 +314,6 @@ extern GpAnimSet D_actor_401000_80154634;
 /// when the actor's live-actor flag goes up.
 extern GpAnimArg D_actor_401000_80154F1C;
 
-extern GpDelayArg D_actor_401000_80155038;
-
 /// Animation blocks selected for the grab by the player-character flag.
 extern GpAnimSet* D_actor_401000_80154F00[7];
 
@@ -348,8 +346,6 @@ typedef struct {
 } Actor401000Storage5018;
 STATIC_ASSERT_SIZEOF(Actor401000Storage5018, 32);
 
-extern Actor401000Storage5018 D_actor_401000_80155018;
-
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401000_8013B1E4`.
 
@@ -374,6 +370,10 @@ static void func_actor_401000_8013DF6C(Task* arg0);
 
 /// Integer part of the last delta `func_actor_401000_801323EC` resolved.
 extern SVECTOR D_actor_401000_80155010;
+
+extern Actor401000Storage5018 D_actor_401000_80155018;
+
+extern GpDelayArg D_actor_401000_80155038;
 
 /// Transition table the clip change seeks through: one byte per
 /// (playing clip, requested clip) pair, 0x2D requested clips to a row.
@@ -1402,11 +1402,11 @@ u16 D_actor_401000_80155000 = 0;
 
 TaskDesc D_actor_401000_80155004 = { 257, 96, func_actor_401000_8013E038, { .model = &D_actor_401000_80143614 } };
 
-SVECTOR D_actor_401000_80155010 = { 0 };
+SVECTOR D_actor_401000_80155010;
 
-Actor401000Storage5018 D_actor_401000_80155018 = { 0 };
+Actor401000Storage5018 D_actor_401000_80155018;
 
-GpDelayArg D_actor_401000_80155038 = { 0 };
+GpDelayArg D_actor_401000_80155038;
 
 static void            func_actor_401000_801320E0(GpCoord* coord, s16 yaw);
 static s32             func_actor_401000_801323EC(GpCoord* coord, GpRec18* recs, s16 count);

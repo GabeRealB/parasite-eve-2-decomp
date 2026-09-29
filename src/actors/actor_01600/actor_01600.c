@@ -1508,7 +1508,7 @@ s32 Actor01600_D12874 = 0;
 
 Actor01600DelayArg Actor01600_D12878 = { { { .ptr = Actor01600_D127C8 }, 0, 0, 0, 0 }, 1 };
 
-GpXformArg Actor01600_D12890 = { 0 };
+GpXformArg Actor01600_D12890;
 
 static __inline__ void update_actor_color(GpEnemy* ctx, GpCoord* attach);
 

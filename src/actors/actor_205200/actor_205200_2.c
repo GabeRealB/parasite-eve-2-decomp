@@ -383,13 +383,13 @@ GpAnimSet * D_actor_205200_80156800[5] = {
 
 OverlayWaveCtx * D_actor_205200_80156814 = NULL;
 
-OverlayWaveRec D_actor_205200_80156818[10] = { 0 };
+OverlayWaveRec D_actor_205200_80156818[10];
 
-OverlayWaveRec D_actor_205200_80156868[30] = { 0 };
+OverlayWaveRec D_actor_205200_80156868[30];
 
-POLY_FT4 D_actor_205200_80156958[2][30][8] = { 0 };
+POLY_FT4 D_actor_205200_80156958[2][30][8];
 
-OverlayWaveCtx D_actor_205200_8015B458 = { 0 };
+OverlayWaveCtx D_actor_205200_8015B458;
 
 /// Spawn handler: allocates the work block, binds the model's matrices to it,
 /// starts animation slots 1..18 and links the two render objects, whose

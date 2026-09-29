@@ -1124,7 +1124,7 @@ Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-u8 Actor01100_D15670 = 0;
+u8 Actor01100_D15670;
 
 static s32             Actor01100_Fn000E8(GpCoord* coord, GpRec18* recs, s16 count);
 static s32             Actor01100_Fn00430(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);

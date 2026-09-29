@@ -744,9 +744,9 @@ GpEvsCmd D_actor_450900_80136BD8[8] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-s32 D_actor_450900_80136C98 = 0;
+s32 D_actor_450900_80136C98;
 
-Task * D_actor_450900_80136C9C = NULL;
+Task* D_actor_450900_80136C9C;
 
 static void func_actor_450900_801327A8(void);
 static void func_actor_450900_80132834(void);

@@ -1131,17 +1131,17 @@ u8 D_actor_420700_8013EF8C[84] = {
     128,
 };
 
-Actor420700Work * D_actor_420700_8013EFE0 = NULL;
+Actor420700Work * D_actor_420700_8013EFE0;
 
-Task * D_actor_420700_8013EFE4 = NULL;
+Task* D_actor_420700_8013EFE4;
 
-Task * D_actor_420700_8013EFE8 = NULL;
+Task* D_actor_420700_8013EFE8;
 
-Task * D_actor_420700_8013EFEC = NULL;
+Task* D_actor_420700_8013EFEC;
 
-s32 D_actor_420700_8013EFF0 = 0;
+s32 D_actor_420700_8013EFF0;
 
-s32 D_actor_420700_8013EFF4 = 0;
+s32 D_actor_420700_8013EFF4;
 
 static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task);
 static void func_actor_420700_80132064(GpEnemy* enemy, Task* task);

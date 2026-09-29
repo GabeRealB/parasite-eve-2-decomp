@@ -1232,7 +1232,7 @@ u8 D_dryfield_saloon_g_r_80181BE4[4] = {
     0,
 };
 
-RoomEventReq D_dryfield_saloon_g_r_80181BE8 = { 0 };
+RoomEventReq D_dryfield_saloon_g_r_80181BE8;
 
 static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 

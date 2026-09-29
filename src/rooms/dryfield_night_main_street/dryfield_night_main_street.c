@@ -3745,9 +3745,9 @@ RoomEventMsg D_dryfield_night_main_street_80188BBC = { 0 };
 
 u8 D_dryfield_night_main_street_80188BC4 = 0;
 
-DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8 = { { 0 }, { 0 } };
+DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8;
 
-RoomEventReq D_dryfield_night_main_street_80188BD8 = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq D_dryfield_night_main_street_80188BD8;
 
 static s32  func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);

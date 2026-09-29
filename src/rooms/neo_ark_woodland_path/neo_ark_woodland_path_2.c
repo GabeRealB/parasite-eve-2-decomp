@@ -266,13 +266,7 @@ TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
 
 GpCmdArg D_neo_ark_woodland_path_80184A5C = { { .loc = { 0, 0 } }, 0 };
 
-u16 D_neo_ark_woodland_path_80184A60[5] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-};
+u16 D_neo_ark_woodland_path_80184A60[5];
 
 static void func_neo_ark_woodland_path_801814D4(Task* arg0);
 

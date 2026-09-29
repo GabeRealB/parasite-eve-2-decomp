@@ -2135,9 +2135,9 @@ GpAreaApplyRec D_neo_ark_observatory_80187A28[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomDeparture D_neo_ark_observatory_80187A30 = { 0 };
+RoomDeparture D_neo_ark_observatory_80187A30;
 
-s16 D_neo_ark_observatory_80187A3C = 0;
+s16 D_neo_ark_observatory_80187A3C;
 
 static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve);
 static void            func_neo_ark_observatory_8017FCE0(Task* arg0);

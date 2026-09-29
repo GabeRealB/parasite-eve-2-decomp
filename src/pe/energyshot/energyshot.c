@@ -58,11 +58,11 @@ static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// `func_energyshot_8012FA50`, where each is added to `gDisplayState.animFrame`
 /// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
 /// texture.
-static s16 D_energyshot_80130108[16] = { 0 };
+static s16 D_energyshot_80130108[16];
 /// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
 /// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
 /// draw. States 1 and 2 pass one yaw per frame to `func_energyshot_8012F750`.
-static s16 D_energyshot_80130128[16] = { 0 };
+static s16 D_energyshot_80130128[16];
 
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or

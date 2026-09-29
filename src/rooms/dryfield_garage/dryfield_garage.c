@@ -1040,7 +1040,7 @@ u8 D_dryfield_garage_8018022C[4] = {
     253,
 };
 
-RoomEventReq D_dryfield_garage_80180230 = { 0 };
+RoomEventReq D_dryfield_garage_80180230;
 
 static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 

@@ -1,9 +1,12 @@
+#include "types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+s32 D_mine_cavern_8018EB50;
+
 #include "rooms/mine_cavern.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-
-#include "types.h"
 
 #include "mine_cavern_private.h"
 
@@ -37,7 +40,6 @@
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskDesc D_mine_cavern_8018E3F4;
-extern s32      D_mine_cavern_8018EB50;
 
 u16 D_mine_cavern_8018E360 = 6016;
 
@@ -191,13 +193,11 @@ TaskDesc D_mine_cavern_8018EB38[2] = {
     { 1, 96, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
 };
 
-s32 D_mine_cavern_8018EB50 = 0;
+s32 D_mine_cavern_8018EB54;
 
-s32 D_mine_cavern_8018EB54 = 0;
+s32 D_mine_cavern_8018EB58;
 
-s32 D_mine_cavern_8018EB58 = 0;
-
-u16 D_mine_cavern_8018EB5C = 0;
+u16 D_mine_cavern_8018EB5C;
 
 /// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
 

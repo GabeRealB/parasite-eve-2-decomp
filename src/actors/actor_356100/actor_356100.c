@@ -712,9 +712,9 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 GpEffArg D_actor_356100_801732A8 = { NULL, 0, 0 };
 
-Actor356100Storage32B0 D_actor_356100_801732B0 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+Actor356100Storage32B0 D_actor_356100_801732B0;
 
-GpDelayArg D_actor_356100_801732D0 = { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 };
+GpDelayArg D_actor_356100_801732D0;
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
 /// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two

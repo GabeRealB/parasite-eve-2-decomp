@@ -432,10 +432,26 @@ def _ensure_maspsx_bss_align_patch() -> None:
     print(f"Applied {patch.name} to tools/maspsx")
 
 
+def _ensure_maspsx_bss_local_patch() -> None:
+    """Keep static (.lcomm) BSS symbols local when maspsx emits their storage."""
+    import subprocess
+
+    sub = TOOLS_DIR / "maspsx"
+    patch = (TOOLS_DIR / "maspsx-bss-local.patch").resolve()
+    marker = sub / "maspsx" / "__init__.py"
+    if not patch.is_file() or not marker.is_file():
+        return
+    if "Preserve .lcomm's local binding" in marker.read_text():
+        return
+    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
+    print(f"Applied {patch.name} to tools/maspsx")
+
+
 _ensure_maspsx_patch()
 _ensure_maspsx_label_patch()
 _ensure_maspsx_li_d_patch()
 _ensure_maspsx_bss_align_patch()
+_ensure_maspsx_bss_local_patch()
 match PLATFORM:
     case Platform.Windows:
         BINUTILS_DIR = OS_DIR / "binutils"
@@ -1120,7 +1136,7 @@ def ninja_build(
     for spec in overlay_manifest.values():
         for package, slot, entry in slot_packages(spec):
             objects = slot.get("objects") or entry["objects"]
-            if any("bss" in obj for obj in objects):
+            if any("bss_size" in obj for obj in objects):
                 raw = (ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg").read_bytes()
                 serialized_bss_tail(package, objects, raw)
                 serialized_bss_sizes[package] = len(raw)

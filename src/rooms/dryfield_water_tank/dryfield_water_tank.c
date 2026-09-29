@@ -1,3 +1,12 @@
+#include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+s32 D_dryfield_water_tank_80188D48;
+
+Task* D_dryfield_water_tank_80188D4C;
+
 #include "rooms/dryfield_water_tank.h"
 
 #include <psyq/sys/types.h>
@@ -43,7 +52,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
@@ -130,8 +138,6 @@ extern GpEvsCmd       D_dryfield_water_tank_801859DC[];
 extern TaskDesc       D_dryfield_water_tank_801868A4[];
 extern GpAreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern Task*          D_dryfield_water_tank_80188D44;
-extern s32            D_dryfield_water_tank_80188D48;
-extern Task*          D_dryfield_water_tank_80188D4C;
 
 static void func_dryfield_water_tank_8017DB48(void);
 
@@ -1184,11 +1190,7 @@ GpAreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
 
 Task * D_dryfield_water_tank_80188D44 = NULL;
 
-s32 D_dryfield_water_tank_80188D48 = 0;
-
-Task * D_dryfield_water_tank_80188D4C = NULL;
-
-Task * D_dryfield_water_tank_80188D50 = NULL;
+Task* D_dryfield_water_tank_80188D50;
 
 static void func_dryfield_water_tank_8017D9D4(Task* task);
 static void func_dryfield_water_tank_8017DA4C(Task* task);

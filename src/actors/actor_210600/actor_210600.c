@@ -429,7 +429,7 @@ GpAnimSet D_actor_210600_8015D2E8 = {
     { NULL, D_actor_210600_8015CF54.words, NULL, NULL, D_actor_210600_8015CFA8, NULL, NULL, NULL },
 };
 
-static SVECTOR ActorContact_ScratchPosition = { 0 };
+static SVECTOR ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {

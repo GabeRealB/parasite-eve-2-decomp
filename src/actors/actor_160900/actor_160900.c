@@ -118,8 +118,6 @@ typedef struct Actor160900Child3Work {
 } Actor160900Child3Work;
 STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
 
-extern Task* D_actor_160900_8013FBB4;
-
 /// The overlay's task table. Entry 0 is `func_actor_160900_8013418C`, which
 /// spawns entries 3, 5 and 6 into `Actor160900Work`; entries 1 and 2 are
 /// spawned by `func_actor_160900_801346B0` / `func_actor_160900_801346E0`.
@@ -154,9 +152,12 @@ extern s32 D_actor_160900_8013F194;
 /// the tick reads the ramp through it.
 extern OverlayWaveCtx* D_actor_160900_8013FBB0;
 
+extern Task* D_actor_160900_8013FBB4;
+
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
 extern OverlayWaveRec6 D_actor_160900_8013FBB8[13];
+
 extern OverlayWaveRec6 D_actor_160900_8013FC08[30];
 
 extern TmdSource D_actor_160900_801393B8;
@@ -948,13 +949,13 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { 2, 192, func_actor_160900_80132E80, { .model = NULL } },
 };
 
-OverlayWaveCtx * D_actor_160900_8013FBB0 = NULL;
+OverlayWaveCtx * D_actor_160900_8013FBB0;
 
-Task * D_actor_160900_8013FBB4 = NULL;
+Task* D_actor_160900_8013FBB4;
 
-OverlayWaveRec6 D_actor_160900_8013FBB8[13] = { 0 };
+OverlayWaveRec6 D_actor_160900_8013FBB8[13];
 
-OverlayWaveRec6 D_actor_160900_8013FC08[30] = { 0 };
+OverlayWaveRec6 D_actor_160900_8013FC08[30];
 
 extern u8 D_actor_160900_8013F240[];
 

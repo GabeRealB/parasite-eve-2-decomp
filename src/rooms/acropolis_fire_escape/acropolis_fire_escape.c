@@ -749,11 +749,11 @@ GpRoomParamRec* D_acropolis_fire_escape_80183020[8] = {
     D_acropolis_fire_escape_80182FF8,
 };
 
-s32 D_acropolis_fire_escape_80183040 = 0;
+s32 D_acropolis_fire_escape_80183040;
 
-Task* D_acropolis_fire_escape_80183044 = NULL;
+Task* D_acropolis_fire_escape_80183044;
 
-RoomCutsceneRec D_acropolis_fire_escape_80183048 = { 0 };
+RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
 #include "../../shared/telephone.inc.c"
 

@@ -2413,11 +2413,11 @@ GpRoomParamRec * D_acropolis_patio_8018703C[9] = {
     NULL,
 };
 
-Task * D_acropolis_patio_80187060 = NULL;
+Task* D_acropolis_patio_80187060;
 
-u8 D_acropolis_patio_80187064 = 0;
+u8 D_acropolis_patio_80187064;
 
-u8 D_acropolis_patio_80187065 = 0;
+u8 D_acropolis_patio_80187065;
 
 /// Room entry task tick. Publishes the room's own record at
 /// `Task::msgTable` / pointer slot 7, then re-issues the messages the room's

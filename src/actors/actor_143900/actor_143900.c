@@ -1266,9 +1266,9 @@ s16 D_actor_143900_801496C0[2] = {
 
 Actor461800Work * D_actor_143900_801496C4 = NULL;
 
-Task * D_actor_143900_801496C8 = NULL;
+Task* D_actor_143900_801496C8;
 
-s16 D_actor_143900_801496CC = 0;
+s16 D_actor_143900_801496CC;
 
 static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task);
 static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task);

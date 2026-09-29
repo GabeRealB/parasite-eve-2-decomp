@@ -619,7 +619,7 @@ s8 D_shelter_b1_south_maintenance_walkway_80183644[4] = {
     -36,
 };
 
-RoomLatchedEvent D_shelter_b1_south_maintenance_walkway_80183648 = { 0 };
+RoomLatchedEvent D_shelter_b1_south_maintenance_walkway_80183648;
 
 static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event);

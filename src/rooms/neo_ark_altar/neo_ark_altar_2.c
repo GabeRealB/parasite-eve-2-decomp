@@ -648,7 +648,7 @@ GpAreaApplyRec D_neo_ark_altar_801800A0[3] = {
 
 s16 D_neo_ark_altar_801800AC = 0;
 
-s16 D_neo_ark_altar_801800B0[16] = { 0 };
+s16 D_neo_ark_altar_801800B0[16];
 
 static void func_neo_ark_altar_8017ED60(Task* task);
 

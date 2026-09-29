@@ -1,3 +1,21 @@
+#include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+Task* D_dryfield_night_motel_lobby_801844D0;
+
+s32 D_dryfield_night_motel_lobby_801844D4;
+
+/// The seven digits of the lobby keypad code as entered so far, most recent
+/// first at index 0; `0xA` marks a slot the player has not filled. The room's
+/// init resets all seven to `0xA`,
+/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in at index 0
+/// (its own count of digits entered is bounded by 7) and
+/// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
+/// the code. The datum's eighth byte is padding before the cap script.
+u8 D_dryfield_night_motel_lobby_801844D8[7];
+
 #include "rooms/dryfield_night_motel_lobby.h"
 
 #include <psyq/sys/types.h>
@@ -40,7 +58,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 
 #include "overlay.h"
 
@@ -58,15 +75,6 @@ extern GpAreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 
 /// World-space points of the markers `func_dryfield_night_motel_lobby_801812F8`
 /// draws; the second name is the same run from its second entry.
-
-/// The seven digits of the lobby keypad code as entered so far, most recent
-/// first at index 0; `0xA` marks a slot the player has not filled. The room's
-/// init resets all seven to `0xA`,
-/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in at index 0
-/// (its own count of digits entered is bounded by 7) and
-/// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
-/// the code. The datum's eighth byte is padding before the cap script.
-extern u8 D_dryfield_night_motel_lobby_801844D8[7];
 
 static s16  func_dryfield_night_motel_lobby_80180734(void);
 static void func_dryfield_night_motel_lobby_80180C20(s32 x, s32 y, s32 variant);
@@ -734,13 +742,7 @@ GpAreaApplyRec D_dryfield_night_motel_lobby_801844AC[8] = {
 
 Task * D_dryfield_night_motel_lobby_801844CC = NULL;
 
-Task * D_dryfield_night_motel_lobby_801844D0 = NULL;
-
-s32 D_dryfield_night_motel_lobby_801844D4 = 0;
-
-u8 D_dryfield_night_motel_lobby_801844D8[7] = { 0 };
-
-RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0 = { 0 };
+RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
 static void func_dryfield_night_motel_lobby_801807C0(Task* task);
 

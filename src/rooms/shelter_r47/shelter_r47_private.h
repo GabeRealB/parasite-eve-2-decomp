@@ -10,10 +10,7 @@
 #include "rooms/room.h"
 
 extern Task* D_shelter_r47_8018A68C;
-/// Task spawned by the room's cap script; polled and cleared by
-/// `func_shelter_r47_80180714`.
-extern Task*           D_shelter_r47_8018A690;
-extern RoomCutsceneRec D_shelter_r47_8018A698;
+
 /// Hotspot tables of the second cap script; `spawnArg1` 2 selects the second.
 extern OverlayHotspot D_shelter_r47_8018739C[];
 extern OverlayHotspot D_shelter_r47_801873D8[];
@@ -100,15 +97,21 @@ typedef struct {
 } ShelterR47State2;
 STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
+/// Task spawned by the room's cap script; polled and cleared by
+/// `func_shelter_r47_80180714`.
+extern Task*           D_shelter_r47_8018A690;
+
+extern u8 D_shelter_r47_8018A694;
+
+extern u8 D_shelter_r47_8018A695;
+
 /// Latches set the first time the second cap script's hotspots 2 and 3 play
 /// their one-off cap events.
 extern u8 D_shelter_r47_8018A696;
 
 extern u8 D_shelter_r47_8018A697;
 
-extern u8 D_shelter_r47_8018A694;
-
-extern u8 D_shelter_r47_8018A695;
+extern RoomCutsceneRec D_shelter_r47_8018A698;
 
 extern u8 D_shelter_r47_80186FAC[5];
 

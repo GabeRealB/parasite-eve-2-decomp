@@ -1450,9 +1450,9 @@ u8 D_shelter_b1_main_corridor_80185D44[4] = {
     0,
 };
 
-ShelterB1MainCorridorStorage5D48 D_shelter_b1_main_corridor_80185D48 = { { 0 }, { 0 } };
+ShelterB1MainCorridorStorage5D48 D_shelter_b1_main_corridor_80185D48;
 
-RoomLatchedEvent D_shelter_b1_main_corridor_80185D68 = { 0, 0, 0, 0 };
+RoomLatchedEvent D_shelter_b1_main_corridor_80185D68;
 
 static s32            func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);

@@ -42,6 +42,9 @@
 #       on the last unit says its data runs to the image's last byte, where a
 #       package ends part-way through a word; without it the generator covers
 #       that partial word with a segment of its own.
+#       `bss` places a unit's uninitialized globals in a stored zero run, at
+#       an eight-byte boundary. These bytes remain in the loaded image: the
+#       overlay loader does not clear BSS separately.
 #       A terminal runtime allocation may instead declare bss and bss_size.
 #       Its verified zero prefix is serialized to the original package size;
 #       the full allocation remains in C BSS, including any unstored tail.
@@ -1114,7 +1117,7 @@ objects = [
   { kind = "packageId" },
   { kind = "animation", at = "0x172C", sets = ["0x18A0", "0x1B48", "0x1CE4", "0x22B8", "0x2AD0", "0x2CA4"], in_c = true },
   { kind = "animation", at = "0x39F4", sets = ["0x3CD0", "0x4470", "0x494C", "0x4FC8"], in_c = true },
-  { unit = "acropolis_patio/acropolis_patio", rodata = "0x4", text = "0x2C", data = "0x172C", tail = true },
+  { unit = "acropolis_patio/acropolis_patio", rodata = "0x4", text = "0x2C", data = "0x172C", bss = "0x9AA0", tail = true },
 ]
 
 [rooms.overlays.acropolis_cafeteria]
@@ -1156,7 +1159,7 @@ id = 290
 text = ["0xEC", "0x501C"]
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_security_room/acropolis_security_room", rodata = "0x4", text = "0xEC", data = "0x501C" },
+  { unit = "acropolis_security_room/acropolis_security_room", rodata = "0x4", text = "0xEC", data = "0x501C", bss = "0x7FE8" },
   { kind = "model", at = "0x7A00", in_c = true },
   { kind = "modelSource", at = "0x7FC4", in_c = true },
 ]
@@ -1193,8 +1196,8 @@ objects = [
 id = 294
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58", data = "0x11F8" },
-  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8", data = "0x121C" },
+  { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58", data = "0x11F8", bss = "0x1218" },
+  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8", data = "0x121C", bss = "0x28A0" },
   { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC", data = "0x28A4" },
   { kind = "animation", at = "0x250C", sets = ["0x2878"], in_c = true },
 ]
@@ -1205,7 +1208,7 @@ id = 295
 text = ["0x24", "0x2844"]
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_promenade/acropolis_promenade", rodata = "0x4", text = "0x24", data = "0x2844" },
+  { unit = "acropolis_promenade/acropolis_promenade", rodata = "0x4", text = "0x24", data = "0x2844", bss = "0x8D10" },
   { kind = "model", at = "0x2844", in_c = true },
   { kind = "modelSource", at = "0x3890", in_c = true },
 ]
@@ -1227,7 +1230,7 @@ objects = [
 id = 297
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_roof_garden/acropolis_roof_garden", rodata = "0x4", text = "0x14", data = "0x2C20" },
+  { unit = "acropolis_roof_garden/acropolis_roof_garden", rodata = "0x4", text = "0x14", data = "0x2C20", bss = "0x98D8" },
   { kind = "model", at = "0x9810", in_c = true },
   { kind = "modelSource", at = "0x98B0", in_c = true },
   { kind = "animation", at = "0x2C20", sets = ["0x4164", "0x60FC", "0x65F4"], in_c = true },
@@ -1238,7 +1241,7 @@ objects = [
 id = 298
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_bridge/acropolis_bridge", rodata = "0x4", text = "0x134", data = "0xA81C" },
+  { unit = "acropolis_bridge/acropolis_bridge", rodata = "0x4", text = "0x134", data = "0xA81C", bss = "0x141E8" },
   { kind = "model", at = "0x136AC", in_c = true },
   { kind = "modelSource", at = "0x13BDC", in_c = true },
   { kind = "model", at = "0xA81C", in_c = true },
@@ -1250,7 +1253,7 @@ objects = [
 id = 299
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x4", text = "0x110", data = "0x4438" },
+  { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x4", text = "0x110", data = "0x4438", bss = "0x5A80" },
 ]
 
 [rooms.overlays.acropolis_helicopter_landing_pad]
@@ -1284,7 +1287,7 @@ id = 302
 text = ["0x2C", "0x17FC"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_r18/mist_r18", rodata = "0x4", text = "0x2C", data = "0x17FC" },
+  { unit = "mist_r18/mist_r18", rodata = "0x4", text = "0x2C", data = "0x17FC", bss = "0x98D0" },
   { kind = "model", at = "0x17FC", in_c = true },
   { kind = "modelSource", at = "0x1AA4", in_c = true },
   { kind = "model", at = "0x1AC8", in_c = true },
@@ -1315,7 +1318,7 @@ id = 304
 objects = [
   { kind = "packageId" },
   { unit = "mist_shooting_gallery/mist_shooting_gallery", rodata = "0x4", text = "0x6EC", data = "0x7814" },
-  { unit = "mist_shooting_gallery/mist_shooting_gallery_2", rodata = "0x5C0", text = "0x4AA4", data = "0x80F8" },
+  { unit = "mist_shooting_gallery/mist_shooting_gallery_2", rodata = "0x5C0", text = "0x4AA4", data = "0x80F8", bss = "0x10B00" },
   { kind = "model", at = "0x9354", in_c = true },
   { kind = "modelSource", at = "0x9520", in_c = true },
   { kind = "model", at = "0x9544", in_c = true },
@@ -1371,7 +1374,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_gas_station/dryfield_gas_station", rodata = "0x4", text = "0x138", data = "0x4538" },
   { unit = "dryfield_gas_station/dryfield_gas_station_2", rodata = "0xF0", text = "0x2A24" },
-  { unit = "dryfield_gas_station/dryfield_gas_station_3", rodata = "0x11C", text = "0x2E00", data = "0x48BC" },
+  { unit = "dryfield_gas_station/dryfield_gas_station_3", rodata = "0x11C", text = "0x2E00", data = "0x48BC", bss = "0x7610" },
   { kind = "animation", at = "0x48E0", sets = ["0x4A70", "0x5210", "0x55A4", "0x5848"], in_c = true },
 ]
 
@@ -1424,7 +1427,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_warehouse/dryfield_warehouse_2", rodata = "0x10", text = "0x498", data = "0x1F94" },
   { kind = "animation", at = "0x1FC4", sets = ["0x2260"], in_c = true },
-  { unit = "dryfield_warehouse/dryfield_warehouse", rodata = "0x4", text = "0x28", data = "0x4038", tail = true },
+  { unit = "dryfield_warehouse/dryfield_warehouse", rodata = "0x4", text = "0x28", data = "0x4038", bss = "0x4BF8", tail = true },
 ]
 
 [rooms.overlays.dryfield_r08]
@@ -1439,7 +1442,7 @@ objects = [
 id = 314
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house", rodata = "0x4", text = "0x8C", data = "0x6888" },
+  { unit = "dryfield_dilapidated_house/dryfield_dilapidated_house", rodata = "0x4", text = "0x8C", data = "0x6888", bss = "0xC6E0" },
   { kind = "model", at = "0x822C", in_c = true },
   { kind = "modelSource", at = "0x8A40", in_c = true },
   { kind = "model", at = "0x8A64", in_c = true },
@@ -1510,21 +1513,21 @@ objects = [
 id = 322
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_saloon_g_r/dryfield_saloon_g_r", rodata = "0x4", text = "0x28", data = "0x16F0" },
+  { unit = "dryfield_saloon_g_r/dryfield_saloon_g_r", rodata = "0x4", text = "0x28", data = "0x16F0", bss = "0x4628" },
 ]
 
 [rooms.overlays.dryfield_g_r_kitchen]
 id = 323
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen", rodata = "0x4", text = "0x28", data = "0x15F4" },
+  { unit = "dryfield_g_r_kitchen/dryfield_g_r_kitchen", rodata = "0x4", text = "0x28", data = "0x15F4", bss = "0x1FA8" },
 ]
 
 [rooms.overlays.dryfield_water_tower]
 id = 324
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x4", text = "0xB4", data = "0xA0D4" },
+  { unit = "dryfield_water_tower/dryfield_water_tower", rodata = "0x4", text = "0xB4", data = "0xA0D4", bss = "0xA0E0" },
   { unit = "dryfield_water_tower/dryfield_water_tower_2", rodata = "0x28", text = "0x870", data = "0x2DD4" },
   { kind = "model", at = "0x2E30", in_c = true },
   { kind = "modelSource", at = "0x3808", in_c = true },
@@ -1536,7 +1539,7 @@ objects = [
 id = 325
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_water_tank/dryfield_water_tank", rodata = "0x4", text = "0x58", data = "0x73A0" },
+  { unit = "dryfield_water_tank/dryfield_water_tank", rodata = "0x4", text = "0x58", data = "0x73A0", bss = "0xB788" },
   { unit = "dryfield_water_tank/dryfield_water_tank_2", rodata = "0x10", text = "0xE04", data = "0x1B10" },
   { kind = "model", at = "0x856C", in_c = true },
   { kind = "modelSource", at = "0x92C0", in_c = true },
@@ -1550,7 +1553,7 @@ objects = [
 id = 326
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_breezeway/dryfield_breezeway", rodata = "0x4", text = "0x78", data = "0x5984" },
+  { unit = "dryfield_breezeway/dryfield_breezeway", rodata = "0x4", text = "0x78", data = "0x5984", bss = "0x6E00" },
   { unit = "dryfield_breezeway/dryfield_breezeway_2", rodata = "0x28", text = "0x900", data = "0x4814" },
   { kind = "model", at = "0x4B14", in_c = true },
   { kind = "modelSource", at = "0x57DC", in_c = true },
@@ -1572,7 +1575,7 @@ objects = [
 id = 328
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_garage/dryfield_garage", rodata = "0x4", text = "0x28", data = "0x6B0" },
+  { unit = "dryfield_garage/dryfield_garage", rodata = "0x4", text = "0x28", data = "0x6B0", bss = "0x2C70" },
 ]
 
 [rooms.overlays.dryfield_driveway]
@@ -1617,7 +1620,7 @@ objects = [
 id = 333
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_motel_balcony/dryfield_motel_balcony", rodata = "0x4", text = "0x28", data = "0x4CB0" },
+  { unit = "dryfield_motel_balcony/dryfield_motel_balcony", rodata = "0x4", text = "0x28", data = "0x4CB0", bss = "0x9170" },
 ]
 
 [rooms.overlays.dryfield_motel_room_6]
@@ -1626,7 +1629,7 @@ id = 334
 text = ["0x100", "0x5428"]
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_motel_room_6/dryfield_motel_room_6", rodata = "0x4", text = "0x100", data = "0x5428" },
+  { unit = "dryfield_motel_room_6/dryfield_motel_room_6", rodata = "0x4", text = "0x100", data = "0x5428", bss = "0x9268" },
 ]
 
 [rooms.overlays.dryfield_motel_loft]
@@ -1645,7 +1648,7 @@ text = ["0x28", "0x269C"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_water_hole/dryfield_water_hole_2", rodata = "0x10", text = "0x1B58" },
-  { unit = "dryfield_water_hole/dryfield_water_hole", rodata = "0x4", text = "0x28", data = "0x269C", tail = true },
+  { unit = "dryfield_water_hole/dryfield_water_hole", rodata = "0x4", text = "0x28", data = "0x269C", bss = "0x5310", tail = true },
 ]
 
 [rooms.overlays.dryfield_cellar]
@@ -1667,7 +1670,7 @@ objects = [
 id = 339
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_gas_station/dryfield_night_gas_station", rodata = "0x4", text = "0xA0", data = "0x6754" },
+  { unit = "dryfield_night_gas_station/dryfield_night_gas_station", rodata = "0x4", text = "0xA0", data = "0x6754", bss = "0x131E8" },
   { kind = "animation", at = "0x6DD8", sets = ["0x70B4", "0x73A4", "0x77A4", "0x7A58", "0x7CFC", "0x7F78", "0x8148", "0x8318", "0x885C", "0x9344", "0x9D80", "0xA3FC", "0xA698", "0xAA3C", "0xAF98"], in_c = true },
 ]
 
@@ -1675,7 +1678,7 @@ objects = [
 id = 340
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_main_street/dryfield_night_main_street", rodata = "0x4", text = "0x40", data = "0x4ACC" },
+  { unit = "dryfield_night_main_street/dryfield_night_main_street", rodata = "0x4", text = "0x40", data = "0x4ACC", bss = "0xB608" },
 ]
 
 [rooms.overlays.dryfield_night_general_store]
@@ -1683,7 +1686,7 @@ id = 341
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_general_store/dryfield_night_general_store", rodata = "0x4", text = "0x70", data = "0x11CC" },
-  { unit = "dryfield_night_general_store/dryfield_night_general_store_2", rodata = "0x40", text = "0x920", data = "0x122C" },
+  { unit = "dryfield_night_general_store/dryfield_night_general_store_2", rodata = "0x40", text = "0x920", data = "0x122C", bss = "0x8308" },
 ]
 
 [rooms.overlays.dryfield_night_back_street]
@@ -1727,7 +1730,7 @@ objects = [
 id = 346
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", rodata = "0x4", text = "0x40", data = "0xC5A0" },
+  { unit = "dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", rodata = "0x4", text = "0x40", data = "0xC5A0", bss = "0xCB50" },
   { unit = "dryfield_night_dilapidated_house/dryfield_night_dilapidated_house_2", rodata = "0x28", text = "0x560", data = "0x1134" },
   { kind = "animation", at = "0x1168", sets = ["0x1444", "0x1C10", "0x1DE4", "0x219C", "0x2368", "0x2734", "0x2A4C", "0x2E4C", "0x3048", "0x3384", "0x378C", "0x39CC", "0x3DA0", "0x410C", "0x4560", "0x47F4", "0x4B20", "0x4ED8", "0x522C", "0x5424", "0x55E8", "0x58A8", "0x5A6C", "0x5D8C", "0x6008", "0x679C", "0x6D10", "0x6EE8", "0x7304", "0x74C0", "0x76A8", "0x7964", "0x7B44", "0x7DA4", "0x7FC8", "0x8278", "0x865C", "0x8C74", "0x8ED4"], in_c = true },
 ]
@@ -1774,7 +1777,7 @@ objects = [
 id = 351
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot", rodata = "0x4", text = "0x3C", data = "0x3F9C" },
+  { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot", rodata = "0x4", text = "0x3C", data = "0x3F9C", bss = "0x3FB0" },
   { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_2", rodata = "0x28", text = "0x6C8", data = "0x1224" },
   { kind = "animation", at = "0x1224", sets = ["0x166C"], in_c = true },
 ]
@@ -1791,14 +1794,14 @@ id = 353
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby", rodata = "0x4", text = "0x188", data = "0x4EC8" },
-  { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", rodata = "0xF0", text = "0x2CE8", data = "0x5254" },
+  { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", rodata = "0xF0", text = "0x2CE8", data = "0x5254", bss = "0x6F10" },
 ]
 
 [rooms.overlays.dryfield_night_saloon_g_r]
 id = 354
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", rodata = "0x4", text = "0x2E0", data = "0x234C" },
+  { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", rodata = "0x4", text = "0x2E0", data = "0x234C", bss = "0xB9F8" },
   { kind = "animation", at = "0x238C", sets = ["0x2668", "0x2A3C", "0x2E2C", "0x3198", "0x36B8", "0x3998", "0x3E80", "0x4238", "0x4430", "0x4784", "0x497C", "0x4C24", "0x4F58", "0x53C0", "0x570C", "0x5B7C", "0x631C"], in_c = true },
 ]
 
@@ -1806,7 +1809,7 @@ objects = [
 id = 355
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", rodata = "0x4", text = "0x28", data = "0xC88" },
+  { unit = "dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", rodata = "0x4", text = "0x28", data = "0xC88", bss = "0x1670" },
 ]
 
 [rooms.overlays.dryfield_night_water_tower]
@@ -1854,7 +1857,7 @@ text = ["0x194", "0x4038"]
 objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_garage/dryfield_night_garage", rodata = "0x4", text = "0x194", data = "0x4038" },
-  { unit = "dryfield_night_garage/dryfield_night_garage_2", rodata = "0x148", text = "0x33E4", data = "0x56D8" },
+  { unit = "dryfield_night_garage/dryfield_night_garage_2", rodata = "0x148", text = "0x33E4", data = "0x56D8", bss = "0xA068" },
   { kind = "animation", at = "0x48A4", sets = ["0x4B80", "0x4F54", "0x5344", "0x56B0"], in_c = true },
 ]
 
@@ -1901,7 +1904,7 @@ objects = [
 id = 365
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony", rodata = "0x4", text = "0xD4", data = "0x11D0C" },
+  { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony", rodata = "0x4", text = "0xD4", data = "0x11D0C", bss = "0x11D20" },
   { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony_2", rodata = "0x28", text = "0x810", data = "0x5238" },
   { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", rodata = "0x4C", text = "0xB08", data = "0x5298" },
   { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", rodata = "0x70", text = "0xF94", data = "0x56D8" },
@@ -1911,7 +1914,7 @@ objects = [
 id = 366
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6", rodata = "0x4", text = "0x11C", data = "0x5590" },
+  { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6", rodata = "0x4", text = "0x11C", data = "0x5590", bss = "0x8CF8" },
 ]
 
 [rooms.overlays.dryfield_night_motel_loft]
@@ -1930,7 +1933,7 @@ objects = [
 id = 368
 objects = [
   { kind = "packageId" },
-  { unit = "dryfield_night_water_hole/dryfield_night_water_hole", rodata = "0x4", text = "0xEC", data = "0x2C60" },
+  { unit = "dryfield_night_water_hole/dryfield_night_water_hole", rodata = "0x4", text = "0xEC", data = "0x2C60", bss = "0x6070" },
   { kind = "animation", at = "0x2C60", sets = ["0x3004"], in_c = true },
 ]
 
@@ -1966,7 +1969,7 @@ objects = [
   { kind = "model", at = "0x11124", in_c = true },
   { kind = "modelSource", at = "0x114FC", in_c = true },
   { kind = "animation", at = "0x66FC", sets = ["0x69D8", "0x7178", "0x7544", "0x7784", "0x7958", "0x7BA4", "0x8178", "0x8420", "0x8AC0", "0x8CB4", "0x92C4", "0x96E4", "0x99C8", "0x9C2C", "0x9F1C", "0xA38C"], in_c = true },
-  { unit = "mine_cavern/mine_cavern", rodata = "0x4", text = "0x348", data = "0x10DA0", tail = true },
+  { unit = "mine_cavern/mine_cavern", rodata = "0x4", text = "0x348", data = "0x10DA0", bss = "0x11590", tail = true },
 ]
 
 [rooms.overlays.mine_tunnel_entrance]
@@ -2002,7 +2005,7 @@ objects = [
 id = 376
 objects = [
   { kind = "packageId" },
-  { unit = "mine_refuge/mine_refuge", rodata = "0x4", text = "0x120", data = "0x3F80" },
+  { unit = "mine_refuge/mine_refuge", rodata = "0x4", text = "0x120", data = "0x3F80", bss = "0x5520" },
 ]
 
 [rooms.overlays.mine_forked_tunnel]
@@ -2021,23 +2024,23 @@ objects = [
 id = 378
 objects = [
   { kind = "packageId" },
-  { unit = "mine_secret_passage/mine_secret_passage", rodata = "0x4", text = "0x4C", data = "0x5E88" },
-  { unit = "mine_secret_passage/mine_secret_passage_2", rodata = "0x30", text = "0x414", data = "0x38CC" },
+  { unit = "mine_secret_passage/mine_secret_passage", rodata = "0x4", text = "0x4C", bss = "0x5E88" },
+  { unit = "mine_secret_passage/mine_secret_passage_2", rodata = "0x30", text = "0x414", data = "0x38CC", bss = "0x5E80" },
 ]
 
 [rooms.overlays.shelter_b1_elevator_hall]
 id = 379
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall", rodata = "0x4", text = "0x60", data = "0x7438" },
-  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", rodata = "0x40", text = "0x6C0", data = "0x56EC" },
+  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall", rodata = "0x4", text = "0x60", bss = "0x7438" },
+  { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", rodata = "0x40", text = "0x6C0", data = "0x56EC", bss = "0x7430" },
 ]
 
 [rooms.overlays.shelter_b1_south_maintenance_walkway]
 id = 380
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", rodata = "0x4", text = "0x38", data = "0x4D3C" },
+  { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", rodata = "0x4", text = "0x38", data = "0x4D3C", bss = "0x6088" },
 ]
 
 [rooms.overlays.shelter_b1_storeroom]
@@ -2055,7 +2058,7 @@ id = 382
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", rodata = "0x4", text = "0x4C", data = "0x74B8" },
-  { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_2", rodata = "0x38", text = "0x820", data = "0x7590" },
+  { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_2", rodata = "0x38", text = "0x820", data = "0x7590", bss = "0x85C0" },
 ]
 
 [rooms.overlays.shelter_b1_armory]
@@ -2065,7 +2068,7 @@ text = ["0x1A8", "0x48DC"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_armory/shelter_b1_armory", rodata = "0x4", text = "0x1A8", data = "0x48DC" },
-  { unit = "shelter_b1_armory/shelter_b1_armory_2", rodata = "0x178", text = "0x3224", data = "0x4F68" },
+  { unit = "shelter_b1_armory/shelter_b1_armory_2", rodata = "0x178", text = "0x3224", data = "0x4F68", bss = "0x7FD0" },
 ]
 
 [rooms.overlays.shelter_b1_sleeping_quarters]
@@ -2083,7 +2086,7 @@ objects = [
 id = 385
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_main_corridor/shelter_b1_main_corridor", rodata = "0x4", text = "0x60", data = "0x5ACC" },
+  { unit = "shelter_b1_main_corridor/shelter_b1_main_corridor", rodata = "0x4", text = "0x60", data = "0x5ACC", bss = "0x8788" },
 ]
 
 [rooms.overlays.shelter_b1_sterilization_room]
@@ -2101,7 +2104,7 @@ objects = [
 id = 387
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", rodata = "0x4", text = "0x5C", data = "0x3B0C" },
+  { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", rodata = "0x4", text = "0x5C", data = "0x3B0C", bss = "0x7750" },
   { kind = "animation", at = "0x3C14", sets = ["0x3EF0", "0x41A4", "0x48DC", "0x4BA0", "0x4DF4", "0x5378", "0x5744"], in_c = true },
 ]
 
@@ -2118,7 +2121,7 @@ objects = [
 id = 389
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x4", text = "0x3C", data = "0x1144" },
+  { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x4", text = "0x3C", data = "0x1144", bss = "0x29B0" },
 ]
 
 [rooms.overlays.shelter_b1_underground_parking]
@@ -2186,7 +2189,7 @@ objects = [
 id = 396
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_elevator/shelter_b2_elevator", rodata = "0x4", text = "0x28", data = "0x5B8" },
+  { unit = "shelter_b2_elevator/shelter_b2_elevator", rodata = "0x4", text = "0x28", data = "0x5B8", bss = "0x1440" },
   { kind = "model", at = "0x5B8", in_c = true },
   { kind = "modelSource", at = "0x790", in_c = true },
   { kind = "model", at = "0x7B4", in_c = true },
@@ -2197,21 +2200,21 @@ objects = [
 id = 397
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_elevator_hall/shelter_b2_elevator_hall", rodata = "0x4", text = "0x50", data = "0x61D0" },
+  { unit = "shelter_b2_elevator_hall/shelter_b2_elevator_hall", rodata = "0x4", text = "0x50", data = "0x61D0", bss = "0x77C8" },
 ]
 
 [rooms.overlays.shelter_b2_south_maintenance_walkway]
 id = 398
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", rodata = "0x4", text = "0x50", data = "0x4F78" },
+  { unit = "shelter_b2_south_maintenance_walkway/shelter_b2_south_maintenance_walkway", rodata = "0x4", text = "0x50", data = "0x4F78", bss = "0x6338" },
 ]
 
 [rooms.overlays.shelter_b2_operating_room]
 id = 399
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_operating_room/shelter_b2_operating_room", rodata = "0x4", text = "0x68", data = "0x3344" },
+  { unit = "shelter_b2_operating_room/shelter_b2_operating_room", rodata = "0x4", text = "0x68", data = "0x3344", bss = "0x6C78" },
 ]
 
 [rooms.overlays.shelter_b2_north_maintenance_walkway]
@@ -2228,7 +2231,7 @@ objects = [
   { kind = "packageId" },
   { kind = "model", at = "0x4E60", in_c = true },
   { kind = "modelSource", at = "0x5424", in_c = true },
-  { unit = "shelter_b2_laboratory/shelter_b2_laboratory", rodata = "0x4", text = "0x15C", data = "0x4B40", tail = true },
+  { unit = "shelter_b2_laboratory/shelter_b2_laboratory", rodata = "0x4", text = "0x15C", data = "0x4B40", bss = "0x8F80", tail = true },
 ]
 
 [rooms.overlays.shelter_b2_breeding_room]
@@ -2254,7 +2257,7 @@ objects = [
 id = 404
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_septic_tank/shelter_b2_septic_tank", rodata = "0x4", text = "0x54", data = "0x55B4" },
+  { unit = "shelter_b2_septic_tank/shelter_b2_septic_tank", rodata = "0x4", text = "0x54", data = "0x55B4", bss = "0x9A88" },
   { kind = "animation", at = "0x55B4", sets = ["0x5958"], in_c = true },
 ]
 
@@ -2300,7 +2303,7 @@ text = ["0x198", "0x99CC"]
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole", rodata = "0x4", text = "0x198", data = "0x99CC" },
-  { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_2", rodata = "0x10", text = "0x440", data = "0xAAF8" },
+  { unit = "shelter_b3_dumping_hole/shelter_b3_dumping_hole_2", rodata = "0x10", text = "0x440", data = "0xAAF8", bss = "0x11F18" },
   { kind = "model", at = "0x99CC", in_c = true },
   { kind = "modelSource", at = "0x9F90", in_c = true },
   { kind = "model", at = "0x9FE4", in_c = true },
@@ -2320,9 +2323,9 @@ label = "no map pool names this room"
 id = 410
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", rodata = "0x4", text = "0x12C", data = "0x7FD4" },
+  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", rodata = "0x4", text = "0x12C", data = "0x7FD4", bss = "0x8018" },
   { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_2", rodata = "0x28", text = "0x714", data = "0x8020" },
-  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_3", rodata = "0x5C", text = "0x3B4C", data = "0x9F04" },
+  { unit = "shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator_3", rodata = "0x5C", text = "0x3B4C", data = "0x9F04", bss = "0x126A0" },
   { kind = "model", at = "0x802C", in_c = true },
   { kind = "modelSource", at = "0x855C", in_c = true },
   { kind = "animation", at = "0x8608", sets = ["0x88E4", "0x9320", "0x9988"], in_c = true },
@@ -2334,7 +2337,7 @@ id = 411
 objects = [
   { kind = "packageId" },
   { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room", rodata = "0x4", text = "0x10C", data = "0x3F34" },
-  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", rodata = "0xF0", text = "0x2750", data = "0x42A8" },
+  { unit = "shelter_b3_incinerator_control_room/shelter_b3_incinerator_control_room_2", rodata = "0xF0", text = "0x2750", data = "0x42A8", bss = "0x5498" },
 ]
 
 [rooms.overlays.shelter_b3_elevator_hall]
@@ -2361,7 +2364,7 @@ label = "no map pool names this room"
 id = 414
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b4_upper_sewer/shelter_b4_upper_sewer", rodata = "0x4", text = "0xA0", data = "0x8D10" },
+  { unit = "shelter_b4_upper_sewer/shelter_b4_upper_sewer", rodata = "0x4", text = "0xA0", data = "0x8D10", bss = "0xB770" },
 ]
 
 [rooms.overlays.shelter_b4_reservoir]
@@ -2379,7 +2382,7 @@ label = "no map pool names this room"
 id = 416
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b4_water_supply/shelter_b4_water_supply", rodata = "0x4", text = "0x90", data = "0x5024" },
+  { unit = "shelter_b4_water_supply/shelter_b4_water_supply", rodata = "0x4", text = "0x90", data = "0x5024", bss = "0x7890" },
 ]
 
 [rooms.overlays.shelter_r47]
@@ -2389,7 +2392,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_r47/shelter_r47", rodata = "0x4", text = "0x2AC", data = "0x9628" },
   { unit = "shelter_r47/shelter_r47_2", rodata = "0x108", text = "0x410C", data = "0x9E44" },
-  { unit = "shelter_r47/shelter_r47_3", rodata = "0x21C", text = "0x6D5C", data = "0xA04C" },
+  { unit = "shelter_r47/shelter_r47_3", rodata = "0x21C", text = "0x6D5C", data = "0xA04C", bss = "0xD0D0" },
 ]
 
 [rooms.overlays.shelter_r48]
@@ -2414,7 +2417,7 @@ objects = [
 id = 420
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage", rodata = "0x4", text = "0xEC", data = "0x35E0" },
+  { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage", rodata = "0x4", text = "0xEC", data = "0x35E0", bss = "0x43C8" },
 ]
 
 [rooms.overlays.shelter_1f_vehicular_airlock]
@@ -2430,7 +2433,7 @@ objects = [
 id = 422
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_1f_bulwark/shelter_1f_bulwark", rodata = "0x4", text = "0x5C", data = "0x2D60" },
+  { unit = "shelter_1f_bulwark/shelter_1f_bulwark", rodata = "0x4", text = "0x5C", data = "0x2D60", bss = "0x3910" },
 ]
 
 [rooms.overlays.shelter_1f_heliport]
@@ -2463,7 +2466,7 @@ id = 426
 objects = [
   { kind = "packageId" },
   { kind = "animation", at = "0x3820", sets = ["0x3BC4"], in_c = true },
-  { unit = "neo_ark_observatory/neo_ark_observatory", rodata = "0x4", text = "0x134", data = "0x37F8", tail = true },
+  { unit = "neo_ark_observatory/neo_ark_observatory", rodata = "0x4", text = "0x134", data = "0x37F8", bss = "0xA470", tail = true },
 ]
 
 [rooms.overlays.neo_ark_eve_access_tunnel]
@@ -2471,7 +2474,7 @@ label = "the head hands the id word to _hdr so the first unit's .rodata starts a
 id = 427
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", rodata = "0x4", text = "0x114", data = "0x1BCC" },
+  { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", rodata = "0x4", text = "0x114", data = "0x1BCC", bss = "0x31E0" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", rodata = "0x100", text = "0xAD0", data = "0x14C8" },
 ]
 
@@ -2507,7 +2510,7 @@ id = 431
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", rodata = "0x4", text = "0x74", data = "0x3B24" },
-  { unit = "neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", rodata = "0x60", text = "0x1ECC", data = "0x4830" },
+  { unit = "neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", rodata = "0x60", text = "0x1ECC", data = "0x4830", bss = "0xA350" },
   { kind = "animation", at = "0x3B3C", sets = ["0x3EE0", "0x444C"], in_c = true },
 ]
 
@@ -2515,7 +2518,7 @@ objects = [
 id = 432
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_pavilion/neo_ark_pavilion", rodata = "0x4", text = "0xA0", data = "0x628C" },
+  { unit = "neo_ark_pavilion/neo_ark_pavilion", rodata = "0x4", text = "0xA0", data = "0x628C", bss = "0xA460" },
 ]
 
 [rooms.overlays.neo_ark_island]
@@ -2523,7 +2526,7 @@ label = "the head hands the id word to _hdr so the first unit's .rodata starts a
 id = 433
 objects = [
   { kind = "packageId" },
-  { unit = "neo_ark_island/neo_ark_island", rodata = "0x4", text = "0x90", data = "0x4664" },
+  { unit = "neo_ark_island/neo_ark_island", rodata = "0x4", text = "0x90", data = "0x4664", bss = "0x6A48" },
   { unit = "neo_ark_island/neo_ark_island_2", rodata = "0x78", text = "0x15A8", data = "0x4570" },
 ]
 
@@ -2575,7 +2578,7 @@ id = 439
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_altar/neo_ark_altar", rodata = "0x4", text = "0xA8", data = "0x19CC" },
-  { unit = "neo_ark_altar/neo_ark_altar_2", rodata = "0x40", text = "0x480", data = "0x1A00" },
+  { unit = "neo_ark_altar/neo_ark_altar_2", rodata = "0x40", text = "0x480", data = "0x1A00", bss = "0x2AF0" },
 ]
 
 [rooms.overlays.neo_ark_shrine]
@@ -2596,7 +2599,7 @@ objects = [
 id = 441
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b6_nursery/shelter_b6_nursery", rodata = "0x4", text = "0x16C", data = "0x76FC" },
+  { unit = "shelter_b6_nursery/shelter_b6_nursery", rodata = "0x4", text = "0x16C", data = "0x76FC", bss = "0xA3B8" },
   { kind = "model", at = "0x7AC4", in_c = true },
   { kind = "modelSource", at = "0x7D10", in_c = true },
 ]
@@ -2615,7 +2618,7 @@ objects = [
 id = 443
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b6_corridor/shelter_b6_corridor", rodata = "0x4", text = "0x10", data = "0x1948" },
+  { unit = "shelter_b6_corridor/shelter_b6_corridor", rodata = "0x4", text = "0x10", data = "0x1948", bss = "0x7BF0" },
   { kind = "animation", at = "0x1994", sets = ["0x1C70"], in_c = true },
 ]
 
@@ -2628,7 +2631,7 @@ objects = [
   { unit = "shelter_b6_training_room/shelter_b6_training_room_2", rodata = "0x10", text = "0x5FC" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room_3", rodata = "0x2C", text = "0x828", data = "0x5534" },
   { kind = "animation", at = "0x5568", sets = ["0x5844", "0x5F74", "0x61B8", "0x63C0"], in_c = true },
-  { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0x78", data = "0x6E58", tail = true },
+  { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0x78", data = "0x6E58", bss = "0x8698", tail = true },
 ]
 
 [rooms.overlays.neo_ark_r26]
@@ -2663,7 +2666,7 @@ id = 448
 objects = [
   { kind = "packageId" },
   { unit = "neo_ark_woodland_path/neo_ark_woodland_path", rodata = "0x4", text = "0xD4", data = "0x4078" },
-  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_2", rodata = "0x60", text = "0x1448", data = "0x7370", tail = true },
+  { unit = "neo_ark_woodland_path/neo_ark_woodland_path_2", rodata = "0x60", text = "0x1448", data = "0x7370", bss = "0x74A0", tail = true },
 ]
 
 [rooms.overlays.neo_ark_submarine_gallery]
@@ -3029,7 +3032,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_00100/actor_00100", rodata = "0x4", text = "0x1FC", data = "0xBD90" },
+  { unit = "actor_00100/actor_00100", rodata = "0x4", text = "0x1FC", data = "0xBD90", bss = "0x1BA90" },
   { kind = "model", at = "0xBDD4", in_c = true },
   { kind = "modelSource", at = "0x108C0", in_c = true },
   { kind = "model", at = "0x108E4", in_c = true },
@@ -3210,7 +3213,7 @@ slot = 1
 id = 258
 objects = [
   { kind = "packageId" },
-  { unit = "actor_401000/actor_401000", rodata = "0x4", text = "0x2C0", data = "0xC274" },
+  { unit = "actor_401000/actor_401000", rodata = "0x4", text = "0x2C0", data = "0xC274", bss = "0x231F0" },
   { kind = "model", at = "0xC2B0", in_c = true },
   { kind = "modelSource", at = "0x117F4", in_c = true },
   { kind = "model", at = "0x11818", in_c = true },
@@ -3237,7 +3240,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01100/actor_01100", rodata = "0x4", text = "0xE8", data = "0x74D0" },
+  { unit = "actor_01100/actor_01100", rodata = "0x4", text = "0xE8", data = "0x74D0", bss = "0x15670" },
   { kind = "model", at = "0x7520", in_c = true },
   { kind = "modelSource", at = "0xCB28", in_c = true },
   { kind = "model", at = "0xCB4C", in_c = true },
@@ -3311,7 +3314,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_01600/actor_01600", rodata = "0x4", text = "0x1F4", data = "0x7114" },
+  { unit = "actor_01600/actor_01600", rodata = "0x4", text = "0x1F4", data = "0x7114", bss = "0x12890" },
   { kind = "model", at = "0x7114", in_c = true },
   { kind = "modelSource", at = "0x8F74", in_c = true },
   { kind = "model", at = "0x8F98", in_c = true },
@@ -3328,7 +3331,7 @@ slot = 1
 id = 259
 objects = [
   { kind = "packageId" },
-  { unit = "actor_401800/actor_401800", rodata = "0x4", text = "0x2A8", data = "0xC8C8" },
+  { unit = "actor_401800/actor_401800", rodata = "0x4", text = "0x2A8", data = "0xC8C8", bss = "0x23CB0" },
   { kind = "model", at = "0xC904", in_c = true },
   { kind = "modelSource", at = "0x11AF8", in_c = true },
   { kind = "model", at = "0x11B1C", in_c = true },
@@ -3465,7 +3468,7 @@ slot = 2
 id = 150
 objects = [
   { kind = "packageId" },
-  { unit = "actor_202900/actor_202900", rodata = "0x4", text = "0x4", data = "0x68C" },
+  { unit = "actor_202900/actor_202900", rodata = "0x4", text = "0x4", data = "0x68C", bss = "0xD038" },
   { kind = "model", at = "0x60C0", in_c = true },
   { kind = "modelSource", at = "0xBB88", in_c = true },
   { kind = "model", at = "0xBBAC", in_c = true },
@@ -3479,7 +3482,7 @@ slot = 1
 id = 256
 objects = [
   { kind = "packageId" },
-  { unit = "actor_403000/actor_403000", rodata = "0x4", text = "0x21C", data = "0xBBC0" },
+  { unit = "actor_403000/actor_403000", rodata = "0x4", text = "0x21C", data = "0xBBC0", bss = "0x26F70" },
   { kind = "model", at = "0xBC00", in_c = true },
   { kind = "modelSource", at = "0x13504", in_c = true },
   { kind = "animation", at = "0x13528", sets = ["0x139B8", "0x14AB4", "0x15528", "0x1607C", "0x16A1C", "0x17038", "0x17694", "0x189B4", "0x19984", "0x1A69C", "0x1B000", "0x1BABC", "0x1C69C", "0x1CE64", "0x1D9E8", "0x1E058", "0x1EAC4", "0x20714", "0x21A1C", "0x22500", "0x229E8", "0x23230", "0x239CC", "0x241D8", "0x249EC", "0x24BD0", "0x250C4", "0x25484", "0x25B24", "0x26334", "0x2651C"], in_c = true },
@@ -3502,7 +3505,7 @@ slot = 1
 id = 254
 objects = [
   { kind = "packageId" },
-  { unit = "actor_403200/actor_403200", rodata = "0x4", text = "0x3A4", data = "0xFDC8" },
+  { unit = "actor_403200/actor_403200", rodata = "0x4", text = "0x3A4", data = "0xFDC8", bss = "0x2DBA0" },
   { kind = "model", at = "0xFE70", in_c = true },
   { kind = "modelSource", at = "0x12330", in_c = true },
   { kind = "model", at = "0x12354", in_c = true },
@@ -3554,8 +3557,8 @@ objects = [
   { kind = "packageId" },
   { unit = "actor_503500/actor_503500", rodata = "0x4", text = "0x41C", data = "0x14A68" },
   { unit = "actor_503500/actor_503500_2", rodata = "0x10", text = "0x958", data = "0x16AB0" },
-  { unit = "actor_503500/actor_503500_3", rodata = "0x24", text = "0x1144", data = "0x44738" },
-  { unit = "actor_503500/actor_503500_4", rodata = "0x1D0", text = "0x8F44", data = "0x456A0" },
+  { unit = "actor_503500/actor_503500_3", rodata = "0x24", text = "0x1144", data = "0x44738", bss = "0x44F68" },
+  { unit = "actor_503500/actor_503500_4", rodata = "0x1D0", text = "0x8F44", data = "0x456A0", bss = "0x45D40" },
   { unit = "actor_503500/actor_503500_5", rodata = "0x3D4", text = "0x1306C", data = "0x3CC0C" },
   { kind = "model", at = "0x14A98", in_c = true },
   { kind = "modelSource", at = "0x154F4", in_c = true },
@@ -3596,7 +3599,7 @@ id = 235
 text = ["0x40", "0xCC8"]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_303600/actor_303600", rodata = "0x4", text = "0x40", data = "0xCC8" },
+  { unit = "actor_303600/actor_303600", rodata = "0x4", text = "0x40", data = "0xCC8", bss = "0xC6A0" },
   { kind = "model", at = "0x10A8", in_c = true },
   { kind = "modelSource", at = "0x7284", in_c = true },
   { kind = "model", at = "0x7E84", in_c = true },
@@ -3617,7 +3620,7 @@ objects = [
   # any function boundary from 0x6E14 to 0x78D8 matches.
   { kind = "packageId" },
   { unit = "actor_403600/actor_403600", rodata = "0x4", text = "0x2D8", data = "0x102B4" },
-  { unit = "actor_403600/actor_403600_2", rodata = "0x18", text = "0x6E14", data = "0x2E6E4" },
+  { unit = "actor_403600/actor_403600_2", rodata = "0x18", text = "0x6E14", data = "0x2E6E4", bss = "0x2E8C0" },
   { kind = "model", at = "0x103B0", in_c = true },
   { kind = "modelSource", at = "0x179F8", in_c = true },
   { kind = "model", at = "0x17A1C", in_c = true },
@@ -3684,7 +3687,7 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_04000/actor_04000", rodata = "0x4", text = "0x24C", data = "0x7078" },
+  { unit = "actor_04000/actor_04000", rodata = "0x4", text = "0x24C", data = "0x7078", bss = "0xC708" },
   { kind = "model", at = "0x70AC", in_c = true },
   { kind = "modelSource", at = "0x8718", in_c = true },
   { kind = "animation", at = "0x873C", sets = ["0x8878", "0x8B3C", "0x8DE0", "0x8FC0", "0x90F8", "0x9298", "0x94AC", "0x98BC", "0x9A94", "0xA260", "0xA71C", "0xAECC", "0xB374", "0xB6F0", "0xBAA0", "0xBCDC", "0xBF20", "0xC070", "0xC1C0", "0xC2EC", "0xC49C"], in_c = true },
@@ -3743,7 +3746,7 @@ id = 151
 objects = [
   { kind = "packageId" },
   { unit = "actor_205200/actor_205200", rodata = "0x4", text = "0x34", data = "0x2B9C" },
-  { unit = "actor_205200/actor_205200_2", rodata = "0x10", text = "0x1CC8", data = "0x79F0" },
+  { unit = "actor_205200/actor_205200_2", rodata = "0x10", text = "0x1CC8", data = "0x79F0", bss = "0xC9F8" },
   { kind = "model", at = "0x2C68", in_c = true },
   { kind = "modelSource", at = "0x79CC", in_c = true },
   { kind = "animation", at = "0x79F0", sets = ["0x8B50", "0x943C", "0x9C1C", "0xA964", "0xB1AC", "0xB948", "0xC154", "0xC968"], in_c = true },
@@ -3946,7 +3949,7 @@ slot = 1
 id = 133
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110300/actor_110300", rodata = "0x4", text = "0x4", data = "0x52C" },
+  { unit = "actor_110300/actor_110300", rodata = "0x4", text = "0x4", data = "0x52C", bss = "0x8280" },
   { kind = "model", at = "0x52C", in_c = true },
   { kind = "modelSource", at = "0x5CD0", in_c = true },
   { kind = "model", at = "0x5CF4", in_c = true },
@@ -3970,8 +3973,8 @@ slot = 2
 id = 161
 objects = [
   { kind = "packageId" },
-  { unit = "actor_210600/actor_210600", rodata = "0x4", text = "0x10", data = "0x3108" },
-  { unit = "actor_210600/actor_210600_contacts", text = "0x1C78", data = "0x134F8" },
+  { unit = "actor_210600/actor_210600", rodata = "0x4", text = "0x10", data = "0x3108", bss = "0x134F0" },
+  { unit = "actor_210600/actor_210600_contacts", text = "0x1C78", bss = "0x134F8" },
   { kind = "model", at = "0xA078", in_c = true },
   { kind = "modelSource", at = "0xF6B8", in_c = true },
   { kind = "animation", at = "0x3108", sets = ["0x7EF4", "0xA050"], in_c = true },
@@ -4021,7 +4024,7 @@ slot = 1
 id = 89
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110800/actor_110800", rodata = "0x4", text = "0x4", data = "0x7D0" },
+  { unit = "actor_110800/actor_110800", rodata = "0x4", text = "0x4", data = "0x7D0", bss = "0x80F0" },
   { kind = "model", at = "0x7D0", in_c = true },
   { kind = "modelSource", at = "0x5F74", in_c = true },
   { kind = "model", at = "0x5F98", in_c = true },
@@ -4111,7 +4114,7 @@ slot = 3
 id = 222
 objects = [
   { kind = "packageId" },
-  { unit = "actor_311900/actor_311900", rodata = "0x4", text = "0x1C", data = "0xA90" },
+  { unit = "actor_311900/actor_311900", rodata = "0x4", text = "0x1C", data = "0xA90", bss = "0xCDF8" },
   { kind = "model", at = "0xA90", in_c = true },
   { kind = "modelSource", at = "0x6964", in_c = true },
   { kind = "model", at = "0x6988", in_c = true },
@@ -4124,7 +4127,7 @@ slot = 3
 id = 197
 objects = [
   { kind = "packageId" },
-  { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x10", data = "0x1A90" },
+  { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x10", data = "0x1A90", bss = "0x8168" },
   { kind = "model", at = "0x1A90", in_c = true },
   { kind = "modelSource", at = "0x6328", in_c = true },
   { kind = "animation", at = "0x634C", sets = ["0x7368", "0x773C", "0x7D78", "0x80E0"], in_c = true },
@@ -4196,7 +4199,7 @@ id = 188
 objects = [
   { kind = "packageId" },
   { unit = "actor_215100/actor_215100", rodata = "0x4", text = "0x10C", data = "0x314C" },
-  { unit = "actor_215100/actor_215100_2", rodata = "0xD8", text = "0x578", data = "0x431C" },
+  { unit = "actor_215100/actor_215100_2", rodata = "0xD8", text = "0x578", data = "0x431C", bss = "0x14850" },
   { kind = "model", at = "0xA7CC", in_c = true },
   { kind = "modelSource", at = "0x109C4", in_c = true },
   { kind = "model", at = "0x109E8", in_c = true },
@@ -4223,7 +4226,7 @@ slot = 1
 id = 111
 objects = [
   { kind = "packageId" },
-  { unit = "actor_120300/actor_120300", rodata = "0x4", text = "0xC0", data = "0x2178" },
+  { unit = "actor_120300/actor_120300", rodata = "0x4", text = "0xC0", data = "0x2178", bss = "0xFD88" },
   { kind = "model", at = "0x2178", in_c = true },
   { kind = "modelSource", at = "0x7BE4", in_c = true },
   { kind = "model", at = "0x7C08", in_c = true },
@@ -4266,7 +4269,7 @@ slot = 1
 id = 253
 objects = [
   { kind = "packageId" },
-  { unit = "actor_420700/actor_420700", rodata = "0x4", text = "0x4", data = "0xA74" },
+  { unit = "actor_420700/actor_420700", rodata = "0x4", text = "0x4", data = "0xA74", bss = "0xD1C0" },
   { kind = "model", at = "0x3E00", in_c = true },
   { kind = "modelSource", at = "0x986C", in_c = true },
   { kind = "model", at = "0x9890", in_c = true },
@@ -4283,7 +4286,7 @@ id = 273
 objects = [
   { kind = "packageId" },
   { unit = "actor_521100/actor_521100", rodata = "0x4", text = "0x6C", data = "0x4E90" },
-  { unit = "actor_521100/actor_521100_2", rodata = "0x48", text = "0x3EF0", data = "0x2D91C" },
+  { unit = "actor_521100/actor_521100_2", rodata = "0x48", text = "0x3EF0", data = "0x2D91C", bss = "0x385B8" },
   { kind = "model", at = "0x91E8", in_c = true },
   { kind = "modelSource", at = "0xFA74", in_c = true },
   { kind = "model", at = "0xFA98", in_c = true },
@@ -4300,7 +4303,7 @@ slot = 1
 id = 99
 objects = [
   { kind = "packageId" },
-  { unit = "actor_121300/actor_121300", rodata = "0x4", text = "0x90", data = "0x25AC" },
+  { unit = "actor_121300/actor_121300", rodata = "0x4", text = "0x90", data = "0x25AC", bss = "0xB5F8" },
   { kind = "model", at = "0x25AC", in_c = true },
   { kind = "modelSource", at = "0x7D60", in_c = true },
   { kind = "model", at = "0x7D84", in_c = true },
@@ -4332,7 +4335,7 @@ objects = [
   { kind = "model", at = "0x13328", in_c = true },
   { kind = "modelSource", at = "0x137E4", in_c = true },
   { kind = "animation", at = "0x13808", sets = ["0x13D18", "0x13FD4", "0x14608", "0x14BE0", "0x15014", "0x156EC", "0x15CEC", "0x15F48", "0x1656C", "0x169BC", "0x16FA0", "0x1711C", "0x177C0", "0x17A84", "0x17F88", "0x18508", "0x18AB8", "0x19178", "0x1960C", "0x19E54", "0x1A5F0", "0x1ADFC", "0x1B610", "0x1B8C4", "0x1BBE4", "0x1C09C", "0x1C6A0", "0x1CE30", "0x1D030", "0x1EF6C"], in_c = true },
-  { unit = "actor_421600/actor_421600", rodata = "0x4", text = "0x1E4", data = "0xD104", tail = true },
+  { unit = "actor_421600/actor_421600", rodata = "0x4", text = "0x1E4", data = "0xD104", bss = "0x1F440", tail = true },
 ]
 
 [actors.overlays.actor_323000]
@@ -4351,7 +4354,7 @@ slot = 1
 id = 115
 objects = [
   { kind = "packageId" },
-  { unit = "actor_123200/actor_123200", rodata = "0x4", text = "0x30", data = "0x23E4" },
+  { unit = "actor_123200/actor_123200", rodata = "0x4", text = "0x30", data = "0x23E4", bss = "0x5420" },
   { kind = "model", at = "0x23F8", in_c = true },
   { kind = "modelSource", at = "0x3CD0", in_c = true },
   { kind = "animation", at = "0x3CF4", sets = ["0x3E30", "0x40F4", "0x4398", "0x4578", "0x46B0", "0x4850", "0x4A64", "0x4E74", "0x5134", "0x530C"], in_c = true },
@@ -4376,7 +4379,7 @@ slot = 3
 id = 232
 objects = [
   { kind = "packageId" },
-  { unit = "actor_323400/actor_323400", rodata = "0x4", text = "0x6C", data = "0x2F28" },
+  { unit = "actor_323400/actor_323400", rodata = "0x4", text = "0x6C", data = "0x2F28", bss = "0xF3F8" },
   { kind = "model", at = "0x2F6C", in_c = true },
   { kind = "modelSource", at = "0x7A58", in_c = true },
   { kind = "animation", at = "0x7A7C", sets = ["0x7F8C", "0x8248", "0x887C", "0x8E54", "0x9288", "0x9960", "0x9F60", "0xA1BC", "0xA7E0", "0xAC30", "0xB214", "0xB390", "0xBA34", "0xC27C", "0xCA18", "0xD224", "0xDA38", "0xDCEC", "0xE00C", "0xEA4C"], in_c = true },
@@ -4443,7 +4446,7 @@ objects = [
   { kind = "modelSource", at = "0x1157C", in_c = true },
   { kind = "animation", at = "0x7C70", sets = ["0x7E5C", "0x8254", "0x8E38", "0x90A0", "0x94A8", "0x98B4", "0x9BC4", "0x9E1C", "0xA0AC", "0xA494", "0xA744", "0xA900", "0xACE8", "0xB698", "0xBA14", "0xBC60"], in_c = true },
   { kind = "animation", at = "0x115A0", sets = ["0x121B0", "0x12918", "0x13508", "0x13E70", "0x14998"], in_c = true },
-  { unit = "actor_535700/actor_535700", text = "0x4", data = "0x164C", tail = true },
+  { unit = "actor_535700/actor_535700", text = "0x4", data = "0x164C", bss = "0x14A20", tail = true },
 ]
 
 [actors.overlays.actor_335800]
@@ -4517,7 +4520,7 @@ id = 224
 objects = [
   { kind = "packageId" },
   { unit = "actor_341700/actor_341700", rodata = "0x4", text = "0x250", data = "0xB568" },
-  { unit = "actor_341700/actor_341700_2", rodata = "0x220", text = "0x8E44", data = "0x12FA4" },
+  { unit = "actor_341700/actor_341700_2", rodata = "0x220", text = "0x8E44", data = "0x12FA4", bss = "0x14540" },
   { kind = "model", at = "0xB568", in_c = true },
   { kind = "modelSource", at = "0xC050", in_c = true },
   { kind = "model", at = "0xC074", in_c = true },
@@ -4536,7 +4539,7 @@ slot = 3
 id = 244
 objects = [
   { kind = "packageId" },
-  { unit = "actor_341900/actor_341900", rodata = "0x4", text = "0x38", data = "0x1880" },
+  { unit = "actor_341900/actor_341900", rodata = "0x4", text = "0x38", data = "0x1880", bss = "0x23E8" },
   { kind = "animation", at = "0x1880", sets = ["0x1B5C"], in_c = true },
 ]
 
@@ -4546,7 +4549,7 @@ slot = 3
 id = 245
 objects = [
   { kind = "packageId" },
-  { unit = "actor_342000/actor_342000", rodata = "0x4", text = "0x84", data = "0x26C4" },
+  { unit = "actor_342000/actor_342000", rodata = "0x4", text = "0x84", data = "0x26C4", bss = "0x3250" },
   { kind = "animation", at = "0x26C4", sets = ["0x29A0"], in_c = true },
 ]
 
@@ -4592,7 +4595,7 @@ slot = 1
 id = 127
 objects = [
   { kind = "packageId" },
-  { unit = "actor_142900/actor_142900", rodata = "0x4", text = "0x4", data = "0x204" },
+  { unit = "actor_142900/actor_142900", rodata = "0x4", text = "0x4", data = "0x204", bss = "0x6488" },
   { kind = "animation", at = "0x204", sets = ["0x5C8", "0x89C", "0xB88", "0x10EC", "0x1370", "0x161C", "0x18BC", "0x1A94", "0x2200", "0x2774", "0x2DAC", "0x3110", "0x35C8", "0x3910", "0x3F8C", "0x4260", "0x4480", "0x4804", "0x4B30", "0x4F7C", "0x52A4", "0x5564", "0x57B8"], in_c = true },
 ]
 
@@ -4602,7 +4605,7 @@ id = 132
 objects = [
   { kind = "packageId" },
   { unit = "actor_143000/actor_143000", rodata = "0x4", text = "0x160", data = "0x2738" },
-  { unit = "actor_143000/actor_143000_2", rodata = "0xB8", text = "0x20C4", data = "0x3290" },
+  { unit = "actor_143000/actor_143000_2", rodata = "0xB8", text = "0x20C4", data = "0x3290", bss = "0x3DF0" },
   { kind = "animation", at = "0x27E4", sets = ["0x2A20", "0x2CCC", "0x2EE8", "0x3090", "0x3248"], in_c = true },
 ]
 
@@ -4644,7 +4647,7 @@ objects = [
   { kind = "modelSource", at = "0x177EC", in_c = true },
   { kind = "animation", at = "0x7A04", sets = ["0x7C70", "0x800C", "0x8398", "0x87A4", "0x9138", "0x9364", "0x99B4", "0xA040", "0xA21C", "0xA738", "0xA8D0", "0xAB6C", "0xB2B4", "0xB4A0", "0xBC24", "0xC718", "0xD1C4", "0xED80", "0xF188", "0xF570"], in_c = true },
   { kind = "animation", at = "0x15144", sets = ["0x15330", "0x157D4", "0x15B1C", "0x15DEC", "0x162D4", "0x16564", "0x166AC", "0x168EC", "0x16E10", "0x17280"], in_c = true },
-  { unit = "actor_143900/actor_143900", rodata = "0x4", text = "0x4", data = "0x16DC", tail = true },
+  { unit = "actor_143900/actor_143900", rodata = "0x4", text = "0x4", data = "0x16DC", bss = "0x178A8", tail = true },
 ]
 
 [actors.overlays.actor_444000]
@@ -4699,7 +4702,7 @@ slot = 1
 id = 95
 objects = [
   { kind = "packageId" },
-  { unit = "actor_146300/actor_146300", rodata = "0x4", text = "0xAC", data = "0xD9C" },
+  { unit = "actor_146300/actor_146300", rodata = "0x4", text = "0xAC", data = "0xD9C", bss = "0x10A08" },
   { kind = "model", at = "0x6D50", in_c = true },
   { kind = "modelSource", at = "0xCF48", in_c = true },
   { kind = "model", at = "0xCF6C", in_c = true },
@@ -4721,7 +4724,7 @@ slot = 1
 id = 263
 objects = [
   { kind = "packageId" },
-  { unit = "actor_450200/actor_450200", rodata = "0x4", text = "0x4", data = "0xA9C" },
+  { unit = "actor_450200/actor_450200", rodata = "0x4", text = "0x4", data = "0xA9C", bss = "0xE3C0" },
   { kind = "animation", at = "0xA9C", sets = ["0x1A7C", "0x2DCC", "0x31A8", "0x33DC", "0x3818", "0x39B8", "0x3C30", "0x3E04", "0x4168", "0x43F0", "0x4890", "0x4DB0", "0x5088", "0x5350", "0x5870", "0x5C18"], in_c = true },
   { kind = "animation", at = "0x7338", sets = ["0x865C", "0x8B88", "0x8E94", "0x9E70", "0xA824"], in_c = true },
   { kind = "animation", at = "0xADEC", sets = ["0xB190", "0xD678", "0xD9E0", "0xDCF8"], in_c = true },
@@ -4734,7 +4737,7 @@ id = 139
 text = ["0x4", "0xB0C"]
 objects = [
   { kind = "packageId" },
-  { unit = "actor_150400/actor_150400", text = "0x4", data = "0xB0C" },
+  { unit = "actor_150400/actor_150400", text = "0x4", data = "0xB0C", bss = "0xAB08" },
   { kind = "model", at = "0xB0C", in_c = true },
   { kind = "modelSource", at = "0xEAC", in_c = true },
   { kind = "model", at = "0x13B8", in_c = true },
@@ -4808,7 +4811,7 @@ slot = 1
 id = 268
 objects = [
   { kind = "packageId" },
-  { unit = "actor_450900/actor_450900", rodata = "0x4", text = "0x18", data = "0xA84" },
+  { unit = "actor_450900/actor_450900", rodata = "0x4", text = "0x18", data = "0xA84", bss = "0x4E78" },
   { kind = "animation", at = "0xA84", sets = ["0xF80", "0x12D8", "0x176C", "0x1934", "0x1B50", "0x1D04", "0x20EC", "0x2428", "0x25F0", "0x2A30", "0x30F4", "0x3338", "0x3738", "0x3934", "0x3C70", "0x4028"], in_c = true },
 ]
 
@@ -4823,7 +4826,7 @@ objects = [
   { kind = "modelSource", at = "0x7450", in_c = true },
   { kind = "animation", at = "0xCB4", sets = ["0xED8", "0x12A0", "0x1518"], in_c = true },
   { kind = "animation", at = "0x7474", sets = ["0x7660", "0x7A58", "0x863C", "0x88A4", "0x8CAC", "0x90B8", "0x93C8", "0x9620", "0x98B0", "0x9C98", "0x9F48", "0xA104", "0xA4EC", "0xAE9C", "0xB218", "0xB464"], in_c = true },
-  { unit = "actor_151000/actor_151000", text = "0x4", data = "0xCB4", tail = true },
+  { unit = "actor_151000/actor_151000", text = "0x4", data = "0xCB4", bss = "0xB558", tail = true },
 ]
 
 [actors.overlays.actor_451100]
@@ -4840,7 +4843,7 @@ objects = [
   { kind = "animation", at = "0x1300", sets = ["0x15DC", "0x1CD8", "0x1F50", "0x2F50"], in_c = true },
   { kind = "animation", at = "0x9B68", sets = ["0x9E1C", "0xA428", "0xA780", "0xAA68", "0xAE40", "0xB1A8", "0xB558", "0xBCD4", "0xC1E0", "0xC45C", "0xC600", "0xC7F0", "0xC9B8", "0xD2B4", "0xD61C", "0xD8B8"], in_c = true },
   { kind = "animation", at = "0x1451C", sets = ["0x14A28", "0x159B4", "0x16110", "0x166E8", "0x16F24", "0x176C8", "0x17D50", "0x1924C", "0x19C78", "0x1A2CC", "0x1A4F8", "0x1A7D0", "0x1AA90", "0x1B91C", "0x1C1E4", "0x1C86C"], in_c = true },
-  { unit = "actor_451100/actor_451100", rodata = "0x4", text = "0x4", data = "0x1300", tail = true },
+  { unit = "actor_451100/actor_451100", rodata = "0x4", text = "0x4", data = "0x1300", bss = "0x1C928", tail = true },
 ]
 
 [actors.overlays.actor_356100]
@@ -4848,7 +4851,7 @@ slot = 3
 id = 239
 objects = [
   { kind = "packageId" },
-  { unit = "actor_356100/actor_356100", rodata = "0x4", text = "0x12C", data = "0x8B4C" },
+  { unit = "actor_356100/actor_356100", rodata = "0x4", text = "0x12C", data = "0x8B4C", bss = "0x11490" },
   { kind = "model", at = "0x8B8C", in_c = true },
   { kind = "modelSource", at = "0xDE54", in_c = true },
   { kind = "animation", at = "0xDE78", sets = ["0xFE9C", "0x10A84"], in_c = true },
@@ -4887,7 +4890,7 @@ objects = [
   { kind = "modelSource", at = "0xADA0", in_c = true },
   { kind = "animation", at = "0xE68", sets = ["0x105C", "0x1300", "0x17AC", "0x1B64", "0x204C", "0x2350", "0x267C"], in_c = true },
   { kind = "animation", at = "0x38C8", sets = ["0x3B24", "0x3CCC", "0x3EDC", "0x409C", "0x434C", "0x44F4", "0x47F0", "0x4A88", "0x4D14", "0x5094", "0x526C", "0x5474"], in_c = true },
-  { unit = "actor_260400/actor_260400", rodata = "0x4", text = "0x18", data = "0xE68", tail = true },
+  { unit = "actor_260400/actor_260400", rodata = "0x4", text = "0x18", data = "0xE68", bss = "0xAE50", tail = true },
 ]
 
 [actors.overlays.actor_260500]
@@ -4899,7 +4902,7 @@ objects = [
   { kind = "modelSource", at = "0xFF38", in_c = true },
   { kind = "animation", at = "0xC08", sets = ["0x1024", "0x1314", "0x1A10", "0x1CAC", "0x2064", "0x23E8", "0x26EC", "0x2A18"], in_c = true },
   { kind = "animation", at = "0x3F78", sets = ["0x42F8", "0x483C", "0x4AC4", "0x4D18", "0x4ED8", "0x5234", "0x5400", "0x57B0", "0x59D4", "0x5DB8", "0x60B8", "0x6474", "0x6640", "0x6878", "0x6AF0", "0x6DF0", "0x7118", "0x7698", "0x7870", "0x7B3C", "0x7D1C", "0x7FC8", "0x81E4", "0x84E4", "0x87E8", "0x8D68", "0x9148", "0x94B0", "0x97C8", "0x9B9C", "0x9F8C", "0xA2F8"], in_c = true },
-  { unit = "actor_260500/actor_260500", rodata = "0x4", text = "0x18", data = "0xC08", tail = true },
+  { unit = "actor_260500/actor_260500", rodata = "0x4", text = "0x18", data = "0xC08", bss = "0x10030", tail = true },
 ]
 
 [actors.overlays.actor_160600]
@@ -4934,7 +4937,7 @@ slot = 1
 id = 278
 objects = [
   { kind = "packageId" },
-  { unit = "actor_560800/actor_560800", rodata = "0x4", text = "0x380", data = "0x76AC" },
+  { unit = "actor_560800/actor_560800", rodata = "0x4", text = "0x380", data = "0x76AC", bss = "0x43970" },
   { kind = "model", at = "0x76AC", in_c = true },
   { kind = "modelSource", at = "0xC410", in_c = true },
   { kind = "model", at = "0xC434", in_c = true },
@@ -4966,7 +4969,7 @@ slot = 1
 id = 147
 objects = [
   { kind = "packageId" },
-  { unit = "actor_160900/actor_160900", rodata = "0x4", text = "0x90", data = "0x2A78" },
+  { unit = "actor_160900/actor_160900", rodata = "0x4", text = "0x90", data = "0x2A78", bss = "0xDD90" },
   { kind = "model", at = "0x2A78", in_c = true },
   { kind = "modelSource", at = "0x7598", in_c = true },
   { kind = "model", at = "0x75BC", in_c = true },
@@ -4983,7 +4986,7 @@ slot = 3
 id = 243
 objects = [
   { kind = "packageId" },
-  { unit = "actor_361100/actor_361100", rodata = "0x4", text = "0x1C", data = "0x19A8" },
+  { unit = "actor_361100/actor_361100", rodata = "0x4", text = "0x1C", data = "0x19A8", bss = "0xFDC0" },
   { kind = "model", at = "0x4CBC", in_c = true },
   { kind = "modelSource", at = "0x9498", in_c = true },
   { kind = "model", at = "0x9CF8", in_c = true },
@@ -5024,7 +5027,7 @@ objects = [
   { kind = "animation", at = "0x1E14", sets = ["0x206C"], in_c = true },
   { kind = "animation", at = "0x7B0C", sets = ["0x7D34", "0x7F58", "0x8110"], in_c = true },
   { kind = "animation", at = "0xD980", sets = ["0xDB6C", "0xDF64", "0xEB48", "0xEDB0", "0xF1B8", "0xF5C4", "0xF8D4", "0xFB2C", "0xFDBC", "0x101A4", "0x10454", "0x10610", "0x109F8", "0x113A8", "0x11724", "0x11970"], in_c = true },
-  { unit = "actor_461800/actor_461800", rodata = "0x4", text = "0x18", data = "0x1E14", tail = true },
+  { unit = "actor_461800/actor_461800", rodata = "0x4", text = "0x18", data = "0x1E14", bss = "0x11A80", tail = true },
 ]
 
 
@@ -5076,14 +5079,14 @@ objects = [
 id = 53
 objects = [
   { kind = "packageId" },
-  { unit = "apobiosis/apobiosis", rodata = "0x4", text = "0x1C", data = "0x1C2C" },
+  { unit = "apobiosis/apobiosis", rodata = "0x4", text = "0x1C", data = "0x1C2C", bss = "0x1C50" },
 ]
 
 [pe.overlays.metabolism]
 id = 54
 objects = [
   { kind = "packageId" },
-  { unit = "metabolism/metabolism", rodata = "0x4", text = "0x4", data = "0xC24" },
+  { unit = "metabolism/metabolism", rodata = "0x4", text = "0x4", data = "0xC24", bss = "0xC48" },
 ]
 
 [pe.overlays.healing]
@@ -5111,14 +5114,14 @@ objects = [
 id = 58
 objects = [
   { kind = "packageId" },
-  { unit = "energyshot/energyshot", rodata = "0x4", text = "0x4", data = "0x11B4" },
+  { unit = "energyshot/energyshot", rodata = "0x4", text = "0x4", data = "0x11B4", bss = "0x11D8" },
 ]
 
 [pe.overlays.energyball]
 id = 59
 objects = [
   { kind = "packageId" },
-  { unit = "energyball/energyball", rodata = "0x4", text = "0x18", data = "0x224C" },
+  { unit = "energyball/energyball", rodata = "0x4", text = "0x18", data = "0x224C", bss = "0x2270" },
 ]
 
 [pe.overlays.ofuda]

@@ -221,7 +221,7 @@ TaskDesc D_actor_311900_8016EC00 = { 1, 96, func_actor_311900_8016249C, { .model
 
 TaskDesc D_actor_311900_8016EC0C = { 1, 96, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
 
-u16 D_actor_311900_8016EC18[4][256] = { 0 };
+u16 D_actor_311900_8016EC18[4][256];
 
 static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
 static void func_actor_311900_80162100(Task* task);

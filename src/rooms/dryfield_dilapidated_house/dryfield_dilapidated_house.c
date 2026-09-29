@@ -2092,11 +2092,11 @@ OverlayWaveRec6 D_dryfield_dilapidated_house_80189BD4[32] = { 0 };
 
 OverlayWaveCtx D_dryfield_dilapidated_house_80189C94 = { 0 };
 
-SVECTOR D_dryfield_dilapidated_house_80189CA0[40] = { 0 };
+SVECTOR D_dryfield_dilapidated_house_80189CA0[40];
 
-GpCoord D_dryfield_dilapidated_house_80189DE0[8] = { 0 };
+GpCoord D_dryfield_dilapidated_house_80189DE0[8];
 
-GpCoord D_dryfield_dilapidated_house_8018A060[8] = { 0 };
+GpCoord D_dryfield_dilapidated_house_8018A060[8];
 
 /// Prism corners in model space, eight per prism: `[0..3]` the lit ring and
 /// `[4..7]` the far ring. Callers pick a prism by passing 0, 8 or 0x10.

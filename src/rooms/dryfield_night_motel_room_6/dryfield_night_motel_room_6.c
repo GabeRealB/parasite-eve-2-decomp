@@ -1300,7 +1300,7 @@ GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
 
 Task* D_dryfield_night_motel_room_6_801862B4 = NULL;
 
-RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8 = { 0 };
+RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
 
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];

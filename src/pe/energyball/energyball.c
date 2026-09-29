@@ -85,7 +85,7 @@ static EnergyBallStep D_energyball_80131194[] = {
 /// Sixteen 8-bit draws from `Gp_LcgState`, refilled once per cast by
 /// `func_energyball_8012EF48` and consumed by the GTE pass in
 /// `func_energyball_80130B54` as the per-vertex jitter of the ball's surface.
-static s16 D_energyball_801311A0[16] = { 0 };
+static s16 D_energyball_801311A0[16];
 
 /// Fires the energy ball: on the first frame it picks the charge level from the
 /// combo counter, plays the matching loop sound, refills the surface-jitter

@@ -62,7 +62,7 @@ u8 D_dryfield_night_motel_balcony_8018F2DC[4] = {
     136,
 };
 
-RoomEventReq D_dryfield_night_motel_balcony_8018F2E0 = { 0 };
+RoomEventReq D_dryfield_night_motel_balcony_8018F2E0;
 
 static s32  func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_motel_balcony_8017DC30(Task* task);

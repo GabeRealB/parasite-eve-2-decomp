@@ -1,6 +1,13 @@
-#include "rooms/shelter_b3_garbage_incinerator.h"
-
 #include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+Task* D_shelter_b3_garbage_incinerator_801855D8;
+
+u16 D_shelter_b3_garbage_incinerator_801855DC;
+
+#include "rooms/shelter_b3_garbage_incinerator.h"
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
@@ -18,16 +25,12 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
-
-extern u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 extern TaskDesc   D_8016BFE0;
 extern TaskDesc   D_801449F4;
 extern GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[];
-extern Task*      D_shelter_b3_garbage_incinerator_801855D8;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
 
@@ -63,11 +66,7 @@ GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
 
 TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { 0, 32, func_shelter_b3_garbage_incinerator_8017D6EC, { .model = NULL } };
 
-Task * D_shelter_b3_garbage_incinerator_801855D8 = NULL;
-
-u16 D_shelter_b3_garbage_incinerator_801855DC = 0;
-
-u16 D_shelter_b3_garbage_incinerator_801855DE = 0;
+u16 D_shelter_b3_garbage_incinerator_801855DE;
 
 void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
 {

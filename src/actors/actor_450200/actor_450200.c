@@ -1277,17 +1277,17 @@ GpEvsCmd D_actor_450200_80140078[15] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-Task * D_actor_450200_801401E0 = NULL;
+Task* D_actor_450200_801401E0;
 
-Task * D_actor_450200_801401E4 = NULL;
+Task* D_actor_450200_801401E4;
 
-u16 D_actor_450200_801401E8[256] = { 0 };
+u16 D_actor_450200_801401E8[256];
 
-u16 D_actor_450200_801403E8[256] = { 0 };
+u16 D_actor_450200_801403E8[256];
 
-u16 D_actor_450200_801405E8[256] = { 0 };
+u16 D_actor_450200_801405E8[256];
 
-u16 D_actor_450200_801407E8[256] = { 0 };
+u16 D_actor_450200_801407E8[256];
 
 static void        func_actor_450200_80132220(void);
 static void        func_actor_450200_801322F8(void);

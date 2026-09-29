@@ -291,8 +291,6 @@ extern GpAnimArg D_actor_401800_80155A0C;
 extern GpAnimSet* D_actor_401800_801559F8[];
 extern GpAnimSet* D_actor_401800_801559F0[];
 
-extern GpDelayArg D_actor_401800_80155AF8;
-
 /// Twelve `SVECTOR` hit positions `func_actor_401800_801348A8` picks from by
 /// damage magnitude: the low four when the hit is light, the high two when it
 /// is heavy, and the last four on the `arg1 > 0` / `arg1 <= 0` split in
@@ -342,8 +340,6 @@ typedef struct {
     u8         retained[8];
 } Actor401800Storage5AD8;
 STATIC_ASSERT_SIZEOF(Actor401800Storage5AD8, 32);
-
-extern Actor401800Storage5AD8 D_actor_401800_80155AD8;
 
 /// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
 /// `field_BFC` into and the init body clears; the aim-and-rescale body reads it
@@ -396,6 +392,10 @@ static void func_actor_401800_801381E4(Task* arg0);
 /// Integer part of the last movement step `func_actor_401800_80132C68`
 /// applied, nudged one unit outward where the step had a fractional part.
 static SVECTOR ActorContact_ScratchPosition;
+
+extern Actor401800Storage5AD8 D_actor_401800_80155AD8;
+
+extern GpDelayArg D_actor_401800_80155AF8;
 
 /// Clip-transition table the cross-fade reads: one byte per (previous clip,
 /// requested clip) pair, rows of 0x2D, handed to `func_800B4114` as the
@@ -1531,16 +1531,16 @@ u16 D_actor_401800_80155AC0 = 0;
 
 TaskDesc D_actor_401800_80155AC4 = { 257, 96, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
 
-static SVECTOR ActorContact_ScratchPosition = { 0 };
+static SVECTOR ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {
     return &ActorContact_ScratchPosition;
 }
 
-Actor401800Storage5AD8 D_actor_401800_80155AD8 = { 0 };
+Actor401800Storage5AD8 D_actor_401800_80155AD8;
 
-GpDelayArg D_actor_401800_80155AF8 = { 0 };
+GpDelayArg D_actor_401800_80155AF8;
 
 static __inline__ void Actor401800_BindMatrices(Task* actor);
 static void            func_actor_401800_80134C94(Task* arg0);

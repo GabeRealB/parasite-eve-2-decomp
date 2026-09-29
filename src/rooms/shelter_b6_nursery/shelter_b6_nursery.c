@@ -1117,15 +1117,15 @@ GpRoomParamRec* D_shelter_b6_nursery_80187958[8] = {
     D_shelter_b6_nursery_80187948,
 };
 
-Task* D_shelter_b6_nursery_80187978 = NULL;
+Task* D_shelter_b6_nursery_80187978;
 
-s32 D_shelter_b6_nursery_8018797C = 0;
+s32 D_shelter_b6_nursery_8018797C;
 
-ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980 = { 0 };
+ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
 
-GpCoord D_shelter_b6_nursery_801879A0 = { 0 };
+GpCoord D_shelter_b6_nursery_801879A0;
 
-ShelterB6NurseryPair D_shelter_b6_nursery_801879F0 = { 0 };
+ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 
 #include "../../shared/telephone.inc.c"
 

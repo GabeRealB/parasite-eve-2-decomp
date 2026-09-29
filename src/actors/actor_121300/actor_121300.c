@@ -177,11 +177,6 @@ extern s32 D_actor_121300_8013BBE4;
 /// tick reads it back every frame.
 extern OverlayWaveCtx* D_actor_121300_8013D414;
 
-/// Per-column and per-row phase records: each is seeded with a random offset
-/// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 D_actor_121300_8013D420[13];
-extern OverlayWaveRec6 D_actor_121300_8013D470[30];
-
 extern TaskDesc   D_actor_121300_8013BBCC[];
 extern u_long     D_actor_121300_8013BBE8[];
 extern u_long     D_actor_121300_8013BFD0[];
@@ -205,8 +200,16 @@ extern Actor121300MessageEntry D_actor_121300_8013CC88[3];
 extern GpXformArg              D_actor_121300_8013CCA0;
 extern GpEvsCmd                D_actor_121300_8013CE08[];
 extern GpEvsCmd                D_actor_121300_8013D2E8[];
+
 extern Task*                   D_actor_121300_8013D418;
+
 extern u16                     D_actor_121300_8013D41C;
+
+/// Per-column and per-row phase records: each is seeded with a random offset
+/// and speed at spawn and advanced by its speed every frame.
+extern OverlayWaveRec6 D_actor_121300_8013D420[13];
+
+extern OverlayWaveRec6 D_actor_121300_8013D470[30];
 
 void func_actor_121300_80131EB0(Task*);
 
@@ -792,13 +795,13 @@ TaskDesc D_actor_121300_8013D390[11] = {
 
 OverlayWaveCtx * D_actor_121300_8013D414 = NULL;
 
-Task * D_actor_121300_8013D418 = NULL;
+Task* D_actor_121300_8013D418;
 
-u16 D_actor_121300_8013D41C = 0;
+u16 D_actor_121300_8013D41C;
 
-OverlayWaveRec6 D_actor_121300_8013D420[13] = { 0 };
+OverlayWaveRec6 D_actor_121300_8013D420[13];
 
-OverlayWaveRec6 D_actor_121300_8013D470[30] = { 0 };
+OverlayWaveRec6 D_actor_121300_8013D470[30];
 
 static s32         func_actor_121300_80132818(Task* arg0);
 static void        func_actor_121300_8013343C(Task* arg0, s16 arg1);

@@ -819,7 +819,7 @@ GpRoomParamRec * D_shelter_b1_elevator_hall_801849D0[8] = {
     D_shelter_b1_elevator_hall_801849B8,
 };
 
-RoomFadeStorage D_shelter_b1_elevator_hall_801849F0 = { 0 };
+RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
 /// On the task's first tick stores seven room-specific values into resident
 /// gameplay globals, then draws the `func_shelter_b1_elevator_hall_8017DEB0`

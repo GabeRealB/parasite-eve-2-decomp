@@ -3137,14 +3137,14 @@ Actor323400MessageEntry D_actor_323400_801711D4[7] = {
 
 TaskDesc D_actor_323400_8017120C = { 257, 96, func_actor_323400_80164CEC, { .model = &D_actor_323400_80169878 } };
 
-static Actor323400Storage1218 ActorContact_ScratchPosition = { 0 };
+static Actor323400Storage1218 ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {
     return &(ActorContact_ScratchPosition.value);
 }
 
-Actor323400Storage1228 D_actor_323400_80171228 = { { 0 }, { 0 } };
+Actor323400Storage1228 D_actor_323400_80171228;
 
 static void func_actor_323400_8016331C(Task* task);
 static s32  func_actor_323400_80163448(Task* task, Actor323000Work* work);

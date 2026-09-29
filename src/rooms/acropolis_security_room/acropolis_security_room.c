@@ -1111,11 +1111,11 @@ TmdSource D_acropolis_security_room_80185584 = {
     D_acropolis_security_room_8018502C, D_acropolis_security_room_80185038, D_acropolis_security_room_801851F8, D_acropolis_security_room_80184FC0, D_acropolis_security_room_80185228,
 };
 
-Task * D_acropolis_security_room_801855A8 = NULL;
+Task* D_acropolis_security_room_801855A8;
 
-Task * D_acropolis_security_room_801855AC = NULL;
+Task* D_acropolis_security_room_801855AC;
 
-SVECTOR D_acropolis_security_room_801855B0 = { 0 };
+SVECTOR D_acropolis_security_room_801855B0;
 
 static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b);
 static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b);

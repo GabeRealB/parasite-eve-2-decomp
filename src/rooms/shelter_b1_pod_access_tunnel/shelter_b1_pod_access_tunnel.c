@@ -1089,7 +1089,7 @@ u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
     225,
 };
 
-RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10 = { 0 };
+RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10;
 
 static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 

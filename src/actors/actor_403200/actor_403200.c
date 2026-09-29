@@ -258,7 +258,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor403200StorageF900, 32);
 
 extern Actor403200StorageF900 D_actor_403200_8015F900;
-extern GpDelayArg             D_actor_403200_8015FA00;
 
 /// The scratch coordinate the debris effect of `func_actor_403200_8013DC3C` is
 /// built on: `F920` is the whole `GpCoord` and `F924` its `coord` matrix,
@@ -279,6 +278,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor403200StorageF9C0, 64);
 
 extern Actor403200StorageF9C0 D_actor_403200_8015F9C0;
+
+extern GpDelayArg             D_actor_403200_8015FA00;
 
 /// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
 /// and `arg3` the mode; takes the task, not the work block.
@@ -3047,9 +3048,9 @@ GpCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }
 
 Actor403200DropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
-Actor403200StorageF9C0 D_actor_403200_8015F9C0 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
-GpDelayArg D_actor_403200_8015FA00 = { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 };
+GpDelayArg D_actor_403200_8015FA00;
 
 /// Integer part of the last step `func_actor_403200_801324D0` applied.
 extern SVECTOR D_actor_403200_8015F8E8;

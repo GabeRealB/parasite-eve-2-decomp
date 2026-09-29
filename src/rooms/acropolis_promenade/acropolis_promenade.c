@@ -2209,9 +2209,9 @@ GpRoomParamRec * D_acropolis_promenade_801862B0[8] = {
     D_acropolis_promenade_801862A8,
 };
 
-RoomEventMsg D_acropolis_promenade_801862D0 = { 0 };
+RoomEventMsg D_acropolis_promenade_801862D0;
 
-Task * D_acropolis_promenade_801862D8 = NULL;
+Task* D_acropolis_promenade_801862D8;
 
 static void func_acropolis_promenade_8017D5E4(Task* task);
 

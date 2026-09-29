@@ -169,7 +169,7 @@ u8 D_dryfield_night_dilapidated_house_8018A10C[4] = {
     192,
 };
 
-RoomEventReq D_dryfield_night_dilapidated_house_8018A110 = { 0 };
+RoomEventReq D_dryfield_night_dilapidated_house_8018A110;
 
 static s32  func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0);

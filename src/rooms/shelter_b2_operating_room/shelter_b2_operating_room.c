@@ -1250,9 +1250,9 @@ u8 D_shelter_b2_operating_room_80184234[4] = {
     8,
 };
 
-ShelterB2OperatingRoomStorage4238 D_shelter_b2_operating_room_80184238 = { { 0 }, { 0 } };
+ShelterB2OperatingRoomStorage4238 D_shelter_b2_operating_room_80184238;
 
-RoomLatchedEvent D_shelter_b2_operating_room_80184258 = { 0, 0, 0, 0 };
+RoomLatchedEvent D_shelter_b2_operating_room_80184258;
 
 static s32            func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);

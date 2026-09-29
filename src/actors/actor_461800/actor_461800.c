@@ -967,11 +967,11 @@ s16 D_actor_461800_8014389C[2] = {
     -0x3658,
 };
 
-Actor151000Work * D_actor_461800_801438A0 = NULL;
+Actor151000Work * D_actor_461800_801438A0;
 
-Task * D_actor_461800_801438A4 = NULL;
+Task* D_actor_461800_801438A4;
 
-s16 D_actor_461800_801438A8 = 0;
+s16 D_actor_461800_801438A8;
 
 static void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
 static void func_actor_461800_8013307C(GpEnemy* enemy, Task* task);

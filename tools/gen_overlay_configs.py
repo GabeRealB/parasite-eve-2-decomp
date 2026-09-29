@@ -341,11 +341,14 @@ def object_subsegments(
                     lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
         if "bss" in obj:
             at = int(str(obj["bss"]), 16)
-            lines.append((at, f"      - {{start: 0x{at:X}, type: .bss, name: {path}, vram: 0x{load + at:08X}}}"))
+            # Stored BSS can sit between other objects' initialized data. Keep
+            # its input section in the same address-ordered linker group.
+            order = "" if "bss_size" in obj else ", linker_section_order: .data"
+            lines.append((at, f"      - {{start: 0x{at:X}, type: .bss, name: {path}, vram: 0x{load + at:08X}{order}}}"))
     out = [line for _, line in sorted(lines, key=lambda t: t[0])]
     tails = [i for i, obj in enumerate(objects) if obj.get("tail", False)]
-    if tails and (tails != [len(objects) - 1] or "data" not in objects[-1]):
-        raise SystemExit(f"{name}: only the last object, a unit with data, can be `tail = true`")
+    if tails and (tails != [len(objects) - 1] or not any(k in objects[-1] for k in ("data", "bss"))):
+        raise SystemExit(f"{name}: only the last object, a unit with data or BSS, can be `tail = true`")
     if not tails:
         out.extend(trailing_segment(name, data))
     return "\n".join(out)
@@ -387,7 +390,7 @@ def serialized_bss_tail(name: str, objects: list[dict], data: bytes) -> tuple[in
     extracted file is serialized; the complete allocation remains available
     to the room or actor at runtime.
     """
-    rows = [obj for obj in objects if "bss" in obj]
+    rows = [obj for obj in objects if "bss_size" in obj]
     if not rows:
         return None
     if len(rows) != 1:
@@ -400,6 +403,30 @@ def serialized_bss_tail(name: str, objects: list[dict], data: bytes) -> tuple[in
     if any(int(str(row.get("data", "0")), 16) >= start for row in objects):
         raise SystemExit(f"{name}: initialized data cannot follow terminal BSS")
     return start, size
+
+
+def has_stored_bss(name: str, objects: list[dict], data: bytes) -> bool:
+    """Check BSS runs whose complete zero storage belongs to the loaded image."""
+    rows = [obj for obj in objects if "bss" in obj and "bss_size" not in obj]
+    if not rows:
+        return False
+    if any("bss_size" in obj for obj in objects):
+        raise SystemExit(f"{name}: stored BSS cannot accompany an unstored terminal allocation")
+    boundaries = {len(data)}
+    for obj in objects:
+        if obj.get("in_c"):
+            continue
+        for key in ("rodata", "text", "data", "bss", "at"):
+            if key in obj:
+                boundaries.add(int(str(obj[key]), 16))
+    for obj in rows:
+        start = int(str(obj["bss"]), 16)
+        if not 0 <= start < len(data) or start % 8:
+            raise SystemExit(f"{name}: stored BSS must start at an eight-byte boundary inside the package")
+        end = min(at for at in boundaries if at > start)
+        if any(data[start:end]):
+            raise SystemExit(f"{name}: stored BSS at 0x{start:X} contains nonzero bytes")
+    return True
 
 
 def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path]:
@@ -450,6 +477,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         vram_end = load if slot_addr else int(spec["global_vram_end"])
         objects = slot.get("objects") or entry["objects"]
         bss_tail = serialized_bss_tail(name, objects, data)
+        stored_bss = has_stored_bss(name, objects, data)
 
         text = template
         for key, val in {
@@ -479,7 +507,13 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)
-        if any(obj.get("tail") for obj in objects) or bss_tail:
+        if stored_bss:
+            # The loader copies the flat image and does not clear BSS. Include
+            # these zeros in its PROGBITS output; do not auto-link empty input
+            # sections, whose alignment could extend a package's final bytes.
+            text = text.replace("  ld_bss_is_noload: True", "  ld_bss_is_noload: False", 1)
+            text = text.replace("  section_order:", '  auto_link_sections: [".rodata"]\n  section_order:', 1)
+        elif any(obj.get("tail") for obj in objects) or bss_tail:
             # Only declared data contributions may follow the terminal C
             # object. Even an empty auto-linked .data section can align the
             # location counter and add bytes to a partial-word package tail.

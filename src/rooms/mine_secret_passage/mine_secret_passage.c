@@ -45,7 +45,7 @@ static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
     taskKill,
 };
 
-GpSaveLoc D_mine_secret_passage_80183448 = { 0 };
+GpSaveLoc D_mine_secret_passage_80183448;
 
 /// Runs the room's save sequence. State 0 asks for the caption, state 1 waits
 /// for it and drops the periscope overlay, state 2 takes the confirm key or

@@ -1419,7 +1419,7 @@ TaskDesc D_actor_120300_80141B6C[5] = {
     { 0, 192, func_actor_120300_80133B5C, { .model = NULL } },
 };
 
-Task * D_actor_120300_80141BA8 = NULL;
+Task* D_actor_120300_80141BA8;
 
 static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec);
 static s32         func_actor_120300_80131EE0(Task* arg0);

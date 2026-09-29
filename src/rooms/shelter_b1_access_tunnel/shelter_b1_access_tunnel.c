@@ -669,9 +669,9 @@ u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
     210,
 };
 
-ShelterB1AccessTunnelStorageFF70 D_shelter_b1_access_tunnel_8017FF70 = { { 0 }, { 0 } };
+ShelterB1AccessTunnelStorageFF70 D_shelter_b1_access_tunnel_8017FF70;
 
-RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90 = { 0, 0, 0, 0 };
+RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90;
 
 static s32            func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);

@@ -1167,7 +1167,7 @@ GpSaveLoc D_shelter_b4_water_supply_80184E3C = { 0 };
 
 RoomDeparture D_shelter_b4_water_supply_80184E44 = { 0 };
 
-u8 * D_shelter_b4_water_supply_80184E50 = NULL;
+u8 * D_shelter_b4_water_supply_80184E50;
 
 /// The task the staged event block `D_shelter_b4_water_supply_80184E44`
 /// spawns. State 0 sends the block's `facing` to the slot-3 game pointer as

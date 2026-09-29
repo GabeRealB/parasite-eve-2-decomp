@@ -1231,7 +1231,7 @@ TmdSource D_acropolis_roof_garden_80186E70 = {
 
 s32 D_acropolis_roof_garden_80186E94 = 0;
 
-SVECTOR D_acropolis_roof_garden_80186E98 = { 0 };
+SVECTOR D_acropolis_roof_garden_80186E98;
 
 static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2);
 static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push);

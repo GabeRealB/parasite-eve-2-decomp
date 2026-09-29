@@ -662,9 +662,9 @@ u8 D_shelter_b2_south_maintenance_walkway_801838F4[4] = {
     189,
 };
 
-ShelterB2SouthMaintenanceWalkwayStorage38F8 D_shelter_b2_south_maintenance_walkway_801838F8 = { { 0 }, { 0 } };
+ShelterB2SouthMaintenanceWalkwayStorage38F8 D_shelter_b2_south_maintenance_walkway_801838F8;
 
-RoomLatchedEvent D_shelter_b2_south_maintenance_walkway_80183918 = { 0, 0, 0, 0 };
+RoomLatchedEvent D_shelter_b2_south_maintenance_walkway_80183918;
 
 static s32            func_shelter_b2_south_maintenance_walkway_8017D610(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);

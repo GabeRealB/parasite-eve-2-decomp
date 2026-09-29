@@ -628,7 +628,7 @@ u8 D_mine_refuge_80182ADC[4] = {
     50,
 };
 
-RoomCutsceneRec D_mine_refuge_80182AE0 = { 0 };
+RoomCutsceneRec D_mine_refuge_80182AE0;
 
 static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);

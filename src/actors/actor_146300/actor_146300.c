@@ -1490,11 +1490,11 @@ u8 D_actor_146300_801427E0[68] = {
 
 s32 D_actor_146300_80142824 = 0;
 
-Actor146300Work * D_actor_146300_80142828 = NULL;
+Actor146300Work * D_actor_146300_80142828;
 
-Task * D_actor_146300_8014282C = NULL;
+Task* D_actor_146300_8014282C;
 
-Task * D_actor_146300_80142830 = NULL;
+Task* D_actor_146300_80142830;
 
 static void func_actor_146300_8013224C(void);
 static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task);

@@ -31,12 +31,10 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// The first enemy's work block, published by its spawn handler.
-extern Actor151000Work* D_actor_535700_80146844;
-
-/// The first enemy's task, published by its spawn handler so the message
-/// handlers can reach its model.
-extern Task* D_actor_535700_80146848;
+/// Reset argument the first enemy's "play animation" opcode leaves behind:
+/// `func_actor_535700_80132730` forwards it to every reseeded slot, and the
+/// runner sets it to 10 when a walk ends.
+extern s16 D_actor_535700_8013DAA8;
 
 /// Fade countdown. `func_actor_535700_80131EF0` seeds it from its argument and
 /// spawns the fade task from `D_actor_535700_8013346C`; that task
@@ -45,10 +43,12 @@ extern Task* D_actor_535700_80146848;
 /// reaches zero, and decrements the count every frame.
 extern s32 D_actor_535700_80146840;
 
-/// Reset argument the first enemy's "play animation" opcode leaves behind:
-/// `func_actor_535700_80132730` forwards it to every reseeded slot, and the
-/// runner sets it to 10 when a walk ends.
-extern s16 D_actor_535700_8013DAA8;
+/// The first enemy's work block, published by its spawn handler.
+extern Actor151000Work* D_actor_535700_80146844;
+
+/// The first enemy's task, published by its spawn handler so the message
+/// handlers can reach its model.
+extern Task* D_actor_535700_80146848;
 
 /// Picks the distance `func_actor_535700_80132108` walks the model each frame:
 /// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
@@ -1081,13 +1081,13 @@ u8 D_actor_535700_80146828[24] = {
     128,
 };
 
-s32 D_actor_535700_80146840 = 0;
+s32 D_actor_535700_80146840;
 
-Actor151000Work * D_actor_535700_80146844 = NULL;
+Actor151000Work * D_actor_535700_80146844;
 
-Task * D_actor_535700_80146848 = NULL;
+Task* D_actor_535700_80146848;
 
-s16 D_actor_535700_8014684C = 0;
+s16 D_actor_535700_8014684C;
 
 static void func_actor_535700_80131FA0(GpEnemy* enemy, Task* task);
 static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task);

@@ -2749,11 +2749,11 @@ u8 CapCaption_Data_8015E66C[4] = {
     51,
 };
 
-OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10] = { 0 };
+OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10];
 
-OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30] = { 0 };
+OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FCB0[30];
 
-POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8] = { 0 };
+POLY_FT4 D_shelter_b3_garbage_incinerator_8018FDA0[2][30][8];
 
 static void func_shelter_b3_garbage_incinerator_80184D7C(void);
 static void func_shelter_b3_garbage_incinerator_80184EEC(void);

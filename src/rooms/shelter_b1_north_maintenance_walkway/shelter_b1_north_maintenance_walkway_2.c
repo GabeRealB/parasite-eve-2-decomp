@@ -536,7 +536,7 @@ s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
     49,
 };
 
-RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80 = { 0 };
+RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
 
 /// Queues a grey gouraud glow spanning the projected points `arg0[0]` and
 /// `arg0[1]`: a half-disc at each end, of radius `arg1` scaled by that end's

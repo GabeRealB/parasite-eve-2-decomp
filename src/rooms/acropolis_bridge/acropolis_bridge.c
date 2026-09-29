@@ -3772,9 +3772,9 @@ u16 D_acropolis_bridge_801917A4[2] = {
     0xF222,
 };
 
-s32 D_acropolis_bridge_801917A8 = 0;
+s32 D_acropolis_bridge_801917A8;
 
-DR_MOVE * D_acropolis_bridge_801917AC = NULL;
+DR_MOVE * D_acropolis_bridge_801917AC;
 
 extern GpAnimSet* D_acropolis_bridge_801915C8[7];
 

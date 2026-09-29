@@ -1,3 +1,8 @@
+#include "types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+s32 D_mist_shooting_gallery_8018E0C0;
+
 #include "rooms/mist_shooting_gallery.h"
 
 #include <psyq/sys/types.h>
@@ -2665,9 +2670,7 @@ GpRoomParamRec * D_mist_shooting_gallery_8018E09C[8] = {
 
 s32 D_mist_shooting_gallery_8018E0BC = 0;
 
-s32 D_mist_shooting_gallery_8018E0C0 = 0;
-
-Task * D_mist_shooting_gallery_8018E0C4 = NULL;
+Task* D_mist_shooting_gallery_8018E0C4;
 
 static void func_mist_shooting_gallery_801847D4(u8 arg0);
 

@@ -56,9 +56,6 @@ typedef struct NaetUtilParam {
 } NaetUtilParam;
 STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
-/// The staged event descriptor, read by the task spawned above.
-extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
-
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
 
 /// Set when the tunnel's save is written to the memory card.
@@ -67,6 +64,9 @@ extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
 /// later copies into `Mc_SaveData[0].state.at4.loc.area` / `warp` / `room`.
 extern GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
+
+/// The staged event descriptor, read by the task spawned above.
+extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
 static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
@@ -414,9 +414,9 @@ GpRoomParamRec * D_neo_ark_eve_access_tunnel_80180780[8] = {
     D_neo_ark_eve_access_tunnel_80180768,
 };
 
-GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0 = { 0 };
+GpSaveLoc D_neo_ark_eve_access_tunnel_801807A0;
 
-RoomDeparture D_neo_ark_eve_access_tunnel_801807A8 = { 0 };
+RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
 
 static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1);
 

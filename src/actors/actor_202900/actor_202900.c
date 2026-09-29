@@ -251,9 +251,9 @@ u8 D_actor_202900_80156E3C[24] = {
 
 Actor202900Work * D_actor_202900_80156E54 = NULL;
 
-Task * D_actor_202900_80156E58 = NULL;
+Task* D_actor_202900_80156E58;
 
-Task * D_actor_202900_80156E5C = NULL;
+Task* D_actor_202900_80156E5C;
 
 static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
 

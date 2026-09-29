@@ -298,11 +298,11 @@ u8 D_actor_110300_8013A084[28] = {
     0,
 };
 
-Actor110300Work * D_actor_110300_8013A0A0 = NULL;
+Actor110300Work * D_actor_110300_8013A0A0;
 
-Task * D_actor_110300_8013A0A4 = NULL;
+Task* D_actor_110300_8013A0A4;
 
-Task * D_actor_110300_8013A0A8 = NULL;
+Task* D_actor_110300_8013A0A8;
 
 static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
 

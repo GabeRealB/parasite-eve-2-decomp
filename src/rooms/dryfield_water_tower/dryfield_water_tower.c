@@ -1,6 +1,15 @@
-#include "rooms/dryfield_water_tower.h"
-
 #include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+/// The cap script task the entry task spawns, the target of the scene task's
+/// message 0x13EC and of the room's message 0x13F4.
+Task* D_dryfield_water_tower_801876A0;
+
+Task* D_dryfield_water_tower_801876A4;
+
+#include "rooms/dryfield_water_tower.h"
 
 #include "dryfield_water_tower_private.h"
 
@@ -19,7 +28,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 
 #include "rooms/room_common.h"
 
@@ -28,10 +36,6 @@
 
 /// The saved view byte the scene task keeps while its CAP command runs, and
 /// puts back when the answer is not 0xA.
-
-/// The cap script task the entry task spawns, the target of the scene task's
-/// message 0x13EC and of the room's message 0x13F4.
-extern Task* D_dryfield_water_tower_801876A0;
 
 /// The event the room's gate `func_dryfield_water_tower_8017D674` latched:
 /// the incoming message and the request, kept for the event task it spawns
@@ -54,15 +58,11 @@ RoomEventMsg D_dryfield_water_tower_80187694 = { 0 };
 
 u8 D_dryfield_water_tower_8018769C = 0;
 
-Task * D_dryfield_water_tower_801876A0 = NULL;
+u16 D_dryfield_water_tower_801876A8;
 
-Task * D_dryfield_water_tower_801876A4 = NULL;
+Task* D_dryfield_water_tower_801876AC;
 
-u16 D_dryfield_water_tower_801876A8 = 0;
-
-Task * D_dryfield_water_tower_801876AC = NULL;
-
-RoomEventReq D_dryfield_water_tower_801876B0 = { 0 };
+RoomEventReq D_dryfield_water_tower_801876B0;
 
 static s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg);
 

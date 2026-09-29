@@ -1964,17 +1964,17 @@ GpAreaApplyRec D_shelter_r47_8018A638[21] = {
 
 Task* D_shelter_r47_8018A68C = NULL;
 
-Task* D_shelter_r47_8018A690 = NULL;
+Task* D_shelter_r47_8018A690;
 
-u8 D_shelter_r47_8018A694 = 0;
+u8 D_shelter_r47_8018A694;
 
-u8 D_shelter_r47_8018A695 = 0;
+u8 D_shelter_r47_8018A695;
 
-u8 D_shelter_r47_8018A696 = 0;
+u8 D_shelter_r47_8018A696;
 
-u8 D_shelter_r47_8018A697 = 0;
+u8 D_shelter_r47_8018A697;
 
-RoomCutsceneRec D_shelter_r47_8018A698 = { 0 };
+RoomCutsceneRec D_shelter_r47_8018A698;
 
 static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b);
 

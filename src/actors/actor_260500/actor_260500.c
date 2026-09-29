@@ -1560,9 +1560,9 @@ u8 D_actor_260500_80159DBC[144] = {
 
 Actor260500Work * D_actor_260500_80159E4C = NULL;
 
-Task * D_actor_260500_80159E50 = NULL;
+Task* D_actor_260500_80159E50;
 
-s16 D_actor_260500_80159E54 = 0;
+s16 D_actor_260500_80159E54;
 
 static void func_actor_260500_80149E80(void);
 static void func_actor_260500_80149EBC(void);

@@ -1,9 +1,18 @@
+#include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+s32 D_shelter_b6_training_room_80185C58;
+
+/// The room's tracked task, driven by `func_shelter_b6_training_room_8017D974`,
+/// or NULL when none is running.
+Task* D_shelter_b6_training_room_80185C5C;
+
 #include "rooms/shelter_b6_training_room.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-
-#include "types.h"
 
 #include "shelter_b6_training_room_private.h"
 
@@ -40,15 +49,8 @@
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
-#include "main/task_types.h"
 
 #include "mapui/map_neo_ark.h"
-
-extern s32 D_shelter_b6_training_room_80185C58;
-
-/// The room's tracked task, driven by `func_shelter_b6_training_room_8017D974`,
-/// or NULL when none is running.
-extern Task* D_shelter_b6_training_room_80185C5C;
 
 static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 
@@ -488,17 +490,13 @@ GpRoomParamRec * D_shelter_b6_training_room_80185C38[8] = {
     D_shelter_b6_training_room_80185C20,
 };
 
-s32 D_shelter_b6_training_room_80185C58 = 0;
+u8 D_shelter_b6_training_room_80185C60[3][16];
 
-Task * D_shelter_b6_training_room_80185C5C = NULL;
+GpCoord * D_shelter_b6_training_room_80185C90;
 
-u8 D_shelter_b6_training_room_80185C60[3][16] = { 0 };
+GpCoord * D_shelter_b6_training_room_80185C94;
 
-GpCoord * D_shelter_b6_training_room_80185C90 = NULL;
-
-GpCoord * D_shelter_b6_training_room_80185C94 = NULL;
-
-u16 D_shelter_b6_training_room_80185C98 = 0;
+u16 D_shelter_b6_training_room_80185C98;
 
 static void func_shelter_b6_training_room_8017D7D4(Task* arg0);
 static void func_shelter_b6_training_room_8017D874(Task* task);

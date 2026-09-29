@@ -43,6 +43,15 @@ extern Actor151000AnimStorage336C D_actor_151000_8013336C;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
+/// Reset argument the "start animation" opcode leaves behind:
+/// `func_actor_151000_801326AC` forwards it to every reseeded slot, and the
+/// runner sets it to 10 when a walk ends.
+extern s16 D_actor_151000_8013D2AC;
+
+/// Fade countdown: `func_actor_151000_80131EE0` seeds it, and the fade task
+/// `func_actor_151000_80131E24` draws while it is non-zero.
+extern s32 D_actor_151000_8013D378;
+
 /// The enemy's work block, published by its spawn handler and by its task
 /// body.
 extern Actor151000Work* D_actor_151000_8013D37C;
@@ -51,19 +60,10 @@ extern Actor151000Work* D_actor_151000_8013D37C;
 /// can reach its model.
 extern Task* D_actor_151000_8013D380;
 
-/// Reset argument the "start animation" opcode leaves behind:
-/// `func_actor_151000_801326AC` forwards it to every reseeded slot, and the
-/// runner sets it to 10 when a walk ends.
-extern s16 D_actor_151000_8013D2AC;
-
 /// Picks the distance the runner walks the model each frame: 0 steps 0x3C
 /// forward, 1 steps 0xF back, 2 steps 0x19 forward. Set by the "walk to"
 /// opcode.
 extern s16 D_actor_151000_8013D384;
-
-/// Fade countdown: `func_actor_151000_80131EE0` seeds it, and the fade task
-/// `func_actor_151000_80131E24` draws while it is non-zero.
-extern s32 D_actor_151000_8013D378;
 
 /// Descriptor of the fade task `func_actor_151000_80131E24`.
 extern TaskDesc D_actor_151000_80133360;
@@ -773,13 +773,13 @@ u8 D_actor_151000_8013D2EC[140] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-s32 D_actor_151000_8013D378 = 0;
+s32 D_actor_151000_8013D378;
 
-Actor151000Work * D_actor_151000_8013D37C = NULL;
+Actor151000Work * D_actor_151000_8013D37C;
 
-Task * D_actor_151000_8013D380 = NULL;
+Task* D_actor_151000_8013D380;
 
-s16 D_actor_151000_8013D384 = 0;
+s16 D_actor_151000_8013D384;
 
 static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task);
 

@@ -35,7 +35,7 @@ GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
     { 0x7FFFFFFF, NULL },
 };
 
-s32 D_acropolis_observatory_8017E7D8 = 0;
+s32 D_acropolis_observatory_8017E7D8;
 
 static void func_acropolis_observatory_8017D834(Task* task);
 static void func_acropolis_observatory_8017D8AC(Task* task);

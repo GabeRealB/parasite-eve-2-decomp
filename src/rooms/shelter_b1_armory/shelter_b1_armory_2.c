@@ -984,7 +984,7 @@ u8 D_shelter_b1_armory_8018558C[4] = {
     46,
 };
 
-RoomEventReq D_shelter_b1_armory_80185590 = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq D_shelter_b1_armory_80185590;
 
 void func_shelter_b1_armory_801807E4(Task* unused)
 {

@@ -2217,11 +2217,11 @@ GpRoomParamRec* D_dryfield_motel_room_6_80186808[8] = {
     D_dryfield_motel_room_6_801867E8,
 };
 
-Task* D_dryfield_motel_room_6_80186828 = NULL;
+Task* D_dryfield_motel_room_6_80186828;
 
-Task* D_dryfield_motel_room_6_8018682C = NULL;
+Task* D_dryfield_motel_room_6_8018682C;
 
-RoomCutsceneRec D_dryfield_motel_room_6_80186830 = { 0 };
+RoomCutsceneRec D_dryfield_motel_room_6_80186830;
 
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];

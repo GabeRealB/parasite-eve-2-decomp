@@ -1312,7 +1312,7 @@ u8 D_shelter_b4_upper_sewer_80188D2C[4] = {
     44,
 };
 
-u8* D_shelter_b4_upper_sewer_80188D30 = NULL;
+u8* D_shelter_b4_upper_sewer_80188D30;
 
 static void func_shelter_b4_upper_sewer_8017DC88(Task* task);
 

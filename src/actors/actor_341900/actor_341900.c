@@ -445,7 +445,7 @@ TaskDesc D_actor_341900_80164190[10] = {
     { 257, 192, func_actor_341900_80162200, { .value = -0x7FEAFE90 } },
 };
 
-Task * D_actor_341900_80164208 = NULL;
+Task* D_actor_341900_80164208;
 
 static s32         func_actor_341900_80161E58(Task* arg0, u16 arg1);
 static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n);

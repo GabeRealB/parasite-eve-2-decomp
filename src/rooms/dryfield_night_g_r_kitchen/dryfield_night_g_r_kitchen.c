@@ -358,7 +358,7 @@ u8 D_dryfield_night_g_r_kitchen_8017EC2C[4] = {
     254,
 };
 
-RoomEventReq D_dryfield_night_g_r_kitchen_8017EC30 = { 0 };
+RoomEventReq D_dryfield_night_g_r_kitchen_8017EC30;
 
 static s32  func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_g_r_kitchen_8017D958(Task* task);

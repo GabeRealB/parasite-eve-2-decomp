@@ -476,7 +476,7 @@ GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
 
 Task * D_shelter_b3_incinerator_control_room_80182A54 = NULL;
 
-RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58 = { 0 };
+RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 
 /// Draws the glows of the current camera view at the room's fixed world
 /// points; views without an entry draw nothing.

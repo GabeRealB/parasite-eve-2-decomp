@@ -86,9 +86,6 @@ extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
 extern u8 D_shelter_b2_septic_tank_80187045;
 
-/// Cursor into the primitive area the water surface is written to.
-extern u8* D_shelter_b2_septic_tank_80187054;
-
 static void func_shelter_b2_septic_tank_8017DB68(Task* task);
 static void func_shelter_b2_septic_tank_8017E2DC(Task* task);
 static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
@@ -108,6 +105,9 @@ extern RoomFadeStorage  D_shelter_b2_septic_tank_80187034;
 extern RoomEventMsg     D_shelter_b2_septic_tank_8018703C;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
+
+/// Cursor into the primitive area the water surface is written to.
+extern u8* D_shelter_b2_septic_tank_80187054;
 
 void func_shelter_b2_septic_tank_8017EA50(Task*);
 
@@ -1640,9 +1640,9 @@ u8 D_shelter_b2_septic_tank_80187045 = 0;
 
 u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
-RoomLatchedEvent D_shelter_b2_septic_tank_80187048 = { 0, 0, 0, 0 };
+RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
 
-u8 * D_shelter_b2_septic_tank_80187054 = NULL;
+u8 * D_shelter_b2_septic_tank_80187054;
 
 static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);

@@ -55,7 +55,7 @@ u8 D_dryfield_night_parking_lot_8018156C[4] = {
     16,
 };
 
-RoomEventReq D_dryfield_night_parking_lot_80181570 = { 0 };
+RoomEventReq D_dryfield_night_parking_lot_80181570;
 
 static s32  func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_parking_lot_8017DBB0(Task* task);

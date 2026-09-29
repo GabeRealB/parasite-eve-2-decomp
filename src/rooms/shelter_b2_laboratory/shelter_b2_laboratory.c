@@ -1508,7 +1508,7 @@ GpCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 
 
 RoomEventReq D_shelter_b2_laboratory_8018652C = { 0, 0, 0, 0, 0, 0 };
 
-u16 D_shelter_b2_laboratory_80186540 = 0;
+u16 D_shelter_b2_laboratory_80186540;
 
 static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* msg);
 

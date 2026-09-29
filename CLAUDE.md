@@ -198,9 +198,22 @@ where a `(u16)` cast at the one use site was enough.
 
 **Overlay work state must remain inside the loaded image.** An overlay is a
 flat LZSS image inflated straight to its load address (`doc/OVERLAYS.md` 4.2);
-the loader does not clear separate BSS. In configs with `ld_bss_is_noload: True`,
-keep recovered work in loaded data with explicit zero initializers. A plain
-tentative definition would otherwise disappear from the image.
+the loader does not clear separate BSS. Prefer declarations without initializers
+for recovered zero-filled work when its layout permits BSS. The generated
+overlay manifest's `bss` key places that unit's BSS at an explicit eight-byte
+boundary and includes its zeros in the loaded image. It can follow the unit's
+data and precede another unit's data; empty sections are not auto-linked.
+
+Keep explicit zero initializers for objects interspersed with initialized
+data, or whose addresses do not fit BSS alignment. One unit cannot contribute
+several disconnected BSS runs. Removing an initializer without also placing
+the resulting BSS would either move the object or omit its zeros from the
+image. In particular, `ld_bss_is_noload: True` does not serialize BSS.
+
+The separate `bss_size` manifest option describes an established terminal
+runtime allocation whose stored prefix ends at the package boundary. It uses
+NOLOAD BSS and serializes that prefix only; it cannot accompany ordinary
+stored BSS in the same image.
 
 Gameplay now models its stored work as `.bss` input sections using explicit
 subsegments and `ld_bss_is_noload: False`. The linker combines those inputs with

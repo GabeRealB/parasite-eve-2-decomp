@@ -1,10 +1,16 @@
+#include "types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+/// Volume last asked of the warehouse's ambient track, or 0 when none is
+/// playing. Written by `func_dryfield_warehouse_8017D5E8` and cleared by state 0
+/// of the same task.
+s32 D_dryfield_warehouse_801821B8;
+
 #include "rooms/dryfield_warehouse.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-
-#include "types.h"
 
 #include "dryfield_warehouse_private.h"
 
@@ -28,11 +34,6 @@
 /// Cutscene task spawned by state 0, polled by `Task_PollKill` in state 1 and
 /// killed along with its parent in state 2.
 extern Task* D_dryfield_warehouse_801821B4;
-
-/// Volume last asked of the warehouse's ambient track, or 0 when none is
-/// playing. Written by `func_dryfield_warehouse_8017D5E8` and cleared by state 0
-/// of the same task.
-extern s32 D_dryfield_warehouse_801821B8;
 
 GpSprtCmd D_dryfield_warehouse_801815F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
@@ -152,13 +153,11 @@ GpRoomParamRec * D_dryfield_warehouse_80182194[8] = {
 
 Task * D_dryfield_warehouse_801821B4 = NULL;
 
-s32 D_dryfield_warehouse_801821B8 = 0;
+Task* D_dryfield_warehouse_801821BC;
 
-Task * D_dryfield_warehouse_801821BC = NULL;
+Task* D_dryfield_warehouse_801821C0;
 
-Task * D_dryfield_warehouse_801821C0 = NULL;
-
-s16 D_dryfield_warehouse_801821C4 = 0;
+s16 D_dryfield_warehouse_801821C4;
 
 static void func_dryfield_warehouse_8017D99C(Task* arg0);
 static void func_dryfield_warehouse_8017D9F8(Task* task);

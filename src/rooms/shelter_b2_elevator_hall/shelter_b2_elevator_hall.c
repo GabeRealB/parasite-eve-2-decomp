@@ -730,7 +730,7 @@ u8 D_shelter_b2_elevator_hall_80184D84[4] = {
     217,
 };
 
-RoomEventReq D_shelter_b2_elevator_hall_80184D88 = { 0 };
+RoomEventReq D_shelter_b2_elevator_hall_80184D88;
 
 static s32  func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMsg* msg);
 static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);

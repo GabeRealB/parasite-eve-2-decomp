@@ -738,7 +738,7 @@ Task * D_dryfield_breezeway_801843A8 = NULL;
 
 RoomEventReq D_dryfield_breezeway_801843AC = { 0 };
 
-Task * D_dryfield_breezeway_801843C0 = NULL;
+Task* D_dryfield_breezeway_801843C0;
 
 static s32  func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_breezeway_8017DDB0(Task* task);

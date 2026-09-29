@@ -1,3 +1,14 @@
+#include "types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+s32 D_actor_143000_80135C10;
+
+s32 D_actor_143000_80135C14;
+
+s32 D_actor_143000_80135C18;
+
+s32 D_actor_143000_80135C1C;
+
 #include "actor_143000_private.h"
 
 #include <psyq/sys/types.h>
@@ -47,10 +58,7 @@ extern TaskDesc D_actor_143000_801350C8;
 extern GpEvsCmd D_actor_143000_80135870[];
 extern GpEvsCmd D_actor_143000_80135A20[];
 extern GpEvsCmd D_actor_143000_80135AE0[];
-extern s32      D_actor_143000_80135C10;
-extern s32      D_actor_143000_80135C14;
-extern s32      D_actor_143000_80135C18;
-extern s32      D_actor_143000_80135C1C;
+
 extern u8       D_actor_143000_80135C38[];
 
 void func_actor_143000_801344A8(s32);
@@ -215,17 +223,9 @@ u8 D_actor_143000_80135C0C[4] = {
     57,
 };
 
-s32 D_actor_143000_80135C10 = 0;
+char D_actor_143000_80135C20[24];
 
-s32 D_actor_143000_80135C14 = 0;
-
-s32 D_actor_143000_80135C18 = 0;
-
-s32 D_actor_143000_80135C1C = 0;
-
-char D_actor_143000_80135C20[24] = { 0 };
-
-u8 D_actor_143000_80135C38[8] = { 0 };
+u8 D_actor_143000_80135C38[8];
 
 void func_actor_143000_801342F8(s32 x, s32 y, u16* codes, s32 index, s32 active);
 

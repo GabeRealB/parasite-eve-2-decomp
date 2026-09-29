@@ -1010,7 +1010,7 @@ GpRoomParamRec * D_mine_secret_passage_80183420[8] = {
     D_mine_secret_passage_80183400,
 };
 
-RoomFadeStorage D_mine_secret_passage_80183440 = { 0 };
+RoomFadeStorage D_mine_secret_passage_80183440;
 
 static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 static void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb);

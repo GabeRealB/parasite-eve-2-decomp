@@ -446,10 +446,6 @@ typedef struct Actor403000StateTable {
 } Actor403000StateTable;
 static const Actor403000StateTable D_actor_403000_80131F44;
 
-/// Trail history `func_actor_403000_801330D4` shifts down one slot per call,
-/// storing the newest position in slot 0.
-extern SVECTOR D_actor_403000_80158DF0[18];
-
 /// Waypoint grid for `func_actor_403000_80134204`: two rows of five indices
 /// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
 /// `D_actor_403000_80158CE0` entry it selects.
@@ -466,8 +462,6 @@ typedef struct {
 } Actor403000Storage8DB0;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8DB0, 32);
 
-extern Actor403000Storage8DB0 D_actor_403000_80158DB0;
-
 /// The grab message `func_actor_403000_801386E8` sends as 0x3E9.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -477,8 +471,6 @@ typedef struct {
     u8         retained[8];
 } Actor403000Storage8D90;
 STATIC_ASSERT_SIZEOF(Actor403000Storage8D90, 32);
-
-extern Actor403000Storage8D90 D_actor_403000_80158D90;
 
 /// Pairs of hit-effect vectors `func_actor_403000_80134910` picks from by
 /// turn magnitude; `pad` indexes the display object's coordinate parts.
@@ -574,7 +566,15 @@ typedef struct {
     u8         retained[8];
 } Actor403000DelayStorage;
 STATIC_ASSERT_SIZEOF(Actor403000DelayStorage, 32);
+extern Actor403000Storage8D90 D_actor_403000_80158D90;
+
+extern Actor403000Storage8DB0 D_actor_403000_80158DB0;
+
 extern Actor403000DelayStorage D_actor_403000_80158DD0;
+
+/// Trail history `func_actor_403000_801330D4` shifts down one slot per call,
+/// storing the newest position in slot 0.
+extern SVECTOR D_actor_403000_80158DF0[18];
 extern s8                      D_actor_403000_80158364[];
 
 extern GpCmdArg D_actor_403000_80158D8C;
@@ -1784,32 +1784,13 @@ SVECTOR D_actor_403000_80158D84 = { 0 };
 
 GpCmdArg D_actor_403000_80158D8C = { 0 };
 
-Actor403000Storage8D90 D_actor_403000_80158D90 = { 0 };
+Actor403000Storage8D90 D_actor_403000_80158D90;
 
-Actor403000Storage8DB0 D_actor_403000_80158DB0 = { { 0 }, { 0 } };
+Actor403000Storage8DB0 D_actor_403000_80158DB0;
 
-Actor403000DelayStorage D_actor_403000_80158DD0 = { 0 };
+Actor403000DelayStorage D_actor_403000_80158DD0;
 
-SVECTOR D_actor_403000_80158DF0[18] = {
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-};
+SVECTOR D_actor_403000_80158DF0[18];
 
 static void                func_actor_403000_801327B0(GpCoord* coord, SVECTOR* pos, s32 arg2);
 static void                func_actor_403000_801330D4(GpCoord* parent);

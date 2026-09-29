@@ -1673,9 +1673,9 @@ s32 D_actor_421600_801511D4[4][8] = {
 
 TaskDesc D_actor_421600_80151254 = { 257, 96, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
 
-SVECTOR D_actor_421600_80151260 = { 0 };
+SVECTOR D_actor_421600_80151260;
 
-s16 D_actor_421600_80151268 = 0;
+s16 D_actor_421600_80151268;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 

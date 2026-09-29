@@ -93,11 +93,11 @@ static void func_apobiosis_80130630(GpCoord* arg0, SVECTOR* arg1, s16 arg2, s16 
 /// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
 /// then jitters each by +-0x80 a frame; the first row is the shard's own angle
 /// and the row `ApobiosisStep::field_4` entries later is its elevation.
-static s16 D_apobiosis_80130B80[16] = { 0 };
+static s16 D_apobiosis_80130B80[16];
 
 /// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
 /// can reparent itself onto the cast when it starts.
-static Task* D_apobiosis_80130BA0 = NULL;
+static Task* D_apobiosis_80130BA0;
 
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`

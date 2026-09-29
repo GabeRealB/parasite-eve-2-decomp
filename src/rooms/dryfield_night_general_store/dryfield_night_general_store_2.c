@@ -2024,7 +2024,7 @@ u8 D_dryfield_night_general_store_801858C6 = 0;
 
 u8 D_dryfield_night_general_store_801858C7 = 3;
 
-RoomEventReq D_dryfield_night_general_store_801858C8 = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq D_dryfield_night_general_store_801858C8;
 
 static void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1);
 

@@ -394,7 +394,7 @@ TaskDesc D_actor_342000_80164FF8[10] = {
     { 257, 192, func_actor_342000_8016201C, { .value = -0x7FEB0740 } },
 };
 
-Task * D_actor_342000_80165070 = NULL;
+Task* D_actor_342000_80165070;
 
 static void func_actor_342000_80163F88(Task* arg0);
 

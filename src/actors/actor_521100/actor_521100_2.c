@@ -425,15 +425,15 @@ GpEffArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
 
 u16 D_actor_521100_8016A3D4 = 5;
 
-Actor521100Work4B4 * D_actor_521100_8016A3D8 = NULL;
+Actor521100Work4B4 * D_actor_521100_8016A3D8;
 
-Task * D_actor_521100_8016A3DC = NULL;
+Task* D_actor_521100_8016A3DC;
 
-Task * D_actor_521100_8016A3E0 = NULL;
+Task* D_actor_521100_8016A3E0;
 
-Task * D_actor_521100_8016A3E4 = NULL;
+Task* D_actor_521100_8016A3E4;
 
-GpCoord D_actor_521100_8016A3E8 = { 0 };
+GpCoord D_actor_521100_8016A3E8;
 
 s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
 {

@@ -1,3 +1,14 @@
+#include "types.h"
+
+#include "main/task_types.h"
+
+/* GCC orders BSS by first declaration; keep this prologue before the API headers. */
+Task* D_dryfield_gas_station_80184BD0;
+
+/// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
+/// `DgsWork` block is set up, so the room's script helpers can reach it.
+Task* D_dryfield_gas_station_80184BD4;
+
 #include "rooms/dryfield_gas_station.h"
 
 #include <psyq/sys/types.h>
@@ -42,7 +53,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
-#include "main/task_types.h"
 #include "main/tmd_types.h"
 
 #include "mapui/map_dryfield.h"
@@ -82,10 +92,6 @@ extern GpEvsCmd   D_dryfield_gas_station_80182E8C[];
 extern GpEvsCmd   D_dryfield_gas_station_8018303C[];
 
 extern SVECTOR D_dryfield_gas_station_80183144;
-
-/// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
-/// `DgsWork` block is set up, so the room's script helpers can reach it.
-extern Task* D_dryfield_gas_station_80184BD4;
 
 // Indexed views below share one contiguous table.
 void func_dryfield_gas_station_80180944(void);
@@ -1448,11 +1454,7 @@ GpRoomParamRec * D_dryfield_gas_station_80184BAC[8] = {
 
 Task * D_dryfield_gas_station_80184BCC = NULL;
 
-Task * D_dryfield_gas_station_80184BD0 = NULL;
-
-Task * D_dryfield_gas_station_80184BD4 = NULL;
-
-RoomCutsceneRec D_dryfield_gas_station_80184BD8 = { 0 };
+RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 static void func_dryfield_gas_station_801803C0(Task* task);
 static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);

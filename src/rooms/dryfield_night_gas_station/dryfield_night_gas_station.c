@@ -4076,9 +4076,9 @@ GpAreaApplyRec D_dryfield_night_gas_station_801907A0[1] = {
 
 Task* D_dryfield_night_gas_station_801907A4 = NULL;
 
-Task* D_dryfield_night_gas_station_801907A8 = NULL;
+Task* D_dryfield_night_gas_station_801907A8;
 
-Task* D_dryfield_night_gas_station_801907AC = NULL;
+Task* D_dryfield_night_gas_station_801907AC;
 
 static void func_dryfield_night_gas_station_8017F41C(Task* arg0);
 static void func_dryfield_night_gas_station_8017FAEC(Task* task);

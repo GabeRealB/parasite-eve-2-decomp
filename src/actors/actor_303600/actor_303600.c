@@ -16861,9 +16861,9 @@ GsF_LIGHT D_actor_303600_8016E490[3] = {
     { 0, 0, 4096, 128, 128, 128 },
 };
 
-Task * D_actor_303600_8016E4C0 = NULL;
+Task* D_actor_303600_8016E4C0;
 
-Task * D_actor_303600_8016E4C4 = NULL;
+Task* D_actor_303600_8016E4C4;
 
 static void func_actor_303600_80161F40(Task* arg0);
 static void func_actor_303600_801626C0(Task* task);

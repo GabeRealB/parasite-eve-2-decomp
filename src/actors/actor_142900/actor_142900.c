@@ -850,9 +850,9 @@ GpEvsCmd D_actor_142900_801380F8[18] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-s32 D_actor_142900_801382A8 = 0;
+s32 D_actor_142900_801382A8;
 
-s32 D_actor_142900_801382AC = 0;
+s32 D_actor_142900_801382AC;
 
 void func_actor_142900_80131E24(Task* arg0)
 {

@@ -797,7 +797,7 @@ u8 D_actor_341700_801760FC[600] = {
 
 TaskDesc D_actor_341700_80176354 = { 257, 96, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
 
-static SVECTOR ActorContact_ScratchPosition = { 0 };
+static SVECTOR ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {

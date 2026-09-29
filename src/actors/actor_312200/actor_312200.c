@@ -324,7 +324,7 @@ Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
 
 TaskDesc D_actor_312200_80169F7C = { 257, 96, func_actor_312200_80163854, { .model = &D_actor_312200_80168148 } };
 
-SVECTOR D_actor_312200_80169F88 = { 0 };
+SVECTOR D_actor_312200_80169F88;
 
 static s32  func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count);
 static s32  func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);

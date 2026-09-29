@@ -1080,7 +1080,7 @@ GpRoomParamRec * D_neo_ark_island_80183FE8[8] = {
     D_neo_ark_island_80183FC8,
 };
 
-GpSaveLoc D_neo_ark_island_80184008 = { 0 };
+GpSaveLoc D_neo_ark_island_80184008;
 
 /// Water-refraction ripple over part of the screen. Only some views of areas
 /// 27, 14, 15, 13, 30 and 29 have one; each picks a row range, a split row

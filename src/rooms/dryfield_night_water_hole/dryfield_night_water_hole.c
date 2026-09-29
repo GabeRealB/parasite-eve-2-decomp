@@ -1284,7 +1284,7 @@ s16 D_dryfield_night_water_hole_8018362C[2] = {
     -0x3000,
 };
 
-RoomDeparture D_dryfield_night_water_hole_80183630 = { 0 };
+RoomDeparture D_dryfield_night_water_hole_80183630;
 
 static s32  func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
 static void func_dryfield_night_water_hole_8017D958(Task* arg0);

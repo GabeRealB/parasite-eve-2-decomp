@@ -423,7 +423,7 @@ s8 D_shelter_1f_bulwark_80180ECC[4] = {
     -119,
 };
 
-RoomLatchedEvent D_shelter_1f_bulwark_80180ED0 = { 0 };
+RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
 static void           func_shelter_1f_bulwark_8017DF00(SVECTOR* arg0, s32 arg1, s32 arg2);

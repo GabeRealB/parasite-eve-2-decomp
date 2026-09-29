@@ -32,7 +32,7 @@ extern GpSaveLoc D_shelter_b1_elevator_hall_801849F8;
 static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
 static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
 
-GpSaveLoc D_shelter_b1_elevator_hall_801849F8 = { 0 };
+GpSaveLoc D_shelter_b1_elevator_hall_801849F8;
 
 void func_shelter_b1_elevator_hall_8017D620(Task* task)
 {

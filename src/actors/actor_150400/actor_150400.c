@@ -355,7 +355,7 @@ u8 D_actor_150400_8013C90C[24] = {
 
 Task * D_actor_150400_8013C924 = NULL;
 
-Task * D_actor_150400_8013C928 = NULL;
+Task* D_actor_150400_8013C928;
 
 static void func_actor_150400_80131FB8(void);
 static void func_actor_150400_80132014(GpEnemy* enemy, Task* task);

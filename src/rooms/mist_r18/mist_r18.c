@@ -1216,15 +1216,15 @@ GpRoomParamRec * D_mist_r18_80186E70[8] = {
     D_mist_r18_80186E68,
 };
 
-Task * D_mist_r18_80186E90 = NULL;
+Task* D_mist_r18_80186E90;
 
-Task * D_mist_r18_80186E94 = NULL;
+Task* D_mist_r18_80186E94;
 
-Task * D_mist_r18_80186E98 = NULL;
+Task* D_mist_r18_80186E98;
 
-s32 D_mist_r18_80186E9C = 0;
+s32 D_mist_r18_80186E9C;
 
-s32 D_mist_r18_80186EA0 = 0;
+s32 D_mist_r18_80186EA0;
 
 static void func_mist_r18_8017DF80(s32 shade);
 static void func_mist_r18_8017E144(s16 shade);

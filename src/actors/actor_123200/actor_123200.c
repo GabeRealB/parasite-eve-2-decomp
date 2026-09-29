@@ -102,11 +102,6 @@ typedef struct Actor123200Work {
 } Actor123200Work;
 STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
 
-/// Overlay-wide spawn record the spawn handler fills for the instance's own
-/// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
-/// way keeps one, and they differ only in the coordinate and the argument.
-extern GpEffArg D_actor_123200_80137248;
-
 /// Pair source the spawn handler installs at `GpEnemy::param`.
 extern GpPairSrcE D_actor_123200_80134208;
 
@@ -130,6 +125,11 @@ extern Actor123200MessageEntry D_actor_123200_80137214[4];
 /// Integer part of the last movement step `func_actor_123200_801329F0`
 /// applied.
 static SVECTOR ActorContact_ScratchPosition;
+
+/// Overlay-wide spawn record the spawn handler fills for the instance's own
+/// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
+/// way keeps one, and they differ only in the coordinate and the argument.
+extern GpEffArg D_actor_123200_80137248;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -668,14 +668,14 @@ Actor123200MessageEntry D_actor_123200_80137214[4] = {
 
 TaskDesc D_actor_123200_80137234 = { 1, 96, func_actor_123200_801341A8, { .model = &D_actor_123200_80135AF0 } };
 
-static SVECTOR ActorContact_ScratchPosition = { 0 };
+static SVECTOR ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {
     return &ActorContact_ScratchPosition;
 }
 
-GpEffArg D_actor_123200_80137248 = { 0 };
+GpEffArg D_actor_123200_80137248;
 
 static __inline__ void Actor123200_ResetSlots(Actor123200Work* arg0);
 static __inline__ void Actor123200_TickSlots(Task* task);

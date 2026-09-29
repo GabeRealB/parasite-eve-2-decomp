@@ -1037,7 +1037,7 @@ GpRoomParamRec * D_dryfield_water_hole_801828AC[8] = {
 
 u8 * D_dryfield_water_hole_801828CC = NULL;
 
-s16 D_dryfield_water_hole_801828D0 = 0;
+s16 D_dryfield_water_hole_801828D0;
 
 static void func_dryfield_water_hole_8017D7DC(Task* arg0);
 static void func_dryfield_water_hole_8017D838(Task* task);

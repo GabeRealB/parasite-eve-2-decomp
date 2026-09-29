@@ -557,9 +557,9 @@ u8 D_shelter_1f_parking_garage_80181984[4] = {
     75,
 };
 
-Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988 = { 0 };
+Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
 
-RoomLatchedEvent D_shelter_1f_parking_garage_80181998 = { 0 };
+RoomLatchedEvent D_shelter_1f_parking_garage_80181998;
 
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 

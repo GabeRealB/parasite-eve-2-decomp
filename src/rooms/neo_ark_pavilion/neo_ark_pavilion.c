@@ -1429,7 +1429,7 @@ s8 D_neo_ark_pavilion_80187A1C[4] = {
     37,
 };
 
-RoomLatchedEvent D_neo_ark_pavilion_80187A20 = { 0 };
+RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 
 static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_pavilion_8017EB80(Task* arg0);

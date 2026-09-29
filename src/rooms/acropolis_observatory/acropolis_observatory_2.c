@@ -681,7 +681,7 @@ GpAnimSet D_acropolis_observatory_8017FE38 = {
     { NULL, D_acropolis_observatory_8017FACC.words, NULL, NULL, D_acropolis_observatory_8017FB20, NULL, NULL, NULL },
 };
 
-s32 D_acropolis_observatory_8017FE60 = 0;
+s32 D_acropolis_observatory_8017FE60;
 
 /// Streamed-scene ride, entry 0 of the room's task table: the same ride as
 /// `func_acropolis_observatory_8017DD3C` (entry 1), walking the player's matrix

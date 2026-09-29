@@ -1000,7 +1000,7 @@ Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-Task * D_actor_361100_80171BE0 = NULL;
+Task* D_actor_361100_80171BE0;
 
 static void func_actor_361100_80162B0C(void);
 

@@ -158,7 +158,11 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
+/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
+extern SVECTOR Actor04000_D0C708;
+
 extern Task* Actor04000_D0C710[2];
+
 extern Task* Actor04000_D0C718[8];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -1221,14 +1225,11 @@ TaskFunc Actor04000_D0C6EC[4] = {
 
 TaskDesc Actor04000_D0C6FC = { 0, 96, Actor04000_Fn0703C, { .model = NULL } };
 
-SVECTOR Actor04000_D0C708 = { 0 };
+SVECTOR Actor04000_D0C708;
 
-Task * Actor04000_D0C710[2] = { 0 };
+Task * Actor04000_D0C710[2];
 
-Task * Actor04000_D0C718[8] = { 0 };
-
-/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
-extern SVECTOR Actor04000_D0C708;
+Task * Actor04000_D0C718[8];
 
 extern GpPairSrcE Actor04000_D07084;
 
