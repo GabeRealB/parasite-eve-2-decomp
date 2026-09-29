@@ -312,10 +312,12 @@ def _ledger_names(root: str) -> set:
             for line in fh:
                 fields = line.rstrip("\n").split("\t")
                 # Only a step that finished counts. A row can also record that
-                # the step failed its build or changed nothing - an agent that
-                # cannot reach its API produces the latter by the dozen - and
-                # treating those as done would retire the item unexamined.
-                if len(fields) >= 4 and fields[3] == "ok":
+                # the step failed its build or, in older runs, changed nothing
+                # without a review. Treating those as done would retire an item
+                # unexamined. New no-change reviews require a validated report.
+                # A followup completes the naming visit while its structured
+                # report retains separate rematching/runtime/semantic work.
+                if len(fields) >= 4 and fields[3] in {"ok", "followup"}:
                     names.update(fields[1].split())
     return names
 

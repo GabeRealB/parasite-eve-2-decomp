@@ -7,7 +7,9 @@ conventions; read it.
 **This is not a renaming task.** A step that only changes a name has not done
 the work. The job is to work out what the item is from the code that uses it,
 and then make the code say so — the name, the type, the shape of the
-declaration, and the documentation together.
+declaration, implementation, and documentation together. Complete the cleanup
+justified by understanding this item and its consumers. Record unrelated
+discoveries for later instead of expanding each step into a whole-project pass.
 
 ## Changing code is expected
 
@@ -17,9 +19,9 @@ member, dropping casts that a corrected type made redundant, moving a private
 declaration out of a header, and rewriting the prose that described any of it.
 Edit callers, headers and sources as the finding requires.
 
-**You may break the match while you work.** The checksum is the acceptance test,
-not a fence. If restructuring a type changes code generation, that is a normal
-intermediate state, and restoring it is part of your job rather than a reason to
+**You may break the match while you work.** The image and individual-function
+checks are acceptance tests. If restructuring a type changes code generation,
+that is a normal intermediate state, and restoring it is part of your job rather than a reason to
 stop. Adjust the declaration, the casts, or the shape of the expression until the
 target matches again. Finish with the match intact *and* the change made — never
 with the change abandoned because it first broke the build.
@@ -38,8 +40,11 @@ the code says otherwise.
   description without ever reading as a claim. A field called `idMap` invites you
   to describe an id map even when every write stores something else. Read the
   uses, decide what the thing is, and only then ask whether the old name survives.
-- **The declared type** is next. If the users have to cast, the type is wrong. The
-  reference listing marks each use that sits in a cast; count them.
+- **The declared type** is next. Casts are evidence to investigate, not proof
+  that a type is wrong. Distinguish incorrect declarations from byte views,
+  hardware address encodings, alignment tests, SDK sentinels and other necessary
+  conversions. Read the relevant audit findings and verify their reasoning
+  against the current source before changing or retaining a cast.
 - **The comments** are last, and are rewritten from your own reading, never
   edited in place.
 
@@ -63,10 +68,9 @@ part of the acceptance test rather than as advice.
 
       grep -rn 'struct _Name\b' src include | grep -v typedef
 
-  This is not cosmetic. The driver treats an item as still outstanding while its
-  old name appears anywhere under `src` or `include`, so one surviving tag makes
-  the pass re-pick the same item forever and the sweep never advances. Your step
-  is finished only when the old spelling is gone from the tree.
+  Sweep for stale spellings after a rename, including tags and configuration
+  references. The review report and driver's ledger record completion; absence
+  of an old spelling alone does not establish that the item was understood.
 - **Follow an alias to its source.** When a field turns out to cache, mirror or
   index another object's field, that other field is the thing to go and read;
   the name and the comment come from what the value *is*, not from where it was
@@ -100,14 +104,62 @@ part of the acceptance test rather than as advice.
   that differ in meaning stay apart. `NAMING.md` defers a merge only for a pair
   with no relationship to the item you are processing, so it is not a licence to
   defer the duplicates of your own member's type.
-- **An overlay that will not reconcile is pointing at a union.** If folding a
-  view into its owner changes code generation and cannot be made to match, the
-  run has two simultaneous readings - typically an aggregate that is also copied
-  wholesale, where taking the member's address rebases the copy and moves the
-  offsets. Write the union of both views as named members
-  (`session->at4.loc.stage` beside `session->at4.raw`) rather than restoring the
-  cast. Reverting and reporting it impossible stops one step short of what the
-  failure was telling you.
+- **Choose aggregates and unions from the accesses.** A nested member expresses
+  an established containing-object relationship. A union with named members can
+  express genuinely different interpretations of the same storage. A failed
+  matching attempt alone proves neither relationship: register allocation and
+  expression shape can also explain it. Do not invent a union merely to hide a
+  cast or make an audit count fall. Record the intended type and actual compiled
+  obstruction when a justified change still needs rematching.
+
+## Review the implementation and its consumers
+
+- **Resolve meaningful literals now.** Name established states, flags, message
+  IDs, sentinels and fixed-point scales, reusing existing constants. Replace
+  allocation, clear and copy sizes with `sizeof` and array bounds with
+  `ARRAY_SIZE` only when the object and full extent are established. A partial
+  transfer or serialized format length may need a separate named constant.
+  Preserve integer widths, signedness, promotions, evaluation and layout; an
+  enum constant does not require changing a stored byte into an enum field.
+  Ordinary arithmetic constants need no ceremonial names. Keep constants in
+  the narrowest scope that covers their actual users.
+- **Read the whole function body.** Name meaningful locals as well as parameters.
+  Separate unrelated uses of a temporary and simplify decompilation scaffolding
+  when matching permits. Preserve side effects, evaluation order, overflow and
+  truncation behavior. Do not change an algorithm or retained behavior because
+  it looks like a bug. If the rename tool cannot address a local, make a scoped
+  edit after checking shadowing and report the old/new spelling.
+- **Use the cast backlog.** The brief supplies relevant prior findings when
+  available. Follow old/new names through `local/renames.tsv`; do not rerun
+  historical mutation scripts. Run `tools/check_pointer_casts.py` and
+  `tools/check_pointer_arithmetic.py` on affected source TUs, including carriers
+  of shared source and users of a changed header. Inspect pointer/integer,
+  pointer/pointer and callback conversions. Use `PARENT_OF` when evidence
+  establishes the containing object and member. Correct callback declarations,
+  definitions, dispatch tables and callers together. Absence from a supplied
+  report is not proof that there are no suspicious accesses.
+- **Establish contracts and bounds.** Identify bytes versus elements, frames,
+  angle/coordinate units, fixed-point scales, index domains, sentinels, ownership
+  and lifetime where relevant. Check aliases, indirect callers, complete access
+  widths and bulk copy/clear lengths across overlays. Assume accesses must be
+  in bounds; derive the range from code rather than from the existing array
+  declaration. Observed accesses prove a minimum extent, not an object's end.
+  Do not fill gaps, enlarge objects, change BSS alignment, or label unknown
+  bytes as padding to make a proposed type match. Keep unproved bounds explicit.
+- **Propagate through every instance.** Review all consumers and build variants
+  of included shared source. Equal load addresses or layouts do not establish
+  identity. Keep shared interfaces consistent across overlays and update symbol
+  maps/imports as required. One-TU declarations belong in the source prologue;
+  overlay-shared declarations in private headers beside the source; cross-overlay
+  declarations in public headers under `include/`. Included-source interfaces
+  can be shared while their per-instance functions retain static C linkage.
+  Remove newly redundant declarations and includes, respecting `NAMING.md`'s
+  include grouping and existing BSS first-declaration ordering exceptions.
+
+Previously compiled failed attempts are useful evidence, not instructions to
+repeat every experiment. Retry with a reasoned new approach; if a substantial
+rematch or debugger observation remains necessary, retain the matching code and
+record the specific next step in the structured review.
 
 ## Names
 
@@ -311,6 +363,18 @@ never both. Mentions of an old name elsewhere are rewritten by
 `rename_item.py`, including in markdown — re-read them afterwards, since a
 renamed mention can leave a sentence describing the old idea.
 
+**Function bodies take sparse, coarse `//` comments at meaningful boundaries.**
+Explain the purpose of non-obvious phases, relevant invariants, and why unusual
+operations or ordering are necessary. State transitions, coordinate conversions,
+packed formats, resource ownership and multi-stage calculations often warrant
+one. For example: `// Transform the collision point into local coordinates.`
+Do not narrate statements, repeat names, or comment every loop and branch.
+Small, clear functions may need no internal comments. Mark uncertain
+interpretations explicitly and keep investigation history in the review report.
+The declaration explains the contract; body comments explain significant steps
+and constraints. Document parameter/return units, ranges, sentinels and lifetime
+requirements when a caller needs them.
+
 ## What this compiler allows
 
 GCC 2.8.1, `-O2`, no `-finline-functions`.
@@ -327,8 +391,26 @@ GCC 2.8.1, `-O2`, no `-finline-functions`.
 
 ## Finishing
 
-`./tools/build-and-verify.sh` must end with `BUILD SUCCEEDED` and the
-matched-function count must not drop. Do not commit; the driver commits.
+Run `venv/bin/python3 tools/refactor/verify_name_pass.py`. It checks the normal
+matching build, declarations across images, symbol ownership, and every
+individual function in a freshly generated objdiff report, then restores the
+normal build configuration. All image checksums and individual functions must
+match. Do not accept an aggregate percentage that hides an individual failure.
+Do not introduce new implicit declarations or unresolved prototype conflicts.
+Do not commit; the driver commits and independently runs the checks.
+
+Fill the JSON review file named in the brief, with one entry per assigned item:
+its current name, established meaning, evidence, changes and unresolved issues.
+Use outcome `complete` only when the review has no outstanding questions or
+required cleanup. Use `followup` for remaining rematching, runtime observations,
+semantic uncertainty or unrelated discoveries. Each issue needs a kind, source
+location, reason and concrete next step; retain existing audit IDs when known.
+A rename or passing build alone does not complete a review. A fully reviewed
+item needing no source change is valid when the report explains the evidence.
+The driver preserves reports under `local/name-pass/reviews/` and records
+`followup` separately from `ok`, so an accepted rename cannot erase unfinished
+cleanup. Both outcomes finish this naming visit; follow-ups remain separate work.
+Do not put case-specific backlogs in general documentation.
 
 **The step ends when your session ends, so nothing may still be running.** The
 driver builds the tree the moment you stop and reverts the step if that build

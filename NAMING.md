@@ -306,9 +306,10 @@ every component is named. A byte that is merely a bitmask of unidentified flags
 stays a plain integer with a comment; unnamed bitfields add structure without
 adding information, and rewriting a multi-bit test such as `& 0x84` as two
 boolean reads changes the generated code. When bits do acquire names, the form
-to reach for is `GPUSTAT`'s: a union of the whole value with an anonymous
-bitfield struct, which lets existing whole-value accesses keep compiling as they
-did.
+  to consider is a union of the whole value with a named bitfield struct, where
+  the toolchain's layout and accesses match. Anonymous members are not supported
+  by this compiler. Preserve whole-value operations and prefer named mask
+  constants when bitfield accesses change the generated code.
 
 Doxygen's trailing form `///<` is used by a handful of headers and would make
 field comments machine-extractable. It was considered and deferred: plain `//`
@@ -464,24 +465,21 @@ the count. A duplicate left in place keeps its own `field_0..field_N` and its
 own half of the documentation, which is the state this convention exists to
 remove.
 
-**An overlay that will not reconcile is pointing at a union.** If folding a view
-into its owner changes code generation and cannot be made to match, that is
-evidence the run really does have two simultaneous readings — typically an
-aggregate that is also copied wholesale, where taking the member's address
-rebases the copy and moves the offsets. In C that is a union of the two views as
-named members, not a reason to restore the cast:
+**A union needs evidence of multiple interpretations of the same storage.**
+Folding a view into its owner can change address calculations or register
+allocation without implying another interpretation. Read the accesses before
+choosing an aggregate or union. Where both views are justified, use named members:
 
 ```c
 union { GpAreaKey loc; GBytes8 raw; } at4;   /* session->at4.loc.stage, session->at4.raw */
 ```
 
-Reverting the attempt and reporting it impossible stops one step short of the
-conclusion the failure was pointing at.
-
-Either way the phantom type goes away, callers stop casting, and the
-relationship is stated where the layout is. The address is unchanged, so the
-build confirms it: if the member sits at the wrong offset or the nesting alters
-alignment, the checksum says so.
+Do not introduce a union just to hide a cast or satisfy an audit. Casts may also
+express necessary byte views, hardware address encodings, alignment checks or
+SDK sentinels. Establish their purpose individually. When a justified type
+correction still needs rematching, retain the matching implementation and record
+the intended type, compiled attempts and remaining obstruction in the local
+review. Matching validates the emitted code and layout, not the semantic model.
 
 ### As general as the subject allows
 
@@ -561,16 +559,83 @@ What is still deferred is only a pair with **no relationship to the item being
 processed**. There the uses have not been read yet and the identity question
 genuinely cannot be answered, so recording it and moving on is right.
 
-### Planned: resolve immediate values
+### Resolve immediate values during the review
 
-A later pass should replace literal sizes with `sizeof(T)` where a type is the
-right one, and give names to the remaining magic numbers. Beyond reading better,
-it converts a guess into something the build checks: `memCalloc(sizeof(T), 0)`
-only keeps matching while `T` really is that size, so a wrong size stops being
-invisible.
+Name meaningful literals while the item's context is understood: established
+states, flags, message IDs, sentinels and fixed-point scales. Reuse existing
+constants and keep new ones in the narrowest scope covering their actual users.
+Ordinary arithmetic constants need no names merely to remove literals.
+
+Replace literal allocation, copy and clear sizes with `sizeof(T)` or
+`sizeof(*object)` where the type and full extent are established. Use
+`ARRAY_SIZE` for a proven whole-array bound, never on a pointer. Partial copies,
+serialized lengths and capacities that differ from an active element count may
+need their own constants. Preserve integer widths, promotions and layout: naming
+a byte's states does not require storing an enum in place of the byte.
+
+`memCalloc(sizeof(T), 0)` only keeps matching while `T` has the required size.
+That checks the size relationship, but does not by itself prove type identity.
 
 `tools/refactor/name_index.py --types` lists the candidates — the types whose
 size a memory operation already corroborates.
+
+### Review function bodies and contracts
+
+Review the complete body, including local names and decompilation scaffolding.
+Separate unrelated uses of a temporary and simplify expressions where matching
+permits, preserving side effects, evaluation order, overflow and truncation.
+Record scoped local renames when the rename tool cannot express them; check
+shadowing before editing. Keep retained behavior even when it looks like a bug.
+
+Use sparse, coarse `//` comments at meaningful boundaries inside function bodies.
+Explain non-obvious phases, invariants and necessary ordering: state transitions,
+coordinate conversions, packed formats, ownership and multi-stage calculations.
+Do not narrate individual statements, repeat names, or comment every loop or
+branch. Short clear functions may need none. Mark uncertain interpretations and
+keep investigation history in the review report. Declaration comments explain
+the contract; body comments explain significant steps and constraints.
+
+Establish relevant units, fixed-point scales, valid index ranges, sentinels,
+ownership and lifetime. Document what callers need. Verify bounds through aliases,
+indirect accesses and full copy/clear widths across overlays. Existing array sizes
+do not prove index domains, and observed accesses establish a minimum extent,
+not the object's end. Do not invent padding or change BSS alignment to fit a type.
+
+Use the pointer/callback audits and previous compiled attempts supplied by the
+naming brief. Run the pointer checks on affected TUs and shared-source carriers;
+the supplied findings are not an exhaustive scan. Use `PARENT_OF` for an
+established containing-object relationship. Correct callback declarations,
+definitions, tables and callers together. Distinguish necessary address encodings
+from conversions caused by incorrect types, and track unresolved cases through
+renames using the rename ledger.
+
+Propagate conclusions through every consumer and configuration of shared source.
+Preserve public, overlay-private and TU-local ownership, including static
+per-instance linkage in included shared implementations. Remove declarations and
+includes made redundant by the cleanup, retaining the BSS ordering exceptions.
+Equal load addresses or layouts alone do not prove shared symbol/type identity.
+
+### Naming-pass acceptance and follow-ups
+
+Finish the cleanup justified by the item and its consumers. Record unrelated
+discoveries separately. Use `venv/bin/python3 tools/refactor/verify_name_pass.py`
+to verify image checksums, cross-image declarations and symbol ownership, and
+every individual function in a fresh objdiff report. It restores the normal
+matching configuration. Preserve established prototype exceptions without
+introducing new ones or implicit declarations.
+
+Each step writes the structured JSON review requested in its brief: current name,
+meaning, evidence, changes and unresolved issues for every assigned item. A
+`complete` review has no remaining required work; `followup` records a specific
+rematching, runtime, semantic or unrelated issue with its source location,
+reason and next step. Preserve existing audit IDs. Fully reviewed items needing
+no source change can finish with an evidence-backed report.
+
+The driver keeps reports in `local/name-pass/reviews/` and records `ok` or
+`followup` in its ledger. Both finish the naming visit, but follow-up work stays
+explicit and is supplied to later related reviews. A passing build or a renamed
+symbol alone is insufficient. Case-specific backlogs belong under `local/`, not
+in general documentation.
 
 ## FS file-id encoding
 

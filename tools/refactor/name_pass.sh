@@ -18,14 +18,14 @@
 #
 # A step is one line of local/worklist.tsv, or several lines sharing an order
 # when a cycle means the items have to be understood together. For each step
-# this builds a brief, runs the agent against a tree, verifies the build, and
-# commits. A step needs the whole tree in front of it and produces no candidate
-# to throw away, so there is no scratch environment of the kind the matching
-# vacuum builds.
+# this builds a brief, runs the agent against a tree, validates its review and
+# both build modes, and commits changes. A step needs the whole tree in front
+# of it and produces no candidate to throw away, so there is no scratch
+# environment of the kind the matching vacuum builds.
 #
-# The safety property is the build. An agent that leaves a tree broken, or that
-# changes a checksum, has its work reverted and the pass stops rather than
-# carrying a bad rename into the next step.
+# A missing review, failed build, declaration/symbol conflict or individual
+# objdiff mismatch rejects the step. Unresolved analysis is preserved separately
+# from accepted source changes in local/name-pass/reviews.
 #
 # Ctrl-C stops the pass between rounds, as it does in the matching vacuum. A
 # parallel round finishes and lands first; a single-worker step is interrupted
@@ -58,9 +58,8 @@ WORKLIST="local/worklist.tsv"
 # Which steps are finished. The worklist is a plan, not a record: an item whose
 # name already follows the convention keeps that name afterwards, so "is the
 # name still in the tree" cannot say whether it has been done. Every outcome is
-# appended here instead, and a step is picked only if it has no `ok` row - any
-# other outcome leaves the item outstanding, so a failed step is simply retried
-# by the next run.
+# appended here instead. `ok` completes the review; `followup` finishes this
+# visit with unresolved work preserved in its JSON report. Failed steps retry.
 DONE_LEDGER="local/name_pass_done.tsv"
 # The standing job description. grok takes it as a system prompt via --rules,
 # where it frames the whole session; the other arms get the same text inlined at
@@ -145,16 +144,18 @@ outstanding() {
 # every step, so an order is only meaningful within one worklist.
 ledgered() {
   [[ -f "$DONE_LEDGER" ]] || return 1
-  awk -F'\t' '$4=="ok"{print $2}' "$DONE_LEDGER" | tr ' ' '\n' | grep -qx -- "$1"
+  awk -F'\t' '$4=="ok" || $4=="followup"{print $2}' "$DONE_LEDGER" | tr ' ' '\n' | grep -qx -- "$1"
 }
 
-# order, items, commit (or -), outcome.
+# order, items, commit (or -), outcome, optional structured review path.
 record() {
-  printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$DONE_LEDGER"
+  printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "${5:-}" >> "$DONE_LEDGER"
 }
+
+review_file() { echo "local/name-pass/reviews/$RUN_ID-r$i-step$1.json"; }
 
 # Items this run has already attempted without landing them. The ledger cannot
-# serve here: it records the failure, but only an `ok` row retires an item, so
+# serve here: it records failures as well as accepted visits, so
 # without this a --keep-going run hands the same step to the next round for
 # ever, against the same tree it just failed against.
 SKIP_NAMES=" "
@@ -254,31 +255,49 @@ The conventions, the compiler's limits and what counts as evidence are above
 
 1. Derive what the item is from the references listed above and the code they
    sit in. The reference listing marks reads, writes, casts, address-taken and
-   mentions in prose - the casts in particular tell you whether the declared
-   type is honest.
-2. If its state above is \`current\`, the name already follows the convention:
-   **do not rename it.** Everything else still applies - the type, the shape of
-   the declaration, the fields, the parameters and the documentation.
-   Otherwise rename with the tool - always, never by hand, because the file it
-   appends to is what tells the pass this item is done:
+   mentions in prose. Investigate what each cast represents before deciding
+   whether it indicates an incorrect type.
+2. If its state above is \`current\`, its spelling already follows the convention.
+   Keep it unless the evidence establishes a misleading meaning or ownership.
+   Review its type, declaration, fields, parameters, locals and documentation.
+   Rename with the tool so its alias ledger preserves the item's history:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
 3. Apply the same to what the item contains: its fields, and its parameters in
    both the prototype and the definition. The reference listing above already
    covers them - one line per member, with the counts that say which are live -
    so read that rather than querying each one, and open the file it names when
    you need a member's individual sites.
-4. If its visibility above is \`private\`, its declaration belongs in the \`.c\`
-   that uses it rather than a header, with the \`_\` marker; add \`static\` if
-   the build still matches.
+4. Verify the suggested visibility against actual consumers, shared-source
+   carriers, variants and imports. TU-local declarations belong in the source;
+   overlay-shared ones in private headers; cross-overlay ones in public headers.
+   Apply \`static\` where appropriate and preserve BSS declaration ordering.
 5. Where the role genuinely cannot be established, leave the name and say so.
    An invented name is worse than a generated one.
+6. Resolve meaningful literals, proven sizes and array bounds; review pointer
+   and callback casts, contracts and bounds; simplify justified scaffolding.
+   Add sparse coarse body comments explaining significant phases and constraints.
+   Propagate findings to all consumers and remove redundant declarations/includes.
+
+## Prior audit findings
+
+$(venv/bin/python3 tools/refactor/name_review.py context "${names[@]}")
 
 ## Finishing
 
-Run \`./tools/build-and-verify.sh\`. It must end with BUILD SUCCEEDED and the
-matched-function count must not drop. If your change broke the match, fixing it
-is the remaining work - not grounds to revert the change. Do not commit; the
-driver commits.
+Run \`venv/bin/python3 tools/refactor/verify_name_pass.py\`. Image checksums,
+cross-image declarations/symbols and every individual objdiff function must pass.
+The verifier restores the normal matching configuration. Do not commit; the
+driver commits and repeats verification.
+
+Fill \`$(review_file "$order")\` (a template is created before your session).
+Keep each entry's \`name\` as assigned; set \`current_name\`, \`meaning\`,
+\`evidence\` (nonempty string list), \`changes\` (string list), and \`unresolved\`.
+Use \`outcome: complete\` with an empty unresolved list, or \`outcome: followup\`
+with issues of the form:
+\`{ "kind": "rematching|runtime|semantics|unrelated", "location": "source:symbol", "reason": "...", "next_step": "...", "id": "existing audit ID when available" }\`.
+Choose one kind per issue. Keep existing audit IDs and explain attempted fixes.
+A reviewed item needing no code change still requires evidence. Outstanding work
+must remain in the report even when its rename and other cleanup are successful.
 $( (( WORKERS > 1 )) && echo "
 Another step is being worked at the same time, in a sibling checkout of the same
 repository, on an item that does not depend on yours. So stay inside the
@@ -336,6 +355,7 @@ refresh_worklist() {
 }
 
 LOG="$(vacuum_log_dir)/name_pass-$$.log"
+RUN_ID="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
 echo "logging to $LOG"
 
 # Paths a worktree needs but must never commit: the generated trees and the
@@ -413,11 +433,20 @@ run_agent() {
 # variables the driver never sees.
 work_step() {
   local dir="$1" order="$2" items="$3" brief="$4" log="$5" status="$6" term="$7"
-  run_agent "$dir" "$brief" "$log" "$term"
-  if ! ( cd "$dir" && ./tools/build-and-verify.sh ) >"$log.build" 2>&1; then
+  local report outcome
+  local -a names
+  read -ra names <<<"$items"
+  report="$(review_file "$order")"
+  if ! ( cd "$dir" && venv/bin/python3 tools/refactor/name_review.py init --report "$report" "${names[@]}" ); then
+    echo failed >"$status"
+    return 0
+  fi
+  if ! run_agent "$dir" "$brief" "$log" "$term" \
+     || ! outcome=$(cd "$dir" && venv/bin/python3 tools/refactor/name_review.py validate --report "$report" "${names[@]}") \
+     || ! ( cd "$dir" && venv/bin/python3 tools/refactor/verify_name_pass.py ) >"$log.build" 2>&1; then
     {
-      echo "step $order FAILED to build in $dir; reverting"
-      tail -20 "$log.build"
+      echo "step $order FAILED its session, review or verification in $dir; reverting"
+      [[ -f "$log.build" ]] && tail -20 "$log.build"
     } | tee -a "$log" >&2
     git -C "$dir" checkout -- . 2>/dev/null
     git -C "$dir" clean -fd src include configs >/dev/null 2>&1
@@ -425,16 +454,19 @@ work_step() {
     return 0
   fi
   if [[ -z "$(tree_changes "$dir")" ]]; then
-    echo "step $order left the tree unchanged" | tee -a "$log" >&2
-    echo unchanged >"$status"
+    echo "step $order reviewed without source changes ($outcome)" | tee -a "$log"
+    echo "$outcome -" >"$status"
     return 0
   fi
   git -C "$dir" add -A
   # A linked submodule or a generated tree that slipped past .gitignore would
   # otherwise be committed by `add -A` and then replayed onto the branch.
   git -C "$dir" reset -q -- "${SCAFFOLD_PATHS[@]}" 2>/dev/null
-  git -C "$dir" commit -q -m "naming: $items"
-  printf 'ok %s\n' "$(git -C "$dir" rev-parse HEAD)" >"$status"
+  if ! git -C "$dir" commit -q -m "naming: $items"; then
+    echo failed >"$status"
+    return 0
+  fi
+  printf '%s %s\n' "$outcome" "$(git -C "$dir" rev-parse HEAD)" >"$status"
 }
 
 # --- worker worktrees ---------------------------------------------------------
@@ -504,6 +536,8 @@ sync_worker() {
   # under an older spelling, so the workers get the driver's copy back.
   cp -a "$ROOT/local/renames.tsv" "$wt/local/renames.tsv" 2>/dev/null || true
   cp -a "$ROOT/local/name_pass_done.tsv" "$wt/local/name_pass_done.tsv" 2>/dev/null || true
+  mkdir -p "$wt/local/name-pass/reviews"
+  cp -a "$ROOT/local/name-pass/reviews/." "$wt/local/name-pass/reviews/" 2>/dev/null || true
 }
 
 # Carry a worker's rename log back. The rows are appended by rename_item.py in
@@ -552,15 +586,16 @@ still exists on its worker's branch.
 3. Then make the result correct rather than merely applied: two steps may have
    renamed the same thing differently, or retyped a field in incompatible ways.
    Reconcile the declarations so the tree says one thing.
-4. Finish with \`./tools/build-and-verify.sh\` ending in BUILD SUCCEEDED and the
-   matched-function count not dropped. The checksum is the acceptance test, not
-   a fence: if reconciling changed code generation, fix the code generation.
+4. Finish with \`venv/bin/python3 tools/refactor/verify_name_pass.py\` passing
+   both build modes, declaration/symbol checks and every individual function.
+   Review the round's reports under \`local/name-pass/reviews/$RUN_ID-r$i-*\`;
+   preserve unresolved work and update conclusions affected by reconciliation.
 5. Leave the work committed on this branch, with the tree clean and no replay in
    progress. One commit per step is preferred; a single commit naming every item
    is acceptable when the resolutions cannot be separated.
 
-If a step genuinely cannot be landed, drop that one commit, say which and why,
-and land the rest.
+If a step cannot be reconciled, leave the round unfinished and report why. The
+driver must not record a dropped step as reviewed.
 EOF
 )"
   run_agent "$ROOT" "$brief" "$LOG" 1
@@ -580,11 +615,11 @@ join_round() {
     break
   done
   if [[ -z "$needs_agent" ]]; then
-    if ! ./tools/build-and-verify.sh >"$LOG.build" 2>&1; then
+    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
       echo "--- the joined tree does not build; handing the round to a landing agent" | tee -a "$LOG"
       tail -20 "$LOG.build" | tee -a "$LOG"
       needs_agent="Every commit replayed cleanly, but the joined tree fails
-\`./tools/build-and-verify.sh\` - the steps agree textually and disagree in
+\`tools/refactor/verify_name_pass.py\` - the steps agree textually and disagree in
 substance. The build output is at $LOG.build."
     fi
   fi
@@ -597,7 +632,7 @@ substance. The build output is at $LOG.build."
       git clean -qfd src include configs >/dev/null 2>&1
       return 1
     fi
-    if ! ./tools/build-and-verify.sh >"$LOG.build" 2>&1; then
+    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
       echo "landing agent finished but the tree does not build; rewinding to $pre" >&2
       tail -20 "$LOG.build" >&2
       git reset -q --hard "$pre"
@@ -638,9 +673,9 @@ if (( WORKERS > 1 && DRY == 0 )); then
 fi
 
 done_count=0
+followup_count=0
 fail_count=0
 barrier=
-noop=0
 i=0
 while (( TIMES == 0 || i < TIMES )); do
   (( STOP_REQUESTED )) && break
@@ -742,45 +777,44 @@ BARRIER
       status_of[$order]="$(cat "${sts[$w]}" 2>/dev/null)"
       rm -f "${sts[$w]}"
       collect_renames "$(worker_dir "$w")"
+      report="$(review_file "$order")"
+      mkdir -p "$(dirname "$report")"
+      [[ ! -f "$(worker_dir "$w")/$report" ]] || cp "$(worker_dir "$w")/$report" "$report"
       echo "--- worker $w: step $order ${status_of[$order]:-no status}" | tee -a "$LOG"
     done
   fi
 
   # Join. In the serial case the commit is already on the branch and there is
   # nothing to replay; the bookkeeping below is the same either way.
-  commits=(); commit_order=(); round_bad=0
+  commits=(); review_order=(); round_bad=0
   for order in "${batch[@]}"; do
     read -r outcome sha <<<"${status_of[$order]:-failed}"
     case "$outcome" in
-      ok) commits+=("$sha"); commit_order+=("$order") ;;
-      unchanged) record "$order" "${step_items[$order]}" - unchanged
-                 SKIP_NAMES+="${step_items[$order]} "
-                 noop=$((noop + 1)); round_bad=1 ;;
+      ok|followup) review_order+=("$order")
+                   [[ "$sha" == "-" ]] || commits+=("$sha") ;;
       *) record "$order" "${step_items[$order]}" - failed
          SKIP_NAMES+="${step_items[$order]} "
          fail_count=$((fail_count + 1)); round_bad=1 ;;
     esac
   done
 
-  if (( ${#commits[@]} > 0 )); then
-    if (( WORKERS == 1 )); then
-      record "${commit_order[0]}" "${step_items[${commit_order[0]}]}" \
-             "$(git rev-parse --short HEAD)" ok
-      done_count=$((done_count + 1))
-      noop=0
-      { echo "=== step ${commit_order[0]} committed: $(git rev-parse --short HEAD)"
-        echo; } | tee -a "$LOG"
-    elif join_round "$pre" "${commits[@]}"; then
-      for order in "${commit_order[@]}"; do
-        record "$order" "${step_items[$order]}" "$(git rev-parse --short HEAD)" ok
+  if (( ${#review_order[@]} > 0 )); then
+    if (( WORKERS == 1 || ${#commits[@]} == 0 )) || join_round "$pre" "${commits[@]}"; then
+      for order in "${review_order[@]}"; do
+        read -ra names <<<"${step_items[$order]}"
+        report="$(review_file "$order")"
+        outcome=$(venv/bin/python3 tools/refactor/name_review.py land --report "$report" \
+                    --commit "$(git rev-parse HEAD)" "${names[@]}") || exit 1
+        record "$order" "${step_items[$order]}" "$(git rev-parse --short HEAD)" "$outcome" "$report"
         done_count=$((done_count + 1))
+        [[ "$outcome" != "followup" ]] || followup_count=$((followup_count + 1))
+        echo "=== step $order: $outcome; review: $report" | tee -a "$LOG"
       done
-      noop=0
       { echo "=== round landed: $pre..$(git rev-parse --short HEAD)"; echo; } | tee -a "$LOG"
     else
       # The commits still exist on the worker branches, so the work is
       # recoverable; what must not survive is an unverified branch tip.
-      for order in "${commit_order[@]}"; do
+      for order in "${review_order[@]}"; do
         record "$order" "${step_items[$order]}" - landing-failed
         SKIP_NAMES+="${step_items[$order]} "
         fail_count=$((fail_count + 1))
@@ -801,17 +835,8 @@ BARRIER
     break
   fi
 
-  # A step that genuinely needs no change is rare; a run of them means the agent
-  # is not working at all - an expired key or an unreachable API returns
-  # instantly and touches nothing. Walking the worklist at that speed marks real
-  # items as visited, so stop instead.
-  if (( noop >= 3 )); then
-    echo "three steps in a row changed nothing; stopping - check the agent" >&2
-    exit 1
-  fi
-  # A step that failed its build, one that changed nothing, and a round that
-  # could not be landed are all reasons to stop by default: the pass carries a
-  # tree forward, so continuing past a bad outcome builds on it.
+  # Missing/incomplete reports and failed checks stop by default. A verified
+  # review with no source changes is an ordinary successful visit.
   if (( round_bad )) && ! (( KEEP_GOING )); then
     exit 1
   fi
@@ -822,7 +847,7 @@ BARRIER
   fi
 done
 
-echo "completed $done_count step(s), $fail_count failed${barrier:+, stopped at a barrier}"
+echo "reviewed $done_count step(s), $followup_count with follow-ups, $fail_count failed${barrier:+, stopped at a barrier}"
 if (( WORKERS > 1 )); then
   echo "worker worktrees kept for the next run; --clean-workers removes them"
 fi
