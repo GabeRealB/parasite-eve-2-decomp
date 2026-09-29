@@ -52,8 +52,8 @@ STATIC_ASSERT_SIZEOF(EnergyBallStep, 4);
 /// and stored in `Task::work`: `obj` is linked on list 1 with `ctx.recs`
 /// pointing at the one-element `rec` table (terminator `field_0 = 2`).
 typedef struct EnergyBallWork {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec;
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec;
 } EnergyBallWork;
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
 

@@ -1597,17 +1597,17 @@ static void func_actor_800300_8016259C(Task* arg0);
 
 static void func_actor_800300_80161E80(Task* arg0)
 {
-    GameActor*  actor;
-    TmdObject*  extra;
-    GfxCoord*   coord;
-    GfxCoord*   next;
-    GfxCoord**  addr;
-    GpActorD4*  d4;
-    GpObj*      obj;
-    GpRec18*    recs;
-    McSaveData* save;
-    s32         packed;
-    s8          fcc;
+    GameActor*             actor;
+    TmdObject*             extra;
+    GfxCoord*               coord;
+    GfxCoord*               next;
+    GfxCoord**              addr;
+    GpActorD4*             d4;
+    GpObj*                 obj;
+    WorldCollisionContact* recs;
+    McSaveData*            save;
+    s32                    packed;
+    s8                     fcc;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;

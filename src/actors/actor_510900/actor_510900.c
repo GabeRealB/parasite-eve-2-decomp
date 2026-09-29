@@ -2209,26 +2209,26 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 /// handler; otherwise the task moves to the tick handler (`state` 1).
 void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
 {
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    Actor510900Work* work;
-    GpEnemy*         spawned;
-    GpEffWork*       eff;
-    u32              raw1;
-    u32              raw2;
-    u32              index1;
-    u32              index2;
-    TmdObject*       model1;
-    TmdObject*       model2;
-    GpAreaPlace*     entry1;
-    GpAreaPlace*     entry2;
-    GameLocationKey  key;
-    GameLocationKey* sessionKey1;
-    GameLocationKey* sessionKey2;
-    GpRec18*         records1;
-    GpRec18*         records2;
-    u8               areaByte0;
-    s32              i;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    Actor510900Work*       work;
+    GpEnemy*               spawned;
+    GpEffWork*             eff;
+    u32                    raw1;
+    u32                    raw2;
+    u32                    index1;
+    u32                    index2;
+    TmdObject*             model1;
+    TmdObject*             model2;
+    GpAreaPlace*           entry1;
+    GpAreaPlace*           entry2;
+    GameLocationKey              key;
+    GameLocationKey*             sessionKey1;
+    GameLocationKey*             sessionKey2;
+    WorldCollisionContact* records1;
+    WorldCollisionContact* records2;
+    u8                     areaByte0;
+    s32                    i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;

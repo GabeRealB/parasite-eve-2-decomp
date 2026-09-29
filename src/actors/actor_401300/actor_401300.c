@@ -122,14 +122,14 @@ typedef struct Actor401300Work {
     /* 0x920 */ GfxCoord field_920;
     /* 0x970 */ GpObj    field_970;
     /// Contact records, walked twelve at a time by the movement helpers.
-    /* 0x990 */ GpRec18 field_990[12];
-    /* 0xAB0 */ GpObj   field_AB0;
+    /* 0x990 */ WorldCollisionContact field_990[12];
+    /* 0xAB0 */ GpObj                 field_AB0;
     /// Contact records the `field_AB0` node's context points at.
-    /* 0xAD0 */ GpRec18 field_AD0[12];
-    /* 0xBF0 */ GpObj   field_BF0;
-    /* 0xC10 */ byte    pad_C10[0x18];
-    /// Light matrix `func_actor_401300_80134454` binds to the model's
-    /// `TmdObject::lightMtx` (the color matrix is `field_C48`).
+    /* 0xAD0 */ WorldCollisionContact field_AD0[12];
+    /* 0xBF0 */ GpObj                 field_BF0;
+    /* 0xC10 */ WorldCollisionContact sensorContacts[1]; // Single result for the sensor body
+                                                         /// Light matrix `func_actor_401300_80134454` binds to the model's
+                                                         /// `TmdObject::lightMtx` (the color matrix is `field_C48`).
     /* 0xC28 */ MATRIX field_C28;
     /// Saved at 0xC48 and copied over 0xC68 when
     /// `func_actor_401300_80139520` enters its state.
@@ -1266,12 +1266,12 @@ TaskDesc D_actor_401300_80158A18 = { 1, 96, func_actor_401300_80141F2C, { .model
 SVECTOR D_actor_401300_80158A24 = { 0 };
 
 static void            func_actor_401300_801320A4(GfxCoord* coord, s16 yaw);
-static s32             func_actor_401300_801323B0(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 static s32             func_actor_401300_8013267C(GfxCoord* coord, s16 arg1, s16 arg2);
-static s32             func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count);
+static s32             func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void            func_actor_401300_80132BE4(GameLocationKey* session, GfxCoord* coord);
 static __inline__ s32  Actor401300_HasHeightClamp(GameLocationKey* session);
-static s32             func_actor_401300_80132C78(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
+static s32             func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3);
 static s32             func_actor_401300_80132FF4(Task* arg0);
 static void            func_actor_401300_80133254(Task* arg0);
 static void            func_actor_401300_80133324(Task* arg0);
@@ -1330,7 +1330,7 @@ static void            func_actor_401300_8013F628(Task* arg0);
 static void            func_actor_401300_80140300(Task* arg0);
 static void            func_actor_401300_8014046C(Task* arg0);
 static __inline__ s32  Actor401300_InRangeFlag(Task* arg0);
-static __inline__ s32  Actor401300_HasRec10000(GpRec18* recs);
+static __inline__ s32  Actor401300_HasRec10000(WorldCollisionContact* recs);
 static __inline__ void Actor401300_SnapPlayerHeight(Task* actor);
 static void            func_actor_401300_801405DC(GpEnemy* enemy, Task* actor);
 static s32             func_actor_401300_801417F0(Task* arg0);
@@ -1361,7 +1361,7 @@ static void func_actor_401300_801320A4(GfxCoord* coord, s16 yaw)
 /// delta in `D_actor_401300_80158A24`. A nonzero fractional part rounds both
 /// the coordinate and the kept step one unit away from zero. Returns 1 when the
 /// X or Z delta is nonzero.
-static s32 func_actor_401300_801323B0(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1504,7 +1504,7 @@ static s32 func_actor_401300_8013267C(GfxCoord* coord, s16 arg1, s16 arg2)
 /// offset (skipping 0x3000D), walking `recs` until `count` or a zero `key`.
 /// The duplicated coordinate update keeps `count`'s sign extension in the loop,
 /// as in `Actor01900_Fn03FF8`.
-static s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
+static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -1524,16 +1524,16 @@ static s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
-        if ((s->kind == 0x10000 || s->kind == 0x30000) && recs[s->i].key != 0x3000D) {
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
+        if ((s->kind == 0x10000 || s->kind == 0x30000) && recs[s->i].key.value != 0x3000D) {
             if (s->kind == 0x10000) {
                 s->hit = 1;
             }
-            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            worldCollisionCalcContactViewOffset(&s->pos, &recs[s->i], &s->offset);
             s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
             s->len = SquareRoot0(s->len);
             if (s->len >= 0x140) {
@@ -1592,7 +1592,7 @@ static __inline__ s32 Actor401300_HasHeightClamp(GameLocationKey* session)
     return 0;
 }
 
-static s32 func_actor_401300_80132C78(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
+static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3)
 {
     ActorStepDelta* head;
     ActorStepDelta* s;
@@ -2449,7 +2449,7 @@ static void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
     dir.vz         = 0;
     head           = &work->field_BF0;
     head->coord    = &actor->extra.tmd->coords[3];
-    head->ctx.recs = (GpRec18*)&work->pad_C10;
+    head->ctx.recs = work->sensorContacts;
     v              = &dir;
     head->pos.vx   = v->vx;
     head->pos.vy   = v->vy;
@@ -5553,14 +5553,14 @@ loop:
 }
 
 /// 1 when the first of `recs` is a kind 0x10000 record.
-static __inline__ s32 Actor401300_HasRec10000(GpRec18* recs)
+static __inline__ s32 Actor401300_HasRec10000(WorldCollisionContact* recs)
 {
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].key)
+        if (!recs[i].key.value)
             break;
-        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -5680,13 +5680,13 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             }
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);
-            Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+            Gp_ClearRec18Occupied(work->sensorContacts);
             return;
         case 2:
             actor->extra.tmd->flags = 0x80;
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);
-            Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+            Gp_ClearRec18Occupied(work->sensorContacts);
             return;
     }
 
@@ -5736,12 +5736,12 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             work->field_AB0.flags |= 0x8000;
         }
     }
-    if ((Actor401300_HasRec10000((GpRec18*)work->pad_C10) == 1) || (enemy->hp <= 0)) {
+    if ((Actor401300_HasRec10000(work->sensorContacts) == 1) || (enemy->hp <= 0)) {
         work->field_BF0.flags &= 0x7FFF;
     }
     Gp_ClearRec18Occupied(work->field_AD0);
     Gp_ClearRec18Occupied(work->field_990);
-    Gp_ClearRec18Occupied((GpRec18*)work->pad_C10);
+    Gp_ClearRec18Occupied(work->sensorContacts);
 
     if (work->field_D20 == 1) {
         state = work->field_0;

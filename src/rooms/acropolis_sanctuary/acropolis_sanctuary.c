@@ -1582,8 +1582,8 @@ Task* D_acropolis_sanctuary_80186C90 = NULL;
 
 SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
 
-static s32  func_acropolis_sanctuary_8017F974(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_sanctuary_8017FB18(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_sanctuary_8017F974(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32  func_acropolis_sanctuary_8017FB18(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_acropolis_sanctuary_801802E0(Task* task);
 
 /// The room task's per-frame state. Once the session reaches phase 3
@@ -1898,7 +1898,7 @@ static void func_acropolis_sanctuary_8017DD78(void)
         dst->field_8[(i * 2) + 1].vy = src->field_8[(i * 2) + 1].vy;
         dst->field_8[(i * 2) + 1].vz = src->field_8[(i * 2) + 1].vz;
         dst->field_C[i]              = src->field_C[i];
-        dst->field_C[i].field_A      = 1;
+        dst->field_C[i].surfaceClass = 1;
     }
 
     if (GameFlag_GetNibble(6) == 0) {
@@ -2476,7 +2476,7 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, GpMessageArg arg2, 
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_sanctuary_80186C94`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_sanctuary_8017F974(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_sanctuary_8017F974(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -2523,7 +2523,7 @@ static s32 func_acropolis_sanctuary_8017F974(GfxCoord* coord, GpRec18* rec, s16 
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -2547,11 +2547,11 @@ static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, GpRec18* recs, s16
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

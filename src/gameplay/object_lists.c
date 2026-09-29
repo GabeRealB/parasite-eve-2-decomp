@@ -37,12 +37,12 @@ typedef struct _GpNearScratch {
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0FEC`.
-/// Each `GpRec18` whose `key` high halfword is `0x10` contributes to
+/// Each `WorldCollisionContact` whose `key` high halfword is `0x10` contributes to
 /// one accumulator, selected by `key` bits `0xF00`: kind 0 sums
-/// `depth * at10.normal` into `acc[0]`, kind 1 writes the lift
-/// `-(depth << 12)` into `acc[1].vy`, and kind 2 writes the slide
-/// `depth * at10.normal.vx` / `.vz` into `acc[2]` for the record with the
-/// smallest `depth`. `acc[3]` holds the pairwise XZ products of the kind-0
+/// `distance * response.normal` into `acc[0]`, kind 1 writes the lift
+/// `-(distance << 12)` into `acc[1].vy`, and kind 2 writes the slide
+/// `distance * response.normal.vx` / `.vz` into `acc[2]` for the record with the
+/// smallest `distance`. `acc[3]` holds the pairwise XZ products of the kind-0
 /// records used to detect opposing pushes.
 typedef struct _GpPushScratch {
     /* 0x00 */ VECTOR acc[4];
@@ -50,8 +50,8 @@ typedef struct _GpPushScratch {
 STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
 
 /// 0x34-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0C10`.
-/// `acc[0]` sums `at10.normal * depth` for every contributing
-/// `GpRec18` that sits at or above the floor cutoff (`at10.normal.vy >=
+/// `acc[0]` sums `response.normal * distance` for every contributing
+/// `WorldCollisionContact` that sits at or above the floor cutoff (`response.normal.vy >=
 /// -0xDDA`); records below it instead accumulate into `acc[1].vy` and
 /// bump `count`, so the average of that column can be folded in at the
 /// end. `acc[2]` holds the pairwise XZ products used to detect two
@@ -410,16 +410,16 @@ static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     }
 }
 
-s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 {
-    u8*             head;
-    GpSlideScratch* s;
-    GpRec18*        rec;
-    s32             i;
-    s32             j;
-    s32             count;
-    s32             mask;
-    s32             ret;
+    u8*                    head;
+    GpSlideScratch*        s;
+    WorldCollisionContact* rec;
+    s32                    i;
+    s32                    j;
+    s32                    count;
+    s32                    mask;
+    s32                    ret;
 
     count = 0;
     ret   = 0;
@@ -447,17 +447,17 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
         for (i = 0; i < arg2; i++) {
             rec = &arg0[i];
-            if ((rec->flags & 1) && (rec->key & 0xFFFF0000) == 0x100000) {
-                mask |= 1 << rec->key;
-                if (Gp_RoomParams[rec->key & 7] == 0) {
-                    if (rec->at10.normal.vy >= -0xDDA) {
-                        s->acc[0].vx += rec->at10.normal.vx * rec->depth;
-                        s->acc[0].vy += rec->at10.normal.vy * rec->depth;
-                        s->acc[0].vz += rec->at10.normal.vz * rec->depth;
+            if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+                mask |= 1 << rec->key.value;
+                if (Gp_RoomParams[rec->key.value & 7] == 0) {
+                    if (rec->response.normal.vy >= -0xDDA) {
+                        s->acc[0].vx += rec->response.normal.vx * rec->distance;
+                        s->acc[0].vy += rec->response.normal.vy * rec->distance;
+                        s->acc[0].vz += rec->response.normal.vz * rec->distance;
                         list[count++] = i;
                     } else {
                         s->acc[1].vx  = 0;
-                        s->acc[1].vy += rec->at10.normal.vy * rec->depth;
+                        s->acc[1].vy += rec->response.normal.vy * rec->distance;
                         s->acc[1].vz  = 0;
                         s->count++;
                     }
@@ -472,8 +472,8 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
         for (i = 0; i < count; i++) {
             for (j = 1; j < count; j++) {
-                s->acc[2].vx = arg0[list[i]].at10.normal.vx * arg0[list[j]].at10.normal.vx;
-                s->acc[2].vz = arg0[list[i]].at10.normal.vz * arg0[list[j]].at10.normal.vz;
+                s->acc[2].vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
+                s->acc[2].vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
                 if (s->acc[2].vx < -0x800000 || s->acc[2].vz < -0x800000) {
                     ret = 2;
                 }
@@ -494,18 +494,18 @@ s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
     }
 }
 
-s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 {
-    u8*            head;
-    GpPushScratch* s;
-    GpRec18*       rec;
-    s32            i;
-    s32            j;
-    s32            count;
-    s32            mask;
-    s32            ret;
-    s32            prev;
-    u8             list[0x20];
+    u8*                    head;
+    GpPushScratch*         s;
+    WorldCollisionContact* rec;
+    s32                    i;
+    s32                    j;
+    s32                    count;
+    s32                    mask;
+    s32                    ret;
+    s32                    prev;
+    u8                     list[0x20];
 
     ret   = 0;
     count = 0;
@@ -527,27 +527,27 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
     for (i = 0; i < arg2; i++) {
         rec = &arg0[i];
-        if ((rec->flags & 1) && (rec->key & 0xFFFF0000) == 0x100000) {
-            mask |= 1 << rec->key;
-            if (Gp_RoomParams[rec->key & 7] == 0) {
-                switch ((u32)(rec->key & 0xF00) >> 8) {
+        if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+            mask |= 1 << rec->key.value;
+            if (Gp_RoomParams[rec->key.value & 7] == 0) {
+                switch ((u32)(rec->key.value & 0xF00) >> 8) {
                     case 0:
-                        s->acc[0].vx += rec->depth * rec->at10.normal.vx;
-                        s->acc[0].vy += rec->depth * rec->at10.normal.vy;
-                        s->acc[0].vz += rec->depth * rec->at10.normal.vz;
+                        s->acc[0].vx += rec->distance * rec->response.normal.vx;
+                        s->acc[0].vy += rec->distance * rec->response.normal.vy;
+                        s->acc[0].vz += rec->distance * rec->response.normal.vz;
                         list[count++] = i;
                         break;
                     case 1:
                         s->acc[1].vx = 0;
-                        s->acc[1].vy = -(rec->depth << 12);
+                        s->acc[1].vy = -(rec->distance << 12);
                         s->acc[1].vz = 0;
                         break;
                     case 2:
-                        if (rec->at10.normal.vy == 0 && ((s16)prev == 0 || rec->depth < (s16)prev)) {
-                            s->acc[2].vx = rec->depth * rec->at10.normal.vx;
+                        if (rec->response.normal.vy == 0 && ((s16)prev == 0 || rec->distance < (s16)prev)) {
+                            s->acc[2].vx = rec->distance * rec->response.normal.vx;
                             s->acc[2].vy = 0;
-                            s->acc[2].vz = rec->depth * rec->at10.normal.vz;
-                            prev         = (u16)rec->depth;
+                            s->acc[2].vz = rec->distance * rec->response.normal.vz;
+                            prev         = (u16)rec->distance;
                         }
                         break;
                 }
@@ -558,8 +558,8 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
     for (i = 0; i < count; i++) {
         for (j = 1; j < count; j++) {
-            s->acc[3].vx = arg0[list[i]].at10.normal.vx * arg0[list[j]].at10.normal.vx;
-            s->acc[3].vz = arg0[list[i]].at10.normal.vz * arg0[list[j]].at10.normal.vz;
+            s->acc[3].vx = arg0[list[i]].response.normal.vx * arg0[list[j]].response.normal.vx;
+            s->acc[3].vz = arg0[list[i]].response.normal.vz * arg0[list[j]].response.normal.vz;
             if (s->acc[3].vx < -0x800000 || s->acc[3].vz < -0x800000) {
                 ret = 2;
             }
@@ -586,17 +586,17 @@ s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 
 static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {
-    u8*            head;
-    GpNearScratch* block;
-    GpActorD4Rec*  rec;
-    GpRec18*       slot;
-    s32            minDist;
-    s32            index;
-    s32            best;
-    s32            dx;
-    s32            dy;
-    s32            dz;
-    s32            dist;
+    u8*                    head;
+    GpNearScratch*         block;
+    GpActorD4Rec*          rec;
+    WorldCollisionContact* slot;
+    s32                    minDist;
+    s32                    index;
+    s32                    best;
+    s32                    dx;
+    s32                    dy;
+    s32                    dz;
+    s32                    dist;
 
     minDist            = -1;
     index              = 0;
@@ -618,7 +618,7 @@ static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     block->world.vz = block->vec.vz + (arg0->coord)->workm.t[2];
 
     for (;;) {
-        if ((slot->flags & 1) && ((slot->key & 0xFFFF0000) == arg1)) {
+        if ((slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == arg1)) {
             dx            = slot->point.vx - block->world.vx;
             block->vec.vx = dx;
             dy            = slot->point.vy - block->world.vy;
@@ -631,7 +631,7 @@ static s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
                 best    = index + 1;
             }
         }
-        if (slot->flags & 2) {
+        if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
             break;
         }
         slot++;
@@ -849,10 +849,10 @@ void Gp_ClearObj3AList(s32 arg0)
     }
 }
 
-void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2)
+void Gp_InitRec18Table(WorldCollisionContact* contacts, s32 count, s32 unused)
 {
-    Mem_Set(arg0, 0, arg1 * 0x18);
-    arg0[arg1 - 1].flags = 2;
+    Mem_Set(contacts, 0, count * sizeof(*contacts));
+    contacts[count - 1].flags = WORLD_COLLISION_CONTACT_LAST;
 }
 
 void Gp_LoadRoomParams(void)
@@ -872,59 +872,59 @@ void Gp_LoadRoomParams(void)
     }
 }
 
-s32 Gp_FindRec18(GpRec18* arg0, s32 arg1)
+s32 Gp_FindRec18(WorldCollisionContact* contacts, s32 key)
 {
     s32 result;
     s32 index;
 
     result = 0;
     for (index = 1;; index++) {
-        if (arg0->flags & 1) {
-            if (arg1 == 0) {
+        if (contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+            if (key == 0) {
                 return 1;
             }
-            if (arg0->key == arg1) {
+            if (contacts->key.value == key) {
                 result = index;
             }
         }
-        if ((arg0++)->flags & 2) {
+        if ((contacts++)->flags & WORLD_COLLISION_CONTACT_LAST) {
             break;
         }
     }
     return result;
 }
 
-s32 Gp_CountRec18Hi(GpRec18* arg0, s32 arg1)
+s32 Gp_CountRec18Hi(WorldCollisionContact* contacts, s32 kind)
 {
     s32 count;
 
     count = 0;
     do {
-        if ((arg0->flags & 1) && ((arg0->key & 0xFFFF0000) == arg1)) {
+        if ((contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && ((contacts->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == kind)) {
             count += 1;
         }
-    } while (!((arg0++)->flags & 2));
+    } while (!((contacts++)->flags & WORLD_COLLISION_CONTACT_LAST));
     return count;
 }
 
-void Gp_ClearRec18Occupied(GpRec18* arg0)
+void Gp_ClearRec18Occupied(WorldCollisionContact* contacts)
 {
     for (;;) {
-        if (arg0->flags & 1) {
-            arg0->flags         &= 2;
-            arg0->depth          = 0;
-            arg0->key            = 0;
-            arg0->point.vx       = 0;
-            arg0->point.vy       = 0;
-            arg0->point.vz       = 0;
-            arg0->at10.normal.vx = 0;
-            arg0->at10.normal.vy = 0;
-            arg0->at10.normal.vz = 0;
+        if (contacts->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+            contacts->flags             &= WORLD_COLLISION_CONTACT_LAST;
+            contacts->distance           = 0;
+            contacts->key.value          = 0;
+            contacts->point.vx           = 0;
+            contacts->point.vy           = 0;
+            contacts->point.vz           = 0;
+            contacts->response.normal.vx = 0;
+            contacts->response.normal.vy = 0;
+            contacts->response.normal.vz = 0;
         }
-        if (arg0->flags & 2) {
+        if (contacts->flags & WORLD_COLLISION_CONTACT_LAST) {
             break;
         }
-        arg0++;
+        contacts++;
     }
 }
 
@@ -992,31 +992,32 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
 
 void Gp_ClaimSlot18(GpEnemy* arg0, s32 arg1)
 {
-    GpRec18*   slot;
-    GpRec18*   temp;
-    s32        one;
-    GpStateF0* p;
+    WorldCollisionContact* slot;
+    WorldCollisionContact* temp;
+    s32                    one;
+    GpStateF0*             p;
 
     temp = arg0->recs;
     if (temp != NULL) {
         slot = temp;
-        one  = 1;
+        one  = WORLD_COLLISION_CONTACT_OCCUPIED;
+        // A full table replaces its last element; the word read retains the original access width.
         while (1) {
-            if ((*(s32*)&slot->flags & 3) != one) {
+            if ((*(s32*)&slot->flags & (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) != one) {
                 break;
             }
             slot++;
         }
-        slot->key            = arg1;
-        slot->depth          = 0;
-        slot->point.vx       = 0;
-        slot->point.vy       = 0;
-        slot->point.vz       = 0;
-        slot->at10.normal.vx = 0;
-        slot->at10.normal.vy = 0;
-        slot->at10.normal.vz = 0;
-        slot->flags         |= 1;
-        p                    = &Gp_StateF0;
+        slot->key.value          = arg1;
+        slot->distance           = 0;
+        slot->point.vx           = 0;
+        slot->point.vy           = 0;
+        slot->point.vz           = 0;
+        slot->response.normal.vx = 0;
+        slot->response.normal.vy = 0;
+        slot->response.normal.vz = 0;
+        slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
+        p                        = &Gp_StateF0;
         p->field_5++;
     }
 }

@@ -42,15 +42,6 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-/// Record whose word at 0x4 is the id `func_8010B2D4` passes to
-/// `Gp_ScaleDamage` (and `func_8010B348` passes to `Gp_LookupIdField`).
-/// `func_8010B348` also switches on the low 16 bits (2/4 vs 3) before
-/// that call.
-typedef struct _GpIdRec {
-    /* 0x0 */ byte pad_0[4];
-    /* 0x4 */ s32  field_4;
-} GpIdRec;
-
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
@@ -113,9 +104,9 @@ static void func_8010B0C8(Task* arg0);
 
 static s32 Gp_TestHpDamage(s32 arg0);
 
-static void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2);
+static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 
-static void func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2);
+static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 
 static void func_8010B590(Task* arg0);
 
@@ -232,22 +223,22 @@ u16 D_80113F9C[70] = {
     0,
 };
 
-void func_80109BB4(Task* arg0, GpRec18* arg1)
+void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
 {
-    u8*                head;
-    GpPushBackScratch* s;
-    GameActor*         actor;
-    GfxCoord*          coord;
-    GpHitRec*          rec;
-    GpObj*             obj;
-    VECTOR*            delta;
-    s32                i;
-    s32                best;
-    s32                push;
-    s32                id;
-    s32                val;
+    u8*                    head;
+    GpPushBackScratch*     s;
+    GameActor*             actor;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    GpObj*                 obj;
+    VECTOR*                delta;
+    s32                    i;
+    s32                    best;
+    s32                    push;
+    s32                    id;
+    s32                    val;
 
-    rec                = (GpHitRec*)arg1;
+    rec                = arg1;
     best               = 0;
     i                  = 0;
     head               = SCRATCH_HEAD(u8);
@@ -259,7 +250,7 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
     for (i = 0; i < 0x12; rec++, i++) {
         delta = &s->delta;
         if (rec->flags & 1) {
-            switch (rec->kind) {
+            switch (rec->key.parts.kind) {
                 case 0:
                 case 1:
                 case 2:
@@ -268,7 +259,7 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
                     if ((s8)actor->field_992 != 0) {
                         break;
                     }
-                    id = rec->id;
+                    id = rec->key.parts.id;
                     if (id < 0x46 && D_80113F9C[id] == 1) {
                         obj = &((GpObj*)actor->field_AC)[(u8)rec->flags >> 4];
                         gte_SetRotMatrix(&obj->coord->workm);
@@ -281,12 +272,12 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
                             (obj->coord)->workm.t[1] + s->delta.vy;
                         s->pos.vz =
                             (obj->coord)->workm.t[2] + s->delta.vz;
-                        s->delta.vx = s->pos.vx - rec->x;
-                        s->delta.vy = s->pos.vy - rec->y;
-                        s->delta.vz = s->pos.vz - rec->z;
-                        push        = rec->dist - SquareRoot0(s->delta.vx * s->delta.vx +
-                                                              s->delta.vy * s->delta.vy +
-                                                              s->delta.vz * s->delta.vz);
+                        s->delta.vx = s->pos.vx - rec->point.vx;
+                        s->delta.vy = s->pos.vy - rec->point.vy;
+                        s->delta.vz = s->pos.vz - rec->point.vz;
+                        push        = rec->distance - SquareRoot0(s->delta.vx * s->delta.vx +
+                                                                  s->delta.vy * s->delta.vy +
+                                                                  s->delta.vz * s->delta.vz);
                         val         = push;
                         if (push < 0) {
                             val = 0;
@@ -301,10 +292,10 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
                     }
                     break;
                 case 4:
-                    func_8010B2D4(arg0, (GpIdRec*)rec, (u8)rec->flags >> 4);
+                    func_8010B2D4(arg0, rec, (u8)rec->flags >> 4);
                     break;
                 case 5:
-                    func_8010B348(arg0, (GpIdRec*)rec, (u8)rec->flags >> 4);
+                    func_8010B348(arg0, rec, (u8)rec->flags >> 4);
                     break;
             }
         }
@@ -1034,7 +1025,7 @@ void func_8010B2A0(s32 arg0, s32 arg1)
     Task_SpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
-static void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2)
+static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
 {
     GameActor* inner;
     s32        out;
@@ -1050,18 +1041,18 @@ static void func_8010B2D4(Task* arg0, GpIdRec* arg1, s32 arg2)
         } else {
             inner->field_96C = 2;
         }
-        inner->field_96E = Gp_ScaleDamage(arg1->field_4, 0, &out, flag);
+        inner->field_96E = Gp_ScaleDamage(arg1->key.value, 0, &out, flag);
         inner->field_972 = out;
     }
 }
 
-static void func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2)
+static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
 {
     GameActor* inner;
     u32        kind;
 
     inner = arg0->work;
-    kind  = (u16)arg1->field_4;
+    kind  = (u16)arg1->key.value;
     if ((u16)inner->field_96C == 0) {
         inner->field_993 = arg2;
         if (kind == 2) {
@@ -1094,7 +1085,7 @@ static void func_8010B348(Task* arg0, GpIdRec* arg1, s32 arg2)
         }
         inner->field_972 = 0;
     do_call:
-        inner->field_96E = Gp_LookupIdField(arg1->field_4, 0);
+        inner->field_96E = Gp_LookupIdField(arg1->key.value, 0);
     }
 }
 
@@ -1865,7 +1856,7 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5)
+void func_8010C980(void* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5)
 {
     arg1->coord    = arg0;
     arg1->ctx.recs = arg2;

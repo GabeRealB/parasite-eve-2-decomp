@@ -222,7 +222,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own
 /// `GpLinkNode`.  Both nodes point their `ctx.recs` at the same six-entry
-/// `GpRec18` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
+/// `WorldCollisionContact` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
     /* 0x000 */ GpAnimCtx  anim;
@@ -246,8 +246,8 @@ typedef struct Actor206100Work {
     /// high half selects kind 2, and the walk stops early once `field_52A` goes
     /// up.  The record's own `field_0` / `field_8..field_14` are the occupancy
     /// flags `Gp_ClearRec18Occupied` walks, so nothing here reads them.
-    /* 0x384 */ GpRec18 rec_384[6];
-    /* 0x414 */ GpObj   obj_414;
+    /* 0x384 */ WorldCollisionContact rec_384[6];
+    /* 0x414 */ GpObj                 obj_414;
     /// Post the actor walks out from: `func_actor_206100_8014B698` latches the
     /// root coordinate's three halves here, and `func_actor_206100_8014ED3C`
     /// snaps `t[0]` / `t[2]` back to `field_434` / `field_438` once the walk has
@@ -461,22 +461,22 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// `obj` is the kind-1 `GpObj` the spawn state `func_actor_206100_8014EEC0`
 /// links into the collision list and `func_actor_206100_8014FBE4` unlinks
 /// again on retirement, so the 0x8 before it is not the node's own header and
-/// stays zero.  `rec` is the two-entry `GpRec18` table `obj.ctx.recs` points at.
+/// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.ctx.recs` points at.
 /// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
 /// stores from the actor's coordinate, `field_60` the pair index the setup
 /// hands to `func_actor_206100_8014A70C`, and `field_64` the scale word it
 /// biases by 0x10002000.  The tick handler `func_actor_206100_8014B8B4`
 /// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
 typedef struct Actor206100ChildWork {
-    /* 0x00 */ byte    pad_0[0x8];
-    /* 0x08 */ GpObj   obj;
-    /* 0x28 */ GpRec18 rec[2];
-    /* 0x58 */ s16     field_58;
-    /* 0x5A */ s16     field_5A;
-    /* 0x5C */ s16     field_5C;
-    /* 0x5E */ byte    pad_5E[0x2];
-    /* 0x60 */ s32     field_60;
-    /* 0x64 */ s32     field_64;
+    /* 0x00 */ byte                  pad_0[0x8];
+    /* 0x08 */ GpObj                 obj;
+    /* 0x28 */ WorldCollisionContact rec[2];
+    /* 0x58 */ s16                   field_58;
+    /* 0x5A */ s16                   field_5A;
+    /* 0x5C */ s16                   field_5C;
+    /* 0x5E */ byte                  pad_5E[0x2];
+    /* 0x60 */ s32                   field_60;
+    /* 0x64 */ s32                   field_64;
 } Actor206100ChildWork;
 STATIC_ASSERT_SIZEOF(Actor206100ChildWork, 0x68);
 
@@ -512,7 +512,7 @@ static void func_actor_206100_8014AF74(Task* task);
 /// Builds the enemy's two collision objects.  Each is bound to a part
 /// coordinate of the actor's `TmdObject` -- `obj_364` to `field_8[1]` with
 /// `field_1C` 0x400, `obj_414` to `field_8[4]` with 0x200 -- and both point
-/// their `field_C` at the shared `GpRec18` pair table zeroed at `rec_384`,
+/// their `field_C` at the shared `WorldCollisionContact` pair table zeroed at `rec_384`,
 /// which is why there is a single `Gp_InitRec18Table` for the pair.  Each
 /// block ends by clearing `flags` bit 0x8000 after its `Gp_LinkObj`, the same
 /// tail shape `func_actor_403100_80132320` has (`|= 0x8000` there).
@@ -1914,7 +1914,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         coord->coord.t[2]    += child->field_5C;
         if (Gp_FindRec18(child->rec, 0) != 0) {
             for (i = 0; i < 2; i++) {
-                switch (child->rec[i].key & 0xFFFF0000) {
+                switch (child->rec[i].key.value & 0xFFFF0000) {
                     case 0x10000:
                     case 0x30000:
                     case 0x50000:
@@ -1997,35 +1997,35 @@ static void func_actor_206100_8014BAA8(Task* task)
     enemy           = (GpEnemy*)task->spawnArg2.pointer;
     work->field_52A = 0;
     for (i = 0; i < 6; i++) {
-        if ((work->rec_384[i].key & 0xFFFF0000) == 0x20000) {
+        if ((work->rec_384[i].key.value & 0xFFFF0000) == 0x20000) {
             if (work->field_504 == 0) {
                 work->field_52A = hit;
                 work->field_54B = hit;
-                dmg             = Gp_ComputeDamage(work->rec_384[i].key, work->field_528, 0, 0);
+                dmg             = Gp_ComputeDamage(work->rec_384[i].key.value, work->field_528, 0, 0);
                 amount          = dmg;
-                work->field_504 = Gp_GetIdParam2(work->rec_384[i].key);
-                if (Gp_RollEnemyChance(enemy, work->rec_384[i].key, 0) != 0) {
+                work->field_504 = Gp_GetIdParam2(work->rec_384[i].key.value);
+                if (Gp_RollEnemyChance(enemy, work->rec_384[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->rec_384[i].key) & 0xFFFF,
+                func_800FDB18(Gp_GetIdParam1(work->rec_384[i].key.value) & 0xFFFF,
                               &task->extra.tmd->coords[work->field_557], 0, &work->eff_4C0);
                 if (amount >= 0xB4) {
                     work->field_52C = heavy;
                 } else {
                     work->field_52C = hit;
                 }
-                switch (Gp_GetIdParam0(work->rec_384[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->rec_384[i].key.value) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
                         Gp_SetObjFlag1(enemy);
                         break;
                     case 2:
-                        Gp_SetObjFlag2(enemy, work->rec_384[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->rec_384[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(enemy, work->rec_384[i].key, 0);
+                        Gp_SetObjFlag4(enemy, work->rec_384[i].key.value, 0);
                         break;
                     case 4:
                         work->field_52C = 4;
@@ -2047,7 +2047,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                         work->field_52C = hit;
                         break;
                 }
-                if ((work->rec_384[i].key & 0x7F) == 0x1C && (work->rec_384[i].key & 0x8000) == 0) {
+                if ((work->rec_384[i].key.value & 0x7F) == 0x1C && (work->rec_384[i].key.value & 0x8000) == 0) {
                     enemy->reactionFlags &= 0xFE;
                     work->field_52C       = hit;
                 }
@@ -2060,13 +2060,13 @@ static void func_actor_206100_8014BAA8(Task* task)
                         Gp_SpawnEff(0x6009C, &task->extra.tmd->coords[work->field_557], 2, 0);
                         break;
                 }
-                func_800E2C78(enemy, work->rec_384[i].key, amount, 0);
+                func_800E2C78(enemy, work->rec_384[i].key.value, amount, 0);
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->hp -= amount;
                 if ((s16)enemy->hp < 0) {
                     enemy->hp = 0;
                 }
-            } else if ((Gp_GetIdParam1(work->rec_384[i].key) & 0xFFFF) == 0xD) {
+            } else if ((Gp_GetIdParam1(work->rec_384[i].key.value) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &task->extra.tmd->coords[1], 0, &work->eff_4C0);
             }
         }
@@ -3868,9 +3868,9 @@ static GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
 
 static void func_actor_206100_8014EEC0(Task* task)
 {
-    Actor206100ChildWork* child;
-    GpRec18*              rec;
-    GfxCoord*             coord;
+    Actor206100ChildWork*  child;
+    WorldCollisionContact* rec;
+    GfxCoord*               coord;
 
     child               = (Actor206100ChildWork*)task->work;
     coord               = task->extra.tmd->coords;

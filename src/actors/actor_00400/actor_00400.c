@@ -85,17 +85,17 @@ typedef struct Actor100400QuadWork {
 } Actor100400QuadWork;
 
 /// 0x64-byte work block of the marker task `Actor00400_Fn064B0` spawns from
-/// `Actor00400_D16028[1]`: a display object and its two `GpRec18` slots, then
+/// `Actor00400_D16028[1]`: a display object and its two `WorldCollisionContact` slots, then
 /// the view-space span between the marker's base and tip.
 typedef struct Actor100400MarkerWork {
-    /* 0x00 */ byte    pad_0[8];
-    /* 0x08 */ GpObj   obj;
-    /* 0x28 */ GpRec18 recs[2];
-    /* 0x58 */ s16     field_58;
-    /* 0x5A */ s16     field_5A;
-    /* 0x5C */ s16     field_5C;
-    /* 0x5E */ byte    pad_5E[2];
-    /* 0x60 */ s32     field_60;
+    /* 0x00 */ byte                  pad_0[8];
+    /* 0x08 */ GpObj                 obj;
+    /* 0x28 */ WorldCollisionContact recs[2];
+    /* 0x58 */ s16                   field_58;
+    /* 0x5A */ s16                   field_5A;
+    /* 0x5C */ s16                   field_5C;
+    /* 0x5E */ byte                  pad_5E[2];
+    /* 0x60 */ s32                   field_60;
 } Actor100400MarkerWork;
 STATIC_ASSERT_SIZEOF(Actor100400MarkerWork, 0x64);
 
@@ -155,89 +155,89 @@ typedef union Actor100400Flags {
 } Actor100400Flags;
 
 typedef struct Actor100400Work {
-    /* 0x000 */ GpAnimCtx        anim;
-    /* 0x014 */ GpAnimSlot       slots[15];
-    /* 0x26C */ byte             poses[0xF0];
-    /* 0x35C */ GpObj            obj_35C;
-    /* 0x37C */ GpObj            obj_37C;
-    /* 0x39C */ GpRec18          field_39C[6];
-    /* 0x42C */ GpObj            obj_42C;
-    /* 0x44C */ GpRec18          field_44C[6];
-    /* 0x4DC */ GpObj            obj_4DC;
-    /* 0x4FC */ GpRec18          rec_4FC[3];
-    /* 0x544 */ byte             pad_544[2];
-    /* 0x546 */ u16              field_546;
-    /* 0x548 */ byte             pad_548[4];
-    /* 0x54C */ s16              field_54C;
-    /* 0x54E */ s16              field_54E;
-    /* 0x550 */ s16              field_550;
-    /* 0x552 */ byte             pad_552[2];
-    /* 0x554 */ s16              field_554;
-    /* 0x556 */ s16              field_556;
-    /* 0x558 */ s16              field_558;
-    /* 0x55A */ byte             pad_55A[0xA];
-    /* 0x564 */ s16              field_564;
-    /* 0x566 */ byte             pad_566[2];
-    /* 0x568 */ s16              field_568;
-    /* 0x56A */ byte             pad_56A[2];
-    /* 0x56C */ SVECTOR          field_56C;
-    /* 0x574 */ SVECTOR          field_574;
-    /* 0x57C */ MATRIX           field_57C;
-    /* 0x59C */ MATRIX           field_59C;
-    /* 0x5BC */ MATRIX           field_5BC;
-    /* 0x5DC */ GpEffArg         field_5DC;
-    /* 0x5E4 */ SVECTOR          field_5E4;
-    /* 0x5EC */ SVECTOR          field_5EC;
-    /* 0x5F4 */ SVECTOR          field_5F4;
-    /* 0x5FC */ byte             pad_5FC[0xC];
-    /* 0x608 */ SVECTOR*         field_608;
-    /* 0x60C */ SVECTOR*         field_60C;
-    /* 0x610 */ s32              field_610;
-    /* 0x614 */ s16              field_614[3];
-    /* 0x61A */ byte             pad_61A[2];
-    /* 0x61C */ s16              field_61C;
-    /* 0x61E */ s16              field_61E;
-    /* 0x620 */ s16              field_620;
-    /* 0x622 */ s16              field_622;
-    /* 0x624 */ s16              field_624;
-    /* 0x626 */ s16              field_626;
-    /* 0x628 */ s16              field_628;
-    /* 0x62A */ s16              field_62A;
-    /* 0x62C */ Actor100400Flags flags_62C;
-    /* 0x630 */ s16              field_630;
-    /* 0x632 */ s16              field_632;
-    /* 0x634 */ u16              field_634;
-    /* 0x636 */ s16              field_636;
-    /* 0x638 */ s16              field_638;
-    /* 0x63A */ u16              field_63A;
-    /* 0x63C */ s16              field_63C;
-    /* 0x63E */ s16              field_63E;
-    /* 0x640 */ s16              field_640;
-    /* 0x642 */ s16              field_642;
-    /* 0x644 */ s16              field_644;
-    /* 0x646 */ s16              field_646;
-    /* 0x648 */ s16              field_648;
-    /* 0x64A */ s16              field_64A;
-    /* 0x64C */ s16              field_64C;
-    /* 0x64E */ s16              field_64E;
-    /* 0x650 */ s16              field_650;
-    /* 0x652 */ s16              field_652;
-    /* 0x654 */ s16              field_654;
-    /* 0x656 */ byte             pad_656[2];
-    /* 0x658 */ u16              field_658;
-    /* 0x65A */ u8               field_65A;
-    /* 0x65B */ u8               field_65B;
-    /* 0x65C */ byte             pad_65C[1];
-    /* 0x65D */ u8               field_65D;
-    /* 0x65E */ u8               field_65E;
-    /* 0x65F */ u8               field_65F;
-    /* 0x660 */ u8               field_660;
-    /* 0x661 */ u8               field_661;
-    /* 0x662 */ byte             pad_662[1];
-    /* 0x663 */ u8               field_663;
-    /* 0x664 */ u8               field_664;
-    /* 0x665 */ s8               field_665;
-    /* 0x666 */ u8               field_666;
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[15];
+    /* 0x26C */ byte                  poses[0xF0];
+    /* 0x35C */ GpObj                 obj_35C;
+    /* 0x37C */ GpObj                 obj_37C;
+    /* 0x39C */ WorldCollisionContact field_39C[6];
+    /* 0x42C */ GpObj                 obj_42C;
+    /* 0x44C */ WorldCollisionContact field_44C[6];
+    /* 0x4DC */ GpObj                 obj_4DC;
+    /* 0x4FC */ WorldCollisionContact rec_4FC[3];
+    /* 0x544 */ byte                  pad_544[2];
+    /* 0x546 */ u16                   field_546;
+    /* 0x548 */ byte                  pad_548[4];
+    /* 0x54C */ s16                   field_54C;
+    /* 0x54E */ s16                   field_54E;
+    /* 0x550 */ s16                   field_550;
+    /* 0x552 */ byte                  pad_552[2];
+    /* 0x554 */ s16                   field_554;
+    /* 0x556 */ s16                   field_556;
+    /* 0x558 */ s16                   field_558;
+    /* 0x55A */ byte                  pad_55A[0xA];
+    /* 0x564 */ s16                   field_564;
+    /* 0x566 */ byte                  pad_566[2];
+    /* 0x568 */ s16                   field_568;
+    /* 0x56A */ byte                  pad_56A[2];
+    /* 0x56C */ SVECTOR               field_56C;
+    /* 0x574 */ SVECTOR               field_574;
+    /* 0x57C */ MATRIX                field_57C;
+    /* 0x59C */ MATRIX                field_59C;
+    /* 0x5BC */ MATRIX                field_5BC;
+    /* 0x5DC */ GpEffArg              field_5DC;
+    /* 0x5E4 */ SVECTOR               field_5E4;
+    /* 0x5EC */ SVECTOR               field_5EC;
+    /* 0x5F4 */ SVECTOR               field_5F4;
+    /* 0x5FC */ byte                  pad_5FC[0xC];
+    /* 0x608 */ SVECTOR*              field_608;
+    /* 0x60C */ SVECTOR*              field_60C;
+    /* 0x610 */ s32                   field_610;
+    /* 0x614 */ s16                   field_614[3];
+    /* 0x61A */ byte                  pad_61A[2];
+    /* 0x61C */ s16                   field_61C;
+    /* 0x61E */ s16                   field_61E;
+    /* 0x620 */ s16                   field_620;
+    /* 0x622 */ s16                   field_622;
+    /* 0x624 */ s16                   field_624;
+    /* 0x626 */ s16                   field_626;
+    /* 0x628 */ s16                   field_628;
+    /* 0x62A */ s16                   field_62A;
+    /* 0x62C */ Actor100400Flags      flags_62C;
+    /* 0x630 */ s16                   field_630;
+    /* 0x632 */ s16                   field_632;
+    /* 0x634 */ u16                   field_634;
+    /* 0x636 */ s16                   field_636;
+    /* 0x638 */ s16                   field_638;
+    /* 0x63A */ u16                   field_63A;
+    /* 0x63C */ s16                   field_63C;
+    /* 0x63E */ s16                   field_63E;
+    /* 0x640 */ s16                   field_640;
+    /* 0x642 */ s16                   field_642;
+    /* 0x644 */ s16                   field_644;
+    /* 0x646 */ s16                   field_646;
+    /* 0x648 */ s16                   field_648;
+    /* 0x64A */ s16                   field_64A;
+    /* 0x64C */ s16                   field_64C;
+    /* 0x64E */ s16                   field_64E;
+    /* 0x650 */ s16                   field_650;
+    /* 0x652 */ s16                   field_652;
+    /* 0x654 */ s16                   field_654;
+    /* 0x656 */ byte                  pad_656[2];
+    /* 0x658 */ u16                   field_658;
+    /* 0x65A */ u8                    field_65A;
+    /* 0x65B */ u8                    field_65B;
+    /* 0x65C */ byte                  pad_65C[1];
+    /* 0x65D */ u8                    field_65D;
+    /* 0x65E */ u8                    field_65E;
+    /* 0x65F */ u8                    field_65F;
+    /* 0x660 */ u8                    field_660;
+    /* 0x661 */ u8                    field_661;
+    /* 0x662 */ byte                  pad_662[1];
+    /* 0x663 */ u8                    field_663;
+    /* 0x664 */ u8                    field_664;
+    /* 0x665 */ s8                    field_665;
+    /* 0x666 */ u8                    field_666;
 } Actor100400Work;
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
@@ -1892,31 +1892,31 @@ static void Actor00400_Fn01B90(Task* arg0)
     obj             = arg0->spawnArg2.pointer;
     work->field_642 = 0;
     for (i = 0; i < 6; i++) {
-        if ((work->field_39C[i].key & 0xFFFF0000) == 0x20000) {
+        if ((work->field_39C[i].key.value & 0xFFFF0000) == 0x20000) {
             if (work->field_61C == 0) {
                 work->field_642 = 1;
                 work->field_65D = 1;
-                dmg             = Gp_ComputeDamage(work->field_39C[i].key, work->field_640, 0, 0);
+                dmg             = Gp_ComputeDamage(work->field_39C[i].key.value, work->field_640, 0, 0);
                 amount          = dmg;
-                work->field_61C = Gp_GetIdParam2(work->field_39C[i].key);
-                if (Gp_RollEnemyChance(obj, work->field_39C[i].key, work->field_610) != 0) {
+                work->field_61C = Gp_GetIdParam2(work->field_39C[i].key.value);
+                if (Gp_RollEnemyChance(obj, work->field_39C[i].key.value, work->field_610) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->field_39C[i].key) & 0xFFFF,
+                func_800FDB18(Gp_GetIdParam1(work->field_39C[i].key.value) & 0xFFFF,
                               &arg0->extra.tmd->coords[work->field_664], 0, &work->field_5DC);
                 work->field_644 = (amount < 0x3C) ? 5 : 2;
-                switch (Gp_GetIdParam0(work->field_39C[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->field_39C[i].key.value) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
                         Gp_SetObjFlag1(obj);
                         break;
                     case 2:
-                        Gp_SetObjFlag2(obj, work->field_39C[i].key, 0);
+                        Gp_SetObjFlag2(obj, work->field_39C[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(obj, work->field_39C[i].key, 0);
+                        Gp_SetObjFlag4(obj, work->field_39C[i].key.value, 0);
                         break;
                     case 4:
                         work->field_644 = 4;
@@ -1940,7 +1940,7 @@ static void Actor00400_Fn01B90(Task* arg0)
                         work->field_644 = 1;
                         break;
                 }
-                if ((work->field_39C[i].key & 0x7F) == 0x1C && (work->field_39C[i].key & 0x8000) == 0) {
+                if ((work->field_39C[i].key.value & 0x7F) == 0x1C && (work->field_39C[i].key.value & 0x8000) == 0) {
                     obj->reactionFlags &= 0xFE;
                     work->field_644     = 5;
                 }
@@ -1953,13 +1953,13 @@ static void Actor00400_Fn01B90(Task* arg0)
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[work->field_664], 2, 0);
                         break;
                 }
-                func_800E2C78(obj, work->field_39C[i].key, amount, 0);
+                func_800E2C78(obj, work->field_39C[i].key.value, amount, 0);
                 func_800DA6E8(&obj->node, amount, 0);
                 obj->hp -= amount;
                 if ((s16)obj->hp < 0) {
                     obj->hp = 0;
                 }
-            } else if ((Gp_GetIdParam1(work->field_39C[i].key) & 0xFFFF) == 0xD) {
+            } else if ((Gp_GetIdParam1(work->field_39C[i].key.value) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[1], 0, &work->field_5DC);
             }
         }
@@ -2454,7 +2454,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 /// walks the marker up its stored view-space span, then decides whether the
 /// marker should stop being drawn.
 ///
-/// `hidden` is raised when either of the marker's two `GpRec18` slots reports
+/// `hidden` is raised when either of the marker's two `WorldCollisionContact` slots reports
 /// one of the three kinds 1/3/5, or when `func_800E0C10`'s push-back says the
 /// marker is being crowded and the current stage/room is not one of the
 /// exceptions. Once it is raised - or after 0x3C frames, or when
@@ -2491,7 +2491,7 @@ static void Actor00400_Fn02D48(Task* arg0)
             coord->coord.t[2] += work->field_5C;
             if (Gp_FindRec18(work->recs, 0) != 0) {
                 for (i = 0; i < 2; i++) {
-                    switch (work->recs[i].key & 0xFFFF0000) {
+                    switch (work->recs[i].key.value & 0xFFFF0000) {
                         case 0x10000:
                             hidden = 1;
                             break;
@@ -6147,7 +6147,7 @@ static s32 Actor00400_Fn0A08C(GfxCoord* coord, SVECTOR* pos)
 /// `Actor00400_SpawnMarker` allocated, and `task->extra` the `TmdObject`
 /// whose `coords` is the coordinate the marker is drawn at. That coordinate is
 /// re-parented to `gGfxViewCoord` here, and the object is linked to it with its
-/// two `GpRec18` slots zeroed, so the state `Actor00400_Fn02D48` runs can report
+/// two `WorldCollisionContact` slots zeroed, so the state `Actor00400_Fn02D48` runs can report
 /// what the marker collides with. `field_5A` is seeded with the negative span
 /// the spawner's tip overshot by, and the object's draw scale with 0x100.
 ///

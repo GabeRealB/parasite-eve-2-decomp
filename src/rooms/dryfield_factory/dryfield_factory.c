@@ -1183,8 +1183,8 @@ static void func_dryfield_factory_8017E140(Task* task, s32 remapFaces, s32 useAl
             do {
                 *dv++ = *sv++ + 8;
             } while (++j < 4);
-            df->field_8 = sf->field_8 + 2;
-            df->field_A = sf->field_A;
+            df->normalIndex  = sf->normalIndex + 2;
+            df->surfaceClass = sf->surfaceClass;
             df++;
             sf++;
         }

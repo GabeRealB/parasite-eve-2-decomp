@@ -3755,9 +3755,9 @@ arithmetic on it - there is no pair to reconstruct: the sole load is the
 `movhi` `lhu`, with no `lh` anywhere. Do not "fix" that by making the field
 `u16` or by casting the value; a plain `s16` field read straight into another
 field is enough, because the sign extension is never requested.
-`func_actor_800200_801660E8` is the minimal case: `arg2->field_0 = value->field_8`
+`_actor800200GetContactDistance` is the minimal case: `contactZY[0] = contact->point.vx`
 emits `lhu $2,8($16)  # movhi_internal2/3` for the store, while the same
-`field_8` and `field_C` feeding a subtraction emit
+`point.vx` and `point.vz` feeding a subtraction emit
 `lh $3,8($16)  # extendhisi2_internal/1`.
 
 ## A bare `!= 0` test on a halfword field still follows the declared signedness
@@ -6650,7 +6650,7 @@ argument, assign 0, then a volatile `+r` so the rest cannot float above it:
 register s32 zero asm("a0");
 zero = 0;
 asm volatile("" : "+r"(zero));
-link = (GpRec18*)actor->field_94;
+link = (WorldCollisionContact*)actor->field_94;
 obj->flags |= 0xF200;
 Gp_LinkObj(zero, obj);
 ```
@@ -33108,7 +33108,7 @@ asm("" : "+r"(block));
 
 `register SVECTOR* vec asm("s2")` is enough; do not pin `block`. Write
 the first component through `head - 0x28` (not `vec->vx`) so the `sh`
-stays head-relative. `Gp_MakeDirOffset` is the example.
+stays head-relative. `worldCollisionCalcContactViewOffset` is the example.
 
 ## Force `addiu $v0, $sp, N` after `gte_SetRotMatrix`
 
@@ -33125,7 +33125,7 @@ gte_ldv0(tmpp);
 ```
 
 The offset is the stack slot of `tmp` (saved-reg frame: `0x10` when
-`s0`–`s7`/`ra` start at `0x18`). `Gp_MakeDirOffset` is the example.
+`s0`–`s7`/`ra` start at `0x18`). `worldCollisionCalcContactViewOffset` is the example.
 
 ## Keep the loop result in `$a0` until the first `li a0, 1`
 
@@ -35444,17 +35444,17 @@ if (arg2 == 1) {
 
 ## Pin the walking element pointer so GCC does not form `p+field`
 
-A loop that both reads `rec->key` / `rec->point` and passes `rec` to a call
+A loop that both reads `rec->key.value` / `rec->point` and passes `rec` to a call
 forms a second walking pointer at `rec+0xC` (`lw -8(s2)` / `lh 0(s2)`)
 and keeps both in `$s` regs. That extra live value spills `index` off
 `$fp` (`sw a0, 0x40(sp)`). Pin the element pointer so every access is
 an offset from one base:
 
 ```c
-register GpRec18* rec asm("s1");
+register WorldCollisionContact* rec asm("s1");
 rec = arg0;
 do {
-    if (rec->key & 0x100000) {
+    if (rec->key.value & 0x100000) {
         dx = arg1->workm.t[0] - rec->point.vx;
         /* ... */
         func_800E0FEC((s32)rec, ...);
@@ -35505,7 +35505,7 @@ delayed-branch then pulls the independent `rec = index` into the delay:
 ```c
 register s32*     pidx asm("s4");
 register void**   scratch asm("v1");
-register GpRec18* rec asm("s1");
+register WorldCollisionContact* rec asm("s1");
 
 pidx    = &idx;
 rec     = arg0;
@@ -35549,7 +35549,7 @@ dist += t2;
 The target is `addu v0, v0, s8`. Put the scaled index on the left:
 
 ```c
-picked = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
+picked = (WorldCollisionContact*)(bestIdx * 0x18 + (s32)arg0);
 ```
 
 `Gp_PickNearestRec18` is the example. Use this only when operand order must
@@ -35937,14 +35937,14 @@ if (recFlags & 1) {
 }
 ```
 
-`func_800DBA20` is the example. The empty arm must still compute
+`_worldCollisionRecordPairContact` is the example. The empty arm must still compute
 `(flags & 0xF0)` into `$v0` (`register s32 tmp asm("v0")`) so it shares
 the `addiu; or; sh` tail with the free-slot walk.
 
 ## Occupied `0x100000` assigned inside the arm so it fills `beqz` delay
 
 `andi v0, recFlags, 1` / `beqz empty` wants `lui v0, 0x10` in the delay,
-then `lw v1, field_4`. Pinning `cmp = 0x100000` *before* the bit test
+then `lw v1, key.value`. Pinning `cmp = 0x100000` *before* the bit test
 keeps `$v0` live and steals the `andi` dest (`andi a0, v1, 1`). Assign
 it as the first statement of the occupied arm:
 
@@ -35953,21 +35953,21 @@ if (recFlags & 1) {
     register s32 cmp asm("v0");
     cmp = 0x100000;
     mask = 0xFFFF0000;
-    if ((slot->field_4 & mask) != cmp) {
+    if ((slot->key.value & mask) != cmp) {
         /* ... */
     }
 }
 ```
 
 Delay-slot fill pulls the `lui` up and overwrites the bit-test `$v0`.
-`func_800DBA20` is the example.
+`_worldCollisionRecordPairContact` is the example.
 
 ## `unsigned int` flag temp so occupied `|=` dest stays `$v1`
 
 A `u16 recFlags` for `recFlags = slot->field_0; recFlags |= (flags & 0xF0) + 1;
 slot->field_0 = recFlags` shares the free-slot tail (`or v0, v1, v0;
 sh v0`). `unsigned int recFlags` keeps the occupied store as
-`or v1, v1, v0` / `j fill` / `sh v1`. `func_800DBA20` is the example.
+`or v1, v1, v0` / `j fill` / `sh v1`. `_worldCollisionRecordPairContact` is the example.
 
 ## Nested `if (val < K)` / `goto` for a sparse `slti` range tree
 
@@ -36446,7 +36446,7 @@ temp = found << 3;
 src  = (SVECTOR*)(temp + (s32)rec);
 ```
 
-Walk occupied `GpRec18` slots with `for (;;)` and `goto` out on a hit so
+Walk occupied `WorldCollisionContact` slots with `for (;;)` and `goto` out on a hit so
 GCC emits a real loop and hoists `&slot->point.vz` (`lh -4/-2/0`). `break`
 from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
 `func_800DEC80` is the example.
@@ -56269,7 +56269,7 @@ functions in it first; splat regenerates them as `INCLUDE_ASM`.
 
 ## Assign the shared pointer *after* the call, not before it
 
-`func_m4a1_grenade_8011D994` picks one of two `GpRec18` tables and hands the
+`func_m4a1_grenade_8011D994` picks one of two `WorldCollisionContact` tables and hands the
 winner to a common block. Written the obvious way,
 
 ```c
@@ -58053,7 +58053,7 @@ mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.
 
 ## Factor a store to the join so its value stays in a register
 
-`func_acropolis_bridge_80187850` scans three `GpRec18` records for a hit and
+`func_acropolis_bridge_80187850` scans three `WorldCollisionContact` records for a hit and
 stages the result in a scratch block. The target emits, on the miss path,
 
 ```
@@ -58074,9 +58074,9 @@ predecessors carrying different values, so GCC cannot constant-fold it. Write
 the store once, at the join:
 
 ```c
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             ...
-            hit = recs[i].key;
+            hit = recs[i].key.value;
             goto hitTaken;
         }
         ...
@@ -58526,10 +58526,10 @@ both fields directly gives `lhu` twice and swaps the `addu` operands.
 `func_acropolis_bridge_80184908` is the example.
 
 The same pair turns up with no `s32` temp in sight when one field feeds a 32-bit
-expression and another is copied in place. `func_actor_800100_8016709C` reads
-`value->field_8` / `field_C` as `lh` operands of a `subu` and `field_8` /
-`field_A` / `field_C` again as `lhu` plain copies into `arg2`, all from a single
-`GpRec18`. The arithmetic promotion is the `s32` temp there, so the two
+expression and another is copied in place. `_actor800100GetContactDistance` reads
+`contact->point.vx` / `point.vz` as `lh` operands of a `subu` and `point.vx` /
+`point.vy` / `point.vz` again as `lhu` plain copies into `contactZY`, all from a single
+`WorldCollisionContact`. The arithmetic promotion is the `s32` temp there, so the two
 signednesses do not mean two struct types — do not split the field into an
 `s16`/`u16` twin just because an m2c seed spells the store side
 `(u16)M2C_FIELD(...)`.
@@ -68585,13 +68585,13 @@ overlay used (`func_actor_503500_8013ECBC` here).
 
 ## A struct member array that is also a call argument is a pointer local
 
-**Problem.** `func_actor_503500_80145F18` walks the four-entry `GpRec18` table
+**Problem.** `func_actor_503500_80145F18` walks the four-entry `WorldCollisionContact` table
 that sits at offset 0x38 of the enemy's work block, then hands the same table to
 `Gp_ClearRec18Occupied`. Written with the member named directly,
 
 ```c
 for (i = 0; i < 4; i++) {
-    if ((work->rec[i].key & 0xFFFF0000) == 0x10000) { ... }
+    if ((work->rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
 }
 Gp_ClearRec18Occupied(work->rec);
 ```
@@ -68612,7 +68612,7 @@ the call argument too.
 ```c
 rec = work->rec;
 for (i = 0; i < 4; i++) {
-    if ((rec[i].key & 0xFFFF0000) == 0x10000) { ... }
+    if ((rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
 }
 Gp_ClearRec18Occupied(rec);
 ```
@@ -71870,14 +71870,14 @@ twice the stride (here 0x88C → 0x9BC, i.e. a skipped element).
 **Fix.** Grep the *rest of the overlay* for the intermediate offsets before
 inventing a layout. `func_actor_444000_801423C4` calls
 `Gp_ClearRec18Occupied(work + 0x814)` and `(work + 0x8AC)` — 0x20 past two
-consecutive `GpObj`s, and 0x98 apart themselves. `GpRec18` is 0x18, and
+consecutive `GpObj`s, and 0x98 apart themselves. `WorldCollisionContact` is 0x18, and
 0x88C - 0x814 = 0x78 = 5 × 0x18, so the stride is `GpObj` followed by the
-five-entry `GpRec18` table its `field_C` points at:
+five-entry `WorldCollisionContact` table its `field_C` points at:
 
 ```c
 typedef struct {
     /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[5];
+    /* 0x20 */ WorldCollisionContact rec[5];
 } Node;   /* 0x98 */
 ```
 
@@ -71890,7 +71890,7 @@ The general point: the offsets *one* function passes are a sparse sample of a
 layout. `grep -rho '0x[0-9A-F]\+' asm/.../<overlay>/` over the whole overlay and
 counting which intermediate offsets are referenced at all distinguishes a real
 array from a bag of fields, and the callee at each of those offsets names the
-element's sub-type for free. `GpObj` + a `GpRec18` table is a recurring shape in
+element's sub-type for free. `GpObj` + a `WorldCollisionContact` table is a recurring shape in
 this family (`ActorShared8014ca28Work` is the same idea with per-node table
 lengths of 1/4/1/1), so a 0x38/0x50/0x98 stride around a `GpObj` is worth
 testing against it first.
@@ -73450,10 +73450,10 @@ than once:
     mask = 0xFFFF0000;
     kind = 0x20000;
 scan:
-    if (recs[i].key == 0) {
+    if (recs[i].key.value == 0) {
         goto missed;
     }
-    if ((recs[i].key & mask) == kind) {
+    if ((recs[i].key.value & mask) == kind) {
         ...
         goto found;
     }
@@ -76050,6 +76050,7 @@ actually has, so `$a3` keeps whatever the switch tree left in it:
 
 ```c
 s32 func_actor_800100_80166B40(GpRec18* rec, GfxCoord* coord, GfxCoord* place);
+s32 func_actor_800100_80166B40(WorldCollisionContact* rec, GsCOORDINATE2* coord, GsCOORDINATE2* place);
 ...
 if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0)   /* 99.055% -> 100% */
 ```
@@ -76795,7 +76796,7 @@ with the `0x400` constant):
 
 ```c
 work->obj_364.field_8  = &((TmdObject*)task->extra)->coords[1];  /* base_1: 87.88% */
-work->obj_364.field_C  = (GpRec18*)work->pad_384;
+work->obj_364.field_C  = (WorldCollisionContact*)work->pad_384;
 ...
 work->obj_364.flags    = 1;
 Gp_LinkObj(2, &work->obj_364);
@@ -77564,10 +77565,10 @@ address-taken struct lose their dead stores" above — the symptom there is a
 shorter object, and the frame shrink is *not* reported as a `stack` penalty, so
 a clean `stack=0` does not rule it out.
 
-## A 0x2F4 actor spawn work is three `GpObj` nodes and their `GpRec18` tables
+## A 0x2F4 actor spawn work is three `GpObj` nodes and their `WorldCollisionContact` tables
 
 Spawn handlers that `memCalloc(0x2F4)` and fill render nodes link three
-`GpObj`s at 0x134 / 0x16C / 0x1EC, each with a `GpRec18` table directly behind
+`GpObj`s at 0x134 / 0x16C / 0x1EC, each with a `WorldCollisionContact` table directly behind
 it (0x154, `rec18C[4]` at 0x18C, 0x20C). `Actor00700SpawnWork` models these as
 raw byte runs plus offset-named halfwords (`field_134[8]`, `field_13C`,
 `field_144`, `field_14C`, `field_150`, `field_152`), which works but hides that
@@ -77576,7 +77577,7 @@ every one of those offsets *is* a `GpObj` field:
 | raw offset | `GpObj` field |
 |---|---|
 | base + 0x08 | `field_8` |
-| base + 0x0C | `field_C` (the `GpRec18*`) |
+| base + 0x0C | `field_C` (the `WorldCollisionContact*`) |
 | base + 0x10 / 0x12 / 0x14 | `field_10` / `field_12` / `field_14` |
 | base + 0x18 | `field_18` |
 | base + 0x1C | `field_1C` |
@@ -85455,10 +85456,10 @@ store offset names the slot, the slot's type names the signature.
 The four `Gp_UnlinkObj` arguments came the same way. The installer writes
 `sw $v1, 0x8($s0)` / `sh $zero, 0x10($s0)` / `ori $v0, $v0, 0x8000` on
 `0x1E($s0)` and then `Gp_InitRec18Table(field_C, 5, 0)` on `0x20($s0)`, under
-`addiu $s0, $s6, 0xB50` — a `GpObj` node plus a five-entry `GpRec18` table
-(`GpObj`, then `GpRec18 rec[5]`, 0x98 total). The four nodes at 0xB50 / 0xBE8 /
+`addiu $s0, $s6, 0xB50` — a `GpObj` node plus a five-entry `WorldCollisionContact` table
+(`GpObj`, then `WorldCollisionContact rec[5]`, 0x98 total). The four nodes at 0xB50 / 0xBE8 /
 0xC80 / 0xD18 are exactly 0x98 apart, and `Gp_LinkObj` / `Gp_UnlinkObj` bracket
-the lifetime. The same `GpObj + GpRec18 rec[5]` node is already
+the lifetime. The same `GpObj + WorldCollisionContact rec[5]` node is already
 `ActorsShared801433b8Node` in `include/actors/actors_shared_801433b8.h`; the
 0x98 stride is the giveaway.
 
@@ -93329,7 +93330,7 @@ What does work is splitting the `switch` that sets the flag so each label gets
 its own assignment:
 
 ```c
-switch (work->recs[i].key & 0xFFFF0000) {
+switch (work->recs[i].key.value & 0xFFFF0000) {
     case 0x10000: hidden = 1; break;     /* not: case 0x10000: */
     case 0x30000: hidden = 1; break;     /*      case 0x30000: */
     case 0x50000: hidden = 1; break;     /*      case 0x50000: hidden = 1; break; */
@@ -97012,11 +97013,11 @@ func_actor_403000_801343B8:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
 ```
 
 `Gp_ClearRec18Occupied` takes a table *start* and walks to the last-element bit,
-so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `GpRec18.key`, which
+so 0xDE8 is the base — and 0xDEC is then 0xDE8 + 4, i.e. `WorldCollisionContact.key.value`, which
 is also the field the 0x100000 test belongs to: the record's declaration
 documents `key`'s high
 halfword as the record *kind*, and the hit-record walkers read it that way
-(`(records[i].key & 0xFFFF0000) == 0x20000` in `actor_101900_text.c`).
+(`(records[i].key.value & 0xFFFF0000) == 0x20000` in `actor_101900_text.c`).
 
 Both spellings compile to the identical `lw 0xDEC($v0)` — GCC folds the `+4` into
 the displacement — so the match cannot choose between them and a 100% score is
@@ -101092,7 +101093,7 @@ belongs to no named field. In `func_actor_312200_80163778` that is
 `lhu $v0, 0x8DA($a1)` / `andi 0x7FFF` / `sh`, where `$a1` is `Task::work`.
 
 0x8DA is not 4-byte aligned to anything in the work block, and the tempting
-readings - a loose `u16` field, or the `GpRec18` record table - are both wrong.
+readings - a loose `u16` field, or the `WorldCollisionContact` record table - are both wrong.
 It is `GpObj::flags` (+0x1E) of a node whose base is 0x8BC, and the arithmetic
 that concludes that is not the evidence. The evidence is the overlay's spawn
 handler, which builds the node in place and links it:
@@ -101100,7 +101101,7 @@ handler, which builds the node in place and links it:
 ```
 addiu $s0, $s2, 0x8BC      ; node = work + 0x8BC
 addiu $v0, $s2, 0x8DC
-sw    $v0, 0xC($s0)        ; node->field_C = work + 0x8DC   (GpRec18 table)
+sw    $v0, 0xC($s0)        ; node->field_C = work + 0x8DC   (WorldCollisionContact table)
 sh    $zero, 0x10($s0)     ; node->field_10 / 0x12 / 0x14
 sw    $a2, 0x18($s0)
 sh    $v0, 0x1C($s0)
@@ -102080,7 +102081,7 @@ the field first. Neither matches.
 
 Same function: an inline helper called twice set its arguments up in the wrong
 order in only one of the two calls (`addiu a2,…,0xad0` before `addiu a1,…,0x38`).
-Swapping the helper's *parameter* order (`FindHit(SVECTOR* pos, GpRec18*
+Swapping the helper's *parameter* order (`FindHit(SVECTOR* pos, WorldCollisionContact*
 records)`) fixed it. Inline arguments are bound in parameter order, and the other
 call's order was hidden by scheduling.
 
@@ -110172,7 +110173,7 @@ across the `jal` and the copy disappears with it.
 ## A hard-register pin on the walking pointer suppresses loop.c's address givs
 
 `func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `Player_Status`
-tail: `do { ... rec->key / rec->point ... rec++; } while (i < 6)`. Written
+tail: `do { ... rec->key.value / rec->point ... rec++; } while (i < 6)`. Written
 unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
 `.loop` dump shows why:
 
@@ -110197,7 +110198,7 @@ happens — the loads stay `rec + disp`, there is one `addiu s2,s2,0x18`, and
 `index` reaches `$fp`:
 
 ```c
-register GpRec18* rec asm("s2");
+register WorldCollisionContact* rec asm("s2");
 ```
 
 Measured on the same source, one variable at a time: no pins 83.7%, all pins
@@ -110243,7 +110244,7 @@ re.match(r'\s*/\*\s*[0-9A-F]+ [0-9A-F]+ ([0-9A-F]{8}) \*/\s*(.*)', line)
 Note the space after `/*` - a regex without it matches nothing and the diff
 comes back empty and silent, which reads exactly like "identical".
 
-It settles the structs too: the sibling's `M4a1PykeBeam` (`GpObj obj; GpRec18
+It settles the structs too: the sibling's `M4a1PykeBeam` (`GpObj obj; WorldCollisionContact
 rec[1]`, 0x38) is the same block here, and its `GpEffWork` the same work struct.
 Check `find` first - 0.99 shape similarity is not equality, and a body with no
 copies should not be promoted to a shared lib unit just because a lookalike
@@ -114109,7 +114110,7 @@ Scratch `nonmatchings/func_actor_110600_80135194-vacuum`.
 The `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` shape above is the
 read-modify-write case; a **loop counter** compared against a narrow constant
 canonicalises one step further, and the constant disappears entirely.
-`func_actor_110600_80135B84` walks a `GpRec18` table at 0xAB0 with the
+`func_actor_110600_80135B84` walks a `WorldCollisionContact` table at 0xAB0 with the
 `0xFFFF0000 == 0x10000` kind test every actor overlay repeats, and the target's
 back edge is:
 
@@ -114137,15 +114138,15 @@ width from the `sll`/`sra` pair, not from the missing compare.
 The source idiom that needs it is the "is the first record loaded" helper:
 
 ```c
-static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
+static __inline__ s32 Actor110600_HasRec10000(WorldCollisionContact* recs)
 {
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].key) {
+        if (!recs[i].key.value) {
             break;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -115307,8 +115308,8 @@ blocks. Three statement moves closed it:
 3. Everything else was already right: the `one` local (a named `s32 one = 1`)
    keeps `$s5` live across `Gp_LinkNode`, `part = &coord[6]` lands in `$s7` in
    the `bne` delay slot, and the work block's 0x1FC run is a `GpActorD4Rec`
-   whose `recs` names the single `GpRec18` beside it - not, as the m2c
-   spelling suggests, a `GpRec18` at 0x1FC plus a stray word store at 0x210.
+   whose `recs` names the single `WorldCollisionContact` beside it - not, as the m2c
+   spelling suggests, a `WorldCollisionContact` at 0x1FC plus a stray word store at 0x210.
 
 The body is byte-identical to `func_actor_207000_8014EE88`, but promotion is
 refused for the reason `func_actor_107000_80131F0C` already records: the twin
@@ -116190,7 +116191,7 @@ every later unit and moves bodies between files.
 
 `func_actor_104900_80132B10` (154 insns) initialises four `GpObj` display nodes,
 two of them in a two-iteration loop that walks a node pointer (`+0x20`) and a
-`GpRec18` collision-table offset (`+0x48`) from `work` (the `$a2` argument). All
+`WorldCollisionContact` collision-table offset (`+0x48`) from `work` (the `$a2` argument). All
 three are live across the loop's calls, so they need `$s3`-`$s5` and are placed in
 `allocno_compare` order; retail is node offset `$s3`, table offset `$s4`, `work`
 `$s5`. Every source variant below compiled to the **same 154-instruction stream**
@@ -117559,12 +117560,12 @@ constant assignments with a `do/while`.
 **Symptom.** Target walks `$s6 = work` by 0x18 and reads `lhu 0x23A($s6)`,
 `lw 0x238($s6)`; the build recomputes `i*24 + work + 0x234` every iteration.
 
-**Cause.** Indexing a *cast of an address* (`((GpHitRec*)work->field_214.field_20)[i]`)
+**Cause.** Indexing a *cast of an address* (`((WorldCollisionContact*)&work->rec2[0])[i]`)
 expands to `reg390 = i*24 + work; reg391 = reg390 + 0x234` and every later
 access CSEs onto `reg391`, which is not recorded as a giv. The one giv left
 (`reg390`) has `used 1 lifetime 1`, and the `.loop` dump says
 `giv of insn 967 not worth while, 186 vs 253`. With the table as a real struct
-member (`((Actor207200HitView*)work)->rec2[i].hit.kind`) the 0x234 folds into
+member (`work->rec2[i].key.parts.kind`) the 0x234 folds into
 each MEM offset, the `i*24 + work` giv gets many uses, and it is reduced to the
 walker. 93.8% -> 98.6% from that change alone. Big loop bodies (253 insns here)
 make the benefit threshold matter.
@@ -117932,7 +117933,7 @@ normal register.
 
 **Fix.** A `do/while` over the same walking pointer then strength-reduced a
 second giv (`s1 = work + 0x1FE`). The shape that matches is an *index* loop,
-`for (i = 0; i < 3; i++) switch (work->field_1FC[i].field_4 >> 16) {...}`:
+`for (i = 0; i < 3; i++) switch (work->field_1FC[i].key.value >> 16) {...}`:
 the giv `work + i*0x18` becomes `move s1,s2`, loads keep the `0x200(s1)`
 displacement, and biv elimination rewrites the exit test to
 `addiu v0,s2,0x48` / `slt v0,s1,v0` - the signature to read as an index loop.
@@ -129044,8 +129045,8 @@ array's type has to be `void (*[2])(void)` even though entry 1 is really a
 
 The merged value a loop produces was worth 3 registers and 5% here, and the
 whole difference was *which statement initializes it*. The loop searches a
-1-entry `GpRec18` table and ends in one of two ways: the entry is empty
-(`field_4 == 0`, `break`) or the table runs out. Both land on the same exit
+1-entry `WorldCollisionContact` table and ends in one of two ways: the entry is empty
+(`key.value == 0`, `break`) or the table runs out. Both land on the same exit
 block, which stores the result:
 
 ```
@@ -129071,12 +129072,12 @@ the found path skips it, which in C needs an early exit:
 
 ```c
     for (i = 0; i < 1; i++) {
-        if (recs[i].field_4 == 0) {
+        if (recs[i].key.value == 0) {
             break;
         }
-        if ((recs[i].field_4 & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             ...
-            v = recs[i].field_4;
+            v = recs[i].key.value;
             goto done;              /* skips the v = 0 below */
         }
     }
@@ -130164,7 +130165,7 @@ work->field_63C.field_12 = one;   /* $s7 saved and restored for it */
 ```
 
 In the ROM `one` dies right after `sh $s0, 0x6A6($s3)`, so `$s0` is free again
-for the `GpRec18` table pointers that follow, and the 1 those late fields want
+for the `WorldCollisionContact` table pointers that follow, and the 1 those late fields want
 is a *different* quantity, rematerialized into `$s1` alongside the `flags = 1`
 stores of the intervening list nodes. Writing the literal restores exactly
 that, and the function matched on the next build:
@@ -132448,7 +132449,7 @@ rec = (Record*)actor->field_14C;
 Those casts are the count of what this costs. The fix is not a restated
 duplicate, which only trades the casts for two declarations of one layout, but
 the declaration itself, moved into the owner's header beside the records main
-already embeds - precisely how `GpRec18` and `GpLinkNode` came to be declared in
+already embeds - precisely how `WorldCollisionContact` and `GpLinkNode` came to be declared in
 `main/session.h`, neither of which has a caller in `src/main/`. A prototype that
 merely *names* an overlay type is the other case: there the include goes at the
 one call site that needs it.
@@ -133020,7 +133021,7 @@ This changes hoisting and allocation while producing the same final switch
 connections. The prediction preceded the build; 97.146% became 100% without
 pins or empty asm.
 
-The prerequisite was natural `work->rec0[i].key` accesses instead of computing a
+The prerequisite was natural `work->rec0[i].key.value` accesses instead of computing a
 cast record pointer only once at loop entry. As in actor_205200_8014BD4C, repeated
 multiply chains survive CSE across switch destinations; `combine_givs` combines
 their benefit, and `.loop` can eliminate the counter while keeping a work-based
@@ -138590,7 +138591,7 @@ swapped `v0`/`v1`, because the `ior` ties to its first dying operand, and
 
 A search loop's "found" arm ended `lw v0,4(v1)` / `j L+4` / `sw v0,0x1C(s1)`,
 and the fall-out path ended `move v0,zero` / `L: sw v0,0x1C(s1)`. Writing the
-store in both arms (`key = rec->key; blk->key = key; goto found;` and
+store in both arms (`key = rec->key.value; blk->key = key; goto found;` and
 `key = 0; blk->key = key;`) let CSE turn the second into `sw zero`, and the
 `move v0,zero` survived only for the later `andi`. The target has a single
 store after the label: reorg filled the `j`'s delay slot with the insn at its
@@ -138598,7 +138599,7 @@ target and retargeted the jump one insn on, which is what makes it look
 duplicated.
 
 ```c
-        key = rec->key;
+        key = rec->key.value;
         goto found;
     ...
     key = 0;
@@ -142147,7 +142148,7 @@ puts it after them.
 Fix: write the flag where the code means it - once the first record is filed:
 
 ```c
-        func_800DBA20(arg0, arg1, block);
+        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         ret = 1;
 ```
 
@@ -142901,7 +142902,7 @@ Two points were not obvious. The inner block that re-reads the range needs its
 in the inner block's register. And the distance to one end of the range reuses
 `span`, which is dead once `span >= 0x400` has been tested. When m2c's register
 merging blocks a fix, enumerate the role splits rather than pinning.
-## A `j tail` trampoline parked between an earlier switch's arms is loop.c's block move out of a `do { } while (0)` macro (func_800DBA20, 2026-09-26)
+## A `j tail` trampoline parked between an earlier switch's arms is loop.c's block move out of a `do { } while (0)` macro (_worldCollisionRecordPairContact, 2026-09-26)
 
 Target: a two-insn block `j L; andi v0,a3,0xF0` sits between case 3 and case 4
 of the function's *first* switch, far from the `beqz` that reaches it. The seed
@@ -143595,7 +143596,7 @@ moves it into the branch delay slot.
 **Fix.** `trans = &head[-1].trans;` just above `if (slot->poseKind == 1)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
-## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_PUSH` first, member pointer second (Gp_MakeDirOffset, 2026-09-26)
+## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_PUSH` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)
 
 **Symptom.** A scratch-pad block is carved off the head, then copied at once
 into a second callee-saved register: the head store and one later call read the
@@ -144107,7 +144108,7 @@ like `actorCalcPush` in `include/actors/actor.h`:
 
 ```c
 distance = SquareRoot0(dx * dx + dz * dz);
-distance = rec->depth - distance;
+distance = rec->distance - distance;
 distance = (distance <= 0) ? 0 : distance;
 ```
 

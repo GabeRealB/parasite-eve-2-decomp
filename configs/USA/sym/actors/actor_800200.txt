@@ -137,3 +137,4 @@ D_actor_800200_8016F068 = 0x8016F068; // size:0x150 defined:True
 D_actor_800200_8016F1B8 = 0x8016F1B8; // size:0x28 defined:True
 D_actor_800200_8016F1E0 = 0x8016F1E0; // size:0x28 defined:True
 D_actor_800200_8016F208 = 0x8016F208; // size:0x13C defined:True
+_actor800200GetContactDistance = 0x801660e8; // type:func

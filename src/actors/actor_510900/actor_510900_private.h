@@ -33,17 +33,17 @@ typedef struct Actor510900Work {
     /* 0x47C */ GpObj  obj47C;
     /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records), and
     /// the enemy's `GpEnemy::recs`.
-    /* 0x49C */ GpRec18 rec49C[3];
-    /* 0x4E4 */ GpObj   obj4E4;
-    /* 0x504 */ GpObj   obj504;
+    /* 0x49C */ WorldCollisionContact rec49C[3];
+    /* 0x4E4 */ GpObj                 obj4E4;
+    /* 0x504 */ GpObj                 obj504;
     /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
     /// `Gp_InitRec18Table` seeds it.
-    /* 0x524 */ GpRec18  rec524[1];
-    /* 0x53C */ GpEffArg field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `GpEnemy::coord`
-    /* 0x544 */ MATRIX   field_544;
-    /* 0x564 */ s32*     field_564; // 0x34 receives field_594 when it changes
-                                    /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
-                                    /// `obj4E4` hangs off its model's first coordinate.
+    /* 0x524 */ WorldCollisionContact rec524[1];
+    /* 0x53C */ GpEffArg              field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `GpEnemy::coord`
+    /* 0x544 */ MATRIX                field_544;
+    /* 0x564 */ s32*                  field_564; // 0x34 receives field_594 when it changes
+                                                 /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
+                                                 /// `obj4E4` hangs off its model's first coordinate.
     /* 0x568 */ Task* field_568;
     /// Task of the third enemy spawned from the same table.
     /* 0x56C */ Task* field_56C;

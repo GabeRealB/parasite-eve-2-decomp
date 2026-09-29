@@ -331,7 +331,7 @@ static Task* Display_SpawnFromMode(void)
         if (flag) {
             func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
         }
-        Gp_ClearRec18Occupied(&obj->field_17C);
+        Gp_ClearRec18Occupied(obj->field_17C);
         ptr->composeStamp = GRAPHICS_COORD_DIRTY;
     block_case13:
         Stage_Ctx->field_15 = 1;
@@ -364,7 +364,7 @@ block_default:
     if (flag) {
         func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
     }
-    Gp_ClearRec18Occupied(&obj->field_17C);
+    Gp_ClearRec18Occupied(obj->field_17C);
     ptr->composeStamp = GRAPHICS_COORD_DIRTY;
 
 block_end:

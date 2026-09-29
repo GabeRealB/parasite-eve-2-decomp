@@ -81,7 +81,7 @@ STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
 ///
 /// `field_8BC` is the display node the spawn handler
 /// `func_actor_312200_80163178` builds in place and hands to `Gp_LinkObj` - the
-/// `GpObj` whose `ctx.recs` is a three-entry `GpRec18` table at 0x8DC.
+/// `GpObj` whose `ctx.recs` is a three-entry `WorldCollisionContact` table at 0x8DC.
 /// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
 typedef struct Actor312200Work {
     /* 0x000 */ s16 field_0;
@@ -126,10 +126,10 @@ typedef struct Actor312200Work {
     /* 0x8B6 */ s16  field_8B6;
     /* 0x8B8 */ s16  field_8B8;
     /* 0x8BA */ byte pad_8BA[0x2];
-    /// Display node: `GpObj` at 0x8BC, its `GpRec18` table at 0x8DC.
-    /* 0x8BC */ GpObj   field_8BC;
-    /* 0x8DC */ GpRec18 recs[3];
-    /* 0x924 */ byte    pad_924[0x20];
+    /// Display node: `GpObj` at 0x8BC, its `WorldCollisionContact` table at 0x8DC.
+    /* 0x8BC */ GpObj                 field_8BC;
+    /* 0x8DC */ WorldCollisionContact recs[3];
+    /* 0x924 */ byte                  pad_924[0x20];
     /// The light / colour matrices the spawn handler stores into
     /// `TmdObject::lightMtx` / `field_20`, at the top of the block.
     /* 0x944 */ MATRIX light;
@@ -312,10 +312,10 @@ TaskDesc D_actor_312200_80169F7C = { 257, 96, func_actor_312200_80163854, { .mod
 
 SVECTOR D_actor_312200_80169F88;
 
-static s32  func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count);
-static s32  func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static s32  func_actor_312200_801626C4(GfxCoord* coord, GpRec18* movement, s16 arg2);
-static s32  func_actor_312200_80162868(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_actor_312200_80161E30(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static s32  func_actor_312200_80162178(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static s32  func_actor_312200_801626C4(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
+static s32  func_actor_312200_80162868(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_actor_312200_80162FB4(Task* task);
 static void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
 static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
@@ -325,7 +325,7 @@ static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_312200_80161E30(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -349,11 +349,11 @@ static s32 func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             actorCalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -384,7 +384,7 @@ static s32 func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_312200_80162178(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -417,10 +417,10 @@ static s32 func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count,
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -472,12 +472,12 @@ static s32 func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count,
     return s->blocked != 0;
 }
 
-/// Steps `coord` by the movement the first `arg2` `GpRec18` records of
+/// Steps `coord` by the movement the first `arg2` `WorldCollisionContact` records of
 /// `movement` resolve to, and keeps the whole-unit part of that step in
 /// `D_actor_312200_80169F88`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-static s32 func_actor_312200_801626C4(GfxCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_312200_801626C4(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -524,7 +524,7 @@ static s32 func_actor_312200_801626C4(GfxCoord* coord, GpRec18* movement, s16 ar
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-static s32 func_actor_312200_80162868(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_312200_80162868(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -548,11 +548,11 @@ static s32 func_actor_312200_80162868(GfxCoord* coord, GpRec18* recs, s16 count,
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {
@@ -683,7 +683,7 @@ static void func_actor_312200_80162FB4(Task* task)
 /// and colour matrices are pointed into the work block, the enemy takes the
 /// root coordinate's matrix as `field_4` and the model's third part coordinate
 /// as `coord`, and the display node built in place at `field_8BC` gets the
-/// block's three-entry `GpRec18` table and the model's fourth part coordinate.
+/// block's three-entry `WorldCollisionContact` table and the model's fourth part coordinate.
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
 /// its translation is propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3).
@@ -757,7 +757,7 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// the tick handler at index 1 - and `field_0` selects from it, unless the global
 /// `Gp_StateF0.field_4` holds the actor. `field_4` records whether the state moved
 /// before it is re-latched into `field_2`. The tail clears the display node's
-/// `GpRec18` record while occupied, re-propagates the root coordinate's
+/// `WorldCollisionContact` record while occupied, re-propagates the root coordinate's
 /// translation over the model's three part coordinates while `field_8AD` is
 /// set, and then refreshes `field_8AD` from that coordinate's `composeStamp` - so the
 /// propagation runs on the frame after the coordinate is dirtied. That same
@@ -785,7 +785,7 @@ static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
         }
         work->field_2 = work->field_0;
         states[work->field_0](task);
-        if (work->recs[0].key != 0) {
+        if (work->recs[0].key.value != 0) {
             Gp_ClearRec18Occupied(work->recs);
         }
         if (work->field_8AD != 0) {

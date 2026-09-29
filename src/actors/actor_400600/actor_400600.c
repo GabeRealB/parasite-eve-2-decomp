@@ -103,96 +103,96 @@ STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 /// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
 /// Reach it with `(Actor400600Work*)task->work`.
 typedef struct Actor400600Work {
-    /* 0x000 */ MATRIX             matrix_0;  // copy of the root coordinate's local matrix
-    /* 0x020 */ MATRIX             matrix_20; // color matrix for the child models
-    /* 0x040 */ MATRIX             matrix_40; // light matrix for the child models
-    /* 0x060 */ byte               pad_60[0x10];
-    /* 0x070 */ VECTOR             field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                field_80;  // pitch, see func_actor_400600_80139948
-    /* 0x082 */ u16                field_82;  // yaw, see func_actor_400600_80139948
-    /* 0x084 */ u16                field_84;  // roll, see func_actor_400600_80139948
-    /* 0x086 */ byte               pad_86[0x2];
-    /* 0x088 */ Actor400600ViewPos field_88;
-    /* 0x08E */ byte               pad_8E[0x2];
-    /* 0x090 */ u16                field_90; // spawn position X (low half)
-    /* 0x092 */ u16                field_92; // seeds field_73E on state entry
-    /* 0x094 */ u16                field_94; // spawn position Z (low half)
-    /* 0x096 */ byte               pad_96[0x2];
-    /* 0x098 */ u16                field_98; // low half of the root coordinate's world X
-    /* 0x09A */ u16                field_9A; // copy of field_92
-    /* 0x09C */ u16                field_9C; // low half of the root coordinate's world Z
-    /* 0x09E */ byte               pad_9E[0xA];
-    /* 0x0A8 */ Actor400600ViewPos field_A8; // copied to the stack for func_actor_400600_80139C00
-    /* 0x0AE */ byte               pad_AE[0x2];
-    /* 0x0B0 */ GpAnimCtx          anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
-    /* 0x0C4 */ GpAnimSlot         slots[0x12];
-    /* 0x394 */ byte               pad_394[0x120];
-    /* 0x4B4 */ GpObj              obj_4B4;    // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ GpRec18            rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x594 */ GpObj              obj_594;    // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ GpRec18            rec_5B4[1]; // obj_594's table (flags kind 1)
-    /* 0x5CC */ GpObj              obj_5CC;    // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ GpRec18            rec_5EC[1]; // obj_5CC's table (flags kind 1)
-    /* 0x604 */ GpObj              obj_604;    // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ GpActorD4Rec       rec_624;    // obj_604's payload (flags kind 3)
-    /* 0x63C */ GpRec18            rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ GpEffArg           eff_6FC;    // fourth model part's coordinate
-    /* 0x704 */ Task*              field_704;  // child task, killed on death
-    /* 0x708 */ Task*              field_708;  // child task, killed on death
-    /* 0x70C */ byte               pad_70C[0x4];
-    /* 0x710 */ Actor400600Timer   field_710;
-    /* 0x714 */ s16                field_714; // reset to 0x1000 on death
-    /* 0x716 */ u16                field_716; // frame counter, bumped by func_actor_400600_80138D78
-    /* 0x718 */ u16                field_718; // per-state frame counter
-    /* 0x71A */ s16                field_71A;
-    /* 0x71C */ u16                field_71C; // state index
-    /* 0x71E */ u16                field_71E; // sub-state index
-    /* 0x720 */ s16                field_720;
-    /* 0x722 */ s16                field_722; // velocity step (can go negative)
-    /* 0x724 */ s16                field_724; // accumulated step
-    /* 0x726 */ s16                field_726;
-    /* 0x728 */ s16                field_728;
-    /* 0x72A */ u16                field_72A;
-    /* 0x72C */ u16                field_72C;
-    /* 0x72E */ s16                field_72E;
-    /* 0x730 */ s16                field_730;
-    /* 0x732 */ s16                field_732; // countdown seeded by func_actor_400600_80138AF0
-    /* 0x734 */ s16                field_734; // model slot id handed to func_actor_400600_80139FE0
-    /* 0x736 */ byte               pad_736[0x4];
-    /* 0x73A */ s16                field_73A; // fade level, lerped toward 0xFF
-    /* 0x73C */ s16                field_73C;
-    /* 0x73E */ u16                field_73E;
-    /* 0x740 */ s16                field_740;
-    /* 0x742 */ s16                field_742; // animation request kind
-    /* 0x744 */ s16                field_744; // animation id now playing
-    /* 0x746 */ s16                field_746; // animation id
-    /* 0x748 */ s16                field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ s16                field_74A; // hit cooldown, seeded from Gp_GetIdParam2
-    /* 0x74C */ s16                field_74C;
-    /* 0x74E */ s16                field_74E;
-    /* 0x750 */ u16                field_750; // countdown to state 0xB
-    /* 0x752 */ s16                field_752;
-    /* 0x754 */ s16                field_754;
-    /* 0x756 */ u16                field_756; // countdown to the next state-2 transition
-    /* 0x758 */ s16                field_758;
-    /* 0x75A */ s16                field_75A;
-    /* 0x75C */ Actor400600State   field_75C;
-    /* 0x760 */ s8                 field_760;
-    /* 0x761 */ byte               pad_761;
-    /* 0x762 */ u8                 field_762;
-    /* 0x763 */ u8                 field_763;
-    /* 0x764 */ u8                 field_764;
-    /* 0x765 */ s8                 field_765;
-    /* 0x766 */ s8                 field_766;
-    /* 0x767 */ s8                 field_767;
-    /* 0x768 */ u8                 field_768;
-    /* 0x769 */ u8                 field_769; // sub-variant flag, gates state indices
-    /* 0x76A */ u8                 field_76A; // distance mode: 0 none, 1 XZ, 2 XY
-    /* 0x76B */ u8                 field_76B;
-    /* 0x76C */ u8                 field_76C; // nonzero: landing spawns the dust ring
-    /* 0x76D */ u8                 field_76D;
-    /* 0x76E */ u8                 field_76E; // set when spawned in map 0x0314
-    /* 0x76F */ byte               pad_76F;
+    /* 0x000 */ MATRIX                matrix_0;  // copy of the root coordinate's local matrix
+    /* 0x020 */ MATRIX                matrix_20; // color matrix for the child models
+    /* 0x040 */ MATRIX                matrix_40; // light matrix for the child models
+    /* 0x060 */ byte                  pad_60[0x10];
+    /* 0x070 */ VECTOR                field_70;  // copy of the root coordinate's translation
+    /* 0x080 */ u16                   field_80;  // pitch, see func_actor_400600_80139948
+    /* 0x082 */ u16                   field_82;  // yaw, see func_actor_400600_80139948
+    /* 0x084 */ u16                   field_84;  // roll, see func_actor_400600_80139948
+    /* 0x086 */ byte                  pad_86[0x2];
+    /* 0x088 */ Actor400600ViewPos    field_88;
+    /* 0x08E */ byte                  pad_8E[0x2];
+    /* 0x090 */ u16                   field_90; // spawn position X (low half)
+    /* 0x092 */ u16                   field_92; // seeds field_73E on state entry
+    /* 0x094 */ u16                   field_94; // spawn position Z (low half)
+    /* 0x096 */ byte                  pad_96[0x2];
+    /* 0x098 */ u16                   field_98; // low half of the root coordinate's world X
+    /* 0x09A */ u16                   field_9A; // copy of field_92
+    /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
+    /* 0x09E */ byte                  pad_9E[0xA];
+    /* 0x0A8 */ Actor400600ViewPos    field_A8; // copied to the stack for func_actor_400600_80139C00
+    /* 0x0AE */ byte                  pad_AE[0x2];
+    /* 0x0B0 */ GpAnimCtx             anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
+    /* 0x0C4 */ GpAnimSlot            slots[0x12];
+    /* 0x394 */ byte                  pad_394[0x120];
+    /* 0x4B4 */ GpObj                 obj_4B4;    // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ WorldCollisionContact rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ GpObj                 obj_594;    // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ WorldCollisionContact rec_5B4[1]; // obj_594's table (flags kind 1)
+    /* 0x5CC */ GpObj                 obj_5CC;    // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ WorldCollisionContact rec_5EC[1]; // obj_5CC's table (flags kind 1)
+    /* 0x604 */ GpObj                 obj_604;    // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ GpActorD4Rec          rec_624;    // obj_604's payload (flags kind 3)
+    /* 0x63C */ WorldCollisionContact rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ GpEffArg              eff_6FC;    // fourth model part's coordinate
+    /* 0x704 */ Task*                 field_704;  // child task, killed on death
+    /* 0x708 */ Task*                 field_708;  // child task, killed on death
+    /* 0x70C */ byte                  pad_70C[0x4];
+    /* 0x710 */ Actor400600Timer      field_710;
+    /* 0x714 */ s16                   field_714; // reset to 0x1000 on death
+    /* 0x716 */ u16                   field_716; // frame counter, bumped by func_actor_400600_80138D78
+    /* 0x718 */ u16                   field_718; // per-state frame counter
+    /* 0x71A */ s16                   field_71A;
+    /* 0x71C */ u16                   field_71C; // state index
+    /* 0x71E */ u16                   field_71E; // sub-state index
+    /* 0x720 */ s16                   field_720;
+    /* 0x722 */ s16                   field_722; // velocity step (can go negative)
+    /* 0x724 */ s16                   field_724; // accumulated step
+    /* 0x726 */ s16                   field_726;
+    /* 0x728 */ s16                   field_728;
+    /* 0x72A */ u16                   field_72A;
+    /* 0x72C */ u16                   field_72C;
+    /* 0x72E */ s16                   field_72E;
+    /* 0x730 */ s16                   field_730;
+    /* 0x732 */ s16                   field_732; // countdown seeded by func_actor_400600_80138AF0
+    /* 0x734 */ s16                   field_734; // model slot id handed to func_actor_400600_80139FE0
+    /* 0x736 */ byte                  pad_736[0x4];
+    /* 0x73A */ s16                   field_73A; // fade level, lerped toward 0xFF
+    /* 0x73C */ s16                   field_73C;
+    /* 0x73E */ u16                   field_73E;
+    /* 0x740 */ s16                   field_740;
+    /* 0x742 */ s16                   field_742; // animation request kind
+    /* 0x744 */ s16                   field_744; // animation id now playing
+    /* 0x746 */ s16                   field_746; // animation id
+    /* 0x748 */ s16                   field_748; // sound step index (func_actor_400600_801361AC)
+    /* 0x74A */ s16                   field_74A; // hit cooldown, seeded from Gp_GetIdParam2
+    /* 0x74C */ s16                   field_74C;
+    /* 0x74E */ s16                   field_74E;
+    /* 0x750 */ u16                   field_750; // countdown to state 0xB
+    /* 0x752 */ s16                   field_752;
+    /* 0x754 */ s16                   field_754;
+    /* 0x756 */ u16                   field_756; // countdown to the next state-2 transition
+    /* 0x758 */ s16                   field_758;
+    /* 0x75A */ s16                   field_75A;
+    /* 0x75C */ Actor400600State      field_75C;
+    /* 0x760 */ s8                    field_760;
+    /* 0x761 */ byte                  pad_761;
+    /* 0x762 */ u8                    field_762;
+    /* 0x763 */ u8                    field_763;
+    /* 0x764 */ u8                    field_764;
+    /* 0x765 */ s8                    field_765;
+    /* 0x766 */ s8                    field_766;
+    /* 0x767 */ s8                    field_767;
+    /* 0x768 */ u8                    field_768;
+    /* 0x769 */ u8                    field_769; // sub-variant flag, gates state indices
+    /* 0x76A */ u8                    field_76A; // distance mode: 0 none, 1 XZ, 2 XY
+    /* 0x76B */ u8                    field_76B;
+    /* 0x76C */ u8                    field_76C; // nonzero: landing spawns the dust ring
+    /* 0x76D */ u8                    field_76D;
+    /* 0x76E */ u8                    field_76E; // set when spawned in map 0x0314
+    /* 0x76F */ byte                  pad_76F;
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
@@ -423,7 +423,7 @@ static void func_actor_400600_8013C518(Task* arg0);
 static void func_actor_400600_8013C534(Task* arg0);
 static void func_actor_400600_8013C598(Task* arg0);
 static void func_actor_400600_8013C5F8(Task* arg0);
-static void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out);
+static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out);
 static s32  func_actor_400600_8013C7E8(s16 arg0, s16 arg1);
 static void func_actor_400600_8013C874(Task* arg0);
 static void func_actor_400600_8013C940(Task* arg0);
@@ -3582,7 +3582,7 @@ static void func_actor_400600_80136968(Task* arg0)
     eff             = &coord[3];
 
     for (i = 0; i < 8; i++) {
-        switch (work->rec_4D4[i].key & 0xFFFF0000) {
+        switch (work->rec_4D4[i].key.value & 0xFFFF0000) {
             case 0x10000:
             case 0x30000:
                 pos.vx = coord->workm.t[0];
@@ -3599,25 +3599,25 @@ static void func_actor_400600_80136968(Task* arg0)
             case 0x20000:
                 if (work->field_74A == 0) {
                     work->field_72E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].key, work->field_728, 0, 0);
+                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].key.value, work->field_728, 0, 0);
                     amount          = dmg;
-                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].key);
-                    if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key, 0) != 0) {
+                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].key.value);
+                    if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->rec_4D4[i].key, amount, 0);
+                    func_800E2C78(enemy, work->rec_4D4[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    if ((work->rec_4D4[i].key & 0x7F) == 0xE) {
-                        if (!(work->rec_4D4[i].key & 0x8000)) {
+                    if ((work->rec_4D4[i].key.value & 0x7F) == 0xE) {
+                        if (!(work->rec_4D4[i].key.value & 0x8000)) {
                             work->field_75A = 0x258;
                         }
                     } else {
-                        func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF,
+                        func_800FDB18(Gp_GetIdParam1(work->rec_4D4[i].key.value) & 0xFFFF,
                                       &arg0->extra.tmd->coords[4], NULL, &work->eff_6FC);
                     }
                     if (amount >= 0x64) {
@@ -3625,17 +3625,17 @@ static void func_actor_400600_80136968(Task* arg0)
                     } else {
                         work->field_730 = 1;
                     }
-                    switch (Gp_GetIdParam0(work->rec_4D4[i].key) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->rec_4D4[i].key.value) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_4D4[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec_4D4[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_4D4[i].key, 0);
+                            Gp_SetObjFlag4(enemy, work->rec_4D4[i].key.value, 0);
                             break;
                         case 4:
                             work->field_730 = 4;
@@ -3656,7 +3656,7 @@ static void func_actor_400600_80136968(Task* arg0)
                             work->field_730 = 3;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_4D4[i].key) & 0xFFFF) == 0xD) {
+                } else if ((Gp_GetIdParam1(work->rec_4D4[i].key.value) & 0xFFFF) == 0xD) {
                     func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_6FC);
                 }
                 break;
@@ -4052,7 +4052,7 @@ static s32 func_actor_400600_801376EC(Task* arg0)
     work  = (Actor400600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < 8; i++) {
-        if ((work->rec_63C[i].key & 0xFFFF0000) != 0x100000) {
+        if ((work->rec_63C[i].key.value & 0xFFFF0000) != 0x100000) {
             dist = 0;
         } else {
             if (work->field_76A == 0) {
@@ -6427,7 +6427,7 @@ static void func_actor_400600_8013C5F8(Task* arg0)
     }
 }
 
-static void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
+static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out)
 {
     VECTOR v;
     VECTOR n;
@@ -6441,7 +6441,7 @@ static void func_actor_400600_8013C6B0(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
     v.vx = dx;
     dz   = pos->vz - rec->point.vz;
     v.vz = dz;
-    dist = rec->depth - SquareRoot0(dx * dx + dz * dz);
+    dist = rec->distance - SquareRoot0(dx * dx + dz * dz);
     t    = dist;
     if (dist <= 0) {
         t = 0;

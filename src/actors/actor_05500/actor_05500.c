@@ -124,24 +124,24 @@ static void Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
 /// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
 /// zero, into `out`. `delta` receives the offset from the contact point to
 /// the origin.
-#define ACTOR05500_CONTACT_OVERLAP(out, coord, rec, delta)                                 \
-    do {                                                                                   \
-        s32 offX;                                                                          \
-        s32 offY;                                                                          \
-        s32 offZ;                                                                          \
-        s32 clamped;                                                                       \
-        offX         = (coord)->workm.t[0] - (rec).point.vx;                               \
-        (delta).vx.w = offX;                                                               \
-        offY         = (coord)->workm.t[1] - (rec).point.vy;                               \
-        (delta).vy.w = offY;                                                               \
-        offZ         = (coord)->workm.t[2] - (rec).point.vz;                               \
-        (delta).vz.w = offZ;                                                               \
-        (out)        = (rec).depth - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
-        clamped      = (out);                                                              \
-        if ((out) <= 0) {                                                                  \
-            clamped = 0;                                                                   \
-        }                                                                                  \
-        (out) = clamped;                                                                   \
+#define ACTOR05500_CONTACT_OVERLAP(out, coord, rec, delta)                                    \
+    do {                                                                                      \
+        s32 offX;                                                                             \
+        s32 offY;                                                                             \
+        s32 offZ;                                                                             \
+        s32 clamped;                                                                          \
+        offX         = (coord)->workm.t[0] - (rec).point.vx;                                  \
+        (delta).vx.w = offX;                                                                  \
+        offY         = (coord)->workm.t[1] - (rec).point.vy;                                  \
+        (delta).vy.w = offY;                                                                  \
+        offZ         = (coord)->workm.t[2] - (rec).point.vz;                                  \
+        (delta).vz.w = offZ;                                                                  \
+        (out)        = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
+        clamped      = (out);                                                                 \
+        if ((out) <= 0) {                                                                     \
+            clamped = 0;                                                                      \
+        }                                                                                     \
+        (out) = clamped;                                                                      \
     } while (0)
 
 /// Normalises `delta` into `unit` and expresses the direction in the frame of
@@ -154,12 +154,12 @@ static void Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
 
 /// Sets `work->field_3CE` when contact `rec` is a body, or a face of the
 /// collision grid whose normal has no vertical component.
-#define ACTOR05500_NOTE_BLOCKING_CONTACT(work, rec)                                    \
-    do {                                                                               \
-        if ((((rec).key & 0xFFFF0000) == 0x10000) ||                                   \
-            ((((rec).key & 0xFFFF0000) == 0x100000) && ((rec).at10.normal.vy == 0))) { \
-            (work)->field_3CE = 1;                                                     \
-        }                                                                              \
+#define ACTOR05500_NOTE_BLOCKING_CONTACT(work, rec)                                              \
+    do {                                                                                         \
+        if ((((rec).key.value & 0xFFFF0000) == 0x10000) ||                                       \
+            ((((rec).key.value & 0xFFFF0000) == 0x100000) && ((rec).response.normal.vy == 0))) { \
+            (work)->field_3CE = 1;                                                               \
+        }                                                                                        \
     } while (0)
 
 extern GpAnimSet Actor05500_D061A0;
@@ -782,7 +782,7 @@ static void Actor05500_Fn0006C(Task* arg0)
     work->field_3BA = 0;
     unit            = &scratch->normal;
     for (i = 0; i < 2; i++) {
-        kind = (u32)work->field_2B4[i].key >> 16;
+        kind = (u32)work->field_2B4[i].key.value >> 16;
         if (kind == one)
             goto physical;
         if (kind == 0)
@@ -795,33 +795,33 @@ static void Actor05500_Fn0006C(Task* arg0)
     damage_contact:
         if (work->field_390 == 0) {
             result = 0;
-            if ((((u32)work->field_2B4[i].key >> 8) & 0x3F) == 0x24) {
-                if ((work->field_2B4[i].key & 0x3F) == 0x24) {
+            if ((((u32)work->field_2B4[i].key.value >> 8) & 0x3F) == 0x24) {
+                if ((work->field_2B4[i].key.value & 0x3F) == 0x24) {
                     result = 1;
                 }
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                src                 = Gp_ActorSlots[((u32)work->field_2B4[i].key >> 7) & 1]->extra.tmd->coords;
+                src                 = Gp_ActorSlots[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
                 dx                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = dx;
                 dy                  = src->coord.t[1] - coord->coord.t[1];
                 scratch->delta.vy.w = dy;
                 dz                  = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vz.w = dz;
-                damage              = Gp_ComputeDamage((u32)work->field_2B4[i].key, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                damage              = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
                 amount              = damage;
                 if (result == 0) {
                     if (work->field_3CA != 0) {
                         amount = (damage << 16) >> 15;
                         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 3, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, (u32)work->field_2B4[i].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(enemy, (u32)work->field_2B4[i].key.value, 0) != 0) {
                         amount = (amount << 16) >> 14;
                         if (work->field_3CA == 0) {
                             Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 0, NULL);
                         }
                     }
-                    func_800E2C78(enemy, (u32)work->field_2B4[i].key, amount, 0);
+                    func_800E2C78(enemy, (u32)work->field_2B4[i].key.value, amount, 0);
                 }
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->hp -= amount;
@@ -845,7 +845,7 @@ static void Actor05500_Fn0006C(Task* arg0)
                     work->field_3D0        = one;
                     work->field_2E4.flags &= 0x3FFF;
                 }
-                switch (Gp_GetIdParam0(work->field_2B4[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->field_2B4[i].key.value) & 0xFFFF) {
                     case 0:
                     case 1:
                     case 5:
@@ -853,10 +853,10 @@ static void Actor05500_Fn0006C(Task* arg0)
                     case 9:
                         break;
                     case 2:
-                        Gp_SetObjFlag2(enemy, work->field_2B4[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->field_2B4[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(enemy, work->field_2B4[i].key, 0);
+                        Gp_SetObjFlag4(enemy, work->field_2B4[i].key.value, 0);
                         break;
                     case 4:
                     case 6:
@@ -874,14 +874,14 @@ static void Actor05500_Fn0006C(Task* arg0)
                         }
                         break;
                 }
-                if (lastId != work->field_2B4[i].key) {
-                    lastId          = work->field_2B4[i].key;
+                if (lastId != work->field_2B4[i].key.value) {
+                    lastId          = work->field_2B4[i].key.value;
                     scratch->rot.vx = 0;
                     scratch->rot.vy = -0xC8;
                     scratch->rot.vz = 0;
-                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].key) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->field_354);
+                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->field_354);
                 }
-                result = Gp_GetIdParam2(work->field_2B4[i].key);
+                result = Gp_GetIdParam2(work->field_2B4[i].key.value);
                 if (result > 0) {
                     work->field_390 = result;
                 }
@@ -1844,7 +1844,7 @@ static void Actor05500_Fn02780(GpEnemy* arg0, Task* arg1)
             return;
         default:
         default_case:
-            contact = work->rec.key;
+            contact = work->rec.key.value;
             if (contact != 0) {
                 if ((contact & 0xFFFF0000) != 0x100000) {
                     work->obj.flags &= 0x7FFF;
@@ -2058,21 +2058,21 @@ static void Actor05500_Fn02C94(Task* actor)
 
 static void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
-    SVECTOR          rot;
-    GpRec18*         rec0;
-    GpRec18*         rec1;
-    GpRec18*         rec2;
-    GpRec18*         rec3;
-    SVECTOR*         positions;
-    MATRIX*          matrix;
-    Actor105500Work* work;
-    s32              variant;
-    s32              quotient;
-    s32              i;
-    s32              mode;
-    GpAreaPlace*     params;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    SVECTOR                rot;
+    WorldCollisionContact* rec0;
+    WorldCollisionContact* rec1;
+    WorldCollisionContact* rec2;
+    WorldCollisionContact* rec3;
+    SVECTOR*               positions;
+    MATRIX*                matrix;
+    Actor105500Work*       work;
+    s32                    variant;
+    s32                    quotient;
+    s32                    i;
+    s32                    mode;
+    GpAreaPlace*           params;
+    GfxCoord*               coord;
+    TmdObject*             obj;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;

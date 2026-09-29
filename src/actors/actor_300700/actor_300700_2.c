@@ -458,7 +458,7 @@ static void func_actor_300700_801637E4(Task* actor)
     scratch = SCRATCH_HEAD(GpDeltaScratch) = head - 3;
     coord                                  = actor->extra.tmd->coords;
     ctx                                    = actor->spawnArg2.pointer;
-    switch (func_800E0C10((GpRec18*)&work->field_27C[0x20], scratch, 4, NULL)) {
+    switch (func_800E0C10((WorldCollisionContact*)&work->field_27C[0x20], scratch, 4, NULL)) {
         case 0:
             break;
         case 1:
@@ -472,7 +472,7 @@ static void func_actor_300700_801637E4(Task* actor)
             coord->coord.t[2] = work->field_368;
             break;
     }
-    Gp_ClearRec18Occupied((GpRec18*)&work->field_27C[0x20]);
+    Gp_ClearRec18Occupied((WorldCollisionContact*)&work->field_27C[0x20]);
     if (work->field_378 != 0) {
         work->field_378--;
         if (work->field_378 <= 0) {
@@ -480,7 +480,7 @@ static void func_actor_300700_801637E4(Task* actor)
         }
     }
     for (i = 0; i < 3; i++) {
-        switch ((u32)work->field_22C.contacts.recs[i].key >> 16) {
+        switch ((u32)work->field_22C.contacts.recs[i].key.value >> 16) {
             case 0:
                 break;
             /* Kinds 1 and 3 push the model back out of the obstacle the same way. */
@@ -488,7 +488,7 @@ static void func_actor_300700_801637E4(Task* actor)
                 scratch->vx.w = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
                 scratch->vy.w = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
                 scratch->vz.w = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                push          = work->field_22C.contacts.recs[i].depth -
+                push          = work->field_22C.contacts.recs[i].distance -
                        SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w + scratch->vz.w * scratch->vz.w);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
@@ -499,20 +499,20 @@ static void func_actor_300700_801637E4(Task* actor)
                 break;
             case 2:
                 if (work->field_378 == 0) {
-                    target        = Gp_ActorSlots[((u32)work->field_22C.contacts.recs[i].key >> 7) & 1]->extra.tmd->coords;
+                    target        = Gp_ActorSlots[((u32)work->field_22C.contacts.recs[i].key.value >> 7) & 1]->extra.tmd->coords;
                     scratch->vx.w = target->coord.t[0] - coord->coord.t[0];
                     scratch->vy.w = target->coord.t[1] - coord->coord.t[1];
                     scratch->vz.w = target->coord.t[2] - coord->coord.t[2];
-                    damage        = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key,
+                    damage        = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value,
                                                      SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w +
                                                                  scratch->vz.w * scratch->vz.w),
                                                      0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((GpEnemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    func_800E2C78(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key, damage, 0);
+                    func_800E2C78(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         work->field_37A = 5;
@@ -523,7 +523,7 @@ static void func_actor_300700_801637E4(Task* actor)
                         work->field_37C = 0;
                     }
                     work->field_31A &= 0x7FFF;
-                    switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key.value) & 0xFFFF) {
                         case 0:
                         case 4:
                         case 5:
@@ -532,22 +532,22 @@ static void func_actor_300700_801637E4(Task* actor)
                         case 8:
                             break;
                         case 2:
-                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key, 0);
+                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key, 0);
+                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0);
                             break;
                         case 1:
                         case 9:
                             Gp_SetObjFlag1(actor->spawnArg2.pointer);
                             break;
                     }
-                    id = work->field_22C.contacts.recs[i].key;
+                    id = work->field_22C.contacts.recs[i].key.value;
                     if (lastId != id) {
                         lastId = id;
                         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->field_334);
                     }
-                    cooldown = Gp_GetIdParam2(work->field_22C.contacts.recs[i].key);
+                    cooldown = Gp_GetIdParam2(work->field_22C.contacts.recs[i].key.value);
                     if (cooldown > 0) {
                         work->field_378 = cooldown;
                     }
@@ -557,7 +557,7 @@ static void func_actor_300700_801637E4(Task* actor)
                 scratch->vx.w = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
                 scratch->vy.w = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
                 scratch->vz.w = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
-                push          = work->field_22C.contacts.recs[i].depth -
+                push          = work->field_22C.contacts.recs[i].distance -
                        SquareRoot0(scratch->vx.w * scratch->vx.w + scratch->vy.w * scratch->vy.w + scratch->vz.w * scratch->vz.w);
                 push = (push <= 0) ? 0 : push;
                 if (bestPush < push) {
@@ -573,17 +573,17 @@ static void func_actor_300700_801637E4(Task* actor)
         coord->coord.t[2] += (bestPush * scratch[2].vz.w) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->field_22C.contacts.recs);
-    if (Gp_FindRec18((GpRec18*)work->pad_31C, 0) != 0) {
+    if (Gp_FindRec18(work->attackContacts, 0) != 0) {
         work->field_31A &= 0x7FFF;
-        Gp_ClearRec18Occupied((GpRec18*)work->pad_31C);
+        Gp_ClearRec18Occupied(work->attackContacts);
     }
-    if (Gp_CountRec18Hi((GpRec18*)work->field_1FC, 0x10000) != 0) {
-        target           = Gp_ActorSlots[(u8)work->field_1FC[4] >> 7]->extra.tmd->coords;
+    if (Gp_CountRec18Hi(work->sensorContacts, 0x10000) != 0) {
+        target           = Gp_ActorSlots[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->field_394  = 1;
         work->field_1FA &= 0x7FFF;
         work->field_33C  = target;
     }
-    Gp_ClearRec18Occupied((GpRec18*)work->field_1FC);
+    Gp_ClearRec18Occupied(work->sensorContacts);
     SCRATCH_HEAD(GpDeltaScratch) += 3;
 }
 

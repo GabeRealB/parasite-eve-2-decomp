@@ -156,9 +156,14 @@ void areaSyncLocationVariant(GameLocationKey* key);
 /// at the largest corner `otz`.
 void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2);
 
-/// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
-/// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
-void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
+/// Contact offset in the view coordinate frame, in signed world-coordinate units.
+///
+/// `position` and `contact->point` are world positions. Their delta is
+/// truncated to signed halfwords before measuring its length. The offset
+/// magnitude is `-abs(length - contact->distance)`, including when the point
+/// lies beyond that distance; `offset` receives the scaled normalized delta
+/// transformed by the transpose of the view coordinate's world rotation.
+void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContact* contact, SVECTOR* offset);
 
 Task* func_800B2968(void);
 

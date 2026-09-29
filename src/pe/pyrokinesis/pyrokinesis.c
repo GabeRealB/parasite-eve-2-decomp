@@ -43,9 +43,9 @@
 /// probe for a wall; both point `field_C` at the one-element `rec` table
 /// (terminator `field_0 = 2`).
 typedef struct PyroWork {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpObj   obj2;
-    /* 0x40 */ GpRec18 rec;
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ GpObj                 obj2;
+    /* 0x40 */ WorldCollisionContact rec;
 } PyroWork;
 STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 

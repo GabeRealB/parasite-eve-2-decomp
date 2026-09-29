@@ -127,7 +127,7 @@ static void func_actor_800200_80165F28(Task* arg0);
 static void func_actor_800200_80165F48(Task* arg0);
 static void func_actor_800200_80165F50(Task* arg0);
 static void func_actor_800200_80165FF0(Task* arg0);
-static s32  func_actor_800200_801660E8(GfxCoord* arg0, GpRec18* arg1, GpRec18* arg2);
+static s32  _actor800200GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY);
 
 extern GpAnimSet D_actor_800200_8016A464;
 extern GpAnimSet D_actor_800200_8016AAE0;
@@ -914,17 +914,17 @@ static s32  func_actor_800200_80165104(Task* arg0);
 
 static void func_actor_800200_80162088(Task* arg0)
 {
-    GameActor*  actor;
-    TmdObject*  extra;
-    GfxCoord*   coord;
-    GfxCoord*   next;
-    GfxCoord**  addr;
-    GpObj*      obj;
-    GpRec18*    recs;
-    McSaveData* save;
-    SVECTOR3*   scratch;
-    void*       head;
-    s32         packed;
+    GameActor*             actor;
+    TmdObject*             extra;
+    GfxCoord*               coord;
+    GfxCoord*               next;
+    GfxCoord**              addr;
+    GpObj*                 obj;
+    WorldCollisionContact* recs;
+    McSaveData*            save;
+    SVECTOR3*              scratch;
+    void*                  head;
+    s32                    packed;
 
     actor              = arg0->work;
     head               = SCRATCH_HEAD(void);
@@ -1931,7 +1931,7 @@ static void func_actor_800200_80163F5C(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
-    dist   = func_actor_800200_801660E8(coord, &actor->field_910->contact, NULL);
+    dist   = _actor800200GetContactDistance(coord, &actor->field_910->contact, NULL);
     if (dist != 0 && dist < 0x301) {
         hit            = arg0->work;
         d4             = hit->field_910;
@@ -2320,7 +2320,7 @@ static void func_actor_800200_801649D8(Task* arg0)
 
     actor    = arg0->work;
     d4       = actor->field_910;
-    distance = func_actor_800200_801660E8(arg0->extra.tmd->coords, &d4->contact, 0);
+    distance = _actor800200GetContactDistance(arg0->extra.tmd->coords, &d4->contact, 0);
     value    = actor->field_95E;
     one      = 1;
     switch (value) {
@@ -3132,19 +3132,25 @@ static void func_actor_800200_80165FF0(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-static s32 func_actor_800200_801660E8(GfxCoord* arg0, GpRec18* arg1, GpRec18* arg2)
+/// Planar distance from the coordinate origin to a nonempty contact, or 0.
+///
+/// Distances use world units. Optional `contactZY` needs two halfwords and
+/// receives the signed coordinate bits (Z, Y). The original X, Y, Z stores
+/// deliberately retain their order, with Z overwriting X.
+static s32 _actor800200GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY)
 {
-    s32 dist;
+    s32 distance;
 
-    if (arg1->key != 0) {
-        dist = func_80103D8C(arg0->workm.t[0] - arg1->point.vx, arg0->workm.t[2] - arg1->point.vz);
-        if (arg2 != NULL) {
-            arg2->flags = arg1->point.vx;
-            arg2->depth = arg1->point.vy;
-            arg2->flags = arg1->point.vz;
+    if (contact->key.value != 0) {
+        distance = func_80103D8C(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
+        if (contactZY != NULL) {
+            // Retain the original repeated first-halfword write.
+            contactZY[0] = contact->point.vx;
+            contactZY[1] = contact->point.vy;
+            contactZY[0] = contact->point.vz;
         }
     } else {
-        dist = 0;
+        distance = 0;
     }
-    return dist;
+    return distance;
 }

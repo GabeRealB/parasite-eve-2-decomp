@@ -46,50 +46,50 @@
 #include "overlay.h"
 
 typedef struct Actor103800Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[6];
-    /* 0x104 */ byte       field_104[0x60];
-    /* 0x164 */ MATRIX     field_164;
-    /* 0x184 */ MATRIX     field_184;
-    /* 0x1A4 */ byte       field_1A4[8];
-    /* 0x1AC */ void*      field_1AC;
-    /* 0x1B0 */ GpRec18*   field_1B0;
-    /* 0x1B4 */ u16        field_1B4;
-    /* 0x1B6 */ s16        field_1B6;
-    /* 0x1B8 */ u16        field_1B8;
-    /* 0x1BA */ byte       pad_1BA[2];
-    /* 0x1BC */ u32        field_1BC;
-    /* 0x1C0 */ u16        field_1C0;
-    /* 0x1C2 */ u16        field_1C2;
-    /* 0x1C4 */ GpRec18    field_1C4[3];
-    /* 0x20C */ byte       field_20C[8];
-    /* 0x214 */ void*      field_214;
-    /* 0x218 */ GpRec18*   field_218;
-    /* 0x21C */ u16        field_21C;
-    /* 0x21E */ s16        field_21E;
-    /* 0x220 */ u16        field_220;
-    /* 0x222 */ byte       pad_222[2];
-    /* 0x224 */ u32        field_224;
-    /* 0x228 */ s16        field_228;
-    /* 0x22A */ u16        field_22A;
-    /* 0x22C */ GpRec18    field_22C[4];
-    /* 0x28C */ byte       field_28C[8];
-    /* 0x294 */ void*      field_294;
-    /* 0x298 */ GpRec18*   field_298;
-    /* 0x29C */ u16        field_29C;
-    /* 0x29E */ s16        field_29E;
-    /* 0x2A0 */ u16        field_2A0;
-    /* 0x2A2 */ byte       pad_2A2[2];
-    /* 0x2A4 */ u32        field_2A4;
-    /* 0x2A8 */ u16        field_2A8;
-    /* 0x2AA */ u16        field_2AA;
-    /* 0x2AC */ GpRec18    field_2AC[1];
-    /* 0x2C4 */ GpEffArg   field_2C4; // record the death effect is spawned with
-    /* 0x2CC */ MATRIX     field_2CC;
-    /* 0x2EC */ s16        field_2EC;
-    /* 0x2EE */ s16        field_2EE;
-    /* 0x2F0 */ s16        field_2F0;
-    /* 0x2F2 */ byte       pad_2F2[2];
+    /* 0x000 */ GpAnimCtx              anim;
+    /* 0x014 */ GpAnimSlot             slots[6];
+    /* 0x104 */ byte                   field_104[0x60];
+    /* 0x164 */ MATRIX                 field_164;
+    /* 0x184 */ MATRIX                 field_184;
+    /* 0x1A4 */ byte                   field_1A4[8];
+    /* 0x1AC */ void*                  field_1AC;
+    /* 0x1B0 */ WorldCollisionContact* field_1B0;
+    /* 0x1B4 */ u16                    field_1B4;
+    /* 0x1B6 */ s16                    field_1B6;
+    /* 0x1B8 */ u16                    field_1B8;
+    /* 0x1BA */ byte                   pad_1BA[2];
+    /* 0x1BC */ u32                    field_1BC;
+    /* 0x1C0 */ u16                    field_1C0;
+    /* 0x1C2 */ u16                    field_1C2;
+    /* 0x1C4 */ WorldCollisionContact  field_1C4[3];
+    /* 0x20C */ byte                   field_20C[8];
+    /* 0x214 */ void*                  field_214;
+    /* 0x218 */ WorldCollisionContact* field_218;
+    /* 0x21C */ u16                    field_21C;
+    /* 0x21E */ s16                    field_21E;
+    /* 0x220 */ u16                    field_220;
+    /* 0x222 */ byte                   pad_222[2];
+    /* 0x224 */ u32                    field_224;
+    /* 0x228 */ s16                    field_228;
+    /* 0x22A */ u16                    field_22A;
+    /* 0x22C */ WorldCollisionContact  field_22C[4];
+    /* 0x28C */ byte                   field_28C[8];
+    /* 0x294 */ void*                  field_294;
+    /* 0x298 */ WorldCollisionContact* field_298;
+    /* 0x29C */ u16                    field_29C;
+    /* 0x29E */ s16                    field_29E;
+    /* 0x2A0 */ u16                    field_2A0;
+    /* 0x2A2 */ byte                   pad_2A2[2];
+    /* 0x2A4 */ u32                    field_2A4;
+    /* 0x2A8 */ u16                    field_2A8;
+    /* 0x2AA */ u16                    field_2AA;
+    /* 0x2AC */ WorldCollisionContact  field_2AC[1];
+    /* 0x2C4 */ GpEffArg               field_2C4; // record the death effect is spawned with
+    /* 0x2CC */ MATRIX                 field_2CC;
+    /* 0x2EC */ s16                    field_2EC;
+    /* 0x2EE */ s16                    field_2EE;
+    /* 0x2F0 */ s16                    field_2F0;
+    /* 0x2F2 */ byte                   pad_2F2[2];
     /// Coordinate node `Actor03800_Fn003B8` publishes on `field_344` for the
     /// detached modes (spawn kinds 1 and 2): it is seeded from the model's own
     /// `TmdObject::coords`, parented to `gGfxViewCoord` and then turned
@@ -692,13 +692,13 @@ static inline void _actor03800TickAnim(Task* task);
 
 static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
 {
-    GpObj*           obj;
-    GpRec18*         records1;
-    GpRec18*         records2;
-    GpRec18*         records3;
-    Actor103800Work* work;
-    s32              i;
-    TmdObject*       extra;
+    GpObj*                 obj;
+    WorldCollisionContact* records1;
+    WorldCollisionContact* records2;
+    WorldCollisionContact* records3;
+    Actor103800Work*       work;
+    s32                    i;
+    TmdObject*             extra;
 
     extra = arg1->extra.tmd;
     work  = memCalloc(0x384, 0);
@@ -1031,8 +1031,8 @@ static void Actor03800_Fn00A98(Task* arg0)
     result = func_800E0C10(work->field_22C, &frame->delta, 4, NULL);
     if (result != 0) {
         for (i = 0; i < 4; i++) {
-            if ((work->field_22C[i].key & 0xFFFF0000) == 0x100000) {
-                if (work->field_22C[i].at10.normal.vy >= -0xDDA) {
+            if ((work->field_22C[i].key.value & 0xFFFF0000) == 0x100000) {
+                if (work->field_22C[i].response.normal.vy >= -0xDDA) {
                     if (work->field_36E == 0) {
                         work->field_370 = 1;
                         break;
@@ -1064,7 +1064,7 @@ static void Actor03800_Fn00A98(Task* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        id = work->field_1C4[i].key;
+        id = work->field_1C4[i].key.value;
         switch (id >> 0x10) {
             case 0:
                 break;
@@ -1074,28 +1074,28 @@ static void Actor03800_Fn00A98(Task* arg0)
                     frame->delta.vx.w = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage            = Gp_ComputeDamage(work->field_1C4[i].key, SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) + (frame->delta.vz.w * frame->delta.vz.w)), 0, 0);
+                    damage            = Gp_ComputeDamage(work->field_1C4[i].key.value, SquareRoot0((frame->delta.vx.w * frame->delta.vx.w) + (frame->delta.vy.w * frame->delta.vy.w) + (frame->delta.vz.w * frame->delta.vz.w)), 0, 0);
                     if (work->field_36E == 0) {
-                        if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key, 0) != 0) {
+                        if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key.value, 0) != 0) {
                             damage *= 4;
                             Gp_SpawnEff(0x6009C, coord, 0, NULL);
                         }
-                    } else if (!(work->field_1C4[i].key & 0x8000) && (damage != 0)) {
+                    } else if (!(work->field_1C4[i].key.value & 0x8000) && (damage != 0)) {
                         damage *= 3;
                         Gp_SpawnEff(0x6009C, coord, 4, NULL);
                     }
                     func_800DA6E8(&ctx->node, damage, 0);
-                    func_800E2C78(ctx, work->field_1C4[i].key, damage, 0);
+                    func_800E2C78(ctx, work->field_1C4[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         reaction = 2;
                     }
-                    switch (Gp_GetIdParam0(work->field_1C4[i].key) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->field_1C4[i].key.value) & 0xFFFF) {
                         case 0:
                         default:
                             break;
                         case 3:
-                            Gp_SetObjFlag4(ctx, work->field_1C4[i].key, 0);
+                            Gp_SetObjFlag4(ctx, work->field_1C4[i].key.value, 0);
                             break;
                         case 4:
                             if (ctx->hp > 0) {
@@ -1115,7 +1115,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                             break;
                         case 8:
                             if (work->field_36E == 0 && reaction == 0) {
-                                Gp_SetObjFlag2(ctx, work->field_1C4[i].key, 0);
+                                Gp_SetObjFlag2(ctx, work->field_1C4[i].key.value, 0);
                             }
                             break;
                         case 1:
@@ -1143,12 +1143,12 @@ static void Actor03800_Fn00A98(Task* arg0)
                             work->field_354 = 0;
                             break;
                     }
-                    hitId = work->field_1C4[i].key;
+                    hitId = work->field_1C4[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
                         func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, arg0->extra.tmd->coords + 3, NULL, &work->field_2C4);
                     }
-                    result = Gp_GetIdParam2(work->field_1C4[i].key);
+                    result = Gp_GetIdParam2(work->field_1C4[i].key.value);
                     if (result > 0) {
                         work->field_34E = result;
                     }
@@ -1161,7 +1161,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                 frame->delta.vy.w = dy;
                 dz                = coord->workm.t[2] - work->field_1C4[i].point.vz;
                 frame->delta.vz.w = dz;
-                depth             = work->field_1C4[i].depth - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                depth             = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
                 boundedDepth      = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
@@ -1176,7 +1176,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                 frame->delta.vy.w = dy;
                 dz                = coord->workm.t[2] - work->field_1C4[i].point.vz;
                 frame->delta.vz.w = dz;
-                depth             = work->field_1C4[i].depth - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                depth             = work->field_1C4[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
                 boundedDepth      = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;

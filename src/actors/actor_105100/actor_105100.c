@@ -82,15 +82,15 @@ STATIC_ASSERT_SIZEOF(Actor105100HitScratch, 0x30);
 /// it, `field_7C` is the speed the flight doubles each frame up to a cap, and
 /// `field_7E` is the size the billboard is drawn at.
 typedef struct Actor105100ProjWork {
-    /* 0x00 */ GpObj        obj0;
-    /* 0x20 */ GpRec18      rec20;
-    /* 0x38 */ GpObj        obj38;
-    /* 0x58 */ GpActorD4Rec pose;
-    /* 0x70 */ SVECTOR      field_70;
-    /* 0x78 */ u16          field_78;
-    /* 0x7A */ s16          field_7A;
-    /* 0x7C */ u16          field_7C;
-    /* 0x7E */ s16          field_7E;
+    /* 0x00 */ GpObj                 obj0;
+    /* 0x20 */ WorldCollisionContact rec20;
+    /* 0x38 */ GpObj                 obj38;
+    /* 0x58 */ GpActorD4Rec          pose;
+    /* 0x70 */ SVECTOR               field_70;
+    /* 0x78 */ u16                   field_78;
+    /* 0x7A */ s16                   field_7A;
+    /* 0x7C */ u16                   field_7C;
+    /* 0x7E */ s16                   field_7E;
 } Actor105100ProjWork;
 STATIC_ASSERT_SIZEOF(Actor105100ProjWork, 0x80);
 
@@ -117,55 +117,55 @@ STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
 /// instead of retyping the field.
 ///
 /// The three objects at 0x47C / 0x4E4 / 0x51C are `GpObj` collision bodies,
-/// each with the `GpRec18` run that follows it as its table: the first hangs
+/// each with the `WorldCollisionContact` run that follows it as its table: the first hangs
 /// off `&coord[3]`, the second off the model's own coordinate and the third
 /// off the third-party model's.
 typedef struct Actor105100Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[19];
-    /* 0x30C */ byte       field_30C[0x130];
-    /* 0x43C */ MATRIX     field_43C;
-    /* 0x45C */ MATRIX     field_45C;
-    /* 0x47C */ GpObj      obj47C;
-    /* 0x49C */ GpRec18    field_49C[3];
-    /* 0x4E4 */ GpObj      obj4E4;
-    /* 0x504 */ GpRec18    field_504[1];
-    /* 0x51C */ GpObj      obj51C;
-    /* 0x53C */ GpRec18    field_53C[1];
-    /* 0x554 */ GpEffArg   field_554; // record the death effect is spawned with
-    /* 0x55C */ GpEffWork* field_55C;
-    /* 0x560 */ MATRIX     field_560;
-    /* 0x580 */ s32        field_580;
-    /* 0x584 */ s32        field_584;
-    /* 0x588 */ s32        field_588;
-    /* 0x58C */ s16        field_58C; // hit cooldown; armed from `Gp_GetIdParam2` of the hitting record
-    /* 0x58E */ u16        field_58E;
-    /* 0x590 */ s16        field_590;
-    /* 0x592 */ u16        field_592;
-    /* 0x594 */ s16        field_594;
-    /* 0x596 */ s16        field_596;
-    /* 0x598 */ s16        field_598;
-    /* 0x59A */ u16        field_59A;
-    /* 0x59C */ u16        field_59C;
-    /* 0x59E */ u16        field_59E;
-    /* 0x5A0 */ s16        field_5A0; // sign of the player offset dotted with the player's facing axis
-    /* 0x5A2 */ s16        field_5A2; // non-zero while the attack body is running; the body clears it when it finishes
-    /* 0x5A4 */ s16        field_5A4; // state of the attack body `func_actor_105100_80133CE4`
-    /* 0x5A6 */ u16        field_5A6; // its frame counter
-    /* 0x5A8 */ s16        field_5A8;
-    /* 0x5AA */ s16        field_5AA;
-    /* 0x5AC */ s16        field_5AC;
-    /* 0x5AE */ u16        field_5AE;
-    /* 0x5B0 */ s16        field_5B0;
-    /* 0x5B2 */ s16        field_5B2;
-    /* 0x5B4 */ s16        field_5B4;
-    /* 0x5B6 */ s16        field_5B6;
-    /* 0x5B8 */ u16        field_5B8;
-    /* 0x5BA */ s16        field_5BA; // 1 while the death cutscene message is pending; cleared after 0x13F4, gates step 3
-    /* 0x5BC */ s16        field_5BC;
-    /* 0x5BE */ u16        field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
-    /* 0x5C0 */ u16        field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
-    /* 0x5C2 */ s16        field_5C2;
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[19];
+    /* 0x30C */ byte                  field_30C[0x130];
+    /* 0x43C */ MATRIX                field_43C;
+    /* 0x45C */ MATRIX                field_45C;
+    /* 0x47C */ GpObj                 obj47C;
+    /* 0x49C */ WorldCollisionContact field_49C[3];
+    /* 0x4E4 */ GpObj                 obj4E4;
+    /* 0x504 */ WorldCollisionContact field_504[1];
+    /* 0x51C */ GpObj                 obj51C;
+    /* 0x53C */ WorldCollisionContact field_53C[1];
+    /* 0x554 */ GpEffArg              field_554; // record the death effect is spawned with
+    /* 0x55C */ GpEffWork*            field_55C;
+    /* 0x560 */ MATRIX                field_560;
+    /* 0x580 */ s32                   field_580;
+    /* 0x584 */ s32                   field_584;
+    /* 0x588 */ s32                   field_588;
+    /* 0x58C */ s16                   field_58C; // hit cooldown; armed from `Gp_GetIdParam2` of the hitting record
+    /* 0x58E */ u16                   field_58E;
+    /* 0x590 */ s16                   field_590;
+    /* 0x592 */ u16                   field_592;
+    /* 0x594 */ s16                   field_594;
+    /* 0x596 */ s16                   field_596;
+    /* 0x598 */ s16                   field_598;
+    /* 0x59A */ u16                   field_59A;
+    /* 0x59C */ u16                   field_59C;
+    /* 0x59E */ u16                   field_59E;
+    /* 0x5A0 */ s16                   field_5A0; // sign of the player offset dotted with the player's facing axis
+    /* 0x5A2 */ s16                   field_5A2; // non-zero while the attack body is running; the body clears it when it finishes
+    /* 0x5A4 */ s16                   field_5A4; // state of the attack body `func_actor_105100_80133CE4`
+    /* 0x5A6 */ u16                   field_5A6; // its frame counter
+    /* 0x5A8 */ s16                   field_5A8;
+    /* 0x5AA */ s16                   field_5AA;
+    /* 0x5AC */ s16                   field_5AC;
+    /* 0x5AE */ u16                   field_5AE;
+    /* 0x5B0 */ s16                   field_5B0;
+    /* 0x5B2 */ s16                   field_5B2;
+    /* 0x5B4 */ s16                   field_5B4;
+    /* 0x5B6 */ s16                   field_5B6;
+    /* 0x5B8 */ u16                   field_5B8;
+    /* 0x5BA */ s16                   field_5BA; // 1 while the death cutscene message is pending; cleared after 0x13F4, gates step 3
+    /* 0x5BC */ s16                   field_5BC;
+    /* 0x5BE */ u16                   field_5BE; // accumulated damage toward the 0x1A4 stagger threshold
+    /* 0x5C0 */ u16                   field_5C0; // frames the stagger window stays open; loaded 0xBC on a hit
+    /* 0x5C2 */ s16                   field_5C2;
 } Actor105100Work;
 STATIC_ASSERT_SIZEOF(Actor105100Work, 0x5C4);
 
@@ -178,17 +178,17 @@ STATIC_ASSERT_SIZEOF(Actor105100Work, 0x5C4);
 /// and `step` is the distance advanced per frame. Only the leading `obj`
 /// participates in collision; the tail is movement state, not another body.
 typedef struct Actor105100Rec {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[1];
-    /* 0x38 */ SVECTOR direction;
-    /* 0x40 */ s16     field_40;
-    /* 0x42 */ s16     field_42;
-    /* 0x44 */ s16     field_44;
-    /* 0x46 */ s16     field_46;
-    /* 0x48 */ s16     field_48;
-    /* 0x4A */ s16     travelTicks;
-    /* 0x4C */ s16     step;
-    /* 0x4E */ u16     field_4E;
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[1];
+    /* 0x38 */ SVECTOR               direction;
+    /* 0x40 */ s16                   field_40;
+    /* 0x42 */ s16                   field_42;
+    /* 0x44 */ s16                   field_44;
+    /* 0x46 */ s16                   field_46;
+    /* 0x48 */ s16                   field_48;
+    /* 0x4A */ s16                   travelTicks;
+    /* 0x4C */ s16                   step;
+    /* 0x4E */ u16                   field_4E;
 } Actor105100Rec;
 STATIC_ASSERT_SIZEOF(Actor105100Rec, 0x50);
 
@@ -1061,13 +1061,13 @@ static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1)
 /// handler; otherwise the task moves to the tick handler (`state` 1).
 static void func_actor_105100_801327B4(GpEnemy* arg0, Task* arg1)
 {
-    Actor105100Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GpRec18*         records1;
-    GpRec18*         records2;
-    GpRec18*         records3;
-    s32              i;
+    Actor105100Work*       work;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    WorldCollisionContact* records1;
+    WorldCollisionContact* records2;
+    WorldCollisionContact* records3;
+    s32                    i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -1236,20 +1236,20 @@ static void func_actor_105100_80132C2C(Task* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        if ((u16)(work->field_49C[i].key >> 16) == 2 && work->field_58C == 0) {
+        if ((u16)(work->field_49C[i].key.value >> 16) == 2 && work->field_58C == 0) {
             sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
             sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage       = Gp_ComputeDamage(work->field_49C[i].key,
+            damage       = Gp_ComputeDamage(work->field_49C[i].key.value,
                                             SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
                                                         sc->delta.vz * sc->delta.vz),
                                             0, 0);
-            if (Gp_RollEnemyChance(ctx, work->field_49C[i].key, 0) != 0) {
+            if (Gp_RollEnemyChance(ctx, work->field_49C[i].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
             }
             if (work->field_5A8 == 1) {
-                if (work->field_49C[i].key & 0x8000) {
+                if (work->field_49C[i].key.value & 0x8000) {
                     damage = 0;
                 } else {
                     damage /= 2;
@@ -1263,22 +1263,22 @@ static void func_actor_105100_80132C2C(Task* arg0)
             }
             func_800DA6E8(&ctx->node, damage, 0);
             if (damage != 0) {
-                switch (Gp_GetIdParam0(work->field_49C[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->field_49C[i].key.value) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
-                        if ((work->field_49C[i].key & 0x3F) != 0x1C) {
+                        if ((work->field_49C[i].key.value & 0x3F) != 0x1C) {
                             flag = 1;
                         }
                         break;
                     case 2:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag2(ctx, work->field_49C[i].key, 0);
+                            Gp_SetObjFlag2(ctx, work->field_49C[i].key.value, 0);
                         }
                         break;
                     case 3:
                         if (work->field_5A8 == 0) {
-                            Gp_SetObjFlag4(ctx, work->field_49C[i].key, 0);
+                            Gp_SetObjFlag4(ctx, work->field_49C[i].key.value, 0);
                         }
                         break;
                     case 4:
@@ -1291,7 +1291,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                     case 9:
                         break;
                 }
-                func_800E2C78(ctx, work->field_49C[i].key, damage, 0);
+                func_800E2C78(ctx, work->field_49C[i].key.value, damage, 0);
                 ctx->hp -= damage;
                 if (ctx->hp <= 0) {
                     work->field_596 = 7;
@@ -1321,12 +1321,12 @@ static void func_actor_105100_80132C2C(Task* arg0)
                     }
                 }
                 work->obj4E4.flags &= 0x7FFF;
-                if (lastId != work->field_49C[i].key) {
-                    lastId = work->field_49C[i].key;
+                if (lastId != work->field_49C[i].key.value) {
+                    lastId = work->field_49C[i].key.value;
                     func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
                                   &work->field_554);
                 }
-                wait = Gp_GetIdParam2(work->field_49C[i].key);
+                wait = Gp_GetIdParam2(work->field_49C[i].key.value);
                 if (wait > 0) {
                     work->field_58C = wait;
                 }
@@ -1339,7 +1339,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
         work->field_5BE = 0;
     }
     if (work->field_53C[0].flags & 1) {
-        if ((work->field_53C[0].key & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
+        if ((work->field_53C[0].key.value & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
             work->field_5A2      = 1;
             Gp_StateC08.field_6 |= 1;
         }
@@ -2365,7 +2365,7 @@ body:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             func_actor_105100_80131EBC(coord, work->field_7E);
-            if (work->rec20.key != 0 || (s16)work->field_78 >= 0x1A) {
+            if (work->rec20.key.value != 0 || (s16)work->field_78 >= 0x1A) {
                 work->obj38.flags &= 0xBFFF;
                 Gp_ClearRec18Occupied(&work->rec20);
                 work->obj0.key    = Gp_PackPair(D_actor_105100_80141380, 1);
@@ -2511,7 +2511,7 @@ join:
     func_shelter_b6_training_room_8017FC40(coord, 0x80, rec->field_4E);
     count         = (u16)rec->field_48 - 1;
     rec->field_48 = count;
-    if ((count << 16) <= 0 || rec->rec[0].key != 0 ||
+    if ((count << 16) <= 0 || rec->rec[0].key.value != 0 ||
         parentWork->field_5AC == 0) {
         parentWork->field_5AE = parentWork->field_5AE - 1;
         arg1->state           = 2;

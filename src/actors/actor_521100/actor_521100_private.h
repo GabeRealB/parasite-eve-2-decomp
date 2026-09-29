@@ -24,13 +24,13 @@
 /// `obj57C` / `obj59C` sharing `rec5BC`, and `obj5D4` / `obj5F4` sharing
 /// `rec62C`, the first of that pair carrying the `shape` segment.
 typedef struct Actor521100Work {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ MATRIX         color;
-    /* 0x45C */ MATRIX         light;
-    /* 0x47C */ GpObj          obj47C;
-    /* 0x49C */ GpRec18        rec49C[5];
-    /* 0x514 */ GpObj          obj514;
-    /* 0x534 */ GpRec18        rec534[3];
+    /* 0x000 */ ActorAnimRig19        rig;
+    /* 0x43C */ MATRIX                color;
+    /* 0x45C */ MATRIX                light;
+    /* 0x47C */ GpObj                 obj47C;
+    /* 0x49C */ WorldCollisionContact rec49C[5];
+    /* 0x514 */ GpObj                 obj514;
+    /* 0x534 */ WorldCollisionContact rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
     /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `func_actor_521100_80131E8C`
     /// fills both - the two pointers, `pos` and
@@ -40,12 +40,12 @@ typedef struct Actor521100Work {
     /// `Gp_PackPair` returns into `key`.
     /* 0x57C */ GpObj obj57C;
     /// See `obj57C`.
-    /* 0x59C */ GpObj        obj59C;
-    /* 0x5BC */ GpRec18      rec5BC[1];
-    /* 0x5D4 */ GpObj        obj5D4;
-    /* 0x5F4 */ GpObj        obj5F4;
-    /* 0x614 */ GpActorD4Rec shape;
-    /* 0x62C */ GpRec18      rec62C[1];
+    /* 0x59C */ GpObj                 obj59C;
+    /* 0x5BC */ WorldCollisionContact rec5BC[1];
+    /* 0x5D4 */ GpObj                 obj5D4;
+    /* 0x5F4 */ GpObj                 obj5F4;
+    /* 0x614 */ GpActorD4Rec          shape;
+    /* 0x62C */ WorldCollisionContact rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.
     /* 0x644 */ GpEffArg eff;

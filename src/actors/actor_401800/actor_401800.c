@@ -147,16 +147,16 @@ typedef struct Actor401800Work {
     /// Frame counter the aim-and-rescale body decrements once per frame while
     /// it is non-zero. Same role `Actor01900Work.field_C37` plays in the
     /// matching chase body.
-    /* 0x8C2 */ u8      field_8C2;
-    /* 0x8C3 */ byte    pad_8C3[5];
-    /* 0x8C8 */ GpObj   field_8C8;
-    /* 0x8E8 */ GpRec18 field_8E8;
-    /* 0x900 */ byte    pad_900[0x108];
-    /* 0xA08 */ GpObj   field_A08;
-    /* 0xA28 */ GpRec18 field_A28;
-    /* 0xA40 */ byte    pad_A40[0x108];
-    /* 0xB48 */ GpObj   field_B48;
-    /* 0xB68 */ GpRec18 field_B68;
+    /* 0x8C2 */ u8                    field_8C2;
+    /* 0x8C3 */ byte                  pad_8C3[5];
+    /* 0x8C8 */ GpObj                 field_8C8;
+    /* 0x8E8 */ WorldCollisionContact field_8E8;
+    /* 0x900 */ byte                  pad_900[0x108];
+    /* 0xA08 */ GpObj                 field_A08;
+    /* 0xA28 */ WorldCollisionContact field_A28;
+    /* 0xA40 */ byte                  pad_A40[0x108];
+    /* 0xB48 */ GpObj                 field_B48;
+    /* 0xB68 */ WorldCollisionContact field_B68;
     /// Light and color matrices the init body binds onto the model object
     /// (`TmdObject.lightMtx` / `field_20`). Same pair `Actor01900Work` keeps
     /// at `field_BB0` / `field_BD0`.
@@ -366,7 +366,7 @@ extern TmdSource D_actor_401800_80144F24;
 
 #include "../../shared/actor_contacts.h"
 
-static s32  func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count);
+static s32  func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s16 count);
 static s32  func_actor_401800_80133558(GfxCoord* coord, s16 arg1, s16 arg2);
 static s32  func_actor_401800_80133918(Task* arg0);
 static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
@@ -2555,14 +2555,14 @@ static void func_actor_401800_80135F58(Task* arg0)
     SCRATCH_POP(ActorChaseScratch);
 }
 
-/// Push the root coordinate out of a `GpRec18` table: take a 0x34 scratch, seed
+/// Push the root coordinate out of a `WorldCollisionContact` table: take a 0x34 scratch, seed
 /// its position from the second coordinate, then walk the records until `count`
 /// or a zero `key`. Each kind 0x10000 / 0x30000 record contributes half its
 /// offset along X and Z, normalised to length 0x96 first when it is longer than
 /// that; `hit` reports whether one was seen.
 /// Same body as `Actor01900_Fn03FF8` / `func_actor_401300_80132910`, with the
 /// coordinate update written out in both arms of the length test.
-static s32 func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count)
+static s32 func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -2582,14 +2582,14 @@ static s32 func_actor_401800_8013629C(Task* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            worldCollisionCalcContactViewOffset(&s->pos, &recs[s->i], &s->offset);
             s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
             s->len = SquareRoot0(s->len);
             if (s->len >= 0x96) {

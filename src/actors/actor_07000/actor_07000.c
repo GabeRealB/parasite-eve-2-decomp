@@ -84,10 +84,10 @@ typedef struct ActorShared80136288Work {
 /// by ActorsShared80136c80. The collision node points at the capsule, whose
 /// contact table occupies the final 0x18 bytes.
 typedef struct ActorsShared80136938Work {
-    /* 0x00 */ SVECTOR      vec;
-    /* 0x08 */ GpObj        obj;
-    /* 0x28 */ GpActorD4Rec rec;
-    /* 0x40 */ GpRec18      rec2;
+    /* 0x00 */ SVECTOR               vec;
+    /* 0x08 */ GpObj                 obj;
+    /* 0x28 */ GpActorD4Rec          rec;
+    /* 0x40 */ WorldCollisionContact rec2;
 } ActorsShared80136938Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
 
@@ -101,12 +101,12 @@ STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
 /// own translation. `recs[1]` is the collision record the hit test walks, and
 /// `field_26` the flag word it trims to 0x3FFF once a hit lands.
 typedef struct ActorsShared80136c80Work {
-    /* 0x00 */ u16     field_0;
-    /* 0x02 */ u16     field_2;
-    /* 0x04 */ u16     field_4;
-    /* 0x06 */ byte    pad_6[0x20];
-    /* 0x26 */ u16     field_26;
-    /* 0x28 */ GpRec18 recs[2];
+    /* 0x00 */ u16                   field_0;
+    /* 0x02 */ u16                   field_2;
+    /* 0x04 */ u16                   field_4;
+    /* 0x06 */ byte                  pad_6[0x20];
+    /* 0x26 */ u16                   field_26;
+    /* 0x28 */ WorldCollisionContact recs[2];
 } ActorsShared80136c80Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
 
@@ -117,20 +117,20 @@ STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
 /// own layouts - `Actor107000Work::field_2CC`, an `s16`, sits where the second
 /// table starts - so the two are views of one block, not one layout.
 typedef struct ActorsShared8013777cWork {
-    /* 0x000 */ byte    pad_0[0x24C];
-    /* 0x24C */ GpRec18 field_24C[4]; // collision table; `func_800E0C10` steps it with count 4
-    /* 0x2AC */ byte    pad_2AC[0x20];
-    /* 0x2CC */ GpRec18 field_2CC;    // second record table, wiped once the step is done
-    /* 0x2E4 */ s16     field_2E4;    // armed to 0x400 when the step is taken
-    /* 0x2E6 */ byte    pad_2E6[0x56];
-    /* 0x33C */ VECTOR3 field_33C;    // position the mode-2 arm snaps back to
-    /* 0x348 */ byte    pad_348[0x30];
-    /* 0x378 */ u16     field_378;    // forward speed; a step loses a quarter of it
-    /* 0x37A */ byte    pad_37A[0x12];
-    /* 0x38C */ s16     field_38C;    // latched step mode
-    /* 0x38E */ byte    pad_38E[0xA];
-    /* 0x398 */ s16     field_398;    // vertical speed, -0x50 while a step runs
-    /* 0x39A */ u16     field_39A;    // non-zero once the step has been taken
+    /* 0x000 */ byte                  pad_0[0x24C];
+    /* 0x24C */ WorldCollisionContact field_24C[4]; // collision table; `func_800E0C10` steps it with count 4
+    /* 0x2AC */ byte                  pad_2AC[0x20];
+    /* 0x2CC */ WorldCollisionContact field_2CC;    // second record table, wiped once the step is done
+    /* 0x2E4 */ s16                   field_2E4;    // armed to 0x400 when the step is taken
+    /* 0x2E6 */ byte                  pad_2E6[0x56];
+    /* 0x33C */ VECTOR3               field_33C;    // position the mode-2 arm snaps back to
+    /* 0x348 */ byte                  pad_348[0x30];
+    /* 0x378 */ u16                   field_378;    // forward speed; a step loses a quarter of it
+    /* 0x37A */ byte                  pad_37A[0x12];
+    /* 0x38C */ s16                   field_38C;    // latched step mode
+    /* 0x38E */ byte                  pad_38E[0xA];
+    /* 0x398 */ s16                   field_398;    // vertical speed, -0x50 while a step runs
+    /* 0x39A */ u16                   field_39A;    // non-zero once the step has been taken
 } ActorsShared8013777cWork;
 
 /// The part of the carriers' work block this body touches. Each carrier's block
@@ -238,67 +238,67 @@ STATIC_ASSERT_SIZEOF(Actor07000RecoveredMsgEntry, 8);
 /// `field_264`/`field_2A0`: the transform `Actor07000_Fn02BB8` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
-    /* 0x000 */ byte     pad_0[0x11A];
-    /* 0x11A */ u16      field_11A; // flag word of the render node at 0xFC, `Actor107000SpawnWork::objFC.flags`
-    /* 0x11C */ GpRec18  field_11C; // that node's collision table, `Actor107000SpawnWork::rec11C`
-    /* 0x134 */ byte     pad_134[0x1E];
-    /* 0x152 */ u16      field_152;
-    /* 0x154 */ GpRec18  field_154[4];
-    /* 0x1B4 */ byte     pad_1B4[0x1E];
-    /* 0x1D2 */ u16      field_1D2;
-    /* 0x1D4 */ GpRec18  field_1D4;
-    /* 0x1EC */ byte     pad_1EC[0x1E];
-    /* 0x20A */ u16      field_20A;
-    /* 0x20C */ byte     pad_20C[8];
-    /* 0x214 */ GpRec18  field_214; // collision record `Actor07000_Fn046B8` re-rolls
-    /* 0x22C */ byte     pad_22C[0x48];
-    /* 0x274 */ VECTOR3  field_274; // saved root translation
-    /* 0x280 */ byte     pad_280[4];
-    /* 0x284 */ GpEffArg field_284; // hit-effect coordinate and parameters
-    /* 0x28C */ MATRIX   field_28C; // transform folded onto the model part
-    /* 0x2AC */ s32      field_2AC; // advanced by 0xC8 a frame while the death flag runs
-    /* 0x2B0 */ s16      field_2B0; // heading the specimen is turned toward; stepped 0x20 a frame
-    /* 0x2B2 */ s16      field_2B2; // armed to 3 by the hit branch, with the pair below
-    /* 0x2B4 */ s16      field_2B4; // cleared on the death branch
-    /* 0x2B6 */ s16      field_2B6; // cleared next to `field_2B2`
-    /* 0x2B8 */ s16      field_2B8; // animation id the work is playing
-    /* 0x2BA */ s16      field_2BA; // id the three helper slots last saw
-    /* 0x2BC */ u16      field_2BC; // frames spent on the current id
-    /* 0x2BE */ s16      field_2BE; // cleared next to the pair above
-    /* 0x2C0 */ byte     pad_2C0[0x6];
-    /* 0x2C6 */ s16      field_2C6; // armed to 1 with the stage handoff, two bytes before the stage selector
-    /* 0x2C8 */ s16      field_2C8; // reaction stage the per-frame handler switches on
-    /* 0x2CA */ s16      field_2CA; // angle the transform is scaled by
-    /* 0x2CC */ s16      field_2CC; // countdown seeded by the damage branch
-    /* 0x2CE */ s16      field_2CE; // remaining hit cooldown
-    /* 0x2D0 */ u16      field_2D0; // frames until the next sound cue; re-rolled from `Gp_LcgState`
-    /* 0x2D2 */ s16      field_2D2; // non-zero: the rebind is suppressed
-    /* 0x2D4 */ u16      field_2D4; // frames the reaction has run; the death branch fires at 5
-    /* 0x2D6 */ s16      field_2D6; // selects the sound event's high half
-    /* 0x2D8 */ s16      field_2D8; // latched copy of `field_2B8`
-    /* 0x2DA */ s16      field_2DA;
-    /* 0x2DC */ byte     pad_2DC[2];
-    /* 0x2DE */ s16      field_2DE;
-    /* 0x2E0 */ s16      field_2E0;
-    /* 0x2E2 */ s16      field_2E2;
-    /* 0x2E4 */ byte     pad_2E4[0x86];
-    /* 0x36A */ s16      field_36A; // reaction sub-state, cleared once applied
-    /* 0x36C */ s16      field_36C; // cleared next to `field_36A`
-    /* 0x36E */ u16      field_36E; // cleared alongside `field_36A`
-    /* 0x370 */ s16      field_370; // animation id the work is playing
-    /* 0x372 */ u16      field_372; // id the six helper slots last saw
-    /* 0x374 */ u16      field_374; // frames spent on the current id
-    /* 0x376 */ byte     pad_376[0xC];
-    /* 0x382 */ s16      field_382; // reaction branch the hit handler selects
-    /* 0x384 */ byte     pad_384[0xC];
-    /* 0x390 */ u16      field_390; // frames until the next 0x60080 spawn
-    /* 0x392 */ u16      field_392; // spawns so far; the cue fires at 5
-    /* 0x394 */ u16      field_394; // non-zero: this frame has spent its reaction (see ActorShared80136288Work)
+    /* 0x000 */ byte                  pad_0[0x11A];
+    /* 0x11A */ u16                   field_11A; // flag word of the render node at 0xFC, `Actor107000SpawnWork::objFC.flags`
+    /* 0x11C */ WorldCollisionContact field_11C; // that node's collision table, `Actor107000SpawnWork::rec11C`
+    /* 0x134 */ byte                  pad_134[0x1E];
+    /* 0x152 */ u16                   field_152;
+    /* 0x154 */ WorldCollisionContact field_154[4];
+    /* 0x1B4 */ byte                  pad_1B4[0x1E];
+    /* 0x1D2 */ u16                   field_1D2;
+    /* 0x1D4 */ WorldCollisionContact field_1D4;
+    /* 0x1EC */ byte                  pad_1EC[0x1E];
+    /* 0x20A */ u16                   field_20A;
+    /* 0x20C */ byte                  pad_20C[8];
+    /* 0x214 */ WorldCollisionContact field_214; // collision record `Actor07000_Fn046B8` re-rolls
+    /* 0x22C */ byte                  pad_22C[0x48];
+    /* 0x274 */ VECTOR3               field_274; // saved root translation
+    /* 0x280 */ byte                  pad_280[4];
+    /* 0x284 */ GpEffArg              field_284; // hit-effect coordinate and parameters
+    /* 0x28C */ MATRIX                field_28C; // transform folded onto the model part
+    /* 0x2AC */ s32                   field_2AC; // advanced by 0xC8 a frame while the death flag runs
+    /* 0x2B0 */ s16                   field_2B0; // heading the specimen is turned toward; stepped 0x20 a frame
+    /* 0x2B2 */ s16                   field_2B2; // armed to 3 by the hit branch, with the pair below
+    /* 0x2B4 */ s16                   field_2B4; // cleared on the death branch
+    /* 0x2B6 */ s16                   field_2B6; // cleared next to `field_2B2`
+    /* 0x2B8 */ s16                   field_2B8; // animation id the work is playing
+    /* 0x2BA */ s16                   field_2BA; // id the three helper slots last saw
+    /* 0x2BC */ u16                   field_2BC; // frames spent on the current id
+    /* 0x2BE */ s16                   field_2BE; // cleared next to the pair above
+    /* 0x2C0 */ byte                  pad_2C0[0x6];
+    /* 0x2C6 */ s16                   field_2C6; // armed to 1 with the stage handoff, two bytes before the stage selector
+    /* 0x2C8 */ s16                   field_2C8; // reaction stage the per-frame handler switches on
+    /* 0x2CA */ s16                   field_2CA; // angle the transform is scaled by
+    /* 0x2CC */ s16                   field_2CC; // countdown seeded by the damage branch
+    /* 0x2CE */ s16                   field_2CE; // remaining hit cooldown
+    /* 0x2D0 */ u16                   field_2D0; // frames until the next sound cue; re-rolled from `Gp_LcgState`
+    /* 0x2D2 */ s16                   field_2D2; // non-zero: the rebind is suppressed
+    /* 0x2D4 */ u16                   field_2D4; // frames the reaction has run; the death branch fires at 5
+    /* 0x2D6 */ s16                   field_2D6; // selects the sound event's high half
+    /* 0x2D8 */ s16                   field_2D8; // latched copy of `field_2B8`
+    /* 0x2DA */ s16                   field_2DA;
+    /* 0x2DC */ byte                  pad_2DC[2];
+    /* 0x2DE */ s16                   field_2DE;
+    /* 0x2E0 */ s16                   field_2E0;
+    /* 0x2E2 */ s16                   field_2E2;
+    /* 0x2E4 */ byte                  pad_2E4[0x86];
+    /* 0x36A */ s16                   field_36A; // reaction sub-state, cleared once applied
+    /* 0x36C */ s16                   field_36C; // cleared next to `field_36A`
+    /* 0x36E */ u16                   field_36E; // cleared alongside `field_36A`
+    /* 0x370 */ s16                   field_370; // animation id the work is playing
+    /* 0x372 */ u16                   field_372; // id the six helper slots last saw
+    /* 0x374 */ u16                   field_374; // frames spent on the current id
+    /* 0x376 */ byte                  pad_376[0xC];
+    /* 0x382 */ s16                   field_382; // reaction branch the hit handler selects
+    /* 0x384 */ byte                  pad_384[0xC];
+    /* 0x390 */ u16                   field_390; // frames until the next 0x60080 spawn
+    /* 0x392 */ u16                   field_392; // spawns so far; the cue fires at 5
+    /* 0x394 */ u16                   field_394; // non-zero: this frame has spent its reaction (see ActorShared80136288Work)
 } Actor107000Work;
 
 /// The same 0x2E4-byte work block as its spawn handler builds it, seen from the
 /// side that names the render nodes: four `GpObj`s at 0xFC / 0x134 / 0x1B4 /
-/// 0x1EC, each followed by the `GpRec18` collision table its `ctx.recs` points
+/// 0x1EC, each followed by the `WorldCollisionContact` collision table its `ctx.recs` points
 /// at, `node + 0x20` (`&work->rec11C` and friends, handed to
 /// `Gp_InitRec18Table`), then the transform node at 0x27C whose coordinate the
 /// handler only wires up through `field_284`.
@@ -308,43 +308,43 @@ typedef struct Actor107000Work {
 /// `Actor07000_Fn046B8` keeps its own spelling, so the two views cannot
 /// be merged without moving one of the two offsets.
 typedef struct Actor107000SpawnWork {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[3];
-    /* 0x08C */ byte       field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX     field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX     field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ GpObj      objFC;
-    /* 0x11C */ GpRec18    rec11C;
-    /* 0x134 */ GpObj      obj134;
-    /* 0x154 */ GpRec18    rec154[4];
-    /* 0x1B4 */ GpObj      obj1B4;
-    /* 0x1D4 */ GpRec18    rec1D4;
-    /* 0x1EC */ GpObj      obj1EC;
-    /* 0x20C */ GpRec18    rec20C;
-    /* 0x224 */ byte       pad_224[0x58];
-    /* 0x27C */ byte       field_27C[8];
-    /* 0x284 */ void*      field_284; // render node at 0x27C: its coordinate
-    /* 0x288 */ u16        field_288;
-    /* 0x28A */ u16        field_28A;
-    /* 0x28C */ byte       pad_28C[0x20];
-    /* 0x2AC */ s32        field_2AC;
-    /* 0x2B0 */ byte       pad_2B0[4];
-    /* 0x2B4 */ s16        field_2B4; // cleared by the spawn handler, as Actor107000Work::field_2B4
-    /* 0x2B6 */ byte       pad_2B6[2];
-    /* 0x2B8 */ s16        field_2B8;
-    /* 0x2BA */ s16        field_2BA;
-    /* 0x2BC */ byte       pad_2BC[0x10];
-    /* 0x2CC */ s16        field_2CC;
-    /* 0x2CE */ s16        field_2CE;
-    /* 0x2D0 */ byte       pad_2D0[2];
-    /* 0x2D2 */ s16        field_2D2;
-    /* 0x2D4 */ u16        field_2D4;
-    /* 0x2D6 */ s16        field_2D6;
-    /* 0x2D8 */ byte       pad_2D8[2];
-    /* 0x2DA */ s16        field_2DA;
-    /* 0x2DC */ s16        field_2DC;
-    /* 0x2DE */ byte       pad_2DE[4];
-    /* 0x2E2 */ s16        field_2E2;
+    /* 0x000 */ GpAnimCtx             context;
+    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
+    /* 0x0FC */ GpObj                 objFC;
+    /* 0x11C */ WorldCollisionContact rec11C;
+    /* 0x134 */ GpObj                 obj134;
+    /* 0x154 */ WorldCollisionContact rec154[4];
+    /* 0x1B4 */ GpObj                 obj1B4;
+    /* 0x1D4 */ WorldCollisionContact rec1D4;
+    /* 0x1EC */ GpObj                 obj1EC;
+    /* 0x20C */ WorldCollisionContact rec20C;
+    /* 0x224 */ byte                  pad_224[0x58];
+    /* 0x27C */ byte                  field_27C[8];
+    /* 0x284 */ void*                 field_284; // render node at 0x27C: its coordinate
+    /* 0x288 */ u16                   field_288;
+    /* 0x28A */ u16                   field_28A;
+    /* 0x28C */ byte                  pad_28C[0x20];
+    /* 0x2AC */ s32                   field_2AC;
+    /* 0x2B0 */ byte                  pad_2B0[4];
+    /* 0x2B4 */ s16                   field_2B4; // cleared by the spawn handler, as Actor107000Work::field_2B4
+    /* 0x2B6 */ byte                  pad_2B6[2];
+    /* 0x2B8 */ s16                   field_2B8;
+    /* 0x2BA */ s16                   field_2BA;
+    /* 0x2BC */ byte                  pad_2BC[0x10];
+    /* 0x2CC */ s16                   field_2CC;
+    /* 0x2CE */ s16                   field_2CE;
+    /* 0x2D0 */ byte                  pad_2D0[2];
+    /* 0x2D2 */ s16                   field_2D2;
+    /* 0x2D4 */ u16                   field_2D4;
+    /* 0x2D6 */ s16                   field_2D6;
+    /* 0x2D8 */ byte                  pad_2D8[2];
+    /* 0x2DA */ s16                   field_2DA;
+    /* 0x2DC */ s16                   field_2DC;
+    /* 0x2DE */ byte                  pad_2DE[4];
+    /* 0x2E2 */ s16                   field_2E2;
 } Actor107000SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
@@ -934,58 +934,58 @@ TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor070
 ///
 /// Node 1's `ctx.d4rec` is not a record table but the `GpActorD4Rec` at 0x1FC -
 /// the shape `GpActorD4` keeps, where the record's own `recs` points at the
-/// `GpRec18` run beside it (here the single record at 0x214). Nodes 2 and 3
+/// `WorldCollisionContact` run beside it (here the single record at 0x214). Nodes 2 and 3
 /// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
 ///
 /// The tail from 0x360 is the same run `Actor107000Work` names from 0x360:
 /// `field_370`/`field_372` are its animation id and the id the six helper slots
 /// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
 typedef struct Actor107000Spawn2Work {
-    /* 0x000 */ GpAnimCtx    context;
-    /* 0x014 */ GpAnimSlot   slots[7];        // six helper slots + slot 0
-    /* 0x12C */ byte         field_12C[0x70]; // pose buffer, func_800B3F84 arg3
-    /* 0x19C */ MATRIX       field_19C;       // colour matrix, TmdObject::colorMtx
-    /* 0x1BC */ MATRIX       field_1BC;       // light matrix, TmdObject::lightMtx
-    /* 0x1DC */ GpObj        obj1;
-    /* 0x1FC */ GpActorD4Rec field_1FC;
-    /* 0x214 */ GpRec18      field_214[1]; // the table `field_1FC` names
-    /* 0x22C */ GpObj        obj2;
-    /* 0x24C */ GpRec18      field_24C[4];
-    /* 0x2AC */ GpObj        obj3;
-    /* 0x2CC */ GpRec18      field_2CC[1];
-    /* 0x2E4 */ SVECTOR      rotation;  // reaction rotation applied to model coordinates 3 and 5
-    /* 0x2EC */ byte         pad_2EC[0x50];
-    /* 0x33C */ VECTOR3      field_33C; // saved position restored by collision response 2
-    /* 0x348 */ byte         pad_348[0x14];
-    GpEffArg                 hitEffect; // Hit effect placement and spawn arguments
-    /* 0x364 */ s16          field_364; // spawn arg's high half
-    /* 0x366 */ u16          field_366; // spawn arg's low half
-    /* 0x368 */ byte         pad_368[0x2];
-    /* 0x36A */ s16          field_36A; // reaction sub-state, as Actor107000Work::field_36A
-    /* 0x36C */ s16          field_36C;
-    /* 0x36E */ u16          field_36E;
-    /* 0x370 */ s16          field_370; // animation id the work is playing
-    /* 0x372 */ u16          field_372; // id the six helper slots last saw
-    /* 0x374 */ u16          field_374;
-    /* 0x376 */ byte         pad_376[2];
-    /* 0x378 */ s16          field_378; // seeded to 0xC8 by the reveal arm
-    /* 0x37A */ s16          field_37A;
-    /* 0x37C */ byte         pad_37C[2];
-    /* 0x37E */ s16          field_37E;
-    /* 0x380 */ s16          field_380;
-    /* 0x382 */ s16          field_382;
-    /* 0x384 */ s16          field_384;
-    /* 0x386 */ s16          field_386;
-    /* 0x388 */ s16          field_388;
-    /* 0x38A */ s16          field_38A;
-    /* 0x38C */ s16          field_38C;
-    /* 0x38E */ s16          field_38E;
-    /* 0x390 */ u16          field_390; // frames until the next 0x60080 spawn
-    /* 0x392 */ u16          field_392; // spawns so far; the cue fires at 5
-    /* 0x394 */ u16          field_394; // non-zero: this frame has spent its reaction
-    /* 0x396 */ u16          field_396; // armed to 1 by the reveal arm, cleared by the hide
-    /* 0x398 */ s16          field_398; // seeded to 0x64 by the reveal arm
-    /* 0x39A */ s16          field_39A; // cleared by the reveal arm
+    /* 0x000 */ GpAnimCtx             context;
+    /* 0x014 */ GpAnimSlot            slots[7];        // six helper slots + slot 0
+    /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, func_800B3F84 arg3
+    /* 0x19C */ MATRIX                field_19C;       // colour matrix, TmdObject::colorMtx
+    /* 0x1BC */ MATRIX                field_1BC;       // light matrix, TmdObject::lightMtx
+    /* 0x1DC */ GpObj                 obj1;
+    /* 0x1FC */ GpActorD4Rec          field_1FC;
+    /* 0x214 */ WorldCollisionContact field_214[1]; // the table `field_1FC` names
+    /* 0x22C */ GpObj                 obj2;
+    /* 0x24C */ WorldCollisionContact field_24C[4];
+    /* 0x2AC */ GpObj                 obj3;
+    /* 0x2CC */ WorldCollisionContact field_2CC[1];
+    /* 0x2E4 */ SVECTOR               rotation;  // reaction rotation applied to model coordinates 3 and 5
+    /* 0x2EC */ byte                  pad_2EC[0x50];
+    /* 0x33C */ VECTOR3               field_33C; // saved position restored by collision response 2
+    /* 0x348 */ byte                  pad_348[0x14];
+    GpEffArg hitEffect; // Hit effect placement and spawn arguments
+    /* 0x364 */ s16                   field_364; // spawn arg's high half
+    /* 0x366 */ u16                   field_366; // spawn arg's low half
+    /* 0x368 */ byte                  pad_368[0x2];
+    /* 0x36A */ s16                   field_36A; // reaction sub-state, as Actor107000Work::field_36A
+    /* 0x36C */ s16                   field_36C;
+    /* 0x36E */ u16                   field_36E;
+    /* 0x370 */ s16                   field_370; // animation id the work is playing
+    /* 0x372 */ u16                   field_372; // id the six helper slots last saw
+    /* 0x374 */ u16                   field_374;
+    /* 0x376 */ byte                  pad_376[2];
+    /* 0x378 */ s16                   field_378; // seeded to 0xC8 by the reveal arm
+    /* 0x37A */ s16                   field_37A;
+    /* 0x37C */ byte                  pad_37C[2];
+    /* 0x37E */ s16                   field_37E;
+    /* 0x380 */ s16                   field_380;
+    /* 0x382 */ s16                   field_382;
+    /* 0x384 */ s16                   field_384;
+    /* 0x386 */ s16                   field_386;
+    /* 0x388 */ s16                   field_388;
+    /* 0x38A */ s16                   field_38A;
+    /* 0x38C */ s16                   field_38C;
+    /* 0x38E */ s16                   field_38E;
+    /* 0x390 */ u16                   field_390; // frames until the next 0x60080 spawn
+    /* 0x392 */ u16                   field_392; // spawns so far; the cue fires at 5
+    /* 0x394 */ u16                   field_394; // non-zero: this frame has spent its reaction
+    /* 0x396 */ u16                   field_396; // armed to 1 by the reveal arm, cleared by the hide
+    /* 0x398 */ s16                   field_398; // seeded to 0x64 by the reveal arm
+    /* 0x39A */ s16                   field_39A; // cleared by the reveal arm
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
@@ -1188,7 +1188,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 
 /// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
 /// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four
-/// `GpObj` render nodes and their `GpRec18` tables into it and installs
+/// `GpObj` render nodes and their `WorldCollisionContact` tables into it and installs
 /// `Actor07000_Fn02CAC` as the exit callback. The spawn arg's high halfword is the variant
 /// the model was spawned as - when it is 1 the specimen is killed instead, and
 /// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
@@ -1551,29 +1551,29 @@ static inline s32 _actor07000ClampToZero(s32 value)
 
 static void Actor07000_Fn00A1C(Task* arg0)
 {
-    s32                damageState;
-    GpEnemy*           enemy;
-    GpRec18*           effectRec;
-    VECTOR*            delta;
-    s16                cooldown;
-    s32                stage;
-    s32                contactStage;
-    s32                effect;
-    s32                pushY;
-    s32                movement;
-    s32                dx;
-    s32                dz;
-    s32                wallDx;
-    s32                wallDz;
-    s32                hitCooldown;
-    s32                distance;
-    s32                z;
-    u32                id;
-    u32                damage;
-    Actor107000Work*   work;
-    GfxCoord*          coord;
-    ActorContactFrame* scratch;
-    Actor107000Work*   contact;
+    s32                    damageState;
+    GpEnemy*               enemy;
+    WorldCollisionContact* effectRec;
+    VECTOR*                delta;
+    s16                    cooldown;
+    s32                    stage;
+    s32                    contactStage;
+    s32                    effect;
+    s32                    pushY;
+    s32                    movement;
+    s32                    dx;
+    s32                    dz;
+    s32                    wallDx;
+    s32                    wallDz;
+    s32                    hitCooldown;
+    s32                    distance;
+    s32                    z;
+    u32                    id;
+    u32                    damage;
+    Actor107000Work*       work;
+    GfxCoord*               coord;
+    ActorContactFrame*     scratch;
+    Actor107000Work*       contact;
 
     work     = (Actor107000Work*)arg0->work;
     coord    = arg0->extra.tmd->coords;
@@ -1625,7 +1625,7 @@ static void Actor07000_Fn00A1C(Task* arg0)
     contact = work;
 contact_loop:
     do {
-        id = contact->field_154[0].key;
+        id = contact->field_154[0].key.value;
         switch (id & 0xFFFF0000) {
             case 0x10000:
                 contactStage = work->field_2C8;
@@ -1637,16 +1637,16 @@ contact_loop:
             case 0x20000:
                 if (work->field_2CE == 0) {
                     damage = Gp_ComputeDamage(id, (u32)distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, contact->field_154[0].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, contact->field_154[0].key.value, 0) != 0) {
                         Actor07000_Fn016A8(arg0, 1U);
                         arg0->killCountdown = 5;
                         arg0->state         = damageState;
                         work->field_2B4     = 0;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78(enemy, (s32)contact->field_154[0].key, (s32)damage, 0);
+                        func_800E2C78(enemy, (s32)contact->field_154[0].key.value, (s32)damage, 0);
                         Actor07000_Fn00F6C(arg0, (s32)damage);
-                        effect = Gp_GetIdParam0((s32)contact->field_154[0].key) & 0xFFFF;
+                        effect = Gp_GetIdParam0((s32)contact->field_154[0].key.value) & 0xFFFF;
                         if (effect == damageState)
                             goto effect_flag2;
                         if (effect < 3) {
@@ -1664,15 +1664,15 @@ contact_loop:
                         work->field_2C8 = damageState;
                         goto effect_done;
                     effect_flag4:
-                        Gp_SetObjFlag4(enemy, contact->field_154[0].key, 0);
+                        Gp_SetObjFlag4(enemy, contact->field_154[0].key.value, 0);
                         goto effect_done;
                     effect_flag2:
-                        Gp_SetObjFlag2(enemy, contact->field_154[0].key, 0);
+                        Gp_SetObjFlag2(enemy, contact->field_154[0].key.value, 0);
                     effect_done:
                         if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1((s32)contact->field_154[0].key) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
+                            func_800FDB18(Gp_GetIdParam1((s32)contact->field_154[0].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
                         }
-                        hitCooldown = Gp_GetIdParam2((s32)contact->field_154[0].key);
+                        hitCooldown = Gp_GetIdParam2((s32)contact->field_154[0].key.value);
                         if ((hitCooldown << 0x10) > 0) {
                             work->field_2CE = (s16)hitCooldown;
                         }
@@ -1686,7 +1686,7 @@ contact_loop:
                 wallDz              = coord->workm.t[2] - contact->field_154[0].point.vz;
                 scratch->delta.vz.w = wallDz;
                 distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance            = contact->field_154[0].depth - distance;
+                distance            = contact->field_154[0].distance - distance;
                 distance            = _actor07000ClampToZero(distance);
                 scratch->delta.vx.w = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
                 scratch->delta.vy.w = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
@@ -1970,7 +1970,7 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 /// context's `field_4` with that element's matrix, and the block's two
 /// `MATRIX`es become the model's colour and light matrices. The work's own
 /// collision record is re-rolled from the same coordinate, and the four list
-/// nodes are linked into the global object lists with their `GpRec18` tables -
+/// nodes are linked into the global object lists with their `WorldCollisionContact` tables -
 /// the first three leave the 0x8000 last-element bit clear, and the second
 /// node's 0x4000 bit is cleared once the third has been built.
 ///
@@ -2626,7 +2626,7 @@ static void Actor07000_Fn02D78(Task* task)
 static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
 {
     Actor107000Spawn2Work* work;
-    GpRec18*               table;
+    WorldCollisionContact* table;
     TmdObject*             obj;
     GfxCoord*              coord;
     GfxCoord*              coord6;
@@ -3123,7 +3123,7 @@ static void Actor07000_Fn03E08(Task* arg0)
         }
     }
     for (i = 0; i < 4; i++) {
-        kind = work->field_24C[i].key & 0xFFFF0000;
+        kind = work->field_24C[i].key.value & 0xFFFF0000;
         switch (kind) {
             case 0x20000:
                 if (work->field_38A == 0) {
@@ -3133,14 +3133,14 @@ static void Actor07000_Fn03E08(Task* arg0)
                     scratch->delta.vy.w = dy;
                     dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
                     scratch->delta.vz.w = dz;
-                    damage              = Gp_ComputeDamage(work->field_24C[i].key, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key, 0) != 0) {
+                    damage              = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key.value, 0) != 0) {
                         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
                     }
-                    func_800E2C78(enemy, (s32)work->field_24C[i].key, (s32)damage, 0);
+                    func_800E2C78(enemy, (s32)work->field_24C[i].key.value, (s32)damage, 0);
                     Actor07000_Fn04274(arg0, (s32)damage);
-                    reaction = Gp_GetIdParam0((s32)work->field_24C[i].key) & 0xFFFF;
+                    reaction = Gp_GetIdParam0((s32)work->field_24C[i].key.value) & 0xFFFF;
                     switch (reaction) {
                         case 1:
                         case 7:
@@ -3152,12 +3152,12 @@ static void Actor07000_Fn03E08(Task* arg0)
                             }
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, (s32)work->field_24C[i].key, 0);
+                            Gp_SetObjFlag4(enemy, (s32)work->field_24C[i].key.value, 0);
                             break;
                         case 2:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2(enemy, (s32)work->field_24C[i].key, 0);
+                            Gp_SetObjFlag2(enemy, (s32)work->field_24C[i].key.value, 0);
                             break;
                         case 4:
                         case 6:
@@ -3168,8 +3168,8 @@ static void Actor07000_Fn03E08(Task* arg0)
                             break;
                     }
                     work->field_38E = 1;
-                    func_800FDB18(Gp_GetIdParam1((s32)work->field_24C[i].key) & 0xFFFF, (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffect);
-                    cooldown = Gp_GetIdParam2((s32)work->field_24C[i].key);
+                    func_800FDB18(Gp_GetIdParam1((s32)work->field_24C[i].key.value) & 0xFFFF, (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffect);
+                    cooldown = Gp_GetIdParam2((s32)work->field_24C[i].key.value);
                     if ((cooldown << 0x10) > 0) {
                         work->field_38A = (s16)cooldown;
                     }
@@ -3569,10 +3569,10 @@ static void Actor07000_Fn04E60(Task* arg0)
     ActorsShared80136c80Work* work;
     TmdObject*                part;
     Task*                     child;
-    GfxCoord*                 coord;
-    GpRec18*                  rec;
-    GpRec18*                  hit;
-    GpRec18*                  recs;
+    GfxCoord*                  coord;
+    WorldCollisionContact*    rec;
+    WorldCollisionContact*    hit;
+    WorldCollisionContact*    recs;
     s32                       state;
     s32                       one;
 
@@ -3630,7 +3630,7 @@ default_body:
         SndEvt_EnqueueType6(0x40460007, (s8)Gp_GetObjPan(coord),
                             (s8)gpGetObjDepth(coord));
         if (child != NULL) {
-            if (hit->at10.normal.vy >= -0xC00) {
+            if (hit->response.normal.vy >= -0xC00) {
                 child->spawnArg1.value = 3;
             } else {
                 child->spawnArg1.value = 2;
@@ -3651,7 +3651,7 @@ default_body:
 ///
 /// Node 1 is the odd one: it points its context at the `GpActorD4Rec` at 0x1FC
 /// rather than at a record table, and the record's own `recs` names the one
-/// `GpRec18` beside it - the pair `GpActorD4` keeps, and the three constants it
+/// `WorldCollisionContact` beside it - the pair `GpActorD4` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
 /// sibling `Actor07000_Fn000EC` computes for its `part`.

@@ -43,41 +43,41 @@
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
 /// here). It embeds three `GpObj` list nodes; the first points its `ctx.recs` at
 /// the `GpActorD4Rec` that follows it, the other two point straight at their
-/// own `GpRec18` table, and `Gp_InitRec18Table` zeroes each table.
+/// own `WorldCollisionContact` table, and `Gp_InitRec18Table` zeroes each table.
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
 typedef struct ActorShared8014df20Work {
-    /* 0x000 */ GpAnimCtx    context;
-    /* 0x014 */ GpAnimSlot   slots[3];
-    /* 0x08C */ byte         field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX       field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX       field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ GpObj        field_FC;
-    /* 0x11C */ GpActorD4Rec field_11C;
-    /* 0x134 */ GpRec18      field_134[1];
-    /* 0x14C */ GpObj        field_14C;
-    /* 0x16C */ GpRec18      field_16C[1];
-    /* 0x184 */ GpObj        field_184;
-    /* 0x1A4 */ GpRec18      field_1A4[4];
-    /* 0x204 */ byte         pad_204[0x50];
-    /* 0x254 */ s32          field_254; // position restored when the push-back conflicts
-    /* 0x258 */ s32          field_258;
-    /* 0x25C */ s32          field_25C;
-    /* 0x260 */ byte         pad_260[0x2C];
-    /* 0x28C */ s16          field_28C;
-    /* 0x28E */ s16          field_28E;
-    /* 0x290 */ s16          field_290;
-    /* 0x292 */ s16          field_292;
-    /* 0x294 */ byte         pad_294[6];
-    /* 0x29A */ s16          field_29A;
-    /* 0x29C */ byte         pad_29C[4];
-    /* 0x2A0 */ s16          field_2A0;
-    /* 0x2A2 */ byte         pad_2A2[2];
-    /* 0x2A4 */ s16          field_2A4;
-    /* 0x2A6 */ s16          field_2A6;
-    /* 0x2A8 */ s16          field_2A8;
-    /* 0x2AA */ s16          field_2AA;
-    /* 0x2AC */ s16          field_2AC;
-    /* 0x2AE */ byte         pad_2AE[2];
+    /* 0x000 */ GpAnimCtx             context;
+    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
+    /* 0x0FC */ GpObj                 field_FC;
+    /* 0x11C */ GpActorD4Rec          field_11C;
+    /* 0x134 */ WorldCollisionContact field_134[1];
+    /* 0x14C */ GpObj                 field_14C;
+    /* 0x16C */ WorldCollisionContact field_16C[1];
+    /* 0x184 */ GpObj                 field_184;
+    /* 0x1A4 */ WorldCollisionContact field_1A4[4];
+    /* 0x204 */ byte                  pad_204[0x50];
+    /* 0x254 */ s32                   field_254; // position restored when the push-back conflicts
+    /* 0x258 */ s32                   field_258;
+    /* 0x25C */ s32                   field_25C;
+    /* 0x260 */ byte                  pad_260[0x2C];
+    /* 0x28C */ s16                   field_28C;
+    /* 0x28E */ s16                   field_28E;
+    /* 0x290 */ s16                   field_290;
+    /* 0x292 */ s16                   field_292;
+    /* 0x294 */ byte                  pad_294[6];
+    /* 0x29A */ s16                   field_29A;
+    /* 0x29C */ byte                  pad_29C[4];
+    /* 0x2A0 */ s16                   field_2A0;
+    /* 0x2A2 */ byte                  pad_2A2[2];
+    /* 0x2A4 */ s16                   field_2A4;
+    /* 0x2A6 */ s16                   field_2A6;
+    /* 0x2A8 */ s16                   field_2A8;
+    /* 0x2AA */ s16                   field_2AA;
+    /* 0x2AC */ s16                   field_2AC;
+    /* 0x2AE */ byte                  pad_2AE[2];
 } ActorShared8014df20Work;
 STATIC_ASSERT_SIZEOF(ActorShared8014df20Work, 0x2B0);
 
@@ -217,9 +217,9 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     GfxCoord*                coord;
     GfxCoord*                part;
     u32                      seed;
-    GpRec18*                 records1;
-    GpRec18*                 records2;
-    GpRec18*                 records3;
+    WorldCollisionContact*   records1;
+    WorldCollisionContact*   records2;
+    WorldCollisionContact*   records3;
     s32                      i;
 
     obj   = arg1->extra.tmd;
@@ -471,7 +471,7 @@ static void func_actor_207200_8014A588(Task* arg0)
     sndHit  = 0x40480009;
     sndHit2 = 0x402E0008;
     do {
-        switch (work->field_1A4[i].key & 0xFFFF0000) {
+        switch (work->field_1A4[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2AC != 0) {
                     snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit;
@@ -496,15 +496,15 @@ static void func_actor_207200_8014A588(Task* arg0)
                 sc->delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                damage         = Gp_ComputeDamage(work->field_1A4[i].key,
+                damage         = Gp_ComputeDamage(work->field_1A4[i].key.value,
                                                   SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                               sc->delta.vy.w * sc->delta.vy.w +
                                                               sc->delta.vz.w * sc->delta.vz.w),
                                                   0, 0);
-                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key, 0) != 0) {
+                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key.value, 0) != 0) {
                     damage *= 4;
                 }
-                func_800E2C78(enemy, work->field_1A4[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_1A4[i].key.value, damage, 0);
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
@@ -526,10 +526,10 @@ static void func_actor_207200_8014A588(Task* arg0)
                     arg0->state         = 2;
                     break;
                 }
-                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key)) {
+                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key.value)) {
                     case 2:
                     case 9:
-                        Gp_SetObjFlag2(enemy, work->field_1A4[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->field_1A4[i].key.value, 0);
                         break;
                     case 8:
                         work->field_2A6 = 1;

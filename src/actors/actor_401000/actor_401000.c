@@ -151,13 +151,13 @@ typedef struct Actor401000Work {
     /* 0x8D0 */ GpObj   field_8D0;
     /// Contact records of the `field_8D0` node, also the enemy's `recs`;
     /// the movement helpers walk them twelve at a time.
-    /* 0x8F0 */ GpRec18 field_8F0[12];
-    /* 0xA10 */ GpObj   field_A10;
+    /* 0x8F0 */ WorldCollisionContact field_8F0[12];
+    /* 0xA10 */ GpObj                 field_A10;
     /// Contact records of the `field_A10` node.
-    /* 0xA30 */ GpRec18 field_A30[12];
-    /* 0xB50 */ GpObj   field_B50;
+    /* 0xA30 */ WorldCollisionContact field_A30[12];
+    /* 0xB50 */ GpObj                 field_B50;
     /// The single obstacle record the `field_B50` node is registered against.
-    /* 0xB70 */ GpRec18 field_B70;
+    /* 0xB70 */ WorldCollisionContact field_B70;
     /// Light matrix `func_actor_401000_80133274` binds to the model's
     /// `TmdObject::lightMtx` (the color matrix is `field_BA8`, which is the
     /// same pair `Actor401300Work` keeps at +0xC28 / +0xC48).
@@ -1313,7 +1313,7 @@ Actor401000Storage5018 D_actor_401000_80155018;
 GpDelayArg D_actor_401000_80155038;
 
 static void            func_actor_401000_801320E0(GfxCoord* coord, s16 yaw);
-static s32             func_actor_401000_801323EC(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32             func_actor_401000_801323EC(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 static s32             func_actor_401000_80132590(GfxCoord* coord, s16 range, s16 step);
 static s32             func_actor_401000_80132824(Task* arg0);
 static void            func_actor_401000_80132A84(Task* arg0);
@@ -1328,8 +1328,8 @@ static void            func_actor_401000_80134DB4(Task* arg0);
 static void            func_actor_401000_80134F98(Task* arg0);
 static void            func_actor_401000_801352DC(GameLocationKey* session, GfxCoord* coord);
 static __inline__ s32  Actor401000_HasHeightClamp(GameLocationKey* session);
-static s32             func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
-static s32             func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count);
+static s32             func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3);
+static s32             func_actor_401000_80135704(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void            func_actor_401000_80135AA4(Task* arg0);
 static void            func_actor_401000_801365C8(Task* arg0);
 static void            func_actor_401000_80136E20(Task* arg0);
@@ -1381,7 +1381,7 @@ static void func_actor_401000_801320E0(GfxCoord* coord, s16 yaw)
 /// delta in `D_actor_401000_80155010`. A nonzero fractional part rounds both
 /// the coordinate and the kept step one unit away from zero. Returns 1 when the
 /// X or Z delta is nonzero.
-static s32 func_actor_401000_801323EC(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_401000_801323EC(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -2662,7 +2662,7 @@ static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
 /// two (or letting the add re-read `s->step.vy`) swaps `$s0`/`$s1`: the block
 /// pointer against the `step` local. The temporary keeps one reference to the
 /// block pointer out of the RTL, which is what tips that fight the other way.
-static s32 func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
+static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3)
 {
     ActorStepDelta* head;
     ActorStepDelta* s;
@@ -2738,7 +2738,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s
     return s->moved;
 }
 
-static s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
+static s32 func_actor_401000_80135704(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -2758,11 +2758,11 @@ static s32 func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             actorCalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -3806,11 +3806,11 @@ static void func_actor_401000_8013922C(Task* arg0)
 /// the `Gp_StateF0` bits, and the live-actor arm restarts the 0x1AE clip.
 static void func_actor_401000_801394EC(Task* arg0)
 {
-    Actor401000Work*  work;
-    ActorTurnScratch* turn;
-    TmdObject*        obj;
-    GpRec18*          rec;
-    GfxCoord*         coord;
+    Actor401000Work*       work;
+    ActorTurnScratch*      turn;
+    TmdObject*             obj;
+    WorldCollisionContact* rec;
+    GfxCoord*               coord;
 
     work = arg0->work;
     if (work->field_4 != 0) {

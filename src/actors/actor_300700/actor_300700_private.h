@@ -18,23 +18,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// The first collision record of the work block, viewed both as a plain
-/// `GpRec18` and as the raw id pair the tick handler reads back out of it.
-typedef union Actor300700HitRecord {
-    GpRec18 rec;
-    struct {
-        u32       header;
-        GpFixed16 id;
-    } hit;
-} Actor300700HitRecord;
-
 /// The 0x50-byte block at 0x22C: a `MATRIX` copied into the coordinate, or
-/// three contact `GpRec18`s after an 8-byte header.
+/// three contact `WorldCollisionContact`s after an 8-byte header.
 typedef union Actor300700ContactStorage {
     MATRIX matrix;
     struct {
-        byte    pad_0[8];
-        GpRec18 recs[3];
+        byte                  pad_0[8];
+        WorldCollisionContact recs[3];
     } contacts;
     struct {
         /* 0x00 */ byte   pad_0[0x20];
@@ -45,12 +35,12 @@ typedef union Actor300700ContactStorage {
 typedef struct Actor300700Work {
     /* 0x000 */ GpAnimCtx                 anim;
     /* 0x014 */ byte                      pad_14[0x140];
-    /* 0x154 */ Actor300700HitRecord      field_154;
+    /* 0x154 */ WorldCollisionContact     field_154;
     /* 0x16C */ byte                      pad_16C[0x20];
-    /* 0x18C */ GpRec18                   field_18C;
+    /* 0x18C */ WorldCollisionContact     field_18C;
     /* 0x1A4 */ byte                      pad_1A4[0x56];
     /* 0x1FA */ u16                       field_1FA;
-    /* 0x1FC */ byte                      field_1FC[0x18];
+    /* 0x1FC */ WorldCollisionContact     sensorContacts[1]; // Single result for the player sensor
     /* 0x214 */ byte                      pad_214[0x10];
     /* 0x224 */ GpEffArg                  field_224;
     /* 0x22C */ Actor300700ContactStorage field_22C;
@@ -75,9 +65,9 @@ typedef struct Actor300700Work {
     /* 0x2E6 */ s16                       field_2E6;
     /* 0x2E8 */ byte                      pad_2E8[0x32];
     /* 0x31A */ u16                       field_31A;
-    /* 0x31C */ byte                      pad_31C[0x18];
-    /* 0x334 */ GpEffArg                  field_334; // record the hit's effect is spawned with
-    /* 0x33C */ GfxCoord*                 field_33C;
+    /* 0x31C */ WorldCollisionContact     attackContacts[1]; // Single result for the paired attack body
+    /* 0x334 */ GpEffArg                  field_334;         // record the hit's effect is spawned with
+    /* 0x33C */ GfxCoord*                  field_33C;
     /* 0x340 */ MATRIX                    field_340;
     /* 0x360 */ s32                       field_360;
     /* 0x364 */ s32                       field_364;

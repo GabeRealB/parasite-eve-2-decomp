@@ -2144,8 +2144,8 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
         for (j = 0; j < 4; j++) {
             dlinks->verts[j] = slinks->verts[j] + 8;
         }
-        dlinks->field_8 = slinks->field_8 + 3;
-        dlinks->field_A = slinks->field_A;
+        dlinks->normalIndex  = slinks->normalIndex + 3;
+        dlinks->surfaceClass = slinks->surfaceClass;
         dlinks++;
         slinks++;
     }

@@ -67,13 +67,13 @@
 /// `field_40`, turns it by +/-0x5DC with `RotMatrixY` (sign from
 /// `field_220`) and hands it to the task it spawns.
 typedef struct Actor503500Work224 {
-    /* 0x000 */ byte    pad_0[0x40];
-    /* 0x040 */ MATRIX  field_40;
-    /* 0x060 */ GpObj   obj0;
-    /* 0x080 */ GpRec18 rec0[8]; // obj0's table; obj1 and obj2 share rec1
-    /* 0x140 */ GpObj   obj1;
-    /* 0x160 */ GpObj   obj2;
-    /* 0x180 */ GpRec18 rec1[4];
+    /* 0x000 */ byte                  pad_0[0x40];
+    /* 0x040 */ MATRIX                field_40;
+    /* 0x060 */ GpObj                 obj0;
+    /* 0x080 */ WorldCollisionContact rec0[8]; // obj0's table; obj1 and obj2 share rec1
+    /* 0x140 */ GpObj                 obj1;
+    /* 0x160 */ GpObj                 obj2;
+    /* 0x180 */ WorldCollisionContact rec1[4];
     /// The 0x224 block's own spawn record, seeded the way
     /// `Actor503500Work::field_E0` is.
     /* 0x1E0 */ GpEffArg field_1E0; // record the 0x224 block's effects are spawned with
@@ -138,60 +138,60 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
 /// republishes on `TmdObject::lightMtx` / `field_20`, then a private copy of
 /// model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work3D8 {
-    /* 0x000 */ MATRIX    light;
-    /* 0x020 */ MATRIX    color;
-    /* 0x040 */ MATRIX    mats[9];
-    /* 0x160 */ GpObj     obj160;
-    /* 0x180 */ GpRec18   rec180[8]; // obj160's table, count 8
-    /* 0x240 */ GpObj     obj240;
-    /* 0x260 */ GpRec18   rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ GpEffArg  field_2C0; // record this block's effects are spawned with
-    /* 0x2C8 */ SVECTOR   pts[9];
-    /* 0x310 */ SVECTOR   angles[9];
-    /* 0x358 */ SVECTOR   field_358;
-    /* 0x360 */ SVECTOR   field_360; // field_358 before this frame's step
-    /* 0x368 */ SVECTOR   field_368;
-    /* 0x370 */ byte      pad_370[0x28];
-    /* 0x398 */ s32       field_398; // step speed toward field_368
-    /* 0x39C */ GpFixed16 field_39C; // speed limit; integer half is the arrival radius
-    /* 0x3A0 */ byte      pad_3A0[0x4];
-    /* 0x3A4 */ s16       field_3A4; // sub-state, see func_actor_503500_80142310
-    /* 0x3A6 */ byte      pad_3A6[0x2];
-    /* 0x3A8 */ s16       field_3A8; // hit countdown, raised by each landed id's stun
-    /* 0x3AA */ s16       field_3AA;
-    /* 0x3AC */ byte      pad_3AC[0x6];
-    /* 0x3B2 */ u16       field_3B2; // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ s16       field_3B4; // sway amplitude
-    /* 0x3B6 */ s16       field_3B6; // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16       phase[9];  // sway phase per link, seeded to i * 0x200
-    /* 0x3CA */ byte      pad_3CA[0xA];
-    /* 0x3D4 */ s8        field_3D4; // set while field_358 sits on field_368
-    /* 0x3D5 */ s8        field_3D5;
-    /* 0x3D6 */ s8        field_3D6;
-    /* 0x3D7 */ s8        field_3D7; // TMD buffer countdown
+    /* 0x000 */ MATRIX                light;
+    /* 0x020 */ MATRIX                color;
+    /* 0x040 */ MATRIX                mats[9];
+    /* 0x160 */ GpObj                 obj160;
+    /* 0x180 */ WorldCollisionContact rec180[8]; // obj160's table, count 8
+    /* 0x240 */ GpObj                 obj240;
+    /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
+    /* 0x2C0 */ GpEffArg              field_2C0; // record this block's effects are spawned with
+    /* 0x2C8 */ SVECTOR               pts[9];
+    /* 0x310 */ SVECTOR               angles[9];
+    /* 0x358 */ SVECTOR               field_358;
+    /* 0x360 */ SVECTOR               field_360; // field_358 before this frame's step
+    /* 0x368 */ SVECTOR               field_368;
+    /* 0x370 */ byte                  pad_370[0x28];
+    /* 0x398 */ s32                   field_398; // step speed toward field_368
+    /* 0x39C */ GpFixed16             field_39C; // speed limit; integer half is the arrival radius
+    /* 0x3A0 */ byte                  pad_3A0[0x4];
+    /* 0x3A4 */ s16                   field_3A4; // sub-state, see func_actor_503500_80142310
+    /* 0x3A6 */ byte                  pad_3A6[0x2];
+    /* 0x3A8 */ s16                   field_3A8; // hit countdown, raised by each landed id's stun
+    /* 0x3AA */ s16                   field_3AA;
+    /* 0x3AC */ byte                  pad_3AC[0x6];
+    /* 0x3B2 */ u16                   field_3B2; // fade level, stepped by 0x10 up to 0x1000
+    /* 0x3B4 */ s16                   field_3B4; // sway amplitude
+    /* 0x3B6 */ s16                   field_3B6; // sway fade-in, 0..0x1000
+    /* 0x3B8 */ s16                   phase[9];  // sway phase per link, seeded to i * 0x200
+    /* 0x3CA */ byte                  pad_3CA[0xA];
+    /* 0x3D4 */ s8                    field_3D4; // set while field_358 sits on field_368
+    /* 0x3D5 */ s8                    field_3D5;
+    /* 0x3D6 */ s8                    field_3D6;
+    /* 0x3D7 */ s8                    field_3D7; // TMD buffer countdown
 } Actor503500Work3D8;
 STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 
 /// The 0xC0 block `func_actor_503500_80144300` allocates: the display node,
-/// the four-entry `GpRec18` table its `field_C` points at, the effect task it
+/// the four-entry `WorldCollisionContact` table its `field_C` points at, the effect task it
 /// reparents itself under, and the payload `func_actor_503500_80144778` steps
 /// every frame. `field_84` is the world position (the coordinate's translation
 /// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
 /// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
 typedef struct Actor503500WorkC0 {
-    /* 0x00 */ GpObj             obj;
-    /* 0x20 */ GpRec18           rec[4];
-    /* 0x80 */ Task*             field_80;
-    /* 0x84 */ Actor503500FixVec field_84;
-    /* 0x94 */ VECTOR            field_94;
-    /* 0xA4 */ VECTOR            field_A4; // per-frame velocity added onto field_84
-    /* 0xB4 */ s32               field_B4;
-    /* 0xB8 */ s16               field_B8;
-    /* 0xBA */ u16               field_BA; // sub-state frame counter
-    /* 0xBC */ s8                field_BC; // sub-state index, -1 finishes the task
-    /* 0xBD */ byte              pad_BD[0x1];
-    /* 0xBE */ s8                field_BE; // set when a record's kind (key high half) is 1
-    /* 0xBF */ s8                field_BF; // nonzero skips the push-back step
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[4];
+    /* 0x80 */ Task*                 field_80;
+    /* 0x84 */ Actor503500FixVec     field_84;
+    /* 0x94 */ VECTOR                field_94;
+    /* 0xA4 */ VECTOR                field_A4; // per-frame velocity added onto field_84
+    /* 0xB4 */ s32                   field_B4;
+    /* 0xB8 */ s16                   field_B8;
+    /* 0xBA */ u16                   field_BA; // sub-state frame counter
+    /* 0xBC */ s8                    field_BC; // sub-state index, -1 finishes the task
+    /* 0xBD */ byte                  pad_BD[0x1];
+    /* 0xBE */ s8                    field_BE; // set when a record's kind (key high half) is 1
+    /* 0xBF */ s8                    field_BF; // nonzero skips the push-back step
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 
@@ -200,17 +200,17 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 /// `func_actor_503500_80144B40` steps every frame. `field_A8` is the speed,
 /// `Task::spawnArg2` or 0x100000 when the spawner passes none.
 typedef struct Actor503500WorkB4 {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[4];
-    /* 0x80 */ Task*   field_80;
-    /* 0x84 */ VECTOR  field_84;
-    /* 0x94 */ VECTOR  field_94;
-    /* 0xA4 */ byte    pad_A4[0x4];
-    /* 0xA8 */ s32     field_A8;
-    /* 0xAC */ s16     field_AC;
-    /* 0xAE */ s16     field_AE;
-    /* 0xB0 */ s8      field_B0;
-    /* 0xB1 */ byte    pad_B1[0x3];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[4];
+    /* 0x80 */ Task*                 field_80;
+    /* 0x84 */ VECTOR                field_84;
+    /* 0x94 */ VECTOR                field_94;
+    /* 0xA4 */ byte                  pad_A4[0x4];
+    /* 0xA8 */ s32                   field_A8;
+    /* 0xAC */ s16                   field_AC;
+    /* 0xAE */ s16                   field_AE;
+    /* 0xB0 */ s8                    field_B0;
+    /* 0xB1 */ byte                  pad_B1[0x3];
 } Actor503500WorkB4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 
@@ -238,16 +238,16 @@ STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 /// why this enemy gets a separate view. Its sub-state index is `field_F0`, the
 /// one `func_actor_503500_8013F8AC` dispatches on.
 typedef struct Actor503500WorkF4 {
-    /* 0x00 */ GpObj    obj; // the display node, as in `Actor503500Work`
-    /* 0x20 */ GpRec18  rec[8];
-    /* 0xE0 */ GpEffArg field_E0;
-    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ u16      field_EA; // sub-state frame counter
-    /* 0xEC */ s16      field_EC;
-    /* 0xEE */ byte     pad_EE[0x2];
-    /* 0xF0 */ s8       field_F0; // sub-state index
-    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte     pad_F2[0x2];
+    /* 0x00 */ GpObj                 obj; // the display node, as in `Actor503500Work`
+    /* 0x20 */ WorldCollisionContact rec[8];
+    /* 0xE0 */ GpEffArg              field_E0;
+    /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ u16                   field_EA; // sub-state frame counter
+    /* 0xEC */ s16                   field_EC;
+    /* 0xEE */ byte                  pad_EE[0x2];
+    /* 0xF0 */ s8                    field_F0; // sub-state index
+    /* 0xF1 */ s8                    field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte                  pad_F2[0x2];
 } Actor503500WorkF4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 
@@ -263,16 +263,16 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 /// puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
 /// the one `func_actor_503500_8013D990` dispatches on.
 typedef struct Actor503500Work770E8 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ byte     pad_EA[0x2];
-    /* 0xEC */ u16      field_EC; // sub-state frame counter
-    /* 0xEE */ s16      field_EE;
-    /* 0xF0 */ s8       field_F0; // sub-state index
-    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte     pad_F2[0x2];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ byte                  pad_EA[0x2];
+    /* 0xEC */ u16                   field_EC; // sub-state frame counter
+    /* 0xEE */ s16                   field_EE;
+    /* 0xF0 */ s8                    field_F0; // sub-state index
+    /* 0xF1 */ s8                    field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte                  pad_F2[0x2];
 } Actor503500Work770E8;
 STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 
@@ -285,16 +285,16 @@ STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 /// byte triple. Its sub-state index is `field_F0`, the one
 /// `func_actor_503500_8013CA34` dispatches on.
 typedef struct Actor503500Work776A0 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ s16      field_E8; // per-frame countdown, as in `Actor503500Work`
-    /* 0xEA */ s16      field_EA; // sub-state frame counter
-    /* 0xEC */ u16      field_EC; // scale handed to func_actor_503500_80135E20
-    /* 0xEE */ s16      field_EE; // per-frame step of field_EC, stepped down by 4
-    /* 0xF0 */ s8       field_F0; // sub-state index
-    /* 0xF1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte     pad_F2[0x2];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
+    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
+    /* 0xEA */ s16                   field_EA; // sub-state frame counter
+    /* 0xEC */ u16                   field_EC; // scale handed to func_actor_503500_80135E20
+    /* 0xEE */ s16                   field_EE; // per-frame step of field_EC, stepped down by 4
+    /* 0xF0 */ s8                    field_F0; // sub-state index
+    /* 0xF1 */ s8                    field_F1; // sub-state phase, cleared with field_F0
+    /* 0xF2 */ byte                  pad_F2[0x2];
 } Actor503500Work776A0;
 STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 
@@ -306,12 +306,12 @@ STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 /// the slot (`spawnArg1 - 4`) that selects this enemy's parent part and
 /// local offset.
 typedef struct Actor503500Work774C0 {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  rec[8];
-    /* 0xE0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0xE8 */ byte     pad_E8[0x4];
-    /* 0xEC */ s8       field_EC;
-    /* 0xED */ byte     pad_ED[0x3];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[8];
+    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE8 */ byte                  pad_E8[0x4];
+    /* 0xEC */ s8                    field_EC;
+    /* 0xED */ byte                  pad_ED[0x3];
 } Actor503500Work774C0;
 STATIC_ASSERT_SIZEOF(Actor503500Work774C0, 0xF0);
 
@@ -331,16 +331,16 @@ static void func_actor_503500_8013BC54(Task* arg0);
 extern Actor503500Work770E8 D_actor_503500_80177794[2];
 static void                 func_actor_503500_8013D85C(Task* arg0);
 
-static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
-static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
-static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
-static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* work, GpRec18* rec, s32 count);
+static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* work, WorldCollisionContact* rec, s32 count);
+static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* work, WorldCollisionContact* rec, s32 count);
+static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* work, WorldCollisionContact* rec, s32 count);
+static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* work, WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013EA2C(Task* arg0);
 static void func_actor_503500_8013EC20(Task* arg0, s32 arg1);
-static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-static void func_actor_503500_8014215C(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
-static void func_actor_503500_801437D0(Task* arg0, GpRec18* arg1, s32 arg2);
+static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_8014215C(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
 static void func_actor_503500_8013BE0C(Task* arg0);
@@ -474,7 +474,7 @@ Actor503500Work38 D_actor_503500_80178F10;
 
 static void func_actor_503500_8013D1CC(Task* arg0);
 static void func_actor_503500_8013D558(Task* arg0);
-static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3);
+static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* arg2, s32 arg3);
 
 /// State-0 init of the 0xF0 enemies in spawn slots 4 and 5: clears the slot's
 /// block in `D_actor_503500_801774C0`, hangs the task's coordinate off the
@@ -482,13 +482,13 @@ static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec1
 /// hands the task to its exit callback.
 static void func_actor_503500_8013AD64(Task* arg0)
 {
-    GpEnemy*              enemy;
-    Task*                 parent;
-    GfxCoord*             coord;
-    MATRIX*               mtx;
-    GpRec18*              rec;
-    Actor503500Work774C0* work;
-    s32                   idx;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    GfxCoord*               coord;
+    MATRIX*                mtx;
+    WorldCollisionContact* rec;
+    Actor503500Work774C0*  work;
+    s32                    idx;
 
     idx    = arg0->spawnArg1.value - 4;
     enemy  = arg0->spawnArg2.pointer;
@@ -544,7 +544,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
 /// empties `field_40` starts state 2. The hit effect is pulled to 1600 units
 /// along the contact offset and placed at the `field_EC` sub-state's offset.
 /// `arg1` is passed by the caller but unused.
-static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, GpRec18* rec, s32 count)
+static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* rec, s32 count)
 {
     MATRIX           mtx;
     MATRIX           rot;
@@ -566,9 +566,9 @@ static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < count; i++) {
-        id = rec[i].key;
+        id = rec[i].key.value;
         for (j = 0; j < i; j++) {
-            if (rec[j].key == id) {
+            if (rec[j].key.value == id) {
                 goto next;
             }
         }
@@ -960,12 +960,12 @@ static const TaskFuncTable3 D_actor_503500_80132028 = {
 /// block in sub-state 0.
 static void func_actor_503500_8013BEE4(Task* arg0)
 {
-    GpEnemy*  enemy;
-    Task*     parent;
-    GfxCoord* coord;
-    GfxCoord* parts;
-    MATRIX*   mtx;
-    GpRec18*  rec;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    GfxCoord*               coord;
+    GfxCoord*               parts;
+    MATRIX*                mtx;
+    WorldCollisionContact* rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -1019,7 +1019,7 @@ static void func_actor_503500_8013BEE4(Task* arg0)
 /// `field_E8` countdown is clear, and a hit that empties `field_40` starts the
 /// death sub-state. The hit effect is pulled to 1400 units along the contact
 /// offset. `arg1` is passed by the caller but unused.
-static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -1041,9 +1041,9 @@ static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -1297,15 +1297,15 @@ static const TaskFuncTable3 D_actor_503500_80132060 = {
 /// but without linking the enemy node.
 static void func_actor_503500_8013CAE4(Task* arg0)
 {
-    GpEnemy*              enemy;
-    Task*                 parent;
-    GfxCoord*             coord;
-    MATRIX*               mtx;
-    GfxCoord*             parts;
-    GpRec18*              rec;
-    Actor503500Work770E8* work;
-    SVECTOR*              pos;
-    s32                   idx;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    GfxCoord*               coord;
+    MATRIX*                mtx;
+    GfxCoord*               parts;
+    WorldCollisionContact* rec;
+    Actor503500Work770E8*  work;
+    SVECTOR*               pos;
+    s32                    idx;
 
     idx    = arg0->spawnArg1.value;
     enemy  = arg0->spawnArg2.pointer;
@@ -1361,7 +1361,7 @@ static void func_actor_503500_8013CAE4(Task* arg0)
 /// clear, and a hit that empties `field_40` starts death sub-state 3. The hit
 /// effect is pulled to 200 units along the contact offset and shifted by this
 /// slot's `D_actor_503500_8016F248` entry. `arg1` is passed but unused.
-static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -1383,9 +1383,9 @@ static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -1832,12 +1832,12 @@ static const TaskFuncTable3 D_actor_503500_80132098 = {
 /// block in sub-state 0.
 static void func_actor_503500_8013DD10(Task* arg0)
 {
-    GpEnemy*  enemy;
-    Task*     parent;
-    GfxCoord* coord;
-    GfxCoord* parts;
-    MATRIX*   mtx;
-    GpRec18*  rec;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    GfxCoord*               coord;
+    GfxCoord*               parts;
+    MATRIX*                mtx;
+    WorldCollisionContact* rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -1890,7 +1890,7 @@ static void func_actor_503500_8013DD10(Task* arg0)
 /// taken once, only type-2 ids land while the `field_E8` countdown is clear,
 /// and a hit that empties `field_40` starts state 2. The hit effect is pulled
 /// to 600 units along the contact offset. `arg1` is passed but unused.
-static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -1912,9 +1912,9 @@ static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -2264,12 +2264,12 @@ static const TaskFuncTable3 D_actor_503500_801320D0 = {
 /// display node, and hands the block to sub-state 3.
 static void func_actor_503500_8013ECBC(Task* arg0)
 {
-    GpEnemy*  enemy;
-    Task*     parent;
-    GfxCoord* coord;
-    GfxCoord* parts;
-    MATRIX*   mtx;
-    GpRec18*  rec;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    GfxCoord*               coord;
+    GfxCoord*               parts;
+    MATRIX*                mtx;
+    WorldCollisionContact* rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -2323,7 +2323,7 @@ static void func_actor_503500_8013ECBC(Task* arg0)
 /// and a hit that empties `field_40` starts sub-state 2 but still applies the
 /// id's status effect. The hit effect is pulled to 400 units along the contact
 /// offset. `arg1` is passed by the caller but unused.
-static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -2345,9 +2345,9 @@ static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec1
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -2675,17 +2675,17 @@ static const TaskFuncTable3 D_actor_503500_80132108 = {
 
 static void func_actor_503500_8013FA74(Task* arg0)
 {
-    GpEnemy*            enemy;
-    TmdObject*          tmd;
-    GfxCoord*           coord;
-    GfxCoord*           part;
-    Actor503500Work3D8* work;
-    GpRec18*            rec;
-    GpRec18*            rec2;
-    OverlayMat          m;
-    GpMtxWords*         ident;
-    s32                 idx;
-    s32                 i;
+    GpEnemy*               enemy;
+    TmdObject*             tmd;
+    GfxCoord*               coord;
+    GfxCoord*               part;
+    Actor503500Work3D8*    work;
+    WorldCollisionContact* rec;
+    WorldCollisionContact* rec2;
+    OverlayMat             m;
+    GpMtxWords*            ident;
+    s32                    idx;
+    s32                    i;
 
     idx   = arg0->spawnArg1.value - 0xD;
     enemy = arg0->spawnArg2.pointer;
@@ -3172,7 +3172,7 @@ static void func_actor_503500_80140BE8(Task* arg0)
 /// state 5 (unless already past it) instead of applying the id's status effect.
 /// The hit effect is pulled to 500 units along the contact offset, and a hit
 /// landing in state 1 drops back to state 0. `arg1` is passed but unused.
-static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     SVECTOR             pos;
     MATRIX              rot;
@@ -3194,9 +3194,9 @@ static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = (Actor503500Work3D8*)arg0->work;
     coord = &arg0->extra.tmd->coords[8];
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -3677,14 +3677,14 @@ static void func_actor_503500_801420C4(Task* arg0)
     Gp_ClearRec18Occupied(work->rec260);
 }
 
-/// Scans `count` `GpRec18` slots and clears bit 0x8000 of `obj->flags` for
+/// Scans `count` `WorldCollisionContact` slots and clears bit 0x8000 of `obj->flags` for
 /// every slot whose `key` high half is 1.
-static void func_actor_503500_8014215C(Task* arg0, GpObj* obj, GpRec18* rec, s32 count)
+static void func_actor_503500_8014215C(Task* arg0, GpObj* obj, WorldCollisionContact* rec, s32 count)
 {
     s32 i;
 
     for (i = 0; i < count; i++, rec++) {
-        if ((rec->key & 0xFFFF0000) == 0x10000) {
+        if ((rec->key.value & 0xFFFF0000) == 0x10000) {
             obj->flags &= 0x7FFF;
         }
     }
@@ -3779,17 +3779,17 @@ static const TaskFuncTable3 D_actor_503500_80132178 = {
 /// (slot 0) sharing `rec1` - before starting sub-state 0.
 static void func_actor_503500_801423C8(Task* arg0)
 {
-    GpEnemy*            enemy;
-    TmdObject*          tmd;
-    Task*               parent;
-    s32                 slot;
-    Actor503500Work224* work;
-    GfxCoord*           coord;
-    TmdObject*          parentTmd;
-    SVECTOR*            ofs;
-    GpRec18*            rec;
-    GfxCoord*           parts;
-    GfxCoord*           parts2;
+    GpEnemy*               enemy;
+    TmdObject*             tmd;
+    Task*                  parent;
+    s32                    slot;
+    Actor503500Work224*    work;
+    GfxCoord*               coord;
+    TmdObject*             parentTmd;
+    SVECTOR*               ofs;
+    WorldCollisionContact* rec;
+    GfxCoord*               parts;
+    GfxCoord*               parts2;
 
     enemy     = arg0->spawnArg2.pointer;
     tmd       = arg0->extra.tmd;
@@ -4195,7 +4195,7 @@ static void func_actor_503500_80142980(Task* arg0)
 /// 0x5DC along the impact direction in the model's frame, offset by the side
 /// vector. Once `field_21C` runs out the health is refilled to a tenth of the
 /// spawn record's maximum.
-static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR              d;
     SVECTOR             pos;
@@ -4218,9 +4218,9 @@ static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = (Actor503500Work224*)arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -4323,7 +4323,7 @@ static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s
 /// into the player's frame. The sign of its z picks the 0x3FF payload and is
 /// passed to the task spawned from `D_actor_503500_8017146C`; message 0x3F9
 /// carries the enemy's packed pair, and sound 7 plays at the player.
-static void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
+static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s32 count)
 {
     SVECTOR             vec;
     MATRIX              world;
@@ -4343,7 +4343,7 @@ static void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
     enemy = arg0->spawnArg2.pointer;
     work  = (Actor503500Work224*)arg0->work;
     for (i = 0; i < count; i++) {
-        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
             player = gameGetPtrSlot(3);
             pcoord = player->extra.tmd->coords;
             if (((GameActor*)player->work)->field_954 != 2 &&
@@ -4665,14 +4665,14 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
 
 static void func_actor_503500_80144300(Task* arg0)
 {
-    Actor503500WorkC0* work;
-    GfxCoord*          coord;
-    GpRec18*           rec;
-    GpEffWork*         eff;
-    Task*              child;
-    GpMtxWords*        m;
-    VECTOR             v;
-    s32                pan;
+    Actor503500WorkC0*     work;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    GpEffWork*             eff;
+    Task*                  child;
+    GpMtxWords*            m;
+    VECTOR                 v;
+    s32                    pan;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -4809,11 +4809,11 @@ static void func_actor_503500_8014473C(Task* arg0)
 
 static void func_actor_503500_80144778(Task* arg0)
 {
-    GpDeltaScratch     delta;
-    Actor503500WorkC0* work;
-    GpRec18*           rec;
-    s32                result;
-    s32                i;
+    GpDeltaScratch         delta;
+    Actor503500WorkC0*     work;
+    WorldCollisionContact* rec;
+    s32                    result;
+    s32                    i;
 
     work = (Actor503500WorkC0*)arg0->work;
     rec  = work->rec;
@@ -4836,7 +4836,7 @@ static void func_actor_503500_80144778(Task* arg0)
         }
     }
     for (i = 0; i < 4; i++) {
-        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
             work->field_BE = 1;
         }
     }
@@ -4862,14 +4862,14 @@ static const TaskFuncTable3 D_actor_503500_801321E8 = {
 
 static void func_actor_503500_801448E8(Task* arg0)
 {
-    Actor503500WorkB4* work;
-    GfxCoord*          coord;
-    GpRec18*           rec;
-    GpEffWork*         eff;
-    Task*              child;
-    GpMtxWords*        m;
-    s32                pan;
-    s32                pan2;
+    Actor503500WorkB4*     work;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    GpEffWork*             eff;
+    Task*                  child;
+    GpMtxWords*            m;
+    s32                    pan;
+    s32                    pan2;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);

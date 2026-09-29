@@ -2909,7 +2909,7 @@ static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord);
 static __inline__ void Actor403200_GapToCamera(GfxCoord* coord, SVECTOR* out);
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work);
 static void            func_actor_403200_801321C4(GfxCoord* coord, s16 yaw);
-static s32             func_actor_403200_801324D0(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32             func_actor_403200_801324D0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
 static void            func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index);
 static void            func_actor_403200_801329CC(Task* task);
 static void            func_actor_403200_80133614(Task* task, s16 arg1);
@@ -3122,7 +3122,7 @@ static void func_actor_403200_801321C4(GfxCoord* coord, s16 yaw)
 /// Returns whether it moved: set when the X or Z delta is nonzero, and also
 /// when only its fractional half is, in which case the coordinate and the
 /// latched step are nudged one unit further from zero.
-static s32 func_actor_403200_801324D0(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_actor_403200_801324D0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -3181,12 +3181,12 @@ static void func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 inde
     verts  = Gp_GridParams->field_8;
     faces  = Gp_GridParams->field_C;
 
-    face.verts[0] = index * 4;
-    face.verts[1] = index * 4 + 1;
-    face.verts[2] = index * 4 + 2;
-    face.verts[3] = index * 4 + 3;
-    face.field_8  = index;
-    face.field_A  = 3;
+    face.verts[0]     = index * 4;
+    face.verts[1]     = index * 4 + 1;
+    face.verts[2]     = index * 4 + 2;
+    face.verts[3]     = index * 4 + 3;
+    face.normalIndex  = index;
+    face.surfaceClass = 3;
 
     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, normal);
     Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);
@@ -3225,9 +3225,9 @@ static void func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 inde
     gte_stsv(normal);
 
     if (gGameSession->at4.loc.area == 0x27) {
-        face.field_A = 3;
+        face.surfaceClass = 3;
     } else {
-        face.field_A = 2;
+        face.surfaceClass = 2;
     }
 
     faces[index] = face;
@@ -4570,11 +4570,11 @@ static void func_actor_403200_801354A4(GpEnemy* enemy, Task* task)
     gteDir                = dir;
 
     if (work->field_1A8 != 0) {
-        work->field_1AC   = 0;
-        work->field_1B0   = 0x400;
-        work->field_1A8   = 0;
-        work->rec0.key    = 0;
-        work->obj0.flags |= 0x8000;
+        work->field_1AC      = 0;
+        work->field_1B0      = 0x400;
+        work->field_1A8      = 0;
+        work->rec0.key.value = 0;
+        work->obj0.flags    |= 0x8000;
     }
 
     if (Gp_StateF0.field_4 == 0) {
@@ -5940,21 +5940,21 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, GpCmdArg* msg)
 /// the seven escorts that make up the rest of the creature.
 static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 {
-    Actor403200Work* work;
-    Actor403200Work* buffers;
-    Actor403200Work* escorts;
-    OverlayMat*      mtx;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    GfxCoord*        freeCoord;
-    GpEnemy*         esc;
-    Task*            escTask;
-    GpRec18*         recs2;
-    SVECTOR          dir;
-    SVECTOR*         gteDir;
-    VECTOR           pos;
-    s16              i;
-    s16              j;
+    Actor403200Work*       work;
+    Actor403200Work*       buffers;
+    Actor403200Work*       escorts;
+    OverlayMat*            mtx;
+    TmdObject*             tmd;
+    GfxCoord*               coord;
+    GfxCoord*               freeCoord;
+    GpEnemy*               esc;
+    Task*                  escTask;
+    WorldCollisionContact* recs2;
+    SVECTOR                dir;
+    SVECTOR*               gteDir;
+    VECTOR                 pos;
+    s16                    i;
+    s16                    j;
 
     tmd   = task->extra.tmd;
     coord = tmd->coords;
@@ -6232,7 +6232,7 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 /// damage.
 ///
 /// It carves a 0x30-byte `Actor403200HitScratch` off the scratchpad stack and
-/// scans the five `GpRec18` records of `hits[0]` for the first whose `key`
+/// scans the five `WorldCollisionContact` records of `hits[0]` for the first whose `key`
 /// high halfword is attack kind 2 -- the contact point goes into the frame's
 /// `pos` and the id is kept. A record with `key` 0 ends the scan with no
 /// hit. The scan is written with labels rather than a `for` so `loop.c` parks
@@ -6264,7 +6264,7 @@ static void func_actor_403200_80139A60(Task* arg0)
     Actor403200HitScratch* sc;
     Actor403200Work*       work;
     GpEnemy*               enemy;
-    GpRec18*               recs;
+    WorldCollisionContact* recs;
     PlayerStatus*          cfg;
     SVECTOR*               pos;
     s32                    mask;
@@ -6291,14 +6291,14 @@ static void func_actor_403200_80139A60(Task* arg0)
     mask  = 0xFFFF0000;
     kind  = 0x20000;
 scan:
-    if (recs[i].key == 0) {
+    if (recs[i].key.value == 0) {
         goto missed;
     }
-    if ((recs[i].key & mask) == kind) {
+    if ((recs[i].key.value & mask) == kind) {
         pos->vx = recs[i].point.vx;
         pos->vy = recs[i].point.vy;
         pos->vz = recs[i].point.vz;
-        id      = recs[i].key;
+        id      = recs[i].key.value;
         goto found;
     }
     i++;
@@ -6429,9 +6429,9 @@ static void func_actor_403200_80139E94(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GfxCoord*              coord;
-    GpRec18*               recs;
-    GpRec18*               recs2;
+    GfxCoord*               coord;
+    WorldCollisionContact* recs;
+    WorldCollisionContact* recs2;
     SVECTOR*               pos;
     SVECTOR*               pos2;
     s32                    id;
@@ -6456,14 +6456,14 @@ static void func_actor_403200_80139E94(Task* arg0)
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             goto missed1;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             pos->vx = recs[i].point.vx;
             pos->vy = recs[i].point.vy;
             pos->vz = recs[i].point.vz;
-            id      = recs[i].key;
+            id      = recs[i].key.value;
             goto found1;
         }
     }
@@ -6479,14 +6479,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[2].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].key == 0) {
+        if (recs2[i2].key.value == 0) {
             goto missed2;
         }
-        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
             pos2->vx = recs2[i2].point.vx;
             pos2->vy = recs2[i2].point.vy;
             pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key;
+            id       = recs2[i2].key.value;
             goto found2;
         }
     }
@@ -6634,9 +6634,9 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GpRec18*               recs;
-    GpRec18*               recs2;
-    GpRec18*               recs3;
+    WorldCollisionContact* recs;
+    WorldCollisionContact* recs2;
+    WorldCollisionContact* recs3;
     SVECTOR*               pos;
     SVECTOR*               pos2;
     SVECTOR*               pos3;
@@ -6663,14 +6663,14 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             goto missed1;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             pos->vx = recs[i].point.vx;
             pos->vy = recs[i].point.vy;
             pos->vz = recs[i].point.vz;
-            id      = recs[i].key;
+            id      = recs[i].key.value;
             goto found1;
         }
     }
@@ -6688,14 +6688,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[4].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].key == 0) {
+        if (recs2[i2].key.value == 0) {
             goto missed2;
         }
-        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
             pos2->vx = recs2[i2].point.vx;
             pos2->vy = recs2[i2].point.vy;
             pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key;
+            id       = recs2[i2].key.value;
             goto found2;
         }
     }
@@ -6713,14 +6713,14 @@ found2:
     pos3  = &sc->pos;
     recs3 = work->hits[5].recs;
     for (i3 = 0; i3 < 5; i3++) {
-        if (recs3[i3].key == 0) {
+        if (recs3[i3].key.value == 0) {
             goto missed3;
         }
-        if ((recs3[i3].key & 0xFFFF0000) == 0x20000) {
+        if ((recs3[i3].key.value & 0xFFFF0000) == 0x20000) {
             pos3->vx = recs3[i3].point.vx;
             pos3->vy = recs3[i3].point.vy;
             pos3->vz = recs3[i3].point.vz;
-            id       = recs3[i3].key;
+            id       = recs3[i3].key.value;
             goto found3;
         }
     }
@@ -6853,10 +6853,10 @@ static void func_actor_403200_8013AB70(Task* arg0)
     Actor403200Work*       work;
     GpEnemy*               host;
     PlayerStatus*          cfg;
-    GfxCoord*              coord;
-    GpRec18*               recs;
-    GpRec18*               recs2;
-    GpRec18*               recs3;
+    GfxCoord*               coord;
+    WorldCollisionContact* recs;
+    WorldCollisionContact* recs2;
+    WorldCollisionContact* recs3;
     SVECTOR*               pos;
     SVECTOR*               pos2;
     SVECTOR*               pos3;
@@ -6883,14 +6883,14 @@ static void func_actor_403200_8013AB70(Task* arg0)
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             goto missed1;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             pos->vx = recs[i].point.vx;
             pos->vy = recs[i].point.vy;
             pos->vz = recs[i].point.vz;
-            id      = recs[i].key;
+            id      = recs[i].key.value;
             goto found1;
         }
     }
@@ -6906,14 +6906,14 @@ found1:
     pos2  = &sc->pos;
     recs2 = work->hits[7].recs;
     for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].key == 0) {
+        if (recs2[i2].key.value == 0) {
             goto missed2;
         }
-        if ((recs2[i2].key & 0xFFFF0000) == 0x20000) {
+        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
             pos2->vx = recs2[i2].point.vx;
             pos2->vy = recs2[i2].point.vy;
             pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key;
+            id       = recs2[i2].key.value;
             goto found2;
         }
     }
@@ -6933,14 +6933,14 @@ found2:
     pos3  = &sc->pos;
     recs3 = work->hits[8].recs;
     for (i3 = 0; i3 < 5; i3++) {
-        if (recs3[i3].key == 0) {
+        if (recs3[i3].key.value == 0) {
             goto missed3;
         }
-        if ((recs3[i3].key & 0xFFFF0000) == 0x20000) {
+        if ((recs3[i3].key.value & 0xFFFF0000) == 0x20000) {
             pos3->vx = recs3[i3].point.vx;
             pos3->vy = recs3[i3].point.vy;
             pos3->vz = recs3[i3].point.vz;
-            id       = recs3[i3].key;
+            id       = recs3[i3].key.value;
             goto found3;
         }
     }
@@ -7764,30 +7764,30 @@ static void func_actor_403200_8013C84C(Task* arg0)
 /// `sll`/`sra` re-extension pair the original does not have.
 static void func_actor_403200_8013D028(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    GpRec18*         recs;
-    GpEnemy*         enemy;
-    Task*            task;
-    Task*            target;
-    s16              i;
-    s16              j;
-    s16              k;
-    s16              frame;
-    s16              frame2;
-    s16              reply;
-    s32              found;
-    s32              resetId;
-    s32              resetPan;
-    s32              swipeId;
-    s32              swipePan;
-    s32              swipe2Id;
-    s32              swipe2Pan;
-    s32              hitId;
-    s32              hitPan;
-    s32              cueId;
-    s32              cuePan;
+    Actor403200Work*       work;
+    Actor403200Work*       escorts;
+    Actor403200Work*       dying;
+    WorldCollisionContact* recs;
+    GpEnemy*               enemy;
+    Task*                  task;
+    Task*                  target;
+    s16                    i;
+    s16                    j;
+    s16                    k;
+    s16                    frame;
+    s16                    frame2;
+    s16                    reply;
+    s32                    found;
+    s32                    resetId;
+    s32                    resetPan;
+    s32                    swipeId;
+    s32                    swipePan;
+    s32                    swipe2Id;
+    s32                    swipe2Pan;
+    s32                    hitId;
+    s32                    hitPan;
+    s32                    cueId;
+    s32                    cuePan;
 
     work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7918,10 +7918,10 @@ static void func_actor_403200_8013D028(Task* arg0)
 
     recs = work->recs2;
     for (k = 0; k < 5; k++) {
-        if (recs[k].key == 0) {
+        if (recs[k].key.value == 0) {
             goto missed;
         }
-        if ((recs[k].key & 0xFFFF0000) == 0x10000) {
+        if ((recs[k].key.value & 0xFFFF0000) == 0x10000) {
             found = 1;
             goto scanned;
         }
@@ -9493,10 +9493,10 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
     verts[index * 4 + 4].vy -= drop;
     verts[index * 4 + 5].vy -= drop;
 
-    face.field_A     = 3;
-    face2.field_A    = 3;
-    faces[index]     = face;
-    faces[index + 1] = face2;
+    face.surfaceClass  = 3;
+    face2.surfaceClass = 3;
+    faces[index]       = face;
+    faces[index + 1]   = face2;
 }
 
 /// The enemy's upkeep tick, run by the dispatcher through the same

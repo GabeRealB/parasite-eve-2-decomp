@@ -51,18 +51,18 @@
 /// the model buffers are freed, -1 disabling the countdown, which the
 /// visibility handler re-arms to 2 in its hide-and-free mode.
 typedef struct Actor113100Work {
-    ActorAnimRig20  rig;
-    ActorModelState model;
-    GpObj           obj;
-    GpRec18         field_4D8;
-    ActorWalkState  walk;
-    Task*           field_534;
-    s16             field_538;
-    s16             field_53A;
-    u8              field_53C;
-    s8              field_53D;
-    s8              field_53E;
-    byte            pad_53F[1];
+    ActorAnimRig20        rig;
+    ActorModelState       model;
+    GpObj                 obj;
+    WorldCollisionContact field_4D8;
+    ActorWalkState        walk;
+    Task*                 field_534;
+    s16                   field_538;
+    s16                   field_53A;
+    u8                    field_53C;
+    s8                    field_53D;
+    s8                    field_53E;
+    byte                  pad_53F[1];
 } Actor113100Work;
 STATIC_ASSERT_SIZEOF(Actor113100Work, 0x540);
 
@@ -1180,7 +1180,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
 /// (`gGameSession->at4.loc.variant == 2`), then indices 2 and 3, whose models get the
 /// texture page and CLUT of the area record the actor's own location key
 /// resolves to. It then builds the work block's display node: `field_C` points
-/// at the `GpRec18` table that follows it, the position triple is zeroed, the
+/// at the `WorldCollisionContact` table that follows it, the position triple is zeroed, the
 /// node is linked and its flags raised to 0x8000 with `field_1C` set to 0x100,
 /// and `field_8` is attached to model part 1. Finally it publishes the message
 /// table, installs the exit callback and steps to the next state.

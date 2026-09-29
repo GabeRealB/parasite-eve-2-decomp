@@ -23,9 +23,9 @@
 #include "main/session.h"
 #include "main/session_types.h"
 
-static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count);
-static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static s32 ActorContact_Push(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
@@ -52,7 +52,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -76,11 +76,11 @@ static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             actorCalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -111,7 +111,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count)
 /// accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -144,10 +144,10 @@ static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -199,7 +199,7 @@ static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR
     return s->blocked != 0;
 }
 
-static s32 ActorContact_PushContact(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -246,7 +246,7 @@ static s32 ActorContact_PushContact(GfxCoord* coord, GpRec18* rec, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-static s32 ActorContact_Push(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -270,11 +270,11 @@ static s32 ActorContact_Push(GfxCoord* coord, GpRec18* recs, s16 count, s16 push
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

@@ -321,16 +321,16 @@ static void func_actor_105300_80131E3C(Task* arg0)
         }
     }
     for (i = 0; i < 2; i++) {
-        if ((work->rec18[i].key & 0xFFFF0000) != 0x20000) {
+        if ((work->rec18[i].key.value & 0xFFFF0000) != 0x20000) {
             continue;
         }
         scr->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
         scr->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
         scr->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        damage        = Gp_ComputeDamage(work->rec18[i].key, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
+        damage        = Gp_ComputeDamage(work->rec18[i].key.value, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
         if (work->field_336 == 0) {
             damage /= 10;
-        } else if (Gp_RollEnemyChance(enemy, work->rec18[i].key, 0) != 0) {
+        } else if (Gp_RollEnemyChance(enemy, work->rec18[i].key.value, 0) != 0) {
             damage     *= 4;
             scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
             scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
@@ -338,7 +338,7 @@ static void func_actor_105300_80131E3C(Task* arg0)
             Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
         }
         func_800DA6E8(&enemy->node, damage, 0);
-        func_800E2C78(enemy, work->rec18[i].key, damage, 0);
+        func_800E2C78(enemy, work->rec18[i].key.value, damage, 0);
         enemy->hp -= damage;
         if (enemy->hp <= 0) {
             if (work->field_336 == 0) {
@@ -355,8 +355,8 @@ static void func_actor_105300_80131E3C(Task* arg0)
             work->field_328 = 0;
             work->field_320 = 2;
         }
-        if (lastId != work->rec18[i].key) {
-            lastId      = work->rec18[i].key;
+        if (lastId != work->rec18[i].key.value) {
+            lastId      = work->rec18[i].key.value;
             val         = Gp_GetIdParam1(lastId) & 0xFFFF;
             scr->ofs.vx = D_actor_105300_80133A40[work->field_334].vx;
             scr->ofs.vy = D_actor_105300_80133A40[work->field_334].vy;
@@ -367,7 +367,7 @@ static void func_actor_105300_80131E3C(Task* arg0)
                 func_800FDB18((u16)val, coord, &scr->ofs, &work->field_2F4);
             }
         }
-        val = Gp_GetIdParam2(work->rec18[i].key);
+        val = Gp_GetIdParam2(work->rec18[i].key.value);
         if (val > 0) {
             work->field_332 = val;
         }
@@ -690,13 +690,13 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
 /// tick handler (`state` 1).
 static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
 {
-    TmdObject*      obj;
-    Actor05300Work* work;
-    Actor05300Part* part;
-    GfxCoord*       coord;
-    GpRec18*        rec18;
-    s32             flag;
-    u16             type;
+    TmdObject*             obj;
+    Actor05300Work*        work;
+    Actor05300Part*        part;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec18;
+    s32                    flag;
+    u16                    type;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -781,15 +781,15 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
     if (part->field_44 != 0) {
         part->field_44--;
     }
-    if (part->field_40 == 0 && (part->rec18[0].key & 0xFFFF0000) == 0x20000) {
-        if (part->rec18[0].key & 0x8000) {
+    if (part->field_40 == 0 && (part->rec18[0].key.value & 0xFFFF0000) == 0x20000) {
+        if (part->rec18[0].key.value & 0x8000) {
             func_800DA6E8(&arg0->node, 0, 0);
         } else {
             vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->rec18[0].key, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(arg0, part->rec18[0].key, 0) != 0) {
+            damage  = Gp_ComputeDamage(part->rec18[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(arg0, part->rec18[0].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(0x6009C, coord, 0, NULL);
             }
@@ -806,13 +806,13 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
-                    if ((Gp_GetIdParam0(part->rec18[0].key) & 0xFFFF) == 7) {
+                    if ((Gp_GetIdParam0(part->rec18[0].key.value) & 0xFFFF) == 7) {
                         func_800FDB18(3, coord, NULL, &part->field_38);
                     }
                     func_800FDB18(7, coord, NULL, &part->field_38);
                     part->field_44 = 10;
                 }
-                hitTime = Gp_GetIdParam2(part->rec18[0].key);
+                hitTime = Gp_GetIdParam2(part->rec18[0].key.value);
                 if (hitTime > 0) {
                     part->field_40 = hitTime;
                 }

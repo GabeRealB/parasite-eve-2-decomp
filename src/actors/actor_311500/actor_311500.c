@@ -60,11 +60,11 @@ typedef struct Actor311500Work {
     /* 0x43C */ GpObj field_43C;
     /// One-entry contact table the enemy record points at; the damage check
     /// looks here for a hit.
-    /* 0x45C */ GpRec18 rec18[1];
-    /* 0x474 */ MATRIX  light;
-    /* 0x494 */ MATRIX  color;
-    /* 0x4B4 */ Task*   field_4B4;
-    /* 0x4B8 */ MATRIX* field_4B8;
+    /* 0x45C */ WorldCollisionContact rec18[1];
+    /* 0x474 */ MATRIX                light;
+    /* 0x494 */ MATRIX                color;
+    /* 0x4B4 */ Task*                 field_4B4;
+    /* 0x4B8 */ MATRIX*               field_4B8;
     /// The model's `flags` as they were when mode 2 began hiding it, put back
     /// by mode 0 while the mode it last recorded is nonzero.
     /* 0x4BC */ u32 field_4BC;
@@ -251,8 +251,8 @@ Actor311500MessageEntry D_actor_311500_80169330[1] = {
 
 TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 
-static s32         func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count);
-static s32         func_actor_311500_80162180(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32         func_actor_311500_80161E38(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static s32         func_actor_311500_80162180(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void        func_actor_311500_801626CC(GfxCoord* coord, s16 yaw);
 static void        func_actor_311500_801629D8(Task* arg0);
 static inline void _actor311500ResetAnim(Task* task, u8 rate);
@@ -268,7 +268,7 @@ static s32         func_actor_311500_801630A4(Task* arg0);
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_311500_80161E38(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -292,11 +292,11 @@ static s32 func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             actorCalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -327,7 +327,7 @@ static s32 func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 func_actor_311500_80162180(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_311500_80162180(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -360,10 +360,10 @@ static s32 func_actor_311500_80162180(GfxCoord* coord, GpRec18* recs, s16 count,
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -586,27 +586,27 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 
 static s16 func_actor_311500_80162DDC(Task* arg0)
 {
-    Actor311500Work* work = arg0->work;
-    GpEnemy*         enemy;
-    GpRec18*         recs;
-    SVECTOR          pos;
-    SVECTOR*         pp;
-    s32              v;
-    s32              damage;
-    s16              i;
+    Actor311500Work*       work = arg0->work;
+    GpEnemy*               enemy;
+    WorldCollisionContact* recs;
+    SVECTOR                pos;
+    SVECTOR*               pp;
+    s32                    v;
+    s32                    damage;
+    s16                    i;
 
     enemy = arg0->spawnArg2.pointer;
     pp    = &pos;
     recs  = work->rec18;
     for (i = 0; i < 1; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             break;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             pp->vx = recs[i].point.vx;
             pp->vy = recs[i].point.vy;
             pp->vz = recs[i].point.vz;
-            v      = recs[i].key;
+            v      = recs[i].key.value;
             goto done;
         }
     }

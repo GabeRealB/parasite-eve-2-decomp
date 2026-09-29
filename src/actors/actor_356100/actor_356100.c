@@ -137,16 +137,16 @@ typedef struct Actor356100Work {
     /* 0x998 */ byte pad_998[0x24];
     /* 0x9BC */ s16  field_9BC;
     /* 0x9BE */ byte pad_9BE[2];
-    /// First `GpRec18` of the body-part record table, the address
+    /// First `WorldCollisionContact` of the body-part record table, the address
     /// `func_actor_356100_8016382C` publishes in the enemy's `recs` slot
     /// and the exit callback drops. Same slot as `Actor01900Work.field_8E8`.
-    /* 0x9C0 */ GpRec18 field_9C0;
-    /* 0x9D8 */ byte    pad_9D8[0x80];
+    /* 0x9C0 */ WorldCollisionContact field_9C0;
+    /* 0x9D8 */ byte                  pad_9D8[0x80];
     /// Collision record `func_actor_356100_801668FC` hands `func_800E0C10`,
-    /// 0x98 past `field_9C0` — one body-part record rather than one `GpRec18`,
-    /// the stride `Actor00100Obj` gives the same table in the 00100 overlay.
-    /* 0xA58 */ GpRec18 field_A58;
-    /* 0xA70 */ byte    pad_A70[0x68];
+    /// 0x98 past `field_9C0` — one body-part record rather than one `WorldCollisionContact`,
+    /// the stride `_Actor100100SphereBody` gives the same table in the 00100 overlay.
+    /* 0xA58 */ WorldCollisionContact field_A58;
+    /* 0xA70 */ byte                  pad_A70[0x68];
     /// Light matrix `func_actor_356100_8016382C` binds to the model's
     /// `TmdObject::lightMtx` (the color matrix is `field_AF8`).
     /* 0xAD8 */ MATRIX field_AD8;
@@ -1001,11 +1001,11 @@ static __inline__ void Actor356100_BindMatrices(Task* actor);
 static __inline__ void Actor356100_PositionDelta(GfxCoord* coord, SVECTOR* pos);
 
 static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount);
-static __inline__ void Actor356100_PushRecords(GfxCoord* coord, GpRec18* rec, s32 count, s16 height);
-static __inline__ s32  Actor356100_PushRecordsAlways(GfxCoord* coord, GpRec18* rec, s32 count, s16 height);
+static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height);
+static __inline__ s32  Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height);
 static __inline__ void Actor356100_MoveForward(GfxCoord* coord, s16 amount);
 static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* coord, s16 amount);
-static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, GpRec18* rec, s32 count, s16 height);
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height);
 
 /// Binds the model's light and colour matrices to the pair kept in the work
 /// block. Same body as `Actor01900_BindMatrices`.
@@ -1402,14 +1402,14 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
     }
 }
 
-/// Pushes `coord` out of the `GpRec18` records `rec` by `func_800E0C10`'s
+/// Pushes `coord` out of the `WorldCollisionContact` records `rec` by `func_800E0C10`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
 /// 0x14-byte `OverlayDeltaFlag` block is reserved off `G_SCRATCH_HEAD`, so
 /// the two spellings of the block in the body reach it the same way the
 /// original does — the negative offsets off `head` for the X component and the
 /// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
 /// its mask argument.
-static __inline__ void Actor356100_PushRecords(GfxCoord* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
     void**            scratch;
     u8*               head;
@@ -1454,7 +1454,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, GpRec18* rec, s3
 /// `Actor356100_PushRecords` without the freeze guard, returning `field_10`
 /// after the scratch is given back. The caller names `Mc_SaveData[0].state.field_5C1` first so the
 /// compare interleaves with the coordinate load.
-static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
     void**            scratch;
     u8*               head;
@@ -1602,7 +1602,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     s32                    diffPos;
     s32                    diffNeg;
     s32                    yaw;
-    GpRec18*               records;
+    WorldCollisionContact* records;
     s32                    hit;
     s32                    paused;
 
@@ -2579,7 +2579,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* c
 /// and giving the 0x14 bytes back through `G_SCRATCH_HEAD` itself rather than a
 /// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
 /// register across the release.
-static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, GpRec18* rec, s32 count, s16 height)
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
     u8*               head;
     OverlayDeltaFlag* s;

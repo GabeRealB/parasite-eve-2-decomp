@@ -70,39 +70,39 @@
 /// effect the body holds while it grows. `variant` picks one of the two model
 /// and parameter sets.
 typedef struct Actor02400Work {
-    /* 0x000 */ MATRIX   color;
-    /* 0x020 */ MATRIX   light;
-    /* 0x040 */ GpObj    obj40;
-    /* 0x060 */ GpRec18  rec60[4];
-    /* 0x0C0 */ GpObj    objC0;
-    /* 0x0E0 */ GpRec18  recE0;
-    /* 0x0F8 */ GpEffArg effArg;
-    /* 0x100 */ MATRIX   field_100;
-    /* 0x120 */ s16      field_120;
-    /* 0x122 */ s16      field_122;
-    /* 0x124 */ s16      field_124;
-    /* 0x126 */ byte     pad_126[2];
-    /* 0x128 */ s16      field_128;
-    /* 0x12A */ s16      field_12A;
-    /* 0x12C */ s16      field_12C;
-    /* 0x12E */ byte     pad_12E[2];
-    /* 0x130 */ Task**   field_130;
-    /* 0x134 */ s16      field_134;
-    /* 0x136 */ s16      field_136;
-    /* 0x138 */ s16      field_138;
-    /* 0x13A */ s16      field_13A;
-    /* 0x13C */ s16      field_13C;
-    /* 0x13E */ s16      field_13E;
-    /* 0x140 */ s16      field_140;
-    /* 0x142 */ s16      field_142;
-    /* 0x144 */ s16      field_144;
-    /* 0x146 */ u16      field_146;
-    /* 0x148 */ s16      field_148;
-    /* 0x14A */ u16      field_14A;
-    /* 0x14C */ s16      field_14C;
-    /* 0x14E */ s16      variant;
-    /* 0x150 */ u16      field_150;
-    /* 0x152 */ s16      field_152;
+    /* 0x000 */ MATRIX                color;
+    /* 0x020 */ MATRIX                light;
+    /* 0x040 */ GpObj                 obj40;
+    /* 0x060 */ WorldCollisionContact rec60[4];
+    /* 0x0C0 */ GpObj                 objC0;
+    /* 0x0E0 */ WorldCollisionContact recE0;
+    /* 0x0F8 */ GpEffArg              effArg;
+    /* 0x100 */ MATRIX                field_100;
+    /* 0x120 */ s16                   field_120;
+    /* 0x122 */ s16                   field_122;
+    /* 0x124 */ s16                   field_124;
+    /* 0x126 */ byte                  pad_126[2];
+    /* 0x128 */ s16                   field_128;
+    /* 0x12A */ s16                   field_12A;
+    /* 0x12C */ s16                   field_12C;
+    /* 0x12E */ byte                  pad_12E[2];
+    /* 0x130 */ Task**                field_130;
+    /* 0x134 */ s16                   field_134;
+    /* 0x136 */ s16                   field_136;
+    /* 0x138 */ s16                   field_138;
+    /* 0x13A */ s16                   field_13A;
+    /* 0x13C */ s16                   field_13C;
+    /* 0x13E */ s16                   field_13E;
+    /* 0x140 */ s16                   field_140;
+    /* 0x142 */ s16                   field_142;
+    /* 0x144 */ s16                   field_144;
+    /* 0x146 */ u16                   field_146;
+    /* 0x148 */ s16                   field_148;
+    /* 0x14A */ u16                   field_14A;
+    /* 0x14C */ s16                   field_14C;
+    /* 0x14E */ s16                   variant;
+    /* 0x150 */ u16                   field_150;
+    /* 0x152 */ s16                   field_152;
 } Actor02400Work;
 STATIC_ASSERT_SIZEOF(Actor02400Work, 0x154);
 
@@ -114,18 +114,18 @@ STATIC_ASSERT_SIZEOF(Actor02400Work, 0x154);
 /// `field_A8..field_AC` is the direction it travels, taken from the parent's
 /// Z axis. `field_B0` is the lifetime timer and `field_B2` the teardown phase.
 typedef struct Actor02400ChildWork {
-    /* 0x00 */ GpObj        obj_0;
-    /* 0x20 */ GpObj        obj_20;
-    /* 0x40 */ GpRec18      rec_40;
-    /* 0x58 */ GpObj        obj_58;
-    /* 0x78 */ GpActorD4Rec pose_78;
-    /* 0x90 */ GpRec18      field_90;
-    /* 0xA8 */ s16          field_A8;
-    /* 0xAA */ s16          field_AA;
-    /* 0xAC */ s16          field_AC;
-    /* 0xAE */ byte         pad_AE[0x2];
-    /* 0xB0 */ u16          field_B0;
-    /* 0xB2 */ s16          field_B2;
+    /* 0x00 */ GpObj                 obj_0;
+    /* 0x20 */ GpObj                 obj_20;
+    /* 0x40 */ WorldCollisionContact rec_40;
+    /* 0x58 */ GpObj                 obj_58;
+    /* 0x78 */ GpActorD4Rec          pose_78;
+    /* 0x90 */ WorldCollisionContact field_90;
+    /* 0xA8 */ s16                   field_A8;
+    /* 0xAA */ s16                   field_AA;
+    /* 0xAC */ s16                   field_AC;
+    /* 0xAE */ byte                  pad_AE[0x2];
+    /* 0xB0 */ u16                   field_B0;
+    /* 0xB2 */ s16                   field_B2;
 } Actor02400ChildWork;
 STATIC_ASSERT_SIZEOF(Actor02400ChildWork, 0xB4);
 
@@ -658,17 +658,17 @@ move_done:
     }
     i = 0;
     do {
-        switch ((u32)work->rec60[i].key >> 16) {
+        switch ((u32)work->rec60[i].key.value >> 16) {
             case 2:
                 if (work->field_136 != 0) {
                     break;
                 }
                 kind   = 0;
                 damage = 0;
-                if (!(work->rec60[i].key & 0x8000)) {
-                    kind = Actor02400_D045DC[work->rec60[i].key & 0x7F];
+                if (!(work->rec60[i].key.value & 0x8000)) {
+                    kind = Actor02400_D045DC[work->rec60[i].key.value & 0x7F];
                 }
-                switch (Gp_GetIdParam0(work->rec60[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->rec60[i].key.value) & 0xFFFF) {
                     case 3:
                     case 4:
                         kind = 3;
@@ -687,11 +687,11 @@ move_done:
                 }
                 switch (kind) {
                     case 0:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key >> 7) & 1]->extra.tmd->coords;
+                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        work->field_150    += Gp_ComputeDamage(work->rec60[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
+                        work->field_150    += Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
                         if ((s16)work->field_150 >= 20 || work->field_13C == 5) {
                             work->field_13C = 5;
                             work->field_13E = 0;
@@ -708,29 +708,29 @@ move_done:
                         work->field_134 = 0;
                         break;
                     case 1:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key >> 7) & 1]->extra.tmd->coords;
+                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = Gp_ComputeDamage(work->rec60[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
+                        damage              = Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0);
                         work->field_13C     = 4;
                         work->field_13E     = 0;
                         work->field_140     = 0;
                         work->field_138     = 0;
                         work->field_13A     = 0;
                         work->field_134     = 0;
-                        param               = Gp_GetIdParam1(work->rec60[i].key) & 0xFFFF;
-                        if (Actor02400_D0463C[param] == 0 && lastId != work->rec60[i].key) {
-                            lastId = work->rec60[i].key;
+                        param               = Gp_GetIdParam1(work->rec60[i].key.value) & 0xFFFF;
+                        if (Actor02400_D0463C[param] == 0 && lastId != work->rec60[i].key.value) {
+                            lastId = work->rec60[i].key.value;
                             func_800FDB18(param, coord, NULL, &work->effArg);
                         }
                         break;
                     case 2:
-                        src                 = Gp_ActorSlots[(work->rec60[i].key >> 7) & 1]->extra.tmd->coords;
+                        src                 = Gp_ActorSlots[(work->rec60[i].key.value >> 7) & 1]->extra.tmd->coords;
                         scratch->delta.vx.w = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vy.w = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vz.w = src->coord.t[2] - coord->coord.t[2];
-                        damage              = (s16)Gp_ComputeDamage(work->rec60[i].key, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0) * 5;
+                        damage              = (s16)Gp_ComputeDamage(work->rec60[i].key.value, SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w), 0, 0) * 5;
                         work->field_13C     = 4;
                         work->field_13E     = 0;
                         work->field_140     = 0;
@@ -754,12 +754,12 @@ move_done:
                         break;
                 }
                 dmg = damage;
-                func_800E2C78(task->spawnArg2.pointer, work->rec60[i].key, dmg, 0);
+                func_800E2C78(task->spawnArg2.pointer, work->rec60[i].key.value, dmg, 0);
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2.pointer)->node, dmg, 0);
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
                 }
-                stun = Gp_GetIdParam2(work->rec60[i].key);
+                stun = Gp_GetIdParam2(work->rec60[i].key.value);
                 if (stun > 0) {
                     work->field_136 = stun;
                 }
@@ -774,7 +774,7 @@ move_done:
                 scratch->delta.vx.w = coord->workm.t[0] - work->rec60[i].point.vx;
                 scratch->delta.vy.w = coord->workm.t[1] - work->rec60[i].point.vy;
                 scratch->delta.vz.w = coord->workm.t[2] - work->rec60[i].point.vz;
-                reach               = work->rec60[i].depth - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
+                reach               = work->rec60[i].distance - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
                 val                 = reach;
                 if (reach <= 0) {
                     val = 0;
@@ -1564,7 +1564,7 @@ static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             Actor02400_Fn00064(coord, 0x100);
-            rec = work->field_90.key;
+            rec = work->field_90.key.value;
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
                                    [func_800E1B24(rec)]

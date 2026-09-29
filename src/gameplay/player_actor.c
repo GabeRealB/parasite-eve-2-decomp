@@ -358,7 +358,7 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
 /// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
 /// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, GpRec18* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags);
 
 static void Gp_InitPlayerWork(Task* arg0);
@@ -4457,7 +4457,7 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 /// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
 /// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, GpRec18* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags)
 {
     obj->ctx.dir               = &actor->field_88[i];
@@ -4474,15 +4474,15 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoor
 
 static void Gp_InitPlayerWork(Task* arg0)
 {
-    GameActor* actor;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    GpObj*     obj;
-    GpRec18*   recs;
-    s32        kind;
-    s32        anim;
-    GpAnimArg  sp;
-    Task*      task;
+    GameActor*             actor;
+    TmdObject*             extra;
+    GfxCoord*               coord;
+    GpObj*                 obj;
+    WorldCollisionContact* recs;
+    s32                    kind;
+    s32                    anim;
+    GpAnimArg              sp;
+    Task*                  task;
 
     actor = arg0->work;
     extra = arg0->extra.tmd;
@@ -4646,7 +4646,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         }                                           \
     } while (0)
 
-s32 func_801011D0(GfxCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
+s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3)
 {
     GpDeltaScratch* s;
     s32             ret;
@@ -5885,7 +5885,7 @@ s32 func_801041B4(Task* arg0)
 
     actor = arg0->work;
     for (i = 0; i < 0x12; i++) {
-        if ((actor->field_17C[i].key & 0x100100) == 0x100000) {
+        if ((actor->field_17C[i].key.value & 0x100100) == 0x100000) {
             return 1;
         }
     }
@@ -6900,15 +6900,15 @@ void func_80105B74(VECTOR3* arg0)
     actor->field_48 = arg0->vz;
 }
 
-s32 Gp_PickNearestRec18(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2)
+s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
 {
-    s32            minDist;
-    s32            idx;
-    GpPickScratch* block;
-    GpRec18*       rec;
-    s32            i;
-    s32            bestIdx;
-    s32            dist;
+    s32                    minDist;
+    s32                    idx;
+    GpPickScratch*         block;
+    WorldCollisionContact* rec;
+    s32                    i;
+    s32                    bestIdx;
+    s32                    dist;
 
     minDist = 0x7FFFFFFF;
     if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
@@ -6917,7 +6917,7 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2)
     block = SCRATCH_PUSH(GpPickScratch);
     for (i = 0, bestIdx = 0; i < 6; i++) {
         rec = &arg0[i];
-        if (rec->key & 0x100000) {
+        if (rec->key.value & 0x100000) {
             dist  = abs(arg1->workm.t[0] - rec->point.vx);
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);

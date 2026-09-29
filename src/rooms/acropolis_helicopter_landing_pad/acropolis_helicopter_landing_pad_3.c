@@ -620,8 +620,8 @@ GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16] = {
 static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
-static s32  func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32  func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
 {
@@ -1586,7 +1586,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// X or Z one unit away from zero, and keeps the applied delta in
 /// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
 /// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
-static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1627,7 +1627,7 @@ static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec
     return s->moved;
 }
 
-/// Pushes a coordinate frame away from the records of a `GpRec18` table.
+/// Pushes a coordinate frame away from the records of a `WorldCollisionContact` table.
 /// Takes the frame's world position and the world point one unit ahead of
 /// it and computes each record's bearing relative to that facing; a zero
 /// `key` ends the table and a record whose kind is not 0x10000 or 0x30000
@@ -1635,7 +1635,7 @@ static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec
 /// of every other counting record's, it moves X and Z `push` units away
 /// along that bearing. Returns 1 when a push was applied, and 0 at once
 /// while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -1659,11 +1659,11 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, GpRec
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

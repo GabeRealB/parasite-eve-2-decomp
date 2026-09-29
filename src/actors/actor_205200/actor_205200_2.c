@@ -53,30 +53,30 @@
 /// `func_actor_205200_8014C924` unlinks, and the state of the charge and
 /// attack sub-states.
 typedef struct Actor205200Work {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ MATRIX         field_43C; // color matrix, `TmdObject.colorMtx`
-    /* 0x45C */ MATRIX         field_45C; // light matrix, `TmdObject.lightMtx`
-    /* 0x47C */ GpObj          field_47C;
-    /* 0x49C */ GpRec18        field_49C[3];
-    /* 0x4E4 */ GpObj          field_4E4;
-    /* 0x504 */ GpRec18        field_504;
-    /* 0x51C */ byte           pad_51C[0x38];
-    /* 0x554 */ GpEffArg       field_554; // record the charge's hit effect is spawned with
-    /* 0x55C */ byte           pad_55C[0x20];
-    /* 0x57C */ s16            field_57C;
-    /* 0x57E */ s16            field_57E; // animation id the work is playing
-    /* 0x580 */ u16            field_580; // id the helper slots last saw
-    /* 0x582 */ u16            field_582; // frames spent on the current id
-    /* 0x584 */ s16            field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
-    /* 0x586 */ s16            field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
-    /* 0x588 */ s16            field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
-    /* 0x58A */ s16            field_58A; // state of the attack body `func_actor_205200_8014C0C0`
-    /* 0x58C */ u16            field_58C; // its frame counter
-    /* 0x58E */ s16            field_58E; // sign of the player offset dotted with the player's facing axis
-    /* 0x590 */ s16            field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
-    /* 0x592 */ s16            field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
-    /* 0x594 */ s16            field_594; // raised by message 0x7DB; pushes the actor to state 2
-    /* 0x596 */ s16            field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_shelter_b6_corridor_8017EBA4`, non-zero to `func_shelter_b6_training_room_80181930`
+    /* 0x000 */ ActorAnimRig19        rig;
+    /* 0x43C */ MATRIX                field_43C; // color matrix, `TmdObject.colorMtx`
+    /* 0x45C */ MATRIX                field_45C; // light matrix, `TmdObject.lightMtx`
+    /* 0x47C */ GpObj                 field_47C;
+    /* 0x49C */ WorldCollisionContact field_49C[3];
+    /* 0x4E4 */ GpObj                 field_4E4;
+    /* 0x504 */ WorldCollisionContact field_504;
+    /* 0x51C */ byte                  pad_51C[0x38];
+    /* 0x554 */ GpEffArg              field_554; // record the charge's hit effect is spawned with
+    /* 0x55C */ byte                  pad_55C[0x20];
+    /* 0x57C */ s16                   field_57C;
+    /* 0x57E */ s16                   field_57E; // animation id the work is playing
+    /* 0x580 */ u16                   field_580; // id the helper slots last saw
+    /* 0x582 */ u16                   field_582; // frames spent on the current id
+    /* 0x584 */ s16                   field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
+    /* 0x586 */ s16                   field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
+    /* 0x588 */ s16                   field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
+    /* 0x58A */ s16                   field_58A; // state of the attack body `func_actor_205200_8014C0C0`
+    /* 0x58C */ u16                   field_58C; // its frame counter
+    /* 0x58E */ s16                   field_58E; // sign of the player offset dotted with the player's facing axis
+    /* 0x590 */ s16                   field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
+    /* 0x592 */ s16                   field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
+    /* 0x594 */ s16                   field_594; // raised by message 0x7DB; pushes the actor to state 2
+    /* 0x596 */ s16                   field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_shelter_b6_corridor_8017EBA4`, non-zero to `func_shelter_b6_training_room_80181930`
 } Actor205200Work;
 STATIC_ASSERT_SIZEOF(Actor205200Work, 0x598);
 
@@ -442,9 +442,9 @@ static void func_actor_205200_8014BD4C(Task* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        if ((work->field_49C[i].key & 0xFFFF0000) == 0x20000) {
+        if ((work->field_49C[i].key.value & 0xFFFF0000) == 0x20000) {
             func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, 0, 0);
-            switch (Gp_GetIdParam0(work->field_49C[i].key) & 0xFFFF) {
+            switch (Gp_GetIdParam0(work->field_49C[i].key.value) & 0xFFFF) {
                 case 1:
                     found = 1;
                     break;
@@ -456,12 +456,12 @@ static void func_actor_205200_8014BD4C(Task* arg0)
             }
             work->field_584 = 1;
             work->field_586 = 0;
-            if (last != work->field_49C[i].key) {
-                last = work->field_49C[i].key;
+            if (last != work->field_49C[i].key.value) {
+                last = work->field_49C[i].key.value;
                 func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
                               &work->field_554);
             }
-            if ((n = Gp_GetIdParam2(work->field_49C[i].key)) > 0) {
+            if ((n = Gp_GetIdParam2(work->field_49C[i].key.value)) > 0) {
                 work->field_57C = n;
             }
         }
@@ -469,7 +469,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
 end:
     Gp_ClearRec18Occupied(work->field_49C);
     if (work->field_504.flags & 1) {
-        if ((work->field_504.key & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
+        if ((work->field_504.key.value & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
             work->field_588      = 1;
             Gp_StateC08.field_6 |= 1;
         }

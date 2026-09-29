@@ -57,12 +57,12 @@
 /// One of the four display nodes the spawn handler `func_actor_403000_801343B8`
 /// links in a row from 0xB50 of the work block: the `GpObj` list node `Gp_LinkObj`
 /// appends and the task's exit callback `func_actor_403000_8013D4F4` hands back
-/// to `Gp_UnlinkObj`, followed by the five-entry `GpRec18` table the node's
+/// to `Gp_UnlinkObj`, followed by the five-entry `WorldCollisionContact` table the node's
 /// `field_C` points at (+0x20). `Gp_InitRec18Table(_, 5, 0)` on that table is
 /// what fixes the 0x98 stride the four nodes are spaced by.
 typedef struct Actor403000Obj {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[5];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[5];
 } Actor403000Obj;
 STATIC_ASSERT_SIZEOF(Actor403000Obj, 0x98);
 
@@ -132,16 +132,16 @@ typedef struct Actor403000Work {
     /* 0xDB0 */ GpObj          objDB0;
     /* 0xDD0 */ GpActorD4Rec   recDD0;
     /// Record table `func_actor_403000_8013D48C` scans: the same five-entry
-    /// `GpRec18` run the display nodes carry at +0x20, here standing on its own
+    /// `WorldCollisionContact` run the display nodes carry at +0x20, here standing on its own
     /// after the four nodes. `func_actor_403000_8013C864` hands it back to
     /// `Gp_ClearRec18Occupied` twice, and the scan reads a record's `key`
     /// the way the shared hit-record walkers do -- 0 means the run has ended,
     /// high half 0x10 is the kind that counts as present.
-    /* 0xDE8 */ GpRec18      records[5];
-    /* 0xE60 */ GpObj        objE60;
-    /* 0xE80 */ GpActorD4Rec recE80;
-    /* 0xE98 */ GpRec18      recordsE98[5];
-    /* 0xF10 */ MATRIX       field_F10;
+    /* 0xDE8 */ WorldCollisionContact records[5];
+    /* 0xE60 */ GpObj                 objE60;
+    /* 0xE80 */ GpActorD4Rec          recE80;
+    /* 0xE98 */ WorldCollisionContact recordsE98[5];
+    /* 0xF10 */ MATRIX                field_F10;
     /// The second of the two default matrices the spawn handler binds to the
     /// display object -- `&work->field_F10` and this one are what it writes to
     /// `TmdObject::lightMtx` / `field_20` -- so it is a `MATRIX` whether or not
@@ -501,7 +501,7 @@ static s32 func_actor_403000_80134204(GfxCoord* coord);
 
 /// Step `coord` by the movement the first `count` records of `recs` resolve
 /// to; returns whether the actor moved on X or Z.
-static s32 func_actor_403000_80132348(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
@@ -3554,7 +3554,7 @@ static s32                 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 
 static void                func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1);
 static void                func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2);
 static s32                 func_actor_403000_80134E00(Task* arg0);
-static inline s32          func_actor_403000_FindHit(SVECTOR* pos, GpRec18* records);
+static inline s32          func_actor_403000_FindHit(SVECTOR* pos, WorldCollisionContact* records);
 static inline s16          func_actor_403000_WrapAngle(s16 angle);
 static inline void         func_actor_403000_PlaySound(Task* arg0, GpEnemy* enemy, s32 id);
 static void                func_actor_403000_80135F08(Task* arg0);
@@ -3608,7 +3608,7 @@ static void func_actor_403000_8013203C(GfxCoord* coord, s16 yaw)
 /// `D_actor_403000_80158D84`. Returns the "moved" flag: set when the X or Z
 /// delta is nonzero. A nonzero fractional half nudges the coordinate and the
 /// latched step one unit further away from zero.
-static s32 func_actor_403000_80132348(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -4555,21 +4555,21 @@ static s32 func_actor_403000_80134204(GfxCoord* arg0)
 
 static void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
 {
-    SVECTOR          dir;
-    VECTOR           pos;
-    Actor403000Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GpObj*           node;
-    GpObj*           node2;
-    GpObj*           node3;
-    GpAnimSet**      animSrc;
-    GpRec18*         records;
-    GpRec18*         records2;
-    SVECTOR*         dirp;
-    GpRec18*         firstRec;
-    Actor403000Work* idWork;
-    TmdObject*       tmd;
+    SVECTOR                dir;
+    VECTOR                 pos;
+    Actor403000Work*       work;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    GpObj*                 node;
+    GpObj*                 node2;
+    GpObj*                 node3;
+    GpAnimSet**            animSrc;
+    WorldCollisionContact* records;
+    WorldCollisionContact* records2;
+    SVECTOR*               dirp;
+    WorldCollisionContact* firstRec;
+    Actor403000Work*       idWork;
+    TmdObject*             tmd;
 
     obj        = arg1->extra.tmd;
     coord      = obj->coords;
@@ -4824,17 +4824,17 @@ static s32 func_actor_403000_80134E00(Task* arg0)
     return 0;
 }
 
-static inline s32 func_actor_403000_FindHit(SVECTOR* pos, GpRec18* records)
+static inline s32 func_actor_403000_FindHit(SVECTOR* pos, WorldCollisionContact* records)
 {
     s16 i;
     for (i = 0; i < 5; i++) {
-        if (!records[i].key)
+        if (!records[i].key.value)
             break;
-        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
             pos->vx = records[i].point.vx;
             pos->vy = records[i].point.vy;
             pos->vz = records[i].point.vz;
-            return records[i].key;
+            return records[i].key.value;
         }
     }
     return 0;
@@ -5672,7 +5672,7 @@ static void func_actor_403000_801377C8(Task* arg0)
     SVECTOR*                dirB;
     Task*                   task;
     GameActor*              pw;
-    GpRec18*                recs;
+    WorldCollisionContact*  recs;
     s16                     angle;
     s16                     step;
     s16                     i;
@@ -5738,7 +5738,7 @@ static void func_actor_403000_801377C8(Task* arg0)
             if (ABS(mag) < 0x400) {
                 recs = work->objC80.rec;
                 for (i = 0; i < 5; i++) {
-                    value = recs[i].key;
+                    value = recs[i].key.value;
                     if (value == 0) {
                         break;
                     }
@@ -6002,9 +6002,9 @@ static void func_actor_403000_801386E8(Task* arg0)
     s32                      dist;
     s32                      mag;
     SVECTOR*                 t;
-    GfxCoord*                coord2;
-    GfxCoord*                coord3;
-    GpRec18*                 recs;
+    GfxCoord*                 coord2;
+    GfxCoord*                 coord3;
+    WorldCollisionContact*   recs;
     GameActor*               pw;
 
     work                                  = arg0->work;
@@ -6079,7 +6079,7 @@ static void func_actor_403000_801386E8(Task* arg0)
     recs = work->recordsE98;
     if ((s16)work->field_6 == 0x17) {
         for (i = 0; i < 5; i++) {
-            value = recs[i].key;
+            value = recs[i].key.value;
             if (value == 0) {
                 break;
             }
@@ -7756,7 +7756,7 @@ static s16 func_actor_403000_8013D48C(Task* task)
     s32              value;
 
     for (i = 0; i < 5; i++) {
-        value = work->records[i].key;
+        value = work->records[i].key.value;
         if (value == 0) {
             break;
         }

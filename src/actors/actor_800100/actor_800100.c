@@ -77,27 +77,27 @@ static void func_actor_800100_80165528(Task* arg0);
 
 /// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
 /// its task enters state 0 and stores at `Task::work`: the launched
-/// projectile's object plus its one-entry collision table, whose `field_0` is
-/// armed with 2. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's
+/// projectile's object plus its one-entry collision table, whose final-entry flag is
+/// set even when empty. `obj.ctx.recs` points at `rec`, `obj.coord` at the task's
 /// own coordinate, and `obj.key` is the hit payload `0x21C9E`. The
 /// projectile flies out along `work->angle` while `work->scale` opens, then
 /// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
 /// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.
 typedef struct _Actor800100Beam {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[1];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[1];
 } Actor800100Beam;
 STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
 
 /// 0x5C-byte block from `G_SCRATCH_HEAD` used by
 /// `func_actor_800100_80166514`: the `GfxCoord` it hands to
 /// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
-/// applied to it, and the angle `func_actor_800100_8016709C` returns.
+/// applied to it, and the planar contact distance retained for the placement offset.
 typedef struct _Actor800100PlaceScratch {
     /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ SVECTOR  rot;
-    /* 0x58 */ u16      angle;
-    /* 0x5A */ byte     pad_5A[2];
+    /* 0x50 */ SVECTOR rot;
+    /* 0x58 */ u16     distance;
+    /* 0x5A */ byte    pad_5A[2];
 } Actor800100PlaceScratch;
 STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
 
@@ -243,13 +243,13 @@ static void func_actor_800100_80165F50(Task* arg0);
 static void func_actor_800100_80166190(Task* arg0);
 static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1);
 static void func_actor_800100_801668C0(GfxCoord* arg0);
-static s32  func_actor_800100_80166B40(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2);
+static s32  func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2);
 static void func_actor_800100_80166DD0(Task* arg0);
 static void func_actor_800100_80166DF0(Task* arg0);
 static void func_actor_800100_80166E14(Task* arg0);
 static void func_actor_800100_80166E94(Task* arg0, s32 arg1);
 static void func_actor_800100_80166EE8(Task* arg0);
-static s32  func_actor_800100_8016709C(GfxCoord* arg0, GpRec18* arg1, GpRec18* arg2);
+static s32  _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY);
 
 extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
@@ -1553,22 +1553,22 @@ static void func_actor_800100_801631C8(Task* arg0)
 
 static void func_actor_800100_80163214(Task* arg0)
 {
-    GameActor*  actor;
-    TmdObject*  extra;
-    GfxCoord*   coord;
-    GfxCoord*   next;
-    GfxCoord*   third;
-    McSaveData* save;
-    GpRec18*    recs;
-    GpObj*      obj;
-    GpActorD4*  d4;
-    GpEffWork*  eff;
-    Task*       task;
-    SVECTOR3*   scratch;
-    s32         idx;
-    s32         packed;
-    u8          saved;
-    void*       head;
+    GameActor*             actor;
+    TmdObject*             extra;
+    GfxCoord*               coord;
+    GfxCoord*               next;
+    GfxCoord*               third;
+    McSaveData*            save;
+    WorldCollisionContact* recs;
+    GpObj*                 obj;
+    GpActorD4*             d4;
+    GpEffWork*             eff;
+    Task*                  task;
+    SVECTOR3*              scratch;
+    s32                    idx;
+    s32                    packed;
+    u8                     saved;
+    void*                  head;
 
     actor              = arg0->work;
     head               = SCRATCH_HEAD(void);
@@ -2088,7 +2088,7 @@ static void func_actor_800100_80164184(Task* arg0)
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
     flag   = (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
-    dist   = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
+    dist   = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
     if (dist != 0 && dist < 0x301 && flag == 0) {
         GameActor* actor2 = arg0->work;
 
@@ -2372,8 +2372,8 @@ static void func_actor_800100_80164710(Task* arg0)
 /// animation with a random `field_934` hold; it falls into case 1, which
 /// mirrors `field_93E` into `field_975` and, once the aim distance reaches
 /// `field_934`, advances the state and plays slot 4. Case 2 counts
-/// `field_934` down and, while it runs, asks `func_actor_800100_8016709C` for
-/// the angle to what the ally block's `field_910->contact` recorded: under
+/// `field_934` down and, while it runs, asks `_actor800100GetContactDistance` for
+/// the planar distance to what the ally block's `field_910->contact` recorded: under
 /// 0x281 the actor hands over to the `0xA` / slot-1 chain (`field_97E` set,
 /// `field_956` kept in `field_960`), otherwise `field_975` is cleared; a spent
 /// counter resets the state to slot 9.
@@ -2386,7 +2386,7 @@ static void func_actor_800100_80164940(Task* arg0)
     GfxCoord*  coord;
     GpActorD4* d4;
     u16        old;
-    s16        angle;
+    s16        distance;
     s32        flag;
     s32        arg;
     s32        val;
@@ -2444,9 +2444,9 @@ static void func_actor_800100_80164940(Task* arg0)
                 actor2->field_975 = 0;
                 Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
             } else {
-                angle = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
-                if (angle != 0) {
-                    if (angle < 0x281) {
+                distance = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
+                if (distance != 0) {
+                    if (distance < 0x281) {
                         s16        anim   = 1;
                         GameActor* actor3 = arg0->work;
                         old               = actor3->field_956;
@@ -2471,7 +2471,7 @@ static void func_actor_800100_80164940(Task* arg0)
     SCRATCH_POP(VECTOR);
 }
 
-/// Aim/lock drive for the actor's `field_95E` phase machine. While the angle
+/// Aim/lock drive for the actor's `field_95E` phase machine. While the planar distance
 /// to what the ally block's `field_910->contact` recorded is nonzero and under
 /// `0x301`, `field_93E` counts up and the LCG decides the next aim window:
 /// once the step passes `((Gp_LcgState >> 16) & 0x3F) + 0x28` the actor
@@ -2499,14 +2499,14 @@ static void func_actor_800100_80164B9C(Task* arg0)
     u16                     old;
     s16                     anim;
     u32                     random;
-    s32                     angle;
+    s32                     distance;
     s32                     val;
 
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
-    actor  = arg0->work;
-    angle  = func_actor_800100_8016709C(coord, &actor->field_910->contact, NULL);
-    if (angle != 0 && angle < 0x301) {
+    coord    = arg0->extra.tmd->coords;
+    target   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    actor    = arg0->work;
+    distance = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
+    if (distance != 0 && distance < 0x301) {
         step             = actor->field_93E + 1;
         actor->field_93E = step;
         random           = Gp_LcgState * 5 + 0x71357911;
@@ -2559,13 +2559,13 @@ static void func_actor_800100_80164B9C(Task* arg0)
     }
     actor->field_973 = 1;
     func_80103C74(coord, &block->lock, &block->rot);
-    angle = func_80103D8C(block->rot.vx, block->rot.vz);
+    distance = func_80103D8C(block->rot.vx, block->rot.vz);
     if (actor->field_90C != NULL) {
         val = (rand() & 0x3FF) + 0xB00;
     } else {
         val = 0xB00;
     }
-    if (val >= angle || actor->field_95E == 2) {
+    if (val >= distance || actor->field_95E == 2) {
         actor3            = arg0->work;
         actor3->field_954 = 0;
         actor3->field_956 = 4;
@@ -2667,7 +2667,7 @@ static void func_actor_800100_80165010(Task* arg0)
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
     d4     = actor->field_910;
-    dist   = func_actor_800100_8016709C(coord, &d4->contact, NULL);
+    dist   = _actor800100GetContactDistance(coord, &d4->contact, NULL);
     state  = actor->field_95E;
     flag   = 1;
 
@@ -2759,7 +2759,7 @@ static void func_actor_800100_801652B0(Task* arg0)
 
     actor      = arg0->work;
     d4         = actor->field_910;
-    targetDist = func_actor_800100_8016709C(arg0->extra.tmd->coords, &d4->contact, NULL);
+    targetDist = _actor800100GetContactDistance(arg0->extra.tmd->coords, &d4->contact, NULL);
     state      = actor->field_95E;
     flag       = 1;
     switch (state) {
@@ -3448,7 +3448,7 @@ static void func_actor_800100_80166514(Task* arg0)
     GfxCoord*                src;
     GpObj*                   obj;
     Actor800100PlaceScratch* blk;
-    s16                      angle;
+    s16                      distance;
 
     actor       = arg0->work;
     src         = actor->field_91C->extra.tmd->coords;
@@ -3467,15 +3467,15 @@ static void func_actor_800100_80166514(Task* arg0)
     blk->rot.vy = 0x120;
     blk->rot.vz = 0x20;
     Gp_PlaceCoordOffset(&sp10, &blk->coord, &(head - 1)->rot);
-    angle      = func_actor_800100_8016709C(&blk->coord, (GpRec18*)actor->pad_3BC, NULL);
-    blk->angle = angle;
-    func_actor_800100_8016666C(&blk->coord, angle);
+    distance      = _actor800100GetContactDistance(&blk->coord, actor->aimContacts, NULL);
+    blk->distance = distance;
+    func_actor_800100_8016666C(&blk->coord, distance);
     blk->rot.vx = 0;
     blk->rot.vz = 0;
-    blk->rot.vy = blk->angle + 0x38;
+    blk->rot.vy = blk->distance + 0x38;
     Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &(head - 1)->rot);
     func_actor_800100_801668C0(&blk->coord);
-    Gp_ClearRec18Occupied((GpRec18*)actor->pad_3BC);
+    Gp_ClearRec18Occupied(actor->aimContacts);
     SCRATCH_POP_AT(scratch, Actor800100PlaceScratch);
 }
 
@@ -3632,15 +3632,15 @@ static void func_actor_800100_801668C0(GfxCoord* arg0)
     SCRATCH_POP_BYTES(sizeof(Actor800100QuadScratch));
 }
 
-static s32 func_actor_800100_80166B40(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2)
+static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
 {
-    s32            minDist;
-    s32            idx;
-    GpPickScratch* block;
-    GpRec18*       rec;
-    s32            i;
-    s32            bestIdx;
-    s32            dist;
+    s32                    minDist;
+    s32                    idx;
+    GpPickScratch*         block;
+    WorldCollisionContact* rec;
+    s32                    i;
+    s32                    bestIdx;
+    s32                    dist;
 
     minDist = 0x7FFFFFFF;
     if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
@@ -3649,7 +3649,7 @@ static s32 func_actor_800100_80166B40(GpRec18* arg0, GfxCoord* arg1, GfxCoord* a
     block = SCRATCH_PUSH(GpPickScratch);
     for (i = 0, bestIdx = 0; i < 6; i++) {
         rec = &arg0[i];
-        if (rec->key & 0x100000) {
+        if (rec->key.value & 0x100000) {
             dist  = abs(arg1->workm.t[0] - rec->point.vx);
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);
@@ -3780,26 +3780,32 @@ static void func_actor_800100_80166F50(Task* arg0)
         rec->end0.vz    = rec->end1.vz + D_80112F60[Player_Status.weapon];
         rec->end1Radius = 1;
         rec->end0Radius = 1;
-        rec->recs       = (GpRec18*)actor->pad_3BC;
+        rec->recs       = actor->aimContacts;
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->recs, 1, 0);
         obj->flags |= 0x800;
     }
 }
 
-static s32 func_actor_800100_8016709C(GfxCoord* arg0, GpRec18* arg1, GpRec18* arg2)
+/// Planar distance from the coordinate origin to a nonempty contact, or 0.
+///
+/// Distances use world units. Optional `contactZY` needs two halfwords and
+/// receives the signed coordinate bits (Z, Y). The original X, Y, Z stores
+/// deliberately retain their order, with Z overwriting X.
+static s32 _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY)
 {
-    s32 ret;
+    s32 distance;
 
-    if (arg1->key != 0) {
-        ret = func_80103D8C(arg0->workm.t[0] - arg1->point.vx, arg0->workm.t[2] - arg1->point.vz);
-        if (arg2 != NULL) {
-            arg2->flags = arg1->point.vx;
-            arg2->depth = arg1->point.vy;
-            arg2->flags = arg1->point.vz;
+    if (contact->key.value != 0) {
+        distance = func_80103D8C(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
+        if (contactZY != NULL) {
+            // Retain the original repeated first-halfword write.
+            contactZY[0] = contact->point.vx;
+            contactZY[1] = contact->point.vy;
+            contactZY[0] = contact->point.vz;
         }
     } else {
-        ret = 0;
+        distance = 0;
     }
-    return ret;
+    return distance;
 }

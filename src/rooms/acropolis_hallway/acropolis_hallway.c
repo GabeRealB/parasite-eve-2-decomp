@@ -320,8 +320,8 @@ TmdSource D_acropolis_hallway_8017FA28 = {
 
 SVECTOR D_acropolis_hallway_8017FA4C = { 0 };
 
-static s32  func_acropolis_hallway_8017D830(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_hallway_8017D9D4(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_hallway_8017D830(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32  func_acropolis_hallway_8017D9D4(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_acropolis_hallway_8017E1C0(Task* task);
 
 /// Message gate for the hallway's first hotspot: copies the incoming record to
@@ -411,7 +411,7 @@ void func_acropolis_hallway_8017D828(Task* unused)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_hallway_8017FA4C`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_hallway_8017D830(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_hallway_8017D830(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -458,7 +458,7 @@ static s32 func_acropolis_hallway_8017D830(GfxCoord* coord, GpRec18* rec, s16 ar
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_hallway_8017D9D4(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_hallway_8017D9D4(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -482,11 +482,11 @@ static s32 func_acropolis_hallway_8017D9D4(GfxCoord* coord, GpRec18* recs, s16 c
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

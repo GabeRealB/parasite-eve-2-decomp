@@ -64,46 +64,46 @@
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
 typedef struct Actor00300InitWork {
-    /* 0x00 */ GpObj        obj0;
-    /* 0x20 */ GpRec18      rec20;
-    /* 0x38 */ GpObj        obj38;
-    /* 0x58 */ GpActorD4Rec pose;
-    /* 0x70 */ GpRec18      rec70;
-    /* 0x88 */ s16          timer;
-    /* 0x8A */ s16          pad8A;
+    /* 0x00 */ GpObj                 obj0;
+    /* 0x20 */ WorldCollisionContact rec20;
+    /* 0x38 */ GpObj                 obj38;
+    /* 0x58 */ GpActorD4Rec          pose;
+    /* 0x70 */ WorldCollisionContact rec70;
+    /* 0x88 */ s16                   timer;
+    /* 0x8A */ s16                   pad8A;
 } Actor00300InitWork;
 STATIC_ASSERT_SIZEOF(Actor00300InitWork, 0x8C);
 
 typedef struct Actor00300MainWork {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ Task*          field_43C;
-    /* 0x440 */ u8             field_440[32];
-    /* 0x460 */ u8             field_460[32];
-    /* 0x480 */ GpObj          obj480;
-    /* 0x4A0 */ GpActorD4Rec   pose4A0;
-    /* 0x4B8 */ GpRec18        rec4B8;
-    /* 0x4D0 */ GpObj          obj4D0;
-    /* 0x4F0 */ GpRec18        rec4F0[3];
-    /* 0x538 */ GpObj          obj538;
-    /* 0x558 */ GpRec18        rec558[4];
-    /* 0x5B8 */ GpObj          obj5B8;
-    /* 0x5D8 */ GpRec18        rec5D8;
-    /* 0x5F0 */ GfxCoord*      field_5F0;
-    /* 0x5F4 */ s16            field_5F4;
-    /* 0x5F6 */ s16            field_5F6;
-    /* 0x5F8 */ u8             pad_5F8[0x10];
-    /* 0x608 */ MATRIX         matrix608;
-    /* 0x628 */ u8             pad_628[0x20];
-    /* 0x648 */ SVECTOR*       field_648;
-    /* 0x64C */ u8             pad_64C[0x1A];
-    /* 0x666 */ s16            field_666;
-    /* 0x668 */ u8             pad_668[0x20];
-    /* 0x688 */ s16            field_688;
-    /* 0x68A */ u8             pad_68A[0x2];
-    /* 0x68C */ u16            field_68C;
-    /* 0x68E */ u8             pad_68E[0xA];
-    /* 0x698 */ s16            field_698;
-    /* 0x69A */ u8             pad_69A[0xA];
+    /* 0x000 */ ActorAnimRig19        rig;
+    /* 0x43C */ Task*                 field_43C;
+    /* 0x440 */ u8                    field_440[32];
+    /* 0x460 */ u8                    field_460[32];
+    /* 0x480 */ GpObj                 obj480;
+    /* 0x4A0 */ GpActorD4Rec          pose4A0;
+    /* 0x4B8 */ WorldCollisionContact rec4B8;
+    /* 0x4D0 */ GpObj                 obj4D0;
+    /* 0x4F0 */ WorldCollisionContact rec4F0[3];
+    /* 0x538 */ GpObj                 obj538;
+    /* 0x558 */ WorldCollisionContact rec558[4];
+    /* 0x5B8 */ GpObj                 obj5B8;
+    /* 0x5D8 */ WorldCollisionContact rec5D8;
+    /* 0x5F0 */ GfxCoord*              field_5F0;
+    /* 0x5F4 */ s16                   field_5F4;
+    /* 0x5F6 */ s16                   field_5F6;
+    /* 0x5F8 */ u8                    pad_5F8[0x10];
+    /* 0x608 */ MATRIX                matrix608;
+    /* 0x628 */ u8                    pad_628[0x20];
+    /* 0x648 */ SVECTOR*              field_648;
+    /* 0x64C */ u8                    pad_64C[0x1A];
+    /* 0x666 */ s16                   field_666;
+    /* 0x668 */ u8                    pad_668[0x20];
+    /* 0x688 */ s16                   field_688;
+    /* 0x68A */ u8                    pad_68A[0x2];
+    /* 0x68C */ u16                   field_68C;
+    /* 0x68E */ u8                    pad_68E[0xA];
+    /* 0x698 */ s16                   field_698;
+    /* 0x69A */ u8                    pad_69A[0xA];
 } Actor00300MainWork;
 STATIC_ASSERT_SIZEOF(Actor00300MainWork, 0x6A4);
 typedef struct Actor00300AreaConfig {
@@ -115,70 +115,70 @@ typedef struct Actor00300AreaConfig {
 STATIC_ASSERT_SIZEOF(Actor00300AreaConfig, 8);
 
 typedef struct Actor100300Work {
-    /* 0x000 */ GpObj             obj0;
-    /* 0x020 */ u16               field_20;
-    /* 0x022 */ byte              pad_22[0x16];
-    /* 0x038 */ GpObj             obj38;
-    /* 0x058 */ byte              pad_58[0x18];
-    /* 0x070 */ GpRec18           field_70;
-    /* 0x088 */ u16               field_88;
-    /* 0x08A */ s16               field_8A;
-    /* 0x08C */ byte              pad_8C[0x3B0];
-    /* 0x43C */ Task*             field_43C;
-    /* 0x440 */ byte              field_440[0x20];
-    /* 0x460 */ byte              field_460[0x20];
-    /* 0x480 */ GpObj             obj480;
-    /* 0x4A0 */ GpRec18           rec4A0[2];
-    /* 0x4D0 */ GpObj             obj4D0;
-    /* 0x4F0 */ GpRec18           rec4F0[3];
-    /* 0x538 */ GpObj             obj538;
-    /* 0x558 */ GpRec18           rec558[4];
-    /* 0x5B8 */ GpObj             obj5B8;
-    /* 0x5D8 */ GpRec18           rec5D8;
-    /* 0x5F0 */ GpEffArg          effArg5F0;
-    /* 0x5F8 */ s32               field_5F8;
-    /* 0x5FC */ s32               field_5FC;
-    /* 0x600 */ s32               field_600;
-    /* 0x604 */ byte              pad_604[4];
-    /* 0x608 */ MATRIX            field_608;
-    /* 0x628 */ MATRIX            field_628;
-    /* 0x648 */ SVECTOR*          field_648;
-    /* 0x64C */ byte              pad_64C[0x8];
-    /* 0x654 */ struct GpEffWork* field_654;
-    /* 0x658 */ s32               field_658;
-    /* 0x65C */ SVECTOR           field_65C;
-    /* 0x664 */ s16               field_664;
-    /* 0x666 */ u16               field_666;
-    /* 0x668 */ byte              pad_668[0x2];
-    /* 0x66A */ s16               field_66A;
-    /* 0x66C */ s16               field_66C;
-    /* 0x66E */ s16               field_66E;
-    /* 0x670 */ s16               field_670;
-    /* 0x672 */ u16               field_672;
-    /* 0x674 */ s16               field_674;
-    /* 0x676 */ s16               field_676;
-    /* 0x678 */ u16               field_678;
-    /* 0x67A */ s16               field_67A;
-    /* 0x67C */ s16               field_67C;
-    /* 0x67E */ s16               field_67E;
-    /* 0x680 */ u16               field_680;
-    /* 0x682 */ s16               field_682;
-    /* 0x684 */ s16               field_684;
-    /* 0x686 */ s16               field_686;
-    /* 0x688 */ s16               field_688;
-    /* 0x68A */ s16               field_68A;
-    /* 0x68C */ s16               field_68C;
-    /* 0x68E */ s16               field_68E;
-    /* 0x690 */ s16               field_690;
-    /* 0x692 */ s16               field_692;
-    /* 0x694 */ s16               field_694;
-    /* 0x696 */ u16               field_696;
-    /* 0x698 */ s16               field_698;
-    /* 0x69A */ s16               field_69A;
-    /* 0x69C */ s16               field_69C;
-    /* 0x69E */ s16               field_69E;
-    /* 0x6A0 */ s16               field_6A0;
-    /* 0x6A2 */ s16               field_6A2;
+    /* 0x000 */ GpObj                 obj0;
+    /* 0x020 */ u16                   field_20;
+    /* 0x022 */ byte                  pad_22[0x16];
+    /* 0x038 */ GpObj                 obj38;
+    /* 0x058 */ byte                  pad_58[0x18];
+    /* 0x070 */ WorldCollisionContact field_70;
+    /* 0x088 */ u16                   field_88;
+    /* 0x08A */ s16                   field_8A;
+    /* 0x08C */ byte                  pad_8C[0x3B0];
+    /* 0x43C */ Task*                 field_43C;
+    /* 0x440 */ byte                  field_440[0x20];
+    /* 0x460 */ byte                  field_460[0x20];
+    /* 0x480 */ GpObj                 obj480;
+    /* 0x4A0 */ WorldCollisionContact rec4A0[2];
+    /* 0x4D0 */ GpObj                 obj4D0;
+    /* 0x4F0 */ WorldCollisionContact rec4F0[3];
+    /* 0x538 */ GpObj                 obj538;
+    /* 0x558 */ WorldCollisionContact rec558[4];
+    /* 0x5B8 */ GpObj                 obj5B8;
+    /* 0x5D8 */ WorldCollisionContact rec5D8;
+    /* 0x5F0 */ GpEffArg              effArg5F0;
+    /* 0x5F8 */ s32                   field_5F8;
+    /* 0x5FC */ s32                   field_5FC;
+    /* 0x600 */ s32                   field_600;
+    /* 0x604 */ byte                  pad_604[4];
+    /* 0x608 */ MATRIX                field_608;
+    /* 0x628 */ MATRIX                field_628;
+    /* 0x648 */ SVECTOR*              field_648;
+    /* 0x64C */ byte                  pad_64C[0x8];
+    /* 0x654 */ struct GpEffWork*     field_654;
+    /* 0x658 */ s32                   field_658;
+    /* 0x65C */ SVECTOR               field_65C;
+    /* 0x664 */ s16                   field_664;
+    /* 0x666 */ u16                   field_666;
+    /* 0x668 */ byte                  pad_668[0x2];
+    /* 0x66A */ s16                   field_66A;
+    /* 0x66C */ s16                   field_66C;
+    /* 0x66E */ s16                   field_66E;
+    /* 0x670 */ s16                   field_670;
+    /* 0x672 */ u16                   field_672;
+    /* 0x674 */ s16                   field_674;
+    /* 0x676 */ s16                   field_676;
+    /* 0x678 */ u16                   field_678;
+    /* 0x67A */ s16                   field_67A;
+    /* 0x67C */ s16                   field_67C;
+    /* 0x67E */ s16                   field_67E;
+    /* 0x680 */ u16                   field_680;
+    /* 0x682 */ s16                   field_682;
+    /* 0x684 */ s16                   field_684;
+    /* 0x686 */ s16                   field_686;
+    /* 0x688 */ s16                   field_688;
+    /* 0x68A */ s16                   field_68A;
+    /* 0x68C */ s16                   field_68C;
+    /* 0x68E */ s16                   field_68E;
+    /* 0x690 */ s16                   field_690;
+    /* 0x692 */ s16                   field_692;
+    /* 0x694 */ s16                   field_694;
+    /* 0x696 */ u16                   field_696;
+    /* 0x698 */ s16                   field_698;
+    /* 0x69A */ s16                   field_69A;
+    /* 0x69C */ s16                   field_69C;
+    /* 0x69E */ s16                   field_69E;
+    /* 0x6A0 */ s16                   field_6A0;
+    /* 0x6A2 */ s16                   field_6A2;
 } Actor100300Work;
 
 extern GpU16Pair Actor00300_D15FD8[4];
@@ -1460,25 +1460,25 @@ static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1)
 
 static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
 {
-    GameLocationKey     key;
-    GpEnemy*            child;
-    GpRec18*            rec4B8;
-    GpRec18*            rec4F0;
-    GpRec18*            rec558;
-    GpRec18*            rec5D8;
-    Actor00300MainWork* work;
-    TmdObject*          model;
-    s32                 areaIndex;
-    Task*               childTask;
-    s32                 slot;
-    u32                 index;
-    u32                 rawId;
-    u8                  areaByte0;
-    GameLocationKey*    sessionKey;
-    GpAreaPlace*        entry;
-    TmdObject*          obj;
-    GfxCoord*           coord;
-    GfxCoord*           parts;
+    GameLocationKey              key;
+    GpEnemy*               child;
+    WorldCollisionContact* rec4B8;
+    WorldCollisionContact* rec4F0;
+    WorldCollisionContact* rec558;
+    WorldCollisionContact* rec5D8;
+    Actor00300MainWork*    work;
+    TmdObject*             model;
+    s32                    areaIndex;
+    Task*                  childTask;
+    s32                    slot;
+    u32                    index;
+    u32                    rawId;
+    u8                     areaByte0;
+    GameLocationKey*             sessionKey;
+    GpAreaPlace*           entry;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    GfxCoord*               parts;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1561,14 +1561,14 @@ static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
     work->pose4A0.recs       = rec4B8;
     work->field_43C          = childTask;
     work->obj480.coord =
-        (void*)(task->extra.tmd->coords + 2);
-    work->obj480.ctx.recs = &work->pose4A0;
-    work->obj480.pos.vx   = 0;
-    work->obj480.pos.vy   = 0;
-    work->obj480.pos.vz   = 0;
-    work->obj480.key      = 0;
-    work->obj480.radius   = 0;
-    work->obj480.flags    = 3U;
+        task->extra.tmd->coords + 2;
+    work->obj480.ctx.d4rec = &work->pose4A0;
+    work->obj480.pos.vx    = 0;
+    work->obj480.pos.vy    = 0;
+    work->obj480.pos.vz    = 0;
+    work->obj480.key       = 0;
+    work->obj480.radius    = 0;
+    work->obj480.flags     = 3U;
     Gp_LinkObj(3, &work->obj480);
     Gp_InitRec18Table(rec4B8, 1, 0);
     rec4F0             = work->rec4F0;
@@ -1714,7 +1714,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     }
 
     for (i = 0; i < 3; i++) {
-        switch ((u32)work->rec4F0[i].key >> 16) {
+        switch ((u32)work->rec4F0[i].key.value >> 16) {
             case 0:
             case 1:
                 break;
@@ -1722,17 +1722,17 @@ static void Actor00300_Fn00E54(Task* arg0)
                 if (work->field_66C != 0) {
                     break;
                 }
-                switch (Gp_GetIdParam0(work->rec4F0[i].key) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->rec4F0[i].key.value) & 0xFFFF) {
                     case 1:
                         if (work->field_694 == 0) {
                             work->field_694 = 1;
                         }
                         break;
                     case 2:
-                        Gp_SetObjFlag2(enemy, work->rec4F0[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->rec4F0[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(enemy, work->rec4F0[i].key, 0);
+                        Gp_SetObjFlag4(enemy, work->rec4F0[i].key.value, 0);
                         break;
                     case 4:
                         work->field_682 = 1;
@@ -1749,23 +1749,23 @@ static void Actor00300_Fn00E54(Task* arg0)
                     case 9:
                         break;
                 }
-                other               = Gp_ActorSlots[(u8)work->rec4F0[i].key >> 7]->extra.tmd->coords;
+                other               = Gp_ActorSlots[(u8)work->rec4F0[i].key.value >> 7]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vz.w = dz;
                 val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->field_692     = val >= 0;
-                work->field_690     = Gp_ComputeDamage(work->rec4F0[i].key,
+                work->field_690     = Gp_ComputeDamage(work->rec4F0[i].key.value,
                                                        SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
                                                        0, 0);
                 if (critical != 0) {
                     work->field_690 >>= 1;
-                } else if (Gp_RollEnemyChance(enemy, work->rec4F0[i].key, 0) != 0) {
+                } else if (Gp_RollEnemyChance(enemy, work->rec4F0[i].key.value, 0) != 0) {
                     work->field_690 *= 4;
                     Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
-                func_800E2C78(enemy, work->rec4F0[i].key, work->field_690, 0);
+                func_800E2C78(enemy, work->rec4F0[i].key.value, work->field_690, 0);
                 func_800DA6E8(&enemy->node, work->field_690, 0);
                 enemy->hp -= work->field_690;
                 if (enemy->hp <= 0) {
@@ -1805,11 +1805,11 @@ static void Actor00300_Fn00E54(Task* arg0)
                         work->field_664    = 1;
                     }
                 }
-                if (lastId != work->rec4F0[i].key) {
-                    lastId = work->rec4F0[i].key;
+                if (lastId != work->rec4F0[i].key.value) {
+                    lastId = work->rec4F0[i].key.value;
                     func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->effArg5F0);
                 }
-                cooldown = Gp_GetIdParam2(work->rec4F0[i].key);
+                cooldown = Gp_GetIdParam2(work->rec4F0[i].key.value);
                 if (cooldown > 0) {
                     work->field_66C = cooldown;
                 }
@@ -1822,7 +1822,7 @@ static void Actor00300_Fn00E54(Task* arg0)
                 scratch->delta.vy.w = y;
                 z                   = other->workm.t[2] - work->rec4F0[i].point.vz;
                 scratch->delta.vz.w = z;
-                push                = work->rec4F0[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
+                push                = work->rec4F0[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped             = push;
                 if (push <= 0) {
                     clamped = 0;
@@ -1853,7 +1853,7 @@ static void Actor00300_Fn00E54(Task* arg0)
         Gp_SpawnEff(D_80115744, work->field_43C->extra.tmd->coords, 0x20001, &scratch->from);
     }
     work->field_6A2 = 0;
-    if ((work->rec4A0[1].key & 0xFFFF0000) == 0x10000) {
+    if ((work->rec4A0[1].key.value & 0xFFFF0000) == 0x10000) {
         other = &gameGetPtrSlot(3)->extra.tmd->coords[3];
         _ACTOR00300_TEST_SIGHT_LINE(work, scratch, other, self);
     } else if (work->field_6A0 > 0) {
@@ -3240,7 +3240,7 @@ static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
             Gp_UpdateCoord(coord);
             Actor00300_Fn00078(coord, 0x200);
-            id = work->field_70.key;
+            id = work->field_70.key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->at4.loc.stage - 1]
                                              [gGameSession->at4.loc.area - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {

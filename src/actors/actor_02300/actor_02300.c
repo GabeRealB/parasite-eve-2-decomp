@@ -1331,7 +1331,7 @@ static void Actor02300_Fn00084(Task* arg0)
     }
 
     for (i = 0; i < 5; i++) {
-        switch ((u32)work->field_4EC[i].key >> 16) {
+        switch ((u32)work->field_4EC[i].key.value >> 16) {
             case 0:
             case 1:
                 break;
@@ -1339,24 +1339,24 @@ static void Actor02300_Fn00084(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key >> 7) & 1]->extra.tmd->coords;
+                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vz.w = dz;
                 val                 = (scratch->delta.vx.w * self->coord.m[0][2]) + (scratch->delta.vy.w * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->field_6AA     = val >= 0;
-                damage              = Gp_ComputeDamage(work->field_4EC[i].key,
+                damage              = Gp_ComputeDamage(work->field_4EC[i].key.value,
                                                        SquareRoot0((scratch->delta.vx.w * scratch->delta.vx.w) + (scratch->delta.vy.w * scratch->delta.vy.w) + (scratch->delta.vz.w * scratch->delta.vz.w)),
                                                        0, 0);
-                kind                = Gp_GetIdParam0(work->field_4EC[i].key);
+                kind                = Gp_GetIdParam0(work->field_4EC[i].key.value);
                 if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
-                    if (work->field_4EC[i].key & 0x8000) {
-                        if (Actor02300_D15A44[work->field_4EC[i].key & 0x7F] != 0) {
+                    if (work->field_4EC[i].key.value & 0x8000) {
+                        if (Actor02300_D15A44[work->field_4EC[i].key.value & 0x7F] != 0) {
                             hit              = 1;
                             work->field_6D0 -= damage;
                         }
-                    } else if (Actor02300_D159E8[work->field_4EC[i].key & 0x7F] != 0) {
+                    } else if (Actor02300_D159E8[work->field_4EC[i].key.value & 0x7F] != 0) {
                         hit              = 1;
                         work->field_6D0 -= damage;
                     }
@@ -1373,7 +1373,7 @@ static void Actor02300_Fn00084(Task* arg0)
                             }
                         }
                         func_800DA6E8(&enemy->node, 0, 0);
-                        cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
+                        cooldown = Gp_GetIdParam2(work->field_4EC[i].key.value);
                         if (cooldown > 0) {
                             work->field_69A = cooldown;
                         }
@@ -1386,7 +1386,7 @@ static void Actor02300_Fn00084(Task* arg0)
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -1395,11 +1395,11 @@ static void Actor02300_Fn00084(Task* arg0)
                         result = 1;
                     }
                 }
-                if (work->field_6C4 != 0 && (work->field_4EC[i].key & 0x8000)) {
+                if (work->field_6C4 != 0 && (work->field_4EC[i].key.value & 0x8000)) {
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->field_4EC[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_4EC[i].key.value, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
                     if (work->field_6B8 == 0) {
@@ -1425,7 +1425,7 @@ static void Actor02300_Fn00084(Task* arg0)
                         break;
                     case 2:
                         if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3) {
-                            Gp_SetObjFlag2(enemy, work->field_4EC[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->field_4EC[i].key.value, 0);
                             result = 1;
                         }
                         break;
@@ -1439,15 +1439,15 @@ static void Actor02300_Fn00084(Task* arg0)
                     case 9:
                         break;
                 }
-                if (lastId != work->field_4EC[i].key) {
-                    lastId             = work->field_4EC[i].key;
+                if (lastId != work->field_4EC[i].key.value) {
+                    lastId             = work->field_4EC[i].key.value;
                     scratch->effOfs.vx = 0;
                     scratch->effOfs.vy = 0;
                     scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key) & 0xFFFF, &arg0->extra.tmd->coords[3],
+                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3],
                                   &scratch->effOfs, &work->field_670);
                 }
-                cooldown = Gp_GetIdParam2(work->field_4EC[i].key);
+                cooldown = Gp_GetIdParam2(work->field_4EC[i].key.value);
                 if (cooldown > 0) {
                     work->field_69A = cooldown;
                 }
@@ -1519,7 +1519,7 @@ static void Actor02300_Fn00084(Task* arg0)
                 scratch->delta.vy.w = y;
                 z                   = part->workm.t[2] - work->field_4EC[i].point.vz;
                 scratch->delta.vz.w = z;
-                push                = work->field_4EC[i].depth - SquareRoot0((x * x) + (y * y) + (z * z));
+                push                = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped             = push;
                 if (push <= 0) {
                     clamped = 0;
@@ -2569,7 +2569,7 @@ void Actor02300_Fn02518(Task* arg0)
 /// CLUT row its room's `GpAreaPlace` names.
 ///
 /// `GpEnemy::spawnState` then picks how the enemy starts: 0 builds the full
-/// object set -- the four `GpObj` nodes with their `GpRec18` tables, the voice
+/// object set -- the four `GpObj` nodes with their `WorldCollisionContact` tables, the voice
 /// cue looked up per room in `Actor02300_D15C80`, and the coin-flip in
 /// `field_6C4` drawn from `Gp_LcgState` -- while 1 and 2 only prime the
 /// animation state and hand straight on to the next task state.

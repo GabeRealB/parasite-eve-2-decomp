@@ -4100,8 +4100,8 @@ void func_mine_mesa_801811C4(s32 height)
         faces[face].verts[0]                            = face * 4;
         faces[face].verts[2]                            = face * 4 + 2;
         faces[face].verts[3]                            = face * 4 + 3;
-        faces[face].field_A                             = 3;
-        faces[face].field_8                             = face;
+        faces[face].surfaceClass                        = 3;
+        faces[face].normalIndex                         = face;
         normals[face].vx                                = D_mine_mesa_80189A9C[i].start.vz - D_mine_mesa_80189A9C[i].end.vz;
         normals[face].vy                                = 0;
         normals[face].vz                                = D_mine_mesa_80189A9C[i].end.vx - D_mine_mesa_80189A9C[i].start.vx;

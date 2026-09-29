@@ -87,15 +87,15 @@ STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
 /// `field_5C2`.
 typedef struct Actor510900ChildAnim {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[11];   ///< `func_800B3F84` arg4, reset 1..10
-    /* 0x1CC */ byte       poses[0xB0]; ///< `func_800B3F84` arg3
-    /* 0x27C */ MATRIX     colorMtx;    ///< handed to `TmdObject::colorMtx`
-    /* 0x29C */ MATRIX     lightMtx;    ///< handed to `TmdObject::lightMtx`
-    /* 0x2BC */ GpObj      obj2BC;
-    /* 0x2DC */ GpRec18    rec2DC;
-    /* 0x2F4 */ GpObj      obj2F4;
-    /* 0x314 */ GpRec18    rec314;
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[11];   ///< `func_800B3F84` arg4, reset 1..10
+    /* 0x1CC */ byte                  poses[0xB0]; ///< `func_800B3F84` arg3
+    /* 0x27C */ MATRIX                colorMtx;    ///< handed to `TmdObject::colorMtx`
+    /* 0x29C */ MATRIX                lightMtx;    ///< handed to `TmdObject::lightMtx`
+    /* 0x2BC */ GpObj                 obj2BC;
+    /* 0x2DC */ WorldCollisionContact rec2DC;
+    /* 0x2F4 */ GpObj                 obj2F4;
+    /* 0x314 */ WorldCollisionContact rec314;
     /// Task the frame handler releases (state 2) once the camera has cut
     /// away from every view this actor is visible in.
     /* 0x32C */ struct Task* field_32C;
@@ -119,21 +119,21 @@ STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
 
 /// 0xD0-byte `Task::work` block `func_actor_510900_801397F0` allocates for its
 /// child task: the child's colour and light matrices (handed to
-/// `TmdObject::colorMtx` / `field_1C`), two linked `GpObj`s with their `GpRec18`
+/// `TmdObject::colorMtx` / `field_1C`), two linked `GpObj`s with their `WorldCollisionContact`
 /// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
 /// teardown state machine on.
 typedef struct Actor510900ChildFx {
-    /* 0x00 */ MATRIX       colorMtx;
-    /* 0x20 */ MATRIX       lightMtx;
-    /* 0x40 */ GpObj        obj40;
-    /* 0x60 */ GpRec18      rec60;
-    /* 0x78 */ GpObj        obj78;
-    /* 0x98 */ GpActorD4Rec d4rec;
-    /* 0xB0 */ GpRec18      recB0;
-    /* 0xC8 */ u16          field_C8; ///< frame counter, reset at every state change
-    /* 0xCA */ s16          field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
-    /* 0xCC */ s16          field_CC;
-    /* 0xCE */ s16          field_CE;
+    /* 0x00 */ MATRIX                colorMtx;
+    /* 0x20 */ MATRIX                lightMtx;
+    /* 0x40 */ GpObj                 obj40;
+    /* 0x60 */ WorldCollisionContact rec60;
+    /* 0x78 */ GpObj                 obj78;
+    /* 0x98 */ GpActorD4Rec          d4rec;
+    /* 0xB0 */ WorldCollisionContact recB0;
+    /* 0xC8 */ u16                   field_C8; ///< frame counter, reset at every state change
+    /* 0xCA */ s16                   field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
+    /* 0xCC */ s16                   field_CC;
+    /* 0xCE */ s16                   field_CE;
 } Actor510900ChildFx;
 STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
 
@@ -170,18 +170,18 @@ extern GpAnimSet* D_actor_510900_80167CAC[];
 extern u16 D_actor_510900_80167C94[12];
 
 /// 0x7C-byte `Task::work` block `func_actor_510900_8013AD90` allocates: two
-/// linked `GpObj`s, each with its one-entry `GpRec18` table, laid out as the
+/// linked `GpObj`s, each with its one-entry `WorldCollisionContact` table, laid out as the
 /// head of `Actor510900Work` (`func_actor_510900_8013C430` unlinks both).
 typedef struct Actor510900ChildWork {
-    /* 0x00 */ GpObj   obj0;
-    /* 0x20 */ GpRec18 rec20;
-    /* 0x38 */ GpObj   obj38;
-    /* 0x58 */ GpRec18 rec58;
-    /* 0x70 */ Task*   field_70; // released (state 3) on a view change
-    /* 0x74 */ s16     field_74; // row of `D_actor_510900_80167CEC`
-    /* 0x76 */ s16     field_76; // countdown, decremented on a view change
-    /* 0x78 */ s16     field_78; // state handed to `field_70` when the grab lands
-    /* 0x7A */ byte    pad_7A[0x2];
+    /* 0x00 */ GpObj                 obj0;
+    /* 0x20 */ WorldCollisionContact rec20;
+    /* 0x38 */ GpObj                 obj38;
+    /* 0x58 */ WorldCollisionContact rec58;
+    /* 0x70 */ Task*                 field_70; // released (state 3) on a view change
+    /* 0x74 */ s16                   field_74; // row of `D_actor_510900_80167CEC`
+    /* 0x76 */ s16                   field_76; // countdown, decremented on a view change
+    /* 0x78 */ s16                   field_78; // state handed to `field_70` when the grab lands
+    /* 0x7A */ byte                  pad_7A[0x2];
 } Actor510900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 
@@ -797,7 +797,7 @@ static void func_actor_510900_80135744(Task* arg0)
         }
     }
     for (i = 0; i < 3; i++) {
-        switch ((u16)(work->rec49C[i].key >> 16)) {
+        switch ((u16)(work->rec49C[i].key.value >> 16)) {
             case 0:
             case 1:
             case 3:
@@ -807,24 +807,24 @@ static void func_actor_510900_80135744(Task* arg0)
                 if (work->field_58C != 0) {
                     break;
                 }
-                param = Gp_GetIdParam0(work->rec49C[i].key);
-                if (work->rec49C[i].key & 0x8000) {
-                    if ((u8)work->rec49C[i].key - 1 < 6U) {
+                param = Gp_GetIdParam0(work->rec49C[i].key.value);
+                if (work->rec49C[i].key.value & 0x8000) {
+                    if ((u8)work->rec49C[i].key.value - 1 < 6U) {
                         reaction = 2;
                     }
-                    dmg = (s16)Gp_ComputeDamage(work->rec49C[i].key, 0, 0, 0) >> 1;
-                    func_800E2C78(arg0->spawnArg2.pointer, work->rec49C[i].key, dmg, 0);
+                    dmg = (s16)Gp_ComputeDamage(work->rec49C[i].key.value, 0, 0, 0) >> 1;
+                    func_800E2C78(arg0->spawnArg2.pointer, work->rec49C[i].key.value, dmg, 0);
                 } else {
                     d->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                     d->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
                     d->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                    full  = Gp_ComputeDamage(work->rec49C[i].key, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
+                    full  = Gp_ComputeDamage(work->rec49C[i].key.value, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
                     dmg   = full;
                     if ((u16)param == 5) {
                         dmg = full * 2;
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, work->rec49C[i].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(enemy, work->rec49C[i].key.value, 0) != 0) {
                         dmg *= 4;
                         if ((u16)param != 5) {
                             Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -852,7 +852,7 @@ static void func_actor_510900_80135744(Task* arg0)
                         break;
                     case 2:
                         if (work->field_5B4 == 0) {
-                            Gp_SetObjFlag2(enemy, work->rec49C[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec49C[i].key.value, 0);
                         }
                         break;
                     case 3:
@@ -940,18 +940,18 @@ static void func_actor_510900_80135744(Task* arg0)
                         }
                         break;
                 }
-                if (lastId != work->rec49C[i].key) {
-                    lastId = work->rec49C[i].key;
+                if (lastId != work->rec49C[i].key.value) {
+                    lastId = work->rec49C[i].key.value;
                     func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->field_53C);
                 }
-                wait = Gp_GetIdParam2(work->rec49C[i].key);
+                wait = Gp_GetIdParam2(work->rec49C[i].key.value);
                 if (wait > 0) {
                     work->field_58C = wait;
                 }
                 break;
             case 5:
                 hit = 0;
-                switch ((u32)(u16)work->rec49C[i].key) {
+                switch ((u32)(u16)work->rec49C[i].key.value) {
                     case 2:
                         hit             = 1;
                         work->field_58E = 10;
@@ -971,7 +971,7 @@ static void func_actor_510900_80135744(Task* arg0)
                 if (hit) {
                     work->obj4E4.flags &= 0x7FFF;
                     work->obj504.flags &= 0x7FFF;
-                    loss                = Gp_LookupIdField((u16)work->rec49C[i].key, 1);
+                    loss                = Gp_LookupIdField((u16)work->rec49C[i].key.value, 1);
                     enemy->hp          -= loss;
                     func_800DA6E8(&enemy->node, loss, 0);
                     if (enemy->hp <= 0) {
@@ -988,7 +988,7 @@ static void func_actor_510900_80135744(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->rec49C);
     if (work->rec524[0].flags & 1) {
-        if ((work->rec524[0].key & 0xFFFF0000) == 0x10000) {
+        if ((work->rec524[0].key.value & 0xFFFF0000) == 0x10000) {
             work->field_5B2     = 1;
             work->obj4E4.flags &= 0x7FFF;
             work->obj504.flags &= 0x7FFF;
@@ -2859,7 +2859,7 @@ static void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
 /// Per-frame handler of the effect child while it is alive: spins the object by
 /// `field_CE` about X, drags it 150 units down its own Y axis and drips a trail
 /// effect every third frame. Once it has fallen past -0x514 and come back up,
-/// or either `GpRec18` table reports a hit, it fires the impact effects,
+/// or either `WorldCollisionContact` table reports a hit, it fires the impact effects,
 /// reparents the task under the spawned one and hands the actor to state 2.
 /// A parent that has stopped (`field_592` == 0) tears the object down the same
 /// way. `Gp_StateF0.field_4` 1 only refreshes the colour and 2 only hides the model.
@@ -2939,14 +2939,14 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
     if (work->field_CA != 0 && coord->coord.t[1] >= -0x513) {
         done = 1;
     }
-    if (done != 0 || (work->rec60.key & 0xFFFF0000) == 0x10000 || work->recB0.key != 0) {
+    if (done != 0 || (work->rec60.key.value & 0xFFFF0000) == 0x10000 || work->recB0.key.value != 0) {
         Gp_SpawnEff(0x6005C, coord, 0x10002200, NULL);
         Gp_SpawnEff(0x60070, coord, 0xC1001200, NULL);
         eff = Gp_SpawnEff(0x80060185, coord, 0, NULL);
         if (eff != NULL) {
             Task_Reparent(task, eff->task);
         }
-        if (work->rec60.key != 0) {
+        if (work->rec60.key.value != 0) {
             work->field_CA = 2;
         } else {
             work->field_CA = 0;
@@ -2973,7 +2973,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
 }
 
 /// Frame handler of the effect child task: state 0 fades the object in over
-/// 0x10 frames, state 1 holds it until its `GpRec18` reports a hit or 0x1F
+/// 0x10 frames, state 1 holds it until its `WorldCollisionContact` reports a hit or 0x1F
 /// frames pass, state 2 runs the hit handler, and state 3 unlinks the object
 /// and destroys the enemy.
 static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
@@ -3007,7 +3007,7 @@ static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                 }
                 break;
             case 1:
-                if ((work->rec60.key & 0xFFFF0000) == 0x10000) {
+                if ((work->rec60.key.value & 0xFFFF0000) == 0x10000) {
                     work->field_CA     = 2;
                     work->field_CC     = 0;
                     work->obj40.flags &= 0x7FFF;
@@ -3330,7 +3330,7 @@ case0:
         goto end;
     }
     ctx->node.state.b.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
-    dmg                     = work->rec2DC.key;
+    dmg                     = work->rec2DC.key.value;
     work->obj2BC.flags     |= 0x8000;
     if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.b.targeted == one &&
         Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
@@ -3581,7 +3581,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             break;
         case 1:
             ctx->node.state.b.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
-            hit                     = work->rec20.key;
+            hit                     = work->rec20.key.value;
             work->obj0.flags       |= 0x8000;
             if ((hit & ~0x7FFF) == 0x20000) {
                 tag = ctx->node.state.b.targeted;

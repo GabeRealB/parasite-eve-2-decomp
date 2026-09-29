@@ -279,35 +279,35 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeModelWork, 0x4);
 /// at, `field_1F0` is the `GpEffArg` the death effect is spawned with and
 /// `field_290` the death-sequence frame counter.
 typedef struct AcropolisBridgeEnemyWork {
-    /* 0x000 */ s16           field_0;
-    /* 0x002 */ s16           field_2;
-    /* 0x004 */ s16           field_4;
-    /* 0x006 */ byte          pad_6[0x2];
-    /* 0x008 */ s16           yaw;
-    /* 0x00A */ byte          pad_A[0x2];
-    /* 0x00C */ GpAnimCtx     anim;
-    /* 0x020 */ GpAnimSlot    slots[4];
-    /* 0x0C0 */ byte          pad_C0[0x40];
-    /* 0x100 */ s16           field_100;
-    /* 0x102 */ s16           field_102;
-    /* 0x104 */ s16           field_104;
-    /* 0x106 */ s16           field_106;
-    /* 0x108 */ s16           field_108;
-    /* 0x10A */ byte          pad_10A[0x2];
-    /* 0x10C */ s16           field_10C;
-    /* 0x10E */ s16           field_10E;
-    /* 0x110 */ GpObj         body;
-    /* 0x130 */ GpRec18       recs[3];
-    /* 0x178 */ GpObj         hit;
-    /* 0x198 */ GpRec18       hitRecs[1];
-    /* 0x1B0 */ MATRIX        lightMtx;
-    /* 0x1D0 */ MATRIX        colorMtx;
-    /* 0x1F0 */ GpEffArg      field_1F0;
-    /* 0x1F8 */ s16           field_1F8;
-    /* 0x1FA */ s16           field_1FA;
-    /* 0x1FC */ OverlayWalker walker;
-    /* 0x290 */ u16           field_290;
-    /* 0x292 */ u16           field_292;
+    /* 0x000 */ s16                   field_0;
+    /* 0x002 */ s16                   field_2;
+    /* 0x004 */ s16                   field_4;
+    /* 0x006 */ byte                  pad_6[0x2];
+    /* 0x008 */ s16                   yaw;
+    /* 0x00A */ byte                  pad_A[0x2];
+    /* 0x00C */ GpAnimCtx             anim;
+    /* 0x020 */ GpAnimSlot            slots[4];
+    /* 0x0C0 */ byte                  pad_C0[0x40];
+    /* 0x100 */ s16                   field_100;
+    /* 0x102 */ s16                   field_102;
+    /* 0x104 */ s16                   field_104;
+    /* 0x106 */ s16                   field_106;
+    /* 0x108 */ s16                   field_108;
+    /* 0x10A */ byte                  pad_10A[0x2];
+    /* 0x10C */ s16                   field_10C;
+    /* 0x10E */ s16                   field_10E;
+    /* 0x110 */ GpObj                 body;
+    /* 0x130 */ WorldCollisionContact recs[3];
+    /* 0x178 */ GpObj                 hit;
+    /* 0x198 */ WorldCollisionContact hitRecs[1];
+    /* 0x1B0 */ MATRIX                lightMtx;
+    /* 0x1D0 */ MATRIX                colorMtx;
+    /* 0x1F0 */ GpEffArg              field_1F0;
+    /* 0x1F8 */ s16                   field_1F8;
+    /* 0x1FA */ s16                   field_1FA;
+    /* 0x1FC */ OverlayWalker         walker;
+    /* 0x290 */ u16                   field_290;
+    /* 0x292 */ u16                   field_292;
 } AcropolisBridgeEnemyWork;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeEnemyWork, 0x294);
 
@@ -2491,7 +2491,7 @@ static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* wo
 static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work);
 static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work);
 static __inline__ s16  _acropolisBridgeWasHit(Task* task);
-static __inline__ s32  bridge_rec_kind1(GpRec18* recs);
+static __inline__ s32  bridge_rec_kind1(WorldCollisionContact* recs);
 static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base);
 static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
 static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
@@ -5520,12 +5520,12 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
     s->count  = 0;
 
     for (s->i = 0; s->i < work->avoidCount; s->i++) {
-        if (work->avoidRecs[s->i].key == 0) {
+        if (work->avoidRecs[s->i].key.value == 0) {
             break;
         }
-        s->kind = work->avoidRecs[s->i].key & 0xFFFF0000;
+        s->kind = work->avoidRecs[s->i].key.value & 0xFFFF0000;
         if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key != 0) {
+            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key.value != 0) {
                 continue;
             }
         } else {
@@ -6282,7 +6282,7 @@ static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
 /// one-entry contact table is occupied once something has struck it.
 static __inline__ s16 _acropolisBridgeWasHit(Task* task)
 {
-    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].key == 0) {
+    if (((AcropolisBridgeEnemyWork*)task->work)->hitRecs[0].key.value == 0) {
         return 0;
     }
     return 1;
@@ -6406,15 +6406,15 @@ void func_acropolis_bridge_801863A8(Task* task)
 /// three collision records are scanned in order and the scan stops at the first
 /// empty one, so an occupied record whose `key` high halfword is 1 has to
 /// come before any gap in the table.
-static __inline__ s32 bridge_rec_kind1(GpRec18* recs)
+static __inline__ s32 bridge_rec_kind1(WorldCollisionContact* recs)
 {
     s16 i;
 
     for (i = 0; i < 3; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             return 0;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -6889,7 +6889,7 @@ static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
     AcropolisBridgeEnemyWork*  cur;
     AcropolisBridgeHitScratch* block;
     TmdObject*                 extra;
-    GpRec18*                   recs;
+    WorldCollisionContact*     recs;
     VECTOR                     pos;
     s32                        mode;
     s32                        view;
@@ -6977,14 +6977,14 @@ body:
     recs  = work->recs;
     i     = 0;
     do {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             goto missed;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             block->x = recs[i].point.vx;
             block->y = recs[i].point.vy;
             block->z = recs[i].point.vz;
-            hit      = recs[i].key;
+            hit      = recs[i].key.value;
             goto hitTaken;
         }
         i++;

@@ -44,12 +44,12 @@
 /// 0x38 block the flying dart's spawn state allocates with `memCalloc` and
 /// parks in `Task::work`. It leads with the `GpObj` list node
 /// `func_m4a1_pyke_8011E4AC` hands back to `Gp_UnlinkObj` on teardown; `rec` is
-/// the single-entry `GpRec18` collision table `obj.ctx.recs` points at, and its
+/// the single-entry `WorldCollisionContact` collision table `obj.ctx.recs` points at, and its
 /// `flags` is set to 2 (the last-element bit) instead of going through
 /// `Gp_InitRec18Table`.
 typedef struct M4a1PykeBeam {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[1];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[1];
 } M4a1PykeBeam;
 STATIC_ASSERT_SIZEOF(M4a1PykeBeam, 0x38);
 

@@ -80,15 +80,15 @@ STATIC_ASSERT_SIZEOF(Actor205200CtrlWork, 0x30);
 /// `func_actor_205200_8014AE0C`. `field_78` is the slot the part took in the
 /// controller's `field_0` / `field_18` arrays.
 typedef struct Actor205200Part {
-    /* 0x00 */ GpObj    obj;
-    /* 0x20 */ GpRec18  recs[3];
-    /* 0x68 */ GpEffArg field_68; // record the part's effects are spawned with
-    /* 0x70 */ s16      field_70; // hit-stun countdown; hits are ignored while non-zero
-    /* 0x72 */ s16      field_72; // state of the teardown handler `func_actor_205200_8014B484`
-    /* 0x74 */ u16      field_74; // effect timer
-    /* 0x76 */ s16      field_76; // spark cooldown
-    /* 0x78 */ s16      field_78;
-    /* 0x7A */ byte     pad_7A[2];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact recs[3];
+    /* 0x68 */ GpEffArg              field_68; // record the part's effects are spawned with
+    /* 0x70 */ s16                   field_70; // hit-stun countdown; hits are ignored while non-zero
+    /* 0x72 */ s16                   field_72; // state of the teardown handler `func_actor_205200_8014B484`
+    /* 0x74 */ u16                   field_74; // effect timer
+    /* 0x76 */ s16                   field_76; // spark cooldown
+    /* 0x78 */ s16                   field_78;
+    /* 0x7A */ byte                  pad_7A[2];
 } Actor205200Part;
 STATIC_ASSERT_SIZEOF(Actor205200Part, 0x7C);
 
@@ -716,18 +716,18 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     }
     if (part->field_70 == 0) {
         for (i = 0; i < 3; i++) {
-            if ((part->recs[i].key & 0xFFFF0000) != 0x20000) {
+            if ((part->recs[i].key.value & 0xFFFF0000) != 0x20000) {
                 continue;
             }
-            if (part->recs[i].key & 0x8000) {
+            if (part->recs[i].key.value & 0x8000) {
                 func_800DA6E8(&enemy->node, 0, 0);
                 break;
             }
             vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->recs[i].key, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(enemy, part->recs[i].key, 0) != 0) {
+            damage  = Gp_ComputeDamage(part->recs[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(enemy, part->recs[i].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(0x6009C, coord, 0, NULL);
             }
@@ -748,7 +748,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->field_76 == 0) {
-                    if ((Gp_GetIdParam0(part->recs[i].key) & 0xFFFF) == 7) {
+                    if ((Gp_GetIdParam0(part->recs[i].key.value) & 0xFFFF) == 7) {
                         func_800FDB18(3, coord, NULL, &part->field_68);
                     }
                     func_800FDB18(7, coord, NULL, &part->field_68);
@@ -760,7 +760,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                     clamped = 200;
                 }
                 part->field_74 = (clamped * 120) / 200 + 30;
-                hitTime        = Gp_GetIdParam2(part->recs[i].key);
+                hitTime        = Gp_GetIdParam2(part->recs[i].key.value);
                 if (hitTime > 0) {
                     part->field_70 = hitTime;
                 }

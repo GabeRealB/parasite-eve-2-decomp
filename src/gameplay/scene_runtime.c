@@ -168,7 +168,7 @@ typedef struct _GpRgbScratch {
 } GpRgbScratch;
 STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_MakeDirOffset`.
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `worldCollisionCalcContactViewOffset`.
 /// `vec` is the `arg1->pos - arg0` delta (normalized in place);
 /// `mtx` is the transpose of `gGfxViewCoord.workm`.
 typedef struct _GpDirScratch {
@@ -3595,32 +3595,34 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
+void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContact* contact, SVECTOR* offset)
 {
-    GpDirScratch* s;
-    SVECTOR*      vec;
-    GfxCoord*     coord;
+    GpDirScratch* scratch;
+    SVECTOR*      delta;
+    GfxCoord*      viewCoord;
     s32           scale;
 
-    s       = SCRATCH_PUSH(GpDirScratch);
-    vec     = &s->vec;
-    vec->vx = arg1->pos.vx - arg0->vx;
-    vec->vy = arg1->pos.vy - arg0->vy;
-    vec->vz = arg1->pos.vz - arg0->vz;
-    coord   = &gGfxViewCoord;
-    scale   = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec)) - arg1->field_2;
+    scratch = SCRATCH_PUSH(GpDirScratch);
+    delta   = &scratch->vec;
+    // Measure separation after the signed-halfword coordinate truncation.
+    delta->vx = contact->point.vx - position->vx;
+    delta->vy = contact->point.vy - position->vy;
+    delta->vz = contact->point.vz - position->vz;
+    viewCoord = &gGfxViewCoord;
+    scale     = SquareRoot0(Gfx_ApplyMatrixNoSf(delta, delta)) - contact->distance;
     if (scale >= 0) {
         scale = -scale;
     }
-    VectorNormalSS(&s->vec, &s->vec);
-    TransposeMatrix(&coord->workm, &s->mtx);
-    gfxLoadRotSv(&s->mtx, &s->vec);
+    // Rotate and scale the offset in the view coordinate frame.
+    VectorNormalSS(&scratch->vec, &scratch->vec);
+    TransposeMatrix(&viewCoord->workm, &scratch->mtx);
+    gfxLoadRotSv(&scratch->mtx, &scratch->vec);
     gte_rtv0();
-    gte_stsv(vec);
+    gte_stsv(delta);
     gte_lddp(scale);
-    gte_ldsv(vec);
+    gte_ldsv(delta);
     gte_gpf12();
-    gte_stsv(arg2);
+    gte_stsv(offset);
     SCRATCH_POP(GpDirScratch);
 }
 

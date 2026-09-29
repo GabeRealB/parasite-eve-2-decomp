@@ -962,7 +962,7 @@ static __inline__ void enter_state(Task* arg0, s32 state);
 static __inline__ void update_color(void* enemy, GfxCoord* coord);
 static __inline__ s16  take_hit(Task* arg0);
 static __inline__ void update_rotation(Task* arg0);
-static __inline__ void calc_push(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out);
+static __inline__ void calc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
 static __inline__ void set_state(Task* arg0, s32 state);
 static __inline__ s32  take_request(Task* arg0);
 static __inline__ s32  is_hit(Task* arg0);
@@ -1911,7 +1911,7 @@ static void func_actor_341700_80163FBC(Task* arg0)
 ///
 /// `rec` must stay an inline argument: `integrate.c` expands it with
 /// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void calc_push(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out)
+static __inline__ void calc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
 {
     SVECTOR   pos;
     VECTOR    d;
@@ -1928,7 +1928,7 @@ static __inline__ void calc_push(Task* arg0, GfxCoord* coord, GpRec18* rec, SVEC
     d.vy   = 0;
     d.vz   = pos.vz - rec->point.vz;
     pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->depth - pen;
+    pen    = rec->distance - pen;
     if (pen <= 0) {
         t = 0;
     } else {
@@ -1981,7 +1981,7 @@ static void func_actor_341700_801640F8(Task* arg0, s16 arg1)
     SCRATCH_PUSH_BYTES(8);
     work->field_41E = 0;
     for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].key & 0xFFFF0000) {
+        switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (arg1 != 0) {
                     break;
@@ -1998,37 +1998,37 @@ static void func_actor_341700_801640F8(Task* arg0, s16 arg1)
             case 0x20000:
                 if (work->field_40E == 0) {
                     work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key, work->field_43A, 0, 0);
+                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key.value, work->field_43A, 0, 0);
                     amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key, 0) != 0) {
+                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
+                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->rec_2EC[i].key, amount, 0);
+                    func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF,
+                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF,
                                   &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
                     if (amount >= 0x28) {
                         work->field_448 = 2;
                     } else {
                         work->field_448 = 1;
                     }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].key) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->rec_2EC[i].key.value) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key.value, 0);
                             break;
                         case 4:
                             work->field_448 = 4;
@@ -2049,7 +2049,7 @@ static void func_actor_341700_801640F8(Task* arg0, s16 arg1)
                             work->field_448 = 3;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF) == 0xD) {
+                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF) == 0xD) {
                     func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
                 }
                 break;

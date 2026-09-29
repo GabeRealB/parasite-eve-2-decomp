@@ -47,7 +47,7 @@ void Gp_PulseState1C80(void);
 
 void func_800FDB18(s32 arg0, struct GfxCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
-s32 func_801011D0(struct GfxCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3);
+s32 func_801011D0(struct GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3);
 
 void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
 
@@ -62,7 +62,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 /// Message 1006; the fourth dispatch argument is unused.
 s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3);
 
-s32 Gp_PickNearestRec18(GpRec18* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
+s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
 
 s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 

@@ -71,30 +71,30 @@ typedef struct Actor107600Work {
     /// Colour / light matrix pair `func_actor_107600_80132ED0` hangs off the
     /// display object's `TmdObject.colorMtx` / `field_1C` so the actor draws
     /// with its own light instead of `Gp_BindDefaultMtx`'s.
-    /* 0x000 */ MATRIX  matrix_0;  // color matrix for the child models
-    /* 0x020 */ MATRIX  matrix_20; // light matrix for the child models
-    /* 0x040 */ u16     pitch;     // fed to RotMatrixX
-    /* 0x042 */ s16     yaw;       // fed to RotMatrixY
-    /* 0x044 */ u16     roll;      // fed to RotMatrixZ
-    /* 0x046 */ byte    pad_46[0x2];
-    /* 0x048 */ u16     field_48;  // spawn position x
-    /* 0x04A */ u16     field_4A;  // spawn position y
-    /* 0x04C */ u16     field_4C;  // spawn position z
-    /* 0x04E */ byte    pad_4E[0x2];
-    /* 0x050 */ u16     field_50;  // fed to Gfx_RotMatrixX
-    /* 0x052 */ u16     field_52;  // fed to Gfx_RotMatrixY
-    /* 0x054 */ u16     field_54;  // fed to Gfx_RotMatrixZ
-    /* 0x056 */ byte    pad_56[0x2];
-    /* 0x058 */ s16     field_58;  // spin velocity added to field_50 while tumbling
-    /* 0x05A */ s16     field_5A;  // spin velocity added to field_52
-    /* 0x05C */ s16     field_5C;  // spin velocity added to field_54
-    /* 0x05E */ byte    pad_5E[0x2];
-    /* 0x060 */ GpObj   obj;
-    /* 0x080 */ GpRec18 rec18[1];  // collision table; count 8 passed to Gp_InitRec18Table
-    /* 0x098 */ byte    pad_98[0xA2];
-    /* 0x13A */ u16     field_13A; // frame counter / countdown of func_actor_107600_80132160
-    /* 0x13C */ byte    pad_13C[0x2];
-    /* 0x13E */ u16     field_13E;
+    /* 0x000 */ MATRIX                matrix_0;  // color matrix for the child models
+    /* 0x020 */ MATRIX                matrix_20; // light matrix for the child models
+    /* 0x040 */ u16                   pitch;     // fed to RotMatrixX
+    /* 0x042 */ s16                   yaw;       // fed to RotMatrixY
+    /* 0x044 */ u16                   roll;      // fed to RotMatrixZ
+    /* 0x046 */ byte                  pad_46[0x2];
+    /* 0x048 */ u16                   field_48;  // spawn position x
+    /* 0x04A */ u16                   field_4A;  // spawn position y
+    /* 0x04C */ u16                   field_4C;  // spawn position z
+    /* 0x04E */ byte                  pad_4E[0x2];
+    /* 0x050 */ u16                   field_50;  // fed to Gfx_RotMatrixX
+    /* 0x052 */ u16                   field_52;  // fed to Gfx_RotMatrixY
+    /* 0x054 */ u16                   field_54;  // fed to Gfx_RotMatrixZ
+    /* 0x056 */ byte                  pad_56[0x2];
+    /* 0x058 */ s16                   field_58;  // spin velocity added to field_50 while tumbling
+    /* 0x05A */ s16                   field_5A;  // spin velocity added to field_52
+    /* 0x05C */ s16                   field_5C;  // spin velocity added to field_54
+    /* 0x05E */ byte                  pad_5E[0x2];
+    /* 0x060 */ GpObj                 obj;
+    /* 0x080 */ WorldCollisionContact rec18[1];  // collision table; count 8 passed to Gp_InitRec18Table
+    /* 0x098 */ byte                  pad_98[0xA2];
+    /* 0x13A */ u16                   field_13A; // frame counter / countdown of func_actor_107600_80132160
+    /* 0x13C */ byte                  pad_13C[0x2];
+    /* 0x13E */ u16                   field_13E;
     /// The spawn state stores the model root here as a word, while
     /// `func_actor_107600_80132D54` counts its sub-phase in the low halfword.
     /* 0x140 */ union {
@@ -1783,14 +1783,14 @@ static void func_actor_107600_80133DC4(Task* arg0)
     work->field_156 = 0;
     if (Gp_FindRec18(work->obj.ctx.recs, 0) != 0) {
         for (i = 0; i < 8; i++) {
-            if ((work->rec18[i].key & 0xFFFF0000) == 0x20000) {
+            if ((work->rec18[i].key.value & 0xFFFF0000) == 0x20000) {
                 work->field_156                        = 1;
-                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].at10.normal.vx;
-                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].at10.normal.vy;
-                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].at10.normal.vz;
+                ((Actor107600HitPos*)&work->pitch)->vx = work->rec18[i].response.normal.vx;
+                ((Actor107600HitPos*)&work->pitch)->vy = work->rec18[i].response.normal.vy;
+                ((Actor107600HitPos*)&work->pitch)->vz = work->rec18[i].response.normal.vz;
                 func_actor_107600_80134D9C(arg0);
-                damage          = Gp_ComputeDamage(work->rec18[i].key, work->field_14C, 0, 0);
-                work->field_150 = Gp_GetIdParam2(work->rec18[i].key);
+                damage          = Gp_ComputeDamage(work->rec18[i].key.value, work->field_14C, 0, 0);
+                work->field_150 = Gp_GetIdParam2(work->rec18[i].key.value);
                 work->field_160 = damage;
                 func_800DA6E8(&enemy->node, damage, 0);
                 enemy->hp -= damage;
@@ -2050,14 +2050,14 @@ static void func_actor_107600_80134920(Task* arg0)
 }
 
 /// Links this actor's display node the way `func_8010C980` does for the
-/// gameplay objects: the node's collision table is the `GpRec18` run at
+/// gameplay objects: the node's collision table is the `WorldCollisionContact` run at
 /// `work->rec18` (count 8), and its `field_1C` payload is the spawn variant's
 /// height, 0x220 for the `field_162 == 1` variant and 0x190 otherwise.
 static void func_actor_107600_80134958(Task* arg0)
 {
-    Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    GpRec18*         rec   = work->rec18;
+    Actor107600Work*       work  = (Actor107600Work*)arg0->work;
+    GfxCoord*               coord = arg0->extra.tmd->coords;
+    WorldCollisionContact* rec   = work->rec18;
 
     work->obj.coord    = coord;
     work->obj.ctx.recs = rec;

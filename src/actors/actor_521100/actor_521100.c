@@ -1854,7 +1854,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         work->field_6AC = (u16)work->field_6AC - 1;
     }
     for (i = 0; i < 3; i++) {
-        kind = (u16)(work->rec534[i].key >> 0x10);
+        kind = (u16)(work->rec534[i].key.value >> 0x10);
         if (kind < 2) {
             continue;
         }
@@ -1870,8 +1870,8 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         scratch->delta.vy.w = 0;
         dz                  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
         scratch->delta.vz.w = dz;
-        damage              = Gp_ComputeDamage(work->rec534[i].key, SquareRoot0(dx * dx + dz * dz), 0, 0);
-        hitType             = Actor521100_GetHitType(work->rec534[i].key);
+        damage              = Gp_ComputeDamage(work->rec534[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
+        hitType             = Actor521100_GetHitType(work->rec534[i].key.value);
         if (hitType == 1) {
             if (work->field_69E == 2) {
                 hitType = 0;
@@ -1908,7 +1908,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 work->field_678.vy = angle2;
                 work->field_680    = 1;
                 damage           >>= 1;
-                if ((Gp_GetIdParam0(work->rec534[i].key) & 0xFFFF) == 5) {
+                if ((Gp_GetIdParam0(work->rec534[i].key.value) & 0xFFFF) == 5) {
                     damage *= 2;
                     Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
@@ -1928,7 +1928,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             case 1:
                 work->field_69E = 4;
                 work->field_6A0 = 0;
-                if (work->rec534[i].key & 0x8000) {
+                if (work->rec534[i].key.value & 0x8000) {
                     damage >>= 2;
                 } else {
                     damage >>= 3;
@@ -1942,7 +1942,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 work->field_69E = 3;
                 work->field_6A0 = 0;
                 work->field_6AE = 0;
-                if (work->rec534[i].key & 0x8000) {
+                if (work->rec534[i].key.value & 0x8000) {
                     damage *= 2;
                 } else {
                     damage >>= 1;
@@ -1958,14 +1958,14 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 SndEvt_EnqueueType6((s32)sound, pan2, depth);
         }
     damage_done:
-        func_800E2C78(enemy, (s32)work->rec534[i].key, (s32)damage, 0);
+        func_800E2C78(enemy, (s32)work->rec534[i].key.value, (s32)damage, 0);
         func_800DA6E8(&enemy->node, (s32)damage, 0);
         enemy->hp = (u16)enemy->hp - damage;
-        if (lastId != work->rec534[i].key) {
-            lastId = work->rec534[i].key;
-            func_800FDB18(Gp_GetIdParam1(work->rec534[i].key) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->eff);
+        if (lastId != work->rec534[i].key.value) {
+            lastId = work->rec534[i].key.value;
+            func_800FDB18(Gp_GetIdParam1(work->rec534[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->eff);
         }
-        wait = Gp_GetIdParam2(work->rec534[i].key);
+        wait = Gp_GetIdParam2(work->rec534[i].key.value);
         if (wait > 0) {
             work->field_684 = wait;
         }

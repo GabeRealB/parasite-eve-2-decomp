@@ -119,90 +119,90 @@ typedef struct Actor400500HitView {
 /// and latches that id in `field_9FC`. The second slot's `field_10` overlaps
 /// `Actor400500HitView::flags_4C`.
 typedef struct Actor400500Work {
-    /* 0x000 */ GpAnimCtx          anim;
-    /* 0x014 */ GpAnimSlot         slots[0x12];
-    /* 0x2E4 */ byte               pad_2E4[0x524];
-    /* 0x808 */ MATRIX             matrix_808; // model root coord, copied on the light-mode path
-    /* 0x828 */ GpObj              obj0;
-    /* 0x848 */ GpRec18            rec0[3];
-    /* 0x890 */ GpObj              obj1;
-    /* 0x8B0 */ GpObj              obj2;
-    /* 0x8D0 */ GpRec18            rec1[1];
-    /* 0x8E8 */ GpObj              obj3;
-    /* 0x908 */ GpObj              obj4;
-    /* 0x928 */ GpRec18            rec2[1];
-    /* 0x940 */ GpEffArg           eff_940; // part-3 coord, scale 0x100, count 3
-    /* 0x948 */ s16                field_948;
-    /* 0x94A */ s16                field_94A;
-    /* 0x94C */ s16                field_94C;
-    /* 0x94E */ byte               pad_94E[2];
-    /* 0x950 */ u16                field_950; // low half of root coord.t[0]
-    /* 0x952 */ byte               pad_952[2];
-    /* 0x954 */ u16                field_954; // low half of root coord.t[2]
-    /* 0x956 */ byte               pad_956[6];
-    /* 0x95C */ MATRIX             colorMtx;  // TmdObject::colorMtx
-    /* 0x97C */ MATRIX             lightMtx;  // TmdObject::lightMtx
-    /* 0x99C */ byte               pad_99C[4];
-    /* 0x9A0 */ Actor400500ViewPos field_9A0;
-    /* 0x9A6 */ byte               pad_9A6[0x16];
-    /* 0x9BC */ s16                field_9BC;
-    /* 0x9BE */ byte               pad_9BE[2];
-    /* 0x9C0 */ VECTOR             field_9C0; // own position, copied from the model root coord.t
-    /* 0x9D0 */ SVECTOR            field_9D0;
-    /* 0x9D8 */ SVECTOR            field_9D8; // ApplyMatrixSV dest; vz is the former field_9DC
-    /* 0x9E0 */ s16                field_9E0;
-    /* 0x9E2 */ s16                field_9E2;
-    /* 0x9E4 */ s16                field_9E4;
-    /* 0x9E6 */ byte               pad_9E6[0xA];
-    /* 0x9F0 */ Task*              field_9F0[2]; // child tasks, killed on death
-    /* 0x9F8 */ s16                field_9F8;    // animation speed / step scale
-    /* 0x9FA */ s16                field_9FA;    // animation request kind
-    /* 0x9FC */ u16                field_9FC;    // last animation id the slots were reset to
-    /* 0x9FE */ s16                field_9FE;    // animation id
-    /* 0xA00 */ s16                field_A00;    // blend frame; incremented as u16, passed signed to 8013DD8C
-    /* 0xA02 */ s16                field_A02;    // identity scale written with the matrix copy
-    /* 0xA04 */ u16                field_A04;    // per-state frame counter
-    /* 0xA06 */ u16                field_A06;    // state index
-    /* 0xA08 */ u16                field_A08;    // sub-state index
-    /* 0xA0A */ u16                field_A0A;
-    /* 0xA0C */ byte               pad_A0C[2];
-    /* 0xA0E */ s16                field_A0E; // extra arg forwarded to func_800B4114, then cleared
-    /* 0xA10 */ s16                field_A10;
-    /* 0xA12 */ s16                field_A12;
-    /* 0xA14 */ byte               pad_A14[0x2];
-    /* 0xA16 */ s16                field_A16; // distance, compared to a range
-    /* 0xA18 */ s16                field_A18;
-    /* 0xA1A */ s16                field_A1A; // 1: sample part 0xE when heading is 0x400/0xC00
-    /* 0xA1C */ u16                field_A1C; // mode; 2, 3 and 6 take the heading-0 path
-    /* 0xA1E */ u16                field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
-    /* 0xA20 */ s16                field_A20;
-    /* 0xA22 */ u16                field_A22; // frame counter used when field_A1C == 5
-    /* 0xA24 */ s16                field_A24; // copied to TmdObject::lightLevel
-    /* 0xA26 */ u16                field_A26; // heading countdown, decremented by 0x80
-    /* 0xA28 */ s16                field_A28;
-    /* 0xA2A */ s16                field_A2A; // fade sub-state timer
-    /* 0xA2C */ s16                field_A2C; // countdown written with message kind 1
-    /* 0xA2E */ s16                field_A2E; // duration copied onto field_A30
-    /* 0xA30 */ s16                field_A30; // blocks setting field_A46 to 0x80 while nonzero
-    /* 0xA32 */ s16                field_A32; // heading; >>3 as u16, compared to 0 as s16
-    /* 0xA34 */ s16                field_A34; // gates the field_A1A==3 sub-state write
-    /* 0xA36 */ u16                field_A36; // angle, range-tested as (a - 0x300) <= 0xA00
-    /* 0xA38 */ s16                field_A38;
-    /* 0xA3A */ s16                field_A3A;
-    /* 0xA3C */ s16                field_A3C;
-    /* 0xA3E */ s16                field_A3E;
-    /* 0xA40 */ s16                field_A40;
-    /* 0xA42 */ s16                field_A42;
-    /* 0xA44 */ s16                field_A44; // hit cooldown
-    /* 0xA46 */ s8                 field_A46; // signed flag; 0x81 means active mode 1
-    /* 0xA47 */ s8                 field_A47;
-    /* 0xA48 */ s8                 field_A48; // session-message handshake state
-    /* 0xA49 */ s8                 field_A49;
-    /* 0xA4A */ s8                 field_A4A;
-    /* 0xA4B */ s8                 field_A4B; // last message kind 1..4
-    /* 0xA4C */ s8                 field_A4C; // set with kind 1
-    /* 0xA4D */ u8                 field_A4D; // selects message 0x3FF instead of 0x3F4
-    /* 0xA4E */ byte               pad_A4E[2];
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[0x12];
+    /* 0x2E4 */ byte                  pad_2E4[0x524];
+    /* 0x808 */ MATRIX                matrix_808; // model root coord, copied on the light-mode path
+    /* 0x828 */ GpObj                 obj0;
+    /* 0x848 */ WorldCollisionContact rec0[3];
+    /* 0x890 */ GpObj                 obj1;
+    /* 0x8B0 */ GpObj                 obj2;
+    /* 0x8D0 */ WorldCollisionContact rec1[1];
+    /* 0x8E8 */ GpObj                 obj3;
+    /* 0x908 */ GpObj                 obj4;
+    /* 0x928 */ WorldCollisionContact rec2[1];
+    /* 0x940 */ GpEffArg              eff_940; // part-3 coord, scale 0x100, count 3
+    /* 0x948 */ s16                   field_948;
+    /* 0x94A */ s16                   field_94A;
+    /* 0x94C */ s16                   field_94C;
+    /* 0x94E */ byte                  pad_94E[2];
+    /* 0x950 */ u16                   field_950; // low half of root coord.t[0]
+    /* 0x952 */ byte                  pad_952[2];
+    /* 0x954 */ u16                   field_954; // low half of root coord.t[2]
+    /* 0x956 */ byte                  pad_956[6];
+    /* 0x95C */ MATRIX                colorMtx;  // TmdObject::colorMtx
+    /* 0x97C */ MATRIX                lightMtx;  // TmdObject::lightMtx
+    /* 0x99C */ byte                  pad_99C[4];
+    /* 0x9A0 */ Actor400500ViewPos    field_9A0;
+    /* 0x9A6 */ byte                  pad_9A6[0x16];
+    /* 0x9BC */ s16                   field_9BC;
+    /* 0x9BE */ byte                  pad_9BE[2];
+    /* 0x9C0 */ VECTOR                field_9C0; // own position, copied from the model root coord.t
+    /* 0x9D0 */ SVECTOR               field_9D0;
+    /* 0x9D8 */ SVECTOR               field_9D8; // ApplyMatrixSV dest; vz is the former field_9DC
+    /* 0x9E0 */ s16                   field_9E0;
+    /* 0x9E2 */ s16                   field_9E2;
+    /* 0x9E4 */ s16                   field_9E4;
+    /* 0x9E6 */ byte                  pad_9E6[0xA];
+    /* 0x9F0 */ Task*                 field_9F0[2]; // child tasks, killed on death
+    /* 0x9F8 */ s16                   field_9F8;    // animation speed / step scale
+    /* 0x9FA */ s16                   field_9FA;    // animation request kind
+    /* 0x9FC */ u16                   field_9FC;    // last animation id the slots were reset to
+    /* 0x9FE */ s16                   field_9FE;    // animation id
+    /* 0xA00 */ s16                   field_A00;    // blend frame; incremented as u16, passed signed to 8013DD8C
+    /* 0xA02 */ s16                   field_A02;    // identity scale written with the matrix copy
+    /* 0xA04 */ u16                   field_A04;    // per-state frame counter
+    /* 0xA06 */ u16                   field_A06;    // state index
+    /* 0xA08 */ u16                   field_A08;    // sub-state index
+    /* 0xA0A */ u16                   field_A0A;
+    /* 0xA0C */ byte                  pad_A0C[2];
+    /* 0xA0E */ s16                   field_A0E; // extra arg forwarded to func_800B4114, then cleared
+    /* 0xA10 */ s16                   field_A10;
+    /* 0xA12 */ s16                   field_A12;
+    /* 0xA14 */ byte                  pad_A14[0x2];
+    /* 0xA16 */ s16                   field_A16; // distance, compared to a range
+    /* 0xA18 */ s16                   field_A18;
+    /* 0xA1A */ s16                   field_A1A; // 1: sample part 0xE when heading is 0x400/0xC00
+    /* 0xA1C */ u16                   field_A1C; // mode; 2, 3 and 6 take the heading-0 path
+    /* 0xA1E */ u16                   field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
+    /* 0xA20 */ s16                   field_A20;
+    /* 0xA22 */ u16                   field_A22; // frame counter used when field_A1C == 5
+    /* 0xA24 */ s16                   field_A24; // copied to TmdObject::lightLevel
+    /* 0xA26 */ u16                   field_A26; // heading countdown, decremented by 0x80
+    /* 0xA28 */ s16                   field_A28;
+    /* 0xA2A */ s16                   field_A2A; // fade sub-state timer
+    /* 0xA2C */ s16                   field_A2C; // countdown written with message kind 1
+    /* 0xA2E */ s16                   field_A2E; // duration copied onto field_A30
+    /* 0xA30 */ s16                   field_A30; // blocks setting field_A46 to 0x80 while nonzero
+    /* 0xA32 */ s16                   field_A32; // heading; >>3 as u16, compared to 0 as s16
+    /* 0xA34 */ s16                   field_A34; // gates the field_A1A==3 sub-state write
+    /* 0xA36 */ u16                   field_A36; // angle, range-tested as (a - 0x300) <= 0xA00
+    /* 0xA38 */ s16                   field_A38;
+    /* 0xA3A */ s16                   field_A3A;
+    /* 0xA3C */ s16                   field_A3C;
+    /* 0xA3E */ s16                   field_A3E;
+    /* 0xA40 */ s16                   field_A40;
+    /* 0xA42 */ s16                   field_A42;
+    /* 0xA44 */ s16                   field_A44; // hit cooldown
+    /* 0xA46 */ s8                    field_A46; // signed flag; 0x81 means active mode 1
+    /* 0xA47 */ s8                    field_A47;
+    /* 0xA48 */ s8                    field_A48; // session-message handshake state
+    /* 0xA49 */ s8                    field_A49;
+    /* 0xA4A */ s8                    field_A4A;
+    /* 0xA4B */ s8                    field_A4B; // last message kind 1..4
+    /* 0xA4C */ s8                    field_A4C; // set with kind 1
+    /* 0xA4D */ u8                    field_A4D; // selects message 0x3FF instead of 0x3F4
+    /* 0xA4E */ byte                  pad_A4E[2];
 } Actor400500Work;
 STATIC_ASSERT_SIZEOF(Actor400500Work, 0xA50);
 
@@ -2600,18 +2600,18 @@ static void func_actor_400500_8013456C(Task* arg0)
     work  = (Actor400500Work*)arg0->work;
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     for (i = 0; i < 3; i++) {
-        if ((work->rec0[i].key & 0xFFFF0000) == 0x20000) {
+        if ((work->rec0[i].key.value & 0xFFFF0000) == 0x20000) {
             if (work->field_A44 == 0) {
                 work->field_A3C = 1;
-                dmg             = Gp_ComputeDamage(work->rec0[i].key, work->field_A16, 0, 0);
+                dmg             = Gp_ComputeDamage(work->rec0[i].key.value, work->field_A16, 0, 0);
                 amount          = dmg;
-                work->field_A44 = Gp_GetIdParam2(work->rec0[i].key);
-                if (Gp_RollEnemyChance(enemy, work->rec0[i].key, 0) != 0) {
+                work->field_A44 = Gp_GetIdParam2(work->rec0[i].key.value);
+                if (Gp_RollEnemyChance(enemy, work->rec0[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 amount16 = amount;
-                func_800E2C78(enemy, work->rec0[i].key, amount16, 0);
+                func_800E2C78(enemy, work->rec0[i].key.value, amount16, 0);
                 func_800DA6E8(&enemy->node, amount16, 0);
                 hp        = (u16)enemy->hp - amount;
                 enemy->hp = hp;
@@ -2620,7 +2620,7 @@ static void func_actor_400500_8013456C(Task* arg0)
                     work->field_A42 = 1;
                 }
                 func_800FDB18(
-                    Gp_GetIdParam1(work->rec0[i].key) & 0xFFFF,
+                    Gp_GetIdParam1(work->rec0[i].key.value) & 0xFFFF,
                     &arg0->extra.tmd->coords[3],
                     NULL,
                     &work->eff_940);
@@ -2632,20 +2632,20 @@ static void func_actor_400500_8013456C(Task* arg0)
                     work->field_A3E = 1;
                     work->field_A40 = 1;
                 }
-            } else if ((Gp_GetIdParam1(work->rec0[i].key) & 0xFFFF) == 0xD) {
+            } else if ((Gp_GetIdParam1(work->rec0[i].key.value) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_940);
             }
-            switch (Gp_GetIdParam0(work->rec0[i].key) & 0xFFFF) {
+            switch (Gp_GetIdParam0(work->rec0[i].key.value) & 0xFFFF) {
                 case 0:
                     break;
                 case 1:
                     Gp_SetObjFlag1(enemy);
                     break;
                 case 2:
-                    Gp_SetObjFlag2(enemy, work->rec0[i].key, 0);
+                    Gp_SetObjFlag2(enemy, work->rec0[i].key.value, 0);
                     break;
                 case 3:
-                    Gp_SetObjFlag4(enemy, work->rec0[i].key, 0);
+                    Gp_SetObjFlag4(enemy, work->rec0[i].key.value, 0);
                     break;
                 case 4:
                     work->field_A3E = 4;

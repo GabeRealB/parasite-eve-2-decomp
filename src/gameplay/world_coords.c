@@ -263,10 +263,6 @@ static void Gp_BindDefaultMtx(Task* arg0);
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot);
 
-/// The contact table of `obj`, found through the part of `obj` its kind
-/// (`flags` bits 0-2) says holds it, or NULL for a kind without one.
-static inline GpRec18* _gpObjRecs(GpObj* obj);
-
 static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos);
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
@@ -1756,92 +1752,6 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     SCRATCH_POP(GpPerspScratch);
 }
 
-/// The contact table of `obj`, found through the part of `obj` its kind
-/// (`flags` bits 0-2) says holds it, or NULL for a kind without one.
-static inline GpRec18* _gpObjRecs(GpObj* obj)
-{
-    GpRec18* recs = NULL;
-
-    switch (obj->flags & 7) {
-        case 0:
-            break;
-        case 1:
-            recs = obj->ctx.recs;
-            break;
-        case 2:
-            recs = obj->ctx.node->ctx.recs;
-            break;
-        case 3:
-            recs = obj->ctx.d4rec->recs;
-            break;
-        case 4:
-            recs = obj->ctx.dir->field_8;
-            break;
-    }
-    return recs;
-}
-
-/// Moves `rec` to the entry of its contact table that a new contact of `obj`
-/// goes in, and marks that entry in use together with `obj`'s `flags` bits
-/// 4-7. An object carrying 0x800 keeps a single contact, in the first entry:
-/// when that entry already holds a contact with another body, the entry naming
-/// `obj` in that body's table is cleared first. Any other object takes the
-/// first free entry. Returns from the caller when the table is full, or when
-/// the other body's entry cannot be found.
-#define GP_CLAIM_CONTACT_REC(rec, obj)                                                                  \
-    do {                                                                                                \
-        GpRec18* _other;                                                                                \
-        u16      _recFlags;                                                                             \
-                                                                                                        \
-        if ((obj)->flags & 0x800) {                                                                     \
-            _recFlags = (rec)->flags;                                                                   \
-            if (!(_recFlags & 1)) {                                                                     \
-                (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                 \
-            } else {                                                                                    \
-                if (((rec)->key & 0xFFFF0000) != 0x100000) {                                            \
-                    _other = _gpObjRecs(                                                                \
-                        (GpObj*)((((rec)->at10.node.high << 16) & 0xFFFF0000) | (rec)->at10.node.low)); \
-                    if (_other == NULL) {                                                               \
-                        return;                                                                         \
-                    }                                                                                   \
-                    for (;;) {                                                                          \
-                        if (_other->key == (obj)->key) {                                                \
-                            goto _found;                                                                \
-                        }                                                                               \
-                        if (_other->flags & 2) {                                                        \
-                            return;                                                                     \
-                        }                                                                               \
-                        _other++;                                                                       \
-                    }                                                                                   \
-                _found:                                                                                 \
-                    _other->key            = 0;                                                         \
-                    _other->depth          = 0;                                                         \
-                    _other->point.vx       = 0;                                                         \
-                    _other->point.vy       = 0;                                                         \
-                    _other->point.vz       = 0;                                                         \
-                    _other->at10.normal.vx = 0;                                                         \
-                    _other->at10.normal.vy = 0;                                                         \
-                    _other->at10.normal.vz = 0;                                                         \
-                    _other->flags         &= ~1;                                                        \
-                }                                                                                       \
-                (rec)->flags |= ((obj)->flags & 0xF0) + 1;                                              \
-            }                                                                                           \
-        } else {                                                                                        \
-            for (;;) {                                                                                  \
-                _recFlags = (rec)->flags;                                                               \
-                if (!(_recFlags & 1)) {                                                                 \
-                    goto _free;                                                                         \
-                }                                                                                       \
-                if (_recFlags & 2) {                                                                    \
-                    return;                                                                             \
-                }                                                                                       \
-                (rec)++;                                                                                \
-            }                                                                                           \
-        _free:                                                                                          \
-            (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                     \
-        }                                                                                               \
-    } while (0)
-
 static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
 {
     u8*     h;
@@ -1858,11 +1768,6 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
     pos->vz = (obj->coord)->workm.t[2] + vec->vz;
     SCRATCH_POP_BYTES(0x30);
 }
-
-/// Transforms `arg0`'s local offset (`ctx.d4rec`'s `end1` plus `pos`) by
-/// `coord->workm` and returns the 1-based index of the
-/// closest occupied `GpRec18` in the shape's `recs` whose `key` high 16
-/// bits match `arg1`, or 0 if none match.
 
 /// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
 static inline u16 _gpIdParam0(s32 id)

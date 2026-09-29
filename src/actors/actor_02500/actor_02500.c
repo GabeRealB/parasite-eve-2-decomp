@@ -48,66 +48,66 @@
 /// 0x348-byte work block `Actor02500_Fn00078` allocates and hangs off
 /// `Task::work`. It opens with the animation context (`func_800B3F84`
 /// arg0) and its five slots, and carries the four list nodes plus their
-/// `GpRec18` tables.
+/// `WorldCollisionContact` tables.
 typedef struct Actor02500Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot field_14[5];
-    /* 0x0DC */ byte       field_DC[0x50];
-    /* 0x12C */ byte       field_12C[0x20];
-    /* 0x14C */ byte       field_14C[0x20];
-    /* 0x16C */ GpObj      obj16C;
-    /* 0x18C */ GpRec18    field_18C[1];
-    /* 0x1A4 */ GpObj      obj1A4;
-    /* 0x1C4 */ GpRec18    field_1C4[3];
-    /* 0x20C */ GpObj      obj20C;
-    /* 0x22C */ GpRec18    field_22C[5];
-    /* 0x2A4 */ GpObj      obj2A4;
-    /* 0x2C4 */ GpRec18    field_2C4[1];
-    /* 0x2DC */ GpEffArg   field_2DC; // record the hit's effect is spawned with
-    /* 0x2E4 */ MATRIX     field_2E4;
-    /* 0x304 */ s32        field_304;
-    /* 0x308 */ s32        field_308;
-    /* 0x30C */ s32        field_30C;
-    /* 0x310 */ byte       pad_310[4];
-    /* 0x314 */ s16        field_314;
-    /* 0x316 */ s16        field_316;
-    /* 0x318 */ s16        field_318;
-    /* 0x31A */ byte       pad_31A[2];
-    /* 0x31C */ s16        field_31C;
-    /* 0x31E */ s16        field_31E;
-    /* 0x320 */ u16        field_320;
-    /* 0x322 */ s16        field_322;
-    /* 0x324 */ s16        field_324;
-    /* 0x326 */ s16        field_326;
-    /* 0x328 */ s16        field_328;
-    /* 0x32A */ u16        field_32A;
-    /* 0x32C */ s16        field_32C;
-    /* 0x32E */ s16        field_32E;
-    /* 0x330 */ s16        field_330;
-    /* 0x332 */ s16        field_332;
-    /* 0x334 */ s16        field_334;
-    /* 0x336 */ s16        field_336;
-    /* 0x338 */ s16        field_338;
-    /* 0x33A */ s16        field_33A;
-    /* 0x33C */ s16        field_33C;
-    /* 0x33E */ s16        field_33E;
-    /* 0x340 */ s16        field_340;
-    /* 0x342 */ s16        field_342;
-    /* 0x344 */ s16        field_344;
-    /* 0x346 */ byte       pad_346[2];
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            field_14[5];
+    /* 0x0DC */ byte                  field_DC[0x50];
+    /* 0x12C */ byte                  field_12C[0x20];
+    /* 0x14C */ byte                  field_14C[0x20];
+    /* 0x16C */ GpObj                 obj16C;
+    /* 0x18C */ WorldCollisionContact field_18C[1];
+    /* 0x1A4 */ GpObj                 obj1A4;
+    /* 0x1C4 */ WorldCollisionContact field_1C4[3];
+    /* 0x20C */ GpObj                 obj20C;
+    /* 0x22C */ WorldCollisionContact field_22C[5];
+    /* 0x2A4 */ GpObj                 obj2A4;
+    /* 0x2C4 */ WorldCollisionContact field_2C4[1];
+    /* 0x2DC */ GpEffArg              field_2DC; // record the hit's effect is spawned with
+    /* 0x2E4 */ MATRIX                field_2E4;
+    /* 0x304 */ s32                   field_304;
+    /* 0x308 */ s32                   field_308;
+    /* 0x30C */ s32                   field_30C;
+    /* 0x310 */ byte                  pad_310[4];
+    /* 0x314 */ s16                   field_314;
+    /* 0x316 */ s16                   field_316;
+    /* 0x318 */ s16                   field_318;
+    /* 0x31A */ byte                  pad_31A[2];
+    /* 0x31C */ s16                   field_31C;
+    /* 0x31E */ s16                   field_31E;
+    /* 0x320 */ u16                   field_320;
+    /* 0x322 */ s16                   field_322;
+    /* 0x324 */ s16                   field_324;
+    /* 0x326 */ s16                   field_326;
+    /* 0x328 */ s16                   field_328;
+    /* 0x32A */ u16                   field_32A;
+    /* 0x32C */ s16                   field_32C;
+    /* 0x32E */ s16                   field_32E;
+    /* 0x330 */ s16                   field_330;
+    /* 0x332 */ s16                   field_332;
+    /* 0x334 */ s16                   field_334;
+    /* 0x336 */ s16                   field_336;
+    /* 0x338 */ s16                   field_338;
+    /* 0x33A */ s16                   field_33A;
+    /* 0x33C */ s16                   field_33C;
+    /* 0x33E */ s16                   field_33E;
+    /* 0x340 */ s16                   field_340;
+    /* 0x342 */ s16                   field_342;
+    /* 0x344 */ s16                   field_344;
+    /* 0x346 */ byte                  pad_346[2];
 } Actor02500Work;
 STATIC_ASSERT_SIZEOF(Actor02500Work, 0x348);
 
 /// Work block of the small helper task `Actor02500_L02634` spawns, also parked
 /// at `Task::work`. It opens with a list node and its one-entry
-/// `GpRec18` table, then the spawned effect and the countdown/state
+/// `WorldCollisionContact` table, then the spawned effect and the countdown/state
 /// pair `Actor02500_Fn02874` runs on.
 typedef struct Actor02500EffWork {
-    /* 0x00 */ GpObj      obj;
-    /* 0x20 */ GpRec18    rec18[1];
-    /* 0x38 */ GpEffWork* field_38;
-    /* 0x3C */ s16        field_3C;
-    /* 0x3E */ s16        field_3E;
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec18[1];
+    /* 0x38 */ GpEffWork*            field_38;
+    /* 0x3C */ s16                   field_3C;
+    /* 0x3E */ s16                   field_3E;
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
@@ -773,29 +773,29 @@ static void Actor02500_Fn00494(Task* actor)
     }
     normal = &frame->normal;
     for (i = 0; i < 3; i++) {
-        switch ((u32)work->field_1C4[i].key >> 16) {
+        switch ((u32)work->field_1C4[i].key.value >> 16) {
             case 2:
                 if (work->field_334 == 0) {
-                    target            = Gp_ActorSlots[((u32)work->field_1C4[i].key >> 7) & 1]->extra.tmd->coords;
+                    target            = Gp_ActorSlots[((u32)work->field_1C4[i].key.value >> 7) & 1]->extra.tmd->coords;
                     frame->delta.vx.w = target->coord.t[0] - coord->coord.t[0];
                     frame->delta.vy.w = target->coord.t[1] - coord->coord.t[1];
                     frame->delta.vz.w = target->coord.t[2] - coord->coord.t[2];
-                    damage            = Gp_ComputeDamage(work->field_1C4[i].key,
+                    damage            = Gp_ComputeDamage(work->field_1C4[i].key.value,
                                                          SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
                                                                      frame->delta.vz.w * frame->delta.vz.w),
                                                          0, 0);
-                    param0            = Gp_GetIdParam0(work->field_1C4[i].key);
+                    param0            = Gp_GetIdParam0(work->field_1C4[i].key.value);
                     if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key, 0) != 0) {
+                    if (Gp_RollEnemyChance(ctx, work->field_1C4[i].key.value, 0) != 0) {
                         damage *= 4;
                         if ((param0 & 0xFFFF) != 5) {
                             Gp_SpawnEff(0x6009C, coord, 0, NULL);
                         }
                     }
-                    func_800E2C78(ctx, work->field_1C4[i].key, damage, 0);
+                    func_800E2C78(ctx, work->field_1C4[i].key.value, damage, 0);
                     func_800DA6E8(&ctx->node, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
@@ -828,7 +828,7 @@ static void Actor02500_Fn00494(Task* actor)
                             work->obj2A4.flags &= 0x7FFF;
                             break;
                         case 2:
-                            Gp_SetObjFlag2(ctx, work->field_1C4[i].key, 0);
+                            Gp_SetObjFlag2(ctx, work->field_1C4[i].key.value, 0);
                             work->obj2A4.flags &= 0x7FFF;
                             break;
                         case 4:
@@ -838,11 +838,11 @@ static void Actor02500_Fn00494(Task* actor)
                             }
                             break;
                     }
-                    if (lastId != work->field_1C4[i].key) {
-                        lastId = work->field_1C4[i].key;
+                    if (lastId != work->field_1C4[i].key.value) {
+                        lastId = work->field_1C4[i].key.value;
                         func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, coord, 0, &work->field_2DC);
                     }
-                    cooldown = Gp_GetIdParam2(work->field_1C4[i].key);
+                    cooldown = Gp_GetIdParam2(work->field_1C4[i].key.value);
                     if (cooldown > 0) {
                         work->field_334 = cooldown;
                     }
@@ -855,7 +855,7 @@ static void Actor02500_Fn00494(Task* actor)
                 frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
                 frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
                 frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                push              = work->field_1C4[i].depth -
+                push              = work->field_1C4[i].distance -
                        SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
                                    frame->delta.vz.w * frame->delta.vz.w);
                 push = (push <= 0) ? 0 : push;
@@ -869,7 +869,7 @@ static void Actor02500_Fn00494(Task* actor)
                 frame->delta.vx.w = coord->workm.t[0] - work->field_1C4[i].point.vx;
                 frame->delta.vy.w = coord->workm.t[1] - work->field_1C4[i].point.vy;
                 frame->delta.vz.w = coord->workm.t[2] - work->field_1C4[i].point.vz;
-                push              = work->field_1C4[i].depth -
+                push              = work->field_1C4[i].distance -
                        SquareRoot0(frame->delta.vx.w * frame->delta.vx.w + frame->delta.vy.w * frame->delta.vy.w +
                                    frame->delta.vz.w * frame->delta.vz.w);
                 push = (push <= 0) ? 0 : push;
@@ -1851,11 +1851,11 @@ void Actor02500_Fn02574(Task* arg0)
 
 static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
 {
-    Actor02500EffWork* work;
-    GfxCoord*          coord;
-    GpRec18*           rec;
-    GfxCoord*          parentCoord;
-    void*              effect;
+    Actor02500EffWork*     work;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    GfxCoord*               parentCoord;
+    void*                  effect;
 
     coord       = task->extra.tmd->coords;
     parentCoord = task->parent->extra.tmd->coords;
@@ -1891,13 +1891,13 @@ static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
 
 static void Actor02500_Fn02750(GpEnemy* ctx, Task* task)
 {
-    s32                sound;
-    GfxCoord*          coord;
-    GpRec18*           rec;
-    s32                done;
-    s32                pan;
-    u16                timer;
-    Actor02500EffWork* work;
+    s32                    sound;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    s32                    done;
+    s32                    pan;
+    u16                    timer;
+    Actor02500EffWork*     work;
 
     coord = task->extra.tmd->coords;
     work  = (Actor02500EffWork*)((Actor02500Work*)task->work);

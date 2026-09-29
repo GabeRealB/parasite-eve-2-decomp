@@ -63,152 +63,130 @@ typedef struct Actor01600Range {
 } Actor01600Range;
 STATIC_ASSERT_SIZEOF(Actor01600Range, 0x8);
 
-/// Actor-side view of a collision key, including its body class and slot bit.
-typedef union Actor01600ContactId {
-    s32 id;
-    struct {
-        u8  byte0;
-        u8  byte1;
-        u16 kind;
-    } parts;
-} Actor01600ContactId;
-
-typedef struct Actor01600Contact {
-    u16                 flags;
-    s16                 depth;
-    Actor01600ContactId hit;
-    SVECTOR             point;
-    SVECTOR             normal;
-} Actor01600Contact;
-STATIC_ASSERT_SIZEOF(Actor01600Contact, sizeof(GpRec18));
-
-/// The collider's shared contact table and the actor's packed-key view.
-typedef struct Actor01600Contacts {
-    GpObj obj;
-    union {
-        GpRec18           recs[8];
-        Actor01600Contact hits[8];
-    } entries;
+/// Collision body and the eight contact results its owner supplies.
+typedef struct {
+    GpObj                 obj;
+    WorldCollisionContact contacts[8];
 } Actor01600Contacts;
 STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
 
 typedef struct Actor01600Work {
-    /* 0x000 */ GpAnimCtx          anim;
-    /* 0x014 */ GpAnimSlot         slots[9];
-    /* 0x17C */ byte               pad_17C[0x90];
-    /* 0x20C */ MATRIX             field_20C;
-    /* 0x22C */ MATRIX             field_22C;
-    /* 0x24C */ GfxCoord           field_24C;
-    /* 0x29C */ byte               field_29C[8];
-    /* 0x2A4 */ GfxCoord*          field_2A4;
-    /* 0x2A8 */ s8*                field_2A8;
-    /* 0x2AC */ s16                field_2AC;
-    /* 0x2AE */ s16                field_2AE;
-    /* 0x2B0 */ s16                field_2B0;
-    /* 0x2B2 */ s16                field_2B2;
-    /* 0x2B4 */ s32                field_2B4;
-    /* 0x2B8 */ s16                field_2B8;
-    /* 0x2BA */ u16                field_2BA;
-    /* 0x2BC */ byte               pad_2BC[4];
-    /* 0x2C0 */ s16                field_2C0;
-    /* 0x2C2 */ byte               pad_2C2[0xA];
-    /* 0x2CC */ s16                field_2CC;
-    /* 0x2CE */ s16                field_2CE;
-    /* 0x2D0 */ GpRec18*           field_2D0;
-    /* 0x2D4 */ GpRec18            field_2D4;
-    /* 0x2EC */ Actor01600Contacts collision;
-    /* 0x3CC */ byte               field_3CC[8];
-    /* 0x3D4 */ GfxCoord*          field_3D4;
-    /* 0x3D8 */ GpRec18*           field_3D8;
-    /* 0x3DC */ s16                field_3DC;
-    /* 0x3DE */ s16                field_3DE;
-    /* 0x3E0 */ s16                field_3E0;
-    /* 0x3E2 */ s16                field_3E2;
-    /* 0x3E4 */ s32                field_3E4;
-    /* 0x3E8 */ s16                field_3E8;
-    /* 0x3EA */ u16                field_3EA;
-    /* 0x3EC */ GpRec18            contact_3EC;
-    /* 0x404 */ GpEffArg           hitEffect;
-    /* 0x40C */ byte               field_40C[8];
-    /* 0x414 */ GfxCoord*          field_414;
-    /* 0x418 */ s8*                field_418;
-    /* 0x41C */ s16                field_41C;
-    /* 0x41E */ s16                field_41E;
-    /* 0x420 */ s16                field_420;
-    /* 0x422 */ s16                field_422;
-    /* 0x424 */ s32                field_424;
-    /* 0x428 */ s16                field_428;
-    /* 0x42A */ u16                field_42A;
-    /* 0x42C */ s16                field_42C;
-    /* 0x42E */ byte               pad_42E[2];
-    /* 0x430 */ s16                field_430;
-    /* 0x432 */ byte               pad_432[0xA];
-    /* 0x43C */ s16                field_43C;
-    /* 0x43E */ s16                field_43E;
-    /* 0x440 */ s8*                field_440;
-    /* 0x444 */ GpRec18            field_444;
-    /* 0x45C */ Actor01600Range    ranges[8];
-    /* 0x49C */ MATRIX             field_49C;
-    /* 0x4BC */ s32                field_4BC;
-    /* 0x4C0 */ s32                field_4C0;
-    /* 0x4C4 */ s32                field_4C4;
-    /* 0x4C8 */ byte               pad_4C8[4];
-    /* 0x4CC */ s16                field_4CC;
-    /* 0x4CE */ byte               pad_4CE[6];
-    /* 0x4D4 */ Task*              field_4D4;
-    /* 0x4D8 */ s16                field_4D8;
-    /* 0x4DA */ s16                field_4DA;
-    /* 0x4DC */ s16                field_4DC;
-    /* 0x4DE */ byte               pad_4DE[2];
-    /* 0x4E0 */ s32                field_4E0;
-    /* 0x4E4 */ s32                field_4E4;
-    /* 0x4E8 */ s16                field_4E8;
-    /* 0x4EA */ s16                field_4EA;
-    /* 0x4EC */ s16                field_4EC;
-    /* 0x4EE */ s16                field_4EE;
-    /* 0x4F0 */ s16                field_4F0;
-    /* 0x4F2 */ s16                field_4F2;
-    /* 0x4F4 */ u16                field_4F4;
-    /* 0x4F6 */ s16                field_4F6;
-    /* 0x4F8 */ s16                field_4F8;
-    /* 0x4FA */ s16                field_4FA;
-    /* 0x4FC */ s16                field_4FC;
-    /* 0x4FE */ s16                field_4FE;
-    /* 0x500 */ s16                field_500;
-    /* 0x502 */ s16                field_502;
-    /* 0x504 */ s16                field_504;
-    /* 0x506 */ s16                field_506;
-    /* 0x508 */ s16                field_508;
-    /* 0x50A */ s16                field_50A;
-    /* 0x50C */ s16                field_50C;
-    /* 0x50E */ s16                field_50E;
-    /* 0x510 */ s16                field_510;
-    /* 0x512 */ s16                field_512;
-    /* 0x514 */ s16                field_514;
-    /* 0x516 */ s16                field_516;
-    /* 0x518 */ s16                field_518;
-    /* 0x51A */ s16                field_51A;
-    /* 0x51C */ s16                field_51C;
-    /* 0x51E */ s16                field_51E;
-    /* 0x520 */ s16                field_520;
-    /* 0x522 */ s16                field_522;
-    /* 0x524 */ s16                field_524;
-    /* 0x526 */ s16                field_526;
-    /* 0x528 */ s16                field_528;
-    /* 0x52A */ s16                field_52A;
-    /* 0x52C */ s16                field_52C;
-    /* 0x52E */ s16                field_52E;
-    /* 0x530 */ s16                field_530;
-    /* 0x532 */ s16                field_532;
-    /* 0x534 */ s16                field_534;
-    /* 0x536 */ s16                field_536;
-    /* 0x538 */ s16                field_538;
-    /* 0x53A */ s16                field_53A;
-    /* 0x53C */ s16                field_53C;
-    /* 0x53E */ s16                field_53E;
-    /* 0x540 */ s16                field_540;
-    /* 0x542 */ u16                field_542;
-    /* 0x544 */ s16                field_544;
+    /* 0x000 */ GpAnimCtx              anim;
+    /* 0x014 */ GpAnimSlot             slots[9];
+    /* 0x17C */ byte                   pad_17C[0x90];
+    /* 0x20C */ MATRIX                 field_20C;
+    /* 0x22C */ MATRIX                 field_22C;
+    /* 0x24C */ GfxCoord                field_24C;
+    /* 0x29C */ byte                   field_29C[8];
+    /* 0x2A4 */ GfxCoord*               field_2A4;
+    /* 0x2A8 */ s8*                    field_2A8;
+    /* 0x2AC */ s16                    field_2AC;
+    /* 0x2AE */ s16                    field_2AE;
+    /* 0x2B0 */ s16                    field_2B0;
+    /* 0x2B2 */ s16                    field_2B2;
+    /* 0x2B4 */ s32                    field_2B4;
+    /* 0x2B8 */ s16                    field_2B8;
+    /* 0x2BA */ u16                    field_2BA;
+    /* 0x2BC */ byte                   pad_2BC[4];
+    /* 0x2C0 */ s16                    field_2C0;
+    /* 0x2C2 */ byte                   pad_2C2[0xA];
+    /* 0x2CC */ s16                    field_2CC;
+    /* 0x2CE */ s16                    field_2CE;
+    /* 0x2D0 */ WorldCollisionContact* field_2D0;
+    /* 0x2D4 */ WorldCollisionContact  field_2D4;
+    /* 0x2EC */ Actor01600Contacts     collision;
+    /* 0x3CC */ byte                   field_3CC[8];
+    /* 0x3D4 */ GfxCoord*               field_3D4;
+    /* 0x3D8 */ WorldCollisionContact* field_3D8;
+    /* 0x3DC */ s16                    field_3DC;
+    /* 0x3DE */ s16                    field_3DE;
+    /* 0x3E0 */ s16                    field_3E0;
+    /* 0x3E2 */ s16                    field_3E2;
+    /* 0x3E4 */ s32                    field_3E4;
+    /* 0x3E8 */ s16                    field_3E8;
+    /* 0x3EA */ u16                    field_3EA;
+    /* 0x3EC */ WorldCollisionContact  contact_3EC;
+    /* 0x404 */ GpEffArg               hitEffect;
+    /* 0x40C */ byte                   field_40C[8];
+    /* 0x414 */ GfxCoord*               field_414;
+    /* 0x418 */ s8*                    field_418;
+    /* 0x41C */ s16                    field_41C;
+    /* 0x41E */ s16                    field_41E;
+    /* 0x420 */ s16                    field_420;
+    /* 0x422 */ s16                    field_422;
+    /* 0x424 */ s32                    field_424;
+    /* 0x428 */ s16                    field_428;
+    /* 0x42A */ u16                    field_42A;
+    /* 0x42C */ s16                    field_42C;
+    /* 0x42E */ byte                   pad_42E[2];
+    /* 0x430 */ s16                    field_430;
+    /* 0x432 */ byte                   pad_432[0xA];
+    /* 0x43C */ s16                    field_43C;
+    /* 0x43E */ s16                    field_43E;
+    /* 0x440 */ WorldCollisionContact* capsuleContacts;
+    /* 0x444 */ WorldCollisionContact  capsuleContact;
+    /* 0x45C */ Actor01600Range        ranges[8];
+    /* 0x49C */ MATRIX                 field_49C;
+    /* 0x4BC */ s32                    field_4BC;
+    /* 0x4C0 */ s32                    field_4C0;
+    /* 0x4C4 */ s32                    field_4C4;
+    /* 0x4C8 */ byte                   pad_4C8[4];
+    /* 0x4CC */ s16                    field_4CC;
+    /* 0x4CE */ byte                   pad_4CE[6];
+    /* 0x4D4 */ Task*                  field_4D4;
+    /* 0x4D8 */ s16                    field_4D8;
+    /* 0x4DA */ s16                    field_4DA;
+    /* 0x4DC */ s16                    field_4DC;
+    /* 0x4DE */ byte                   pad_4DE[2];
+    /* 0x4E0 */ s32                    field_4E0;
+    /* 0x4E4 */ s32                    field_4E4;
+    /* 0x4E8 */ s16                    field_4E8;
+    /* 0x4EA */ s16                    field_4EA;
+    /* 0x4EC */ s16                    field_4EC;
+    /* 0x4EE */ s16                    field_4EE;
+    /* 0x4F0 */ s16                    field_4F0;
+    /* 0x4F2 */ s16                    field_4F2;
+    /* 0x4F4 */ u16                    field_4F4;
+    /* 0x4F6 */ s16                    field_4F6;
+    /* 0x4F8 */ s16                    field_4F8;
+    /* 0x4FA */ s16                    field_4FA;
+    /* 0x4FC */ s16                    field_4FC;
+    /* 0x4FE */ s16                    field_4FE;
+    /* 0x500 */ s16                    field_500;
+    /* 0x502 */ s16                    field_502;
+    /* 0x504 */ s16                    field_504;
+    /* 0x506 */ s16                    field_506;
+    /* 0x508 */ s16                    field_508;
+    /* 0x50A */ s16                    field_50A;
+    /* 0x50C */ s16                    field_50C;
+    /* 0x50E */ s16                    field_50E;
+    /* 0x510 */ s16                    field_510;
+    /* 0x512 */ s16                    field_512;
+    /* 0x514 */ s16                    field_514;
+    /* 0x516 */ s16                    field_516;
+    /* 0x518 */ s16                    field_518;
+    /* 0x51A */ s16                    field_51A;
+    /* 0x51C */ s16                    field_51C;
+    /* 0x51E */ s16                    field_51E;
+    /* 0x520 */ s16                    field_520;
+    /* 0x522 */ s16                    field_522;
+    /* 0x524 */ s16                    field_524;
+    /* 0x526 */ s16                    field_526;
+    /* 0x528 */ s16                    field_528;
+    /* 0x52A */ s16                    field_52A;
+    /* 0x52C */ s16                    field_52C;
+    /* 0x52E */ s16                    field_52E;
+    /* 0x530 */ s16                    field_530;
+    /* 0x532 */ s16                    field_532;
+    /* 0x534 */ s16                    field_534;
+    /* 0x536 */ s16                    field_536;
+    /* 0x538 */ s16                    field_538;
+    /* 0x53A */ s16                    field_53A;
+    /* 0x53C */ s16                    field_53C;
+    /* 0x53E */ s16                    field_53E;
+    /* 0x540 */ s16                    field_540;
+    /* 0x542 */ u16                    field_542;
+    /* 0x544 */ s16                    field_544;
     /// Second animation id the `variant == 2` and `variant == 4` paths of
     /// `Actor01600_Fn05F80` run their countdown against: it is stored into
     /// `field_506` and steps 7 -> 9.
@@ -225,7 +203,7 @@ typedef struct Actor01600Work {
     /* 0x556 */ s16  field_556;
 } Actor01600Work;
 STATIC_ASSERT_SIZEOF(Actor01600Work, 0x558);
-STATIC_ASSERT(OFFSET_OF(Actor01600Work, collision.entries) == 0x30C, actor01600_contact_offset);
+STATIC_ASSERT(OFFSET_OF(Actor01600Work, collision.contacts) == 0x30C, actor01600_contact_offset);
 STATIC_ASSERT(OFFSET_OF(Actor01600Work, contact_3EC) == 0x3EC, actor01600_single_contact_offset);
 STATIC_ASSERT(OFFSET_OF(Actor01600Work, hitEffect) == 0x404, actor01600_effect_offset);
 
@@ -1444,7 +1422,7 @@ static void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
     ctx->bodyPos.vx            = 0;
     ctx->bodyPos.vz            = 0;
     ctx->param                 = &Actor01600_D09F0C;
-    ctx->recs                  = work->collision.entries.recs;
+    ctx->recs                  = work->collision.contacts;
     ctx->hp                    = (u16)Actor01600_D09F0C.hpMax;
     work->hitEffect.spawnArgLo = 0x280;
     work->hitEffect.spawnArgHi = 2;
@@ -1490,12 +1468,12 @@ static void Actor01600_Fn001F4(GpEnemy* ctx, Task* actor)
 
 static void Actor01600_Fn00480(Task* actor)
 {
-    Actor01600Work* work;
-    GpRec18*        table1;
-    GfxCoord*       coord;
-    GpRec18*        table2;
-    s8*             table3;
-    GpRec18*        table4;
+    Actor01600Work*        work;
+    WorldCollisionContact* table1;
+    GfxCoord*               coord;
+    WorldCollisionContact* table2;
+    WorldCollisionContact* table3;
+    WorldCollisionContact* table4;
 
     work            = actor->work;
     coord           = actor->extra.tmd->coords;
@@ -1514,7 +1492,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_2A4 = coord;
     Gp_LinkObj(3, (struct _GpObj*)work->field_29C);
     Gp_InitRec18Table(table1, 1, 0);
-    table2                       = work->collision.entries.recs;
+    table2                       = work->collision.contacts;
     work->collision.obj.coord    = coord;
     work->collision.obj.ctx.recs = table2;
     work->collision.obj.key      = 0x30010;
@@ -1526,12 +1504,12 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_2BA             |= 0xC000;
     Gp_LinkObj(2, &work->collision.obj);
     Gp_InitRec18Table(table2, 8, 0);
-    table3                     = (s8*)&work->field_444;
+    table3                     = &work->capsuleContact;
     work->field_430            = 0x1F4;
     work->field_42C            = 0x1F4;
     work->field_43C            = 1;
     work->field_43E            = 1;
-    work->field_440            = table3;
+    work->capsuleContacts      = table3;
     work->field_414            = coord;
     work->field_418            = (s8*)&work->field_42C;
     work->field_41C            = 0;
@@ -1542,7 +1520,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_42A            = 3;
     work->collision.obj.flags |= 0xC200;
     Gp_LinkObj(2, (struct _GpObj*)work->field_40C);
-    Gp_InitRec18Table((GpRec18*)table3, 1, 0);
+    Gp_InitRec18Table(table3, 1, 0);
     table4           = &work->contact_3EC;
     work->field_3D4  = coord;
     work->field_3D8  = table4;
@@ -1715,7 +1693,7 @@ static void Actor01600_Fn00BAC(Task* actor)
     scratch = (SCRATCH_HEAD(void) = old - 0x4C);
     ctx     = actor->spawnArg2.pointer;
     coord   = actor->extra.tmd->coords;
-    mode    = func_800E0C10(work->collision.entries.recs, old - 0x2C, 8, old - 4);
+    mode    = func_800E0C10(work->collision.contacts, old - 0x2C, 8, old - 4);
     world   = coord + 1;
     if (mode == 1)
         goto mode1;
@@ -1742,19 +1720,19 @@ mode_end:
             work->field_51C = 0;
     }
     /* Process each of the eight collision contacts. */
-    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->collision.entries.hits); contactIndex++) {
-        switch (work->collision.entries.hits[contactIndex].hit.parts.kind) {
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->collision.contacts); contactIndex++) {
+        switch (work->collision.contacts[contactIndex].key.parts.kind) {
             case 2:
                 if (work->field_51C == 0) {
-                    other               = slots[work->collision.entries.hits[contactIndex].hit.parts.byte0 >> 7]->extra.tmd->coords;
+                    other               = slots[(u8)work->collision.contacts[contactIndex].key.parts.id >> 7]->extra.tmd->coords;
                     x                   = other->coord.t[0] - coord->coord.t[0];
                     scratch->delta.v.vx = x;
                     y                   = other->coord.t[1] - coord->coord.t[1];
                     scratch->delta.v.vy = y;
                     z                   = other->coord.t[2] - coord->coord.t[2];
                     scratch->delta.v.vz = z;
-                    damage              = Gp_ComputeDamage(work->collision.entries.hits[contactIndex].hit.id, SquareRoot0(x * x + y * y + z * z), 0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->collision.entries.hits[contactIndex].hit.id, 0)) {
+                    damage              = Gp_ComputeDamage(work->collision.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
+                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->collision.contacts[contactIndex].key.value, 0)) {
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 0, 0);
                     }
@@ -1762,12 +1740,12 @@ mode_end:
                         damage *= 2;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords + 1, 3, 0);
                     }
-                    func_800E2C78(ctx, work->collision.entries.hits[contactIndex].hit.id, damage, 0);
+                    func_800E2C78(ctx, work->collision.contacts[contactIndex].key.value, damage, 0);
                     Actor01600_Fn0131C(actor, damage);
-                    count = Gp_GetIdParam2(work->collision.entries.hits[contactIndex].hit.id);
+                    count = Gp_GetIdParam2(work->collision.contacts[contactIndex].key.value);
                     if (count > 0)
                         work->field_51C = count;
-                    switch (Gp_GetIdParam0(work->collision.entries.hits[contactIndex].hit.id) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->collision.contacts[contactIndex].key.value) & 0xFFFF) {
                         case 4:
                         case 6:
                             if ((s16)ctx->hp <= 0)
@@ -1779,7 +1757,7 @@ mode_end:
                             if (work->field_4FE != 3) {
                                 ignoredState = 5;
                                 if (work->field_4FE != ignoredState) {
-                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->collision.entries.hits[contactIndex].hit.id, 0);
+                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->collision.contacts[contactIndex].key.value, 0);
                                     work->field_556 = 1;
                                 }
                             }
@@ -1788,7 +1766,7 @@ mode_end:
                             if (work->field_4FE != 3) {
                                 ignoredState = 5;
                                 if (work->field_4FE != ignoredState) {
-                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->collision.entries.hits[contactIndex].hit.id, 0);
+                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->collision.contacts[contactIndex].key.value, 0);
                                     work->field_556 = 0;
                                 }
                             }
@@ -1805,7 +1783,7 @@ mode_end:
                         case 0:
                             break;
                         case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->collision.entries.hits[contactIndex].hit.id, 0);
+                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->collision.contacts[contactIndex].key.value, 0);
                             break;
                     }
                     if (damage >= 40 && work->field_556 == 0) {
@@ -1837,26 +1815,26 @@ mode_end:
                         }
                         work->field_516 = 8;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->collision.entries.hits[contactIndex].hit.id) & 0xFFFF, world, 0, &work->hitEffect);
+                    func_800FDB18(Gp_GetIdParam1(work->collision.contacts[contactIndex].key.value) & 0xFFFF, world, 0, &work->hitEffect);
                 }
                 break;
             case 3:
-                cx                  = coord->workm.t[0] - work->collision.entries.hits[contactIndex].point.vx;
+                cx                  = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
                 scratch->delta.v.vy = 0;
                 scratch->delta.v.vx = cx;
-                cz                  = coord->workm.t[2] - work->collision.entries.hits[contactIndex].point.vz;
+                cz                  = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
                 scratch->delta.v.vz = cz;
                 push                = cx * cx + cz * cz;
                 push                = SquareRoot0(push);
                 push                = -push;
-                push               += work->collision.entries.hits[contactIndex].depth;
+                push               += work->collision.contacts[contactIndex].distance;
                 clamped             = push;
                 if (push <= 0)
                     clamped = 0;
                 push                = clamped;
-                scratch->delta.v.vx = coord->workm.t[0] - work->collision.entries.hits[contactIndex].point.vx;
-                scratch->delta.v.vy = coord->workm.t[1] - work->collision.entries.hits[contactIndex].point.vy;
-                scratch->delta.v.vz = coord->workm.t[2] - work->collision.entries.hits[contactIndex].point.vz;
+                scratch->delta.v.vx = coord->workm.t[0] - work->collision.contacts[contactIndex].point.vx;
+                scratch->delta.v.vy = coord->workm.t[1] - work->collision.contacts[contactIndex].point.vy;
+                scratch->delta.v.vz = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
                 VectorNormal(&scratch->delta.v, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->delta.v);
                 if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
@@ -1885,7 +1863,7 @@ mode_end:
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->collision.entries.recs);
+    Gp_ClearRec18Occupied(work->collision.contacts);
     if (work->field_516 && Gp_FindRec18(&work->contact_3EC, 0)) {
         work->collision.obj.pos.vy = -400;
         work->collision.obj.radius = 400;
@@ -2084,32 +2062,32 @@ tail:
 
 static void Actor01600_Fn017BC(Task* actor)
 {
-    GpEnemy*        ctx;
-    Actor01600Work* work;
-    GfxCoord*       coord;
-    TmdObject*      model;
-    s16             frameOffset;
-    s16             count;
-    s16             tick;
-    s16             state;
-    s16             height;
-    s16             repeatHeight;
-    s16             frame;
-    s32             contact;
-    s32             id;
-    void*           old;
-    s32             pan8;
-    s32             distance;
-    GpRec18*        rec;
-    s32             pan1;
-    s32             pan2;
-    s32             pan3;
-    s32             pan4;
-    s32             pan5;
-    s32             pan6;
-    s32             pan7;
-    u16             flags;
-    u16             attackFrame;
+    GpEnemy*               ctx;
+    Actor01600Work*        work;
+    GfxCoord*               coord;
+    TmdObject*             model;
+    s16                    frameOffset;
+    s16                    count;
+    s16                    tick;
+    s16                    state;
+    s16                    height;
+    s16                    repeatHeight;
+    s16                    frame;
+    s32                    contact;
+    s32                    id;
+    void*                  old;
+    s32                    pan8;
+    s32                    distance;
+    WorldCollisionContact* rec;
+    s32                    pan1;
+    s32                    pan2;
+    s32                    pan3;
+    s32                    pan4;
+    s32                    pan5;
+    s32                    pan6;
+    s32                    pan7;
+    u16                    flags;
+    u16                    attackFrame;
 
     work               = actor->work;
     old                = SCRATCH_HEAD(void);
@@ -3814,7 +3792,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     gte_stsv(out);
     work->field_42C = (s16)scratch->out.vx;
     work->field_430 = (s16)scratch->out.vz;
-    if ((u16)(work->field_444.key >> 16) != 0x10) {
+    if ((u16)(work->capsuleContact.key.value >> 16) != 0x10) {
         if (angle == 0) {
             temp_v0_3 = work->field_4E8;
             if (work->ranges[temp_v0_3].low == 0xFFFF) {
@@ -3845,7 +3823,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
             }
         }
     }
-    Gp_ClearRec18Occupied(&work->field_444);
+    Gp_ClearRec18Occupied(&work->capsuleContact);
     SCRATCH_POP(Actor01600YawScratch);
     return var_s4;
 }

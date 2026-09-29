@@ -183,11 +183,11 @@ static __inline__ void Gp_ObjWorldPosInline(GpObj* obj, VECTOR* pos)
 
 void func_800DD940(GpObj* arg0)
 {
-    u8*             head;
-    GpFloorScratch* block;
-    GpRec18*        slot;
-    s32             i;
-    u16             flags;
+    u8*                    head;
+    GpFloorScratch*        block;
+    WorldCollisionContact* slot;
+    s32                    i;
+    u16                    flags;
 
     head               = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(void) = head - 0x50;
@@ -202,28 +202,28 @@ void func_800DD940(GpObj* arg0)
     block->origin.vz = block->seg[0].vz;
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         if (D_80115450[i] &&
-            Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy < -0xDDA &&
+            Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, arg0)) {
             slot  = arg0->ctx.dir->field_8;
             flags = slot->flags;
-            if (flags & 1) {
-                if ((u32)(slot->key & 0xF) < (u32)Gp_GridParams->field_C[i].field_A) {
-                    slot->key = Gp_GridParams->field_C[i].field_A | 0x100100;
+            if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                if ((u32)(slot->key.value & 0xF) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
+                    slot->key.value = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
                 }
             } else {
-                slot->flags = flags | 1;
-                slot->key   = Gp_GridParams->field_C[i].field_A | 0x100100;
+                slot->flags     = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                slot->key.value = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
             }
-            slot->point       = block->ray[1];
-            slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
-            block->delta.vx   = block->origin.vx - block->ray[1].vx;
-            block->delta.vy   = block->origin.vy - block->ray[1].vy;
-            block->delta.vz   = block->origin.vz - block->ray[1].vz;
-            slot->depth       = SquareRoot0(block->delta.vx * block->delta.vx +
-                                            block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
-            block->seg[0].vx  = block->ray[1].vx;
-            block->seg[0].vy  = block->ray[1].vy;
-            block->seg[0].vz  = block->ray[1].vz;
+            slot->point           = block->ray[1];
+            slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+            block->delta.vx       = block->origin.vx - block->ray[1].vx;
+            block->delta.vy       = block->origin.vy - block->ray[1].vy;
+            block->delta.vz       = block->origin.vz - block->ray[1].vz;
+            slot->distance        = SquareRoot0(block->delta.vx * block->delta.vx +
+                                                block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz);
+            block->seg[0].vx      = block->ray[1].vx;
+            block->seg[0].vy      = block->ray[1].vy;
+            block->seg[0].vz      = block->ray[1].vz;
         }
     }
     SCRATCH_POP_BYTES(0x50);
@@ -261,10 +261,10 @@ static void func_800DDC2C(GpObj* arg0)
 
 void func_800DDDF8(GpObj* obj)
 {
-    GpSegmentHitScratch* block;
-    GpRec18*             slot;
-    u16                  flags;
-    s32                  i;
+    GpSegmentHitScratch*   block;
+    WorldCollisionContact* slot;
+    u16                    flags;
+    s32                    i;
 
     block = SCRATCH_PUSH(GpSegmentHitScratch);
     for (i = 0; i < Gp_GridParams->field_22; i++) {
@@ -279,27 +279,27 @@ void func_800DDDF8(GpObj* obj)
             slot = obj->ctx.d4rec->recs;
             if (obj->flags & 0x400) {
                 if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
-                                      [Gp_GridParams->field_C[i].field_A]
+                                      [Gp_GridParams->field_C[i].surfaceClass]
                                           ->field_1 == 0) {
-                    slot->depth       = 0;
-                    slot->flags      |= 1;
-                    slot->key         = Gp_GridParams->field_C[i].field_A | 0x100000;
-                    slot->point       = block->ray[1];
-                    slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
-                    block->pos[0].vx  = block->ray[1].vx;
-                    block->pos[0].vy  = block->ray[1].vy;
-                    block->pos[0].vz  = block->ray[1].vz;
+                    slot->distance        = 0;
+                    slot->flags          |= WORLD_COLLISION_CONTACT_OCCUPIED;
+                    slot->key.value       = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                    slot->point           = block->ray[1];
+                    slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+                    block->pos[0].vx      = block->ray[1].vx;
+                    block->pos[0].vy      = block->ray[1].vy;
+                    block->pos[0].vz      = block->ray[1].vz;
                 }
             } else {
                 for (;;) {
                     flags = slot->flags;
-                    if (!(flags & 1)) {
-                        slot->flags       = flags | 1;
-                        slot->depth       = 0;
-                        slot->key         = Gp_GridParams->field_C[i].field_A | 0x100000;
-                        slot->point       = block->ray[1];
-                        slot->at10.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8];
-                        if (slot->flags & 2) {
+                    if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
+                        slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                        slot->distance        = 0;
+                        slot->key.value       = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                        slot->point           = block->ray[1];
+                        slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+                        if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                             void** head = SCRATCH_HEAD_ADDR;
 
                             SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
@@ -307,7 +307,7 @@ void func_800DDDF8(GpObj* obj)
                         }
                         break;
                     }
-                    if (flags == 3) {
+                    if (flags == (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) {
                         void** head = SCRATCH_HEAD_ADDR;
 
                         SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
@@ -487,7 +487,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
             continue;
         }
         if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
-                              [Gp_GridParams->field_C[i].field_A]
+                              [Gp_GridParams->field_C[i].surfaceClass]
                                   ->field_1 != 0) {
             continue;
         }
@@ -500,9 +500,9 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
             arg2->vz = block->hit.vz;
         }
         if (arg3 != NULL) {
-            arg3->vx = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vx;
-            arg3->vy = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vy;
-            arg3->vz = Gp_GridParams->field_4[Gp_GridParams->field_C[i].field_8].vz;
+            arg3->vx = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vx;
+            arg3->vy = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy;
+            arg3->vz = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vz;
         }
         block->from.vx = block->hit.vx;
         block->from.vy = block->hit.vy;
@@ -551,30 +551,30 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 
 void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    GpNormScratch* block;
-    GpActorD4Rec*  rec;
-    SVECTOR*       src;
-    GpRec18*       slot;
-    s32            flags;
-    s32            i;
+    GpNormScratch*         block;
+    GpActorD4Rec*          rec;
+    SVECTOR*               src;
+    WorldCollisionContact* slot;
+    s32                    flags;
+    s32                    i;
 
     rec   = arg0->ctx.d4rec;
     block = SCRATCH_PUSH(GpNormScratch);
     i     = 0;
 
     if (arg3 == 0) {
-        if (arg0->flags & 0x800) {
+        if (arg0->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
             slot = arg0->ctx.d4rec->recs;
             for (;;) {
                 flags = slot->flags;
-                if (flags & 1) {
+                if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                     arg1->vx = slot->point.vx;
                     arg1->vy = slot->point.vy;
                     arg1->vz = slot->point.vz;
                     i        = 1;
                     goto done_search;
                 }
-                if (flags & 2) {
+                if (flags & WORLD_COLLISION_CONTACT_LAST) {
                     goto done_search;
                 }
                 slot++;
@@ -582,8 +582,8 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
         } else if (arg0->flags & 0x400) {
             slot = arg0->ctx.d4rec->recs;
             for (;;) {
-                if (slot->flags & 1) {
-                    if ((slot->key & 0xFFFF0000) == 0x100000) {
+                if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                    if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                         arg1->vx = slot->point.vx;
                         arg1->vy = slot->point.vy;
                         arg1->vz = slot->point.vz;
@@ -591,7 +591,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                         goto done_search;
                     }
                 }
-                if (slot->flags & 2) {
+                if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                     goto done_search;
                 }
                 slot++;
@@ -600,8 +600,8 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     } else if (arg0->flags & 0x400) {
         slot = arg0->ctx.d4rec->recs;
         for (;;) {
-            if (slot->flags & 1) {
-                if ((slot->key & 0xFFFF0000) == 0x100000) {
+            if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                     arg1->vx = slot->point.vx;
                     arg1->vy = slot->point.vy;
                     arg1->vz = slot->point.vz;
@@ -609,7 +609,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
                     goto done_search;
                 }
             }
-            if (slot->flags & 2) {
+            if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                 goto done_search;
             }
             slot++;

@@ -14,107 +14,106 @@
 #include "player_actor.h"
 #include "world_collision.h"
 
-/* Contact records store a node address as low/high halfwords in at10.
- * Reassembling that stored address is an intentional integer-to-pointer
- * conversion; the union carries a surface normal for other contact kinds. */
-#define GP_CLAIM_CONTACT_REC(rec, obj)                                                                  \
-    do {                                                                                                \
-        GpRec18* _other;                                                                                \
-        u16      _recFlags;                                                                             \
-                                                                                                        \
-        if ((obj)->flags & 0x800) {                                                                     \
-            _recFlags = (rec)->flags;                                                                   \
-            if (!(_recFlags & 1)) {                                                                     \
-                (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                 \
-            } else {                                                                                    \
-                if (((rec)->key & 0xFFFF0000) != 0x100000) {                                            \
-                    _other = _gpObjRecs(                                                                \
-                        (GpObj*)((((rec)->at10.node.high << 16) & 0xFFFF0000) | (rec)->at10.node.low)); \
-                    if (_other == NULL) {                                                               \
-                        return;                                                                         \
-                    }                                                                                   \
-                    for (;;) {                                                                          \
-                        if (_other->key == (obj)->key) {                                                \
-                            goto _found;                                                                \
-                        }                                                                               \
-                        if (_other->flags & 2) {                                                        \
-                            return;                                                                     \
-                        }                                                                               \
-                        _other++;                                                                       \
-                    }                                                                                   \
-                _found:                                                                                 \
-                    _other->key            = 0;                                                         \
-                    _other->depth          = 0;                                                         \
-                    _other->point.vx       = 0;                                                         \
-                    _other->point.vy       = 0;                                                         \
-                    _other->point.vz       = 0;                                                         \
-                    _other->at10.normal.vx = 0;                                                         \
-                    _other->at10.normal.vy = 0;                                                         \
-                    _other->at10.normal.vz = 0;                                                         \
-                    _other->flags         &= ~1;                                                        \
-                }                                                                                       \
-                (rec)->flags |= ((obj)->flags & 0xF0) + 1;                                              \
-            }                                                                                           \
-        } else {                                                                                        \
-            for (;;) {                                                                                  \
-                _recFlags = (rec)->flags;                                                               \
-                if (!(_recFlags & 1)) {                                                                 \
-                    goto _free;                                                                         \
-                }                                                                                       \
-                if (_recFlags & 2) {                                                                    \
-                    return;                                                                             \
-                }                                                                                       \
-                (rec)++;                                                                                \
-            }                                                                                           \
-        _free:                                                                                          \
-            (rec)->flags = _recFlags | (((obj)->flags & 0xF0) + 1);                                     \
-        }                                                                                               \
-    } while (0)
-
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PairHandler1`.
-/// `Gp_ObjWorldPos` writes world-space positions into `pos0` / `pos1`.
-/// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
-/// filled for `func_800DBA20` (other object's truncated position, a
-/// zeroed extra SVECTOR, and the summed radii). `func_800DBA20` writes
-/// `src` / `extra` into the chosen `GpRec18` at `point` / `at10`,
-/// stores `arg1->field_18` at `key`, and ORs `(flags & 0xF0) + 1`
-/// into `flags`.
-typedef struct _GpSphereScratch {
-    /* 0x00 */ SVECTOR src;
-    /* 0x08 */ SVECTOR extra;
-    /* 0x10 */ s16     rsum;
-    /* 0x12 */ s16     pad_12;
-    /* 0x14 */ VECTOR  pos0;
-    /* 0x24 */ VECTOR  pos1;
-    /* 0x34 */ VECTOR  delta;
-    /* 0x44 */ s32     rsum32;
-} GpSphereScratch;
-STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
+/// Claims an entry and marks its receiving-body index for a pair-contact writer.
+///
+/// `rec` must be a modifiable pointer into `obj`'s initialized contact table.
+/// Both arguments must be stable expressions: they are evaluated repeatedly.
+/// This macro advances `rec`, and returns from its enclosing void function on
+/// exhaustion or a missing reciprocal table. Single-contact mode replaces the
+/// first entry and clears the previous body contact using its encoded address.
+/// Its inline helper and fixed labels require one expansion per function.
+#define WORLD_COLLISION_CLAIM_CONTACT(rec, obj)                                                                                           \
+    do {                                                                                                                                  \
+        WorldCollisionContact* _other;                                                                                                    \
+        u16                    _recFlags;                                                                                                 \
+                                                                                                                                          \
+        if ((obj)->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {                                                                         \
+            _recFlags = (rec)->flags;                                                                                                     \
+            if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                        \
+                (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED); \
+            } else {                                                                                                                      \
+                if (((rec)->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {                             \
+                    _other = _worldCollisionGetObjectContacts(                                                                            \
+                        (GpObj*)((((rec)->response.node.high << 16) & 0xFFFF0000) | (rec)->response.node.low));                           \
+                    if (_other == NULL) {                                                                                                 \
+                        return;                                                                                                           \
+                    }                                                                                                                     \
+                    for (;;) {                                                                                                            \
+                        if (_other->key.value == (obj)->key) {                                                                            \
+                            goto _found;                                                                                                  \
+                        }                                                                                                                 \
+                        if (_other->flags & WORLD_COLLISION_CONTACT_LAST) {                                                               \
+                            return;                                                                                                       \
+                        }                                                                                                                 \
+                        _other++;                                                                                                         \
+                    }                                                                                                                     \
+                _found:                                                                                                                   \
+                    _other->key.value          = 0;                                                                                       \
+                    _other->distance           = 0;                                                                                       \
+                    _other->point.vx           = 0;                                                                                       \
+                    _other->point.vy           = 0;                                                                                       \
+                    _other->point.vz           = 0;                                                                                       \
+                    _other->response.normal.vx = 0;                                                                                       \
+                    _other->response.normal.vy = 0;                                                                                       \
+                    _other->response.normal.vz = 0;                                                                                       \
+                    _other->flags             &= ~WORLD_COLLISION_CONTACT_OCCUPIED;                                                       \
+                }                                                                                                                         \
+                (rec)->flags |= ((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED;              \
+            }                                                                                                                             \
+        } else {                                                                                                                          \
+            for (;;) {                                                                                                                    \
+                _recFlags = (rec)->flags;                                                                                                 \
+                if (!(_recFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {                                                                    \
+                    goto _free;                                                                                                           \
+                }                                                                                                                         \
+                if (_recFlags & WORLD_COLLISION_CONTACT_LAST) {                                                                           \
+                    return;                                                                                                               \
+                }                                                                                                                         \
+                (rec)++;                                                                                                                  \
+            }                                                                                                                             \
+        _free:                                                                                                                            \
+            (rec)->flags = _recFlags | (((obj)->flags & WORLD_COLLISION_CONTACT_BODY_INDEX_MASK) + WORLD_COLLISION_CONTACT_OCCUPIED);     \
+        }                                                                                                                                 \
+    } while (0)
 
-/// 0x8C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PairHandler3`.
-/// The sphere position and capsule endpoints define the candidate contact.
-/// `src` / `extra` / `rsum` share the collision-record prefix of `GpSphereScratch`.
-typedef struct _GpCapsuleScratch {
-    /* 0x00 */ SVECTOR src;
-    /* 0x08 */ SVECTOR extra;
-    /* 0x10 */ s16     rsum;
-    /* 0x12 */ s16     pad_12;
-    /* 0x14 */ VECTOR3 sphere;
-    /* 0x20 */ s32     pad_20;
-    /* 0x24 */ VECTOR  end0;
-    /* 0x34 */ VECTOR  end1;
-    /* 0x44 */ VECTOR  planeA;
-    /* 0x54 */ VECTOR  planeB;
-    /* 0x64 */ VECTOR  delta;
-    /* 0x74 */ SVECTOR normal;
-    /* 0x7C */ SVECTOR hit;
-    /* 0x84 */ SVECTOR scaled;
-} GpCapsuleScratch;
-STATIC_ASSERT_SIZEOF(GpCapsuleScratch, 0x8C);
+/// Position, response vector and distance passed from pair tests to their contact writer.
+typedef struct {
+    SVECTOR point;    // Other centre or capsule intersection, in world units
+    SVECTOR response; // Capsule axis, encoded body address, or zero for spheres
+    s16     distance; // Summed sphere radii, or zero for capsule hits
+} _WorldCollisionPairContact;
+
+/// Scratch storage for sphere-pair intersection and its contact result.
+typedef struct {
+    _WorldCollisionPairContact contact;
+    byte                       field_12[2]; // Role unproven
+    VECTOR                     pos0;
+    VECTOR                     pos1;
+    VECTOR                     delta;
+    s32                        rsum32;
+} _WorldCollisionSphereScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionSphereScratch, 0x48);
+
+/// Scratch storage for sphere/capsule intersection and its contact result.
+typedef struct {
+    _WorldCollisionPairContact contact;
+    byte                       field_12[2]; // Role unproven
+    VECTOR3                    sphere;
+    s32                        pad_20;
+    VECTOR                     end0;
+    VECTOR                     end1;
+    VECTOR                     planeA;
+    VECTOR                     planeB;
+    VECTOR                     delta;
+    SVECTOR                    normal;
+    SVECTOR                    hit;
+    SVECTOR                    scaled;
+} _WorldCollisionCapsuleScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleScratch, 0x8C);
 
 /// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `Gp_CollideObjGrid`.
 /// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
@@ -156,15 +155,14 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind);
 
 s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind);
 
-static inline GpRec18* _gpObjRecs(GpObj* obj);
-
 static void Gp_RunPairHandler(GpObj* node);
 
-static void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
+static void _worldCollisionRecordPairContact(GpObj* receivingBody, GpObj* contactedBody, _WorldCollisionPairContact* contact);
 
-static inline GpRec18* _gpObjRecs(GpObj* obj)
+/// Contact table selected by the body's shape, or NULL for a body without one.
+static inline WorldCollisionContact* _worldCollisionGetObjectContacts(GpObj* obj)
 {
-    GpRec18* recs = NULL;
+    WorldCollisionContact* recs = NULL;
 
     switch (obj->flags & 7) {
         case 0:
@@ -271,36 +269,37 @@ static void Gp_RunPairHandler(GpObj* node)
     }
 }
 
-static void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
+/// Records an identified pair contact in the receiving body's initialized table.
+static void _worldCollisionRecordPairContact(GpObj* receivingBody, GpObj* contactedBody, _WorldCollisionPairContact* contact)
 {
-    GpRec18* rec;
+    WorldCollisionContact* rec;
 
-    if (arg1->key == 0) {
+    if (contactedBody->key == 0) {
         return;
     }
 
-    rec = _gpObjRecs(arg0);
+    rec = _worldCollisionGetObjectContacts(receivingBody);
     if (rec == NULL) {
         return;
     }
 
-    GP_CLAIM_CONTACT_REC(rec, arg0);
+    WORLD_COLLISION_CLAIM_CONTACT(rec, receivingBody);
 
-    rec->key         = arg1->key;
-    rec->depth       = arg2->rsum;
-    rec->point       = arg2->src;
-    rec->at10.normal = arg2->extra;
+    rec->key.value       = contactedBody->key;
+    rec->distance        = contact->distance;
+    rec->point           = contact->point;
+    rec->response.normal = contact->response;
 }
 
 s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
 {
-    u8*              head;
-    GpSphereScratch* block;
-    s32              ret;
+    u8*                           head;
+    _WorldCollisionSphereScratch* block;
+    s32                           ret;
 
-    head                          = SCRATCH_HEAD(u8);
-    block                         = (GpSphereScratch*)(head - 0x48);
-    SCRATCH_HEAD(GpSphereScratch) = block;
+    head                                       = SCRATCH_HEAD(u8);
+    block                                      = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
+    SCRATCH_HEAD(_WorldCollisionSphereScratch) = block;
     Gp_ObjWorldPos(arg0, (VECTOR3*)&block->pos0);
     Gp_ObjWorldPos(arg1, (VECTOR3*)&block->pos1);
 
@@ -309,33 +308,33 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
     block->delta.vy = block->pos0.vy - block->pos1.vy;
     block->delta.vz = block->pos0.vz - block->pos1.vz;
     if ((ABS(block->delta.vx) > 0x7FFF) || (ABS(block->delta.vz) > 0x7FFF)) {
-        SCRATCH_POP_BYTES(0x48);
+        SCRATCH_POP(_WorldCollisionSphereScratch);
         return 0;
     }
 
     block->rsum32 = arg0->radius + arg1->radius;
     if (block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz < block->rsum32 * block->rsum32) {
-        block->src.vx   = block->pos1.vx;
-        block->src.vy   = block->pos1.vy;
-        block->src.vz   = block->pos1.vz;
-        block->extra.vx = 0;
-        block->extra.vy = 0;
-        block->extra.vz = 0;
-        block->rsum     = block->rsum32;
-        func_800DBA20(arg0, arg1, block);
+        block->contact.point.vx    = block->pos1.vx;
+        block->contact.point.vy    = block->pos1.vy;
+        block->contact.point.vz    = block->pos1.vz;
+        block->contact.response.vx = 0;
+        block->contact.response.vy = 0;
+        block->contact.response.vz = 0;
+        block->contact.distance    = block->rsum32;
+        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         ret = 1;
 
-        block->src.vx   = block->pos0.vx;
-        block->src.vy   = block->pos0.vy;
-        block->src.vz   = block->pos0.vz;
-        block->extra.vx = 0;
-        block->extra.vy = 0;
-        block->extra.vz = 0;
-        block->rsum     = block->rsum32;
-        func_800DBA20(arg1, arg0, block);
+        block->contact.point.vx    = block->pos0.vx;
+        block->contact.point.vy    = block->pos0.vy;
+        block->contact.point.vz    = block->pos0.vz;
+        block->contact.response.vx = 0;
+        block->contact.response.vy = 0;
+        block->contact.response.vz = 0;
+        block->contact.distance    = block->rsum32;
+        _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
     }
 
-    SCRATCH_POP_BYTES(0x48);
+    SCRATCH_POP(_WorldCollisionSphereScratch);
     return ret;
 }
 
@@ -346,41 +345,41 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
         GpObj* object;
         s32    address;
     } sourceAddress;
-    u8*               head;
-    GpCapsuleScratch* block;
-    VECTOR*           ends;
-    GpActorD4Rec*     rec;
-    s32               proj;
-    s32               ret;
-    s32               tapered;
-    VECTOR3*          pos;
-    s32               radiusSquared;
-    s32               dx0;
-    s32               dy0;
-    s32               dz0;
-    s32               dx1;
-    s32               dy1;
-    s32               dz1;
-    s32               dx2;
-    s32               dy2;
-    s32               dz2;
-    s32               dx3;
-    s32               dy3;
-    s32               dz3;
-    s32               dx4;
-    s32               dy4;
-    s32               dz4;
-    s32               len;
-    s32               plen;
-    s32               r0;
-    s32               r1;
-    s32               tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
+    u8*                            head;
+    _WorldCollisionCapsuleScratch* block;
+    VECTOR*                        ends;
+    GpActorD4Rec*                  rec;
+    s32                            proj;
+    s32                            ret;
+    s32                            tapered;
+    VECTOR3*                       pos;
+    s32                            radiusSquared;
+    s32                            dx0;
+    s32                            dy0;
+    s32                            dz0;
+    s32                            dx1;
+    s32                            dy1;
+    s32                            dz1;
+    s32                            dx2;
+    s32                            dy2;
+    s32                            dz2;
+    s32                            dx3;
+    s32                            dy3;
+    s32                            dz3;
+    s32                            dx4;
+    s32                            dy4;
+    s32                            dz4;
+    s32                            len;
+    s32                            plen;
+    s32                            r0;
+    s32                            r1;
+    s32                            tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
 
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x78);
-    SCRATCH_HEAD(void) = head - 0x8C;
+    SCRATCH_HEAD(void) = head - sizeof(_WorldCollisionCapsuleScratch);
     rec                = arg1->ctx.d4rec;
-    block              = (GpCapsuleScratch*)(head - 0x8C);
+    block              = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
     Gp_ObjWorldPos(arg0, pos);
     ends = (VECTOR*)(head - 0x68);
     func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
@@ -401,7 +400,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
     dz0 = (block->sphere.vz - block->planeA.vz) * block->normal.vz;
     ret = 0;
     if (dx0 + dy0 + dz0 > 0) {
-        SCRATCH_POP_BYTES(0x8C);
+        SCRATCH_POP(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
@@ -410,7 +409,7 @@ s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
     dz1  = (block->sphere.vz - block->planeB.vz) * block->normal.vz;
     proj = (dx1 + dy1 + dz1) >> 12;
     if (proj <= 0) {
-        SCRATCH_POP_BYTES(0x8C);
+        SCRATCH_POP(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
@@ -473,56 +472,56 @@ check:
     dz4              = block->scaled.vz * block->scaled.vz;
     radiusSquared    = proj * proj;
     if (dx4 + dy4 + dz4 < radiusSquared) {
-        block->rsum     = 0;
-        block->src.vx   = (u16)block->end1.vx;
-        block->src.vy   = (u16)block->end1.vy;
-        block->src.vz   = (u16)block->end1.vz;
-        block->extra.vx = (u16)block->normal.vx;
-        block->extra.vy = (u16)block->normal.vy;
-        block->extra.vz = (u16)block->normal.vz;
-        func_800DBA20(arg0, arg1, (GpSphereScratch*)block);
+        block->contact.distance    = 0;
+        block->contact.point.vx    = (u16)block->end1.vx;
+        block->contact.point.vy    = (u16)block->end1.vy;
+        block->contact.point.vz    = (u16)block->end1.vz;
+        block->contact.response.vx = (u16)block->normal.vx;
+        block->contact.response.vy = (u16)block->normal.vy;
+        block->contact.response.vz = (u16)block->normal.vz;
+        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         if (!tapered) {
-            block->src = block->hit;
+            block->contact.point = block->hit;
         } else {
-            block->src.vx = (u16)block->sphere.vx;
-            block->src.vy = (u16)block->sphere.vy;
-            block->src.vz = (u16)block->sphere.vz;
+            block->contact.point.vx = (u16)block->sphere.vx;
+            block->contact.point.vy = (u16)block->sphere.vy;
+            block->contact.point.vz = (u16)block->sphere.vz;
         }
-        if (arg1->flags & 0x800) {
-            sourceAddress.object = arg0;
-            block->extra.vx      = sourceAddress.address;
-            block->extra.vy      = sourceAddress.address >> 16;
+        if (arg1->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
+            sourceAddress.object       = arg0;
+            block->contact.response.vx = sourceAddress.address;
+            block->contact.response.vy = sourceAddress.address >> 16;
         } else {
-            block->extra.vx = 0;
-            block->extra.vy = 0;
+            block->contact.response.vx = 0;
+            block->contact.response.vy = 0;
         }
-        block->extra.vz = 0;
-        block->rsum     = 0;
-        func_800DBA20(arg1, arg0, (GpSphereScratch*)block);
+        block->contact.response.vz = 0;
+        block->contact.distance    = 0;
+        _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
         ret = 1;
     }
 
-    SCRATCH_POP_BYTES(0x8C);
+    SCRATCH_POP(_WorldCollisionCapsuleScratch);
     return ret;
 }
 
 void Gp_CollideObjGrid(GpObj* arg0)
 {
-    u8*               head;
-    GpGridHitScratch* block;
-    VECTOR3*          pos;
-    GpGridFace*       face;
-    GpRec18*          slot;
-    s16*              cell;
-    s32               id;
-    s32               i;
-    s32               n;
-    s32               outside;
-    s32               val;
-    s32               faceDot;
-    s32               edgeDot;
-    u16               dist;
-    u16               flags;
+    u8*                    head;
+    GpGridHitScratch*      block;
+    VECTOR3*               pos;
+    GpGridFace*            face;
+    WorldCollisionContact* slot;
+    s16*                   cell;
+    s32                    id;
+    s32                    i;
+    s32                    n;
+    s32                    outside;
+    s32                    val;
+    s32                    faceDot;
+    s32                    edgeDot;
+    u16                    dist;
+    u16                    flags;
 
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x80);
@@ -553,7 +552,7 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
                 block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
+                gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&block->normal);
 
@@ -574,13 +573,13 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 goto edges_done;
 
             fill:
-                slot->flags       = flags | 1;
-                slot->depth       = (u16)arg0->radius - dist;
-                slot->key         = face->field_A | 0x100000;
-                slot->point.vx    = 0;
-                slot->point.vy    = 0;
-                slot->point.vz    = 0;
-                slot->at10.normal = Gp_GridParams->field_4[face->field_8];
+                slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                slot->distance        = (u16)arg0->radius - dist;
+                slot->key.value       = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                slot->point.vx        = 0;
+                slot->point.vy        = 0;
+                slot->point.vz        = 0;
+                slot->response.normal = Gp_GridParams->field_4[face->normalIndex];
                 goto next_face;
 
             edges:
@@ -629,10 +628,10 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 slot = arg0->ctx.recs;
                 for (;;) {
                     flags = slot->flags;
-                    if (!(flags & 1)) {
+                    if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
                         goto fill;
                     }
-                    if (flags & 2) {
+                    if (flags & WORLD_COLLISION_CONTACT_LAST) {
                         goto done;
                     }
                     slot++;
@@ -650,24 +649,24 @@ done:
 
 void Gp_CollideObjGridDir(GpObj* arg0)
 {
-    u8*               head;
-    GpGridHitScratch* block;
-    VECTOR3*          pos;
-    GpGridFace*       face;
-    GpRec18*          slot;
-    GpObjDirRec*      rec;
-    s16*              cell;
-    s32               id;
-    s32               i;
-    s32               n;
-    s32               outside;
-    s32               val;
-    s32               faceDot;
-    s32               edgeDot;
-    u16               dist;
-    s32               extra;
-    s32               faceKind;
-    u16               flags;
+    u8*                    head;
+    GpGridHitScratch*      block;
+    VECTOR3*               pos;
+    GpGridFace*            face;
+    WorldCollisionContact* slot;
+    GpObjDirRec*           rec;
+    s16*                   cell;
+    s32                    id;
+    s32                    i;
+    s32                    n;
+    s32                    outside;
+    s32                    val;
+    s32                    faceDot;
+    s32                    edgeDot;
+    u16                    dist;
+    s32                    extra;
+    s32                    faceKind;
+    u16                    flags;
 
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x80);
@@ -690,7 +689,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     cell++;
                     continue;
                 }
-                if (Gp_GridParams->field_4[face->field_8].vy < -0xDDA) {
+                if (Gp_GridParams->field_4[face->normalIndex].vy < -0xDDA) {
                     cell++;
                     continue;
                 }
@@ -703,7 +702,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
                 block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
+                gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&block->normal);
 
@@ -772,7 +771,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                         if ((s16)dist < 0) {
                             goto mark_outside;
                         }
-                        extra = 0x200;
+                        extra = WORLD_COLLISION_CONTACT_GRID_EDGE;
                     }
                 }
             edges_done:
@@ -784,29 +783,29 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 slot = arg0->ctx.dir->field_8;
                 for (;;) {
                     flags = slot->flags;
-                    if (flags & 1) {
-                        if ((slot->key & -0x100) == (extra | 0x100000)) {
-                            if (slot->at10.normal.vx == Gp_GridParams->field_4[face->field_8].vx &&
-                                slot->at10.normal.vy == Gp_GridParams->field_4[face->field_8].vy &&
-                                slot->at10.normal.vz == Gp_GridParams->field_4[face->field_8].vz) {
-                                if (slot->depth < (s32)(u16)arg0->radius - (s16)dist) {
-                                    slot->depth = (u16)arg0->radius - dist;
+                    if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                        if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
+                            if (slot->response.normal.vx == Gp_GridParams->field_4[face->normalIndex].vx &&
+                                slot->response.normal.vy == Gp_GridParams->field_4[face->normalIndex].vy &&
+                                slot->response.normal.vz == Gp_GridParams->field_4[face->normalIndex].vz) {
+                                if (slot->distance < (s32)(u16)arg0->radius - (s16)dist) {
+                                    slot->distance = (u16)arg0->radius - dist;
                                 }
                                 goto next_face;
                             }
                         }
                     } else {
-                        slot->flags       = flags | 1;
-                        slot->depth       = (u16)arg0->radius - dist;
-                        faceKind          = face->field_A | 0x100000;
-                        slot->key         = extra | faceKind;
-                        slot->point.vx    = 0;
-                        slot->point.vy    = 0;
-                        slot->point.vz    = 0;
-                        slot->at10.normal = Gp_GridParams->field_4[face->field_8];
+                        slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                        slot->distance        = (u16)arg0->radius - dist;
+                        faceKind              = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                        slot->key.value       = extra | faceKind;
+                        slot->point.vx        = 0;
+                        slot->point.vy        = 0;
+                        slot->point.vz        = 0;
+                        slot->response.normal = Gp_GridParams->field_4[face->normalIndex];
                         goto next_face;
                     }
-                    if (slot->flags & 2) {
+                    if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                         goto done;
                     }
                     slot++;
@@ -849,7 +848,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, GpObj* arg3)
     block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
     block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
 
-    gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
+    gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
     gte_rtv0();
     gte_stlvnl(&block->normal);
 

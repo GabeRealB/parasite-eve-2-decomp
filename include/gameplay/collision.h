@@ -86,15 +86,11 @@ typedef struct _GpObj3A {
 } GpObj3A;
 STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
-/// 0xC record in `GpGridParams.field_C`, one per collision face. The first
-/// four halfwords index `GpGridParams.field_8` (the face corners); a `verts[3]`
-/// of 0xFFFF marks a triangle instead of a quad. `field_8` indexes
-/// `GpGridParams.field_4` (the face normal) and `field_A` is the face id stored
-/// into `GpRec18.key` alongside the 0x100000 kind bits.
-typedef struct _GpGridFace {
-    /* 0x0 */ u16 verts[4];
-    /* 0x8 */ u16 field_8;
-    /* 0xA */ s16 field_A;
+/// Collision face with corner and normal indices into the grid's vector pools.
+typedef struct {
+    u16 verts[4];     // Corner indices; 0xFFFF in the fourth slot marks a triangle
+    u16 normalIndex;  // Index into the grid's normal pool
+    s16 surfaceClass; // Room surface-property table index (0..7), copied into contact keys
 } GpGridFace;
 STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
 

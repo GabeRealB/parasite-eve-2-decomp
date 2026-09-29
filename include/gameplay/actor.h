@@ -18,26 +18,26 @@ struct _GpObjDirRec;
 /// it takes part in name by `key`.
 ///
 /// `flags` bits 0-2 select what `ctx` points at, which is how the collision
-/// passes reach the `GpRec18` table recording that body's contacts: 0 nothing,
+/// passes reach the `WorldCollisionContact` table recording that body's contacts: 0 nothing,
 /// 1 the table itself, 2 a node whose own table is used, 3 the `GpActorD4Rec`
 /// shape the body carries, 4 a `GpObjDirRec`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
 /// 0x800 makes the contacts it produces name the node instead of a direction,
 /// and bits 0x4000 and 0x8000 enable the grid and pair passes, which skip a
 /// node whose bit is clear.
 typedef struct _GpObj {
-    struct _GpObj*  next;           // next on the list
-    struct _GpObj** prev;           // address of the preceding next link
-    GfxCoord*       coord;          // transform `pos` is an offset under
+    struct _GpObj*  next;             // next on the list
+    struct _GpObj** prev;             // address of the preceding next link
+    GfxCoord*        coord;            // transform `pos` is an offset under
     union {
-        GpRec18*             recs;  // kind 1: the body's own contact table
-        struct _GpObj*       node;  // kind 2: the node whose table is used
-        GpActorD4Rec*        d4rec; // kind 3: the shape the body carries
-        struct _GpObjDirRec* dir;   // kind 4: the record whose `field_8` table is used
-    } ctx;                          // the body's collision context; see the kind bits
-    SVECTOR pos;                    // centre, in the `coord` frame
-    s32     key;                    // identity in the contact records: class << 16 | id
-    u16     radius;                 // collision radius
-    u16     flags;                  // kind, list membership and pass enables; see above
+        WorldCollisionContact* recs;  // kind 1: the body's own contact table
+        struct _GpObj*         node;  // kind 2: the node whose table is used
+        GpActorD4Rec*          d4rec; // kind 3: the shape the body carries
+        struct _GpObjDirRec*   dir;   // kind 4: the record whose `field_8` table is used
+    } ctx;                            // the body's collision context; see the kind bits
+    SVECTOR pos;                      // centre, in the `coord` frame
+    s32     key;                      // identity in the contact records: class << 16 | id
+    u16     radius;                   // collision radius
+    u16     flags;                    // kind, list membership and pass enables; see above
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
@@ -60,22 +60,22 @@ STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 /// makes then, `repeatCount` / `actionCount` bound the burst of work it is in
 /// the middle of, and the last three walk it along its route.
 typedef struct GpActorD4 {
-    /* 0x00 */ byte         pad_0[0x18];
-    /* 0x18 */ GfxCoord     coord;         // the body's transform, a copy of the actor's model coordinate
-    /* 0x68 */ GpObj        obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
-    /* 0x88 */ GpActorD4Rec shape;         // the capsule the body's collisions are tested with
-    /* 0xA0 */ GpRec18      contact;       // the one-entry table `shape` records its contacts in
-    /* 0xB8 */ byte         pad_B8[0xC];
-    /* 0xC4 */ s16          decisionTimer; // frames left before the companion picks its next action
-    /* 0xC6 */ s16          scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
-    /* 0xC8 */ s16          targetHeading; // heading being turned to, in the 0..0xFFF angle unit
-    /* 0xCA */ s16          scanDist;      // the contact distance the sweep compares its candidates by
-    /* 0xCC */ u8           repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
-    /* 0xCD */ u8           actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
-    /* 0xCE */ s8           pathStep;      // waypoint the companion is walking to
-    /* 0xCF */ s8           turnDir;       // +1 or -1: the way it turns to `targetHeading`
-    /* 0xD0 */ s8           pathDone;      // 1 once the last waypoint is reached
-    /* 0xD1 */ byte         pad_D1[3];
+    /* 0x00 */ byte                  pad_0[0x18];
+    /* 0x18 */ GfxCoord               coord;         // the body's transform, a copy of the actor's model coordinate
+    /* 0x68 */ GpObj                 obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
+    /* 0x88 */ GpActorD4Rec          shape;         // the capsule the body's collisions are tested with
+    /* 0xA0 */ WorldCollisionContact contact;       // the one-entry table `shape` records its contacts in
+    /* 0xB8 */ byte                  pad_B8[0xC];
+    /* 0xC4 */ s16                   decisionTimer; // frames left before the companion picks its next action
+    /* 0xC6 */ s16                   scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
+    /* 0xC8 */ s16                   targetHeading; // heading being turned to, in the 0..0xFFF angle unit
+    /* 0xCA */ s16                   scanDist;      // the contact distance the sweep compares its candidates by
+    /* 0xCC */ u8                    repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
+    /* 0xCD */ u8                    actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
+    /* 0xCE */ s8                    pathStep;      // waypoint the companion is walking to
+    /* 0xCF */ s8                    turnDir;       // +1 or -1: the way it turns to `targetHeading`
+    /* 0xD0 */ s8                    pathDone;      // 1 once the last waypoint is reached
+    /* 0xD1 */ byte                  pad_D1[3];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
@@ -89,26 +89,6 @@ typedef struct _GpApproachScratch {
     /* 0x10 */ s32     pad;
 } GpApproachScratch;
 STATIC_ASSERT_SIZEOF(GpApproachScratch, 0x14);
-
-/// `GameActor.field_17C` collision record (a `GpRec18`) as `func_80109BB4`
-/// reads it: `flags` bit 0 marks the slot occupied and its high nibble is
-/// the index of the `GpObj` node in `GameActor.field_AC` that produced the
-/// hit, `dist` is the contact radius, and `id` / `kind` are the low / high
-/// halves of `GpRec18.key`. `kind` 3 is the push-back case (only for
-/// `id < 0x46` entries whose `D_80113F9C` entry is 1), 4 and 5 dispatch to
-/// `func_8010B2D4` / `func_8010B348`. `x` / `y` / `z` are the world-space
-/// contact point (`GpRec18.point`).
-typedef struct _GpHitRec {
-    /* 0x00 */ u16  flags;
-    /* 0x02 */ s16  dist;
-    /* 0x04 */ u16  id;
-    /* 0x06 */ u16  kind;
-    /* 0x08 */ s16  x;
-    /* 0x0A */ s16  y;
-    /* 0x0C */ s16  z;
-    /* 0x0E */ byte pad_E[0xA];
-} GpHitRec;
-STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
 
 /// Scratch-pad block for picking the nearest collision record. `delta`
 /// receives the push-back of the record being classified, which is

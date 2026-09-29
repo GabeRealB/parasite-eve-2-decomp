@@ -226,18 +226,18 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
 /// `0x40660002` clip instead.
 static void func_grenade_pistol_8011D6FC(Task* arg0)
 {
-    WeaponGrenadeScratch* blk;
-    WeaponGrenadeWork*    work;
-    GfxCoord*             coord;
-    GpRec18*              rec;
-    GpRoomParamRec*       param;
-    u8*                   head;
-    s32                   idx;
-    s32                   count;
-    s32                   clip;
-    s32                   step;
-    s32                   sfxarg;
-    s32                   sfxbase;
+    WeaponGrenadeScratch*  blk;
+    WeaponGrenadeWork*     work;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
+    GpRoomParamRec*        param;
+    u8*                    head;
+    s32                    idx;
+    s32                    count;
+    s32                    clip;
+    s32                    step;
+    s32                    sfxarg;
+    s32                    sfxbase;
 
     work  = (WeaponGrenadeWork*)arg0->work;
     coord = arg0->extra.tmd->coords;

@@ -58,33 +58,33 @@ extern GpAnimSet* D_actor_300700_80165B94[2];
 
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
-/// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `GpRec18`
+/// `GpObj` render nodes (`Gp_LinkObj`, shapes 2/2/3) and their `WorldCollisionContact`
 /// tables. `Actor300700Work` is the wider view the tick handlers use of the
 /// same object.
 typedef struct Actor300700SpawnWork {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[4];
-    /* 0x0B4 */ byte       field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
-    /* 0x0F4 */ MATRIX     field_F4;       // color matrix handed to the stream
-    /* 0x114 */ MATRIX     field_114;      // light matrix handed to the stream
-    /* 0x134 */ GpObj      obj134;
-    /* 0x154 */ GpRec18    rec154;
-    /* 0x16C */ GpObj      obj16C;
-    /* 0x18C */ GpRec18    rec18C[4];
-    /* 0x1EC */ GpObj      obj1EC;
-    /* 0x20C */ GpRec18    rec20C;
-    /* 0x224 */ void*      field_224;
-    /* 0x228 */ u16        field_228;
-    /* 0x22A */ u16        field_22A;
-    /* 0x22C */ byte       pad_22C[0x80];
-    /* 0x2AC */ s32        field_2AC;
-    /* 0x2B0 */ s32        field_2B0;
-    /* 0x2B4 */ s32        field_2B4;
-    /* 0x2B8 */ byte       pad_2B8[0x1E];
-    /* 0x2D6 */ u16        field_2D6;
-    /* 0x2D8 */ byte       pad_2D8[4];
-    /* 0x2DC */ u16        field_2DC;
-    /* 0x2DE */ byte       pad_2DE[0x16];
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[4];
+    /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
+    /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
+    /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream
+    /* 0x134 */ GpObj                 obj134;
+    /* 0x154 */ WorldCollisionContact rec154;
+    /* 0x16C */ GpObj                 obj16C;
+    /* 0x18C */ WorldCollisionContact rec18C[4];
+    /* 0x1EC */ GpObj                 obj1EC;
+    /* 0x20C */ WorldCollisionContact rec20C;
+    /* 0x224 */ void*                 field_224;
+    /* 0x228 */ u16                   field_228;
+    /* 0x22A */ u16                   field_22A;
+    /* 0x22C */ byte                  pad_22C[0x80];
+    /* 0x2AC */ s32                   field_2AC;
+    /* 0x2B0 */ s32                   field_2B0;
+    /* 0x2B4 */ s32                   field_2B4;
+    /* 0x2B8 */ byte                  pad_2B8[0x1E];
+    /* 0x2D6 */ u16                   field_2D6;
+    /* 0x2D8 */ byte                  pad_2D8[4];
+    /* 0x2DC */ u16                   field_2DC;
+    /* 0x2DE */ byte                  pad_2DE[0x16];
 } Actor300700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 
@@ -428,7 +428,7 @@ static void func_actor_300700_801622B4(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(&work->field_18C);
-    state = (u16)work->field_154.hit.id.h.hi;
+    state = (u16)work->field_154.key.parts.kind;
     switch ((u32)state) {
         case 0:
             break;
@@ -439,14 +439,14 @@ static void func_actor_300700_801622B4(Task* arg0)
             break;
         case 2:
             arg0->state = (s32)state;
-            target      = Gp_ActorSlots[(u8)work->field_154.hit.id.h.lo >> 7]->extra.tmd->coords;
+            target      = Gp_ActorSlots[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
             dx          = target->coord.t[0] - coord->coord.t[0];
             delta->vx.w = dx;
             dy          = target->coord.t[1] - coord->coord.t[1];
             delta->vy.w = dy;
             dz          = target->coord.t[2] - coord->coord.t[2];
             delta->vz.w = dz;
-            damage      = Gp_ComputeDamage((s32)work->field_154.hit.id.w,
+            damage      = Gp_ComputeDamage((s32)work->field_154.key.value,
                                            SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
             amount      = damage;
             if (damage == 0) {
@@ -454,13 +454,13 @@ static void func_actor_300700_801622B4(Task* arg0)
                 amount = 1;
             }
             func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, amount, 0);
-            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.hit.id.w, damage, 0);
+            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.key.value, damage, 0);
             ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
-            func_800FDB18(Gp_GetIdParam1((s32)work->field_154.hit.id.w) & 0xFFFF, arg0->extra.tmd->coords, 0,
+            func_800FDB18(Gp_GetIdParam1((s32)work->field_154.key.value) & 0xFFFF, arg0->extra.tmd->coords, 0,
                           &work->field_224);
             break;
     }
-    Gp_ClearRec18Occupied(&work->field_154.rec);
+    Gp_ClearRec18Occupied(&work->field_154);
     SCRATCH_POP_BYTES(0x10);
 }
 

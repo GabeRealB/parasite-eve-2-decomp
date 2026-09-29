@@ -51,9 +51,9 @@ STATIC_ASSERT_SIZEOF(NecrosisStep, 4);
 /// both point `ctx.recs` at the one-element `rec` table (terminator `field_0
 /// = 2`).
 typedef struct NecrosisWork {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpObj   obj2;
-    /* 0x40 */ GpRec18 rec;
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ GpObj                 obj2;
+    /* 0x40 */ WorldCollisionContact rec;
 } NecrosisWork;
 STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
 
@@ -83,18 +83,18 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// (`Gp_StateC08.field_3` / `Gp_StateC08.field_3`) or the room is fading (`Gp_State1C`).
 void func_necrosis_8012EF34(Task* arg0)
 {
-    NecrosisWork* work;
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GfxCoord*     player;
-    GpMtxWords*   dstm;
-    GpMtxWords*   srcm;
-    GpRec18*      rec;
-    GpEffWork*    spawned;
-    s32           pan;
-    u16           old;
-    s32           tick;
-    s16           fade;
+    NecrosisWork*          work;
+    GpEffWork*             mem;
+    GfxCoord*               coord;
+    GfxCoord*               player;
+    GpMtxWords*            dstm;
+    GpMtxWords*            srcm;
+    WorldCollisionContact* rec;
+    GpEffWork*             spawned;
+    s32                    pan;
+    u16                    old;
+    s32                    tick;
+    s16                    fade;
 
     work     = (NecrosisWork*)arg0->work;
     mem      = arg0->spawnArg2.pointer;

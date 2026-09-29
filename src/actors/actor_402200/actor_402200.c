@@ -1373,7 +1373,7 @@ static void func_actor_402200_80131F54(Task* arg0)
     }
 
     for (i = 0; i < 3; i++) {
-        switch ((u32)work->field_49C[i].key >> 16) {
+        switch ((u32)work->field_49C[i].key.value >> 16) {
             case 0:
                 break;
             case 1:
@@ -1396,24 +1396,24 @@ static void func_actor_402200_80131F54(Task* arg0)
                                           sc->delta.vy.w * coord->coord.m[1][2] +
                                           sc->delta.vz.w * coord->coord.m[2][2]) >>
                                   31;
-                damage = Gp_ComputeDamage(work->field_49C[i].key,
+                damage = Gp_ComputeDamage(work->field_49C[i].key.value,
                                           SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                       sc->delta.vy.w * sc->delta.vy.w +
                                                       sc->delta.vz.w * sc->delta.vz.w),
                                           0, 0);
-                kind   = Gp_GetIdParam0(work->field_49C[i].key);
+                kind   = Gp_GetIdParam0(work->field_49C[i].key.value);
                 if ((u16)kind == 5) {
                     damage *= 2;
                     Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_49C[i].key, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->field_49C[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((u16)kind != 5) {
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->field_49C[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_49C[i].key.value, damage, 0);
                 enemy->hp       -= damage;
                 work->field_70A += damage;
                 switch ((u16)kind) {
@@ -1436,8 +1436,8 @@ static void func_actor_402200_80131F54(Task* arg0)
                         work->field_70A += 0xA0;
                         break;
                 }
-                if (lastId != work->field_49C[i].key) {
-                    lastId     = work->field_49C[i].key;
+                if (lastId != work->field_49C[i].key.value) {
+                    lastId     = work->field_49C[i].key.value;
                     sc->ofs.vx = 0;
                     sc->ofs.vy = 0;
                     t          = -0x96;
@@ -1445,11 +1445,11 @@ static void func_actor_402200_80131F54(Task* arg0)
                         t = 0xC8;
                     }
                     sc->ofs.vz = t;
-                    func_800FDB18((u16)Gp_GetIdParam1(work->field_49C[i].key),
+                    func_800FDB18((u16)Gp_GetIdParam1(work->field_49C[i].key.value),
                                   &arg0->extra.tmd->coords[3], &sc->ofs,
                                   &work->field_65C);
                 }
-                wait = Gp_GetIdParam2(work->field_49C[i].key);
+                wait = Gp_GetIdParam2(work->field_49C[i].key.value);
                 if (wait > 0) {
                     work->field_6C6 = wait;
                 }
@@ -1616,7 +1616,7 @@ static void func_actor_402200_80132688(Task* arg0)
             }
             break;
         case 1:
-            if (work->field_5F4.key == 0) {
+            if (work->field_5F4.key.value == 0) {
                 work->field_6CC = 1;
                 work->field_70E = 1;
             }
@@ -1697,7 +1697,7 @@ static void func_actor_402200_801329A4(Task* arg0)
             func_actor_402200_80132E34(arg0);
             break;
         case 3:
-            if (work->field_5F4.key == 0) {
+            if (work->field_5F4.key.value == 0) {
                 work->field_6CC = 1;
                 work->field_6CE = 0;
                 work->field_70E = 1;
@@ -1715,7 +1715,7 @@ static void func_actor_402200_801329A4(Task* arg0)
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 4:
-            if (work->field_5F4.key == 0) {
+            if (work->field_5F4.key.value == 0) {
                 work->field_6CC = 2;
                 work->field_6CE = 0;
                 work->field_70E = 2;
@@ -3183,7 +3183,7 @@ static void func_actor_402200_80135D5C(Task* arg0)
             sc->out.vz    = work->field_644.point.vz - sc->pts[1].vz;
             dist          = SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vy * sc->out.vy + sc->out.vz * sc->out.vz);
             sc->pts[0].vz = dist;
-            if ((work->field_644.key & 0xFFFF0000) == 0x10000) {
+            if ((work->field_644.key.value & 0xFFFF0000) == 0x10000) {
                 sc->pts[0].vz = dist + 0x12C;
             }
             Gp_ClearRec18Occupied(&work->field_644);
@@ -3543,24 +3543,24 @@ static void func_actor_402200_80136D9C(s32 otz)
 /// the enemy's `field_4B` variant. Variant 0 is the full setup: it links the
 /// enemy node, picks the box table and count for the current stage / room out
 /// of `D_actor_402200_80153C78`, requests the room's cue bank, and links the
-/// work block's five collision objects with their `GpRec18` tables before
+/// work block's five collision objects with their `WorldCollisionContact` tables before
 /// moving the task on (`field_30` 1). Variants 1 and 2 only seed the animation
 /// and sequence state.
 static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
 {
-    u8               param1[4];
-    u8               param2[4];
-    Actor402200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s16*             cues;
-    GpRec18*         records1;
-    GpRec18*         records2;
-    GpRec18*         records3;
-    GpRec18*         records4;
-    GpRec18*         records5;
-    s32              i;
-    s32              kind;
+    u8                     param1[4];
+    u8                     param2[4];
+    Actor402200Work*       work;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    s16*                   cues;
+    WorldCollisionContact* records1;
+    WorldCollisionContact* records2;
+    WorldCollisionContact* records3;
+    WorldCollisionContact* records4;
+    WorldCollisionContact* records5;
+    s32                    i;
+    s32                    kind;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;

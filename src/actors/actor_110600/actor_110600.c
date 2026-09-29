@@ -118,7 +118,7 @@ typedef union Actor110600Event {
 /// `field_0` is the state index `func_actor_110600_801387C0` writes. `field_4`
 /// is the live-actor flag `func_actor_110600_801388A4` tests, and
 /// `field_A90.flags` / `field_950.flags` are the two masks it writes. The three
-/// `GpObj` display nodes are the ones the spawn handler links (with `GpRec18`
+/// `GpObj` display nodes are the ones the spawn handler links (with `WorldCollisionContact`
 /// tables of 5 / 12 / 1 records filling the gaps) and the exit callback
 /// `func_actor_110600_801387F4` hands back to `Gp_UnlinkObj`. `field_BD4` /
 /// `field_BD8` are optional helpers the spawn clears; teardown increments
@@ -180,9 +180,9 @@ typedef struct Actor110600Work {
     /// stage hands it to the walker as its `field_5E` ramp target.
     /* 0x8B6 */ u16   field_8B6;
     /* 0x8B8 */ GpObj field_8B8;
-    /// The `GpRec18` table the spawn handler links behind `field_8B8`: five
+    /// The `WorldCollisionContact` table the spawn handler links behind `field_8B8`: five
     /// records, cleared first by the tick's teardown.
-    /* 0x8D8 */ GpRec18 recs_8D8[5];
+    /* 0x8D8 */ WorldCollisionContact recs_8D8[5];
     /// The second display node, whose `pos`
     /// carry a model position: the spawn handler seeds the three halfwords
     /// from a stack `SVECTOR` and the tick restamps the model root's
@@ -190,14 +190,14 @@ typedef struct Actor110600Work {
     /* 0x950 */ GpObj field_950;
     /// The walker's own collision table, the twelve records its `recs` pointer
     /// names; cleared alongside the two tables around it.
-    /* 0x970 */ GpRec18 recs_970[12];
-    /* 0xA90 */ GpObj   field_A90;
-    /// The actor's own `GpRec18` table, the one the spawn handler links behind
+    /* 0x970 */ WorldCollisionContact recs_970[12];
+    /* 0xA90 */ GpObj                 field_A90;
+    /// The actor's own `WorldCollisionContact` table, the one the spawn handler links behind
     /// `field_A90` and initialises with a count of **one** record, so it spans
     /// 0xAB0..0xAC8 and the three matrices below start where it ends.
     /// `func_actor_110600_80135B84` reads the only record's `key` as the
     /// 0x10000 kind tag the sound cue is gated on.
-    /* 0xAB0 */ GpRec18 recs[1];
+    /* 0xAB0 */ WorldCollisionContact recs[1];
     /// The light matrix the spawn handler binds to the model object's
     /// `field_1C`.
     /* 0xAC8 */ MATRIX field_AC8;
@@ -1148,22 +1148,22 @@ extern Actor110600MessageEntry D_actor_110600_80148624[7];
 static void func_actor_110600_80136210(Task* arg0);
 
 static void            func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw);
-static s32             func_actor_110600_801322CC(GfxCoord* coord, GpRec18* movement, s16 count);
+static s32             func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* movement, s16 count);
 static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle);
 static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
                                               OverlayWalkerTickScratch* block);
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
 static s32             func_actor_110600_801341A4(GfxCoord* coord, s16 range, s16 offset);
 static void            func_actor_110600_80134438(Task* arg0);
-static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GfxCoord* coord, GpRec18* recs, SVECTOR* pos, s16 enabled);
+static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
 static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
 static void            func_actor_110600_80134AB4(GpEnemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
 static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
 static __inline__ s32  Actor110600_TickShake(void);
-static __inline__ s32  Actor110600_HasRec10000(GpRec18* recs);
+static __inline__ s32  Actor110600_HasRec10000(WorldCollisionContact* recs);
 static void            func_actor_110600_80135B84(Task* arg0);
-static __inline__ s32  Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count);
+static __inline__ s32  Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count);
 static void            func_actor_110600_80136888(Task* arg0);
 static void            func_actor_110600_801369D8(Task* arg0);
 static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work, s16 y);
@@ -1201,7 +1201,7 @@ static void func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw)
 /// resolve to through `func_800E0C10`, rounding a fractional part away from
 /// zero, and stores the whole-unit step taken in `D_actor_110600_80148690`.
 /// Returns 1 when the X or Z delta is nonzero. Nothing in the actor calls it.
-static s32 func_actor_110600_801322CC(GfxCoord* coord, GpRec18* movement, s16 count)
+static s32 func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* movement, s16 count)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1550,12 +1550,12 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
     s->count  = 0;
 
     for (s->i = 0; s->i < work->avoidCount; s->i++) {
-        if (work->avoidRecs[s->i].key == 0) {
+        if (work->avoidRecs[s->i].key.value == 0) {
             break;
         }
-        s->kind = work->avoidRecs[s->i].key & 0xFFFF0000;
+        s->kind = work->avoidRecs[s->i].key.value & 0xFFFF0000;
         if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key != 0) {
+            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key.value != 0) {
                 continue;
             }
         } else {
@@ -2319,7 +2319,7 @@ static void func_actor_110600_80134728(Task* arg0)
     }
 }
 
-static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GfxCoord* coord, GpRec18* recs, SVECTOR* pos, s16 enabled)
+static __inline__ void Actor110600_InitBodyObj(GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled)
 {
     obj->ctx.recs = recs;
     obj->coord    = coord;
@@ -2351,20 +2351,20 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
 
 static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
 {
-    SVECTOR          pos;
-    VECTOR           world;
-    GpRec18*         savedRecs;
-    GpObj*           obj;
-    GpObj*           bodyObj;
-    GpRec18*         contactRecs;
-    GpRec18*         walkRecs;
-    GfxCoord*        coord;
-    TmdObject*       model;
-    s16              enabled;
-    u32              placement;
-    TmdObject*       boundModel;
-    Actor110600Work* work;
-    Actor110600Work* boundWork;
+    SVECTOR                pos;
+    VECTOR                 world;
+    WorldCollisionContact* savedRecs;
+    GpObj*                 obj;
+    GpObj*                 bodyObj;
+    WorldCollisionContact* contactRecs;
+    WorldCollisionContact* walkRecs;
+    GfxCoord*               coord;
+    TmdObject*             model;
+    s16                    enabled;
+    u32                    placement;
+    TmdObject*             boundModel;
+    Actor110600Work*       work;
+    Actor110600Work*       boundWork;
 
     model = task->extra.tmd;
     coord = model->coords;
@@ -2819,15 +2819,15 @@ static void func_actor_110600_80135A18(Task* arg0)
 
 /// 1 when the first of `recs` carries the kind 0x10000 tag: the walk breaks on
 /// an empty slot and reports 0.
-static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
+static __inline__ s32 Actor110600_HasRec10000(WorldCollisionContact* recs)
 {
     s16 i;
 
     for (i = 0; i < 1; i++) {
-        if (!recs[i].key) {
+        if (!recs[i].key.value) {
             break;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x10000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }
@@ -2847,7 +2847,7 @@ static __inline__ s32 Actor110600_HasRec10000(GpRec18* recs)
 /// ticks the model; the pose `field_4E` then drives the pair of flag edges the
 /// mode owns — 0xF raises and 0x15 drops 0x8000 in mode 4, 0x10 / 0x13 the
 /// same in mode 5. The `field_5C` bit 0 the walker sets moves the actor on
-/// (state 3). Finally, while the first `GpRec18` record still carries the
+/// (state 3). Finally, while the first `WorldCollisionContact` record still carries the
 /// 0x10000 kind tag, the model root's pan and depth are played as sound
 /// 0x401D000D and 0x8000 comes off `field_A90.flags`.
 static void func_actor_110600_80135B84(Task* arg0)
@@ -2983,17 +2983,17 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     SCRATCH_POP_BYTES(8);
 }
 
-static __inline__ s32 Actor110600_FindHit(SVECTOR* point, GpRec18* recs, s16 count)
+static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count)
 {
     s16 i;
     for (i = 0; i < count; i++) {
-        if (!recs[i].key)
+        if (!recs[i].key.value)
             break;
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             point->vx = recs[i].point.vx;
             point->vy = recs[i].point.vy;
             point->vz = recs[i].point.vz;
-            return recs[i].key;
+            return recs[i].key.value;
         }
     }
     return 0;
@@ -3965,7 +3965,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// on `Gp_StateF0.field_4`.
 ///
 /// Modes 1 and 2 skip the state handler entirely — each clears the three
-/// `GpRec18` tables and returns, mode 2 stamping `field_C` to 0x80 for the
+/// `WorldCollisionContact` tables and returns, mode 2 stamping `field_C` to 0x80 for the
 /// hidden pose first, and mode 1 drawing the ground quad on the way unless the
 /// model sits in the death or hit pose. Mode 0 draws the quad the same way with
 /// `field_C` zeroed and then falls through.

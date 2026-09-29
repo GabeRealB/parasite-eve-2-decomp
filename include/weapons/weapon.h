@@ -24,16 +24,16 @@
 /// `dir` is taken by, so the grenade slows as the timer runs. `dir` is the
 /// launch direction: the muzzle's forward column pitched up and normalised.
 typedef struct WeaponGrenadeWork {
-    GpObj        obj;
-    GpObj        obj2;
-    GpRec18      rec0[1];
-    GpRec18      rec1[1];
-    GpActorD4Rec d4rec;
-    GpFixed16    field_88;
-    s32          field_8C;
-    s32          field_90;
-    SVECTOR      dir;
-    byte         pad_9C[4];
+    GpObj                 obj;
+    GpObj                 obj2;
+    WorldCollisionContact rec0[1];
+    WorldCollisionContact rec1[1];
+    GpActorD4Rec          d4rec;
+    GpFixed16             field_88;
+    s32                   field_8C;
+    s32                   field_90;
+    SVECTOR               dir;
+    byte                  pad_9C[4];
 } WeaponGrenadeWork;
 STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
 

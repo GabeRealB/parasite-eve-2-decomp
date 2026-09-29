@@ -61,20 +61,20 @@
 
 /// The 0x160 work block cleared by func_actor_503500_801372C8.
 typedef struct Actor503500Work160 {
-    MATRIX            light;
-    MATRIX            color;
-    Actor503500Slot40 slot40;
-    GpRec18           rec60[8];
-    GpEffArg          field_120;
-    Actor503500FixVec rot;
-    Actor503500FixVec vel;
-    Actor503500FixVec pos;
-    s16               field_158;
-    u16               field_15A;
-    s8                field_15C;
-    s8                field_15D;
-    s8                field_15E;
-    s8                field_15F;
+    MATRIX                light;
+    MATRIX                color;
+    Actor503500Slot40     slot40;
+    WorldCollisionContact rec60[8];
+    GpEffArg              field_120;
+    Actor503500FixVec     rot;
+    Actor503500FixVec     vel;
+    Actor503500FixVec     pos;
+    s16                   field_158;
+    u16                   field_15A;
+    s8                    field_15C;
+    s8                    field_15D;
+    s8                    field_15E;
+    s8                    field_15F;
 } Actor503500Work160;
 STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 
@@ -88,14 +88,14 @@ STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 /// colour matrices the init republishes on `TmdObject::lightMtx` / `field_20`,
 /// then a private copy of model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work2EC {
-    /* 0x000 */ MATRIX   light;
-    /* 0x020 */ MATRIX   color;
-    /* 0x040 */ MATRIX   mats[9];
-    /* 0x160 */ GpObj    obj;
-    /* 0x180 */ GpRec18  rec[8];    // Gp_InitRec18Table(rec, 8, 0)
-    /* 0x240 */ GpEffArg field_240; // record the 0x2EC block's effects are spawned with
-                                    /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
-                                    /// to 0; the same offset as the shared view's `obj240.field_8`.
+    /* 0x000 */ MATRIX                light;
+    /* 0x020 */ MATRIX                color;
+    /* 0x040 */ MATRIX                mats[9];
+    /* 0x160 */ GpObj                 obj;
+    /* 0x180 */ WorldCollisionContact rec[8];    // Gp_InitRec18Table(rec, 8, 0)
+    /* 0x240 */ GpEffArg              field_240; // record the 0x2EC block's effects are spawned with
+                                                 /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
+                                                 /// to 0; the same offset as the shared view's `obj240.field_8`.
     /* 0x248 */ void* field_248;
     /// Bezier-sampled chain polyline, root first, that
     /// `func_actor_503500_8013A0D0` re-aims the model's links along.
@@ -204,8 +204,8 @@ extern Actor503500Work2EC D_actor_503500_80176EE8[2];
 static void func_actor_503500_8013A900(Task* arg0);
 
 /// Re-places a display node and its record table: `arg2` is the node's
-/// `GpRec18` table and `arg3` the record count.
-static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+/// `WorldCollisionContact` table and `arg3` the record count.
+static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_80138288(Task* arg0);
 static void func_actor_503500_801382F4(Task* arg0);
 static void func_actor_503500_801382FC(Task* arg0);
@@ -255,9 +255,9 @@ Actor503500Work2EC D_actor_503500_80176EE8[2];
 static inline void func_actor_503500_SetBossState(Task* arg0, s16 state);
 static void        func_actor_503500_801360A4(s32 arg0, s16 arg1);
 static void        func_actor_503500_80137678(Task* arg0);
-static void        func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+static void        func_actor_503500_80137C90(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void        func_actor_503500_80139014(Task* arg0);
-static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3);
+static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3);
 
 /// State-0 init of the boss: clears and seeds its work block, links the
 /// second body part's display node, spawns slot enemies 1..11 from
@@ -265,21 +265,21 @@ static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* 
 /// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
 static void func_actor_503500_80132F64(Task* arg0)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GpEnemy*         child;
-    TmdObject*       model;
-    u32              raw;
-    s32              idx;
-    s32              i;
-    TmdObject*       tmd;
-    GpEnemy*         enemy;
-    GfxCoord*         coord;
-    GfxCoord*         part;
-    GpRec18*         recs;
+    GameLocationKey              key;
+    GameLocationKey*             sessionKey;
+    u8                     areaByte0;
+    GpAreaVariant*         rec;
+    GpAreaPlace*           entry;
+    GpEnemy*               child;
+    TmdObject*             model;
+    u32                    raw;
+    s32                    idx;
+    s32                    i;
+    TmdObject*             tmd;
+    GpEnemy*               enemy;
+    GfxCoord*               coord;
+    GfxCoord*               part;
+    WorldCollisionContact* recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
     Actor503500Work* work = &D_actor_503500_80176574.value;
@@ -1246,7 +1246,7 @@ static void func_actor_503500_80134C68(Task* arg0)
 /// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
 /// `field_40` starts the death state instead of the id's status effect. `arg1`
 /// is passed by the caller but unused.
-static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -1265,9 +1265,9 @@ static void func_actor_503500_80134EAC(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -2277,8 +2277,8 @@ static void func_actor_503500_80136A80(Task* arg0)
 /// that part's display node and its 8-record collision table.
 static void func_actor_503500_80136A88(Task* arg0)
 {
-    Actor503500Work* work = arg0->work;
-    GpRec18*         rec;
+    Actor503500Work*       work = arg0->work;
+    WorldCollisionContact* rec;
 
     if (work->field_7B4 != 0) {
         work->field_7B4 -= 1;
@@ -2593,12 +2593,12 @@ static const TaskFuncTable3 D_actor_503500_80131F4C = {
 /// starts the block in sub-state 0.
 static void func_actor_503500_801372C8(Task* arg0)
 {
-    GpEnemy*   enemy;
-    Task*      parent;
-    TmdObject* tmd;
-    TmdObject* parentTmd;
-    GfxCoord*  coord;
-    GpRec18*   rec;
+    GpEnemy*               enemy;
+    Task*                  parent;
+    TmdObject*             tmd;
+    TmdObject*             parentTmd;
+    GfxCoord*               coord;
+    WorldCollisionContact* rec;
 
     enemy     = arg0->spawnArg2.pointer;
     tmd       = arg0->extra.tmd;
@@ -2863,7 +2863,7 @@ static void func_actor_503500_80137678(Task* arg0)
 /// that empties `field_40` starts state 2 but still applies the id's status
 /// effect. The hit effect is pulled to 800 units along the contact offset.
 /// `arg1` is passed by the caller but unused.
-static void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     VECTOR           d;
     SVECTOR          pos;
@@ -2885,9 +2885,9 @@ static void func_actor_503500_80137C90(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }
@@ -3132,16 +3132,16 @@ static const TaskFuncTable3 D_actor_503500_80131F9C = {
 /// table row add, and `idx * 8` would drag the row pointer into `$s0`.
 static void func_actor_503500_8013852C(Task* arg0)
 {
-    GpEnemy*            enemy;
-    TmdObject*          tmd;
-    GfxCoord*           coord;
-    GfxCoord*           part;
-    Actor503500Work2EC* work;
-    GpRec18*            rec;
-    OverlayMat          m;
-    GpMtxWords*         ident;
-    s32                 idx;
-    s32                 i;
+    GpEnemy*               enemy;
+    TmdObject*             tmd;
+    GfxCoord*               coord;
+    GfxCoord*               part;
+    Actor503500Work2EC*    work;
+    WorldCollisionContact* rec;
+    OverlayMat             m;
+    GpMtxWords*            ident;
+    s32                    idx;
+    s32                    i;
 
     idx   = arg0->spawnArg1.value - 2;
     enemy = arg0->spawnArg2.pointer;
@@ -3682,7 +3682,7 @@ static void func_actor_503500_801398D0(Task* arg0)
 /// that empties `field_40` starts state 5. The hit effect is placed at the
 /// record's contact point, pulled to 800 units from part 8 along the offset
 /// and rotated into its frame. `arg1` is passed by the caller but unused.
-static void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3)
+static void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
     SVECTOR             pos;
     MATRIX              rot;
@@ -3704,9 +3704,9 @@ static void func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     work  = (Actor503500Work2EC*)arg0->work;
     coord = &arg0->extra.tmd->coords[8];
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key;
+        id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
-            if (arg2[j].key == id) {
+            if (arg2[j].key.value == id) {
                 goto next;
             }
         }

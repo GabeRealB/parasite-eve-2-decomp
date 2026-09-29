@@ -105,7 +105,7 @@ typedef struct OverlayWalkScratch {
 STATIC_ASSERT_SIZEOF(OverlayWalkScratch, 0x20);
 
 /// The scratch-pad block of the push that steers a coordinate frame between
-/// the obstacles in a `GpRec18` contact table. `eye` is the frame's world
+/// the obstacles in a `WorldCollisionContact` contact table. `eye` is the frame's world
 /// position and `aim` the world point one unit ahead of it; `angle` holds each
 /// record's bearing relative to the facing, 0x7FFE ending the list and 0x7FFF
 /// marking a record that does not count. `kind` is the high half of a record's key,
@@ -503,8 +503,8 @@ typedef struct OverlayWalker {
     OverlayWalkerNav*   nav;
     OverlayWalkerRoute* route;
     GfxCoord*      coord;
-    GpRec18*            recs;
-    GpRec18*            avoidRecs;
+    WorldCollisionContact*            recs;
+    WorldCollisionContact*            avoidRecs;
     byte                pad_14[0x8];
     SVECTOR             moveStep;
     SVECTOR             moveDelta;

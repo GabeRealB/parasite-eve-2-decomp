@@ -889,8 +889,8 @@ s32 D_acropolis_roof_garden_80186E94 = 0;
 
 SVECTOR D_acropolis_roof_garden_80186E98;
 
-static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
 /// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
 /// session's weather/time state: state 5 plays it at 0x1E, state 7 at full
@@ -1625,7 +1625,7 @@ static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 ar
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_roof_garden_80186E98`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1672,7 +1672,7 @@ static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, GpRec18* rec, s1
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -1696,11 +1696,11 @@ static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, GpRec18* recs, s
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

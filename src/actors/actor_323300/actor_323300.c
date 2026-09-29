@@ -50,14 +50,14 @@
 /// `field_500` enables the cue the per-frame runner posts, and `field_502` is
 /// the frames until the model buffers are freed, -1 disabling the countdown.
 typedef struct Actor323300Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    GpObj           obj;
-    GpRec18         rec;
-    Task*           field_4B8;
-    ActorWalkState  walk;
-    s16             field_500;
-    s16             field_502;
+    ActorAnimRig19        rig;
+    ActorModelState       model;
+    GpObj                 obj;
+    WorldCollisionContact rec;
+    Task*                 field_4B8;
+    ActorWalkState        walk;
+    s16                   field_500;
+    s16                   field_502;
 } Actor323300Work;
 STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 
@@ -426,7 +426,7 @@ static void func_actor_323300_80162DF0(Task* arg0);
 static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
-/// seeds the `GpRec18` collision table and the display node at +0x480, then
+/// seeds the `WorldCollisionContact` collision table and the display node at +0x480, then
 /// binds the three message handlers and the animation presets the state
 /// functions drive. Bails out through `Gp_EnemyTaskExit` when the room flag
 /// 0x60 is already set (the actor already spawned) or the allocation fails.

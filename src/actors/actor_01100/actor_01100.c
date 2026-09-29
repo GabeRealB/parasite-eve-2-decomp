@@ -61,7 +61,7 @@
 /// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
 /// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
 /// `actor_301100`), whose 0x28 run is the `GpActorD4Rec` filled in here: the
-/// object's `ctx.d4rec` points at it and its `recs` at the one-entry `GpRec18`
+/// object's `ctx.d4rec` points at it and its `recs` at the one-entry `WorldCollisionContact`
 /// collision table at 0x40, which is where the 0x58 bytes end.
 typedef struct ActorsShared80137fb8Work {
     /// Effect velocity: the random direction vector rotated by the actor's
@@ -69,9 +69,9 @@ typedef struct ActorsShared80137fb8Work {
     /// the coordinate's translation afterwards, its Y is not.
     /* 0x00 */ SVECTOR vel;
     /// Display node linked as kind 3 with a `Gp_PackPair` payload.
-    /* 0x08 */ GpObj        obj;
-    /* 0x28 */ GpActorD4Rec rec;
-    /* 0x40 */ GpRec18      rec18[1];
+    /* 0x08 */ GpObj                 obj;
+    /* 0x28 */ GpActorD4Rec          rec;
+    /* 0x40 */ WorldCollisionContact rec18[1];
 } ActorsShared80137fb8Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80137fb8Work, 0x58);
 
@@ -121,9 +121,9 @@ typedef struct ActorsShared80138efcWork {
     /* 0x9A8 */ GpObj objs[4];
     /// One three-entry contact table per display node. The first is resolved
     /// against the world; the last is scanned for the hits the enemy takes.
-    /* 0xA28 */ GpRec18 contacts[4][3];
-    /* 0xB48 */ MATRIX  lightMtx;
-    /* 0xB68 */ MATRIX  colorMtx;
+    /* 0xA28 */ WorldCollisionContact contacts[4][3];
+    /* 0xB48 */ MATRIX                lightMtx;
+    /* 0xB68 */ MATRIX                colorMtx;
     /// Actor id, `placeKey >> 12`. Stored as a word; the sound calls read its
     /// low byte into bits 8-15 of their ids.
     /* 0xB88 */ u32 actorId;
@@ -1043,11 +1043,11 @@ Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
 
 u8 Actor01100_D15670;
 
-static s32             Actor01100_Fn000E8(GfxCoord* coord, GpRec18* recs, s16 count);
-static s32             Actor01100_Fn00430(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32             Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static s32             Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u8 rate);
-static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contacts);
-static __inline__ s32  _actor01100PushOut(GfxCoord* coord, GpRec18* contacts);
+static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts);
+static __inline__ s32  _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts);
 static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work);
 static void            Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 static void            Actor01100_Fn01D98(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
@@ -1067,7 +1067,7 @@ static void            Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShar
 /// scratch block, and its length is scaled down to 0x100 when longer. Returns
 /// whether any record of those kinds was met. Does nothing, returning 0, while
 /// `Mc_SaveData[0].state.field_5C1` or the session's `viewReady` is 1.
-static s32 Actor01100_Fn000E8(GfxCoord* coord, GpRec18* recs, s16 count)
+static s32 Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -1091,11 +1091,11 @@ static s32 Actor01100_Fn000E8(GfxCoord* coord, GpRec18* recs, s16 count)
     s->last.vx = 0;
     s->hit     = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
             actorCalcPush(&s->pos, &recs[s->i], &s->offset);
@@ -1125,7 +1125,7 @@ static s32 Actor01100_Fn000E8(GfxCoord* coord, GpRec18* recs, s16 count)
 /// coordinate 10 units along it in the XZ plane. `pos` receives the total
 /// displacement. Returns whether a kind 0x10000 record was among them. Does
 /// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 Actor01100_Fn00430(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -1158,10 +1158,10 @@ static s32 Actor01100_Fn00430(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -1410,7 +1410,7 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 idx = 0xC;
             }
             obj->coord    = &task->extra.tmd->coords[idx];
-            obj->ctx.recs = (GpRec18*)((u8*)work + recOff);
+            obj->ctx.recs = (WorldCollisionContact*)((u8*)work + recOff);
             do {
                 if (i == 0) {
                     obj->pos.vx = -0x12C;
@@ -1443,19 +1443,19 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// Scans one three-entry contact table for its first class-2 contact, stopping
 /// at the first empty entry. The contact's position is copied into `out` and
 /// its key returned; 0 when there is none.
-static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contacts)
+static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts)
 {
     s16 i;
 
     for (i = 0; i < 3; i++) {
-        if (contacts[i].key == 0) {
+        if (contacts[i].key.value == 0) {
             break;
         }
-        if ((contacts[i].key & 0xFFFF0000) == 0x20000) {
+        if ((contacts[i].key.value & 0xFFFF0000) == 0x20000) {
             out->vx = contacts[i].point.vx;
             out->vy = contacts[i].point.vy;
             out->vz = contacts[i].point.vz;
-            return contacts[i].key;
+            return contacts[i].key.value;
         }
     }
     return 0;
@@ -1466,7 +1466,7 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, GpRec18* contac
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
 /// `Mc_SaveData[0].state.field_5C1` is 1.
-static __inline__ s32 _actor01100PushOut(GfxCoord* coord, GpRec18* contacts)
+static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts)
 {
     OverlayDeltaFlag* head;
     OverlayDeltaFlag* blk;
@@ -1528,41 +1528,41 @@ static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 /// the first contact table and clears all four. Returns 1 when damage landed.
 static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    s32         damaged;
-    s32         fromBehind;
-    s32         dotDamage;
-    s32         doubleDamage;
-    s32         rollParam;
-    s32         kind7;
-    s32         kind4or6;
-    s32         died;
-    s32         sndId;
-    s32         rate;
-    GpAnimSlot* slot;
-    GpRec18*    world;
-    GfxCoord*   coord;
-    s32         savedY;
-    s32         moved;
-    s16         timer;
-    s16         hp;
-    s32         dist;
-    s32         key;
-    s32         cooldown;
-    s32         kind;
-    s32         i;
-    s32         n;
-    s32         reaction;
-    s32         sparkLevel;
-    s32         sourceKey;
-    s32         yaw;
-    s32         level;
-    u32         idKind;
-    u32         hitDamage;
-    u32         damage;
-    u32         hitKey;
-    u8          flags;
-    u8          mode;
-    u8          staged;
+    s32                    damaged;
+    s32                    fromBehind;
+    s32                    dotDamage;
+    s32                    doubleDamage;
+    s32                    rollParam;
+    s32                    kind7;
+    s32                    kind4or6;
+    s32                    died;
+    s32                    sndId;
+    s32                    rate;
+    GpAnimSlot*            slot;
+    WorldCollisionContact* world;
+    GfxCoord*               coord;
+    s32                    savedY;
+    s32                    moved;
+    s16                    timer;
+    s16                    hp;
+    s32                    dist;
+    s32                    key;
+    s32                    cooldown;
+    s32                    kind;
+    s32                    i;
+    s32                    n;
+    s32                    reaction;
+    s32                    sparkLevel;
+    s32                    sourceKey;
+    s32                    yaw;
+    s32                    level;
+    u32                    idKind;
+    u32                    hitDamage;
+    u32                    damage;
+    u32                    hitKey;
+    u8                     flags;
+    u8                     mode;
+    u8                     staged;
 
     damage       = 0;
     sparkLevel   = -1;
@@ -1589,7 +1589,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
     if (hitKey != 0) {
         dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
         for (i = 0; i < 3; i++) {
-            key = work->contacts[3][i].key;
+            key = work->contacts[3][i].key.value;
             if (key != 0) {
                 sourceKey = key;
                 break;
@@ -3676,9 +3676,9 @@ static void Actor01100_Fn06198(Task* task)
 {
     ActorsShared80137fb8Work* work;
     GpActorD4Rec*             d4;
-    GpRec18*                  rec;
-    GfxCoord*                 coord;
-    GfxCoord*                 soundCoord;
+    WorldCollisionContact*    rec;
+    GfxCoord*                  coord;
+    GfxCoord*                  soundCoord;
     Task*                     child;
     u32                       map;
     s32                       flag;
@@ -3712,7 +3712,7 @@ static void Actor01100_Fn06198(Task* task)
         if (Gp_FindRec18(rec, 0) != 0) {
             child = task->firstChild;
             if (child != NULL) {
-                if (rec->at10.normal.vy >= -0xC00) {
+                if (rec->response.normal.vy >= -0xC00) {
                     child->spawnArg1.value = 3;
                 } else {
                     child->spawnArg1.value = 2;
@@ -3739,7 +3739,7 @@ static void Actor01100_Fn0638C(Task* task)
     GpEffWork*                effect;
     s32                       variant;
     s32                       soundBase;
-    GpRec18*                  rec;
+    WorldCollisionContact*    rec;
     ActorsShared80137fb8Work* work;
     s32                       area;
     s32                       sound;
@@ -4414,7 +4414,7 @@ static void Actor01100_Fn073A8(Task* arg0)
 /// `Gp_StateF0.field_4` is zero the actor runs its self-destruct countdown: from
 /// `killCountdown` 0x15 and above it throws an effect burst (0x60070) at the
 /// model's root coordinate on every other frame and reparents the spawned
-/// effect onto itself, and a collision hit on the work block's `GpRec18` table
+/// effect onto itself, and a collision hit on the work block's `WorldCollisionContact` table
 /// -- masked to the 0x10000 slot -- or the countdown reaching 0x14 clears the
 /// two 0xC000 bits the spawn state set in the object's flags. The countdown
 /// then ticks down and the task calls its exit callback once it reaches zero.

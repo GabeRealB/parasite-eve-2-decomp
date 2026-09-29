@@ -67,71 +67,71 @@ typedef struct Actor01900Waypoint {
 } Actor01900Waypoint;
 
 typedef struct Actor01900Work {
-    /* 0x000 */ s16                field_0;
-    /* 0x002 */ s16                field_2;
-    /* 0x004 */ s16                field_4;
-    /* 0x006 */ s16                field_6;
-    /* 0x008 */ s16                field_8;
-    /* 0x00A */ byte               pad_A[2];
-    /* 0x00C */ Actor01900Waypoint field_C[2];
-    /* 0x014 */ s16                field_14;
-    /* 0x016 */ byte               pad_16[0x44];
-    /* 0x05A */ u16                field_5A;
-    /* 0x05C */ byte               pad_5C[0xC];
-    /* 0x068 */ u16                field_68;
-    /* 0x06A */ byte               pad_6A[0x82A];
-    /* 0x894 */ s32                field_894;
-    /* 0x898 */ s16                field_898;
-    /* 0x89A */ s16                field_89A;
-    /* 0x89C */ byte               pad_89C[2];
-    /* 0x89E */ s16                field_89E;
-    /* 0x8A0 */ byte               pad_8A0[2];
-    /* 0x8A2 */ s16                field_8A2;
-    /* 0x8A4 */ s16                field_8A4;
-    /* 0x8A6 */ s16                field_8A6;
-    /* 0x8A8 */ s16                field_8A8;
-    /* 0x8AA */ byte               pad_8AA[4];
-    /* 0x8AE */ s16                field_8AE;
-    /* 0x8B0 */ s16                field_8B0;
-    /* 0x8B2 */ byte               pad_8B2[2];
-    /* 0x8B4 */ s32                field_8B4;
-    /* 0x8B8 */ GpEffArg           field_8B8;
-    /* 0x8C0 */ byte               pad_8C0[8];
-    /* 0x8C8 */ GpObj              field_8C8;
-    /* 0x8E8 */ GpRec18            field_8E8;
-    /* 0x900 */ byte               pad_900[0x108];
-    /* 0xA08 */ GpObj              field_A08;
-    /* 0xA28 */ GpRec18            field_A28;
-    /* 0xA40 */ byte               pad_A40[0x108];
-    /* 0xB48 */ GpObj              field_B48;
-    /* 0xB68 */ GpRec18            field_B68;
-    /* 0xB80 */ byte               pad_B80[0x30];
-    /* 0xBB0 */ MATRIX             field_BB0; // `TmdObject.lightMtx` light matrix
-    /* 0xBD0 */ MATRIX             field_BD0; // `TmdObject.colorMtx` color matrix
-    /* 0xBF0 */ byte               pad_BF0[0x20];
-    /* 0xC10 */ s16                field_C10;
-    /* 0xC12 */ s16                field_C12;
-    /* 0xC14 */ s16                field_C14;
-    /* 0xC16 */ byte               pad_C16[2];
-    /* 0xC18 */ SVECTOR            field_C18;
-    /* 0xC20 */ s16                field_C20;
-    /* 0xC22 */ s16                field_C22;
-    /* 0xC24 */ s16                field_C24;
-    /* 0xC26 */ s16                field_C26;
-    /* 0xC28 */ s16                field_C28;
-    /* 0xC2A */ s16                field_C2A;
-    /* 0xC2C */ s16                field_C2C;
-    /* 0xC2E */ s16                field_C2E;
-    /* 0xC30 */ s16                field_C30;
-    /* 0xC32 */ s16                field_C32;
-    /* 0xC34 */ u8                 field_C34[3];
-    /* 0xC37 */ u8                 field_C37;
-    /* 0xC38 */ Task*              field_C38;
-    /* 0xC3C */ Task*              field_C3C;
-    /* 0xC40 */ s16                field_C40;
-    /* 0xC42 */ s16                field_C42;
-    /* 0xC44 */ s16                field_C44;
-    /* 0xC46 */ byte               pad_C46[2];
+    /* 0x000 */ s16                   field_0;
+    /* 0x002 */ s16                   field_2;
+    /* 0x004 */ s16                   field_4;
+    /* 0x006 */ s16                   field_6;
+    /* 0x008 */ s16                   field_8;
+    /* 0x00A */ byte                  pad_A[2];
+    /* 0x00C */ Actor01900Waypoint    field_C[2];
+    /* 0x014 */ s16                   field_14;
+    /* 0x016 */ byte                  pad_16[0x44];
+    /* 0x05A */ u16                   field_5A;
+    /* 0x05C */ byte                  pad_5C[0xC];
+    /* 0x068 */ u16                   field_68;
+    /* 0x06A */ byte                  pad_6A[0x82A];
+    /* 0x894 */ s32                   field_894;
+    /* 0x898 */ s16                   field_898;
+    /* 0x89A */ s16                   field_89A;
+    /* 0x89C */ byte                  pad_89C[2];
+    /* 0x89E */ s16                   field_89E;
+    /* 0x8A0 */ byte                  pad_8A0[2];
+    /* 0x8A2 */ s16                   field_8A2;
+    /* 0x8A4 */ s16                   field_8A4;
+    /* 0x8A6 */ s16                   field_8A6;
+    /* 0x8A8 */ s16                   field_8A8;
+    /* 0x8AA */ byte                  pad_8AA[4];
+    /* 0x8AE */ s16                   field_8AE;
+    /* 0x8B0 */ s16                   field_8B0;
+    /* 0x8B2 */ byte                  pad_8B2[2];
+    /* 0x8B4 */ s32                   field_8B4;
+    /* 0x8B8 */ GpEffArg              field_8B8;
+    /* 0x8C0 */ byte                  pad_8C0[8];
+    /* 0x8C8 */ GpObj                 field_8C8;
+    /* 0x8E8 */ WorldCollisionContact field_8E8;
+    /* 0x900 */ byte                  pad_900[0x108];
+    /* 0xA08 */ GpObj                 field_A08;
+    /* 0xA28 */ WorldCollisionContact field_A28;
+    /* 0xA40 */ byte                  pad_A40[0x108];
+    /* 0xB48 */ GpObj                 field_B48;
+    /* 0xB68 */ WorldCollisionContact field_B68;
+    /* 0xB80 */ byte                  pad_B80[0x30];
+    /* 0xBB0 */ MATRIX                field_BB0; // `TmdObject.lightMtx` light matrix
+    /* 0xBD0 */ MATRIX                field_BD0; // `TmdObject.colorMtx` color matrix
+    /* 0xBF0 */ byte                  pad_BF0[0x20];
+    /* 0xC10 */ s16                   field_C10;
+    /* 0xC12 */ s16                   field_C12;
+    /* 0xC14 */ s16                   field_C14;
+    /* 0xC16 */ byte                  pad_C16[2];
+    /* 0xC18 */ SVECTOR               field_C18;
+    /* 0xC20 */ s16                   field_C20;
+    /* 0xC22 */ s16                   field_C22;
+    /* 0xC24 */ s16                   field_C24;
+    /* 0xC26 */ s16                   field_C26;
+    /* 0xC28 */ s16                   field_C28;
+    /* 0xC2A */ s16                   field_C2A;
+    /* 0xC2C */ s16                   field_C2C;
+    /* 0xC2E */ s16                   field_C2E;
+    /* 0xC30 */ s16                   field_C30;
+    /* 0xC32 */ s16                   field_C32;
+    /* 0xC34 */ u8                    field_C34[3];
+    /* 0xC37 */ u8                    field_C37;
+    /* 0xC38 */ Task*                 field_C38;
+    /* 0xC3C */ Task*                 field_C3C;
+    /* 0xC40 */ s16                   field_C40;
+    /* 0xC42 */ s16                   field_C42;
+    /* 0xC44 */ s16                   field_C44;
+    /* 0xC46 */ byte                  pad_C46[2];
     /// Ring of the last seven view-space positions `Actor01900_Fn09D3C`
     /// records, one per step; `field_C98` is the write cursor.
     /* 0xC48 */ SVECTOR field_C48[7];
@@ -209,7 +209,7 @@ static s32  Actor01900_Fn016F0(Task* arg0);
 static void Actor01900_Fn01C94(Task* arg0);
 static void Actor01900_Fn0AB1C(Task* arg0);
 static void Actor01900_Fn0A6CC(Task* task);
-static s32  Actor01900_Fn03FF8(Task* arg0, GpRec18* recs, s16 count);
+static s32  Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void Actor01900_Fn08724(Task* arg0);
 static void Actor01900_Fn0A7C0(Task* arg0);
 static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
@@ -801,11 +801,11 @@ static void            Actor01900_Fn01950(Task* arg0);
 static s32             Actor01900_Fn01A7C(Actor01900Work* work);
 static __inline__ void Actor01900_BindMatrices(Task* actor);
 static void            Actor01900_Fn02018(GpEnemy* enemy, Task* actor);
-static __inline__ s32  Actor01900_FindHit(GpRec18* records, SVECTOR* pos);
+static __inline__ s32  Actor01900_FindHit(WorldCollisionContact* records, SVECTOR* pos);
 static __inline__ s32  Actor01900_ArmIfPlayerLevel(Task* arg0);
 static __inline__ s32  Actor01900_HasHeightClamp(GameLocationKey* session);
-static s32             Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
-static __inline__ s32  Actor01900_HasHit(GpRec18* records);
+static s32             Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3);
+static __inline__ s32  Actor01900_HasHit(WorldCollisionContact* records);
 static void            Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor);
 
 /// Step `coord` `amount` units along its local Z axis unless movement is
@@ -1469,20 +1469,20 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     SCRATCH_POP_BYTES(8);
 }
 
-/// First `GpRec18` among the twelve at `records` whose id has high word 2,
+/// First `WorldCollisionContact` among the twelve at `records` whose id has high word 2,
 /// copying its position to `pos`; 0 at the first empty record.
-static __inline__ s32 Actor01900_FindHit(GpRec18* records, SVECTOR* pos)
+static __inline__ s32 Actor01900_FindHit(WorldCollisionContact* records, SVECTOR* pos)
 {
     s16 i;
 
     for (i = 0; i < 12; i++) {
-        if (!records[i].key)
+        if (!records[i].key.value)
             break;
-        if ((records[i].key & 0xFFFF0000) == 0x20000) {
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
             pos->vx = records[i].point.vx;
             pos->vy = records[i].point.vy;
             pos->vz = records[i].point.vz;
-            return records[i].key;
+            return records[i].key.value;
         }
     }
     return 0;
@@ -1930,7 +1930,7 @@ static __inline__ s32 Actor01900_HasHeightClamp(GameLocationKey* session)
     return 0;
 }
 
-static s32 Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
+static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3)
 {
     ActorStepDelta* head;
     ActorStepDelta* s;
@@ -2003,7 +2003,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
 /// 0x30000 record's offset, walking `recs` until `count` or a zero `key`.
 /// The duplicated coordinate update is load-bearing: loop.c counts both copies
 /// before cross-jumping merges them, which keeps `count`'s sign extension in the loop.
-static s32 Actor01900_Fn03FF8(Task* arg0, GpRec18* recs, s16 count)
+static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -2023,14 +2023,14 @@ static s32 Actor01900_Fn03FF8(Task* arg0, GpRec18* recs, s16 count)
     s->pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
     s->hit    = 0;
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             s->dist[s->i] = 0x7FFE;
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            Gp_MakeDirOffset(&s->pos, (GpDirSrc*)&recs[s->i], &s->offset);
+            worldCollisionCalcContactViewOffset(&s->pos, &recs[s->i], &s->offset);
             s->len = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
             s->len = SquareRoot0(s->len);
             if (s->len >= 0xC0) {
@@ -3183,16 +3183,16 @@ static void Actor01900_Fn0892C(Task* arg0)
     Actor01900_ResetYaw(arg0->extra.tmd->coords + 10);
 }
 
-/// Whether any of the three `GpRec18` at `records` carries an id with high
+/// Whether any of the three `WorldCollisionContact` at `records` carries an id with high
 /// word 1, stopping at the first empty record.
-static __inline__ s32 Actor01900_HasHit(GpRec18* records)
+static __inline__ s32 Actor01900_HasHit(WorldCollisionContact* records)
 {
     s16 i;
 
     for (i = 0; i < 3; i++) {
-        if (!records[i].key)
+        if (!records[i].key.value)
             break;
-        if ((records[i].key & 0xFFFF0000) == 0x10000) {
+        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
             return 1;
         }
     }

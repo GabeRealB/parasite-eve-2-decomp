@@ -64,14 +64,14 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
 /// `GpActorD4` convention: the display node's `ctx.d4rec` points at the
 /// `GpActorD4Rec` directly behind it, whose `recs` in turn points at the
-/// `GpRec18` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
+/// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
 /// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
 /// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
 /// allocates 0xAC, both with `memCalloc(_, 0)`.
 typedef struct Actor503500WorkRec4 {
-    /* 0x00 */ GpObj        obj;
-    /* 0x20 */ GpActorD4Rec d4;
-    /* 0x38 */ GpRec18      rec[4];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ GpActorD4Rec          d4;
+    /* 0x38 */ WorldCollisionContact rec[4];
 } Actor503500WorkRec4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkRec4, 0x98);
 
@@ -1125,15 +1125,15 @@ Actor5035005MsgEntry D_actor_503500_80176530[5] = {
 
 static void func_actor_503500_80144E8C(Task* arg0)
 {
-    Actor503500WorkD0* work;
-    GfxCoord*          coord;
-    GpActorD4Rec*      d4;
-    GpRec18*           rec;
-    GpEffWork*         eff;
-    Task*              child;
-    GpMtxWords*        m1;
-    GpMtxWords*        m2;
-    s32                pan;
+    Actor503500WorkD0*     work;
+    GfxCoord*               coord;
+    GpActorD4Rec*          d4;
+    WorldCollisionContact* rec;
+    GpEffWork*             eff;
+    Task*                  child;
+    GpMtxWords*            m1;
+    GpMtxWords*            m2;
+    s32                    pan;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -1342,14 +1342,14 @@ static void func_actor_503500_80145480(Task* arg0)
 
 static void func_actor_503500_801454E0(Task* arg0)
 {
-    Actor503500WorkRec4* work;
-    GpRec18*             rec;
-    s32                  i;
+    Actor503500WorkRec4*   work;
+    WorldCollisionContact* rec;
+    s32                    i;
 
     work = (Actor503500WorkRec4*)arg0->work;
     rec  = work->rec;
     for (i = 0; i < 4; i++) {
-        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
             work->obj.flags &= 0x7FFF;
         }
     }
@@ -1519,15 +1519,15 @@ static const TaskFuncTable3 D_actor_503500_80132224 = {
 
 static void func_actor_503500_80145A2C(Task* arg0)
 {
-    Actor503500WorkAC* work;
-    GfxCoord*          coord;
-    GpActorD4Rec*      d4;
-    GpRec18*           rec;
-    GpEffWork*         eff;
-    Task*              child;
-    GpMtxWords*        m;
-    s32                pan;
-    s32                pan2;
+    Actor503500WorkAC*     work;
+    GfxCoord*               coord;
+    GpActorD4Rec*          d4;
+    WorldCollisionContact* rec;
+    GpEffWork*             eff;
+    Task*                  child;
+    GpMtxWords*            m;
+    s32                    pan;
+    s32                    pan2;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -1671,14 +1671,14 @@ static void func_actor_503500_80145E98(Task* arg0)
 
 static void func_actor_503500_80145F18(Task* arg0)
 {
-    Actor503500WorkRec4* work;
-    GpRec18*             rec;
-    s32                  i;
+    Actor503500WorkRec4*   work;
+    WorldCollisionContact* rec;
+    s32                    i;
 
     work = (Actor503500WorkRec4*)arg0->work;
     rec  = work->rec;
     for (i = 0; i < 4; i++) {
-        if ((rec[i].key & 0xFFFF0000) == 0x10000) {
+        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
             work->obj.flags &= 0x7FFF;
         }
     }

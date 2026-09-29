@@ -71,73 +71,73 @@ STATIC_ASSERT_SIZEOF(Actor04000RecoveredMsgEntry, 8);
 
 /// The actor's per-instance work block (`Task::work`),
 /// allocated and filled by `Actor04000_Fn010B8`. It embeds four
-/// collision objects linked with `Gp_LinkObj`, each followed by the `GpRec18`
+/// collision objects linked with `Gp_LinkObj`, each followed by the `WorldCollisionContact`
 /// table its `field_C` points at; the high bit of their flag words gates one
 /// behaviour and bit 0x4000 another.
 typedef struct Actor104000Work {
-    /* 0x000 */ s16        field_0;
-    /* 0x002 */ s16        field_2;
-    /* 0x004 */ s16        field_4;
-    /* 0x006 */ u16        field_6;
-    /* 0x008 */ s16        field_8;
-    /* 0x00A */ s16        field_A;
-    /* 0x00C */ GpAnimCtx  anim;
-    /* 0x020 */ GpAnimSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below
-    /* 0x048 */ byte       pad_48[2];
-    /* 0x04A */ u16        field_4A; // low ten bits: animation id (`slots[1].field_2`)
-    /* 0x04C */ byte       pad_4C[0xC];
-    /* 0x058 */ u16        field_58;
-    /* 0x05A */ byte       pad_5A[0xB6];
-    /* 0x110 */ byte       poses[0x60]; // `func_800B3F84` arg3
-    /* 0x170 */ s16        field_170;
-    /* 0x172 */ s16        field_172;
-    /* 0x174 */ s16        field_174;
-    /* 0x176 */ s16        field_176;
-    /* 0x178 */ s16        field_178;
-    /* 0x17A */ s16        field_17A;
-    /* 0x17C */ s16        field_17C;
-    /* 0x17E */ s16        field_17E;
-    /* 0x180 */ s32        field_180;
-    /* 0x184 */ s32        field_184;
-    /* 0x188 */ s32        field_188;
-    /* 0x18C */ s32        field_18C;
-    /* 0x190 */ s32        field_190;
-    /* 0x194 */ u16        field_194;
-    /* 0x196 */ byte       pad_196[2];
-    /* 0x198 */ u16        field_198;
-    /* 0x19A */ u16        field_19A;
-    /* 0x19C */ s16        field_19C;
-    /* 0x19E */ byte       pad_19E[2];
-    /* 0x1A0 */ s16        field_1A0;
-    /* 0x1A2 */ s16        field_1A2;
-    /* 0x1A4 */ byte       pad_1A4[0xC];
-    /* 0x1B0 */ GpRec18    rec1B0[8];
-    /* 0x270 */ GpObj      obj270;
-    /* 0x290 */ GpRec18    hits[8]; // this frame's collision records, ended by a zero id
-    /* 0x350 */ GpObj      obj350;
-    /* 0x370 */ GpRec18    rec370;
-    /* 0x388 */ GpObj      obj388;
-    /* 0x3A8 */ GpRec18    rec3A8;
-    /* 0x3C0 */ GpObj      obj3C0;
-    /* 0x3E0 */ GpEffArg   eff;           // `func_800FDB18` argument record
-    /* 0x3E8 */ SVECTOR    effOfs;        // offset handed to `func_800FDB18`; `pad` picks the coordinate
-    /* 0x3F0 */ SVECTOR    origin;        // model position at spawn
-    /* 0x3F8 */ SVECTOR    dir;           // facing direction captured on restart
-    /* 0x400 */ SVECTOR    patrol[2];     // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
-    /* 0x410 */ s16        patrolIdx;     // `patrol` point currently walked toward
-    /* 0x412 */ byte       pad_412[2];
-    /* 0x414 */ MATRIX     lightMtx;      // installed at `TmdObject::lightMtx`
-    /* 0x434 */ MATRIX     colorMtx;      // installed at `TmdObject::colorMtx`
-    /* 0x454 */ MATRIX     savedColorMtx; // `colorMtx` before the death fade scales it
-    /* 0x474 */ u16        field_474;     // animation id that last raised the reaction
-    /* 0x476 */ byte       pad_476[3];
-    /* 0x479 */ u8         field_479;
-    /* 0x47A */ u8         field_47A;
-    /* 0x47B */ byte       pad_47B[1];
-    /* 0x47C */ byte       field_47C[0x14];
-    /* 0x490 */ s32        field_490;
-    /* 0x494 */ s16        field_494;
-    /* 0x496 */ s16        field_496;
+    /* 0x000 */ s16                   field_0;
+    /* 0x002 */ s16                   field_2;
+    /* 0x004 */ s16                   field_4;
+    /* 0x006 */ u16                   field_6;
+    /* 0x008 */ s16                   field_8;
+    /* 0x00A */ s16                   field_A;
+    /* 0x00C */ GpAnimCtx             anim;
+    /* 0x020 */ GpAnimSlot            slots[1]; // slots 1..5 continue past here, overlapping the fields below
+    /* 0x048 */ byte                  pad_48[2];
+    /* 0x04A */ u16                   field_4A; // low ten bits: animation id (`slots[1].field_2`)
+    /* 0x04C */ byte                  pad_4C[0xC];
+    /* 0x058 */ u16                   field_58;
+    /* 0x05A */ byte                  pad_5A[0xB6];
+    /* 0x110 */ byte                  poses[0x60]; // `func_800B3F84` arg3
+    /* 0x170 */ s16                   field_170;
+    /* 0x172 */ s16                   field_172;
+    /* 0x174 */ s16                   field_174;
+    /* 0x176 */ s16                   field_176;
+    /* 0x178 */ s16                   field_178;
+    /* 0x17A */ s16                   field_17A;
+    /* 0x17C */ s16                   field_17C;
+    /* 0x17E */ s16                   field_17E;
+    /* 0x180 */ s32                   field_180;
+    /* 0x184 */ s32                   field_184;
+    /* 0x188 */ s32                   field_188;
+    /* 0x18C */ s32                   field_18C;
+    /* 0x190 */ s32                   field_190;
+    /* 0x194 */ u16                   field_194;
+    /* 0x196 */ byte                  pad_196[2];
+    /* 0x198 */ u16                   field_198;
+    /* 0x19A */ u16                   field_19A;
+    /* 0x19C */ s16                   field_19C;
+    /* 0x19E */ byte                  pad_19E[2];
+    /* 0x1A0 */ s16                   field_1A0;
+    /* 0x1A2 */ s16                   field_1A2;
+    /* 0x1A4 */ byte                  pad_1A4[0xC];
+    /* 0x1B0 */ WorldCollisionContact rec1B0[8];
+    /* 0x270 */ GpObj                 obj270;
+    /* 0x290 */ WorldCollisionContact hits[8]; // this frame's collision records, ended by a zero id
+    /* 0x350 */ GpObj                 obj350;
+    /* 0x370 */ WorldCollisionContact rec370;
+    /* 0x388 */ GpObj                 obj388;
+    /* 0x3A8 */ WorldCollisionContact rec3A8;
+    /* 0x3C0 */ GpObj                 obj3C0;
+    /* 0x3E0 */ GpEffArg              eff;           // `func_800FDB18` argument record
+    /* 0x3E8 */ SVECTOR               effOfs;        // offset handed to `func_800FDB18`; `pad` picks the coordinate
+    /* 0x3F0 */ SVECTOR               origin;        // model position at spawn
+    /* 0x3F8 */ SVECTOR               dir;           // facing direction captured on restart
+    /* 0x400 */ SVECTOR               patrol[2];     // spawn position plus (0) / minus (1) 1000 units along the facing (XZ)
+    /* 0x410 */ s16                   patrolIdx;     // `patrol` point currently walked toward
+    /* 0x412 */ byte                  pad_412[2];
+    /* 0x414 */ MATRIX                lightMtx;      // installed at `TmdObject::lightMtx`
+    /* 0x434 */ MATRIX                colorMtx;      // installed at `TmdObject::colorMtx`
+    /* 0x454 */ MATRIX                savedColorMtx; // `colorMtx` before the death fade scales it
+    /* 0x474 */ u16                   field_474;     // animation id that last raised the reaction
+    /* 0x476 */ byte                  pad_476[3];
+    /* 0x479 */ u8                    field_479;
+    /* 0x47A */ u8                    field_47A;
+    /* 0x47B */ byte                  pad_47B[1];
+    /* 0x47C */ byte                  field_47C[0x14];
+    /* 0x490 */ s32                   field_490;
+    /* 0x494 */ s16                   field_494;
+    /* 0x496 */ s16                   field_496;
 } Actor104000Work;
 STATIC_ASSERT_SIZEOF(Actor104000Work, 0x498);
 
@@ -1151,8 +1151,8 @@ extern GpAnimSet* Actor04000_D0C520[4];
 /// The controller task's state handlers, indexed by its `state`.
 extern TaskFunc Actor04000_D0C6EC[];
 
-static s32             Actor04000_Fn0024C(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* push);
-static s32             Actor04000_Fn00798(GfxCoord* coord, GpRec18* movement, s16 arg2);
+static s32             Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* push);
+static s32             Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
 static __inline__ void Actor204000_ResetSlots(Actor104000Work* arg0);
 static __inline__ void Actor204000_TickSlots(Task* arg0);
 static void            Actor04000_Fn00E6C(Task* arg0);
@@ -1180,7 +1180,7 @@ static void            Actor04000_Fn06760(GfxCoord* coord, s16 scale);
 /// (which also raises the returned `blocked` flag) or 0x30000 each give a
 /// bearing, at most eight; bearings more than 0x400 apart cancel each other.
 /// Each survivor becomes a 10-unit step added to `push` and to the translation.
-static s32 Actor04000_Fn0024C(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* push)
+static s32 Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* push)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -1213,10 +1213,10 @@ static s32 Actor04000_Fn0024C(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR
     s->count  = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
+        if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind = recs[s->i].key & 0xFFFF0000;
+        s->kind = recs[s->i].key.value & 0xFFFF0000;
         switch (s->kind) {
             case 0x10000:
                 s->blocked = 1;
@@ -1268,12 +1268,12 @@ static s32 Actor04000_Fn0024C(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR
     return s->blocked != 0;
 }
 
-/// Steps `coord` by the movement the first `arg2` `GpRec18` records of
+/// Steps `coord` by the movement the first `arg2` `WorldCollisionContact` records of
 /// `movement` resolve to, and keeps the whole-unit part of that step in
 /// `Actor04000_D0C708`. Returns 1 when the X or Z step is nonzero; a step with
 /// a fractional part moves the coordinate and the kept step one unit further
 /// from zero.
-static s32 Actor04000_Fn00798(GfxCoord* coord, GpRec18* movement, s16 arg2)
+static s32 Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1550,18 +1550,18 @@ static s32 Actor04000_Fn00FDC(Actor104000Work* arg0)
 /// starts in state 2 when the high half of `Task::spawnArg1` is 1 and state 7 otherwise.
 static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
 {
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    Actor104000Work* work;
-    GpRec18*         hits;
-    SVECTOR          sv;
-    VECTOR           pos;
-    SVECTOR*         p;
-    SVECTOR*         q;
-    GpObj*           o1;
-    GpObj*           o2;
-    GpObj*           o3;
-    GpObj*           o4;
+    TmdObject*             obj;
+    GfxCoord*               coord;
+    Actor104000Work*       work;
+    WorldCollisionContact* hits;
+    SVECTOR                sv;
+    VECTOR                 pos;
+    SVECTOR*               p;
+    SVECTOR*               q;
+    GpObj*                 o1;
+    GpObj*                 o2;
+    GpObj*                 o3;
+    GpObj*                 o4;
 
     obj        = arg1->extra.tmd;
     coord      = obj->coords;
@@ -2422,17 +2422,17 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
 /// `arg0->field_40`, switching to state 6 once it runs out.
 static void Actor04000_Fn03FB4(GpEnemy* arg0, Task* arg1)
 {
-    ActorHitTakenScratch* sc;
-    Actor104000Work*      work;
-    GpRec18*              recs;
-    SVECTOR*              pos;
-    s32                   mask;
-    s32                   kind;
-    s32                   id;
-    s16                   angle;
-    s32                   snd;
-    s32                   pan;
-    s16                   i;
+    ActorHitTakenScratch*  sc;
+    Actor104000Work*       work;
+    WorldCollisionContact* recs;
+    SVECTOR*               pos;
+    s32                    mask;
+    s32                    kind;
+    s32                    id;
+    s16                    angle;
+    s32                    snd;
+    s32                    pan;
+    s16                    i;
 
     work = arg1->work;
     sc   = (ActorHitTakenScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorHitTakenScratch));
@@ -2442,14 +2442,14 @@ static void Actor04000_Fn03FB4(GpEnemy* arg0, Task* arg1)
     mask = 0xFFFF0000;
     kind = 0x20000;
 scan:
-    if (recs[i].key == 0) {
+    if (recs[i].key.value == 0) {
         goto missed;
     }
-    if ((recs[i].key & mask) == kind) {
+    if ((recs[i].key.value & mask) == kind) {
         pos->vx = recs[i].point.vx;
         pos->vy = recs[i].point.vy;
         pos->vz = recs[i].point.vz;
-        id      = recs[i].key;
+        id      = recs[i].key.value;
         goto found;
     }
     i++;

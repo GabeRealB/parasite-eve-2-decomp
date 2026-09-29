@@ -62,7 +62,7 @@
 /// `func_acropolis_cafeteria_80181E3C` through `Gp_UnlinkObj`).
 ///
 /// It opens with the `GpObj` list node linked onto `Gp_ObjLists[4]`, whose
-/// `field_C` points at the six `GpRec18` slots that follow it in the same
+/// `field_C` points at the six `WorldCollisionContact` slots that follow it in the same
 /// block. `field_B0` is the spawn-time random seed / countdown
 /// (`(rand() & 0xFFF) + 0x3000`, decremented every frame);
 /// `field_B4` / `field_B8` / `field_BC` are the per-axis velocities added into
@@ -70,17 +70,17 @@
 /// and `field_CC` the normalised surface direction from `Gfx_MatrixCol2` /
 /// `VectorNormalSS`; `field_D4` is the task's own sub-state.
 typedef struct AcropolisCafeteriaDebris {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 slots[6];
-    /* 0xB0 */ s32     field_B0;
-    /* 0xB4 */ s32     field_B4;
-    /* 0xB8 */ s32     field_B8;
-    /* 0xBC */ s32     field_BC;
-    /* 0xC0 */ byte    pad_C0[4];
-    /* 0xC4 */ SVECTOR field_C4;
-    /* 0xCC */ SVECTOR field_CC;
-    /* 0xD4 */ u16     field_D4;
-    /* 0xD6 */ byte    pad_D6[2];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact slots[6];
+    /* 0xB0 */ s32                   field_B0;
+    /* 0xB4 */ s32                   field_B4;
+    /* 0xB8 */ s32                   field_B8;
+    /* 0xBC */ s32                   field_BC;
+    /* 0xC0 */ byte                  pad_C0[4];
+    /* 0xC4 */ SVECTOR               field_C4;
+    /* 0xCC */ SVECTOR               field_CC;
+    /* 0xD4 */ u16                   field_D4;
+    /* 0xD6 */ byte                  pad_D6[2];
 } AcropolisCafeteriaDebris;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
 
@@ -881,8 +881,8 @@ SVECTOR D_acropolis_cafeteria_8018D6AC = { 0 };
 static void func_acropolis_cafeteria_801818DC(Task* task);
 static void func_acropolis_cafeteria_80181A3C(Task* task);
 static void func_acropolis_cafeteria_80181E30(Task* arg0);
-static s32  func_acropolis_cafeteria_80181ED4(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_cafeteria_80182078(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_cafeteria_80181ED4(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32  func_acropolis_cafeteria_80182078(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_acropolis_cafeteria_80182954(Task* task);
 static void func_acropolis_cafeteria_80182A08(Task* task);
 
@@ -2062,7 +2062,7 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_cafeteria_8018D6AC`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -2109,7 +2109,7 @@ static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, GpRec18* rec, s16 
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -2133,11 +2133,11 @@ static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, GpRec18* recs, s16
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

@@ -55,38 +55,38 @@
 /// `field_25C` are the bob and sway phases, `field_260` the ambient cue timer,
 /// and `field_262` is set while the actor holds the player.
 typedef struct Actor103700Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[6];
-    /* 0x104 */ byte       poses[0x60]; // pose buffer, `func_800B3F84` arg3
-    /* 0x164 */ MATRIX     colorMtx;
-    /* 0x184 */ MATRIX     lightMtx;
-    /* 0x1A4 */ GpObj      obj;
-    /* 0x1C4 */ GpRec18    records[4];
-    /* 0x224 */ GpEffArg   field_224; // hit-spark record for `func_800FDB18`
-    /* 0x22C */ SVECTOR    field_22C;
-    /* 0x234 */ SVECTOR    field_234;
-    /* 0x23C */ SVECTOR    field_23C;
-    /* 0x244 */ s16        field_244;
-    /* 0x246 */ s16        field_246;
-    /* 0x248 */ s16        field_248;
-    /* 0x24A */ s16        field_24A;
-    /* 0x24C */ s16        field_24C;
-    /* 0x24E */ s16        field_24E;
-    /* 0x250 */ s16        field_250;
-    /* 0x252 */ s16        field_252;
-    /* 0x254 */ s16        field_254;
-    /* 0x256 */ u16        field_256;
-    /* 0x258 */ u16        field_258;
-    /* 0x25A */ s16        field_25A;
-    /* 0x25C */ u16        field_25C;
-    /* 0x25E */ u16        field_25E;
-    /* 0x260 */ u16        field_260;
-    /* 0x262 */ s16        field_262;
-    /* 0x264 */ s16        field_264;
-    /* 0x266 */ s16        field_266;
-    /* 0x268 */ s16        field_268;
-    /* 0x26A */ s16        field_26A;
-    /* 0x26C */ u16        field_26C;
+    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x014 */ GpAnimSlot            slots[6];
+    /* 0x104 */ byte                  poses[0x60]; // pose buffer, `func_800B3F84` arg3
+    /* 0x164 */ MATRIX                colorMtx;
+    /* 0x184 */ MATRIX                lightMtx;
+    /* 0x1A4 */ GpObj                 obj;
+    /* 0x1C4 */ WorldCollisionContact records[4];
+    /* 0x224 */ GpEffArg              field_224; // hit-spark record for `func_800FDB18`
+    /* 0x22C */ SVECTOR               field_22C;
+    /* 0x234 */ SVECTOR               field_234;
+    /* 0x23C */ SVECTOR               field_23C;
+    /* 0x244 */ s16                   field_244;
+    /* 0x246 */ s16                   field_246;
+    /* 0x248 */ s16                   field_248;
+    /* 0x24A */ s16                   field_24A;
+    /* 0x24C */ s16                   field_24C;
+    /* 0x24E */ s16                   field_24E;
+    /* 0x250 */ s16                   field_250;
+    /* 0x252 */ s16                   field_252;
+    /* 0x254 */ s16                   field_254;
+    /* 0x256 */ u16                   field_256;
+    /* 0x258 */ u16                   field_258;
+    /* 0x25A */ s16                   field_25A;
+    /* 0x25C */ u16                   field_25C;
+    /* 0x25E */ u16                   field_25E;
+    /* 0x260 */ u16                   field_260;
+    /* 0x262 */ s16                   field_262;
+    /* 0x264 */ s16                   field_264;
+    /* 0x266 */ s16                   field_266;
+    /* 0x268 */ s16                   field_268;
+    /* 0x26A */ s16                   field_26A;
+    /* 0x26C */ u16                   field_26C;
 } Actor103700Work;
 
 /// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Actor03700_Fn03130`:
@@ -892,7 +892,7 @@ move_done:
     i               = 0;
     work->field_264 = 0;
     do {
-        id = work->records[i].key;
+        id = work->records[i].key.value;
         switch (id >> 16) {
             case 0:
                 break;
@@ -901,7 +901,7 @@ move_done:
                 scratch->delta.vx.w = coord->workm.t[0] - work->records[i].point.vx;
                 scratch->delta.vy.w = coord->workm.t[1] - work->records[i].point.vy;
                 scratch->delta.vz.w = coord->workm.t[2] - work->records[i].point.vz;
-                reach               = work->records[i].depth - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
+                reach               = work->records[i].distance - SquareRoot0(scratch->delta.vx.w * scratch->delta.vx.w + scratch->delta.vy.w * scratch->delta.vy.w + scratch->delta.vz.w * scratch->delta.vz.w);
                 val                 = reach;
                 if (reach <= 0) {
                     val = 0;
@@ -921,8 +921,8 @@ move_done:
                 scratch->delta.vy.w = ey;
                 ez                  = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vz.w = ez;
-                damage              = Gp_ComputeDamage(work->records[i].key, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
-                id                  = work->records[i].key;
+                damage              = Gp_ComputeDamage(work->records[i].key.value, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
+                id                  = work->records[i].key.value;
                 if (id & 0x8000) {
                     if (Actor03700_D08074[id & 0x7F] == 3) {
                         broke  = 1;
@@ -932,20 +932,20 @@ move_done:
                         if ((u32)(broke - 0xC) < 2) {
                             func_800FDB18(broke, coord, NULL, &work->field_224);
                         }
-                        work->field_268 = Actor03700_D08074[work->records[i].key & 0x7F];
+                        work->field_268 = Actor03700_D08074[work->records[i].key.value & 0x7F];
                         broke           = 0;
                     }
                 } else {
                     work->field_268 = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
                 }
                 func_800DA6E8(&((GpEnemy*)task->spawnArg2.pointer)->node, damage, 0);
-                func_800E2C78(task->spawnArg2.pointer, work->records[i].key, damage, 0);
+                func_800E2C78(task->spawnArg2.pointer, work->records[i].key.value, damage, 0);
                 if ((s32)damage > 0) {
                     ((GpEnemy*)task->spawnArg2.pointer)->hp = 0;
                     work->field_24E                         = 6;
                     work->field_250                         = 0;
                     task->state                             = 2;
-                } else if (((Gp_GetIdParam0(work->records[i].key) & 0xFFFF) == 8 || broke == 1) &&
+                } else if (((Gp_GetIdParam0(work->records[i].key.value) & 0xFFFF) == 8 || broke == 1) &&
                            (u16)(work->field_24E - 1) >= 2) {
                     if (work->field_262 == 0) {
                         work->field_24E = 5;

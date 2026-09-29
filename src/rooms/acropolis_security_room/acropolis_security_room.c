@@ -1895,8 +1895,8 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
 static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b);
 static void func_acropolis_security_room_8017F1BC(Task* task);
 static void func_acropolis_security_room_8017F300(Task* task);
-static s32  func_acropolis_security_room_80181C84(GfxCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_security_room_80181E28(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_security_room_80181C84(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32  func_acropolis_security_room_80181E28(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_acropolis_security_room_80182574(Task* task);
 
 /// Message 0x13EE handler: copies the incoming location record onto the
@@ -4044,7 +4044,7 @@ void func_acropolis_security_room_801817A4(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_security_room_801855B0`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -4091,7 +4091,7 @@ static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, GpRec18* rec, 
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -4115,11 +4115,11 @@ static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, GpRec18* recs,
     overlayToWorld2(coord, &st->aim);
 
     for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
+        if (recs[st->i].key.value == 0) {
             st->angle[st->i] = 0x7FFE;
             break;
         }
-        st->kind = recs[st->i].key & 0xFFFF0000;
+        st->kind = recs[st->i].key.value & 0xFFFF0000;
         if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
             st->angle[st->i] = 0x7FFF;
         } else {

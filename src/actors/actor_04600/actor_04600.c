@@ -54,96 +54,96 @@
 /// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
 /// animation context and its three slots come the colour and light matrices the
 /// model is pointed at, then four `GpObj` bodies, each followed by the
-/// `GpRec18` table its `ctx.recs` names.
+/// `WorldCollisionContact` table its `ctx.recs` names.
 typedef struct Actor104600Work {
-    /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[3];
-    /* 0x08C */ byte       field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX     field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX     field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ GpObj      objFC;
-    /* 0x11C */ GpRec18    rec11C;
-    /* 0x134 */ GpObj      obj134;
-    /* 0x154 */ GpRec18    rec154[4]; // the body's contact table; also the enemy's `recs`
-    /* 0x1B4 */ GpObj      obj1B4;
-    /* 0x1D4 */ GpRec18    rec1D4;
-    /* 0x1EC */ GpObj      obj1EC;
-    /* 0x20C */ GpRec18    rec20C;
-    /* 0x224 */ byte       pad_224[0x50];
-    /* 0x274 */ VECTOR3    field_274; // root translation before the last step
-    /* 0x280 */ byte       pad_280[4];
-    /* 0x284 */ GpEffArg   field_284; // hit-effect coordinate and parameters
-    /* 0x28C */ MATRIX     field_28C; // root transform saved when the enemy dies
-    /* 0x2AC */ s32        field_2AC; // scale factor of the model's second part
-    /* 0x2B0 */ s16        field_2B0; // heading, stepped 0x20 a frame toward the player
-    /* 0x2B2 */ s16        field_2B2; // reaction state the per-frame dispatch switches on
-    /* 0x2B4 */ s16        field_2B4; // phase of the death sequence
-    /* 0x2B6 */ s16        field_2B6; // frames spent in the death phase
-    /* 0x2B8 */ s16        field_2B8; // animation id the work is playing
-    /* 0x2BA */ s16        field_2BA; // id the two helper slots last saw
-    /* 0x2BC */ u16        field_2BC; // frames spent on the current id
-    /* 0x2BE */ s16        field_2BE; // step length along the facing
-    /* 0x2C0 */ byte       pad_2C0[6];
-    /* 0x2C6 */ s16        field_2C6;
-    /* 0x2C8 */ s16        field_2C8; // live stage: 1 alive, 2 dying
-    /* 0x2CA */ s16        field_2CA; // Y scale folded onto the saved transform
-    /* 0x2CC */ s16        field_2CC;
-    /* 0x2CE */ s16        field_2CE; // remaining hit cooldown
-    /* 0x2D0 */ u16        field_2D0; // frames until the next idle sound
-    /* 0x2D2 */ s16        field_2D2; // non-zero: the animation rebind is suppressed
-    /* 0x2D4 */ u16        field_2D4; // frame or event counter of the dying stages
-    /* 0x2D6 */ s16        field_2D6; // spawn arg's low half; picks the sound set
-    /* 0x2D8 */ s16        field_2D8; // latched once the dormant enemy is touched
-    /* 0x2DA */ s16        field_2DA; // non-zero: the death spawns a final effect
-    /* 0x2DC */ s16        field_2DC; // spawn arg's high half
-    /* 0x2DE */ s16        field_2DE; // fall speed while dropping into place
-    /* 0x2E0 */ s16        field_2E0; // non-zero once the drop has hit something
-    /* 0x2E2 */ s16        field_2E2; // non-zero: the drop has been armed
+    /* 0x000 */ GpAnimCtx             context;
+    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
+    /* 0x0FC */ GpObj                 objFC;
+    /* 0x11C */ WorldCollisionContact rec11C;
+    /* 0x134 */ GpObj                 obj134;
+    /* 0x154 */ WorldCollisionContact rec154[4]; // the body's contact table; also the enemy's `recs`
+    /* 0x1B4 */ GpObj                 obj1B4;
+    /* 0x1D4 */ WorldCollisionContact rec1D4;
+    /* 0x1EC */ GpObj                 obj1EC;
+    /* 0x20C */ WorldCollisionContact rec20C;
+    /* 0x224 */ byte                  pad_224[0x50];
+    /* 0x274 */ VECTOR3               field_274; // root translation before the last step
+    /* 0x280 */ byte                  pad_280[4];
+    /* 0x284 */ GpEffArg              field_284; // hit-effect coordinate and parameters
+    /* 0x28C */ MATRIX                field_28C; // root transform saved when the enemy dies
+    /* 0x2AC */ s32                   field_2AC; // scale factor of the model's second part
+    /* 0x2B0 */ s16                   field_2B0; // heading, stepped 0x20 a frame toward the player
+    /* 0x2B2 */ s16                   field_2B2; // reaction state the per-frame dispatch switches on
+    /* 0x2B4 */ s16                   field_2B4; // phase of the death sequence
+    /* 0x2B6 */ s16                   field_2B6; // frames spent in the death phase
+    /* 0x2B8 */ s16                   field_2B8; // animation id the work is playing
+    /* 0x2BA */ s16                   field_2BA; // id the two helper slots last saw
+    /* 0x2BC */ u16                   field_2BC; // frames spent on the current id
+    /* 0x2BE */ s16                   field_2BE; // step length along the facing
+    /* 0x2C0 */ byte                  pad_2C0[6];
+    /* 0x2C6 */ s16                   field_2C6;
+    /* 0x2C8 */ s16                   field_2C8; // live stage: 1 alive, 2 dying
+    /* 0x2CA */ s16                   field_2CA; // Y scale folded onto the saved transform
+    /* 0x2CC */ s16                   field_2CC;
+    /* 0x2CE */ s16                   field_2CE; // remaining hit cooldown
+    /* 0x2D0 */ u16                   field_2D0; // frames until the next idle sound
+    /* 0x2D2 */ s16                   field_2D2; // non-zero: the animation rebind is suppressed
+    /* 0x2D4 */ u16                   field_2D4; // frame or event counter of the dying stages
+    /* 0x2D6 */ s16                   field_2D6; // spawn arg's low half; picks the sound set
+    /* 0x2D8 */ s16                   field_2D8; // latched once the dormant enemy is touched
+    /* 0x2DA */ s16                   field_2DA; // non-zero: the death spawns a final effect
+    /* 0x2DC */ s16                   field_2DC; // spawn arg's high half
+    /* 0x2DE */ s16                   field_2DE; // fall speed while dropping into place
+    /* 0x2E0 */ s16                   field_2E0; // non-zero once the drop has hit something
+    /* 0x2E2 */ s16                   field_2E2; // non-zero: the drop has been armed
 } Actor104600Work;
 STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
 
 /// The 0x2B0-byte work block of the package's second enemy, allocated by its
 /// spawn handler and parked in `Task::work`. It carries three `GpObj` bodies:
 /// the first points its `ctx.d4rec` at the `GpActorD4Rec` after it, the other
-/// two point at their own `GpRec18` tables.
+/// two point at their own `WorldCollisionContact` tables.
 typedef struct Actor104600Enemy2Work {
-    /* 0x000 */ GpAnimCtx    context;
-    /* 0x014 */ GpAnimSlot   slots[3];
-    /* 0x08C */ byte         field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX       field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX       field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ GpObj        field_FC;
-    /* 0x11C */ GpActorD4Rec field_11C;
-    /* 0x134 */ GpRec18      field_134[1];
-    /* 0x14C */ GpObj        field_14C;
-    /* 0x16C */ GpRec18      field_16C[1];
-    /* 0x184 */ GpObj        field_184;
-    /* 0x1A4 */ GpRec18      field_1A4[4]; // the enemy's `recs`
-    /* 0x204 */ byte         pad_204[0x50];
-    /* 0x254 */ s32          field_254;    // position restored when the push-back conflicts
-    /* 0x258 */ s32          field_258;
-    /* 0x25C */ s32          field_25C;
-    /* 0x260 */ byte         pad_260[4];
-    /* 0x264 */ MATRIX       field_264; // root transform the dying enemy refolds
-    /* 0x284 */ byte         pad_284[2];
-    /* 0x286 */ s16          field_286; // reaction state
-    /* 0x288 */ s16          field_288; // non-zero once the death has unlinked the bodies
-    /* 0x28A */ s16          field_28A; // frames spent in the current state
-    /* 0x28C */ s16          field_28C; // animation id the work is playing
-    /* 0x28E */ s16          field_28E; // id the two helper slots last saw
-    /* 0x290 */ s16          field_290; // frames spent on the current id
-    /* 0x292 */ s16          field_292;
-    /* 0x294 */ byte         pad_294[6];
-    /* 0x29A */ s16          field_29A;
-    /* 0x29C */ byte         pad_29C[4];
-    /* 0x2A0 */ s16          field_2A0; // Y scale folded onto the saved transform
-    /* 0x2A2 */ byte         pad_2A2[2];
-    /* 0x2A4 */ s16          field_2A4; // light blend, 0..0x12
-    /* 0x2A6 */ s16          field_2A6; // non-zero: the blend is rising
-    /* 0x2A8 */ s16          field_2A8; // frames until the next blend turn
-    /* 0x2AA */ s16          field_2AA; // latched by a hit
-    /* 0x2AC */ s16          field_2AC; // placement mode; picks the sound set
-    /* 0x2AE */ byte         pad_2AE[2];
+    /* 0x000 */ GpAnimCtx             context;
+    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
+    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
+    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
+    /* 0x0FC */ GpObj                 field_FC;
+    /* 0x11C */ GpActorD4Rec          field_11C;
+    /* 0x134 */ WorldCollisionContact field_134[1];
+    /* 0x14C */ GpObj                 field_14C;
+    /* 0x16C */ WorldCollisionContact field_16C[1];
+    /* 0x184 */ GpObj                 field_184;
+    /* 0x1A4 */ WorldCollisionContact field_1A4[4]; // the enemy's `recs`
+    /* 0x204 */ byte                  pad_204[0x50];
+    /* 0x254 */ s32                   field_254;    // position restored when the push-back conflicts
+    /* 0x258 */ s32                   field_258;
+    /* 0x25C */ s32                   field_25C;
+    /* 0x260 */ byte                  pad_260[4];
+    /* 0x264 */ MATRIX                field_264; // root transform the dying enemy refolds
+    /* 0x284 */ byte                  pad_284[2];
+    /* 0x286 */ s16                   field_286; // reaction state
+    /* 0x288 */ s16                   field_288; // non-zero once the death has unlinked the bodies
+    /* 0x28A */ s16                   field_28A; // frames spent in the current state
+    /* 0x28C */ s16                   field_28C; // animation id the work is playing
+    /* 0x28E */ s16                   field_28E; // id the two helper slots last saw
+    /* 0x290 */ s16                   field_290; // frames spent on the current id
+    /* 0x292 */ s16                   field_292;
+    /* 0x294 */ byte                  pad_294[6];
+    /* 0x29A */ s16                   field_29A;
+    /* 0x29C */ byte                  pad_29C[4];
+    /* 0x2A0 */ s16                   field_2A0; // Y scale folded onto the saved transform
+    /* 0x2A2 */ byte                  pad_2A2[2];
+    /* 0x2A4 */ s16                   field_2A4; // light blend, 0..0x12
+    /* 0x2A6 */ s16                   field_2A6; // non-zero: the blend is rising
+    /* 0x2A8 */ s16                   field_2A8; // frames until the next blend turn
+    /* 0x2AA */ s16                   field_2AA; // latched by a hit
+    /* 0x2AC */ s16                   field_2AC; // placement mode; picks the sound set
+    /* 0x2AE */ byte                  pad_2AE[2];
 } Actor104600Enemy2Work;
 STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
 
@@ -830,22 +830,22 @@ static void Actor04600_Fn007B0(Task* arg0)
 /// body's 0x8000 bit.
 static void Actor04600_Fn00978(Task* arg0)
 {
-    GpEnemy*           enemy;
-    GpRec18*           effectRec;
-    s32                effect;
-    s32                pushY;
-    s32                movement;
-    s32                dx;
-    s32                dz;
-    s32                wallDx;
-    s32                wallDz;
-    s16                hitCooldown;
-    s32                distance;
-    u32                damage;
-    Actor104600Work*   work;
-    GfxCoord*          coord;
-    ActorContactFrame* scratch;
-    s32                i;
+    GpEnemy*               enemy;
+    WorldCollisionContact* effectRec;
+    s32                    effect;
+    s32                    pushY;
+    s32                    movement;
+    s32                    dx;
+    s32                    dz;
+    s32                    wallDx;
+    s32                    wallDz;
+    s16                    hitCooldown;
+    s32                    distance;
+    u32                    damage;
+    Actor104600Work*       work;
+    GfxCoord*               coord;
+    ActorContactFrame*     scratch;
+    s32                    i;
 
     work     = (Actor104600Work*)arg0->work;
     scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
@@ -883,7 +883,7 @@ static void Actor04600_Fn00978(Task* arg0)
         work->field_2C8 = 2;
     }
     for (i = 0; i < 4; i++) {
-        switch (work->rec154[i].key & 0xFFFF0000) {
+        switch (work->rec154[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2C8 == 1) {
                     work->field_2D2 = 1;
@@ -892,34 +892,34 @@ static void Actor04600_Fn00978(Task* arg0)
                 break;
             case 0x20000:
                 if (work->field_2CE == 0) {
-                    damage = Gp_ComputeDamage(work->rec154[i].key, distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->rec154[i].key, 0) != 0) {
+                    damage = Gp_ComputeDamage(work->rec154[i].key.value, distance, 0, 0);
+                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->rec154[i].key.value, 0) != 0) {
                         Actor04600_Fn01604(arg0, 1);
                         arg0->killCountdown = 5;
                         arg0->state         = 2;
                         work->field_2B4     = 0;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78(enemy, work->rec154[i].key, damage, 0);
+                        func_800E2C78(enemy, work->rec154[i].key.value, damage, 0);
                         Actor04600_Fn00EC8(arg0, damage);
-                        effect = Gp_GetIdParam0(work->rec154[i].key) & 0xFFFF;
+                        effect = Gp_GetIdParam0(work->rec154[i].key.value) & 0xFFFF;
                         switch (effect) {
                             case 1:
                                 work->field_2D2 = 1;
                                 work->field_2C8 = 2;
                                 break;
                             case 3:
-                                Gp_SetObjFlag4(enemy, work->rec154[i].key, 0);
+                                Gp_SetObjFlag4(enemy, work->rec154[i].key.value, 0);
                                 break;
                             case 2:
                             case 9:
-                                Gp_SetObjFlag2(enemy, work->rec154[i].key, 0);
+                                Gp_SetObjFlag2(enemy, work->rec154[i].key.value, 0);
                                 break;
                         }
                         if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1(work->rec154[i].key) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
+                            func_800FDB18(Gp_GetIdParam1(work->rec154[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
                         }
-                        hitCooldown = Gp_GetIdParam2(work->rec154[i].key);
+                        hitCooldown = Gp_GetIdParam2(work->rec154[i].key.value);
                         if (hitCooldown > 0) {
                             work->field_2CE = hitCooldown;
                         }
@@ -933,7 +933,7 @@ static void Actor04600_Fn00978(Task* arg0)
                 wallDz              = coord->workm.t[2] - work->rec154[i].point.vz;
                 scratch->delta.vz.w = wallDz;
                 distance            = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance            = work->rec154[i].depth - distance;
+                distance            = work->rec154[i].distance - distance;
                 distance            = (distance <= 0) ? 0 : distance;
                 scratch->delta.vx.w = coord->workm.t[0] - work->rec154[i].point.vx;
                 scratch->delta.vy.w = coord->workm.t[1] - work->rec154[i].point.vy;
@@ -1857,9 +1857,9 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     GfxCoord*              coord;
     GfxCoord*              part;
     u32                    seed;
-    GpRec18*               records1;
-    GpRec18*               records2;
-    GpRec18*               records3;
+    WorldCollisionContact* records1;
+    WorldCollisionContact* records2;
+    WorldCollisionContact* records3;
     s32                    i;
 
     obj   = arg1->extra.tmd;
@@ -2111,7 +2111,7 @@ static void Actor04600_Fn0346C(Task* arg0)
     sndHit  = 0x40480009;
     sndHit2 = 0x402E0008;
     do {
-        switch (work->field_1A4[i].key & 0xFFFF0000) {
+        switch (work->field_1A4[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2AC != 0) {
                     snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit;
@@ -2136,15 +2136,15 @@ static void Actor04600_Fn0346C(Task* arg0)
                 sc->delta.vx.w = Player_Status.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vy.w = Player_Status.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vz.w = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-                damage         = Gp_ComputeDamage(work->field_1A4[i].key,
+                damage         = Gp_ComputeDamage(work->field_1A4[i].key.value,
                                                   SquareRoot0(sc->delta.vx.w * sc->delta.vx.w +
                                                               sc->delta.vy.w * sc->delta.vy.w +
                                                               sc->delta.vz.w * sc->delta.vz.w),
                                                   0, 0);
-                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key, 0) != 0) {
+                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_1A4[i].key.value, 0) != 0) {
                     damage *= 4;
                 }
-                func_800E2C78(enemy, work->field_1A4[i].key, damage, 0);
+                func_800E2C78(enemy, work->field_1A4[i].key.value, damage, 0);
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
@@ -2166,10 +2166,10 @@ static void Actor04600_Fn0346C(Task* arg0)
                     arg0->state         = 2;
                     break;
                 }
-                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key)) {
+                switch ((u16)Gp_GetIdParam0(work->field_1A4[i].key.value)) {
                     case 2:
                     case 9:
-                        Gp_SetObjFlag2(enemy, work->field_1A4[i].key, 0);
+                        Gp_SetObjFlag2(enemy, work->field_1A4[i].key.value, 0);
                         break;
                     case 8:
                         work->field_2A6 = 1;

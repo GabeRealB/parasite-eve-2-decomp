@@ -106,56 +106,56 @@ typedef struct Actor104400Work {
     /* 0x0A0 */ GpAnimCtx anim;
     /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
     /// `flags_EC`, so only the first is spelled out.
-    /* 0x0B4 */ GpAnimSlot       slot_B4;
-    /* 0x0DC */ byte             pad_DC[0x10];
-    /* 0x0EC */ Actor104400Flags flags_EC;
-    /* 0x0F0 */ byte             pad_F0[0x12C];
-    /* 0x21C */ byte             field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
-    /* 0x2AC */ GpObj            obj_2AC;
-    /* 0x2CC */ GpObj            obj_2CC;
-    /* 0x2EC */ GpRec18          rec_2EC[8];
-    /* 0x3AC */ GpObj            obj_3AC;
-    /* 0x3CC */ GpRec18          rec_3CC[2];
-    /* 0x3FC */ GpEffArg         eff_3FC;   // field_0 is the model's second coord part
-    /* 0x404 */ byte             pad_404[0x8];
-    /* 0x40C */ s16              field_40C; // heading Actor04400_Fn017B0 moves the root along
-    /* 0x40E */ s16              field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
-    /* 0x410 */ s16              field_410; // random 0..0x7FF drawn from `Gp_LcgState`
-    /* 0x412 */ u16              field_412; // per-state frame counter
-    /* 0x414 */ s16              field_414; // animation request kind
-    /* 0x416 */ s16              field_416; // animation id last applied to the slots
-    /* 0x418 */ s16              field_418; // animation id
-    /* 0x41A */ u16              field_41A; // frames since the animation was applied
-    /* 0x41C */ s16              field_41C; // animation speed / step scale
-    /* 0x41E */ s16              field_41E;
-    /* 0x420 */ u16              field_420; // state index
-    /* 0x422 */ u16              field_422; // sub-state index
-    /* 0x424 */ s16              field_424; // yaw added to model parts 3..5, a third each
-    /* 0x426 */ s16              field_426;
-    /* 0x428 */ s16              field_428;
-    /* 0x42A */ s16              field_42A;
-    /* 0x42C */ s16              field_42C; // frames spent turning toward field_444; 16 enters state 3
-    /* 0x42E */ byte             pad_42E[0x2];
-    /* 0x430 */ s16              field_430;
-    /* 0x432 */ s16              field_432; // 1 runs Actor04400_Fn06520 on the spawn position
-    /* 0x434 */ s16              field_434; // pitch, eased back to zero while falling
-    /* 0x436 */ s16              field_436; // step picked from `field_43A`'s distance band
-    /* 0x438 */ s16              field_438; // 1 on the death path
-    /* 0x43A */ s16              field_43A; // distance to the nearer player actor
-    /* 0x43C */ byte             pad_43C[0x2];
-    /* 0x43E */ s16              field_43E; // counted down each frame by Actor04400_Fn022A8
-    /* 0x440 */ s16              field_440; // picks animation 5 (zero) or 6 after animation 8
-    /* 0x442 */ u16              field_442;
-    /* 0x444 */ u16              field_444; // heading to the nearer player actor, relative to field_7A
-    /* 0x446 */ s16              field_446; // randomised hold compared against field_412
-    /* 0x448 */ s16              field_448;
-    /* 0x44A */ s16              field_44A;
-    /* 0x44C */ u16              field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
-    /* 0x44E */ u8               field_44E; // set while the enemy carries status flag 4/8
-    /* 0x44F */ u8               field_44F;
-    /* 0x450 */ byte             pad_450[0x1];
-    /* 0x451 */ u8               field_451; // 1 skips Actor04400_Fn00220 part-pair colour
-    /* 0x452 */ byte             pad_452[0x2];
+    /* 0x0B4 */ GpAnimSlot            slot_B4;
+    /* 0x0DC */ byte                  pad_DC[0x10];
+    /* 0x0EC */ Actor104400Flags      flags_EC;
+    /* 0x0F0 */ byte                  pad_F0[0x12C];
+    /* 0x21C */ byte                  field_21C[0x90]; // `func_800B3F84`'s arg3 buffer
+    /* 0x2AC */ GpObj                 obj_2AC;
+    /* 0x2CC */ GpObj                 obj_2CC;
+    /* 0x2EC */ WorldCollisionContact rec_2EC[8];
+    /* 0x3AC */ GpObj                 obj_3AC;
+    /* 0x3CC */ WorldCollisionContact rec_3CC[2];
+    /* 0x3FC */ GpEffArg              eff_3FC;   // field_0 is the model's second coord part
+    /* 0x404 */ byte                  pad_404[0x8];
+    /* 0x40C */ s16                   field_40C; // heading Actor04400_Fn017B0 moves the root along
+    /* 0x40E */ s16                   field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
+    /* 0x410 */ s16                   field_410; // random 0..0x7FF drawn from `Gp_LcgState`
+    /* 0x412 */ u16                   field_412; // per-state frame counter
+    /* 0x414 */ s16                   field_414; // animation request kind
+    /* 0x416 */ s16                   field_416; // animation id last applied to the slots
+    /* 0x418 */ s16                   field_418; // animation id
+    /* 0x41A */ u16                   field_41A; // frames since the animation was applied
+    /* 0x41C */ s16                   field_41C; // animation speed / step scale
+    /* 0x41E */ s16                   field_41E;
+    /* 0x420 */ u16                   field_420; // state index
+    /* 0x422 */ u16                   field_422; // sub-state index
+    /* 0x424 */ s16                   field_424; // yaw added to model parts 3..5, a third each
+    /* 0x426 */ s16                   field_426;
+    /* 0x428 */ s16                   field_428;
+    /* 0x42A */ s16                   field_42A;
+    /* 0x42C */ s16                   field_42C; // frames spent turning toward field_444; 16 enters state 3
+    /* 0x42E */ byte                  pad_42E[0x2];
+    /* 0x430 */ s16                   field_430;
+    /* 0x432 */ s16                   field_432; // 1 runs Actor04400_Fn06520 on the spawn position
+    /* 0x434 */ s16                   field_434; // pitch, eased back to zero while falling
+    /* 0x436 */ s16                   field_436; // step picked from `field_43A`'s distance band
+    /* 0x438 */ s16                   field_438; // 1 on the death path
+    /* 0x43A */ s16                   field_43A; // distance to the nearer player actor
+    /* 0x43C */ byte                  pad_43C[0x2];
+    /* 0x43E */ s16                   field_43E; // counted down each frame by Actor04400_Fn022A8
+    /* 0x440 */ s16                   field_440; // picks animation 5 (zero) or 6 after animation 8
+    /* 0x442 */ u16                   field_442;
+    /* 0x444 */ u16                   field_444; // heading to the nearer player actor, relative to field_7A
+    /* 0x446 */ s16                   field_446; // randomised hold compared against field_412
+    /* 0x448 */ s16                   field_448;
+    /* 0x44A */ s16                   field_44A;
+    /* 0x44C */ u16                   field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
+    /* 0x44E */ u8                    field_44E; // set while the enemy carries status flag 4/8
+    /* 0x44F */ u8                    field_44F;
+    /* 0x450 */ byte                  pad_450[0x1];
+    /* 0x451 */ u8                    field_451; // 1 skips Actor04400_Fn00220 part-pair colour
+    /* 0x452 */ byte                  pad_452[0x2];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
@@ -956,7 +956,7 @@ static __inline__ s32  Actor04400_TakeRequest(Task* arg0);
 static __inline__ s32  Actor04400_IsHit(Task* arg0);
 static __inline__ void Actor04400_UpdateRotation(Task* arg0);
 static __inline__ s16  Actor04400_PickStep(s16 step, s16 push);
-static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out);
+static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
 static void            Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
 static void            Actor04400_Fn006A8(Task* arg0);
 static void            Actor04400_Fn00874(Task* arg0);
@@ -1155,7 +1155,7 @@ static __inline__ s16 Actor04400_PickStep(s16 step, s16 push)
 ///
 /// `rec` must stay an inline argument: `integrate.c` expands it with
 /// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out)
+static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
 {
     SVECTOR   pos;
     VECTOR    d;
@@ -1172,7 +1172,7 @@ static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, GpRec18*
     d.vy   = 0;
     d.vz   = pos.vz - rec->point.vz;
     pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->depth - pen;
+    pen    = rec->distance - pen;
     if (pen <= 0) {
         t = 0;
     } else {
@@ -2144,7 +2144,7 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
     SCRATCH_PUSH_BYTES(8);
     work->field_41E = 0;
     for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].key & 0xFFFF0000) {
+        switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (arg1 != 0) {
                     break;
@@ -2161,37 +2161,37 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
             case 0x20000:
                 if (work->field_40E == 0) {
                     work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key, work->field_43A, 0, 0);
+                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key.value, work->field_43A, 0, 0);
                     amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key, 0) != 0) {
+                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
+                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->rec_2EC[i].key, amount, 0);
+                    func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF,
+                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF,
                                   &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
                     if (amount >= 0x28) {
                         work->field_448 = 2;
                     } else {
                         work->field_448 = 1;
                     }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].key) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->rec_2EC[i].key.value) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key, 0);
+                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key.value, 0);
                             break;
                         case 4:
                             work->field_448 = 4;
@@ -2212,7 +2212,7 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
                             work->field_448 = 3;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key) & 0xFFFF) == 0xD) {
+                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF) == 0xD) {
                     func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
                 }
                 break;

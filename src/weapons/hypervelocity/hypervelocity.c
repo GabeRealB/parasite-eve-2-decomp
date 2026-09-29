@@ -101,11 +101,11 @@ STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
 /// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
 /// `Task::work`. It leads with the `GpObj` list node `func_hypervelocity_8011F11C`
 /// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
-/// `GpRec18` collision table `obj.ctx.recs` points at, and its `flags` is set
+/// `WorldCollisionContact` collision table `obj.ctx.recs` points at, and its `flags` is set
 /// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.
 typedef struct HyperBeam {
-    /* 0x00 */ GpObj   obj;
-    /* 0x20 */ GpRec18 rec[1];
+    /* 0x00 */ GpObj                 obj;
+    /* 0x20 */ WorldCollisionContact rec[1];
 } HyperBeam;
 STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
 

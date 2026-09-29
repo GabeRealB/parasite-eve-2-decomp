@@ -3029,8 +3029,8 @@ static void func_shelter_b3_garbage_incinerator_80184EEC(void)
             faces[i].verts[0]                         = i * 4;
             faces[i].verts[2]                         = i * 4 + 2;
             faces[i].verts[3]                         = i * 4 + 3;
-            faces[i].field_A                          = 1;
-            faces[i].field_8                          = i;
+            faces[i].surfaceClass                     = 1;
+            faces[i].normalIndex                      = i;
             np                                        = &normal;
             normal.vx                                 = 0;
             normal.vy                                 = 0;
@@ -3070,8 +3070,8 @@ void func_shelter_b3_garbage_incinerator_8018507C(void)
         faces[i].verts[0]                         = i * 4;
         faces[i].verts[2]                         = i * 4 + 2;
         faces[i].verts[3]                         = i * 4 + 3;
-        faces[i].field_A                          = 1;
-        faces[i].field_8                          = i;
+        faces[i].surfaceClass                     = 1;
+        faces[i].normalIndex                      = i;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBCC[i][3] - D_shelter_b3_garbage_incinerator_8018FBCC[i][1];
         normal.vy                                 = 0;
         normal.vz                                 = D_shelter_b3_garbage_incinerator_8018FBCC[i][0] - D_shelter_b3_garbage_incinerator_8018FBCC[i][2];
@@ -3109,8 +3109,8 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
         faces[i].verts[0]                         = i * 4;
         faces[i].verts[2]                         = i * 4 + 2;
         faces[i].verts[3]                         = i * 4 + 3;
-        faces[i].field_8                          = i;
-        faces[i].field_A                          = 1;
+        faces[i].normalIndex                      = i;
+        faces[i].surfaceClass                     = 1;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][3] - D_shelter_b3_garbage_incinerator_8018FBFC[i][1];
         normal.vy                                 = 0;
         normal.vz                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][0] - D_shelter_b3_garbage_incinerator_8018FBFC[i][2];
@@ -3148,8 +3148,8 @@ void func_shelter_b3_garbage_incinerator_801853C4(void)
         faces[i].verts[0]                         = i * 4;
         faces[i].verts[2]                         = i * 4 + 2;
         faces[i].verts[3]                         = i * 4 + 3;
-        faces[i].field_8                          = i;
-        faces[i].field_A                          = 1;
+        faces[i].normalIndex                      = i;
+        faces[i].surfaceClass                     = 1;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][3] - D_shelter_b3_garbage_incinerator_8018FBFC[i][1];
         normal.vy                                 = 0;
         normal.vz                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][0] - D_shelter_b3_garbage_incinerator_8018FBFC[i][2];

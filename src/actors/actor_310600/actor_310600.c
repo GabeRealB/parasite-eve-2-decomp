@@ -34,7 +34,7 @@
 /// 0x538-byte work block `func_actor_310600_80161E64` allocates with
 /// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
 /// linked by `Gp_LinkObj` at spawn (its `ctx.recs` points at `rec`, the
-/// `GpRec18` table `Gp_InitRec18Table` fills) and unlinked again by the
+/// `WorldCollisionContact` table `Gp_InitRec18Table` fills) and unlinked again by the
 /// exit callback `func_actor_310600_80162A24`.
 ///
 /// `light` / `color` are the actor's own lighting and colour matrices;
@@ -50,31 +50,31 @@
 /// bank index and the animation id, latched on change and re-read from the
 /// block by the loops below them.
 typedef struct Actor310600Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ s8             field_474;
-    /* 0x475 */ s8             field_475;
-    /* 0x476 */ s8             field_476;
-    /* 0x477 */ s8             field_477;
-    /* 0x478 */ s16            field_478;
-    /* 0x47A */ s16            field_47A;
-    /* 0x47C */ s16            field_47C;
-    /* 0x47E */ u16            field_47E;
-    /* 0x480 */ MATRIX         light;
-    /* 0x4A0 */ MATRIX         color;
-    /* 0x4C0 */ GpObj          obj;
-    /* 0x4E0 */ GpRec18        rec;
-    /* 0x4F8 */ s32            field_4F8;
-    /* 0x4FC */ s32            field_4FC;
-    /* 0x500 */ s32            field_500;
-    /* 0x504 */ byte           pad_504[0x4];
-    /* 0x508 */ VECTOR3        step; // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x514 */ byte           pad_514[0x4];
-    /* 0x518 */ s32            field_518;
-    /* 0x51C */ s32            field_51C;
-    /* 0x520 */ s32            field_520;
-    /* 0x524 */ byte           pad_524[0x4];
-    /* 0x528 */ SVECTOR        limit; // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x530 */ byte           pad_530[0x8];
+    /* 0x000 */ ActorAnimRig20        rig;
+    /* 0x474 */ s8                    field_474;
+    /* 0x475 */ s8                    field_475;
+    /* 0x476 */ s8                    field_476;
+    /* 0x477 */ s8                    field_477;
+    /* 0x478 */ s16                   field_478;
+    /* 0x47A */ s16                   field_47A;
+    /* 0x47C */ s16                   field_47C;
+    /* 0x47E */ u16                   field_47E;
+    /* 0x480 */ MATRIX                light;
+    /* 0x4A0 */ MATRIX                color;
+    /* 0x4C0 */ GpObj                 obj;
+    /* 0x4E0 */ WorldCollisionContact rec;
+    /* 0x4F8 */ s32                   field_4F8;
+    /* 0x4FC */ s32                   field_4FC;
+    /* 0x500 */ s32                   field_500;
+    /* 0x504 */ byte                  pad_504[0x4];
+    /* 0x508 */ VECTOR3               step; // local-space offset `ApplyMatrixLV` rotates into world space
+    /* 0x514 */ byte                  pad_514[0x4];
+    /* 0x518 */ s32                   field_518;
+    /* 0x51C */ s32                   field_51C;
+    /* 0x520 */ s32                   field_520;
+    /* 0x524 */ byte                  pad_524[0x4];
+    /* 0x528 */ SVECTOR               limit; // per-axis stop threshold; 0x7FFF on all three disables it
+    /* 0x530 */ byte                  pad_530[0x8];
 } Actor310600Work;
 STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 

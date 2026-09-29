@@ -97,15 +97,15 @@
 /// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
 /// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
 typedef struct MineCavernWork {
-    /* 0x000 */ MATRIX   light;
-    /* 0x020 */ MATRIX   color;
-    /* 0x040 */ GpObj    obj40;
-    /* 0x060 */ GpRec18  recs[4];
-    /* 0x0C0 */ GpObj    objC0;
-    /* 0x0E0 */ GpRec18  recE0;
-    /* 0x0F8 */ GfxCoord coord;
-    /* 0x148 */ u16      field_148;
-    /* 0x14A */ byte     pad_14A[2];
+    /* 0x000 */ MATRIX                light;
+    /* 0x020 */ MATRIX                color;
+    /* 0x040 */ GpObj                 obj40;
+    /* 0x060 */ WorldCollisionContact recs[4];
+    /* 0x0C0 */ GpObj                 objC0;
+    /* 0x0E0 */ WorldCollisionContact recE0;
+    /* 0x0F8 */ GfxCoord               coord;
+    /* 0x148 */ u16                   field_148;
+    /* 0x14A */ byte                  pad_14A[2];
 } MineCavernWork;
 STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
@@ -3968,8 +3968,8 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     Task*                  player;
     u8*                    head;
     _MineCavernHitScratch* blk;
-    GfxCoord*              coords;
-    GpRec18*               recs;
+    GfxCoord*               coords;
+    WorldCollisionContact* recs;
     SVECTOR*               d;
     SVECTOR*               dst;
     s16                    i;
@@ -4018,14 +4018,14 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     dst  = &blk->d;
     recs = work->recs;
     for (i = 0; i < 4; i++) {
-        if (recs[i].key == 0) {
+        if (recs[i].key.value == 0) {
             break;
         }
-        if ((recs[i].key & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
             dst->vx = recs[i].point.vx;
             dst->vy = recs[i].point.vy;
             dst->vz = recs[i].point.vz;
-            key     = recs[i].key;
+            key     = recs[i].key.value;
             goto found;
         }
     }
