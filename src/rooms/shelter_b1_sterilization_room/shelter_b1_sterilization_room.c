@@ -60,11 +60,11 @@
 #include "rooms/room_common.h"
 
 /// The "%" suffix appended to a formatted percentage.
-extern u8 D_shelter_b1_sterilization_room_80184594[];
+static u8 Telephone_Data_80181A78[];
 
 /// UI descriptor of the help-line box the "Play Data" panels open beside their
 /// lists.
-extern UiObjectDesc D_shelter_b1_sterilization_room_801847AC;
+static UiObjectDesc Telephone_Data_80181C90;
 
 /// Task descriptor table used by the cutscene runner
 /// `func_shelter_b1_sterilization_room_8017F550`, which spawns entry 1 and
@@ -86,48 +86,48 @@ typedef struct {
 } _ShelterB1SterilizationRoomDest;
 
 /// Row labels drawn by the statistics rows of `func_shelter_b1_sterilization_room_8017D794`.
-extern u8 D_shelter_b1_sterilization_room_8018453C[];
-extern u8 D_shelter_b1_sterilization_room_8018456C[];
-extern u8 D_shelter_b1_sterilization_room_80184544[];
-extern u8 D_shelter_b1_sterilization_room_80184548[];
-extern u8 D_shelter_b1_sterilization_room_80184550[];
-extern u8 D_shelter_b1_sterilization_room_8018455C[];
-extern u8 D_shelter_b1_sterilization_room_80184574[];
-extern u8 D_shelter_b1_sterilization_room_8018457C[];
-extern u8 D_shelter_b1_sterilization_room_80184584[];
+static u8 Telephone_Data_80181A20[];
+static u8 Telephone_Data_80181A50[];
+static u8 Telephone_Data_80181A28[];
+static u8 Telephone_Data_80181A2C[];
+static u8 Telephone_Data_80181A34[];
+static u8 Telephone_Data_80181A40[];
+static u8 Telephone_Data_80181A58[];
+static u8 Telephone_Data_80181A60[];
+static u8 Telephone_Data_80181A68[];
 
 /// Unit suffix appended to the counted rows.
-extern u8 D_shelter_b1_sterilization_room_8018458C[];
+static u8 Telephone_Data_80181A70[];
 
 /// Help lines shown for each statistics row while it is selected.
-extern u8 D_shelter_b1_sterilization_room_80184598[];
-extern u8 D_shelter_b1_sterilization_room_801845C4[];
-extern u8 D_shelter_b1_sterilization_room_801845E8[];
-extern u8 D_shelter_b1_sterilization_room_80184618[];
-extern u8 D_shelter_b1_sterilization_room_8018464C[];
-extern u8 D_shelter_b1_sterilization_room_80184680[];
-extern u8 D_shelter_b1_sterilization_room_801846B8[];
-extern u8 D_shelter_b1_sterilization_room_801846EC[];
-extern u8 D_shelter_b1_sterilization_room_80184724[];
+static u8 Telephone_Data_80181A7C[];
+static u8 Telephone_Data_80181AA8[];
+static u8 Telephone_Data_80181ACC[];
+static u8 Telephone_Data_80181AFC[];
+static u8 Telephone_Data_80181B30[];
+static u8 Telephone_Data_80181B64[];
+static u8 Telephone_Data_80181B9C[];
+static u8 Telephone_Data_80181BD0[];
+static u8 Telephone_Data_80181C08[];
 
 /// Prompt lines drawn by the dialog handlers.
-extern u8 D_shelter_b1_sterilization_room_80184514[];
-extern u8 D_shelter_b1_sterilization_room_8018451C[];
-extern u8 D_shelter_b1_sterilization_room_80184528[];
-extern u8 D_shelter_b1_sterilization_room_80184534[];
+static u8 Telephone_Data_801819F8[];
+static u8 Telephone_Data_80181A00[];
+static u8 Telephone_Data_80181A0C[];
+static u8 Telephone_Data_80181A18[];
 
 /// List state of the "Play Data" menu `func_shelter_b1_sterilization_room_8017EFE4` runs.
-extern UiList D_shelter_b1_sterilization_room_80184760;
+static UiList Telephone_Data_80181C44;
 
 /// List state of the weapon- and PE-usage panels.
-extern UiList D_shelter_b1_sterilization_room_80184788;
+static UiList Telephone_Data_80181C6C;
 
 /// UI descriptors the dialog handlers open on confirm.
-extern UiObjectDesc D_shelter_b1_sterilization_room_801847C8;
-extern UiObjectDesc D_shelter_b1_sterilization_room_801847E4;
+static UiObjectDesc Telephone_Data_80181CAC;
+static UiObjectDesc Telephone_Data_80181CC8;
 
 /// List state of the menu `func_shelter_b1_sterilization_room_8017EB2C` runs.
-extern UiList D_shelter_b1_sterilization_room_80184810;
+static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -160,8 +160,9 @@ extern s32 D_80135AC0;
 extern s32 D_80135D78;
 extern s32 D_80136258;
 
-static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj);
-static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj);
+#define TELEPHONE_TITLE_BYTES "Telephone\0\0 "
+#include "../../shared/telephone.h"
+
 static void func_shelter_b1_sterilization_room_8017FABC(Task* task);
 static void func_shelter_b1_sterilization_room_80180340(s32 arg0);
 static void func_shelter_b1_sterilization_room_80180464(Task* task);
@@ -171,18 +172,7 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task);
 static void func_shelter_b1_sterilization_room_80181244(Task* task);
 static void func_shelter_b1_sterilization_room_801812A0(Task* task);
 
-static void func_shelter_b1_sterilization_room_8017F514(Task* task);
 static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
-
-void func_shelter_b1_sterilization_room_8017D794(UiList*, UiObject*);
-void func_shelter_b1_sterilization_room_8017DF60(UiList*, UiObject*);
-void func_shelter_b1_sterilization_room_8017E978(Task*);
-void func_shelter_b1_sterilization_room_8017EE24(Task*);
-void func_shelter_b1_sterilization_room_8017EFE4(Task*);
-void func_shelter_b1_sterilization_room_8017F1D8(UiList*, UiObject*);
-void func_shelter_b1_sterilization_room_8017F2BC(UiList*, UiObject*);
-void func_shelter_b1_sterilization_room_8017F384(UiList*, UiObject*);
-void func_shelter_b1_sterilization_room_8017F44C(UiList*, UiObject*);
 
 s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, GpMsg13EF*, s32);
 s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
@@ -204,152 +194,7 @@ void             func_shelter_b1_sterilization_room_80180D74(Task*);
 void             func_shelter_b1_sterilization_room_80180F74(Task*);
 void             func_shelter_b1_sterilization_room_801811E0(Task*);
 
-u8 D_shelter_b1_sterilization_room_80184514[8] = {
-    83, 97, 118, 101, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018451C[12] = {
-    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184528[12] = {
-    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184534[8] = {
-    80, 69, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018453C[8] = {
-    84, 105, 109, 101, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184544[4] = {
-    87, 111, 110, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184548[8] = {
-    69, 115, 99, 97, 112, 101, 100, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184550[12] = {
-    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018455C[16] = {
-    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018456C[8] = {
-    83, 97, 118, 101, 100, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184574[8] = {
-    67, 108, 101, 97, 114, 101, 100, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018457C[8] = {
-    77, 97, 120, 32, 69, 88, 80, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184584[8] = {
-    77, 97, 120, 32, 66, 80, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018458C[8] = {
-    32, 116, 105, 109, 101, 115, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184594[4] = {
-    37, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184598[44] = {
-    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
-    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
-    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_801845C4[36] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
-    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_801845E8[48] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
-    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184618[52] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
-    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
-    46, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_8018464C[52] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
-    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184680[56] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
-    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
-    115, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_801846B8[52] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
-    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
-    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
-    46, 0, 0, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_801846EC[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
-    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
-    101, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_shelter_b1_sterilization_room_80184724[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
-    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
-    32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-UiListItemFunc D_shelter_b1_sterilization_room_8018475C[1] = {
-    func_shelter_b1_sterilization_room_8017D794,
-};
-
-UiList D_shelter_b1_sterilization_room_80184760 = { D_shelter_b1_sterilization_room_8018475C, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiListItemFunc D_shelter_b1_sterilization_room_80184784[1] = {
-    func_shelter_b1_sterilization_room_8017DF60,
-};
-
-UiList D_shelter_b1_sterilization_room_80184788 = { D_shelter_b1_sterilization_room_80184784, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiObjectDesc D_shelter_b1_sterilization_room_801847AC = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_b1_sterilization_room_8017EE24, 0 };
-
-UiObjectDesc D_shelter_b1_sterilization_room_801847C8 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_b1_sterilization_room_8017EFE4, 0 };
-
-UiObjectDesc D_shelter_b1_sterilization_room_801847E4 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_b1_sterilization_room_8017E978, 0 };
-
-UiListItemFunc D_shelter_b1_sterilization_room_80184800[4] = {
-    func_shelter_b1_sterilization_room_8017F1D8,
-    func_shelter_b1_sterilization_room_8017F2BC,
-    func_shelter_b1_sterilization_room_8017F384,
-    func_shelter_b1_sterilization_room_8017F44C,
-};
-
-UiList D_shelter_b1_sterilization_room_80184810 = { D_shelter_b1_sterilization_room_80184800, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+#include "../../shared/telephone_data.inc.c"
 
 TmdBone D_shelter_b1_sterilization_room_80184834[3] = {
 #include "assets/shelter_b1_sterilization_room_model_07838_skeleton.inc"
@@ -372,8 +217,15 @@ u32 D_shelter_b1_sterilization_room_80184A9C[215] = {
 };
 
 TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
-    0, 1768, 0, 3,
-    D_shelter_b1_sterilization_room_801848A0, D_shelter_b1_sterilization_room_801848AC, D_shelter_b1_sterilization_room_80184A6C, D_shelter_b1_sterilization_room_80184834, D_shelter_b1_sterilization_room_80184A9C,
+    0,
+    1768,
+    0,
+    3,
+    D_shelter_b1_sterilization_room_801848A0,
+    D_shelter_b1_sterilization_room_801848AC,
+    D_shelter_b1_sterilization_room_80184A6C,
+    D_shelter_b1_sterilization_room_80184834,
+    D_shelter_b1_sterilization_room_80184A9C,
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80184E1C[3] = {
@@ -430,7 +282,7 @@ s16 D_shelter_b1_sterilization_room_80184F18[5] = {
     -1,
 };
 
-s16 * D_shelter_b1_sterilization_room_80184F24[1] = {
+s16* D_shelter_b1_sterilization_room_80184F24[1] = {
     D_shelter_b1_sterilization_room_80184F18,
 };
 
@@ -444,7 +296,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank798C D_shelter_b1_sterilization_room_80184F4C = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80184F94[46] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank4.inc"
@@ -459,7 +311,8 @@ u16 D_shelter_b1_sterilization_room_80185200[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_80185228 = {
-    D_shelter_b1_sterilization_room_8018504C, D_shelter_b1_sterilization_room_80185200,
+    D_shelter_b1_sterilization_room_8018504C,
+    D_shelter_b1_sterilization_room_80185200,
     { NULL, D_shelter_b1_sterilization_room_80184F4C.words, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
 };
 
@@ -471,7 +324,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank7C90 D_shelter_b1_sterilization_room_80185250 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80185268[26] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank4.inc"
@@ -486,7 +339,8 @@ u16 D_shelter_b1_sterilization_room_801853B4[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_801853DC = {
-    D_shelter_b1_sterilization_room_801852D0, D_shelter_b1_sterilization_room_801853B4,
+    D_shelter_b1_sterilization_room_801852D0,
+    D_shelter_b1_sterilization_room_801853B4,
     { NULL, D_shelter_b1_sterilization_room_80185250.words, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
 };
 
@@ -498,7 +352,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank7E44 D_shelter_b1_sterilization_room_80185404 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80185464[161] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank4.inc"
@@ -513,7 +367,8 @@ u16 D_shelter_b1_sterilization_room_80185AD4[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_80185AFC = {
-    D_shelter_b1_sterilization_room_801856E8, D_shelter_b1_sterilization_room_80185AD4,
+    D_shelter_b1_sterilization_room_801856E8,
+    D_shelter_b1_sterilization_room_80185AD4,
     { NULL, D_shelter_b1_sterilization_room_80185404.words, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
 };
 
@@ -525,7 +380,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank8564 D_shelter_b1_sterilization_room_80185B24 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80185B3C[17] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank4.inc"
@@ -540,7 +395,8 @@ u16 D_shelter_b1_sterilization_room_80185C64[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_80185C8C = {
-    D_shelter_b1_sterilization_room_80185B80, D_shelter_b1_sterilization_room_80185C64,
+    D_shelter_b1_sterilization_room_80185B80,
+    D_shelter_b1_sterilization_room_80185C64,
     { NULL, D_shelter_b1_sterilization_room_80185B24.words, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
 };
 
@@ -552,7 +408,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank86F4 D_shelter_b1_sterilization_room_80185CB4 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80185E28[308] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank4.inc"
@@ -567,7 +423,8 @@ u16 D_shelter_b1_sterilization_room_801868E8[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_80186910 = {
-    D_shelter_b1_sterilization_room_801862F8, D_shelter_b1_sterilization_room_801868E8,
+    D_shelter_b1_sterilization_room_801862F8,
+    D_shelter_b1_sterilization_room_801868E8,
     { NULL, D_shelter_b1_sterilization_room_80185CB4.words, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
 };
 
@@ -579,7 +436,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBank9378 D_shelter_b1_sterilization_room_80186938 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80186B24[549] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank4.inc"
@@ -594,7 +451,8 @@ u16 D_shelter_b1_sterilization_room_80187DF0[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_80187E18 = {
-    D_shelter_b1_sterilization_room_801873B8, D_shelter_b1_sterilization_room_80187DF0,
+    D_shelter_b1_sterilization_room_801873B8,
+    D_shelter_b1_sterilization_room_80187DF0,
     { NULL, D_shelter_b1_sterilization_room_80186938.words, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
 };
 
@@ -606,7 +464,7 @@ typedef union {
 
 ShelterB1SterilizationRoomPoseBankA880 D_shelter_b1_sterilization_room_80187E40 = { .poses = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank1.inc"
-} };
+                                                                                    } };
 
 GpPackedSvec D_shelter_b1_sterilization_room_80187E70[151] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank4.inc"
@@ -621,7 +479,8 @@ u16 D_shelter_b1_sterilization_room_801884B4[20] = {
 };
 
 GpAnimSet D_shelter_b1_sterilization_room_801884DC = {
-    D_shelter_b1_sterilization_room_801880CC, D_shelter_b1_sterilization_room_801884B4,
+    D_shelter_b1_sterilization_room_801880CC,
+    D_shelter_b1_sterilization_room_801884B4,
     { NULL, D_shelter_b1_sterilization_room_80187E40.words, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
 };
 
@@ -637,7 +496,7 @@ TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
     { 0, 192, func_shelter_b1_sterilization_room_801817EC, { .model = NULL } },
 };
 
-GpAnimSet * D_shelter_b1_sterilization_room_80188570[8] = {
+GpAnimSet* D_shelter_b1_sterilization_room_80188570[8] = {
     NULL,
     &D_shelter_b1_sterilization_room_80185228,
     &D_shelter_b1_sterilization_room_801853DC,
@@ -692,950 +551,19 @@ _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[8] = {
     { 3, 5 },
 };
 
-static void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals);
-static u8*  func_shelter_b1_sterilization_room_8017EEF0(u8* buf, s32 value, s32 decimals);
-static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 static void func_shelter_b1_sterilization_room_80180A2C(s32 shade);
 static void func_shelter_b1_sterilization_room_80180BF0(s32 shade);
 
-void func_shelter_b1_sterilization_room_8017D794(UiList* arg0, UiObject* arg1)
-{
-    u8  buf[0x20];
-    u8* p;
-
-    p = buf;
-    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
-            u8* tbl[9] = {
-                D_shelter_b1_sterilization_room_80184598,
-                D_shelter_b1_sterilization_room_801845C4,
-                D_shelter_b1_sterilization_room_801845E8,
-                D_shelter_b1_sterilization_room_80184618,
-                D_shelter_b1_sterilization_room_8018464C,
-                D_shelter_b1_sterilization_room_80184680,
-                D_shelter_b1_sterilization_room_801846B8,
-                D_shelter_b1_sterilization_room_801846EC,
-                D_shelter_b1_sterilization_room_80184724,
-            };
-
-            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
-        }
-    }
-
-    switch (arg0->field_8) {
-        case 0: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_8018453C);
-            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 1: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_8018456C);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
-            Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 2: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_80184544);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
-            Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 3: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_80184548);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
-            Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 4: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_80184550);
-            if (Mc_SaveData[0].state.field_6CC == 0) {
-                pct = 0;
-            } else {
-                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_shelter_b1_sterilization_room_80184594);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 5: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         total;
-            s32         cnt;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            total          = Mc_SaveData[0].state.field_6CC;
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_8018455C);
-            cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
-            if (total == 0) {
-                pct = 0;
-            } else {
-                pct = (total * 10000) / cnt;
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_shelter_b1_sterilization_room_80184594);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
-            break;
-        }
-        case 6: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_80184574);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
-            Text_Strcat(p, D_shelter_b1_sterilization_room_8018458C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 7: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_8018457C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
-            break;
-        }
-        case 8: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_sterilization_room_80184584);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
-            break;
-        }
-    }
-}
-
-/// Title of the "Play Data" panel.
-static const char D_shelter_b1_sterilization_room_8017D610[] = "Play Data";
-
-/// Drawn in place of the percentage for a row holding every recorded use.
-static const u8 D_shelter_b1_sterilization_room_8017D61C[] = "100.0%";
-
-void func_shelter_b1_sterilization_room_8017DF60(UiList* arg0, UiObject* arg1)
-{
-    u8             buf[0x20];
-    TextDrawReq    req;
-    TextDrawReq*   r;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    u8*            p;
-    u8*            q;
-    s32            item;
-    s32            value;
-    s32            x;
-    s32            y;
-    s32            color;
-    s32            textY;
-    s32            limit;
-    s32            n;
-    s32            len;
-    s32            i;
-    s32            avail;
-    s32            base;
-    s32            barW;
-    s32            barX;
-    s32            rowY;
-    s32            one;
-    s32            tx;
-    s32            ty;
-
-    p     = buf;
-    r     = &req;
-    x     = arg0->field_18;
-    y     = arg0->field_1A;
-    work  = (RoomItemUsage*)arg1->owner->work;
-    item  = work->itemIds[arg0->field_8];
-    value = work->percents[arg0->field_8];
-    color = arg0->field_1C;
-    if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        textY          = arg1->panel.field_22.u - 6;
-        req.y          = textY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        r->field_E     = 1;
-        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
-        func_800CE5D0(arg1, x, y, item);
-    }
-    limit = 1;
-    if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, D_shelter_b1_sterilization_room_8017D61C, arg0->field_1C, 3, 2);
-    } else {
-        for (i = 2; i > 0; i--) {
-            limit *= 10;
-        }
-        if (value < limit) {
-            Text_ItoaPadded(p, value, 3);
-        } else {
-            Text_ItoaUnsigned(p, value);
-        }
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = '.';
-        Text_Strcat(p, D_shelter_b1_sterilization_room_80184594);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-    }
-
-    base  = (s16)arg1->panel.field_1C.s + 0x80;
-    avail = (s16)arg1->panel.field_1E.u - 0x4A;
-    barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
-    rowY  = arg0->field_1A - 0xC;
-    barW  = barW + 2;
-    barX  = avail - barW;
-    if (barW >= 2) {
-        prim                     = (POLY_G4*)gGpuPrimCursor;
-        tx                       = arg1->panel.field_20.u + barX + 1;
-        prim->x2                 = tx;
-        prim->x0                 = tx;
-        ty                       = arg1->panel.field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        ty                       = ty + rowY;
-        ty                      += 1;
-        PRIM_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
-        PRIM_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        tx                       = (u16)prim->x0 + barW - 1;
-        prim->y1                 = ty;
-        prim->y0                 = ty;
-        ty                      += 8;
-        prim->y3                 = ty;
-        prim->y2                 = ty;
-        prim->x3                 = tx;
-        prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
-    }
-    one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
-    if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
-        if (arg0->field_10 == arg0->field_8) {
-            Gp_SetPreviewItem(item, 0);
-            Gp_SetHolderItemText(item);
-        }
-    }
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
-        }
-    }
-}
-
-/// Fills the weapon-usage panel's `RoomItemUsage` block from the save's
-/// per-weapon use counters (ids 0x80-0x9F). Each id with a non-empty name and
-/// a non-zero counter is marked seen and listed, most-used first; each row
-/// then gets its share of all uses in hundredths of a percent and a bar width
-/// as a 12-bit fraction of the top row, both scaled down until the top counter
-/// fits in 17 bits.
-static void func_shelter_b1_sterilization_room_8017E35C(UiList* list, UiObject* obj)
-{
-    RoomItemUsage* work;
-    s32            count;
-    s32            total;
-    s32            i;
-    s32            j;
-    s32            k;
-    s32            id;
-    s32            tmp;
-    s32            uses;
-    s32            scale;
-    s32            top;
-    s32            shift;
-    s16*           p;
-    u8             c;
-
-    count = 0;
-    total = 0;
-    work  = (RoomItemUsage*)obj->owner->work;
-    p     = work->itemIds;
-
-    for (i = 0; i < 0x20; i++) {
-        id = i + 0x80;
-        c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
-            Gp_SetItemSeenBit(id, 1);
-            *p++ = id;
-            count++;
-            total += Mc_SaveData[0].state.weaponUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
-            for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
-                    tmp = work->itemIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->itemIds[k + 1] = work->itemIds[k];
-                    }
-                    work->itemIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            work->percents[i] =
-                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
-            work->barWidths[i] =
-                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
-/// save's per-slot use counters.
-///
-/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
-/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
-/// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
-/// are addressed by page and column, with three slots per page. The ids are
-/// then insertion-sorted by use count, most-used first, and each row gets
-/// `percents`, its share of all recorded uses in hundredths of a percent, and
-/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
-/// scaled down by halving until the top counter fits in 17 bits, so the
-/// multiply and the shift cannot overflow.
-static void func_shelter_b1_sterilization_room_8017E658(UiList* list, UiObject* obj)
-{
-    RoomPeUsage* work;
-    s16*         p;
-    s32          count;
-    s32          total;
-    s32          i;
-    s32          j;
-    s32          k;
-    s32          id;
-    s32          slot;
-    s32          uses;
-    s32          scale;
-    s32          shift;
-    s32          top;
-    s32          tmp;
-
-    count = 0;
-    total = 0;
-    i     = 0;
-    work  = (RoomPeUsage*)obj->owner->work;
-    p     = work->peIds;
-
-    for (; i < 12; i++) {
-        s32 useCount;
-
-        useCount = Mc_SaveData[0].state.attachUseCounts[i];
-        id       = i * 3 + 0xF;
-        if (useCount > 0) {
-            s32 page;
-            s32 column;
-
-            page   = i / 3;
-            column = i % 3;
-            *p     = id;
-            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
-            }
-            p++;
-            count++;
-            total += Mc_SaveData[0].state.attachUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].state.attachUseCounts[slot];
-            for (j = 0; j < i; j++) {
-                slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
-                    tmp = work->peIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->peIds[k + 1] = work->peIds[k];
-                    }
-                    work->peIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].state.attachUseCounts[slot];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Titles of the weapon and PE usage panels.
-static const char D_shelter_b1_sterilization_room_8017D624[] = "Weapon Data";
-static const char D_shelter_b1_sterilization_room_8017D630[] = "PE Data";
-
-void func_shelter_b1_sterilization_room_8017E978(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    UiObject* childObj;
-    void*     work;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &D_shelter_b1_sterilization_room_80184788;
-    if (task->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_sterilization_room_8017D624);
-    } else {
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_sterilization_room_8017D630);
-    }
-    if (task->state == 0) {
-        work = memCalloc(0xC4, 0);
-        if (work == NULL) {
-            return;
-        }
-        task->work = work;
-        Ui_SpawnFromDesc(&D_shelter_b1_sterilization_room_801847AC, 0, 0, 1, obj);
-        if (task->spawnArg1.value == 0) {
-            func_shelter_b1_sterilization_room_8017E35C(list, obj);
-        } else {
-            func_shelter_b1_sterilization_room_8017E658(list, obj);
-        }
-        Ui_InitList(list, &(obj)->panel);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-    if (task->firstChild != NULL) {
-        child = task->firstChild;
-        do {
-            childObj = child->spawnArg2.pointer;
-            next     = child->nextSibling;
-            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
-                Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-/// "Telephone", followed by the non-zero padding the original toolchain left.
-static const char D_shelter_b1_sterilization_room_8017D638[12] = "Telephone\0\0 ";
+#include "../../shared/telephone.inc.c"
 
 void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 {
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s32       ready;
-    s32       sel;
-    s32       kind;
-    s32       mode;
-    s32       one;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    ready         = Mc_SaveData[0].state.demoScene == 1;
-    list          = &D_shelter_b1_sterilization_room_80184810;
-    one           = 1;
-    if (Mc_SaveData[0].state.clearCount > 0) {
-        ready = one;
-    }
-    if (ready == 0) {
-        if (task->state == 0) {
-            gGameSession->uiOpen = one;
-            Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
-            obj->panel.field_0.w = 0;
-            obj->panel.field_4  |= 0x80000000;
-            task->state          = task->state + 1;
-        }
-    } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.field_0.w = one;
-        gGameSession->uiOpen = one;
-        Ui_SetListScrollFlag(list, 1);
-        Gp_ClearPreviewItems();
-        D_80067634   = NULL;
-        Wip_UiHolder = NULL;
-        task->state  = task->state + 1;
-    } else {
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_sterilization_room_8017D638);
-        Ui_UpdateListNoAnim(list, obj);
-    }
-    if (obj->field_2E == 6) {
-        obj->field_2E = 0;
-        Ui_SetState4(obj, task);
-        obj->panel.field_0.w = 0;
-    }
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        if (task->state != 0) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
-        }
-        gGameSession->uiOpen = 0;
-        obj->field_2E        = -1;
-        obj->field_2C        = 0x34;
-    }
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        sel      = childObj->field_2E;
-        switch (sel) {
-            case 6:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else if (task->state == 3) {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                } else {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(0x3B, 0, 0);
-                    Ui_StartCloseAnim(&(obj)->panel, task);
-                    obj->panel.field_0.w = 1;
-                }
-                break;
-            case -1:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                }
-                break;
-        }
-    }
+    Telephone_MenuTask(task);
 }
 
-void func_shelter_b1_sterilization_room_8017EE24(Task* task)
-{
-    UiObject* obj;
+#include "../../shared/telephone_panels.inc.c"
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Wip_UiHolder       = obj;
-        task->exitCallback = func_shelter_b1_sterilization_room_8017F514;
-        task->state       += 1;
-    }
-    Gp_DrawPromptLines(obj, task);
-}
-
-/// Inserts a '.' into the digit string `str` so that `decimals` digits (at
-/// most the string's length) follow it. Does nothing when `decimals <= 0`.
-static void func_shelter_b1_sterilization_room_8017EE80(u8* str, s32 decimals)
-{
-    s32 len = 0;
-    s32 i;
-
-    if (decimals > 0) {
-        while (*str != 0) {
-            str++;
-            len++;
-        }
-        if (len < decimals) {
-            decimals = len;
-        }
-        decimals++;
-        for (i = 0; i < decimals; i++) {
-            str[1] = str[0];
-            str--;
-        }
-        str[1] = '.';
-    }
-}
-
-/// Formats `value` into `buf` as a percentage with `decimals` digits after the
-/// point, zero-padding a small value so that a digit precedes the point, then
-/// appends "%" and returns `buf`.
-static u8* func_shelter_b1_sterilization_room_8017EEF0(u8* buf, s32 value, s32 decimals)
-{
-    s32 limit;
-    s32 i;
-    s32 len;
-    s32 n;
-    u8* p;
-
-    limit = 1;
-    for (i = decimals; i > 0; i--) {
-        limit *= 10;
-    }
-
-    if (value < limit) {
-        Text_ItoaPadded(buf, value, decimals + 1);
-    } else {
-        Text_ItoaUnsigned(buf, value);
-    }
-
-    n   = decimals;
-    p   = buf;
-    len = 0;
-    if (n > 0) {
-        while (*p != 0) {
-            p++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            p[1] = p[0];
-            p--;
-        }
-        p[1] = '.';
-    }
-
-    Text_Strcat(buf, D_shelter_b1_sterilization_room_80184594);
-    return buf;
-}
-
-void func_shelter_b1_sterilization_room_8017EFE4(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-
-    list          = &D_shelter_b1_sterilization_room_80184760;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, D_shelter_b1_sterilization_room_8017D610);
-    if (task->state == 0) {
-        Ui_SpawnFromDesc(&D_shelter_b1_sterilization_room_801847AC, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.h += 5;
-        list->field_A                     = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-}
-
-/// Queues a gouraud rectangle one OT slot past the panel's draw order, at
-/// (`arg1`, `arg2`) from the panel origin and `arg3` by `arg4` in size, with
-/// `arg5` on the left vertices and `arg6` on the right. Nothing is drawn for a
-/// zero `arg5` or a width below 2.
-static void func_shelter_b1_sterilization_room_8017F0D4(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
-{
-    POLY_G4* prim;
-    s16      x;
-    s32      y;
-    s16      bottom;
-
-    if ((arg5 != 0) && (arg3 >= 2)) {
-        prim           = (POLY_G4*)gGpuPrimCursor;
-        x              = arg0->field_20.u + arg1 + 1;
-        prim->x2       = x;
-        prim->x0       = x;
-        y              = arg0->field_22.u;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = arg5;
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = arg5;
-        PRIM_COLOR_WORD(prim, 3) = arg6;
-        PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                       += arg2;
-        y++;
-        x        = prim->x0 + arg3 - 1;
-        prim->y1 = y;
-        prim->y0 = y;
-        prim->x3 = x;
-        prim->x1 = x;
-        bottom   = y + arg4 - 1;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, prim);
-    }
-}
-
-void func_shelter_b1_sterilization_room_8017F1D8(UiList* prompt, UiObject* obj)
-{
-    s32 sel;
-
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_sterilization_room_80184514, prompt->field_1C, 1, 0);
-    sel = prompt->field_C;
-    if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        gDisplayState.gameMode = 0xFF;
-        Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.field_0.w = 0;
-        obj->field_2E        = 6;
-        obj->owner->state    = sel;
-    }
-}
-
-void func_shelter_b1_sterilization_room_8017F2BC(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_sterilization_room_8018451C, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_sterilization_room_801847C8, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-void func_shelter_b1_sterilization_room_8017F384(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_sterilization_room_80184528, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_sterilization_room_801847E4, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-void func_shelter_b1_sterilization_room_8017F44C(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_sterilization_room_80184534, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_sterilization_room_801847E4, 1, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Exit callback of the help-line box task: releases `Wip_UiHolder` if the
-/// task owns it, then frees the task's UI object and kills it.
-static void func_shelter_b1_sterilization_room_8017F514(Task* task)
-{
-    UiObject* holder;
-
-    holder = task->spawnArg2.pointer;
-    if (Wip_UiHolder == holder) {
-        Wip_UiHolder = NULL;
-    }
-    Ui_FreeAndKill(task);
-}
+#undef TELEPHONE_TITLE_BYTES
 
 /// Runs a cutscene described by the `RoomCutsceneRec` in `spawnArg2`:
 /// hides the HUD and holds the player, optionally switches the view and loads
@@ -1660,7 +588,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                  = Mc_SaveData[0].state.at4.loc.view;
+                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
                 Mc_SaveData[0].state.at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
@@ -2382,8 +1310,8 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             break;
         case 2:
             Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->at4.loc.view  = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->viewDirty     = 1;
+            gGameSession->at4.loc.view        = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
+            gGameSession->viewDirty           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9,
                               &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
                               0);

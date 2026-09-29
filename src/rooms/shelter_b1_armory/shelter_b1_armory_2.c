@@ -60,7 +60,7 @@ SVECTOR D_shelter_b1_armory_80182528[11] = {
     { 5210, -1490, -570, 0 },
 };
 
-u8 * D_shelter_b1_armory_80182580[1] = {
+u8* D_shelter_b1_armory_80182580[1] = {
     D_8010CAF8,
 };
 
@@ -524,7 +524,7 @@ s16 D_shelter_b1_armory_80182E7C[17] = {
     -1,
 };
 
-s16 * D_shelter_b1_armory_80182EA0[12] = {
+s16* D_shelter_b1_armory_80182EA0[12] = {
     D_shelter_b1_armory_80182CCC,
     D_shelter_b1_armory_80182CEC,
     D_shelter_b1_armory_80182D14,
@@ -958,7 +958,7 @@ GpRoomParamRec D_shelter_b1_armory_8018554C[1] = {
     { 0, 0, 1, 0, D_shelter_b1_armory_80185538 },
 };
 
-GpRoomParamRec * D_shelter_b1_armory_80185554[8] = {
+GpRoomParamRec* D_shelter_b1_armory_80185554[8] = {
     D_shelter_b1_armory_80185544,
     D_shelter_b1_armory_8018554C,
     D_shelter_b1_armory_80185544,
@@ -969,9 +969,9 @@ GpRoomParamRec * D_shelter_b1_armory_80185554[8] = {
     D_shelter_b1_armory_80185544,
 };
 
-s32 D_shelter_b1_armory_80185574 = 0;
+s32 Shop_Data_80187628 = 0;
 
-GpItemMap * D_shelter_b1_armory_80185578 = NULL;
+GpItemMap* Shop_Data_8018762C = NULL;
 
 ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C = { 0 };
 

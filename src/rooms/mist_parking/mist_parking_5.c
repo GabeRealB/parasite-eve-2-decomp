@@ -162,7 +162,7 @@ u8 D_mist_parking_8019159C[20] = {
     8,
 };
 
-u8 * D_mist_parking_801915B0[4] = {
+u8* D_mist_parking_801915B0[4] = {
     D_mist_parking_8019159C,
     D_mist_parking_8019159C,
     D_8010CAF8,
@@ -907,7 +907,7 @@ s16 D_mist_parking_8019218C[4] = {
     -1,
 };
 
-s16 * D_mist_parking_80192194[28] = {
+s16* D_mist_parking_80192194[28] = {
     D_mist_parking_80191E30,
     D_mist_parking_80191E40,
     D_mist_parking_80191E54,
@@ -1535,7 +1535,7 @@ GpRoomParamRec D_mist_parking_801952E8[1] = {
     { 0, 0, 1, 0, D_mist_parking_801952C4 },
 };
 
-GpRoomParamRec * D_mist_parking_801952F0[8] = {
+GpRoomParamRec* D_mist_parking_801952F0[8] = {
     D_mist_parking_801952D0,
     D_mist_parking_801952D8,
     D_mist_parking_801952E0,
@@ -1546,17 +1546,17 @@ GpRoomParamRec * D_mist_parking_801952F0[8] = {
     D_mist_parking_801952D0,
 };
 
-s32 D_mist_parking_80195310 = 0;
+s32 Shop_Data_80187628 = 0;
 
-GpItemMap * D_mist_parking_80195314 = NULL;
+GpItemMap* Shop_Data_8018762C = NULL;
 
-Task * D_mist_parking_80195318 = NULL;
+Task* D_mist_parking_80195318 = NULL;
 
 s32 D_mist_parking_8019531C = 0;
 
-Task * D_mist_parking_80195320 = NULL;
+Task* D_mist_parking_80195320 = NULL;
 
-Task * D_mist_parking_80195324 = NULL;
+Task* D_mist_parking_80195324 = NULL;
 
 MistParkingScanState D_mist_parking_80195328 = { 0 };
 

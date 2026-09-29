@@ -18,14 +18,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-// Retained task seed: keep the callback's actual two-argument ABI.
-typedef struct {
-    u16   flags;
-    u16   priority;
-    void  (*callback)(Task*, s32);
-    void* argument;
-} DumpingHoleCaptionTaskSeed;
-STATIC_ASSERT_SIZEOF(DumpingHoleCaptionTaskSeed, 12);
+#include "shared/cap_caption_types.h"
 
 extern ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12];
 
@@ -33,7 +26,7 @@ extern TmdSource D_shelter_b3_dumping_hole_80187550;
 
 extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[4];
 
-extern DumpingHoleCaptionTaskSeed D_shelter_b3_dumping_hole_8018B57C;
+extern CapCaptionTaskTable D_shelter_b3_dumping_hole_8018B57C;
 
 extern GpAreaVariant D_shelter_b3_dumping_hole_8018EC3C[13];
 

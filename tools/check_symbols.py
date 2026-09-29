@@ -24,8 +24,11 @@ Checks, in order:
    image's `undefined_*_auto` files) must be declared under that name - a
    reference to an address nobody named, or to a name the owning image spells
    differently, is reported.
-3. names: one name means one thing. A name declared at two addresses, or at one
-   address in two different images, is reported.
+3. names: cross-image names mean one thing. A name declared at two addresses,
+   or at one address in two different images, is reported. Definitions used
+   only inside their owning images have image scope: included C implementations
+   can reuse private names. Each such declaration must resolve to a section-backed
+   definition at the declared address in its own ELF; an import is never exempt.
 4. addresses: where several names are declared at one address, the address is
    *unique* if only one image in the project covers it - there is one
    definition there, and every name for it must be the same - or *ambiguous* if
@@ -125,6 +128,39 @@ def image_objects(elf: Path) -> list[tuple[int, int, str]]:
             name = sym.name.removesuffix('.NON_MATCHING')
             out[(sym['st_value'], name)] = size
     return sorted((a, sz, n) for (a, n), sz in out.items())
+
+
+def image_definitions(elf: Path) -> dict[tuple[str, int], bool]:
+    """Section-backed definitions mapped to whether their linkage is local.
+
+    Excludes absolute linker aliases and imports. Distinct TUs may define the
+    same local name at different addresses in one image.
+    """
+    with open(elf, 'rb') as f:
+        e = ELFFile(f)
+        tab = e.get_section_by_name('.symtab')
+        if tab is None:
+            return {}
+        return {(s.name, s['st_value']): s['st_info']['bind'] == 'STB_LOCAL'
+                for s in tab.iter_symbols()
+                if isinstance(s['st_shndx'], int) and s['st_shndx'] != 0
+                and s['st_info']['type'] in ('STT_FUNC', 'STT_OBJECT', 'STT_NOTYPE')}
+
+
+def image_scoped_names(decls: list[Decl], definitions) -> set[str]:
+    """Names with proven owning-image definitions and no cross-image use.
+
+    External C linkage can join TUs inside one overlay without exporting an
+    interface to other overlays. Check actual declarations, not a spelling
+    convention or a list of exempt modules.
+    """
+    local, imported = set(), set()
+    for d in decls:
+        if d.owner == d.image and (d.name, d.addr) in definitions.get(d.image, ()):
+            local.add(d.name)
+        else:
+            imported.add(d.name)
+    return local - imported
 
 
 def load_configs(root: Path) -> dict[str, dict]:
@@ -306,32 +342,44 @@ def main() -> None:
                 else:
                     report('declared', [image, owner], f'{image}: references {name} = 0x{addr:08X} in {owner}, where nothing is declared')
 
-    # 3. names: one name, one (image, address). The packages of one manifest
+    # 3. names: one cross-image name, one (image, address). The packages of one manifest
     # entry count as one image, and an import into a shared slot means the
     # same thing as a declaration by any of the slot's images at that address.
     meaning = defaultdict(set)
     absolute = defaultdict(set)
     where = defaultdict(list)
+    definitions = {
+        image: image_definitions(root / 'build/USA/out' / f'{image}.elf')
+        for image in configs
+    }
+    scoped = image_scoped_names(decls, definitions)
     for d in decls:
         if d.owner:
             # An entry's packages may load into different slots; its names
             # are file offsets, the same in every copy.
             where_in = d.addr - ranges[d.owner][0] if d.owner in groups else d.addr
-            meaning[d.name].add((canon(d.owner), where_in))
-            absolute[d.name].add((canon(d.owner), d.addr))
-            where[d.name].append(d)
-    for name, ms in sorted(meaning.items()):
+            scope = ''
+            if d.name in scoped:
+                scope = canon(d.image)
+                if definitions[d.image][(d.name, d.addr)]:
+                    scope += f':local@{where_in:X}'
+            key = (d.name, scope)
+            meaning[key].add((canon(d.owner), where_in))
+            absolute[key].add((canon(d.owner), d.addr))
+            where[key].append(d)
+    for key, ms in sorted(meaning.items()):
+        name = key[0]
         # A slot import is an absolute address, so it matches a declaration by
         # the address that declaration has, not by an entry's file offset.
         ms = {(o, ad) for o, ad in ms
-              if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in absolute[name]))}
+              if not (o in slot_members and any(x in slot_members[o] and y == ad for x, y in absolute[key]))}
         # Two importers may see a slot through different resident sets, but an
         # import into a slot at one address names the same place either way.
         ms = {('slot' if o in slot_members else o, ad) for o, ad in ms}
         if len(ms) > 1:
             owners = sorted({o for o, _ in ms})
             desc = ', '.join(f'{o}@{"+" if o in groups.values() else ""}0x{ad:08X}' for o, ad in sorted(ms)[:4]) + (f', ... ({len(ms)} in all)' if len(ms) > 4 else '')
-            report('names', set(owners) | {d.image for d in where[name]}, f'{name} names {len(ms)} things: {desc}')
+            report('names', set(owners) | {d.image for d in where[key]}, f'{name} names {len(ms)} things: {desc}')
 
     # 4. addresses: several names at one address.
     at = defaultdict(list)

@@ -997,7 +997,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 newWork->field_2C       = gameGetPtrSlot(3);
                 D_actor_342100_80164BB8 = arg0;
             }
-            Task_SpawnFromTable((TaskDesc*)&D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
+            Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C.tasks, 0, 0xD0, 0);
             SndEvt_EnqueueType6(0x54270007, 0, 0);
             switch ((u8)gGameSession->spawnPhase[0]) {
                 case 0:

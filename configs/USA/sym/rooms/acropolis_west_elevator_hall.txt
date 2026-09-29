@@ -16,7 +16,7 @@ D_acropolis_west_elevator_hall_80184598 = 0x80184598; // size:0x14 defined:True
 D_acropolis_west_elevator_hall_801845AC = 0x801845AC; // size:0x18 defined:True
 D_acropolis_west_elevator_hall_801845C4 = 0x801845C4; // size:0x18 defined:True
 D_acropolis_west_elevator_hall_801845DC = 0x801845DC; // size:0x18 defined:True
-D_acropolis_west_elevator_hall_801802A4 = 0x801802A4; // size:0x4 defined:True
+Reflection_Data_8017FC8C = 0x801802A4; // size:0x4 defined:True
 D_acropolis_west_elevator_hall_801802A8 = 0x801802A8; // size:0x18 defined:True
 D_acropolis_west_elevator_hall_801802C0 = 0x801802C0; // size:0x24 defined:True
 D_acropolis_west_elevator_hall_801802E4 = 0x801802E4; // size:0x4 defined:True
@@ -82,3 +82,7 @@ func_acropolis_west_elevator_hall_8017F990 = 0x8017F990; // type:func
 func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func
 
 func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func
+Reflection_InitPlayer = 0x8017D5FC; // type:func
+Reflection_UpdatePlayer = 0x8017D7B0; // type:func
+Reflection_HeldObjectTask = 0x8017F134; // type:func
+Reflection_Data_8017D5C4 = 0x8017D5C4;

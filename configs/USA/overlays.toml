@@ -2387,9 +2387,9 @@ label = "cutscene or one-off room; no map names it"
 id = 417
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_r47/shelter_r47", rodata = "0x4", text = "0x2AC", data = "0xA04C" },
+  { unit = "shelter_r47/shelter_r47", rodata = "0x4", text = "0x2AC", data = "0x9628" },
   { unit = "shelter_r47/shelter_r47_2", rodata = "0x108", text = "0x410C", data = "0x9E44" },
-  { unit = "shelter_r47/shelter_r47_3", rodata = "0x21C", text = "0x6D5C", data = "0x9628" },
+  { unit = "shelter_r47/shelter_r47_3", rodata = "0x21C", text = "0x6D5C", data = "0xA04C" },
 ]
 
 [rooms.overlays.shelter_r48]
@@ -3971,6 +3971,7 @@ id = 161
 objects = [
   { kind = "packageId" },
   { unit = "actor_210600/actor_210600", rodata = "0x4", text = "0x10", data = "0x3108" },
+  { unit = "actor_210600/actor_210600_contacts", text = "0x1C78", data = "0x134F8" },
   { kind = "model", at = "0xA078", in_c = true },
   { kind = "modelSource", at = "0xF6B8", in_c = true },
   { kind = "animation", at = "0x3108", sets = ["0x7EF4", "0xA050"], in_c = true },

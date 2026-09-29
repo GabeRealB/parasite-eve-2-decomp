@@ -248,19 +248,42 @@ def _iter_named_asm(overlay: Overlay, kind: str, name: str) -> Iterator[Path]:
 
 
 def find_function(name: str, version: Optional[str] = None) -> Optional[FunctionLoc]:
+    """Resolve a function, requiring a qualifier for private included copies.
+
+    A qualifier is OVERLAY::NAME or OVERLAY/UNIT::NAME when one overlay has
+    several copies. Never silently inspect a different instance.
+    """
+    qualifier, separator, bare_name = name.rpartition("::")
+    if separator:
+        name = bare_name
     name = name.removesuffix(".s")
     overlays = discover_overlays(version)
+    matches = []
     for kind in ("nonmatchings", "matchings"):
         for overlay in overlays:
             for asm_file in _iter_named_asm(overlay, kind, name):
-                return FunctionLoc(
+                if separator and not (
+                    overlay_matches(overlay, qualifier)
+                    or qualifier in (
+                        f"{overlay.name}/{asm_file.parent.name}",
+                        f"{overlay_key(overlay)}/{asm_file.parent.name}",
+                        f"{Path(overlay.name).name}/{asm_file.parent.name}",
+                    )
+                ):
+                    continue
+                matches.append(FunctionLoc(
                     name=name,
                     overlay=overlay,
                     asm_file=asm_file,
                     kind=kind,
                     unit=asm_file.parent.name,
-                )
-    return None
+                ))
+    if len(matches) > 1:
+        choices = ", ".join(
+            f"{loc.overlay.name}/{loc.unit}::{name}" for loc in matches
+        )
+        raise ValueError(f"ambiguous function '{name}'; qualify its instance: {choices}")
+    return matches[0] if matches else None
 
 
 def find_include_asm_file(func_name: str) -> Optional[Path]:
@@ -682,7 +705,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_ov.set_defaults(func=_cmd_list_overlays)
 
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

@@ -64,9 +64,9 @@ extern GpEvsCmd D_dryfield_night_trailer_coach_801892C0[13];
 
 extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
 
-extern s32 D_dryfield_night_trailer_coach_8018C210;
+extern s32 Shop_Data_80187628;
 
-extern GpItemMap* D_dryfield_night_trailer_coach_8018C214;
+extern GpItemMap* Shop_Data_8018762C;
 
 extern Task* D_dryfield_night_trailer_coach_8018C218;
 

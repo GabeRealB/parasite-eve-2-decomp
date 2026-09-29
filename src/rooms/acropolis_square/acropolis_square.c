@@ -72,63 +72,63 @@ extern UiObjectDesc D_800611E4;
 
 /// Index of the mirrored player's coordinate part each held-object reflection
 /// is parented to, by `Task::spawnArg1`.
-extern u8 D_acropolis_square_80183464[];
+static u8 Reflection_Data_8017FC8C[];
 
 /// Task descriptor of the held-object reflections the mirror spawns.
-extern TaskDesc D_acropolis_square_80183468[];
+static TaskDesc D_acropolis_square_80183468[];
 
 /// Labels of the four menu entries of the play-data menu panel: "Save",
 /// "Play Data", "Weapon Data" and "PE Data".
-extern u8 D_acropolis_square_80183480[];
-extern u8 D_acropolis_square_80183488[];
-extern u8 D_acropolis_square_80183494[];
-extern u8 D_acropolis_square_801834A0[];
+static u8 Telephone_Data_801819F8[];
+static u8 Telephone_Data_80181A00[];
+static u8 Telephone_Data_80181A0C[];
+static u8 Telephone_Data_80181A18[];
 
 /// Row labels of the play-data statistics panel, one per row
 /// `func_acropolis_square_8017F46C` draws.
-extern u8 D_acropolis_square_801834A8[];
-extern u8 D_acropolis_square_801834D8[];
-extern u8 D_acropolis_square_801834B0[];
-extern u8 D_acropolis_square_801834B4[];
-extern u8 D_acropolis_square_801834BC[];
-extern u8 D_acropolis_square_801834C8[];
-extern u8 D_acropolis_square_801834E0[];
-extern u8 D_acropolis_square_801834E8[];
-extern u8 D_acropolis_square_801834F0[];
+static u8 Telephone_Data_80181A20[];
+static u8 Telephone_Data_80181A50[];
+static u8 Telephone_Data_80181A28[];
+static u8 Telephone_Data_80181A2C[];
+static u8 Telephone_Data_80181A34[];
+static u8 Telephone_Data_80181A40[];
+static u8 Telephone_Data_80181A58[];
+static u8 Telephone_Data_80181A60[];
+static u8 Telephone_Data_80181A68[];
 
 /// The suffix appended to that panel's count rows.
-extern u8 D_acropolis_square_801834F8[];
+static u8 Telephone_Data_80181A70[];
 
 /// The "%" suffix the room's percentage formatters append.
-extern u8 D_acropolis_square_80183500[];
+static u8 Telephone_Data_80181A78[];
 
 /// Help texts of the statistics panel's nine rows, handed to the UI holder for
 /// the selected row.
-extern u8 D_acropolis_square_80183504[];
-extern u8 D_acropolis_square_80183530[];
-extern u8 D_acropolis_square_80183554[];
-extern u8 D_acropolis_square_80183584[];
-extern u8 D_acropolis_square_801835B8[];
-extern u8 D_acropolis_square_801835EC[];
-extern u8 D_acropolis_square_80183624[];
-extern u8 D_acropolis_square_80183658[];
-extern u8 D_acropolis_square_80183690[];
+static u8 Telephone_Data_80181A7C[];
+static u8 Telephone_Data_80181AA8[];
+static u8 Telephone_Data_80181ACC[];
+static u8 Telephone_Data_80181AFC[];
+static u8 Telephone_Data_80181B30[];
+static u8 Telephone_Data_80181B64[];
+static u8 Telephone_Data_80181B9C[];
+static u8 Telephone_Data_80181BD0[];
+static u8 Telephone_Data_80181C08[];
 
 /// The play-data menu panel's list.
-extern UiList D_acropolis_square_801836CC;
+static UiList Telephone_Data_80181C44;
 
 /// The usage panel's list.
-extern UiList D_acropolis_square_801836F4;
+static UiList Telephone_Data_80181C6C;
 
 /// UI descriptor the play-data panels spawn when they first open.
-extern UiObjectDesc D_acropolis_square_80183718;
+static UiObjectDesc Telephone_Data_80181C90;
 
 /// UI descriptors the "Play Data" entry and the two usage entries open.
-extern UiObjectDesc D_acropolis_square_80183734;
-extern UiObjectDesc D_acropolis_square_80183750;
+static UiObjectDesc Telephone_Data_80181CAC;
+static UiObjectDesc Telephone_Data_80181CC8;
 
 /// The telephone menu panel's list.
-extern UiList D_acropolis_square_8018377C;
+static UiList Telephone_Data_80181CF4;
 
 /// Task descriptor table of the room's cutscenes: entry 0 is the cutscene
 /// runner, spawned with a cutscene record as its argument, and entry 1 the
@@ -184,23 +184,16 @@ extern AcropolisSquareStorage88AC D_acropolis_square_801888AC;
 
 extern GpCoord D_acropolis_square_801888CC;
 
-static void func_acropolis_square_8017D8C8(Task* task);
-static void func_acropolis_square_801811EC(Task* task);
+#define REFLECTION_SCALE_IN_CODE 1
+#include "../../shared/planar_reflection.h"
+
+#define TELEPHONE_TITLE_BYTES "Telephone\0\xDC\xDD"
+#include "../../shared/telephone.h"
+
 static void func_acropolis_square_80182260(Task* task);
 static void func_acropolis_square_801822A4(Task* task);
 
-void func_acropolis_square_8017F46C(UiList*, UiObject*);
-void func_acropolis_square_8017FC38(UiList*, UiObject*);
-void func_acropolis_square_80180650(Task*);
-void func_acropolis_square_80180AFC(Task*);
-void func_acropolis_square_80180CBC(Task*);
-void func_acropolis_square_80180EB0(UiList*, UiObject*);
-void func_acropolis_square_80180F94(UiList*, UiObject*);
-void func_acropolis_square_8018105C(UiList*, UiObject*);
-void func_acropolis_square_80181124(UiList*, UiObject*);
 void func_acropolis_square_80181228(Task*);
-
-void func_acropolis_square_8017F24C(Task*);
 
 void func_acropolis_square_80181228(Task*);
 void func_acropolis_square_80182048(Task*);
@@ -221,164 +214,19 @@ extern GpObj4C        D_acropolis_square_80185680[26];
 extern GpRoomBoundVec D_acropolis_square_80186480[16];
 extern GpRoomCoordSet D_acropolis_square_80186468[1];
 
-u8 D_acropolis_square_80183464[4] = {
-    12,
-    8,
-    12,
-    8,
-};
+#include "../../shared/planar_reflection_data.inc.c"
 
-TaskDesc D_acropolis_square_80183468[2] = {
+static TaskDesc D_acropolis_square_80183468[2] = {
     { 0, 112, func_acropolis_square_8017F41C, { .model = NULL } },
-    { 0, 112, func_acropolis_square_8017F24C, { .model = NULL } },
+    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
 };
 
-u8 D_acropolis_square_80183480[8] = {
-    83, 97, 118, 101, 0, 0, 0, 0,
-};
+static inline TaskDesc* Reflection_GetTasks(void)
+{
+    return D_acropolis_square_80183468;
+}
 
-u8 D_acropolis_square_80183488[12] = {
-    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
-};
-
-u8 D_acropolis_square_80183494[12] = {
-    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_acropolis_square_801834A0[8] = {
-    80, 69, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_acropolis_square_801834A8[8] = {
-    84, 105, 109, 101, 0, 0, 0, 0,
-};
-
-u8 D_acropolis_square_801834B0[4] = {
-    87, 111, 110, 0,
-};
-
-u8 D_acropolis_square_801834B4[8] = {
-    69, 115, 99, 97, 112, 101, 100, 0,
-};
-
-u8 D_acropolis_square_801834BC[12] = {
-    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
-};
-
-u8 D_acropolis_square_801834C8[16] = {
-    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
-};
-
-u8 D_acropolis_square_801834D8[8] = {
-    83, 97, 118, 101, 100, 0, 0, 0,
-};
-
-u8 D_acropolis_square_801834E0[8] = {
-    67, 108, 101, 97, 114, 101, 100, 0,
-};
-
-u8 D_acropolis_square_801834E8[8] = {
-    77, 97, 120, 32, 69, 88, 80, 0,
-};
-
-u8 D_acropolis_square_801834F0[8] = {
-    77, 97, 120, 32, 66, 80, 0, 0,
-};
-
-u8 D_acropolis_square_801834F8[8] = {
-    32, 116, 105, 109, 101, 115, 0, 0,
-};
-
-u8 D_acropolis_square_80183500[4] = {
-    37, 0, 0, 0,
-};
-
-u8 D_acropolis_square_80183504[44] = {
-    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
-    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
-    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
-};
-
-u8 D_acropolis_square_80183530[36] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
-    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_acropolis_square_80183554[48] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
-    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-u8 D_acropolis_square_80183584[52] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
-    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
-    46, 0, 0, 0,
-};
-
-u8 D_acropolis_square_801835B8[52] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
-    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_acropolis_square_801835EC[56] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
-    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
-    115, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_acropolis_square_80183624[52] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
-    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
-    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
-    46, 0, 0, 0,
-};
-
-u8 D_acropolis_square_80183658[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
-    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
-    101, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_acropolis_square_80183690[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
-    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
-    32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-UiListItemFunc D_acropolis_square_801836C8[1] = {
-    func_acropolis_square_8017F46C,
-};
-
-UiList D_acropolis_square_801836CC = { D_acropolis_square_801836C8, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiListItemFunc D_acropolis_square_801836F0[1] = {
-    func_acropolis_square_8017FC38,
-};
-
-UiList D_acropolis_square_801836F4 = { D_acropolis_square_801836F0, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiObjectDesc D_acropolis_square_80183718 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_acropolis_square_80180AFC, 0 };
-
-UiObjectDesc D_acropolis_square_80183734 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_acropolis_square_80180CBC, 0 };
-
-UiObjectDesc D_acropolis_square_80183750 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_acropolis_square_80180650, 0 };
-
-UiListItemFunc D_acropolis_square_8018376C[4] = {
-    func_acropolis_square_80180EB0,
-    func_acropolis_square_80180F94,
-    func_acropolis_square_8018105C,
-    func_acropolis_square_80181124,
-};
-
-UiList D_acropolis_square_8018377C = { D_acropolis_square_8018376C, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+#include "../../shared/telephone_data.inc.c"
 
 void func_acropolis_square_80181228(Task*);
 void func_acropolis_square_80182048(Task*);
@@ -506,7 +354,7 @@ GpRoomObjRec D_acropolis_square_80183B9C[1] = {
     { D_acropolis_square_8018519C, D_acropolis_square_801851C0, D_acropolis_square_80185680, NULL },
 };
 
-u8 * D_acropolis_square_80183BAC[1] = {
+u8* D_acropolis_square_80183BAC[1] = {
     D_8010CAF8,
 };
 
@@ -1541,7 +1389,7 @@ s16 D_acropolis_square_8018513C[15] = {
     -1,
 };
 
-s16 * D_acropolis_square_8018515C[16] = {
+s16* D_acropolis_square_8018515C[16] = {
     D_acropolis_square_80184D68,
     D_acropolis_square_80184DA8,
     D_acropolis_square_80184DF4,
@@ -2243,7 +2091,7 @@ GpRoomParamRec D_acropolis_square_80188860[1] = {
     { 0, 0, 1, 0, D_acropolis_square_8018884C },
 };
 
-GpRoomParamRec * D_acropolis_square_80188868[8] = {
+GpRoomParamRec* D_acropolis_square_80188868[8] = {
     D_acropolis_square_80188858,
     D_acropolis_square_80188858,
     D_acropolis_square_80188858,
@@ -2263,1684 +2111,42 @@ GpAreaApplyRec D_acropolis_square_80188888[4] = {
 
 s32 D_acropolis_square_80188898 = 0;
 
-Task * D_acropolis_square_8018889C = NULL;
+Task* D_acropolis_square_8018889C = NULL;
 
 s32 D_acropolis_square_801888A0 = 0;
 
 s32 D_acropolis_square_801888A4 = 0;
 
-Task * D_acropolis_square_801888A8 = NULL;
+Task* D_acropolis_square_801888A8 = NULL;
 
 AcropolisSquareStorage88AC D_acropolis_square_801888AC = { 0 };
 
 GpCoord D_acropolis_square_801888CC = { 0 };
 
-/// "Telephone", the title of the menu panel `func_acropolis_square_80180804`
-/// runs. Two non-zero bytes follow its terminator, so it stays assembly.
-static const char D_acropolis_square_8017D648[];
+/// Telephone menu title, including retained bytes after its terminator.
+static const char Telephone_Data_8017D638[];
 
-static void func_acropolis_square_8017D714(Task* task);
-static void func_acropolis_square_80180034(UiList* list, UiObject* obj);
-static void func_acropolis_square_80180330(UiList* list, UiObject* obj);
-static void func_acropolis_square_80180B58(u8* str, s32 decimals);
-static u8*  func_acropolis_square_80180BC8(u8* buf, s32 value, s32 decimals);
-static void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 static void func_acropolis_square_8018345C(void);
 
-/// Sets up the room's mirror: re-attaches the player's own TMD source
-/// to this task so the reflection draws the same model, allocates the
-/// `RoomMirrorWork` block the reflection's coordinate frame and matrices live
-/// in, and hangs the task off the player task so it dies with it.
-/// `spawnArg1` must be 0 or 1, and 0 also raises `GameSession::field_4E`. The
-/// two child tasks reflect the player's held-object tasks
-/// (`GameActor::field_920` / `field_924`).
-static void func_acropolis_square_8017D714(Task* task)
-{
-    Task*           owner;
-    GameActor*      actor;
-    TmdObject*      extra;
-    GpCoord*        parts;
-    RoomMirrorWork* work;
-    Task*           child;
-    Task*           spawned;
-    s32             i;
+#include "../../shared/planar_reflection.inc.c"
 
-    owner = gameGetPtrSlot(3);
-    if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
-        taskKill(task);
-        return;
-    }
-    extra = task->extra.tmd;
-    parts = extra->coords;
-    if ((u32)task->spawnArg1.value >= 2U) {
-        taskKill(task);
-        return;
-    }
-    work = memCalloc(sizeof(RoomMirrorWork), 0);
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    task->work   = (TaskIdMap*)work;
-    extra->tpage = 6;
-    tmdProcessStream(extra);
-    tmdProcessStream(extra);
-    extra->flags    = 0x10;
-    extra->otOffset = 0x1F;
-    if (task->spawnArg1.value == 0) {
-        gGameSession->field_4E = 1;
-    }
-    parts->sub      = &work->coord;
-    extra->lightMtx = &work->light;
-    extra->colorMtx = &work->color;
-    Task_Reparent(owner, task);
-    task->state++;
-    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
-    work->field_4   = 1;
-    work->configRev = -1;
-    extra->flags   |= 0x80;
-    work->field_4   = 0;
-    work->viewFlg   = -1;
-    actor           = (GameActor*)owner->work;
-    for (i = 0; i < 2; i++) {
-        child = (&actor->field_920)[i];
-        if (child != NULL) {
-            spawned = Task_SpawnFromTable(D_acropolis_square_80183468, 1, i, task);
-            if (spawned != NULL) {
-                Task_Reparent(child, spawned);
-            }
-        }
-    }
-    func_acropolis_square_8017D8C8(task);
-}
-
-/// Per-frame state of the mirror task `func_acropolis_square_8017D714` sets up.
-///
-/// When the player's equipped weapon changes it spawns reflection tasks for
-/// the player's two held-object tasks. When the view moves it rebuilds the
-/// reflection's coordinate frame: mirror 0 copies the view matrix with its
-/// second row negated and applies location-specific corrections, any other
-/// mirror reflects through a plane chosen by the current stage, area and view.
-/// On the frame after mirror 0 rebuilds, it queues packets that copy the frame
-/// buffer into the off-screen strip at x = `width`. In stages 1 and 5 it
-/// projects the reflected body to find its screen rectangle and, where that
-/// overlaps the mirror's clip rectangle, draws quads sampling that strip;
-/// otherwise the reflection is hidden. Every frame it copies the player's pose
-/// and light matrices onto the reflection.
-static void func_acropolis_square_8017D8C8(Task* task)
-{
-    RoomMirrorWork*          work;
-    PlayerStatus*            status;
-    TmdObject*               extra;
-    TmdObject*               model;
-    Task*                    owner;
-    GameActor*               actor;
-    Task*                    child;
-    Task*                    spawned;
-    RoomMirrorPlaneScratch*  plane;
-    RoomMirrorExtentScratch* extent;
-    GpCoord*                 parts;
-    GpCoord*                 refPart;
-    DR_AREA*                 drArea;
-    DR_STP*                  drStp;
-    DR_OFFSET*               drOffset;
-    SPRT*                    sprt;
-    DR_TPAGE*                tpage;
-    TILE*                    tile;
-    POLY_FT4*                poly;
-    s32                      stage;
-    s32                      area;
-    s32                      view;
-    s32                      width;
-    s32                      viewFlg;
-    s32                      copyPending;
-    s32                      halfWidth;
-    s32                      texX;
-    s32                      i;
-    s32                      layer;
-    u32                      j;
-
-    width  = 0x1C0;
-    work   = task->work;
-    extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].state.at4.loc.stage;
-    area   = Mc_SaveData[0].state.at4.loc.area;
-    view   = Mc_SaveData[0].state.at4.loc.view;
-    status = &Player_Status;
-    if (stage == 5) {
-        width = 0x140;
-    }
-    if (work->configRev != status->weapon) {
-        actor           = gameGetPtrSlot(3)->work;
-        work->configRev = status->weapon;
-        for (i = 0; i < 2; i++) {
-            child = (&actor->field_918)[i];
-            if (child != NULL) {
-                spawned = Task_SpawnFromTable(D_acropolis_square_80183468, 1, i + 2, task);
-                if (spawned != NULL) {
-                    Task_Reparent(child, spawned);
-                }
-            }
-        }
-    }
-    extra->flags |= 0x10;
-    viewFlg       = gGfxViewCoord.flg & 0x7FFFFFFF;
-    if (work->viewFlg != viewFlg) {
-        GpCoord* sub;
-
-        work->viewFlg     = viewFlg;
-        sub               = gGfxViewCoord.sub;
-        work->field_A0[0] = -0xA0;
-        work->field_A0[1] = 0xA0;
-        work->coord.flg   = 0;
-        work->field_A0[2] = -0x78;
-        work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
-        work->coord.sub   = sub;
-        if (task->spawnArg1.value == 0) {
-            work->field_4     = 1;
-            work->coord.coord = gGfxViewCoord.coord;
-            plane->viewRow.vx = work->coord.coord.m[1][0];
-            plane->viewRow.vy = work->coord.coord.m[1][1];
-            plane->viewRow.vz = work->coord.coord.m[1][2];
-            gte_lddp(-0x1000);
-            gte_ldsv(&plane->viewRow);
-            gte_gpf12();
-            gte_stsv(&plane->viewRow);
-            work->coord.coord.m[1][0] = plane->viewRow.vx;
-            work->coord.coord.m[1][1] = plane->viewRow.vy;
-            work->coord.coord.m[1][2] = plane->viewRow.vz;
-            if (stage == 5) {
-                if (area == 7) {
-                    if (view >= 6 && view < 12 && gGameSession->at4.loc.room == 2) {
-                        work->coord.coord.t[1] += 0x9B;
-                        extra->flags           &= ~0x80;
-                        work->field_8           = 0;
-                    } else {
-                        work->field_4 = 0;
-                        extra->flags |= 0x80;
-                    }
-                }
-            } else if (area == 1) {
-                extra->flags |= 0x80;
-                if (view == 9) {
-                    work->field_4 = 0;
-                }
-            } else {
-                if (area != 0x11) {
-                    work->coord.coord.t[1] += 0x69;
-                }
-                work->field_8 = 1;
-                if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
-                    extra->flags |= 0x80;
-                } else {
-                    extra->flags &= ~0x80;
-                }
-            }
-        } else {
-            model         = task->extra.tmd;
-            model->flags &= ~0x80;
-            if (stage == 1) {
-                switch (area) {
-                    case 0x11:
-                        switch (view) {
-                            case 2:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1518;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 3:
-                                plane->normal.vx = 0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
-                                break;
-                            case 4:
-                                work->field_A0[0] = -0x14;
-                                work->field_A0[1] = 0x14;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    case 1:
-                        switch (view) {
-                            case 6:
-                                work->field_A0[1] = 0x64;
-                                work->field_A0[0] = 0;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1AF4;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                model->otOffset  = 0x1F;
-                                break;
-                            case 7:
-                            case 8:
-                                plane->normal.vx = 0;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0x1000;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0x14B4;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    case 2:
-                        switch (view) {
-                            case 2:
-                            case 5:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x170C;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 4:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 3:
-                                plane->normal.vx = -0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    default:
-                        model->flags |= 0x80;
-                        break;
-                }
-            } else if (view == 8 || view == 1) {
-                plane->normal.vx = -0x1000;
-                plane->normal.vy = 0;
-                plane->normal.vz = 0;
-                VectorNormalSS(&plane->normal, &plane->normal);
-                plane->offset.vx = 0xA38;
-                plane->offset.vy = 0;
-                plane->offset.vz = 0;
-            } else {
-                model->flags |= 0x80;
-            }
-            if (!(model->flags & 0x80)) {
-                plane->leastAbs = plane->normal.vx;
-                if (plane->leastAbs < 0) {
-                    plane->leastAbs = -plane->leastAbs;
-                }
-                plane->leastAxis = 0;
-                plane->axisAbs   = plane->normal.vy;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
-                }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 1;
-                }
-                plane->axisAbs = plane->normal.vz;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
-                }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 2;
-                }
-                plane->refAxis.vx = 0;
-                if (plane->leastAxis == 0) {
-                    plane->refAxis.vx = 0x1000;
-                }
-                plane->refAxis.vy = 0;
-                if (plane->leastAxis == 1) {
-                    plane->refAxis.vy = 0x1000;
-                }
-                plane->refAxis.vz = 0;
-                if (plane->leastAxis == 2) {
-                    plane->refAxis.vz = 0x1000;
-                }
-                Gfx_OrthonormalBasis(&plane->basis, &plane->normal, &plane->refAxis);
-                gte_TransposeMatrix(&plane->basis, &plane->reflect);
-                plane->reflect.m[2][0] = -plane->reflect.m[2][0];
-                plane->reflect.m[2][1] = -plane->reflect.m[2][1];
-                plane->reflect.m[2][2] = -plane->reflect.m[2][2];
-                gte_MulMatrix0(&plane->basis, &plane->reflect, &plane->reflect);
-                work->coord.coord      = plane->reflect;
-                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
-                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
-                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                gfxRotateSv(&plane->reflect, &plane->offset);
-                work->coord.coord.t[0] -= plane->offset.vx;
-                work->coord.coord.t[1] -= plane->offset.vy;
-                work->coord.coord.t[2] -= plane->offset.vz;
-                work->field_8           = 1;
-            }
-        }
-        work->field_C = extra->flags;
-        SCRATCH_POP_BYTES(0x70);
-    }
-
-    copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
-        u16  ofs[2];
-        RECT rect;
-
-        work->field_4   = 0;
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = 0;
-        rect.y          = gDisplayState.drawBuffer * 0x110;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
-
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
-        SetDrawStp(drStp, 0);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
-
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = 0xA0;
-        ofs[1]          = gDisplayState.drawBuffer * 0x110 + 0x78;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
-
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = -0xA0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
-
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
-
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = 0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0x20;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
-
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
-
-        tile            = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(TILE);
-        setlen(tile, 3);
-        setcode(tile, 0x60);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x78;
-        tile->r0 = tile->g0 = 2;
-        tile->b0            = 2;
-        tile->w             = 0x140;
-        tile->h             = 0xF0;
-        addPrim(&gGpuCurrentOt[0x3FF], tile);
-
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
-        SetDrawStp(drStp, 1);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
-
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = width + 0xA0;
-        ofs[1]          = 0x178;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
-
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = width;
-        rect.y          = 0x100;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
-    }
-
-    extra->flags = work->field_C;
-    if (!(extra->flags & 0x80) && gGameSession->field_65 == 0) {
-        parts   = task->extra.tmd->coords;
-        owner   = gameGetPtrSlot(3);
-        refPart = &parts[1];
-        if (owner != NULL) {
-            TmdObject* src       = owner->extra.tmd;
-            GpCoord*   srcCoords = src->coords;
-
-            parts->flg = 0;
-            j          = 0;
-            if (src->partCount != 0) {
-                GpCoord* from = (GpCoord*)&srcCoords->coord;
-                GpCoord* to   = (GpCoord*)&parts->coord;
-
-                do {
-                    *(MATRIX*)to = *(MATRIX*)from;
-                    to++;
-                    from++;
-                } while (++j < src->partCount);
-            }
-        }
-        if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
-            if (gGameSession->eventState != 0) {
-                Gp_UpdateCoord(refPart);
-                gte_SetTransMatrix(&refPart->workm);
-                gte_SetRotMatrix(&refPart->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
-            } else {
-                Gp_UpdateCoord(parts);
-                gte_SetTransMatrix(&parts->workm);
-                gte_SetRotMatrix(&parts->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x7D0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
-            }
-            if (extent->sxyFoot.vy > extent->sxyHead.vy) {
-                extent->sxyHead.vx = extent->sxyFoot.vy;
-                extent->sxyFoot.vy = extent->sxyHead.vy;
-                extent->sxyHead.vy = extent->sxyHead.vx;
-            }
-            extent->sxyFoot.vy -= 0x10;
-            extent->sxyHead.vy += 0x10;
-            halfWidth           = (extent->sxyHead.vy - extent->sxyFoot.vy) >> 1;
-            if (halfWidth >= 0x60) {
-                halfWidth = 0x5F;
-            }
-            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1.value == 0) {
-                    halfWidth = 0x5F;
-                } else {
-                    extent->otzFoot = extent->otzHead + 0xA;
-                }
-            }
-            extent->left = extent->sxyFoot.vx - halfWidth;
-            if (extent->left < -0xA0) {
-                extent->left = -0xA0;
-            }
-            extent->right = extent->sxyFoot.vx + halfWidth;
-            if (extent->right > 0xA0) {
-                extent->right = 0xA0;
-            }
-            extent->top = extent->sxyFoot.vy;
-            if (extent->top < -0x78) {
-                extent->top = -0x78;
-            }
-            extent->bottom = extent->sxyHead.vy;
-            if (extent->bottom > 0x78) {
-                extent->bottom = 0x78;
-            }
-            if (extent->top < work->field_A0[3] && work->field_A0[2] < extent->bottom && extent->left < work->field_A0[1] &&
-                work->field_A0[0] < extent->right) {
-                DR_TPAGE* mode;
-
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                texX            = extent->left + (u16)(width + 0xA0);
-                extent->texX    = texX & 0xFFC0;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 1, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
-                for (layer = work->field_8; layer < 3; layer++) {
-                    poly            = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor += sizeof(POLY_FT4);
-                    setPolyFT4(poly);
-                    setSemiTrans(poly, 1);
-                    if (work->field_8 == 1) {
-                        setShadeTex(poly, 0);
-                        poly->r0 = poly->g0 = poly->b0 = 0x80;
-                    } else {
-                        setShadeTex(poly, 1);
-                    }
-                    poly->x0 = poly->x2 = extent->left;
-                    poly->x1 = poly->x3 = extent->right;
-                    poly->y0 = poly->y1 = extent->top;
-                    poly->y2 = poly->y3 = extent->bottom;
-                    poly->tpage         = getTPage(2, layer, extent->texX, 0x100);
-                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + width - extent->texX;
-                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + width - extent->texX;
-                    poly->v0 = poly->v1 = poly->y0 + 0x78;
-                    poly->v2 = poly->v3 = poly->y2 + 0x78;
-                    addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                            poly);
-                }
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 0, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
-            } else {
-                extra->flags |= 0x80;
-            }
-            SCRATCH_POP_BYTES(0x34);
-        }
-    }
-
-    {
-        GpCoord*   ownerParts;
-        TmdObject* ownerBody;
-        GpCoord*   ownParts;
-        MATRIX     mtx;
-
-        ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
-        ownerBody   = gameGetPtrSlot(3)->extra.tmd;
-        ownParts    = task->extra.tmd->coords;
-        work->light = *ownerBody->lightMtx;
-        work->color = *ownerBody->colorMtx;
-        Gp_UpdateCoord(ownParts);
-        gte_TransposeMatrix(&ownParts->workm, &mtx);
-        gte_MulMatrix0(&ownerParts->workm, &mtx, &mtx);
-        gte_MulMatrix0(&work->light, &mtx, &work->light);
-    }
-}
-
-/// Scale applied to reflections with `spawnArg1 >= 2`: X negated, Y and Z kept.
-static const VECTOR D_acropolis_square_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
-
-/// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
-/// mirror task the room set up and the parent is the held-object task being
-/// reflected. On the first frame it clones the parent's TMD source, parents the clone's root coordinate to the
-/// mirrored player's corresponding part, points the clone at the mirror's
-/// light and color matrices and negates the X translation; every frame it
-/// republishes the mirror model's draw flags onto the clone.
-void func_acropolis_square_8017F24C(Task* task)
-{
-    Task*           mirror;
-    TmdObject*      mirrorExtra;
-    RoomMirrorWork* work;
-    GpCoord*        mirrorPart;
-    TmdObject*      src;
-    GpCoord*        srcParts;
-    TmdObject*      extra;
-    GpCoord*        parts;
-    VECTOR          scale;
-    u16             flags;
-
-    if (task->parent == NULL) {
-        Task_CallExit(task);
-    }
-    mirror      = (Task*)task->spawnArg2.pointer;
-    mirrorPart  = &mirror->extra.tmd->coords[D_acropolis_square_80183464[task->spawnArg1.value]];
-    work        = (RoomMirrorWork*)mirror->work;
-    mirrorExtra = mirror->extra.tmd;
-    if (task->state == 0) {
-        src      = task->parent->extra.tmd;
-        srcParts = src->coords;
-        if (Gp_AttachTmd(task, src->source) == NULL) {
-            Task_CallExit(task);
-            return;
-        }
-        extra        = task->extra.tmd;
-        parts        = extra->coords;
-        extra->tpage = src->tpage;
-        tmdProcessStream(extra);
-        tmdProcessStream(extra);
-        extra->flags    = 0x10;
-        extra->otOffset = 0x1F;
-        parts->sub      = mirrorPart;
-        extra->lightMtx = &work->light;
-        extra->colorMtx = &work->color;
-        if (task->spawnArg1.value >= 2) {
-            scale = D_acropolis_square_8017D5C4;
-            ScaleMatrix(&parts->coord, &scale);
-        }
-        parts->coord.t[0] = -srcParts->coord.t[0];
-        parts->coord.t[1] = srcParts->coord.t[1];
-        parts->coord.t[2] = srcParts->coord.t[2];
-        parts->flg        = 0;
-        task->state++;
-    }
-    extra        = task->extra.tmd;
-    flags        = mirrorExtra->flags;
-    extra->flags = flags;
-    if (task->spawnArg1.value >= 2) {
-        extra->flags = flags & 0xFFEF;
-    }
-}
-
-/// Mirror task: runs the set-up state, then the per-frame state.
 void func_acropolis_square_8017F41C(Task* task)
 {
-    TaskFunc states[2] = {
-        func_acropolis_square_8017D714,
-        func_acropolis_square_8017D8C8,
-    };
-
-    states[task->state](task);
+    Reflection_PlayerTask(task);
 }
 
-/// Draws one row of the play-data statistics panel: the row label, then the
-/// statistic `arg0->field_8` selects - play time, several save counters, and
-/// two percentages printed with two decimals and a "%" suffix. While the row is
-/// selected its help text goes to the UI holder.
-void func_acropolis_square_8017F46C(UiList* arg0, UiObject* arg1)
-{
-    u8  buf[0x20];
-    u8* p;
+#undef REFLECTION_SCALE_IN_CODE
 
-    p = buf;
-    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
-            u8* tbl[9] = {
-                D_acropolis_square_80183504,
-                D_acropolis_square_80183530,
-                D_acropolis_square_80183554,
-                D_acropolis_square_80183584,
-                D_acropolis_square_801835B8,
-                D_acropolis_square_801835EC,
-                D_acropolis_square_80183624,
-                D_acropolis_square_80183658,
-                D_acropolis_square_80183690,
-            };
+#include "../../shared/telephone.inc.c"
 
-            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
-        }
-    }
-
-    switch (arg0->field_8) {
-        case 0: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834A8);
-            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 1: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834D8);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
-            Text_Strcat(p, D_acropolis_square_801834F8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 2: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834B0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
-            Text_Strcat(p, D_acropolis_square_801834F8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 3: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834B4);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
-            Text_Strcat(p, D_acropolis_square_801834F8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 4: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834BC);
-            if (Mc_SaveData[0].state.field_6CC == 0) {
-                pct = 0;
-            } else {
-                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_acropolis_square_80183500);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 5: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         total;
-            s32         cnt;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            total          = Mc_SaveData[0].state.field_6CC;
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834C8);
-            cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
-            if (total == 0) {
-                pct = 0;
-            } else {
-                pct = (total * 10000) / cnt;
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_acropolis_square_80183500);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
-            break;
-        }
-        case 6: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834E0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
-            Text_Strcat(p, D_acropolis_square_801834F8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 7: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834E8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
-            break;
-        }
-        case 8: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_acropolis_square_801834F0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
-            break;
-        }
-    }
-}
-
-/// "Play Data", the title of the play-data menu panel
-/// `func_acropolis_square_80180CBC` draws.
-static const char D_acropolis_square_8017D620[] = "Play Data";
-
-/// Text drawn in place of a usage row's percentage once it reaches 100 percent.
-static const u8 D_acropolis_square_8017D62C[] = "100.0%";
-
-/// Draws one row of a play-data usage panel from the `RoomItemUsage` block at
-/// the owner task's `work`: the item's name and icon, its share of all uses as
-/// a two-decimal percentage, and a gouraud bar scaled by the row's
-/// `barWidths`. While the row is selected the item is previewed, and a confirm
-/// opens the item's detail panel.
-void func_acropolis_square_8017FC38(UiList* arg0, UiObject* arg1)
-{
-    u8             buf[0x20];
-    TextDrawReq    req;
-    TextDrawReq*   r;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    u8*            p;
-    u8*            q;
-    s32            item;
-    s32            value;
-    s32            x;
-    s32            y;
-    s32            color;
-    s32            textY;
-    s32            limit;
-    s32            n;
-    s32            len;
-    s32            i;
-    s32            avail;
-    s32            base;
-    s32            barW;
-    s32            barX;
-    s32            rowY;
-    s32            one;
-    s32            tx;
-    s32            ty;
-
-    p     = buf;
-    r     = &req;
-    x     = arg0->field_18;
-    y     = arg0->field_1A;
-    work  = (RoomItemUsage*)arg1->owner->work;
-    item  = work->itemIds[arg0->field_8];
-    value = work->percents[arg0->field_8];
-    color = arg0->field_1C;
-    if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        textY          = arg1->panel.field_22.u - 6;
-        req.y          = textY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        r->field_E     = 1;
-        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
-        func_800CE5D0(arg1, x, y, item);
-    }
-    limit = 1;
-    if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, D_acropolis_square_8017D62C, arg0->field_1C, 3, 2);
-    } else {
-        for (i = 2; i > 0; i--) {
-            limit *= 10;
-        }
-        if (value < limit) {
-            Text_ItoaPadded(p, value, 3);
-        } else {
-            Text_ItoaUnsigned(p, value);
-        }
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = '.';
-        Text_Strcat(p, D_acropolis_square_80183500);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-    }
-
-    base  = (s16)arg1->panel.field_1C.s + 0x80;
-    avail = (s16)arg1->panel.field_1E.u - 0x4A;
-    barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
-    rowY  = arg0->field_1A - 0xC;
-    barW  = barW + 2;
-    barX  = avail - barW;
-    if (barW >= 2) {
-        prim                     = (POLY_G4*)gGpuPrimCursor;
-        tx                       = arg1->panel.field_20.u + barX + 1;
-        prim->x2                 = tx;
-        prim->x0                 = tx;
-        ty                       = arg1->panel.field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        ty                       = ty + rowY;
-        ty                      += 1;
-        PRIM_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
-        PRIM_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        tx                       = (u16)prim->x0 + barW - 1;
-        prim->y1                 = ty;
-        prim->y0                 = ty;
-        ty                      += 8;
-        prim->y3                 = ty;
-        prim->y2                 = ty;
-        prim->x3                 = tx;
-        prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
-    }
-    one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
-    if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
-        if (arg0->field_10 == arg0->field_8) {
-            Gp_SetPreviewItem(item, 0);
-            Gp_SetHolderItemText(item);
-        }
-    }
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
-        }
-    }
-}
-
-/// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
-///
-/// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
-/// and whose counter is non-zero is marked seen and appended to `itemIds`,
-/// while the counters are summed. The ids are then insertion-sorted by use
-/// count, most-used first. Finally each row gets `percents` - its share of all
-/// recorded uses in hundredths of a percent, rounded - and `barWidths`, its
-/// counter as a 12-bit fraction of the top row's. Both are scaled down by
-/// halving until the top counter fits in 17 bits, so the multiply and the
-/// shift cannot overflow.
-static void func_acropolis_square_80180034(UiList* list, UiObject* obj)
-{
-    RoomItemUsage* work;
-    s32            count;
-    s32            total;
-    s32            i;
-    s32            j;
-    s32            k;
-    s32            id;
-    s32            tmp;
-    s32            uses;
-    s32            scale;
-    s32            top;
-    s32            shift;
-    s16*           p;
-    u8             c;
-
-    count = 0;
-    total = 0;
-    work  = (RoomItemUsage*)obj->owner->work;
-    p     = work->itemIds;
-
-    for (i = 0; i < 0x20; i++) {
-        id = i + 0x80;
-        c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
-            Gp_SetItemSeenBit(id, 1);
-            *p++ = id;
-            count++;
-            total += Mc_SaveData[0].state.weaponUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
-            for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
-                    tmp = work->itemIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->itemIds[k + 1] = work->itemIds[k];
-                    }
-                    work->itemIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            work->percents[i] =
-                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
-            work->barWidths[i] =
-                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
-/// save's per-slot use counters.
-///
-/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
-/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
-/// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
-/// are addressed by page and column, with three slots per page. The ids are
-/// then insertion-sorted by use count, most-used first, and each row gets
-/// `percents`, its share of all recorded uses in hundredths of a percent, and
-/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
-/// scaled down by halving until the top counter fits in 17 bits, so the
-/// multiply and the shift cannot overflow.
-static void func_acropolis_square_80180330(UiList* list, UiObject* obj)
-{
-    RoomPeUsage* work;
-    s16*         p;
-    s32          count;
-    s32          total;
-    s32          i;
-    s32          j;
-    s32          k;
-    s32          id;
-    s32          slot;
-    s32          uses;
-    s32          scale;
-    s32          shift;
-    s32          top;
-    s32          tmp;
-
-    count = 0;
-    total = 0;
-    i     = 0;
-    work  = (RoomPeUsage*)obj->owner->work;
-    p     = work->peIds;
-
-    for (; i < 12; i++) {
-        s32 useCount;
-
-        useCount = Mc_SaveData[0].state.attachUseCounts[i];
-        id       = i * 3 + 0xF;
-        if (useCount > 0) {
-            s32 page;
-            s32 column;
-
-            page   = i / 3;
-            column = i % 3;
-            *p     = id;
-            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
-            }
-            p++;
-            count++;
-            total += Mc_SaveData[0].state.attachUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].state.attachUseCounts[slot];
-            for (j = 0; j < i; j++) {
-                slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
-                    tmp = work->peIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->peIds[k + 1] = work->peIds[k];
-                    }
-                    work->peIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].state.attachUseCounts[slot];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Titles of the usage panel, one per kind: weapons and Parasite Energy.
-static const char D_acropolis_square_8017D634[] = "Weapon Data";
-static const char D_acropolis_square_8017D640[] = "PE Data";
-
-/// Task of the usage panel: draws the weapon or Parasite Energy title
-/// (`spawnArg1`), and on its first tick allocates the `RoomItemUsage` /
-/// `RoomPeUsage` block, spawns the panel and fills its list. Cancel closes it,
-/// and a child panel that closes hands control back.
-void func_acropolis_square_80180650(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    UiObject* childObj;
-    void*     work;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &D_acropolis_square_801836F4;
-    if (task->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, D_acropolis_square_8017D634);
-    } else {
-        Ui_DrawText(&(obj)->panel, D_acropolis_square_8017D640);
-    }
-    if (task->state == 0) {
-        work = memCalloc(0xC4, 0);
-        if (work == NULL) {
-            return;
-        }
-        task->work = work;
-        Ui_SpawnFromDesc(&D_acropolis_square_80183718, 0, 0, 1, obj);
-        if (task->spawnArg1.value == 0) {
-            func_acropolis_square_80180034(list, obj);
-        } else {
-            func_acropolis_square_80180330(list, obj);
-        }
-        Ui_InitList(list, &(obj)->panel);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-    if (task->firstChild != NULL) {
-        child = task->firstChild;
-        do {
-            childObj = child->spawnArg2.pointer;
-            next     = child->nextSibling;
-            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
-                Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-/// "Telephone", followed by the non-zero padding the original toolchain left.
-static const char D_acropolis_square_8017D648[12] = "Telephone\0\xDC\xDD";
-
-/// Task of the telephone menu panel. Until the save allows it (demo scene 1
-/// or a clear) it only spawns the generic panel; otherwise it lays out its
-/// list and draws the title. Choosing an entry opens the item prompt, and
-/// cancel closes the panel.
 void func_acropolis_square_80180804(Task* task)
 {
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s32       ready;
-    s32       sel;
-    s32       kind;
-    s32       mode;
-    s32       one;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    ready         = Mc_SaveData[0].state.demoScene == 1;
-    list          = &D_acropolis_square_8018377C;
-    one           = 1;
-    if (Mc_SaveData[0].state.clearCount > 0) {
-        ready = one;
-    }
-    if (ready == 0) {
-        if (task->state == 0) {
-            gGameSession->uiOpen = one;
-            Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
-            obj->panel.field_0.w = 0;
-            obj->panel.field_4  |= 0x80000000;
-            task->state          = task->state + 1;
-        }
-    } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.field_0.w = one;
-        gGameSession->uiOpen = one;
-        Ui_SetListScrollFlag(list, 1);
-        Gp_ClearPreviewItems();
-        D_80067634   = NULL;
-        Wip_UiHolder = NULL;
-        task->state  = task->state + 1;
-    } else {
-        /* The literal carries its trailing "\0\1" - the room's rodata has
-         * those two bytes right after the string and nothing else claims them. */
-        Ui_DrawText(&(obj)->panel, D_acropolis_square_8017D648);
-        Ui_UpdateListNoAnim(list, obj);
-    }
-    if (obj->field_2E == 6) {
-        obj->field_2E = 0;
-        Ui_SetState4(obj, task);
-        obj->panel.field_0.w = 0;
-    }
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        if (task->state != 0) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
-        }
-        gGameSession->uiOpen = 0;
-        obj->field_2E        = -1;
-        obj->field_2C        = 0x34;
-    }
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        sel      = childObj->field_2E;
-        switch (sel) {
-            case 6:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else if (task->state == 3) {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                } else {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(0x3B, 0, 0);
-                    Ui_StartCloseAnim(&(obj)->panel, task);
-                    obj->panel.field_0.w = 1;
-                }
-                break;
-            case -1:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                }
-                break;
-        }
-    }
+    Telephone_MenuTask(task);
 }
 
-/// Task of a prompt panel: on its first tick it becomes the UI holder and
-/// installs the save-prompt exit callback; every tick it draws the prompt
-/// lines.
-void func_acropolis_square_80180AFC(Task* task)
-{
-    UiObject* obj;
+#include "../../shared/telephone_panels.inc.c"
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Wip_UiHolder       = obj;
-        task->exitCallback = func_acropolis_square_801811EC;
-        task->state       += 1;
-    }
-    Gp_DrawPromptLines(obj, task);
-}
-
-/// Inserts a '.' into a digit string so `decimals` characters sit after the
-/// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
-/// one to the right to open a slot. No-op when `decimals <= 0`.
-static void func_acropolis_square_80180B58(u8* str, s32 decimals)
-{
-    s32 len = 0;
-    s32 i;
-
-    if (decimals > 0) {
-        while (*str != 0) {
-            str++;
-            len++;
-        }
-        if (len < decimals) {
-            decimals = len;
-        }
-        decimals++;
-        for (i = 0; i < decimals; i++) {
-            str[1] = str[0];
-            str--;
-        }
-        str[1] = '.';
-    }
-}
-
-/// Format `value` as a percentage with `decimals` fractional digits into `buf`:
-/// print the integer with at least `decimals + 1` digits when it is small enough
-/// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
-/// shift the last `decimals` digits right by one and drop a '.' in front of
-/// them. Appends "%" and returns `buf`.
-static u8* func_acropolis_square_80180BC8(u8* buf, s32 value, s32 decimals)
-{
-    s32 limit;
-    s32 i;
-    s32 len;
-    s32 n;
-    u8* p;
-
-    limit = 1;
-    for (i = decimals; i > 0; i--) {
-        limit *= 10;
-    }
-
-    if (value < limit) {
-        Text_ItoaPadded(buf, value, decimals + 1);
-    } else {
-        Text_ItoaUnsigned(buf, value);
-    }
-
-    n   = decimals;
-    p   = buf;
-    len = 0;
-    if (n > 0) {
-        while (*p != 0) {
-            p++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            p[1] = p[0];
-            p--;
-        }
-        p[1] = '.';
-    }
-
-    Text_Strcat(buf, D_acropolis_square_80183500);
-    return buf;
-}
-
-/// Task of the play-data menu panel: draws "Play Data", and on its first tick
-/// spawns the panel and lays out its list. Cancel closes it.
-void func_acropolis_square_80180CBC(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-
-    list          = &D_acropolis_square_801836CC;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, D_acropolis_square_8017D620);
-    if (task->state == 0) {
-        Ui_SpawnFromDesc(&D_acropolis_square_80183718, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.h += 5;
-        list->field_A                     = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-}
-
-/// Queues a gouraud-shaded rectangle into the current OT one slot past the
-/// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
-/// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
-/// take `arg6`. A zero color or width < 2 draws nothing.
-static void func_acropolis_square_80180DAC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
-{
-    POLY_G4* prim;
-    s16      x;
-    s16      y;
-
-    if ((arg5 != 0) && (arg3 >= 2)) {
-        prim     = (POLY_G4*)gGpuPrimCursor;
-        x        = arg0->field_20.u + arg1 + 1;
-        prim->x0 = prim->x2      = x;
-        y                        = arg0->field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        PRIM_COLOR_WORD(prim, 0) = arg5;
-        setPolyG4(prim);
-        PRIM_COLOR_WORD(prim, 2) = arg5;
-        PRIM_COLOR_WORD(prim, 3) = arg6;
-        PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                        = y + arg2 + 1;
-        x                        = prim->x0 + arg3 - 1;
-        prim->y0 = prim->y1 = y;
-        prim->x1 = prim->x3 = x;
-        y                   = y + arg4 - 1;
-        prim->y2 = prim->y3 = y;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, prim);
-    }
-}
-
-/// Menu entry "Save": on a confirm while the CD is idle, opens the save panel
-/// and moves the owner task to state 1.
-void func_acropolis_square_80180EB0(UiList* prompt, UiObject* obj)
-{
-    s32 sel;
-
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_acropolis_square_80183480, prompt->field_1C, 1, 0);
-    sel = prompt->field_C;
-    if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        gDisplayState.gameMode = 0xFF;
-        Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.field_0.w = 0;
-        obj->field_2E        = 6;
-        obj->owner->state    = sel;
-    }
-}
-
-/// Menu entry "Play Data": on a confirm, opens the play-data panel and moves
-/// the owner task to state 2.
-void func_acropolis_square_80180F94(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_acropolis_square_80183488, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_acropolis_square_80183734, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Menu entry "Weapon Data": on a confirm, opens the usage panel for weapons
-/// and moves the owner task to state 2.
-void func_acropolis_square_8018105C(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_acropolis_square_80183494, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_acropolis_square_80183750, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Menu entry "PE Data": on a confirm, opens the usage panel for Parasite
-/// Energy and moves the owner task to state 2.
-void func_acropolis_square_80181124(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_acropolis_square_801834A0, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_acropolis_square_80183750, 1, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Task exit callback for the save-prompt UI: if this task still owns
-/// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-static void func_acropolis_square_801811EC(Task* task)
-{
-    UiObject* holder;
-
-    holder = task->spawnArg2.pointer;
-    if (Wip_UiHolder == holder) {
-        Wip_UiHolder = NULL;
-    }
-    Ui_FreeAndKill(task);
-}
+#undef TELEPHONE_TITLE_BYTES
 
 /// The room's cutscene runner: suppresses the player and ally HUD, loads and
 /// starts the scene's caption slot, lets confirm or cancel cut the scene
@@ -3964,7 +2170,7 @@ void func_acropolis_square_80181228(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                  = Mc_SaveData[0].state.at4.loc.view;
+                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
                 Mc_SaveData[0].state.at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
@@ -4142,7 +2348,7 @@ static const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
     },
 };
 
-s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg * arg2, RoomEventMsg * arg3)
+s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, RoomEventMsg* arg3)
 {
     GpAreaKey key; // filled in but never used: the Gp_SetAreaObjId call the
                    // sibling rooms make with it is absent here
@@ -4227,7 +2433,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_acropolis_square_801888AC.value.field_10 = 0x51010006;
         D_acropolis_square_801888AC.value.field_C  = 0x5101000B;
         D_acropolis_square_801888AC.value.field_2  = D_acropolis_square_8018382C;
-        D_acropolis_square_8018382C          = 0;
+        D_acropolis_square_8018382C                = 0;
         Task_SpawnFromTable(D_acropolis_square_801837A0, 0, 2, &D_acropolis_square_801888AC.value);
     }
     if ((arg2 == 0xE) && (GameFlag_GetNibble(0x124) == 0)) {
@@ -4441,7 +2647,7 @@ void func_acropolis_square_80182048(Task* task)
     }
 }
 
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_acropolis_square_801820D8(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 0) {
         Gp_SpawnIfCapIdle(5, 0);
@@ -4519,8 +2725,8 @@ static void func_acropolis_square_801822A4(Task* task)
     char pad[0x10];
 
     if (Mc_SaveData[0].state.at4.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
-        D_acropolis_square_80183830 = 1;
-        Mc_SaveData[0].state.sceneEvent   = 2;
+        D_acropolis_square_80183830     = 1;
+        Mc_SaveData[0].state.sceneEvent = 2;
         func_800E8634(D_acropolis_square_8018399C, 0, D_acropolis_square_80183A5C);
     }
 }

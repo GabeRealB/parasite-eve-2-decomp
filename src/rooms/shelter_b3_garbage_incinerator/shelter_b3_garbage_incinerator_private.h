@@ -45,27 +45,28 @@ extern OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38;
 
 extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
 
-extern GpCapEntry* D_shelter_b3_garbage_incinerator_8018FC40;
+extern GpCapEntry* CapCaption_Data_8015E650;
 
-extern GlyphUvwh* D_shelter_b3_garbage_incinerator_8018FC44;
+extern GlyphUvwh* CapCaption_Data_8015E654;
 
-extern GpEvt12* D_shelter_b3_garbage_incinerator_8018FC48;
+extern GpEvt12* CapCaption_Data_8015E658;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC4C;
+extern s16 CapCaption_Data_8015E65C;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC4E;
+extern s16 CapCaption_Data_8015E65E;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC50;
+extern s16 CapCaption_Data_8015E660;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC52;
+extern s16 CapCaption_Data_8015E662;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC54;
+extern s16 CapCaption_Data_8015E664;
 
-extern s16 D_shelter_b3_garbage_incinerator_8018FC56;
+extern s16 CapCaption_Data_8015E666;
 
-extern u16 D_shelter_b3_garbage_incinerator_8018FC58;
+extern u16 CapCaption_Data_8015E668;
+extern u16 CapCaption_Data_8015E66A;
 
-extern u8 D_shelter_b3_garbage_incinerator_8018FC5C[4];
+extern u8 CapCaption_Data_8015E66C[4];
 
 extern OverlayWaveRec D_shelter_b3_garbage_incinerator_8018FC60[10];
 

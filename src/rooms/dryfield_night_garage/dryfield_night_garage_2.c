@@ -94,7 +94,7 @@ TaskDesc D_dryfield_night_garage_80182C98[2] = {
     { 0, 192, func_dryfield_night_garage_801807E4, { .model = NULL } },
 };
 
-GpAnimSet * D_dryfield_night_garage_80182CB0[5] = {
+GpAnimSet* D_dryfield_night_garage_80182CB0[5] = {
     NULL,
     &D_dryfield_night_garage_80182140,
     &D_dryfield_night_garage_80182514,
@@ -263,7 +263,7 @@ u8 D_dryfield_night_garage_80183424[16] = {
     0,
 };
 
-u8 * D_dryfield_night_garage_80183434[2] = {
+u8* D_dryfield_night_garage_80183434[2] = {
     D_8010CAF8,
     D_dryfield_night_garage_80183424,
 };
@@ -737,7 +737,7 @@ s16 D_dryfield_night_garage_80183D98[11] = {
     -1,
 };
 
-s16 * D_dryfield_night_garage_80183DB0[9] = {
+s16* D_dryfield_night_garage_80183DB0[9] = {
     D_dryfield_night_garage_80183BF4,
     D_dryfield_night_garage_80183C28,
     D_dryfield_night_garage_80183C60,
@@ -1034,7 +1034,7 @@ s16 D_dryfield_night_garage_801843A0[7] = {
     -1,
 };
 
-s16 * D_dryfield_night_garage_801843B0[9] = {
+s16* D_dryfield_night_garage_801843B0[9] = {
     D_dryfield_night_garage_801842C8,
     D_dryfield_night_garage_801842DC,
     D_dryfield_night_garage_801842EC,
@@ -1692,7 +1692,7 @@ GpRoomParamRec D_dryfield_night_garage_801875B0[1] = {
     { 0, 0, 1, 0, D_dryfield_night_garage_8018759C },
 };
 
-GpRoomParamRec * D_dryfield_night_garage_801875B8[8] = {
+GpRoomParamRec* D_dryfield_night_garage_801875B8[8] = {
     D_dryfield_night_garage_801875A8,
     D_dryfield_night_garage_801875B0,
     D_dryfield_night_garage_801875A8,
@@ -1729,9 +1729,9 @@ GpAreaApplyRec D_dryfield_night_garage_80187620[2] = {
     { 255, 0, 0, 0 },
 };
 
-s32 D_dryfield_night_garage_80187628 = 0;
+s32 Shop_Data_80187628 = 0;
 
-GpItemMap * D_dryfield_night_garage_8018762C = NULL;
+GpItemMap* Shop_Data_8018762C = NULL;
 
 static void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg2);
 

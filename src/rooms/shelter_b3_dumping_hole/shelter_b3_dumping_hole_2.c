@@ -94,7 +94,8 @@
 
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
 
-static void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1);
+static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
+#include "../../shared/cap_captions.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -104,9 +105,8 @@ extern u16 D_shelter_b3_dumping_hole_8018F4D4_value __asm__("D_shelter_b3_dumpin
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b3_dumping_hole_8018F4D0[4];
+static u8 CapCaption_Data_8015E66C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_b3_dumping_hole_8018F4D0_value __asm__("D_shelter_b3_dumping_hole_8018F4D0");
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -364,32 +364,32 @@ extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
 extern GpEvsCmd                          D_shelter_b3_dumping_hole_8018968C[];
 extern GpEvsCmd                          D_shelter_b3_dumping_hole_801899A4[];
 extern TaskDesc                          D_shelter_b3_dumping_hole_8018AFBC;
-extern GpEvt12*                          D_shelter_b3_dumping_hole_8018F4BC;
-extern s16                               D_shelter_b3_dumping_hole_8018F4C6;
-extern OverlayCapWindow                  D_shelter_b3_dumping_hole_8018B5A0[];
-extern GlyphUvwh*                        D_shelter_b3_dumping_hole_8018F4B8;
-extern GpCapEntry*                       D_shelter_b3_dumping_hole_8018F4B4;
-extern s16                               D_shelter_b3_dumping_hole_8018F4C0;
-extern s16                               D_shelter_b3_dumping_hole_8018F4C2;
-extern s16                               D_shelter_b3_dumping_hole_8018F4C4;
-extern s16                               D_shelter_b3_dumping_hole_8018F4C8;
-extern s16                               D_shelter_b3_dumping_hole_8018F4CA;
+static GpEvt12*                          CapCaption_Data_8015E658;
+static s16                               CapCaption_Data_8015E662;
+static OverlayCapWindow                  CapCaption_Data_80154514[];
+static GlyphUvwh*                        CapCaption_Data_8015E654;
+static GpCapEntry*                       CapCaption_Data_8015E650;
+static s16                               CapCaption_Data_8015E65C;
+static s16                               CapCaption_Data_8015E65E;
+static s16                               CapCaption_Data_8015E660;
+static s16                               CapCaption_Data_8015E664;
+static s16                               CapCaption_Data_8015E666;
 
-extern s16      D_shelter_b3_dumping_hole_8018B578;
-extern s16      D_shelter_b3_dumping_hole_8018B57A;
-extern u16      D_shelter_b3_dumping_hole_8018F4CC;
-extern u16      D_shelter_b3_dumping_hole_8018F4CE;
-extern s32      D_shelter_b3_dumping_hole_8018B670;
-extern s32      D_shelter_b3_dumping_hole_8018B674;
-extern TaskDesc D_shelter_b3_dumping_hole_8018B588;
+static s16      CapCaption_Data_801544EC;
+static s16      CapCaption_Data_801544EE;
+static u16      CapCaption_Data_8015E668;
+static u16      CapCaption_Data_8015E66A;
+static s32      CapCaption_Data_801545E4;
+static s32      CapCaption_Data_801545E8;
+static TaskDesc CapCaption_Data_801544FC;
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
-extern TaskDesc D_shelter_b3_dumping_hole_8018B594;
+static TaskDesc CapCaption_Data_80154508;
 
 extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
-static s32  func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2);
+
 static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -397,18 +397,10 @@ static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 a
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
 static void func_shelter_b3_dumping_hole_8017FD9C(GpCoord* arg0, s32 arg1);
-static void func_shelter_b3_dumping_hole_80181C8C(void);
-static s32  func_shelter_b3_dumping_hole_80181F80(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_shelter_b3_dumping_hole_80182AA0(void);
-static s32  func_shelter_b3_dumping_hole_80182FD0(s32 arg0);
-static s16  func_shelter_b3_dumping_hole_80182C24(u16* arg0);
-static s16  func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1);
-static s32  func_shelter_b3_dumping_hole_80182F18(u16* arg0);
-static s16  func_shelter_b3_dumping_hole_801829B4(u16* arg0);
-static s32  func_shelter_b3_dumping_hole_80182E50(u16* arg0);
+
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
-static s32  func_shelter_b3_dumping_hole_80181D68(GpCapFileAddress base);
+
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0);
 static void func_shelter_b3_dumping_hole_801836E0(Task* arg0);
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
@@ -481,8 +473,6 @@ void                                       func_shelter_b3_dumping_hole_80181B44
 extern GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1];
 extern GpObj4C      D_shelter_b3_dumping_hole_8018E88C[8];
 extern GpObj4C      D_shelter_b3_dumping_hole_8018EF9C[8];
-void                func_shelter_b3_dumping_hole_80183024(Task*);
-void                func_shelter_b3_dumping_hole_80183060(Task*);
 
 void func_shelter_b3_dumping_hole_80183530(Task*, s32, GpCmdArg*);
 void func_shelter_b3_dumping_hole_80183550(Task*);
@@ -776,8 +766,15 @@ u32 D_shelter_b3_dumping_hole_80189084[365] = {
 };
 
 TmdSource D_shelter_b3_dumping_hole_80189638 = {
-    0, 2600, 0, 4,
-    D_shelter_b3_dumping_hole_80188CC4, D_shelter_b3_dumping_hole_80188CD4, D_shelter_b3_dumping_hole_80188FF4, D_shelter_b3_dumping_hole_80188C34, D_shelter_b3_dumping_hole_80189084,
+    0,
+    2600,
+    0,
+    4,
+    D_shelter_b3_dumping_hole_80188CC4,
+    D_shelter_b3_dumping_hole_80188CD4,
+    D_shelter_b3_dumping_hole_80188FF4,
+    D_shelter_b3_dumping_hole_80188C34,
+    D_shelter_b3_dumping_hole_80189084,
 };
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
@@ -854,7 +851,7 @@ typedef union {
 
 ShelterB3DumpingHolePoseBankC534 D_shelter_b3_dumping_hole_80189AF4 = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank1.inc"
-} };
+                                                                        } };
 
 GpPackedSvec D_shelter_b3_dumping_hole_80189B3C[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank4.inc"
@@ -869,7 +866,8 @@ u16 D_shelter_b3_dumping_hole_80189DA8[20] = {
 };
 
 GpAnimSet D_shelter_b3_dumping_hole_80189DD0 = {
-    D_shelter_b3_dumping_hole_80189BF4, D_shelter_b3_dumping_hole_80189DA8,
+    D_shelter_b3_dumping_hole_80189BF4,
+    D_shelter_b3_dumping_hole_80189DA8,
     { NULL, D_shelter_b3_dumping_hole_80189AF4.words, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
 };
 
@@ -881,7 +879,7 @@ typedef union {
 
 ShelterB3DumpingHolePoseBankC838 D_shelter_b3_dumping_hole_80189DF8 = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank1.inc"
-} };
+                                                                        } };
 
 GpPackedSvec D_shelter_b3_dumping_hole_80189E64[97] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank4.inc"
@@ -896,7 +894,8 @@ u16 D_shelter_b3_dumping_hole_8018A24C[20] = {
 };
 
 GpAnimSet D_shelter_b3_dumping_hole_8018A274 = {
-    D_shelter_b3_dumping_hole_80189FE8, D_shelter_b3_dumping_hole_8018A24C,
+    D_shelter_b3_dumping_hole_80189FE8,
+    D_shelter_b3_dumping_hole_8018A24C,
     { NULL, D_shelter_b3_dumping_hole_80189DF8.words, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
 };
 
@@ -908,7 +907,7 @@ typedef union {
 
 ShelterB3DumpingHolePoseBankCCDC D_shelter_b3_dumping_hole_8018A29C = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank1.inc"
-} };
+                                                                        } };
 
 GpPackedSvec D_shelter_b3_dumping_hole_8018A3EC[232] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank4.inc"
@@ -923,7 +922,8 @@ u16 D_shelter_b3_dumping_hole_8018AF5C[20] = {
 };
 
 GpAnimSet D_shelter_b3_dumping_hole_8018AF84 = {
-    D_shelter_b3_dumping_hole_8018A78C, D_shelter_b3_dumping_hole_8018AF5C,
+    D_shelter_b3_dumping_hole_8018A78C,
+    D_shelter_b3_dumping_hole_8018AF5C,
     { NULL, D_shelter_b3_dumping_hole_8018A29C.words, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
 };
 
@@ -1018,42 +1018,22 @@ GpEvsCmd D_shelter_b3_dumping_hole_8018B428[14] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-s16 D_shelter_b3_dumping_hole_8018B578 = 384;
+#include "../../shared/cap_captions_settings.inc.c"
 
-s16 D_shelter_b3_dumping_hole_8018B57A = 0;
+static void CapCaption_RunSchedule(Task* task, s32 arg1);
 
-DumpingHoleCaptionTaskSeed D_shelter_b3_dumping_hole_8018B57C = { 0, 32, func_shelter_b3_dumping_hole_80181B64, NULL };
-
-TaskDesc D_shelter_b3_dumping_hole_8018B588 = { 0, 32, func_shelter_b3_dumping_hole_80183024, { .model = NULL } };
-
-TaskDesc D_shelter_b3_dumping_hole_8018B594 = { 0, 32, func_shelter_b3_dumping_hole_80183060, { .model = NULL } };
-
-OverlayCapWindow D_shelter_b3_dumping_hole_8018B5A0[13] = {
-    { 300, 295, 16, 5 },
-    { 240, 235, 16, 4 },
-    { 180, 175, 16, 3 },
-    { 120, 115, 16, 2 },
-    { 60, 55, 16, 1 },
-    { 30, 25, 17, 30 },
-    { 5, 4, 17, 5 },
-    { 4, 3, 17, 4 },
-    { 3, 2, 17, 3 },
-    { 2, 1, 17, 2 },
-    { 1, 0, 17, 1 },
-    { 0, -3, 17, 0 },
-    { -1, 0, 0, 0 },
+CapCaptionTaskTable D_shelter_b3_dumping_hole_8018B57C = {
+    .native = { { 0, 32, { .withArg = CapCaption_RunSchedule }, { .value = 0 } } }
 };
 
-s32 D_shelter_b3_dumping_hole_8018B670 = 8;
-
-s32 D_shelter_b3_dumping_hole_8018B674 = 0;
+#include "../../shared/cap_captions_schedule.inc.c"
 
 GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[2] = {
     { D_shelter_b3_dumping_hole_8018C3EC, NULL, D_shelter_b3_dumping_hole_8018ECA4, NULL },
     { D_shelter_b3_dumping_hole_8018C3EC, D_shelter_b3_dumping_hole_8018E88C, D_shelter_b3_dumping_hole_8018EF9C, NULL },
 };
 
-u8 * D_shelter_b3_dumping_hole_8018B698[2] = {
+u8* D_shelter_b3_dumping_hole_8018B698[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -1822,7 +1802,7 @@ s16 D_shelter_b3_dumping_hole_8018C36C[15] = {
     -1,
 };
 
-s16 * D_shelter_b3_dumping_hole_8018C38C[24] = {
+s16* D_shelter_b3_dumping_hole_8018C38C[24] = {
     D_shelter_b3_dumping_hole_8018C054,
     D_shelter_b3_dumping_hole_8018C07C,
     D_shelter_b3_dumping_hole_8018C0AC,
@@ -2650,7 +2630,7 @@ GpRoomParamRec D_shelter_b3_dumping_hole_8018F478[1] = {
     { 0, 0, 1, 0, D_shelter_b3_dumping_hole_8018F45C },
 };
 
-GpRoomParamRec * D_shelter_b3_dumping_hole_8018F480[9] = {
+GpRoomParamRec* D_shelter_b3_dumping_hole_8018F480[9] = {
     D_shelter_b3_dumping_hole_8018F468,
     D_shelter_b3_dumping_hole_8018F468,
     D_shelter_b3_dumping_hole_8018F468,
@@ -2669,38 +2649,38 @@ u8 D_shelter_b3_dumping_hole_8018F4A4[4] = {
     8,
 };
 
-Task * D_shelter_b3_dumping_hole_8018F4A8 = NULL;
+Task* D_shelter_b3_dumping_hole_8018F4A8 = NULL;
 
-Task * D_shelter_b3_dumping_hole_8018F4AC = NULL;
+Task* D_shelter_b3_dumping_hole_8018F4AC = NULL;
 
 u16 D_shelter_b3_dumping_hole_8018F4B0[2] = {
     0,
     0xDF0D,
 };
 
-GpCapEntry * D_shelter_b3_dumping_hole_8018F4B4 = NULL;
+static GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
-GlyphUvwh * D_shelter_b3_dumping_hole_8018F4B8 = NULL;
+static GlyphUvwh* CapCaption_Data_8015E654 = NULL;
 
-GpEvt12 * D_shelter_b3_dumping_hole_8018F4BC = NULL;
+static GpEvt12* CapCaption_Data_8015E658 = NULL;
 
-s16 D_shelter_b3_dumping_hole_8018F4C0 = 0;
+static s16 CapCaption_Data_8015E65C = 0;
 
-s16 D_shelter_b3_dumping_hole_8018F4C2 = 0;
+static s16 CapCaption_Data_8015E65E = 0;
 
-s16 D_shelter_b3_dumping_hole_8018F4C4 = 0;
+static s16 CapCaption_Data_8015E660 = 0;
 
-s16 D_shelter_b3_dumping_hole_8018F4C6 = 0;
+static s16 CapCaption_Data_8015E662 = 0;
 
-s16 D_shelter_b3_dumping_hole_8018F4C8 = 0;
+static s16 CapCaption_Data_8015E664 = 0;
 
-s16 D_shelter_b3_dumping_hole_8018F4CA = 0;
+static s16 CapCaption_Data_8015E666 = 0;
 
-u16 D_shelter_b3_dumping_hole_8018F4CC = 0;
+static u16 CapCaption_Data_8015E668 = 0;
 
-u16 D_shelter_b3_dumping_hole_8018F4CE = 0;
+static u16 CapCaption_Data_8015E66A = 0;
 
-u8 D_shelter_b3_dumping_hole_8018F4D0[4] = {
+static u8 CapCaption_Data_8015E66C[4] = {
     0,
     19,
     111,
@@ -2721,8 +2701,6 @@ static u16        func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s
 static void       func_shelter_b3_dumping_hole_8017E7DC(Task* arg0);
 static void       func_shelter_b3_dumping_hole_8017FE10(s32 arg0);
 static void       func_shelter_b3_dumping_hole_8018098C(Task* task);
-static void       func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
-static void       func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2);
 
 /// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
 /// screen centred on the origin, 0 when it is on screen.
@@ -3500,16 +3478,16 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_48                     = 0;
                 work->field_46                     = 0;
             }
-            w                         = (DumpingHoleEntity*)arg0->work;
-            w->field_0                = w->field_28->extra.tmd->coords->coord.t[0];
-            t                         = w->field_28;
-            w->field_4                = t->extra.tmd->coords->coord.t[1];
-            w->field_8                = t->extra.tmd->coords->coord.t[2];
-            w->field_12               = 0x400;
-            w->field_10               = 0;
-            w->field_14               = 0;
+            w                               = (DumpingHoleEntity*)arg0->work;
+            w->field_0                      = w->field_28->extra.tmd->coords->coord.t[0];
+            t                               = w->field_28;
+            w->field_4                      = t->extra.tmd->coords->coord.t[1];
+            w->field_8                      = t->extra.tmd->coords->coord.t[2];
+            w->field_12                     = 0x400;
+            w->field_10                     = 0;
+            w->field_14                     = 0;
             Mc_SaveData[0].state.sceneEvent = 0xC;
-            gStageSceneMusicEntry     = 3;
+            gStageSceneMusicEntry           = 3;
             arg0->state++;
             break;
         case 1:
@@ -3528,7 +3506,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 n += 1;
             }
             msg.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
-            msg.count = n & 0xFFFF;
+            msg.count       = n & 0xFFFF;
             Gp_DispatchMsgPtr(w2->field_24, 0x3F7, &msg, 0);
             weaponId             = Player_Status.weapon;
             p                    = &anim;
@@ -3546,7 +3524,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-                GpObj4C* collision = &D_shelter_b3_dumping_hole_8018ECA4[8];
+                GpObj4C* collision   = &D_shelter_b3_dumping_hole_8018ECA4[8];
                 collision->field_4A &= ~0x40;
                 taskKill(arg0);
                 return;
@@ -3931,16 +3909,16 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
                     work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
                     Gp_DispatchMsgPtr(task, 0x7D4, &work->pose, 0);
-                    work->field_58.vx                  = 0;
-                    work->field_58.vy                  = 0;
-                    work->field_58.vz                  = 0;
+                    work->field_58.vx                        = 0;
+                    work->field_58.vy                        = 0;
+                    work->field_58.vz                        = 0;
                     D_shelter_b3_dumping_hole_8018F4B0_value = 1;
-                    work->field_68                     = &task->extra.tmd->coords[2];
-                    work->field_6C                     = 0x14;
-                    work->scale.vx                     = 0x1000;
-                    work->scale.vy                     = 0x1000;
-                    work->scale.vz                     = 0x1000;
-                    work->timer                        = 0;
+                    work->field_68                           = &task->extra.tmd->coords[2];
+                    work->field_6C                           = 0x14;
+                    work->scale.vx                           = 0x1000;
+                    work->scale.vy                           = 0x1000;
+                    work->scale.vz                           = 0x1000;
+                    work->timer                              = 0;
                     work->step++;
                     break;
                 case 1:
@@ -4046,7 +4024,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             Gp_DispatchMsg(task, 0x7D5, 2, 0);
             D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-            work->field_96                     = 1;
+            work->field_96                           = 1;
             Gp_PulseState1C();
             buf2.loc.from.loc.stage = gGameSession->at4.loc.stage;
             buf2.loc.from.loc.area  = gGameSession->at4.loc.area;
@@ -4139,9 +4117,9 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-    desc.from.loc.stage                = gGameSession->at4.loc.stage;
-    desc.from.loc.area                 = gGameSession->at4.loc.area;
-    desc.command                       = 0x13;
+    desc.from.loc.stage                      = gGameSession->at4.loc.stage;
+    desc.from.loc.area                       = gGameSession->at4.loc.area;
+    desc.command                             = 0x13;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &desc, 0x7DB);
 
     Display_ClampField126(0);
@@ -4308,9 +4286,9 @@ void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            arg0->spawnArg1.value     = 3;
-            arg0->killCountdown = 8;
-            arg0->state        += 1;
+            arg0->spawnArg1.value = 3;
+            arg0->killCountdown   = 8;
+            arg0->state          += 1;
             break;
         case 1:
             if (--arg0->killCountdown < 0) {
@@ -4337,644 +4315,18 @@ void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
     func_shelter_b3_dumping_hole_8017FE10(arg0);
 }
 
-/// Drives the room's timed captions: state 0 arms the task, and each later
-/// tick scans `D_shelter_b3_dumping_hole_8018B5A0` for the first window
-/// holding `gGameSession->sceneClock` and, on a hit, starts that window's
-/// caption at its line key, with the low half of the task's `spawnArg1` as
-/// the line delay, and shows its current line. The clock then counts down one, unless a
-/// caption is running or `Gp_StateF0.field_4` is set.
-static void func_shelter_b3_dumping_hole_80181B64(Task* task, s32 arg1)
-{
-    s32 i;
-    s32 script;
-    s32 key;
-    s32 time;
+#include "../../shared/cap_captions.inc.c"
 
-    switch (task->state) {
-        case 0:
-            task->state = 1;
-            break;
-        case 1:
-            script = 0;
-            key    = arg1;
-            for (i = 0; D_shelter_b3_dumping_hole_8018B5A0[i].upper != -1; i++) {
-                time = gGameSession->sceneClock;
-                if ((D_shelter_b3_dumping_hole_8018B5A0[i].upper * 30 >= time) &&
-                    (D_shelter_b3_dumping_hole_8018B5A0[i].lower * 30 < time)) {
-                    script = D_shelter_b3_dumping_hole_8018B5A0[i].script;
-                    key    = D_shelter_b3_dumping_hole_8018B5A0[i].key;
-                    break;
-                }
-            }
-            if (script != 0) {
-                func_shelter_b3_dumping_hole_80181E70(script, key, (s16)task->spawnArg1.value);
-                func_shelter_b3_dumping_hole_80181C8C();
-            }
-            if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
-                gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
-            }
-            break;
-    }
-}
-
-static void func_shelter_b3_dumping_hole_80181C8C(void)
-{
-    if (D_shelter_b3_dumping_hole_8018F4BC == NULL) {
-        return;
-    }
-    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.offset == -1) {
-        return;
-    }
-    if (Gp_CapBusy() != 0) {
-        return;
-    }
-    func_shelter_b3_dumping_hole_80181F80(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text, 0x80, 1,
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].prefix.bytes.field_0 |
-            ((D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].prefix.bytes.field_1 & 0x10)
-             << 4));
-    if (D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_4 & 1) {
-        return;
-    }
-    func_shelter_b3_dumping_hole_80182AA0();
-}
-
-static s32 func_shelter_b3_dumping_hole_80181D68(GpCapFileAddress base)
-{
-    GpEvt12*    r;
-    GpCapEntry* q;
-    s32         n1;
-    s32         n2;
-    s32         i;
-
-    if (strncmp(base.file->magic, "CAP", 3) != 0) {
-        return 0;
-    }
-    if (base.file->field_8.offset > 0) {
-        base.file->field_8.offset  += base.address;
-        base.file->field_C.offset  += base.address;
-        base.file->field_10.offset += base.address;
-        n1                          = base.file->field_C.ptr->count;
-        r                           = &base.file->field_C.ptr->records[0];
-        for (i = 0; i < n1; i++) {
-            if (r->field_8.offset != -1) {
-                r->field_8.offset += base.address;
-            } else {
-                r++;
-            }
-            r++;
-        }
-        n2 = base.file->field_10.ptr->count;
-        q  = &base.file->field_10.ptr->entries[0];
-        for (i = 0; i < n2; i++) {
-            if (q->offset != 0) {
-                q->offset += base.address;
-            }
-            q++;
-        }
-    }
-    D_shelter_b3_dumping_hole_8018F4B8 = base.file->field_8.ptr;
-    D_shelter_b3_dumping_hole_8018F4B4 = base.file->field_10.ptr->entries;
-    return 1;
-}
-
-static s32 func_shelter_b3_dumping_hole_80181E70(s16 arg0, s16 arg1, s32 arg2)
-{
-    GpEvt12* entry;
-
-    entry                              = D_shelter_b3_dumping_hole_8018F4B4[arg0].events;
-    D_shelter_b3_dumping_hole_8018F4BC = entry;
-    if (entry == NULL) {
-        return 1;
-    }
-    D_shelter_b3_dumping_hole_8018F4CA = arg1;
-    D_shelter_b3_dumping_hole_8018F4C6 = func_shelter_b3_dumping_hole_80182FD0(1);
-    D_shelter_b3_dumping_hole_8018F4C4 = arg2;
-    D_shelter_b3_dumping_hole_8018F4C0 = func_shelter_b3_dumping_hole_80182C24(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
-    D_shelter_b3_dumping_hole_8018F4C2 = func_shelter_b3_dumping_hole_801829B4(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
-    D_shelter_b3_dumping_hole_8018F4C8 = func_shelter_b3_dumping_hole_80182E50(
-        D_shelter_b3_dumping_hole_8018F4BC[D_shelter_b3_dumping_hole_8018F4C6].field_8.text);
-    D_shelter_b3_dumping_hole_8018F4D0_value = 0x1E;
-    return 0;
-}
-
-static s32 func_shelter_b3_dumping_hole_80181F80(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u16*       text;
-    u16*       body;
-    s32        title;
-    s16        sc;
-    u32        shifted;
-    s32        titleWidth;
-    s16        lineIdx;
-    s16        x;
-    s32        y;
-    s16        i;
-    u16        code;
-    s16        centered;
-    s32        palette;
-    s16        t;
-    s16        t2;
-    s16        glyphY;
-    s32        top;
-    POLY_G4*   bg;
-    POLY_G4*   bg2;
-    DR_MODE*   dm;
-    POLY_FT4*  ft;
-    POLY_GT4*  gt;
-    POLY_GT4*  gt2;
-    GlyphUvwh* icon;
-
-    lineIdx = 0;
-    title   = arg3;
-    text    = arg0;
-    x       = func_shelter_b3_dumping_hole_80182D34(arg0, 0) - 0xA0;
-    y       = (u16)D_shelter_b3_dumping_hole_8018F4C2 - 0x78;
-
-    bg             = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg + 1);
-    setlen(bg, 8);
-    setcode(bg, 0x3A);
-    setRGB0(bg, 0, 0, 0);
-    setRGB1(bg, 0, 0, 0);
-    setRGB2(bg, 0, 0x40, 0x20);
-    setRGB3(bg, 0, 0x40, 0x20);
-    bg->x0 = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA7;
-    bg->y0 = ((u16)D_shelter_b3_dumping_hole_8018F4C4 - 0x77) - gDisplayState.vramYOffset - (u16)D_shelter_b3_dumping_hole_8018F4C8;
-    bg->x1 = (u16)D_shelter_b3_dumping_hole_8018F4C0 - D_shelter_b3_dumping_hole_8018F4C0 * 2 + 0xAB;
-    bg->y1 = ((u16)D_shelter_b3_dumping_hole_8018F4C4 - 0x77) - gDisplayState.vramYOffset - (u16)D_shelter_b3_dumping_hole_8018F4C8;
-    bg->x2 = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA7;
-    bg->y2 = ((u16)D_shelter_b3_dumping_hole_8018F4C4 - 0x77) - gDisplayState.vramYOffset - (u16)D_shelter_b3_dumping_hole_8018F4C8 + (u16)D_shelter_b3_dumping_hole_8018F4C8;
-    bg->x3 = (u16)D_shelter_b3_dumping_hole_8018F4C0 - D_shelter_b3_dumping_hole_8018F4C0 * 2 + 0xAB;
-    bg->y3 = ((u16)D_shelter_b3_dumping_hole_8018F4C4 - 0x77) - gDisplayState.vramYOffset - (u16)D_shelter_b3_dumping_hole_8018F4C8 + (u16)D_shelter_b3_dumping_hole_8018F4C8;
-    addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg2 + 1);
-    *bg2           = *bg;
-    addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dm + 1);
-    setlen(dm, 1);
-    dm->code[0] = 0xE100020A;
-    addPrim(&gGpuCurrentOt[3], dm);
-
-    body = text;
-    if (title & 0xFF) {
-        ft             = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(ft + 1);
-        setlen(ft, 9);
-        setcode(ft, 0x2D);
-        title      = title - 1;
-        top        = ((u16)D_shelter_b3_dumping_hole_8018F4C4 - 0x77) - (u16)D_shelter_b3_dumping_hole_8018F4C8;
-        ft->x0     = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].h;
-        titleWidth = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].w - 0xA7;
-        ft->x1     = (u16)D_shelter_b3_dumping_hole_8018F4C0 + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].h;
-        ft->x2     = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA7;
-        ft->y2     = top - gDisplayState.vramYOffset;
-        titleWidth = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].w - 0xA7;
-        ft->x3     = (u16)D_shelter_b3_dumping_hole_8018F4C0 + titleWidth;
-        ft->y3     = top - gDisplayState.vramYOffset;
-        ft->u0     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].u;
-        ft->v0     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].v;
-        ft->u1     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].u + D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].w;
-        ft->v1     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].v;
-        ft->u2     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].u;
-        ft->v2     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].v + D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].h;
-        ft->u3     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].u + D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].w;
-        ft->v3     = D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].v + D_shelter_b3_dumping_hole_8018F4B8[title & 0xFF].h;
-        ft->clut   = 0x3D93;
-        ft->tpage  = getTPage(0, 1, D_shelter_b3_dumping_hole_8018B578, D_shelter_b3_dumping_hole_8018B57A);
-        addPrim(&gGpuCurrentOt[2], ft);
-    }
-
-    centered = 1;
-    i        = 0;
-    while (1) {
-        code    = body[i];
-        shifted = (u32)code << 16;
-        sc      = (s32)shifted >> 16;
-        if (sc == -1) {
-            break;
-        }
-        if (sc == -2) {
-            t2                                 = lineIdx + 1;
-            lineIdx                            = t2;
-            D_shelter_b3_dumping_hole_8018F4CE = y - 2;
-            D_shelter_b3_dumping_hole_8018F4CC = x + 4;
-            y                                 += func_shelter_b3_dumping_hole_80182F18(&body[i + 1]);
-            if (centered != 0) {
-                x = func_shelter_b3_dumping_hole_80182D34(arg0, t2) - 0xA0;
-            } else {
-                x = (u16)D_shelter_b3_dumping_hole_8018F4C0 - 0xA0;
-            }
-            i++;
-            continue;
-        } else if (sc == -3) {
-            x += 3;
-            i++;
-            continue;
-        } else if ((code & 0xFF00) == 0x8400) {
-            icon           = &D_8010FB70[code & 0xFF];
-            ft             = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(ft + 1);
-            setlen(ft, 9);
-            setcode(ft, 0x2D);
-            ft->clut  = 0x3C00;
-            ft->tpage = 0x1E;
-            t         = (y - gDisplayState.vramYOffset) + 1;
-            ft->x0    = x;
-            ft->y0    = t - icon->h;
-            ft->x1    = x + icon->w;
-            ft->y1    = t - icon->h;
-            ft->x2    = x;
-            ft->y2    = t;
-            ft->x3    = x + icon->w;
-            ft->y3    = t;
-            ft->u0    = icon->u;
-            ft->v0    = icon->v;
-            ft->u1    = icon->u + icon->w;
-            ft->v1    = icon->v;
-            ft->u2    = icon->u;
-            ft->v2    = icon->v + icon->h;
-            ft->u3    = icon->u + icon->w;
-            ft->v3    = icon->v + icon->h;
-            addPrim(&gGpuCurrentOt[2], ft);
-            x += icon->w;
-            i++;
-            continue;
-        } else {
-            palette        = (shifted >> 26) & 3;
-            code           = code & 0x3FF;
-            glyphY         = y - gDisplayState.vramYOffset;
-            gt             = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt + 1);
-            setcode(gt, 0x3C);
-            setlen(gt, 12);
-            setShadeTex(gt, 1);
-            setRGB0(gt, 0x70, 0x70, 0x70);
-            setRGB1(gt, 0x70, 0x70, 0x70);
-            setRGB2(gt, 0x70, 0x70, 0x70);
-            setRGB3(gt, 0x70, 0x70, 0x70);
-            setSemiTrans(gt, 1);
-            gt->clut  = palette | 0x3D50;
-            gt->x0    = x;
-            gt->tpage = getTPage(0, 1, D_shelter_b3_dumping_hole_8018B578, D_shelter_b3_dumping_hole_8018B57A);
-            gt->y0    = glyphY - D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h;
-            gt->x1    = x + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w;
-            gt->y1    = glyphY - D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h;
-            gt->x2    = x;
-            gt->y2    = glyphY;
-            gt->x3    = x + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w;
-            gt->y3    = glyphY;
-            gt->u0    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].u;
-            gt->v0    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].v;
-            gt->u1    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].u + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w;
-            gt->v1    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].v;
-            gt->u2    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].u;
-            gt->v2    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].v + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h;
-            gt->u3    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].u + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w;
-            gt->v3    = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].v + D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h;
-            addPrim(&gGpuCurrentOt[2], gt);
-            gt2            = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt2 + 1);
-            *gt2           = *gt;
-            gt2->tpage     = getTPage(0, 2, D_shelter_b3_dumping_hole_8018B578, D_shelter_b3_dumping_hole_8018B57A);
-            addPrim(&gGpuCurrentOt[2], gt2);
-            x = D_shelter_b3_dumping_hole_8018F4B8[(s16)code].w + x - 1;
-        }
-        i++;
-    }
-    return 0;
-}
-
-/// Top Y of the caption block the text stream `arg0` holds: every line after
-/// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
-/// and the total is subtracted from `D_shelter_b3_dumping_hole_8018F4C4`. Gameplay's
-/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-static s16 func_shelter_b3_dumping_hole_801829B4(u16* arg0)
-{
-    s16  lineH     = 0;
-    s16  total     = 0;
-    s16  i         = 0;
-    s16  seenBreak = 0;
-    u16* text      = arg0;
-    s16  code      = text[0];
-
-    while (code != -1) {
-        if (code == -2) {
-            if (seenBreak) {
-                if (lineH == 0) {
-                    lineH = 2;
-                }
-                total += lineH;
-            } else {
-                seenBreak = 1;
-            }
-            lineH = 0;
-        } else if (code != -3) {
-            if (code >= 0) {
-                if (lineH < D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h + 2) {
-                    lineH = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h + 2;
-                }
-            }
-        }
-        code = text[++i];
-    }
-    return D_shelter_b3_dumping_hole_8018F4C4 - total;
-}
-
-static void func_shelter_b3_dumping_hole_80182AA0(void)
-{
-    Prim82AA0* prim;
-    s32        c1;
-    s32        c2;
-
-    if (D_shelter_b3_dumping_hole_8018F4D0_value != 0) {
-        D_shelter_b3_dumping_hole_8018F4D0_value -= 1;
-        return;
-    }
-    prim           = (Prim82AA0*)gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 6);
-    prim->code     = 0x30;
-    c1             = (D_shelter_b3_dumping_hole_8018B670 << 7) / 15;
-    prim->r        = c1;
-    prim->g        = c1;
-    prim->b        = c1;
-    c1             = (D_shelter_b3_dumping_hole_8018B670 * 192) / 15;
-    c2             = c1;
-    prim->field_C  = c2;
-    prim->field_D  = c2;
-    prim->field_E  = c2;
-    prim->field_14 = c2;
-    prim->field_15 = c2;
-    prim->field_16 = c2;
-    prim->field_8  = D_shelter_b3_dumping_hole_8018F4CC + 3;
-    prim->field_A  = D_shelter_b3_dumping_hole_8018F4CE;
-    prim->field_10 = D_shelter_b3_dumping_hole_8018F4CC;
-    prim->field_18 = D_shelter_b3_dumping_hole_8018F4CC + 7;
-    prim->field_12 = D_shelter_b3_dumping_hole_8018F4CE - 7;
-    prim->field_1A = D_shelter_b3_dumping_hole_8018F4CE - 7;
-    addPrim(&gGpuCurrentOt[2], prim);
-    if (D_shelter_b3_dumping_hole_8018B674 == 0) {
-        D_shelter_b3_dumping_hole_8018B670 += 1;
-        if (D_shelter_b3_dumping_hole_8018B670 >= 0xF) {
-            D_shelter_b3_dumping_hole_8018B674 = 1;
-        }
-    } else {
-        D_shelter_b3_dumping_hole_8018B670 -= 1;
-        if (D_shelter_b3_dumping_hole_8018B670 < 9) {
-            D_shelter_b3_dumping_hole_8018B674 = 0;
-        }
-    }
-}
-
-/// Horizontal centring offset of the caption line the text stream `arg0`
-/// starts with: the widest line's pixel width subtracted from the 0x140 screen
-/// width, halved, minus 5. The walk is the one `func_actor_215100_8014C360`
-/// makes, and gameplay's `Gp_CapCenterX` compiles to the same 0x110 bytes with
-/// only the glyph table symbol differing — `-2` closes a line and keeps the
-/// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
-/// each glyph code (non-negative, `& 0x3FF` indexing `D_shelter_b3_dumping_hole_8018F4B8`)
-/// advances it by that glyph's `w - 1`.
-static s16 func_shelter_b3_dumping_hole_80182C24(u16* text)
-{
-    s16 lineW = 0;
-    s16 maxW  = 0;
-    s16 i     = 0;
-    s16 code  = text[0];
-
-    while (code != -1) {
-        if (code == -2) {
-            if (lineW > maxW) {
-                maxW = lineW;
-            }
-            lineW = 0;
-            code  = text[++i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = text[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = text[++i];
-        } else if (code >= 0) {
-            lineW += D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w - 1;
-            code   = text[++i];
-        } else {
-            code = text[++i];
-        }
-    }
-    return (0x140 - maxW) / 2 - 5;
-}
-
-/// Horizontal centring offset of line `arg1` of the caption text stream
-/// `arg0`: that line's pixel width subtracted from 0x140, halved, minus 5.
-/// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
-/// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
-/// compiles to the same bytes.
-static s16 func_shelter_b3_dumping_hole_80182D34(u16* arg0, s32 arg1)
-{
-    s16 lineW;
-    s16 selectedW;
-    s16 i;
-    s16 lineIndex;
-    s16 code;
-
-    lineW     = 0;
-    selectedW = 0;
-    i         = 0;
-    lineIndex = 0;
-    code      = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineIndex == arg1) {
-                selectedW = lineW;
-            }
-            lineW = 0;
-            i++;
-            lineIndex++;
-            code = arg0[i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
-        } else if (code >= 0) {
-            lineW += D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].w - 1;
-            code   = arg0[++i];
-        } else {
-            code = arg0[++i];
-        }
-    }
-    return (0x140 - selectedW) / 2 - 5;
-}
-
-static s32 func_shelter_b3_dumping_hole_80182E50(u16* arg0)
-{
-    u16*       p = arg0;
-    short      acc;
-    short      total;
-    u16        i;
-    u16        tok;
-    s32        sh;
-    s32        t;
-    s32        ni;
-    GlyphUvwh* e;
-    union {
-        GlyphUvwh* ptr;
-        u32        address;
-    } glyph;
-
-    acc   = 0;
-    total = acc;
-    i     = total;
-    tok   = *p;
-    sh    = tok << 16;
-    if ((sh >> 16) != -1) {
-        do {
-            t = sh >> 16;
-            if (t == -2) {
-                if (acc == 0) {
-                    acc = 2;
-                }
-                total += acc;
-                acc    = 0;
-            } else if (t == -3) {
-            } else if (t >= 0) {
-                glyph.ptr     = D_shelter_b3_dumping_hole_8018F4B8;
-                glyph.address = (tok & 0x3FF) * sizeof(GlyphUvwh) + glyph.address;
-                e             = glyph.ptr;
-                if (acc < e->h + 2) {
-                    acc = e->h + 2;
-                }
-            }
-            ni  = (i = i + 1);
-            tok = p[(s16)ni];
-            sh  = tok << 16;
-        } while ((sh >> 16) != -1);
-    }
-    return (s16)total;
-}
-
-/// Height of the caption line the text stream `arg0` starts with, walking it
-/// the way gameplay's `func_800E6BB8` does — this overlay's caption system is
-/// a copy of that one, and the two functions compile to the same 0xB8 bytes
-/// with only the glyph table symbol differing.
-///
-/// The running maximum starts at 0 and each glyph code (non-negative, `& 0x3FF`
-/// indexing `D_shelter_b3_dumping_hole_8018F4B8`) raises it to that glyph's `h + 2`. Either
-/// terminator ends the scan: `-2` leaves the maximum as it stands, `-1` forces
-/// 0xD, and any other negative code is stepped over like a glyph without
-/// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
-/// comes back as 2.
-static s32 func_shelter_b3_dumping_hole_80182F18(u16* arg0)
-{
-    s16 height = 0;
-    s16 i      = 0;
-    s16 cont   = 1;
-    s16 code   = arg0[0];
-
-    do {
-        if (code == -2) {
-            cont = 0;
-        } else if (code == -1) {
-            cont   = 0;
-            height = 0xD;
-        } else if (code >= 0) {
-            if (height < D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h + 2) {
-                height = D_shelter_b3_dumping_hole_8018F4B8[code & 0x3FF].h + 2;
-            }
-            code = arg0[++i];
-        } else {
-            code = arg0[++i];
-        }
-    } while (cont);
-    if (height == 0) {
-        height = 2;
-    }
-    return height;
-}
-
-static s32 func_shelter_b3_dumping_hole_80182FD0(s32 arg0)
-{
-    s32      sentinel = -1;
-    GpEvt12* base     = D_shelter_b3_dumping_hole_8018F4BC;
-    s32      target   = D_shelter_b3_dumping_hole_8018F4CA;
-    GpEvt12* e        = Gp_CapEventAt(base, arg0);
-
-loop:
-    if (e->field_8.offset != sentinel) {
-        if (e->field_5 != target) {
-            e++;
-            arg0++;
-            goto loop;
-        }
-    }
-    return arg0;
-}
-
-void func_shelter_b3_dumping_hole_80183024(Task* arg0)
-{
-    if ((arg0->spawnArg1.value -= 1) <= 0) {
-        taskKill(arg0);
-    }
-    func_shelter_b3_dumping_hole_80181C8C();
-}
-
-void func_shelter_b3_dumping_hole_80183060(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            arg0->state = 1;
-            break;
-        case 1:
-            arg0->spawnArg1.value -= 1;
-            if (arg0->spawnArg1.value <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-                taskKill(arg0);
-                Stage_SetEndingFlag();
-            }
-            break;
-    }
-    func_shelter_b3_dumping_hole_80181C8C();
-}
-
-/// Selects entry `arg0` through `func_shelter_b3_dumping_hole_80181E70` with a
-/// fixed third argument of 0xD0, then spawns the task described by
-/// `D_shelter_b3_dumping_hole_8018B588`, passing `arg2` to the spawn.
 static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
 {
-    func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&D_shelter_b3_dumping_hole_8018B588, 0, (s32)(arg2), 0);
+    CapCaption_ShowTimed(arg0, arg1, arg2);
 }
 
-static void func_shelter_b3_dumping_hole_80183144(s16 arg0, s16 arg1, s16 arg2)
-{
-    func_shelter_b3_dumping_hole_80181E70(arg0, arg1, 0xD0);
-    Display_InitModeObj(&D_shelter_b3_dumping_hole_8018B594, arg2, 0, 0);
-}
+#include "../../shared/cap_captions_resource.inc.c"
 
 void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 {
-    s32 count;
-    s32 i;
-
-    count                              = 0;
-    D_shelter_b3_dumping_hole_8018B578 = arg0;
-    D_shelter_b3_dumping_hole_8018B57A = arg1;
-    for (i = 0; i < 0x32; i++) {
-        if (D_8006C338[i].field_0 == 3) {
-            if (count == arg2) {
-                func_shelter_b3_dumping_hole_80181D68(D_8006C338[i].field_4);
-                break;
-            }
-            count++;
-        }
-    }
+    CapCaption_LoadResource(arg0, arg1, arg2);
 }
 
 /// Hides or shows sprite commands 1 and 2 of the area's view 13 through their
@@ -5176,9 +4528,9 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
         D_shelter_b3_dumping_hole_8018B7BC[i].status = 0;
     }
     D_shelter_b3_dumping_hole_8018F4D4_value = 0;
-    arg0->work                         = work;
-    arg0->msgTable                     = D_shelter_b3_dumping_hole_8018B7AC;
-    arg0->state                       += 1;
+    arg0->work                               = work;
+    arg0->msgTable                           = D_shelter_b3_dumping_hole_8018B7AC;
+    arg0->state                             += 1;
 }
 
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
@@ -5237,11 +4589,11 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4_value;
-            work->enemy                                                             = enemy;
-            enemy->placeKey                                                         = idx << 12;
+            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
+            work->enemy                                                                   = enemy;
+            enemy->placeKey                                                               = idx << 12;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
-            arg0->state                                                            += 1;
+            arg0->state                                                                  += 1;
             return;
         }
     }
@@ -5286,11 +4638,11 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            idx                                                                     = D_shelter_b3_dumping_hole_8018F4D4_value;
-            work->enemy                                                             = enemy;
-            enemy->placeKey                                                         = idx << 12;
+            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
+            work->enemy                                                                   = enemy;
+            enemy->placeKey                                                               = idx << 12;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
-            arg0->state                                                            += 1;
+            arg0->state                                                                  += 1;
             return;
         }
     }

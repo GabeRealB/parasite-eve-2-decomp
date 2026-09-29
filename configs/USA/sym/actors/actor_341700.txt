@@ -4,7 +4,7 @@ D_actor_341700_80174D9C = 0x80174D9C; // size:0x28 defined:True
 D_actor_341700_80175F7C = 0x80175F7C; // size:0x180 defined:True
 D_actor_341700_801760FC = 0x801760FC; // size:0x258 defined:True
 D_actor_341700_80176354 = 0x80176354; // size:0xC defined:True
-D_actor_341700_80176360 = 0x80176360; // size:0x8 defined:True
+ActorContact_ScratchPosition = 0x80176360; // size:0x8 defined:True
 D_actor_341700_80174D7C = 0x80174D7C; // size:0xC defined:True
 D_actor_341700_80175F5C = 0x80175F5C; // size:0x20 defined:True
 D_actor_341700_80174DC4 = 0x80174DC4; // size:0x18C defined:True
@@ -145,3 +145,8 @@ D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True
 
 func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // absolute:True
+ActorContact_TurnJoint = 0x8016AC64; // type:func
+ActorContact_FindPush = 0x8016AF70; // type:func
+ActorContact_Steer = 0x8016B2B8; // type:func
+ActorContact_PushContact = 0x8016B804; // type:func
+ActorContact_Push = 0x8016B9A8; // type:func

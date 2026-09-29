@@ -87,55 +87,54 @@ extern TaskDesc D_801358D8;
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Title of the telephone menu. The bytes after its terminator are not zero,
-/// so it stays assembly.
-static const char D_mine_refuge_8017D638[];
+/// Telephone menu title, including retained bytes after its terminator.
+static const char Telephone_Data_8017D638[];
 
 /// Captions of the telephone menu's rows ("Save", "Play Data", "Weapon Data",
 /// "PE Data").
-extern u8 D_mine_refuge_80181540[];
-extern u8 D_mine_refuge_80181548[];
-extern u8 D_mine_refuge_80181554[];
-extern u8 D_mine_refuge_80181560[];
+static u8 Telephone_Data_801819F8[];
+static u8 Telephone_Data_80181A00[];
+static u8 Telephone_Data_80181A0C[];
+static u8 Telephone_Data_80181A18[];
 
 /// Row captions of the play-data panel, one per row.
-extern u8 D_mine_refuge_80181568[];
-extern u8 D_mine_refuge_80181598[];
-extern u8 D_mine_refuge_80181570[];
-extern u8 D_mine_refuge_80181574[];
-extern u8 D_mine_refuge_8018157C[];
-extern u8 D_mine_refuge_80181588[];
-extern u8 D_mine_refuge_801815A0[];
-extern u8 D_mine_refuge_801815A8[];
-extern u8 D_mine_refuge_801815B0[];
+static u8 Telephone_Data_80181A20[];
+static u8 Telephone_Data_80181A50[];
+static u8 Telephone_Data_80181A28[];
+static u8 Telephone_Data_80181A2C[];
+static u8 Telephone_Data_80181A34[];
+static u8 Telephone_Data_80181A40[];
+static u8 Telephone_Data_80181A58[];
+static u8 Telephone_Data_80181A60[];
+static u8 Telephone_Data_80181A68[];
 
 /// Suffix appended after a plain count on rows 1, 2, 3 and 6 of the play-data
 /// panel.
-extern u8 D_mine_refuge_801815B8[];
+static u8 Telephone_Data_80181A70[];
 
 /// Suffix appended after a percentage.
-extern u8 D_mine_refuge_801815C0[];
+static u8 Telephone_Data_80181A78[];
 
 /// Help strings handed to the UI holder while the cursor rests on a row of
 /// the play-data panel, one per row.
-extern u8 D_mine_refuge_801815C4[];
-extern u8 D_mine_refuge_801815F0[];
-extern u8 D_mine_refuge_80181614[];
-extern u8 D_mine_refuge_80181644[];
-extern u8 D_mine_refuge_80181678[];
-extern u8 D_mine_refuge_801816AC[];
-extern u8 D_mine_refuge_801816E4[];
-extern u8 D_mine_refuge_80181718[];
-extern u8 D_mine_refuge_80181750[];
+static u8 Telephone_Data_80181A7C[];
+static u8 Telephone_Data_80181AA8[];
+static u8 Telephone_Data_80181ACC[];
+static u8 Telephone_Data_80181AFC[];
+static u8 Telephone_Data_80181B30[];
+static u8 Telephone_Data_80181B64[];
+static u8 Telephone_Data_80181B9C[];
+static u8 Telephone_Data_80181BD0[];
+static u8 Telephone_Data_80181C08[];
 
 /// Lists of the play-data panel, the usage panel and the telephone menu, and
 /// the descriptors of the panels they spawn.
-extern UiList       D_mine_refuge_8018178C;
-extern UiList       D_mine_refuge_801817B4;
-extern UiObjectDesc D_mine_refuge_801817D8;
-extern UiObjectDesc D_mine_refuge_801817F4;
-extern UiObjectDesc D_mine_refuge_80181810;
-extern UiList       D_mine_refuge_8018183C;
+static UiList       Telephone_Data_80181C44;
+static UiList       Telephone_Data_80181C6C;
+static UiObjectDesc Telephone_Data_80181C90;
+static UiObjectDesc Telephone_Data_80181CAC;
+static UiObjectDesc Telephone_Data_80181CC8;
+static UiList       Telephone_Data_80181CF4;
 
 /// Task table the cutscene and its sound task are spawned from.
 extern TaskDesc D_mine_refuge_80181860[];
@@ -167,20 +166,13 @@ extern Task* D_mine_refuge_80182AD8;
 /// Parameters of the cutscene `func_mine_refuge_8017FE78` starts.
 extern RoomCutsceneRec D_mine_refuge_80182AE0;
 
-static void func_mine_refuge_8017F460(Task* task);
+#define TELEPHONE_TITLE_BYTES "Telephone\0\x1A\x1C"
+#include "../../shared/telephone.h"
+
 static void func_mine_refuge_8017FE78(s32 arg0);
 static void func_mine_refuge_8017FF4C(Task* task);
 static void func_mine_refuge_8017FFAC(Task* task);
 
-void func_mine_refuge_8017D6E0(UiList*, UiObject*);
-void func_mine_refuge_8017DEAC(UiList*, UiObject*);
-void func_mine_refuge_8017E8C4(Task*);
-void func_mine_refuge_8017ED70(Task*);
-void func_mine_refuge_8017EF30(Task*);
-void func_mine_refuge_8017F124(UiList*, UiObject*);
-void func_mine_refuge_8017F208(UiList*, UiObject*);
-void func_mine_refuge_8017F2D0(UiList*, UiObject*);
-void func_mine_refuge_8017F398(UiList*, UiObject*);
 void func_mine_refuge_8017F49C(Task*);
 
 void func_mine_refuge_8017F49C(Task*);
@@ -199,152 +191,7 @@ s32                   func_mine_refuge_8017FD48(Task*, s32, s32, s32);
 void                  func_mine_refuge_8017FA08(Task*);
 void                  func_mine_refuge_8017FDBC(Task*);
 
-u8 D_mine_refuge_80181540[8] = {
-    83, 97, 118, 101, 0, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181548[12] = {
-    80, 108, 97, 121, 32, 68, 97, 116, 97, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181554[12] = {
-    87, 101, 97, 112, 111, 110, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_mine_refuge_80181560[8] = {
-    80, 69, 32, 68, 97, 116, 97, 0,
-};
-
-u8 D_mine_refuge_80181568[8] = {
-    84, 105, 109, 101, 0, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181570[4] = {
-    87, 111, 110, 0,
-};
-
-u8 D_mine_refuge_80181574[8] = {
-    69, 115, 99, 97, 112, 101, 100, 0,
-};
-
-u8 D_mine_refuge_8018157C[12] = {
-    66, 97, 116, 116, 108, 101, 115, 32, 119, 111, 110, 0,
-};
-
-u8 D_mine_refuge_80181588[16] = {
-    69, 120, 116, 101, 114, 109, 105, 110, 97, 116, 101, 100, 0, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181598[8] = {
-    83, 97, 118, 101, 100, 0, 0, 0,
-};
-
-u8 D_mine_refuge_801815A0[8] = {
-    67, 108, 101, 97, 114, 101, 100, 0,
-};
-
-u8 D_mine_refuge_801815A8[8] = {
-    77, 97, 120, 32, 69, 88, 80, 0,
-};
-
-u8 D_mine_refuge_801815B0[8] = {
-    77, 97, 120, 32, 66, 80, 0, 0,
-};
-
-u8 D_mine_refuge_801815B8[8] = {
-    32, 116, 105, 109, 101, 115, 0, 0,
-};
-
-u8 D_mine_refuge_801815C0[4] = {
-    37, 0, 0, 0,
-};
-
-u8 D_mine_refuge_801815C4[44] = {
-    84, 111, 116, 97, 108, 32, 97, 109, 111, 117, 110, 116, 32, 111, 102, 10,
-    116, 105, 109, 101, 32, 115, 112, 101, 110, 116, 32, 102, 111, 114, 32, 116,
-    104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0, 0,
-};
-
-u8 D_mine_refuge_801815F0[36] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 115, 97, 118, 101, 115, 10,
-    117, 115, 101, 100, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_mine_refuge_80181614[48] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 110, 101, 109, 105, 101, 115, 10, 100, 101, 102, 101, 97, 116, 101, 100,
-    32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-u8 D_mine_refuge_80181644[52] = {
-    84, 111, 116, 97, 108, 32, 110, 117, 109, 98, 101, 114, 32, 111, 102, 32,
-    101, 115, 99, 97, 112, 101, 115, 10, 102, 114, 111, 109, 32, 98, 97, 116,
-    116, 108, 101, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109, 101,
-    46, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181678[52] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 98, 97, 116, 116, 108, 101, 115,
-    32, 119, 111, 110, 32, 105, 110, 32, 116, 104, 105, 115, 32, 103, 97, 109,
-    101, 46, 0, 0,
-};
-
-u8 D_mine_refuge_801816AC[56] = {
-    67, 117, 114, 114, 101, 110, 116, 32, 112, 101, 114, 99, 101, 110, 116, 32,
-    111, 102, 32, 116, 111, 116, 97, 108, 10, 101, 110, 101, 109, 105, 101, 115,
-    32, 100, 101, 102, 101, 97, 116, 101, 100, 32, 105, 110, 32, 116, 104, 105,
-    115, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_mine_refuge_801816E4[52] = {
-    78, 117, 109, 98, 101, 114, 32, 111, 102, 32, 116, 105, 109, 101, 115, 32,
-    121, 111, 117, 32, 104, 97, 118, 101, 10, 99, 108, 101, 97, 114, 101, 100,
-    32, 116, 104, 101, 32, 103, 97, 109, 101, 32, 115, 111, 32, 102, 97, 114,
-    46, 0, 0, 0,
-};
-
-u8 D_mine_refuge_80181718[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 69, 88, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10,
-    98, 121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104,
-    101, 32, 103, 97, 109, 101, 46, 0,
-};
-
-u8 D_mine_refuge_80181750[56] = {
-    71, 114, 101, 97, 116, 101, 115, 116, 32, 97, 109, 111, 117, 110, 116, 32,
-    111, 102, 32, 66, 80, 32, 103, 97, 116, 104, 101, 114, 101, 100, 10, 98,
-    121, 32, 116, 104, 101, 32, 101, 110, 100, 32, 111, 102, 32, 116, 104, 101,
-    32, 103, 97, 109, 101, 46, 0, 0,
-};
-
-UiListItemFunc D_mine_refuge_80181788[1] = {
-    func_mine_refuge_8017D6E0,
-};
-
-UiList D_mine_refuge_8018178C = { D_mine_refuge_80181788, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiListItemFunc D_mine_refuge_801817B0[1] = {
-    func_mine_refuge_8017DEAC,
-};
-
-UiList D_mine_refuge_801817B4 = { D_mine_refuge_801817B0, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiObjectDesc D_mine_refuge_801817D8 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_mine_refuge_8017ED70, 0 };
-
-UiObjectDesc D_mine_refuge_801817F4 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_mine_refuge_8017EF30, 0 };
-
-UiObjectDesc D_mine_refuge_80181810 = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_mine_refuge_8017E8C4, 0 };
-
-UiListItemFunc D_mine_refuge_8018182C[4] = {
-    func_mine_refuge_8017F124,
-    func_mine_refuge_8017F208,
-    func_mine_refuge_8017F2D0,
-    func_mine_refuge_8017F398,
-};
-
-UiList D_mine_refuge_8018183C = { D_mine_refuge_8018182C, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+#include "../../shared/telephone_data.inc.c"
 
 void func_mine_refuge_8017F49C(Task*);
 void func_mine_refuge_8017FB24(Task*);
@@ -385,7 +232,7 @@ GpRoomObjRec D_mine_refuge_801818F8[1] = {
     { D_mine_refuge_80181BA4, D_mine_refuge_80182778, D_mine_refuge_80182810, NULL },
 };
 
-u8 * D_mine_refuge_80181908[1] = {
+u8* D_mine_refuge_80181908[1] = {
     D_8010CAF8,
 };
 
@@ -495,7 +342,7 @@ s16 D_mine_refuge_80181B8C[7] = {
     -1,
 };
 
-s16 * D_mine_refuge_80181B9C[2] = {
+s16* D_mine_refuge_80181B9C[2] = {
     D_mine_refuge_80181B6C,
     D_mine_refuge_80181B8C,
 };
@@ -759,7 +606,7 @@ GpRoomParamRec D_mine_refuge_80182AAC[1] = {
     { 0, 0, 1, 0, D_mine_refuge_80182A98 },
 };
 
-GpRoomParamRec * D_mine_refuge_80182AB4[8] = {
+GpRoomParamRec* D_mine_refuge_80182AB4[8] = {
     D_mine_refuge_80182AA4,
     D_mine_refuge_80182AAC,
     D_mine_refuge_80182AA4,
@@ -770,9 +617,9 @@ GpRoomParamRec * D_mine_refuge_80182AB4[8] = {
     D_mine_refuge_80182AA4,
 };
 
-Task * D_mine_refuge_80182AD4 = NULL;
+Task* D_mine_refuge_80182AD4 = NULL;
 
-Task * D_mine_refuge_80182AD8 = NULL;
+Task* D_mine_refuge_80182AD8 = NULL;
 
 u8 D_mine_refuge_80182ADC[4] = {
     0,
@@ -783,989 +630,21 @@ u8 D_mine_refuge_80182ADC[4] = {
 
 RoomCutsceneRec D_mine_refuge_80182AE0 = { 0 };
 
-static void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj);
-static void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj);
-static void func_mine_refuge_8017EDCC(u8* str, s32 decimals);
-static u8*  func_mine_refuge_8017EE3C(u8* buf, s32 value, s32 decimals);
-static void func_mine_refuge_8017F020(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
 static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-/// Draws one row of the play-data panel, the row picked by
-/// `UiList::field_8`: a caption followed by a value - play time, one of
-/// several counters with a unit suffix, or a percentage kept in hundredths
-/// whose decimal point is inserted by hand (row 5 also draws a gauge and takes
-/// an extra line). While the cursor is on the row its help string is shown.
-void func_mine_refuge_8017D6E0(UiList* arg0, UiObject* arg1)
-{
-    u8  buf[0x20];
-    u8* p;
+#include "../../shared/telephone.inc.c"
 
-    p = buf;
-    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
-            u8* tbl[9] = {
-                D_mine_refuge_801815C4,
-                D_mine_refuge_801815F0,
-                D_mine_refuge_80181614,
-                D_mine_refuge_80181644,
-                D_mine_refuge_80181678,
-                D_mine_refuge_801816AC,
-                D_mine_refuge_801816E4,
-                D_mine_refuge_80181718,
-                D_mine_refuge_80181750,
-            };
-
-            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
-        }
-    }
-
-    switch (arg0->field_8) {
-        case 0: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_80181568);
-            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 1: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_80181598);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
-            Text_Strcat(p, D_mine_refuge_801815B8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 2: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_80181570);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
-            Text_Strcat(p, D_mine_refuge_801815B8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 3: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_80181574);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
-            Text_Strcat(p, D_mine_refuge_801815B8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 4: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_8018157C);
-            if (Mc_SaveData[0].state.field_6CC == 0) {
-                pct = 0;
-            } else {
-                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_mine_refuge_801815C0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 5: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         total;
-            s32         cnt;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            total          = Mc_SaveData[0].state.field_6CC;
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_80181588);
-            cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
-            if (total == 0) {
-                pct = 0;
-            } else {
-                pct = (total * 10000) / cnt;
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_mine_refuge_801815C0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
-            break;
-        }
-        case 6: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_801815A0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
-            Text_Strcat(p, D_mine_refuge_801815B8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 7: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_801815A8);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
-            break;
-        }
-        case 8: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_mine_refuge_801815B0);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
-            break;
-        }
-    }
-}
-
-/// Title of the play-data panel.
-static const char D_mine_refuge_8017D610[] = "Play Data";
-
-/// Drawn in place of a percentage for a row holding every recorded use.
-static const u8 D_mine_refuge_8017D61C[] = "100.0%";
-
-/// Draws one row of an item-usage panel from the `RoomItemUsage` block in the
-/// owning task's work area: the item's name, its share of all recorded uses as
-/// a percentage with two decimals, and a gauge scaled by the row's
-/// `barWidths` entry. Highlighting the row previews the item; pressing the
-/// detail button on the selected row opens the item's detail window.
-void func_mine_refuge_8017DEAC(UiList* arg0, UiObject* arg1)
-{
-    u8             buf[0x20];
-    TextDrawReq    req;
-    TextDrawReq*   r;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    u8*            p;
-    u8*            q;
-    s32            item;
-    s32            value;
-    s32            x;
-    s32            y;
-    s32            color;
-    s32            textY;
-    s32            limit;
-    s32            n;
-    s32            len;
-    s32            i;
-    s32            avail;
-    s32            base;
-    s32            barW;
-    s32            barX;
-    s32            rowY;
-    s32            one;
-    s32            tx;
-    s32            ty;
-
-    p     = buf;
-    r     = &req;
-    x     = arg0->field_18;
-    y     = arg0->field_1A;
-    work  = (RoomItemUsage*)arg1->owner->work;
-    item  = work->itemIds[arg0->field_8];
-    value = work->percents[arg0->field_8];
-    color = arg0->field_1C;
-    if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        textY          = arg1->panel.field_22.u - 6;
-        req.y          = textY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        r->field_E     = 1;
-        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
-        func_800CE5D0(arg1, x, y, item);
-    }
-    limit = 1;
-    if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, D_mine_refuge_8017D61C, arg0->field_1C, 3, 2);
-    } else {
-        for (i = 2; i > 0; i--) {
-            limit *= 10;
-        }
-        if (value < limit) {
-            Text_ItoaPadded(p, value, 3);
-        } else {
-            Text_ItoaUnsigned(p, value);
-        }
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = '.';
-        Text_Strcat(p, D_mine_refuge_801815C0);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-    }
-
-    base  = (s16)arg1->panel.field_1C.s + 0x80;
-    avail = (s16)arg1->panel.field_1E.u - 0x4A;
-    barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
-    rowY  = arg0->field_1A - 0xC;
-    barW  = barW + 2;
-    barX  = avail - barW;
-    if (barW >= 2) {
-        prim                     = (POLY_G4*)gGpuPrimCursor;
-        tx                       = arg1->panel.field_20.u + barX + 1;
-        prim->x2                 = tx;
-        prim->x0                 = tx;
-        ty                       = arg1->panel.field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        ty                       = ty + rowY;
-        ty                      += 1;
-        PRIM_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
-        PRIM_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        tx                       = (u16)prim->x0 + barW - 1;
-        prim->y1                 = ty;
-        prim->y0                 = ty;
-        ty                      += 8;
-        prim->y3                 = ty;
-        prim->y2                 = ty;
-        prim->x3                 = tx;
-        prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
-    }
-    one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
-    if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
-        if (arg0->field_10 == arg0->field_8) {
-            Gp_SetPreviewItem(item, 0);
-            Gp_SetHolderItemText(item);
-        }
-    }
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
-        }
-    }
-}
-
-/// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
-///
-/// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
-/// and whose counter is non-zero is marked seen and appended to `itemIds`,
-/// while the counters are summed. The ids are then insertion-sorted by use
-/// count, most-used first. Finally each row gets `percents` - its share of all
-/// recorded uses in hundredths of a percent, rounded - and `barWidths`, its
-/// counter as a 12-bit fraction of the top row's. Both are scaled down by
-/// halving until the top counter fits in 17 bits, so the multiply and the
-/// shift cannot overflow.
-static void func_mine_refuge_8017E2A8(UiList* list, UiObject* obj)
-{
-    RoomItemUsage* work;
-    s32            count;
-    s32            total;
-    s32            i;
-    s32            j;
-    s32            k;
-    s32            id;
-    s32            tmp;
-    s32            uses;
-    s32            scale;
-    s32            top;
-    s32            shift;
-    s16*           p;
-    u8             c;
-
-    count = 0;
-    total = 0;
-    work  = (RoomItemUsage*)obj->owner->work;
-    p     = work->itemIds;
-
-    for (i = 0; i < 0x20; i++) {
-        id = i + 0x80;
-        c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
-            Gp_SetItemSeenBit(id, 1);
-            *p++ = id;
-            count++;
-            total += Mc_SaveData[0].state.weaponUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
-            for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
-                    tmp = work->itemIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->itemIds[k + 1] = work->itemIds[k];
-                    }
-                    work->itemIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            work->percents[i] =
-                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
-            work->barWidths[i] =
-                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
-/// save's per-slot use counters.
-///
-/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
-/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
-/// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
-/// are addressed by page and column, with three slots per page. The ids are
-/// then insertion-sorted by use count, most-used first, and each row gets
-/// `percents`, its share of all recorded uses in hundredths of a percent, and
-/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
-/// scaled down by halving until the top counter fits in 17 bits, so the
-/// multiply and the shift cannot overflow.
-static void func_mine_refuge_8017E5A4(UiList* list, UiObject* obj)
-{
-    RoomPeUsage* work;
-    s16*         p;
-    s32          count;
-    s32          total;
-    s32          i;
-    s32          j;
-    s32          k;
-    s32          id;
-    s32          slot;
-    s32          uses;
-    s32          scale;
-    s32          shift;
-    s32          top;
-    s32          tmp;
-
-    count = 0;
-    total = 0;
-    i     = 0;
-    work  = (RoomPeUsage*)obj->owner->work;
-    p     = work->peIds;
-
-    for (; i < 12; i++) {
-        s32 useCount;
-
-        useCount = Mc_SaveData[0].state.attachUseCounts[i];
-        id       = i * 3 + 0xF;
-        if (useCount > 0) {
-            s32 page;
-            s32 column;
-
-            page   = i / 3;
-            column = i % 3;
-            *p     = id;
-            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
-            }
-            p++;
-            count++;
-            total += Mc_SaveData[0].state.attachUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].state.attachUseCounts[slot];
-            for (j = 0; j < i; j++) {
-                slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
-                    tmp = work->peIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->peIds[k + 1] = work->peIds[k];
-                    }
-                    work->peIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].state.attachUseCounts[slot];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Titles of the usage panel: weapons, then Parasite Energy.
-static const char D_mine_refuge_8017D624[] = "Weapon Data";
-static const char D_mine_refuge_8017D630[] = "PE Data";
-
-/// Task body of the usage panel: `spawnArg1` 0 lists weapons, anything else
-/// Parasite Energy. On its first frame it allocates the row block, spawns the
-/// row descriptor and fills the list; every frame it updates the list, closes
-/// on cancel, and tears down any child window that has finished.
-void func_mine_refuge_8017E8C4(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    UiObject* childObj;
-    void*     work;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &D_mine_refuge_801817B4;
-    if (task->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, D_mine_refuge_8017D624);
-    } else {
-        Ui_DrawText(&(obj)->panel, D_mine_refuge_8017D630);
-    }
-    if (task->state == 0) {
-        work = memCalloc(0xC4, 0);
-        if (work == NULL) {
-            return;
-        }
-        task->work = work;
-        Ui_SpawnFromDesc(&D_mine_refuge_801817D8, 0, 0, 1, obj);
-        if (task->spawnArg1.value == 0) {
-            func_mine_refuge_8017E2A8(list, obj);
-        } else {
-            func_mine_refuge_8017E5A4(list, obj);
-        }
-        Ui_InitList(list, &(obj)->panel);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-    if (task->firstChild != NULL) {
-        child = task->firstChild;
-        do {
-            childObj = child->spawnArg2.pointer;
-            next     = child->nextSibling;
-            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
-                Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-/// "Telephone", followed by the non-zero padding the original toolchain left.
-static const char D_mine_refuge_8017D638[12] = "Telephone\0\x1A\x1C";
-
-/// Task body of the telephone menu. Until the save has a clear or has reached
-/// demo scene 1 it spawns `D_800611E4` in place of the list; otherwise it lays
-/// out and updates the list. When the first child window finishes, the menu
-/// opens the item prompt its selection picks, or closes.
 void func_mine_refuge_8017EA78(Task* task)
 {
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s32       ready;
-    s32       sel;
-    s32       kind;
-    s32       mode;
-    s32       one;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    ready         = Mc_SaveData[0].state.demoScene == 1;
-    list          = &D_mine_refuge_8018183C;
-    one           = 1;
-    if (Mc_SaveData[0].state.clearCount > 0) {
-        ready = one;
-    }
-    if (ready == 0) {
-        if (task->state == 0) {
-            gGameSession->uiOpen = one;
-            Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
-            obj->panel.field_0.w = 0;
-            obj->panel.field_4  |= 0x80000000;
-            task->state          = task->state + 1;
-        }
-    } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.field_0.w = one;
-        gGameSession->uiOpen = one;
-        Ui_SetListScrollFlag(list, 1);
-        Gp_ClearPreviewItems();
-        D_80067634   = NULL;
-        Wip_UiHolder = NULL;
-        task->state  = task->state + 1;
-    } else {
-        Ui_DrawText(&(obj)->panel, D_mine_refuge_8017D638);
-        Ui_UpdateListNoAnim(list, obj);
-    }
-    if (obj->field_2E == 6) {
-        obj->field_2E = 0;
-        Ui_SetState4(obj, task);
-        obj->panel.field_0.w = 0;
-    }
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        if (task->state != 0) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
-        }
-        gGameSession->uiOpen = 0;
-        obj->field_2E        = -1;
-        obj->field_2C        = 0x34;
-    }
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        sel      = childObj->field_2E;
-        switch (sel) {
-            case 6:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else if (task->state == 3) {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                } else {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(0x3B, 0, 0);
-                    Ui_StartCloseAnim(&(obj)->panel, task);
-                    obj->panel.field_0.w = 1;
-                }
-                break;
-            case -1:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                }
-                break;
-        }
-    }
+    Telephone_MenuTask(task);
 }
 
-/// Task body of a prompt window: on its first frame it becomes the UI holder and
-/// installs `func_mine_refuge_8017F460` as its exit callback; every
-/// frame it draws the prompt lines.
-void func_mine_refuge_8017ED70(Task* task)
-{
-    UiObject* obj;
+#include "../../shared/telephone_panels.inc.c"
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Wip_UiHolder       = obj;
-        task->exitCallback = func_mine_refuge_8017F460;
-        task->state       += 1;
-    }
-    Gp_DrawPromptLines(obj, task);
-}
-
-/// Inserts a '.' into a digit string so `decimals` characters sit after the
-/// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
-/// one to the right to open a slot. No-op when `decimals <= 0`.
-static void func_mine_refuge_8017EDCC(u8* str, s32 decimals)
-{
-    s32 len = 0;
-    s32 i;
-
-    if (decimals > 0) {
-        while (*str != 0) {
-            str++;
-            len++;
-        }
-        if (len < decimals) {
-            decimals = len;
-        }
-        decimals++;
-        for (i = 0; i < decimals; i++) {
-            str[1] = str[0];
-            str--;
-        }
-        str[1] = '.';
-    }
-}
-
-/// Format `value` as a percentage with `decimals` fractional digits into `buf`:
-/// print the integer with at least `decimals + 1` digits when it is small enough
-/// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
-/// shift the last `decimals` digits right by one and drop a '.' in front of
-/// them. Appends "%" and returns `buf`.
-static u8* func_mine_refuge_8017EE3C(u8* buf, s32 value, s32 decimals)
-{
-    s32 limit;
-    s32 i;
-    s32 len;
-    s32 n;
-    u8* p;
-
-    limit = 1;
-    for (i = decimals; i > 0; i--) {
-        limit *= 10;
-    }
-
-    if (value < limit) {
-        Text_ItoaPadded(buf, value, decimals + 1);
-    } else {
-        Text_ItoaUnsigned(buf, value);
-    }
-
-    n   = decimals;
-    p   = buf;
-    len = 0;
-    if (n > 0) {
-        while (*p != 0) {
-            p++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            p[1] = p[0];
-            p--;
-        }
-        p[1] = '.';
-    }
-
-    Text_Strcat(buf, D_mine_refuge_801815C0);
-    return buf;
-}
-
-/// Task body of the play-data panel: on its first frame it spawns
-/// `D_mine_refuge_801817D8` and lays out the list; every frame it
-/// draws the title, updates the list and closes on cancel.
-void func_mine_refuge_8017EF30(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-
-    list          = &D_mine_refuge_8018178C;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, D_mine_refuge_8017D610);
-    if (task->state == 0) {
-        Ui_SpawnFromDesc(&D_mine_refuge_801817D8, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.h += 5;
-        list->field_A                     = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-}
-
-/// Queues a gouraud-shaded rectangle into the current OT one slot past the
-/// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
-/// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
-/// take `arg6`. A zero color or width < 2 draws nothing.
-static void func_mine_refuge_8017F020(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
-{
-    POLY_G4* prim;
-    s16      x;
-    s16      y;
-
-    if ((arg5 != 0) && (arg3 >= 2)) {
-        prim     = (POLY_G4*)gGpuPrimCursor;
-        x        = arg0->field_20.u + arg1 + 1;
-        prim->x0 = prim->x2      = x;
-        y                        = arg0->field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        PRIM_COLOR_WORD(prim, 0) = arg5;
-        setPolyG4(prim);
-        PRIM_COLOR_WORD(prim, 2) = arg5;
-        PRIM_COLOR_WORD(prim, 3) = arg6;
-        PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                        = y + arg2 + 1;
-        x                        = prim->x0 + arg3 - 1;
-        prim->y0 = prim->y1 = y;
-        prim->x1 = prim->x3 = x;
-        y                   = y + arg4 - 1;
-        prim->y2 = prim->y3 = y;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, prim);
-    }
-}
-
-/// The telephone menu's "Save" row: confirmed while the CD is idle, it spawns
-/// `D_800611E4` and moves the owning task to state 1.
-void func_mine_refuge_8017F124(UiList* prompt, UiObject* obj)
-{
-    s32 sel;
-
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_mine_refuge_80181540, prompt->field_1C, 1, 0);
-    sel = prompt->field_C;
-    if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        gDisplayState.gameMode = 0xFF;
-        Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.field_0.w = 0;
-        obj->field_2E        = 6;
-        obj->owner->state    = sel;
-    }
-}
-
-/// The telephone menu's "Play Data" row: confirmed, it opens
-/// `D_mine_refuge_801817F4` and moves the owning task to state 2.
-void func_mine_refuge_8017F208(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_mine_refuge_80181548, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_mine_refuge_801817F4, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// The telephone menu's "Weapon Data" row: confirmed, it opens the usage panel
-/// `D_mine_refuge_80181810` for weapons and moves the owning task to
-/// state 2.
-void func_mine_refuge_8017F2D0(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_mine_refuge_80181554, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_mine_refuge_80181810, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// The telephone menu's "PE Data" row: confirmed, it opens the usage panel
-/// `D_mine_refuge_80181810` for Parasite Energy and moves the owning
-/// task to state 2.
-void func_mine_refuge_8017F398(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_mine_refuge_80181560, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_mine_refuge_80181810, 1, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Task exit callback for the save-prompt UI: if this task still owns
-/// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-static void func_mine_refuge_8017F460(Task* task)
-{
-    UiObject* holder;
-
-    holder = task->spawnArg2.pointer;
-    if (Wip_UiHolder == holder) {
-        Wip_UiHolder = NULL;
-    }
-    Ui_FreeAndKill(task);
-}
+#undef TELEPHONE_TITLE_BYTES
 
 void func_mine_refuge_8017F49C(Task* task)
 {
@@ -1786,7 +665,7 @@ void func_mine_refuge_8017F49C(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (script->field_0 > 0) {
-                D_80115694         = save->state.at4.loc.view;
+                D_80115694               = save->state.at4.loc.view;
                 save->state.at4.loc.view = (u8)script->field_0;
             } else {
                 D_80115694 = -script->field_0;
@@ -2041,7 +920,7 @@ s32 func_mine_refuge_8017FBB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// A handler of the room's message table: copies the incoming record onto the
 /// outgoing one, hands both to `func_map_shelter_80179A04` and returns 1.
-s32 func_mine_refuge_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_mine_refuge_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -2058,9 +937,9 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            temp_a3                     = Mc_SaveData[0].state.at4.loc.view;
+            temp_a3                           = Mc_SaveData[0].state.at4.loc.view;
             Mc_SaveData[0].state.at4.loc.view = 6U;
-            D_mine_refuge_80182ADC[0]      = temp_a3;
+            D_mine_refuge_80182ADC[0]         = temp_a3;
             SndEvt_EnqueueType6(0x54060003, 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
@@ -2069,7 +948,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3
     return 0;
 }
 
-s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     u8 temp_s0 = arg2->field_2;
 

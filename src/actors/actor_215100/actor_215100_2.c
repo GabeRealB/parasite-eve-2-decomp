@@ -81,17 +81,7 @@ extern Actor215100AnimCopy2EAC D_actor_215100_80152EAC;
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_actor_215100_8015E66C[4];
-
-// Retained task-shaped record; preserve the callback's actual ABI.
-typedef struct {
-    u16   flags;
-    u16   priority;
-    void  (*callback)(Task*, s32);
-    void* arg;
-} Actor215100RetainedTaskSeed;
-STATIC_ASSERT_SIZEOF(Actor215100RetainedTaskSeed, 12);
-extern Actor215100RetainedTaskSeed D_actor_215100_801544F0;
+static u8 CapCaption_Data_8015E66C[4];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -123,9 +113,10 @@ static void func_actor_215100_8014CBB8(Task* task);
 static void func_actor_215100_8014CC04(Task* task);
 static void func_actor_215100_8014CC7C(Task* task);
 
-static s32 func_actor_215100_8014B3C8(u16* arg0, s32 arg1, s32 arg2, s32 arg3);
-static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1);
-static s32 func_actor_215100_8014C360(u16* arg0);
+/* cap captions instance: retain the original overlay symbols. */
+static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
+static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
+#include "../../shared/cap_captions.h"
 
 extern TaskDesc D_actor_215100_8014E13C[];
 extern GpEvsCmd D_actor_215100_8014E370[];
@@ -133,8 +124,8 @@ extern GpEvsCmd D_actor_215100_8014E8F8[];
 extern GpEvsCmd D_actor_215100_8014EA90[];
 extern GpEvsCmd D_actor_215100_8014EB08[];
 
-extern TaskDesc D_actor_215100_801544FC;
-extern TaskDesc D_actor_215100_80154508;
+static TaskDesc CapCaption_Data_801544FC;
+static TaskDesc CapCaption_Data_80154508;
 extern Task*    D_actor_215100_8015E64C;
 
 extern GpEvsCmd   D_actor_215100_80153ED4[];
@@ -160,43 +151,31 @@ extern Actor2151002MsgEntry D_actor_215100_8015E5A0[];
 /// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
 /// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
 /// `code & 0x3FF`.
-extern GlyphUvwh* D_actor_215100_8015E654;
+static GlyphUvwh* CapCaption_Data_8015E654;
 
 /// Caption script table, and the script currently being played back with the
 /// entry it is up to.
-extern GpCapEntry* D_actor_215100_8015E650;
-extern GpEvt12*    D_actor_215100_8015E658;
-extern s16         D_actor_215100_8015E65C;
-extern s16         D_actor_215100_8015E65E;
-extern s16         D_actor_215100_8015E660;
-extern s16         D_actor_215100_8015E662;
-extern s16         D_actor_215100_8015E664;
-extern s16         D_actor_215100_8015E666;
+static GpCapEntry* CapCaption_Data_8015E650;
+static GpEvt12*    CapCaption_Data_8015E658;
+static s16         CapCaption_Data_8015E65C;
+static s16         CapCaption_Data_8015E65E;
+static s16         CapCaption_Data_8015E660;
+static s16         CapCaption_Data_8015E662;
+static s16         CapCaption_Data_8015E664;
+static s16         CapCaption_Data_8015E666;
 /// Frames left before the caret starts drawing.
 /// Caret grey level (pulses between 9 and 15) and its direction flag.
-extern s32 D_actor_215100_801545E4;
-extern s32 D_actor_215100_801545E8;
+static s32 CapCaption_Data_801545E4;
+static s32 CapCaption_Data_801545E8;
 /// Caret position.
-extern u16                D_actor_215100_8015E668;
-extern u16                D_actor_215100_8015E66A;
-extern s16                D_actor_215100_801544EC;
-extern s16                D_actor_215100_801544EE;
+static u16                CapCaption_Data_8015E668;
+static u16                CapCaption_Data_8015E66A;
+static s16                CapCaption_Data_801544EC;
+static s16                CapCaption_Data_801544EE;
 extern Actor215100CharRec D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
 /// `field_0`.
-extern OverlayCapWindow D_actor_215100_80154514[];
-
-static void func_actor_215100_8014B0D4(void);
-static s32  func_actor_215100_8014B1B0(GpCapFileAddress base);
-static s32  func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-static s16  func_actor_215100_8014BDFC(u16* arg0);
-static s16  func_actor_215100_8014C06C(u16* arg0);
-static s16  func_actor_215100_8014C298(u16* arg0);
-static s32  func_actor_215100_8014C418(s32 arg0);
-static void func_actor_215100_8014BEE8(void);
-
-void func_actor_215100_8014C46C(Task*);
-void func_actor_215100_8014C4A8(Task*);
+static OverlayCapWindow CapCaption_Data_80154514[];
 
 extern TmdSource D_actor_215100_8015A7E4;
 extern TmdSource D_actor_215100_8015A9E0;
@@ -230,8 +209,6 @@ extern GpAnimSet D_actor_215100_8015DFC0;
 extern GpAnimSet D_actor_215100_8015E188;
 extern GpAnimSet D_actor_215100_8015E3B0;
 extern GpAnimSet D_actor_215100_8015E578;
-
-static void func_actor_215100_8014AFAC(Task*, s32);
 
 void func_actor_215100_8014AEC4(s32);
 
@@ -483,7 +460,7 @@ typedef union {
 
 Actor215100PoseBank53A8 D_actor_215100_8014F1C8 = { .poses = {
 #include "assets/actor_215100_animation_05738_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8014F1EC[81] = {
 #include "assets/actor_215100_animation_05738_bank4.inc"
@@ -498,7 +475,8 @@ u16 D_actor_215100_8014F530[20] = {
 };
 
 GpAnimSet D_actor_215100_8014F558 = {
-    D_actor_215100_8014F330, D_actor_215100_8014F530,
+    D_actor_215100_8014F330,
+    D_actor_215100_8014F530,
     { NULL, D_actor_215100_8014F1C8.words, NULL, NULL, D_actor_215100_8014F1EC, NULL, NULL, NULL },
 };
 
@@ -510,7 +488,7 @@ typedef union {
 
 Actor215100PoseBank5760 D_actor_215100_8014F580 = { .poses = {
 #include "assets/actor_215100_animation_05B0C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8014F5E0[84] = {
 #include "assets/actor_215100_animation_05B0C_bank4.inc"
@@ -525,7 +503,8 @@ u16 D_actor_215100_8014F904[20] = {
 };
 
 GpAnimSet D_actor_215100_8014F92C = {
-    D_actor_215100_8014F730, D_actor_215100_8014F904,
+    D_actor_215100_8014F730,
+    D_actor_215100_8014F904,
     { NULL, D_actor_215100_8014F580.words, NULL, NULL, D_actor_215100_8014F5E0, NULL, NULL, NULL },
 };
 
@@ -537,7 +516,7 @@ typedef union {
 
 Actor215100PoseBank5B34 D_actor_215100_8014F954 = { .poses = {
 #include "assets/actor_215100_animation_05EFC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8014F9A8[62] = {
 #include "assets/actor_215100_animation_05EFC_bank4.inc"
@@ -552,7 +531,8 @@ u16 D_actor_215100_8014FCF4[20] = {
 };
 
 GpAnimSet D_actor_215100_8014FD1C = {
-    D_actor_215100_8014FAA0, D_actor_215100_8014FCF4,
+    D_actor_215100_8014FAA0,
+    D_actor_215100_8014FCF4,
     { NULL, D_actor_215100_8014F954.words, NULL, NULL, D_actor_215100_8014F9A8, NULL, NULL, NULL },
 };
 
@@ -564,7 +544,7 @@ typedef union {
 
 Actor215100PoseBank5F24 D_actor_215100_8014FD44 = { .poses = {
 #include "assets/actor_215100_animation_06268_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8014FD98[74] = {
 #include "assets/actor_215100_animation_06268_bank4.inc"
@@ -579,7 +559,8 @@ u16 D_actor_215100_80150060[20] = {
 };
 
 GpAnimSet D_actor_215100_80150088 = {
-    D_actor_215100_8014FEC0, D_actor_215100_80150060,
+    D_actor_215100_8014FEC0,
+    D_actor_215100_80150060,
     { NULL, D_actor_215100_8014FD44.words, NULL, NULL, D_actor_215100_8014FD98, NULL, NULL, NULL },
 };
 
@@ -591,7 +572,7 @@ typedef union {
 
 Actor215100PoseBank6290 D_actor_215100_801500B0 = { .poses = {
 #include "assets/actor_215100_animation_066B4_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_801500F8[78] = {
 #include "assets/actor_215100_animation_066B4_bank4.inc"
@@ -606,7 +587,8 @@ u16 D_actor_215100_801504AC[20] = {
 };
 
 GpAnimSet D_actor_215100_801504D4 = {
-    D_actor_215100_80150230, D_actor_215100_801504AC,
+    D_actor_215100_80150230,
+    D_actor_215100_801504AC,
     { NULL, D_actor_215100_801500B0.words, NULL, NULL, D_actor_215100_801500F8, NULL, NULL, NULL },
 };
 
@@ -618,7 +600,7 @@ typedef union {
 
 Actor215100PoseBank66DC D_actor_215100_801504FC = { .poses = {
 #include "assets/actor_215100_animation_069DC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80150538[69] = {
 #include "assets/actor_215100_animation_069DC_bank4.inc"
@@ -633,7 +615,8 @@ u16 D_actor_215100_801507D4[20] = {
 };
 
 GpAnimSet D_actor_215100_801507FC = {
-    D_actor_215100_8015064C, D_actor_215100_801507D4,
+    D_actor_215100_8015064C,
+    D_actor_215100_801507D4,
     { NULL, D_actor_215100_801504FC.words, NULL, NULL, D_actor_215100_80150538, NULL, NULL, NULL },
 };
 
@@ -645,7 +628,7 @@ typedef union {
 
 Actor215100PoseBank6A04 D_actor_215100_80150824 = { .poses = {
 #include "assets/actor_215100_animation_06F5C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8015089C[104] = {
 #include "assets/actor_215100_animation_06F5C_bank4.inc"
@@ -660,7 +643,8 @@ u16 D_actor_215100_80150D54[20] = {
 };
 
 GpAnimSet D_actor_215100_80150D7C = {
-    D_actor_215100_80150A3C, D_actor_215100_80150D54,
+    D_actor_215100_80150A3C,
+    D_actor_215100_80150D54,
     { NULL, D_actor_215100_80150824.words, NULL, NULL, D_actor_215100_8015089C, NULL, NULL, NULL },
 };
 
@@ -672,7 +656,7 @@ typedef union {
 
 Actor215100PoseBank6F84 D_actor_215100_80150DA4 = { .poses = {
 #include "assets/actor_215100_animation_0733C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80150E04[85] = {
 #include "assets/actor_215100_animation_0733C_bank4.inc"
@@ -687,7 +671,8 @@ u16 D_actor_215100_80151134[20] = {
 };
 
 GpAnimSet D_actor_215100_8015115C = {
-    D_actor_215100_80150F58, D_actor_215100_80151134,
+    D_actor_215100_80150F58,
+    D_actor_215100_80151134,
     { NULL, D_actor_215100_80150DA4.words, NULL, NULL, D_actor_215100_80150E04, NULL, NULL, NULL },
 };
 
@@ -699,7 +684,7 @@ typedef union {
 
 Actor215100PoseBank7364 D_actor_215100_80151184 = { .poses = {
 #include "assets/actor_215100_animation_075B4_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_801511A8[27] = {
 #include "assets/actor_215100_animation_075B4_bank4.inc"
@@ -714,7 +699,8 @@ u16 D_actor_215100_801513AC[20] = {
 };
 
 GpAnimSet D_actor_215100_801513D4 = {
-    D_actor_215100_80151214, D_actor_215100_801513AC,
+    D_actor_215100_80151214,
+    D_actor_215100_801513AC,
     { NULL, D_actor_215100_80151184.words, NULL, NULL, D_actor_215100_801511A8, NULL, NULL, NULL },
 };
 
@@ -726,7 +712,7 @@ typedef union {
 
 Actor215100PoseBank75DC D_actor_215100_801513FC = { .poses = {
 #include "assets/actor_215100_animation_07794_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80151414[25] = {
 #include "assets/actor_215100_animation_07794_bank4.inc"
@@ -741,7 +727,8 @@ u16 D_actor_215100_8015158C[20] = {
 };
 
 GpAnimSet D_actor_215100_801515B4 = {
-    D_actor_215100_80151478, D_actor_215100_8015158C,
+    D_actor_215100_80151478,
+    D_actor_215100_8015158C,
     { NULL, D_actor_215100_801513FC.words, NULL, NULL, D_actor_215100_80151414, NULL, NULL, NULL },
 };
 
@@ -753,7 +740,7 @@ typedef union {
 
 Actor215100PoseBank77BC D_actor_215100_801515DC = { .poses = {
 #include "assets/actor_215100_animation_07960_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_801515F4[22] = {
 #include "assets/actor_215100_animation_07960_bank4.inc"
@@ -768,7 +755,8 @@ u16 D_actor_215100_80151758[20] = {
 };
 
 GpAnimSet D_actor_215100_80151780 = {
-    D_actor_215100_8015164C, D_actor_215100_80151758,
+    D_actor_215100_8015164C,
+    D_actor_215100_80151758,
     { NULL, D_actor_215100_801515DC.words, NULL, NULL, D_actor_215100_801515F4, NULL, NULL, NULL },
 };
 
@@ -780,7 +768,7 @@ typedef union {
 
 Actor215100PoseBank7988 D_actor_215100_801517A8 = { .poses = {
 #include "assets/actor_215100_animation_07E28_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_801517D8[97] = {
 #include "assets/actor_215100_animation_07E28_bank4.inc"
@@ -795,7 +783,8 @@ u16 D_actor_215100_80151C20[20] = {
 };
 
 GpAnimSet D_actor_215100_80151C48 = {
-    D_actor_215100_8015195C, D_actor_215100_80151C20,
+    D_actor_215100_8015195C,
+    D_actor_215100_80151C20,
     { NULL, D_actor_215100_801517A8.words, NULL, NULL, D_actor_215100_801517D8, NULL, NULL, NULL },
 };
 
@@ -807,7 +796,7 @@ typedef union {
 
 Actor215100PoseBank7E50 D_actor_215100_80151C70 = { .poses = {
 #include "assets/actor_215100_animation_07FFC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80151C88[22] = {
 #include "assets/actor_215100_animation_07FFC_bank4.inc"
@@ -822,7 +811,8 @@ u16 D_actor_215100_80151DF4[20] = {
 };
 
 GpAnimSet D_actor_215100_80151E1C = {
-    D_actor_215100_80151CE0, D_actor_215100_80151DF4,
+    D_actor_215100_80151CE0,
+    D_actor_215100_80151DF4,
     { NULL, D_actor_215100_80151C70.words, NULL, NULL, D_actor_215100_80151C88, NULL, NULL, NULL },
 };
 
@@ -834,7 +824,7 @@ typedef union {
 
 Actor215100PoseBank8024 D_actor_215100_80151E44 = { .poses = {
 #include "assets/actor_215100_animation_08400_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80151E80[94] = {
 #include "assets/actor_215100_animation_08400_bank4.inc"
@@ -849,7 +839,8 @@ u16 D_actor_215100_801521F8[20] = {
 };
 
 GpAnimSet D_actor_215100_80152220 = {
-    D_actor_215100_80151FF8, D_actor_215100_801521F8,
+    D_actor_215100_80151FF8,
+    D_actor_215100_801521F8,
     { NULL, D_actor_215100_80151E44.words, NULL, NULL, D_actor_215100_80151E80, NULL, NULL, NULL },
 };
 
@@ -861,7 +852,7 @@ typedef union {
 
 Actor215100PoseBank8428 D_actor_215100_80152248 = { .poses = {
 #include "assets/actor_215100_animation_08788_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80152278[84] = {
 #include "assets/actor_215100_animation_08788_bank4.inc"
@@ -876,7 +867,8 @@ u16 D_actor_215100_80152580[20] = {
 };
 
 GpAnimSet D_actor_215100_801525A8 = {
-    D_actor_215100_801523C8, D_actor_215100_80152580,
+    D_actor_215100_801523C8,
+    D_actor_215100_80152580,
     { NULL, D_actor_215100_80152248.words, NULL, NULL, D_actor_215100_80152278, NULL, NULL, NULL },
 };
 
@@ -888,7 +880,7 @@ typedef union {
 
 Actor215100PoseBank87B0 D_actor_215100_801525D0 = { .poses = {
 #include "assets/actor_215100_animation_08BE0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_8015260C[108] = {
 #include "assets/actor_215100_animation_08BE0_bank4.inc"
@@ -903,7 +895,8 @@ u16 D_actor_215100_801529D8[20] = {
 };
 
 GpAnimSet D_actor_215100_80152A00 = {
-    D_actor_215100_801527BC, D_actor_215100_801529D8,
+    D_actor_215100_801527BC,
+    D_actor_215100_801529D8,
     { NULL, D_actor_215100_801525D0.words, NULL, NULL, D_actor_215100_8015260C, NULL, NULL, NULL },
 };
 
@@ -915,7 +908,7 @@ typedef union {
 
 Actor215100PoseBank8C08 D_actor_215100_80152A28 = { .poses = {
 #include "assets/actor_215100_animation_08EBC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80152A40[32] = {
 #include "assets/actor_215100_animation_08EBC_bank4.inc"
@@ -930,7 +923,8 @@ u16 D_actor_215100_80152CB4[20] = {
 };
 
 GpAnimSet D_actor_215100_80152CDC = {
-    D_actor_215100_80152AC0, D_actor_215100_80152CB4,
+    D_actor_215100_80152AC0,
+    D_actor_215100_80152CB4,
     { NULL, D_actor_215100_80152A28.words, NULL, NULL, D_actor_215100_80152A40, NULL, NULL, NULL },
 };
 
@@ -942,7 +936,7 @@ typedef union {
 
 Actor215100PoseBank8EE4 D_actor_215100_80152D04 = { .poses = {
 #include "assets/actor_215100_animation_09064_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_215100_80152D1C[23] = {
 #include "assets/actor_215100_animation_09064_bank4.inc"
@@ -957,7 +951,8 @@ u16 D_actor_215100_80152E5C[20] = {
 };
 
 GpAnimSet D_actor_215100_80152E84 = {
-    D_actor_215100_80152D78, D_actor_215100_80152E5C,
+    D_actor_215100_80152D78,
+    D_actor_215100_80152E5C,
     { NULL, D_actor_215100_80152D04.words, NULL, NULL, D_actor_215100_80152D1C, NULL, NULL, NULL },
 };
 
@@ -1257,35 +1252,15 @@ GpEvsCmd D_actor_215100_801543E4[11] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-s16 D_actor_215100_801544EC = 384;
+#include "../../shared/cap_captions_settings.inc.c"
 
-s16 D_actor_215100_801544EE = 0;
+static void CapCaption_RunSchedule(Task* task, s32 arg1);
 
-Actor215100RetainedTaskSeed D_actor_215100_801544F0 = { 0, 32, func_actor_215100_8014AFAC, NULL };
-
-TaskDesc D_actor_215100_801544FC = { 0, 32, func_actor_215100_8014C46C, { .model = NULL } };
-
-TaskDesc D_actor_215100_80154508 = { 0, 32, func_actor_215100_8014C4A8, { .model = NULL } };
-
-OverlayCapWindow D_actor_215100_80154514[13] = {
-    { 300, 295, 16, 5 },
-    { 240, 235, 16, 4 },
-    { 180, 175, 16, 3 },
-    { 120, 115, 16, 2 },
-    { 60, 55, 16, 1 },
-    { 30, 25, 17, 30 },
-    { 5, 4, 17, 5 },
-    { 4, 3, 17, 4 },
-    { 3, 2, 17, 3 },
-    { 2, 1, 17, 2 },
-    { 1, 0, 17, 1 },
-    { 0, -3, 17, 0 },
-    { -1, 0, 0, 0 },
+static CapCaptionTaskTable D_actor_215100_801544F0 = {
+    .native = { { 0, 32, { .withArg = CapCaption_RunSchedule }, { .value = 0 } } }
 };
 
-s32 D_actor_215100_801545E4 = 8;
-
-s32 D_actor_215100_801545E8 = 0;
+#include "../../shared/cap_captions_schedule.inc.c"
 
 TmdBone D_actor_215100_801545EC[20] = {
 #include "assets/actor_215100_model_109C4_skeleton.inc"
@@ -1308,8 +1283,15 @@ u32 D_actor_215100_801561F4[4476] = {
 };
 
 TmdSource D_actor_215100_8015A7E4 = {
-    0, 24444, 6776, 20,
-    D_actor_215100_801548BC, D_actor_215100_8015490C, D_actor_215100_8015553C, D_actor_215100_801545EC, D_actor_215100_801561F4,
+    0,
+    24444,
+    6776,
+    20,
+    D_actor_215100_801548BC,
+    D_actor_215100_8015490C,
+    D_actor_215100_8015553C,
+    D_actor_215100_801545EC,
+    D_actor_215100_801561F4,
 };
 
 TmdBone D_actor_215100_8015A808[1] = {
@@ -1333,8 +1315,15 @@ u32 D_actor_215100_8015A900[56] = {
 };
 
 TmdSource D_actor_215100_8015A9E0 = {
-    0, 340, 0, 1,
-    D_actor_215100_8015A82C, D_actor_215100_8015A830, D_actor_215100_8015A8A0, D_actor_215100_8015A808, D_actor_215100_8015A900,
+    0,
+    340,
+    0,
+    1,
+    D_actor_215100_8015A82C,
+    D_actor_215100_8015A830,
+    D_actor_215100_8015A8A0,
+    D_actor_215100_8015A808,
+    D_actor_215100_8015A900,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -1345,7 +1334,7 @@ typedef union {
 
 Actor215100PoseBank10BE4 D_actor_215100_8015AA04 = { .poses = {
 #include "assets/actor_215100_animation_10DE8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015AA1C[25] = {
 #include "assets/actor_215100_animation_10DE8_bank4.inc"
@@ -1360,7 +1349,8 @@ u16 D_actor_215100_8015ABE0[20] = {
 };
 
 GpAnimSet D_actor_215100_8015AC08 = {
-    D_actor_215100_8015AA80, D_actor_215100_8015ABE0,
+    D_actor_215100_8015AA80,
+    D_actor_215100_8015ABE0,
     { NULL, D_actor_215100_8015AA04.words, NULL, NULL, D_actor_215100_8015AA1C, NULL, NULL, NULL },
 };
 
@@ -1372,7 +1362,7 @@ typedef union {
 
 Actor215100PoseBank10E10 D_actor_215100_8015AC30 = { .poses = {
 #include "assets/actor_215100_animation_111A0_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015AC48[77] = {
 #include "assets/actor_215100_animation_111A0_bank4.inc"
@@ -1387,7 +1377,8 @@ u16 D_actor_215100_8015AF98[20] = {
 };
 
 GpAnimSet D_actor_215100_8015AFC0 = {
-    D_actor_215100_8015AD7C, D_actor_215100_8015AF98,
+    D_actor_215100_8015AD7C,
+    D_actor_215100_8015AF98,
     { NULL, D_actor_215100_8015AC30.words, NULL, NULL, D_actor_215100_8015AC48, NULL, NULL, NULL },
 };
 
@@ -1399,7 +1390,7 @@ typedef union {
 
 Actor215100PoseBank111C8 D_actor_215100_8015AFE8 = { .poses = {
 #include "assets/actor_215100_animation_11364_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015B000[21] = {
 #include "assets/actor_215100_animation_11364_bank4.inc"
@@ -1414,7 +1405,8 @@ u16 D_actor_215100_8015B15C[20] = {
 };
 
 GpAnimSet D_actor_215100_8015B184 = {
-    D_actor_215100_8015B054, D_actor_215100_8015B15C,
+    D_actor_215100_8015B054,
+    D_actor_215100_8015B15C,
     { NULL, D_actor_215100_8015AFE8.words, NULL, NULL, D_actor_215100_8015B000, NULL, NULL, NULL },
 };
 
@@ -1426,7 +1418,7 @@ typedef union {
 
 Actor215100PoseBank1138C D_actor_215100_8015B1AC = { .poses = {
 #include "assets/actor_215100_animation_115F4_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015B1C4[32] = {
 #include "assets/actor_215100_animation_115F4_bank4.inc"
@@ -1441,7 +1433,8 @@ u16 D_actor_215100_8015B3EC[20] = {
 };
 
 GpAnimSet D_actor_215100_8015B414 = {
-    D_actor_215100_8015B244, D_actor_215100_8015B3EC,
+    D_actor_215100_8015B244,
+    D_actor_215100_8015B3EC,
     { NULL, D_actor_215100_8015B1AC.words, NULL, NULL, D_actor_215100_8015B1C4, NULL, NULL, NULL },
 };
 
@@ -1453,7 +1446,7 @@ typedef union {
 
 Actor215100PoseBank1161C D_actor_215100_8015B43C = { .poses = {
 #include "assets/actor_215100_animation_11A34_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015B46C[92] = {
 #include "assets/actor_215100_animation_11A34_bank4.inc"
@@ -1468,7 +1461,8 @@ u16 D_actor_215100_8015B82C[20] = {
 };
 
 GpAnimSet D_actor_215100_8015B854 = {
-    D_actor_215100_8015B5DC, D_actor_215100_8015B82C,
+    D_actor_215100_8015B5DC,
+    D_actor_215100_8015B82C,
     { NULL, D_actor_215100_8015B43C.words, NULL, NULL, D_actor_215100_8015B46C, NULL, NULL, NULL },
 };
 
@@ -1480,7 +1474,7 @@ typedef union {
 
 Actor215100PoseBank11A5C D_actor_215100_8015B87C = { .poses = {
 #include "assets/actor_215100_animation_11C10_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015B894[27] = {
 #include "assets/actor_215100_animation_11C10_bank4.inc"
@@ -1495,7 +1489,8 @@ u16 D_actor_215100_8015BA08[20] = {
 };
 
 GpAnimSet D_actor_215100_8015BA30 = {
-    D_actor_215100_8015B900, D_actor_215100_8015BA08,
+    D_actor_215100_8015B900,
+    D_actor_215100_8015BA08,
     { NULL, D_actor_215100_8015B87C.words, NULL, NULL, D_actor_215100_8015B894, NULL, NULL, NULL },
 };
 
@@ -1507,7 +1502,7 @@ typedef union {
 
 Actor215100PoseBank11C38 D_actor_215100_8015BA58 = { .poses = {
 #include "assets/actor_215100_animation_11E24_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015BA7C[32] = {
 #include "assets/actor_215100_animation_11E24_bank4.inc"
@@ -1522,7 +1517,8 @@ u16 D_actor_215100_8015BC1C[20] = {
 };
 
 GpAnimSet D_actor_215100_8015BC44 = {
-    D_actor_215100_8015BAFC, D_actor_215100_8015BC1C,
+    D_actor_215100_8015BAFC,
+    D_actor_215100_8015BC1C,
     { NULL, D_actor_215100_8015BA58.words, NULL, NULL, D_actor_215100_8015BA7C, NULL, NULL, NULL },
 };
 
@@ -1534,7 +1530,7 @@ typedef union {
 
 Actor215100PoseBank11E4C D_actor_215100_8015BC6C = { .poses = {
 #include "assets/actor_215100_animation_12330_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015BC9C[99] = {
 #include "assets/actor_215100_animation_12330_bank4.inc"
@@ -1549,7 +1545,8 @@ u16 D_actor_215100_8015C128[20] = {
 };
 
 GpAnimSet D_actor_215100_8015C150 = {
-    D_actor_215100_8015BE28, D_actor_215100_8015C128,
+    D_actor_215100_8015BE28,
+    D_actor_215100_8015C128,
     { NULL, D_actor_215100_8015BC6C.words, NULL, NULL, D_actor_215100_8015BC9C, NULL, NULL, NULL },
 };
 
@@ -1561,7 +1558,7 @@ typedef union {
 
 Actor215100PoseBank12358 D_actor_215100_8015C178 = { .poses = {
 #include "assets/actor_215100_animation_12720_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015C1B4[91] = {
 #include "assets/actor_215100_animation_12720_bank4.inc"
@@ -1576,7 +1573,8 @@ u16 D_actor_215100_8015C518[20] = {
 };
 
 GpAnimSet D_actor_215100_8015C540 = {
-    D_actor_215100_8015C320, D_actor_215100_8015C518,
+    D_actor_215100_8015C320,
+    D_actor_215100_8015C518,
     { NULL, D_actor_215100_8015C178.words, NULL, NULL, D_actor_215100_8015C1B4, NULL, NULL, NULL },
 };
 
@@ -1588,7 +1586,7 @@ typedef union {
 
 Actor215100PoseBank12748 D_actor_215100_8015C568 = { .poses = {
 #include "assets/actor_215100_animation_12ABC_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015C5B0[74] = {
 #include "assets/actor_215100_animation_12ABC_bank4.inc"
@@ -1603,7 +1601,8 @@ u16 D_actor_215100_8015C8B4[20] = {
 };
 
 GpAnimSet D_actor_215100_8015C8DC = {
-    D_actor_215100_8015C6D8, D_actor_215100_8015C8B4,
+    D_actor_215100_8015C6D8,
+    D_actor_215100_8015C8B4,
     { NULL, D_actor_215100_8015C568.words, NULL, NULL, D_actor_215100_8015C5B0, NULL, NULL, NULL },
 };
 
@@ -1615,7 +1614,7 @@ typedef union {
 
 Actor215100PoseBank12AE4 D_actor_215100_8015C904 = { .poses = {
 #include "assets/actor_215100_animation_12D64_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015C91C[33] = {
 #include "assets/actor_215100_animation_12D64_bank4.inc"
@@ -1630,7 +1629,8 @@ u16 D_actor_215100_8015CB5C[20] = {
 };
 
 GpAnimSet D_actor_215100_8015CB84 = {
-    D_actor_215100_8015C9A0, D_actor_215100_8015CB5C,
+    D_actor_215100_8015C9A0,
+    D_actor_215100_8015CB5C,
     { NULL, D_actor_215100_8015C904.words, NULL, NULL, D_actor_215100_8015C91C, NULL, NULL, NULL },
 };
 
@@ -1642,7 +1642,7 @@ typedef union {
 
 Actor215100PoseBank12D8C D_actor_215100_8015CBAC = { .poses = {
 #include "assets/actor_215100_animation_1301C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015CBD0[29] = {
 #include "assets/actor_215100_animation_1301C_bank4.inc"
@@ -1657,7 +1657,8 @@ u16 D_actor_215100_8015CE14[20] = {
 };
 
 GpAnimSet D_actor_215100_8015CE3C = {
-    D_actor_215100_8015CC44, D_actor_215100_8015CE14,
+    D_actor_215100_8015CC44,
+    D_actor_215100_8015CE14,
     { NULL, D_actor_215100_8015CBAC.words, NULL, NULL, D_actor_215100_8015CBD0, NULL, NULL, NULL },
 };
 
@@ -1669,7 +1670,7 @@ typedef union {
 
 Actor215100PoseBank13044 D_actor_215100_8015CE64 = { .poses = {
 #include "assets/actor_215100_animation_13310_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015CE7C[43] = {
 #include "assets/actor_215100_animation_13310_bank4.inc"
@@ -1684,7 +1685,8 @@ u16 D_actor_215100_8015D108[20] = {
 };
 
 GpAnimSet D_actor_215100_8015D130 = {
-    D_actor_215100_8015CF28, D_actor_215100_8015D108,
+    D_actor_215100_8015CF28,
+    D_actor_215100_8015D108,
     { NULL, D_actor_215100_8015CE64.words, NULL, NULL, D_actor_215100_8015CE7C, NULL, NULL, NULL },
 };
 
@@ -1696,7 +1698,7 @@ typedef union {
 
 Actor215100PoseBank13338 D_actor_215100_8015D158 = { .poses = {
 #include "assets/actor_215100_animation_13500_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015D170[30] = {
 #include "assets/actor_215100_animation_13500_bank4.inc"
@@ -1711,7 +1713,8 @@ u16 D_actor_215100_8015D2F8[20] = {
 };
 
 GpAnimSet D_actor_215100_8015D320 = {
-    D_actor_215100_8015D1E8, D_actor_215100_8015D2F8,
+    D_actor_215100_8015D1E8,
+    D_actor_215100_8015D2F8,
     { NULL, D_actor_215100_8015D158.words, NULL, NULL, D_actor_215100_8015D170, NULL, NULL, NULL },
 };
 
@@ -1723,7 +1726,7 @@ typedef union {
 
 Actor215100PoseBank13528 D_actor_215100_8015D348 = { .poses = {
 #include "assets/actor_215100_animation_13818_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015D360[56] = {
 #include "assets/actor_215100_animation_13818_bank4.inc"
@@ -1738,7 +1741,8 @@ u16 D_actor_215100_8015D610[20] = {
 };
 
 GpAnimSet D_actor_215100_8015D638 = {
-    D_actor_215100_8015D440, D_actor_215100_8015D610,
+    D_actor_215100_8015D440,
+    D_actor_215100_8015D610,
     { NULL, D_actor_215100_8015D348.words, NULL, NULL, D_actor_215100_8015D360, NULL, NULL, NULL },
 };
 
@@ -1750,7 +1754,7 @@ typedef union {
 
 Actor215100PoseBank13840 D_actor_215100_8015D660 = { .poses = {
 #include "assets/actor_215100_animation_13A50_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015D678[27] = {
 #include "assets/actor_215100_animation_13A50_bank4.inc"
@@ -1765,7 +1769,8 @@ u16 D_actor_215100_8015D848[20] = {
 };
 
 GpAnimSet D_actor_215100_8015D870 = {
-    D_actor_215100_8015D6E4, D_actor_215100_8015D848,
+    D_actor_215100_8015D6E4,
+    D_actor_215100_8015D848,
     { NULL, D_actor_215100_8015D660.words, NULL, NULL, D_actor_215100_8015D678, NULL, NULL, NULL },
 };
 
@@ -1777,7 +1782,7 @@ typedef union {
 
 Actor215100PoseBank13A78 D_actor_215100_8015D898 = { .poses = {
 #include "assets/actor_215100_animation_13C84_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015D8BC[30] = {
 #include "assets/actor_215100_animation_13C84_bank4.inc"
@@ -1792,7 +1797,8 @@ u16 D_actor_215100_8015DA7C[20] = {
 };
 
 GpAnimSet D_actor_215100_8015DAA4 = {
-    D_actor_215100_8015D934, D_actor_215100_8015DA7C,
+    D_actor_215100_8015D934,
+    D_actor_215100_8015DA7C,
     { NULL, D_actor_215100_8015D898.words, NULL, NULL, D_actor_215100_8015D8BC, NULL, NULL, NULL },
 };
 
@@ -1804,7 +1810,7 @@ typedef union {
 
 Actor215100PoseBank13CAC D_actor_215100_8015DACC = { .poses = {
 #include "assets/actor_215100_animation_13EE4_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015DAE4[34] = {
 #include "assets/actor_215100_animation_13EE4_bank4.inc"
@@ -1819,7 +1825,8 @@ u16 D_actor_215100_8015DCDC[20] = {
 };
 
 GpAnimSet D_actor_215100_8015DD04 = {
-    D_actor_215100_8015DB6C, D_actor_215100_8015DCDC,
+    D_actor_215100_8015DB6C,
+    D_actor_215100_8015DCDC,
     { NULL, D_actor_215100_8015DACC.words, NULL, NULL, D_actor_215100_8015DAE4, NULL, NULL, NULL },
 };
 
@@ -1831,7 +1838,7 @@ typedef union {
 
 Actor215100PoseBank13F0C D_actor_215100_8015DD2C = { .poses = {
 #include "assets/actor_215100_animation_141A0_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015DD44[41] = {
 #include "assets/actor_215100_animation_141A0_bank4.inc"
@@ -1846,7 +1853,8 @@ u16 D_actor_215100_8015DF98[20] = {
 };
 
 GpAnimSet D_actor_215100_8015DFC0 = {
-    D_actor_215100_8015DDE8, D_actor_215100_8015DF98,
+    D_actor_215100_8015DDE8,
+    D_actor_215100_8015DF98,
     { NULL, D_actor_215100_8015DD2C.words, NULL, NULL, D_actor_215100_8015DD44, NULL, NULL, NULL },
 };
 
@@ -1858,7 +1866,7 @@ typedef union {
 
 Actor215100PoseBank141C8 D_actor_215100_8015DFE8 = { .poses = {
 #include "assets/actor_215100_animation_14368_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015E000[28] = {
 #include "assets/actor_215100_animation_14368_bank4.inc"
@@ -1873,7 +1881,8 @@ u16 D_actor_215100_8015E160[20] = {
 };
 
 GpAnimSet D_actor_215100_8015E188 = {
-    D_actor_215100_8015E070, D_actor_215100_8015E160,
+    D_actor_215100_8015E070,
+    D_actor_215100_8015E160,
     { NULL, D_actor_215100_8015DFE8.words, NULL, NULL, D_actor_215100_8015E000, NULL, NULL, NULL },
 };
 
@@ -1885,7 +1894,7 @@ typedef union {
 
 Actor215100PoseBank14390 D_actor_215100_8015E1B0 = { .poses = {
 #include "assets/actor_215100_animation_14590_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015E1C8[36] = {
 #include "assets/actor_215100_animation_14590_bank4.inc"
@@ -1900,7 +1909,8 @@ u16 D_actor_215100_8015E388[20] = {
 };
 
 GpAnimSet D_actor_215100_8015E3B0 = {
-    D_actor_215100_8015E258, D_actor_215100_8015E388,
+    D_actor_215100_8015E258,
+    D_actor_215100_8015E388,
     { NULL, D_actor_215100_8015E1B0.words, NULL, NULL, D_actor_215100_8015E1C8, NULL, NULL, NULL },
 };
 
@@ -1912,7 +1922,7 @@ typedef union {
 
 Actor215100PoseBank145B8 D_actor_215100_8015E3D8 = { .poses = {
 #include "assets/actor_215100_animation_14758_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_215100_8015E3F0[28] = {
 #include "assets/actor_215100_animation_14758_bank4.inc"
@@ -1927,7 +1937,8 @@ u16 D_actor_215100_8015E550[20] = {
 };
 
 GpAnimSet D_actor_215100_8015E578 = {
-    D_actor_215100_8015E460, D_actor_215100_8015E550,
+    D_actor_215100_8015E460,
+    D_actor_215100_8015E550,
     { NULL, D_actor_215100_8015E3D8.words, NULL, NULL, D_actor_215100_8015E3F0, NULL, NULL, NULL },
 };
 
@@ -1945,7 +1956,7 @@ TaskDesc D_actor_215100_8015E5D0[2] = {
     { 1, 192, func_actor_215100_8014CEF8, { .model = &D_actor_215100_8015A9E0 } },
 };
 
-GpAnimSet * D_actor_215100_8015E5E8[25] = {
+GpAnimSet* D_actor_215100_8015E5E8[25] = {
     NULL,
     &D_actor_215100_8015AC08,
     &D_actor_215100_8015AFC0,
@@ -1973,31 +1984,31 @@ GpAnimSet * D_actor_215100_8015E5E8[25] = {
     &D_actor_215100_8015E578,
 };
 
-Task * D_actor_215100_8015E64C = NULL;
+Task* D_actor_215100_8015E64C = NULL;
 
-GpCapEntry * D_actor_215100_8015E650 = NULL;
+static GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
-GlyphUvwh * D_actor_215100_8015E654 = NULL;
+static GlyphUvwh* CapCaption_Data_8015E654 = NULL;
 
-GpEvt12 * D_actor_215100_8015E658 = NULL;
+static GpEvt12* CapCaption_Data_8015E658 = NULL;
 
-s16 D_actor_215100_8015E65C = 0;
+static s16 CapCaption_Data_8015E65C = 0;
 
-s16 D_actor_215100_8015E65E = 0;
+static s16 CapCaption_Data_8015E65E = 0;
 
-s16 D_actor_215100_8015E660 = 0;
+static s16 CapCaption_Data_8015E660 = 0;
 
-s16 D_actor_215100_8015E662 = 0;
+static s16 CapCaption_Data_8015E662 = 0;
 
-s16 D_actor_215100_8015E664 = 0;
+static s16 CapCaption_Data_8015E664 = 0;
 
-s16 D_actor_215100_8015E666 = 0;
+static s16 CapCaption_Data_8015E666 = 0;
 
-u16 D_actor_215100_8015E668 = 0;
+static u16 CapCaption_Data_8015E668 = 0;
 
-u16 D_actor_215100_8015E66A = 0;
+static u16 CapCaption_Data_8015E66A = 0;
 
-u8 D_actor_215100_8015E66C[4] = {
+static u8 CapCaption_Data_8015E66C[4] = {
     0,
     35,
     192,
@@ -2014,9 +2025,7 @@ static void func_actor_215100_8014A9A0(void);
 static s32  func_actor_215100_8014AA54(Actor215100CharRec* arg0);
 static void func_actor_215100_8014AB6C(void);
 static void func_actor_215100_8014AF0C(void);
-static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
-static void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2);
-static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
+
 static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
@@ -2145,12 +2154,12 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.field_26    = 3;
+                Player_Status.field_26          = 3;
                 Mc_SaveData[0].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                gDisplayState.roomVariant   = 1;
+                gDisplayState.roomVariant         = 1;
                 Mc_SaveData[0].state.at4.loc.area = D_actor_215100_8015E678.field_0;
                 Mc_SaveData[0].state.at4.loc.warp = D_actor_215100_8015E678.field_2;
                 Mc_SaveData[0].state.at4.loc.room = D_actor_215100_8015E678.field_3;
@@ -2408,655 +2417,18 @@ static void func_actor_215100_8014AF0C(void)
     }
 }
 
-/// Drives the caption schedule while the actor waits to be talked to: state 0
-/// arms it, and state 1 scans `D_actor_215100_80154514` for the window
-/// containing `gGameSession.sceneClock` - the first entry whose `upper * 30`
-/// has not dropped below the clock and whose `lower * 30` has - and, when it
-/// finds one, starts that entry's script at its own line key with the task's
-/// `spawnArg1` as the line delay. It then ticks the clock down one, unless the
-/// caption system is busy or `Gp_StateF0.field_4` is up.
-static void func_actor_215100_8014AFAC(Task* task, s32 arg1)
-{
-    s32 i;
-    s32 script;
-    s32 key;
-    s32 time;
-
-    switch (task->state) {
-        case 0:
-            task->state = 1;
-            break;
-        case 1:
-            script = 0;
-            key    = arg1;
-            for (i = 0; D_actor_215100_80154514[i].upper != -1; i++) {
-                time = gGameSession->sceneClock;
-                if ((D_actor_215100_80154514[i].upper * 30 >= time) &&
-                    (D_actor_215100_80154514[i].lower * 30 < time)) {
-                    script = D_actor_215100_80154514[i].script;
-                    key    = D_actor_215100_80154514[i].key;
-                    break;
-                }
-            }
-            if (script != 0) {
-                func_actor_215100_8014B2B8(script, key, (s16)task->spawnArg1.value);
-                func_actor_215100_8014B0D4();
-            }
-            if ((Gp_CapBusy() == 0) && (Gp_StateF0.field_4 == 0)) {
-                gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
-            }
-            break;
-    }
-}
-
-static void func_actor_215100_8014B0D4(void)
-{
-    if ((D_actor_215100_8015E658 != NULL) &&
-        (D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.offset != -1) &&
-        (Gp_CapBusy() == 0)) {
-        func_actor_215100_8014B3C8(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text, 0x80, 1,
-                                   D_actor_215100_8015E658[D_actor_215100_8015E662].prefix.bytes.field_0 |
-                                       ((D_actor_215100_8015E658[D_actor_215100_8015E662].prefix.bytes.field_1 & 0x10) * 0x10));
-        if (!(D_actor_215100_8015E658[D_actor_215100_8015E662].field_4 & 1)) {
-            func_actor_215100_8014BEE8();
-        }
-    }
-}
-
-/// Relocates a caption file in place, the counterpart of gameplay's
-/// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
-/// when the "CAP" magic is missing.
-static s32 func_actor_215100_8014B1B0(GpCapFileAddress base)
-{
-    s32            i;
-    s32            count;
-    s32            flag;
-    GpEvt12*       rec;
-    GpCapEntry*    ptr;
-    GpCapEvtTable* evts;
-    GpCapPtrTable* ptrs;
-
-    if (strncmp(base.file->magic, "CAP", 3) != 0) {
-        return 0;
-    }
-
-    i = 0;
-    if (base.file->field_8.offset > 0) {
-        base.file->field_8.offset  += base.address;
-        base.file->field_C.offset  += base.address;
-        base.file->field_10.offset += base.address;
-        evts                        = base.file->field_C.ptr;
-        rec                         = evts->records;
-        count                       = evts->count;
-        if (count > 0) {
-            flag = -1;
-            do {
-                if (rec->field_8.offset != flag) {
-                    rec->field_8.offset += base.address;
-                } else {
-                    rec++;
-                }
-                i++;
-                rec++;
-            } while (i < count);
-        }
-        ptrs  = base.file->field_10.ptr;
-        i     = 0;
-        count = ptrs->count;
-        ptr   = ptrs->entries;
-        if (count > 0) {
-            do {
-                if (ptr->offset != 0) {
-                    ptr->offset += base.address;
-                }
-                i++;
-                ptr++;
-            } while (i < count);
-        }
-    }
-
-    D_actor_215100_8015E654 = base.file->field_8.ptr;
-    D_actor_215100_8015E650 = (base.file->field_10.ptr)->entries;
-    return 1;
-}
-
-/// Starts playing the caption script `arg0` picks out of
-/// `D_actor_215100_8015E650`, keyed on `arg1`, and parks its per-line metrics in
-/// the globals `func_actor_215100_8014B0D4` reads. Returns 1 when there is no
-/// such script, 0 once it is playing; `arg2` is the line delay.
-static s32 func_actor_215100_8014B2B8(s16 arg0, s16 arg1, s32 arg2)
-{
-    GpEvt12* caption;
-    s16      entry;
-
-    caption                 = D_actor_215100_8015E650[arg0].events;
-    D_actor_215100_8015E658 = caption;
-    if (caption == NULL) {
-        return 1;
-    }
-    D_actor_215100_8015E666 = arg1;
-    entry                   = func_actor_215100_8014C418(1);
-    D_actor_215100_8015E662 = entry;
-    D_actor_215100_8015E660 = arg2;
-    D_actor_215100_8015E65C = func_actor_215100_8014C06C(D_actor_215100_8015E658[entry].field_8.text);
-    D_actor_215100_8015E65E = func_actor_215100_8014BDFC(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text);
-    D_actor_215100_8015E664 = func_actor_215100_8014C298(D_actor_215100_8015E658[D_actor_215100_8015E662].field_8.text);
-    D_actor_215100_8015E66C[0] = 0x1E;
-    return 0;
-}
-
-static s32 func_actor_215100_8014B3C8(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u16*       text;
-    u16*       body;
-    s32        title;
-    s16        sc;
-    u32        shifted;
-    s32        titleWidth;
-    s16        lineIdx;
-    s16        x;
-    s32        y;
-    s16        i;
-    u16        code;
-    s16        centered;
-    s32        palette;
-    s16        t;
-    s16        t2;
-    s16        glyphY;
-    s32        top;
-    POLY_G4*   bg;
-    POLY_G4*   bg2;
-    DR_MODE*   dm;
-    POLY_FT4*  ft;
-    POLY_GT4*  gt;
-    POLY_GT4*  gt2;
-    GlyphUvwh* icon;
-
-    lineIdx = 0;
-    title   = arg3;
-    text    = arg0;
-    x       = func_actor_215100_8014C17C(arg0, 0) - 0xA0;
-    y       = (u16)D_actor_215100_8015E65E - 0x78;
-
-    bg             = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg + 1);
-    setlen(bg, 8);
-    setcode(bg, 0x3A);
-    setRGB0(bg, 0, 0, 0);
-    setRGB1(bg, 0, 0, 0);
-    setRGB2(bg, 0, 0x40, 0x20);
-    setRGB3(bg, 0, 0x40, 0x20);
-    bg->x0 = (u16)D_actor_215100_8015E65C - 0xA7;
-    bg->y0 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664;
-    bg->x1 = (u16)D_actor_215100_8015E65C - D_actor_215100_8015E65C * 2 + 0xAB;
-    bg->y1 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664;
-    bg->x2 = (u16)D_actor_215100_8015E65C - 0xA7;
-    bg->y2 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664 + (u16)D_actor_215100_8015E664;
-    bg->x3 = (u16)D_actor_215100_8015E65C - D_actor_215100_8015E65C * 2 + 0xAB;
-    bg->y3 = ((u16)D_actor_215100_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)D_actor_215100_8015E664 + (u16)D_actor_215100_8015E664;
-    addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = (POLY_G4*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(bg2 + 1);
-    *bg2           = *bg;
-    addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = (DR_MODE*)gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)(dm + 1);
-    setlen(dm, 1);
-    dm->code[0] = 0xE100020A;
-    addPrim(&gGpuCurrentOt[3], dm);
-
-    body = text;
-    if (title & 0xFF) {
-        ft             = (POLY_FT4*)gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)(ft + 1);
-        setlen(ft, 9);
-        setcode(ft, 0x2D);
-        title      = title - 1;
-        top        = ((u16)D_actor_215100_8015E660 - 0x77) - (u16)D_actor_215100_8015E664;
-        ft->x0     = (u16)D_actor_215100_8015E65C - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - D_actor_215100_8015E654[title & 0xFF].h;
-        titleWidth = D_actor_215100_8015E654[title & 0xFF].w - 0xA7;
-        ft->x1     = (u16)D_actor_215100_8015E65C + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - D_actor_215100_8015E654[title & 0xFF].h;
-        ft->x2     = (u16)D_actor_215100_8015E65C - 0xA7;
-        ft->y2     = top - gDisplayState.vramYOffset;
-        titleWidth = D_actor_215100_8015E654[title & 0xFF].w - 0xA7;
-        ft->x3     = (u16)D_actor_215100_8015E65C + titleWidth;
-        ft->y3     = top - gDisplayState.vramYOffset;
-        ft->u0     = D_actor_215100_8015E654[title & 0xFF].u;
-        ft->v0     = D_actor_215100_8015E654[title & 0xFF].v;
-        ft->u1     = D_actor_215100_8015E654[title & 0xFF].u + D_actor_215100_8015E654[title & 0xFF].w;
-        ft->v1     = D_actor_215100_8015E654[title & 0xFF].v;
-        ft->u2     = D_actor_215100_8015E654[title & 0xFF].u;
-        ft->v2     = D_actor_215100_8015E654[title & 0xFF].v + D_actor_215100_8015E654[title & 0xFF].h;
-        ft->u3     = D_actor_215100_8015E654[title & 0xFF].u + D_actor_215100_8015E654[title & 0xFF].w;
-        ft->v3     = D_actor_215100_8015E654[title & 0xFF].v + D_actor_215100_8015E654[title & 0xFF].h;
-        ft->clut   = 0x3D93;
-        ft->tpage  = getTPage(0, 1, D_actor_215100_801544EC, D_actor_215100_801544EE);
-        addPrim(&gGpuCurrentOt[2], ft);
-    }
-
-    centered = 1;
-    i        = 0;
-    while (1) {
-        code    = body[i];
-        shifted = (u32)code << 16;
-        sc      = (s32)shifted >> 16;
-        if (sc == -1) {
-            break;
-        }
-        if (sc == -2) {
-            t2                      = lineIdx + 1;
-            lineIdx                 = t2;
-            D_actor_215100_8015E66A = y - 2;
-            D_actor_215100_8015E668 = x + 4;
-            y                      += func_actor_215100_8014C360(&body[i + 1]);
-            if (centered != 0) {
-                x = func_actor_215100_8014C17C(arg0, t2) - 0xA0;
-            } else {
-                x = (u16)D_actor_215100_8015E65C - 0xA0;
-            }
-            i++;
-            continue;
-        } else if (sc == -3) {
-            x += 3;
-            i++;
-            continue;
-        } else if ((code & 0xFF00) == 0x8400) {
-            icon           = &D_8010FB70[code & 0xFF];
-            ft             = (POLY_FT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(ft + 1);
-            setlen(ft, 9);
-            setcode(ft, 0x2D);
-            ft->clut  = 0x3C00;
-            ft->tpage = 0x1E;
-            t         = (y - gDisplayState.vramYOffset) + 1;
-            ft->x0    = x;
-            ft->y0    = t - icon->h;
-            ft->x1    = x + icon->w;
-            ft->y1    = t - icon->h;
-            ft->x2    = x;
-            ft->y2    = t;
-            ft->x3    = x + icon->w;
-            ft->y3    = t;
-            ft->u0    = icon->u;
-            ft->v0    = icon->v;
-            ft->u1    = icon->u + icon->w;
-            ft->v1    = icon->v;
-            ft->u2    = icon->u;
-            ft->v2    = icon->v + icon->h;
-            ft->u3    = icon->u + icon->w;
-            ft->v3    = icon->v + icon->h;
-            addPrim(&gGpuCurrentOt[2], ft);
-            x += icon->w;
-            i++;
-            continue;
-        } else {
-            palette        = (shifted >> 26) & 3;
-            code           = code & 0x3FF;
-            glyphY         = y - gDisplayState.vramYOffset;
-            gt             = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt + 1);
-            setcode(gt, 0x3C);
-            setlen(gt, 12);
-            setShadeTex(gt, 1);
-            setRGB0(gt, 0x70, 0x70, 0x70);
-            setRGB1(gt, 0x70, 0x70, 0x70);
-            setRGB2(gt, 0x70, 0x70, 0x70);
-            setRGB3(gt, 0x70, 0x70, 0x70);
-            setSemiTrans(gt, 1);
-            gt->clut  = palette | 0x3D50;
-            gt->x0    = x;
-            gt->tpage = getTPage(0, 1, D_actor_215100_801544EC, D_actor_215100_801544EE);
-            gt->y0    = glyphY - D_actor_215100_8015E654[code & 0x3FF].h;
-            gt->x1    = x + D_actor_215100_8015E654[code & 0x3FF].w;
-            gt->y1    = glyphY - D_actor_215100_8015E654[code & 0x3FF].h;
-            gt->x2    = x;
-            gt->y2    = glyphY;
-            gt->x3    = x + D_actor_215100_8015E654[code & 0x3FF].w;
-            gt->y3    = glyphY;
-            gt->u0    = D_actor_215100_8015E654[code & 0x3FF].u;
-            gt->v0    = D_actor_215100_8015E654[code & 0x3FF].v;
-            gt->u1    = D_actor_215100_8015E654[code & 0x3FF].u + D_actor_215100_8015E654[code & 0x3FF].w;
-            gt->v1    = D_actor_215100_8015E654[code & 0x3FF].v;
-            gt->u2    = D_actor_215100_8015E654[code & 0x3FF].u;
-            gt->v2    = D_actor_215100_8015E654[code & 0x3FF].v + D_actor_215100_8015E654[code & 0x3FF].h;
-            gt->u3    = D_actor_215100_8015E654[code & 0x3FF].u + D_actor_215100_8015E654[code & 0x3FF].w;
-            gt->v3    = D_actor_215100_8015E654[code & 0x3FF].v + D_actor_215100_8015E654[code & 0x3FF].h;
-            addPrim(&gGpuCurrentOt[2], gt);
-            gt2            = (POLY_GT4*)gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)(gt2 + 1);
-            *gt2           = *gt;
-            gt2->tpage     = getTPage(0, 2, D_actor_215100_801544EC, D_actor_215100_801544EE);
-            addPrim(&gGpuCurrentOt[2], gt2);
-            x = D_actor_215100_8015E654[(s16)code].w + x - 1;
-        }
-        i++;
-    }
-    return 0;
-}
-
-/// Top Y of the caption block the text stream `arg0` holds: every line after
-/// the first `-2` adds its height (the tallest glyph's `h + 2`, or 2 when empty)
-/// and the total is subtracted from `D_actor_215100_8015E660`. Gameplay's
-/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
-static s16 func_actor_215100_8014BDFC(u16* arg0)
-{
-    s16  lineH     = 0;
-    s16  total     = 0;
-    s16  i         = 0;
-    s16  seenBreak = 0;
-    u16* text      = arg0;
-    s16  code      = text[0];
-
-    while (code != -1) {
-        if (code == -2) {
-            if (seenBreak) {
-                if (lineH == 0) {
-                    lineH = 2;
-                }
-                total += lineH;
-            } else {
-                seenBreak = 1;
-            }
-            lineH = 0;
-        } else if (code != -3) {
-            if (code >= 0) {
-                if (lineH < D_actor_215100_8015E654[code & 0x3FF].h + 2) {
-                    lineH = D_actor_215100_8015E654[code & 0x3FF].h + 2;
-                }
-            }
-        }
-        code = text[++i];
-    }
-    return D_actor_215100_8015E660 - total;
-}
-
-/// Draws the pulsing "more text" caret: a Gouraud triangle at
-/// (`D_actor_215100_8015E668`, `D_actor_215100_8015E66A`) whose grey level
-/// ramps up to 15 and back down to 9. Same body as gameplay's `Gp_DrawCapCaret`
-/// without the VRAM Y offset.
-static void func_actor_215100_8014BEE8(void)
-{
-    POLY_G3* prim;
-    s32      c1;
-    s32      c2;
-
-    if (D_actor_215100_8015E66C[0] != 0) {
-        D_actor_215100_8015E66C[0] -= 1;
-        return;
-    }
-    prim           = (POLY_G3*)gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG3(prim);
-    c1 = (D_actor_215100_801545E4 << 7) / 15;
-    setRGB0(prim, c1, c1, c1);
-    c1 = (D_actor_215100_801545E4 * 192) / 15;
-    c2 = c1;
-    setRGB1(prim, c2, c2, c2);
-    setRGB2(prim, c2, c2, c2);
-    prim->x0 = D_actor_215100_8015E668 + 3;
-    prim->y0 = D_actor_215100_8015E66A;
-    prim->x1 = D_actor_215100_8015E668;
-    prim->x2 = D_actor_215100_8015E668 + 7;
-    prim->y1 = D_actor_215100_8015E66A - 7;
-    prim->y2 = D_actor_215100_8015E66A - 7;
-    addPrim(&gGpuCurrentOt[2], prim);
-    if (D_actor_215100_801545E8 == 0) {
-        D_actor_215100_801545E4 += 1;
-        if (D_actor_215100_801545E4 >= 0xF) {
-            D_actor_215100_801545E8 = 1;
-        }
-    } else {
-        D_actor_215100_801545E4 -= 1;
-        if (D_actor_215100_801545E4 < 9) {
-            D_actor_215100_801545E8 = 0;
-        }
-    }
-}
-
-/// Horizontal centring offset of the caption line the text stream `arg0`
-/// starts with: the widest line's pixel width subtracted from the 0x140 screen
-/// width, halved, minus 5. The walk is the one `func_actor_215100_8014C360`
-/// makes, and gameplay's `Gp_CapCenterX` compiles to the same 0x110 bytes with
-/// only the glyph table symbol differing — `-2` closes a line and keeps the
-/// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
-/// each glyph code (non-negative, `& 0x3FF` indexing `D_actor_215100_8015E654`)
-/// advances it by that glyph's `w - 1`.
-static s16 func_actor_215100_8014C06C(u16* arg0)
-{
-    s16 lineW;
-    s16 maxW;
-    s16 i;
-    s16 code;
-
-    lineW = 0;
-    maxW  = 0;
-    i     = 0;
-    code  = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineW > maxW) {
-                maxW = lineW;
-            }
-            lineW = 0;
-            code  = arg0[++i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
-        } else if (code >= 0) {
-            lineW += D_actor_215100_8015E654[code & 0x3FF].w - 1;
-            code   = arg0[++i];
-        } else {
-            code = arg0[++i];
-        }
-    }
-    return (0x140 - maxW) / 2 - 5;
-}
-
-/// Horizontal centring offset of line `arg1` of the caption text stream
-/// `arg0`: that line's pixel width subtracted from 0x140, halved, minus 5.
-/// Same walk as `func_actor_215100_8014C06C`, but keeps the width of the
-/// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
-/// compiles to the same bytes.
-static s16 func_actor_215100_8014C17C(u16* arg0, s32 arg1)
-{
-    s16 lineW;
-    s16 selectedW;
-    s16 i;
-    s16 lineIndex;
-    s16 code;
-
-    lineW     = 0;
-    selectedW = 0;
-    i         = 0;
-    lineIndex = 0;
-    code      = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineIndex == arg1) {
-                selectedW = lineW;
-            }
-            lineW = 0;
-            i++;
-            lineIndex++;
-            code = arg0[i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
-        } else if (code >= 0) {
-            lineW += D_actor_215100_8015E654[code & 0x3FF].w - 1;
-            code   = arg0[++i];
-        } else {
-            code = arg0[++i];
-        }
-    }
-    return (0x140 - selectedW) / 2 - 5;
-}
-
-/// Total height of the caption block the text stream `arg0` holds: every `-2`
-/// line break adds the line's height (the tallest glyph's `h + 2`, or 2 when
-/// the line is empty). Gameplay's `Gp_CapTextHeight` is the same walk plus a
-/// final `2 -> 0` clamp.
-static s16 func_actor_215100_8014C298(u16* arg0)
-{
-    s16 lineH = 0;
-    s16 total = 0;
-    s16 i     = 0;
-    s16 code  = arg0[0];
-
-    while (code != -1) {
-        if (code == -2) {
-            if (lineH == 0) {
-                lineH = 2;
-            }
-            total += lineH;
-            lineH  = 0;
-        } else if (code != -3) {
-            if (code >= 0) {
-                if (lineH < D_actor_215100_8015E654[code & 0x3FF].h + 2) {
-                    lineH = D_actor_215100_8015E654[code & 0x3FF].h + 2;
-                }
-            }
-        }
-        code = arg0[++i];
-    }
-    return total;
-}
-
-/// Height of the caption line the text stream `arg0` starts with, walking it
-/// the way gameplay's `func_800E6BB8` does — this overlay's caption system is
-/// a copy of that one, and the two functions compile to the same 0xB8 bytes
-/// with only the glyph table symbol differing.
-///
-/// The running maximum starts at 0 and each glyph code (non-negative, `& 0x3FF`
-/// indexing `D_actor_215100_8015E654`) raises it to that glyph's `h + 2`. Either
-/// terminator ends the scan: `-2` leaves the maximum as it stands, `-1` forces
-/// 0xD, and any other negative code is stepped over like a glyph without
-/// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
-/// comes back as 2.
-static s32 func_actor_215100_8014C360(u16* arg0)
-{
-    s16 height = 0;
-    s16 i      = 0;
-    s16 cont   = 1;
-    s16 code   = arg0[0];
-
-    do {
-        if (code == -2) {
-            cont = 0;
-        } else if (code == -1) {
-            cont   = 0;
-            height = 0xD;
-        } else if (code >= 0) {
-            if (height < D_actor_215100_8015E654[code & 0x3FF].h + 2) {
-                height = D_actor_215100_8015E654[code & 0x3FF].h + 2;
-            }
-            code = arg0[++i];
-        } else {
-            code = arg0[++i];
-        }
-    } while (cont);
-    if (height == 0) {
-        height = 2;
-    }
-    return height;
-}
-
-static s32 func_actor_215100_8014C418(s32 arg0)
-{
-    s32      flag;
-    s32      id;
-    GpEvt12* base;
-    GpEvt12* p;
-
-    flag = -1;
-    id   = D_actor_215100_8015E666;
-    base = D_actor_215100_8015E658;
-    p    = Gp_CapEventAt(base, arg0);
-loop:
-    if (p->field_8.offset == flag) {
-        goto done;
-    }
-    if (p->field_5 == id) {
-        goto done;
-    }
-    p++;
-    arg0++;
-    goto loop;
-done:
-    return arg0;
-}
-
-void func_actor_215100_8014C46C(Task* task)
-{
-    s32 remaining;
-
-    remaining       = task->spawnArg1.value - 1;
-    task->spawnArg1.value = remaining;
-    if (remaining <= 0) {
-        taskKill(task);
-    }
-    func_actor_215100_8014B0D4();
-}
-
-void func_actor_215100_8014C4A8(Task* task)
-{
-    s32 remaining;
-    s32 state;
-
-    state = task->state;
-    switch (state) {
-        case 0:
-            task->state = 1;
-            break;
-        case 1:
-            remaining       = task->spawnArg1.value - 1;
-            task->spawnArg1.value = remaining;
-            if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
-                taskKill(task);
-                Stage_SetEndingFlag();
-            }
-            break;
-    }
-    func_actor_215100_8014B0D4();
-}
+#include "../../shared/cap_captions.inc.c"
 
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 {
-    func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
-    Task_SpawnFromTable(&D_actor_215100_801544FC, 0, (s32)(arg2), 0);
+    CapCaption_ShowTimed(arg0, arg1, arg2);
 }
 
-static void func_actor_215100_8014C58C(s16 arg0, s16 arg1, s16 arg2)
-{
-    func_actor_215100_8014B2B8(arg0, arg1, 0xD0);
-    Display_InitModeObj(&D_actor_215100_80154508, arg2, 0, 0);
-}
+#include "../../shared/cap_captions_resource.inc.c"
 
 static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 {
-    s32 count;
-    s32 i;
-
-    count                   = 0;
-    D_actor_215100_801544EC = arg0;
-    D_actor_215100_801544EE = arg1;
-    for (i = 0; i < 0x32; i++) {
-        if (D_8006C338[i].field_0 == 3) {
-            if (count == arg2) {
-                func_actor_215100_8014B1B0(D_8006C338[i].field_4);
-                break;
-            }
-            count++;
-        }
-    }
+    CapCaption_LoadResource(arg0, arg1, arg2);
 }
 
 /// State-0 handler of the actor's dispatcher: allocates the work block, spawns

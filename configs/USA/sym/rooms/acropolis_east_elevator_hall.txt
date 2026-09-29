@@ -1,6 +1,6 @@
 // Overlay-local symbols for acropolis_east_elevator_hall.
 D_acropolis_east_elevator_hall_8017D5E0 = 0x8017D5E0; // force_not_migration:True string with a non-zero byte after its terminator, read from C
-D_acropolis_east_elevator_hall_8017FC8C = 0x8017FC8C; // size:0x4 defined:True
+Reflection_Data_8017FC8C = 0x8017FC8C; // size:0x4 defined:True
 D_acropolis_east_elevator_hall_8017FC90 = 0x8017FC90; // size:0x18 defined:True
 D_acropolis_east_elevator_hall_8017FCA8 = 0x8017FCA8; // size:0x30 defined:True
 D_acropolis_east_elevator_hall_8017FCD8 = 0x8017FCD8; // size:0x360 defined:True
@@ -92,3 +92,7 @@ func_acropolis_east_elevator_hall_8017F5B4 = 0x8017F5B4; // type:func
 func_acropolis_east_elevator_hall_8017F77C = 0x8017F77C; // type:func
 
 func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func
+Reflection_InitPlayer = 0x8017D5F0; // type:func
+Reflection_UpdatePlayer = 0x8017D7A4; // type:func
+Reflection_HeldObjectTask = 0x8017F128; // type:func
+Reflection_Data_8017D5C4 = 0x8017D5C4;

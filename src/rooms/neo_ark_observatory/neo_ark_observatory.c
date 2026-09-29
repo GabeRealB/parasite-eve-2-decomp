@@ -104,7 +104,7 @@ extern void func_801322F8(void);
 
 /// Index of the mirrored player's coordinate part each held-object reflection
 /// is parented to, by `Task::spawnArg1`.
-extern u8 D_neo_ark_observatory_80180DB8[];
+static u8 Reflection_Data_8017FC8C[];
 
 /// The departure task's descriptor.
 extern TaskDesc D_neo_ark_observatory_80180DD4;
@@ -138,7 +138,10 @@ extern GpAreaApplyRec D_neo_ark_observatory_80187A28[];
 extern RoomDeparture  D_neo_ark_observatory_80187A30;
 extern s16            D_neo_ark_observatory_80187A3C;
 
-static void func_neo_ark_observatory_8017D8A8(Task* task);
+#define REFLECTION_SCALE_IN_CODE 1
+static void func_neo_ark_observatory_8017F3FC(Task* task);
+#include "../../shared/planar_reflection.h"
+
 static s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
 static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
@@ -156,22 +159,21 @@ s32                                     func_neo_ark_observatory_8017F6F8(Task*,
 s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, GpMessageArg, GpMessageArg);
 s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, GpMessageArg);
-void                                    func_neo_ark_observatory_8017F22C(Task*);
-void                                    func_neo_ark_observatory_8017F3FC(Task*);
-void                                    func_neo_ark_observatory_8017F588(Task*);
-void                                    func_neo_ark_observatory_8017FB1C(Task*);
 
-u8 D_neo_ark_observatory_80180DB8[4] = {
-    12,
-    8,
-    12,
-    8,
-};
+void func_neo_ark_observatory_8017F588(Task*);
+void func_neo_ark_observatory_8017FB1C(Task*);
+
+#include "../../shared/planar_reflection_data.inc.c"
 
 TaskDesc D_neo_ark_observatory_80180DBC[2] = {
     { 0, 112, func_neo_ark_observatory_8017F3FC, { .model = NULL } },
-    { 0, 112, func_neo_ark_observatory_8017F22C, { .model = NULL } },
+    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
 };
+
+static inline TaskDesc* Reflection_GetTasks(void)
+{
+    return D_neo_ark_observatory_80180DBC;
+}
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, func_neo_ark_observatory_8017F588, { .model = NULL } };
 
@@ -183,7 +185,7 @@ typedef union {
 
 NeoArkObservatoryPoseBank3820 D_neo_ark_observatory_80180DE0 = { .poses = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
-} };
+                                                                 } };
 
 GpPackedSvec D_neo_ark_observatory_80180E28[64] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank4.inc"
@@ -198,7 +200,8 @@ u16 D_neo_ark_observatory_8018115C[20] = {
 };
 
 GpAnimSet D_neo_ark_observatory_80181184 = {
-    D_neo_ark_observatory_80180F28, D_neo_ark_observatory_8018115C,
+    D_neo_ark_observatory_80180F28,
+    D_neo_ark_observatory_8018115C,
     { NULL, D_neo_ark_observatory_80180DE0.words, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },
 };
 
@@ -259,7 +262,7 @@ s16 D_neo_ark_observatory_80181400[5] = {
     -1,
 };
 
-s16 * D_neo_ark_observatory_8018140C[1] = {
+s16* D_neo_ark_observatory_8018140C[1] = {
     D_neo_ark_observatory_80181400,
 };
 
@@ -376,7 +379,7 @@ u8 D_neo_ark_observatory_801815C4[24] = {
     0,
 };
 
-u8 * D_neo_ark_observatory_801815DC[2] = {
+u8* D_neo_ark_observatory_801815DC[2] = {
     D_neo_ark_observatory_801815C4,
     D_8010CAF8,
 };
@@ -936,7 +939,7 @@ s16 D_neo_ark_observatory_80181F48[6] = {
     -1,
 };
 
-s16 * D_neo_ark_observatory_80181F54[20] = {
+s16* D_neo_ark_observatory_80181F54[20] = {
     D_neo_ark_observatory_80181CF0,
     D_neo_ark_observatory_80181D10,
     D_neo_ark_observatory_80181D38,
@@ -2116,7 +2119,7 @@ GpRoomParamRec D_neo_ark_observatory_80187A00[1] = {
     { 0, 0, 1, 0, D_neo_ark_observatory_801879DC },
 };
 
-GpRoomParamRec * D_neo_ark_observatory_80187A08[8] = {
+GpRoomParamRec* D_neo_ark_observatory_80187A08[8] = {
     D_neo_ark_observatory_801879E8,
     D_neo_ark_observatory_801879F0,
     D_neo_ark_observatory_801879F8,
@@ -2136,694 +2139,18 @@ RoomDeparture D_neo_ark_observatory_80187A30 = { 0 };
 
 s16 D_neo_ark_observatory_80187A3C = 0;
 
-static void            func_neo_ark_observatory_8017D6F4(Task* task);
 static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve);
 static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
 static void            func_neo_ark_observatory_8017FD7C(Task* task);
 
-/// Sets up the room's mirror: re-attaches the player's own TMD source
-/// to this task so the reflection draws the same model, allocates the
-/// `RoomMirrorWork` block the reflection's coordinate frame and matrices live
-/// in, and hangs the task off the player task so it dies with it.
-/// `spawnArg1` must be 0 or 1, and 0 also raises `GameSession::field_4E`. The
-/// two child tasks reflect the player's held-object tasks
-/// (`GameActor::field_920` / `field_924`). Runs the first per-frame update
-/// before returning.
-static void func_neo_ark_observatory_8017D6F4(Task* task)
-{
-    Task*           owner;
-    GameActor*      actor;
-    TmdObject*      extra;
-    GpCoord*        parts;
-    RoomMirrorWork* work;
-    Task*           child;
-    Task*           spawned;
-    s32             i;
+#include "../../shared/planar_reflection.inc.c"
 
-    owner = gameGetPtrSlot(3);
-    if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
-        taskKill(task);
-        return;
-    }
-    extra = task->extra.tmd;
-    parts = extra->coords;
-    if ((u32)task->spawnArg1.value >= 2U) {
-        taskKill(task);
-        return;
-    }
-    work = memCalloc(sizeof(RoomMirrorWork), 0);
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    task->work   = (TaskIdMap*)work;
-    extra->tpage = 6;
-    tmdProcessStream(extra);
-    tmdProcessStream(extra);
-    extra->flags    = 0x10;
-    extra->otOffset = 0x1F;
-    if (task->spawnArg1.value == 0) {
-        gGameSession->field_4E = 1;
-    }
-    parts->sub      = &work->coord;
-    extra->lightMtx = &work->light;
-    extra->colorMtx = &work->color;
-    Task_Reparent(owner, task);
-    task->state++;
-    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
-    work->field_4   = 1;
-    work->configRev = -1;
-    extra->flags   |= 0x80;
-    work->field_4   = 0;
-    work->viewFlg   = -1;
-    actor           = (GameActor*)owner->work;
-    for (i = 0; i < 2; i++) {
-        child = (&actor->field_920)[i];
-        if (child != NULL) {
-            spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i, task);
-            if (spawned != NULL) {
-                Task_Reparent(child, spawned);
-            }
-        }
-    }
-    func_neo_ark_observatory_8017D8A8(task);
+static void func_neo_ark_observatory_8017F3FC(Task* task)
+{
+    Reflection_PlayerTask(task);
 }
 
-/// Per-frame update of the room's mirror, the task
-/// `func_neo_ark_observatory_8017D6F4` sets up.
-///
-/// When the player's equipped weapon changes it spawns reflection tasks for
-/// the player's two held-object tasks. When the view moves it rebuilds the
-/// reflection's coordinate frame. Mirror 0 copies the view matrix with its
-/// second row negated and applies location-specific corrections. The other
-/// mirror reflects through a plane chosen by the current stage, area and view.
-/// On the frame after mirror 0 rebuilds, it queues packets that copy the frame
-/// buffer into the off-screen strip at x = `width`. In stages 1 and 5 it
-/// projects the reflected body to find its screen rectangle and, where that
-/// overlaps the mirror's clip rectangle, draws quads sampling that strip. Otherwise the reflection is hidden. Every
-/// frame it copies the player's pose and light matrices onto the reflection.
-static void func_neo_ark_observatory_8017D8A8(Task* task)
-{
-    RoomMirrorWork*          work;
-    PlayerStatus*            status;
-    TmdObject*               extra;
-    TmdObject*               model;
-    Task*                    owner;
-    GameActor*               actor;
-    Task*                    child;
-    Task*                    spawned;
-    RoomMirrorPlaneScratch*  plane;
-    RoomMirrorExtentScratch* extent;
-    GpCoord*                 parts;
-    GpCoord*                 refPart;
-    DR_AREA*                 drArea;
-    DR_STP*                  drStp;
-    DR_OFFSET*               drOffset;
-    SPRT*                    sprt;
-    DR_TPAGE*                tpage;
-    TILE*                    tile;
-    POLY_FT4*                poly;
-    s32                      stage;
-    s32                      area;
-    s32                      view;
-    s32                      width;
-    s32                      viewFlg;
-    s32                      copyPending;
-    s32                      halfWidth;
-    s32                      texX;
-    s32                      i;
-    s32                      layer;
-    u32                      j;
-
-    width  = 0x1C0;
-    work   = task->work;
-    extra  = task->extra.tmd;
-    stage  = Mc_SaveData[0].state.at4.loc.stage;
-    area   = Mc_SaveData[0].state.at4.loc.area;
-    view   = Mc_SaveData[0].state.at4.loc.view;
-    status = &Player_Status;
-    if (stage == 5) {
-        width = 0x140;
-    }
-    if (work->configRev != status->weapon) {
-        actor           = gameGetPtrSlot(3)->work;
-        work->configRev = status->weapon;
-        for (i = 0; i < 2; i++) {
-            child = (&actor->field_918)[i];
-            if (child != NULL) {
-                spawned = Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 1, i + 2, task);
-                if (spawned != NULL) {
-                    Task_Reparent(child, spawned);
-                }
-            }
-        }
-    }
-    extra->flags |= 0x10;
-    viewFlg       = gGfxViewCoord.flg & 0x7FFFFFFF;
-    if (work->viewFlg != viewFlg) {
-        GpCoord* sub;
-
-        work->viewFlg     = viewFlg;
-        sub               = gGfxViewCoord.sub;
-        work->field_A0[0] = -0xA0;
-        work->field_A0[1] = 0xA0;
-        work->coord.flg   = 0;
-        work->field_A0[2] = -0x78;
-        work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
-        work->coord.sub   = sub;
-        if (task->spawnArg1.value == 0) {
-            work->field_4     = 1;
-            work->coord.coord = gGfxViewCoord.coord;
-            plane->viewRow.vx = work->coord.coord.m[1][0];
-            plane->viewRow.vy = work->coord.coord.m[1][1];
-            plane->viewRow.vz = work->coord.coord.m[1][2];
-            gte_lddp(-0x1000);
-            gte_ldsv(&plane->viewRow);
-            gte_gpf12();
-            gte_stsv(&plane->viewRow);
-            work->coord.coord.m[1][0] = plane->viewRow.vx;
-            work->coord.coord.m[1][1] = plane->viewRow.vy;
-            work->coord.coord.m[1][2] = plane->viewRow.vz;
-            if (stage == 5) {
-                if (area == 7) {
-                    if (view >= 6 && view < 12 && gGameSession->at4.loc.room == 2) {
-                        work->coord.coord.t[1] += 0x9B;
-                        extra->flags           &= ~0x80;
-                        work->field_8           = 0;
-                    } else {
-                        work->field_4 = 0;
-                        extra->flags |= 0x80;
-                    }
-                }
-            } else if (area == 1) {
-                extra->flags |= 0x80;
-                if (view == 9) {
-                    work->field_4 = 0;
-                }
-            } else {
-                if (area != 0x11) {
-                    work->coord.coord.t[1] += 0x69;
-                }
-                work->field_8 = 1;
-                if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
-                    extra->flags |= 0x80;
-                } else {
-                    extra->flags &= ~0x80;
-                }
-            }
-        } else {
-            model         = task->extra.tmd;
-            model->flags &= ~0x80;
-            if (stage == 1) {
-                switch (area) {
-                    case 0x11:
-                        switch (view) {
-                            case 2:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1518;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 3:
-                                plane->normal.vx = 0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
-                                break;
-                            case 4:
-                                work->field_A0[0] = -0x14;
-                                work->field_A0[1] = 0x14;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    case 1:
-                        switch (view) {
-                            case 6:
-                                work->field_A0[1] = 0x64;
-                                work->field_A0[0] = 0;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1AF4;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                model->otOffset  = 0x1F;
-                                break;
-                            case 7:
-                            case 8:
-                                plane->normal.vx = 0;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0x1000;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0x14B4;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    case 2:
-                        switch (view) {
-                            case 2:
-                            case 5:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x170C;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 4:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                break;
-                            case 3:
-                                plane->normal.vx = -0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
-                                break;
-                            default:
-                                model->flags |= 0x80;
-                                break;
-                        }
-                        break;
-                    default:
-                        model->flags |= 0x80;
-                        break;
-                }
-            } else if (view == 8 || view == 1) {
-                plane->normal.vx = -0x1000;
-                plane->normal.vy = 0;
-                plane->normal.vz = 0;
-                VectorNormalSS(&plane->normal, &plane->normal);
-                plane->offset.vx = 0xA38;
-                plane->offset.vy = 0;
-                plane->offset.vz = 0;
-            } else {
-                model->flags |= 0x80;
-            }
-            if (!(model->flags & 0x80)) {
-                plane->leastAbs = plane->normal.vx;
-                if (plane->leastAbs < 0) {
-                    plane->leastAbs = -plane->leastAbs;
-                }
-                plane->leastAxis = 0;
-                plane->axisAbs   = plane->normal.vy;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
-                }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 1;
-                }
-                plane->axisAbs = plane->normal.vz;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
-                }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 2;
-                }
-                plane->refAxis.vx = 0;
-                if (plane->leastAxis == 0) {
-                    plane->refAxis.vx = 0x1000;
-                }
-                plane->refAxis.vy = 0;
-                if (plane->leastAxis == 1) {
-                    plane->refAxis.vy = 0x1000;
-                }
-                plane->refAxis.vz = 0;
-                if (plane->leastAxis == 2) {
-                    plane->refAxis.vz = 0x1000;
-                }
-                Gfx_OrthonormalBasis(&plane->basis, &plane->normal, &plane->refAxis);
-                gte_TransposeMatrix(&plane->basis, &plane->reflect);
-                plane->reflect.m[2][0] = -plane->reflect.m[2][0];
-                plane->reflect.m[2][1] = -plane->reflect.m[2][1];
-                plane->reflect.m[2][2] = -plane->reflect.m[2][2];
-                gte_MulMatrix0(&plane->basis, &plane->reflect, &plane->reflect);
-                work->coord.coord      = plane->reflect;
-                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
-                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
-                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                gfxRotateSv(&plane->reflect, &plane->offset);
-                work->coord.coord.t[0] -= plane->offset.vx;
-                work->coord.coord.t[1] -= plane->offset.vy;
-                work->coord.coord.t[2] -= plane->offset.vz;
-                work->field_8           = 1;
-            }
-        }
-        work->field_C = extra->flags;
-        SCRATCH_POP_BYTES(0x70);
-    }
-
-    copyPending = work->field_4;
-    if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == 0) {
-        u16  ofs[2];
-        RECT rect;
-
-        work->field_4   = 0;
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = 0;
-        rect.y          = gDisplayState.drawBuffer * 0x110;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
-
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
-        SetDrawStp(drStp, 0);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
-
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = 0xA0;
-        ofs[1]          = gDisplayState.drawBuffer * 0x110 + 0x78;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
-
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = -0xA0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
-
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
-
-        sprt            = (SPRT*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(SPRT);
-        sprt->x0        = 0;
-        sprt->y0        = -0x78;
-        sprt->w         = 0xA0;
-        sprt->h         = 0xF0;
-        sprt->u0        = 0x20;
-        sprt->v0        = gDisplayState.drawBuffer << 4;
-        setlen(sprt, 4);
-        setcode(sprt, 0x65);
-        addPrim(&gGpuCurrentOt[0x3FF], sprt);
-
-        tpage           = (DR_TPAGE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_TPAGE);
-        setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-        addPrim(&gGpuCurrentOt[0x3FF], tpage);
-
-        tile            = (TILE*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(TILE);
-        setlen(tile, 3);
-        setcode(tile, 0x60);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x78;
-        tile->r0 = tile->g0 = 2;
-        tile->b0            = 2;
-        tile->w             = 0x140;
-        tile->h             = 0xF0;
-        addPrim(&gGpuCurrentOt[0x3FF], tile);
-
-        drStp           = (DR_STP*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_STP);
-        SetDrawStp(drStp, 1);
-        addPrim(&gGpuCurrentOt[0x3FF], drStp);
-
-        drOffset        = (DR_OFFSET*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_OFFSET);
-        ofs[0]          = width + 0xA0;
-        ofs[1]          = 0x178;
-        SetDrawOffset(drOffset, ofs);
-        addPrim(&gGpuCurrentOt[0x3FF], drOffset);
-
-        drArea          = (DR_AREA*)gGpuPrimCursor;
-        gGpuPrimCursor += sizeof(DR_AREA);
-        rect.x          = width;
-        rect.y          = 0x100;
-        rect.w          = 0x140;
-        rect.h          = 0xF0;
-        SetDrawArea(drArea, &rect);
-        addPrim(&gGpuCurrentOt[0x3FF], drArea);
-    }
-
-    extra->flags = work->field_C;
-    if (!(extra->flags & 0x80) && gGameSession->field_65 == 0) {
-        parts   = task->extra.tmd->coords;
-        owner   = gameGetPtrSlot(3);
-        refPart = &parts[1];
-        if (owner != NULL) {
-            TmdObject* src       = owner->extra.tmd;
-            GpCoord*   srcCoords = src->coords;
-
-            parts->flg = 0;
-            j          = 0;
-            if (src->partCount != 0) {
-                GpCoord* from = (GpCoord*)&srcCoords->coord;
-                GpCoord* to   = (GpCoord*)&parts->coord;
-
-                do {
-                    *(MATRIX*)to = *(MATRIX*)from;
-                    to++;
-                    from++;
-                } while (++j < src->partCount);
-            }
-        }
-        if (stage == 1 || stage == 5) {
-            extent = (RoomMirrorExtentScratch*)SCRATCH_PUSH_BYTES(0x34);
-            if (gGameSession->eventState != 0) {
-                Gp_UpdateCoord(refPart);
-                gte_SetTransMatrix(&refPart->workm);
-                gte_SetRotMatrix(&refPart->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0x3E8;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
-            } else {
-                Gp_UpdateCoord(parts);
-                gte_SetTransMatrix(&parts->workm);
-                gte_SetRotMatrix(&parts->workm);
-                extent->pos.vx = 0;
-                extent->pos.vy = -0x7D0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyHead, &extent->dp, &extent->flag, &extent->otzHead);
-                extent->pos.vx = 0;
-                extent->pos.vy = 0;
-                extent->pos.vz = 0;
-                gte_RotTransPers(&extent->pos, &extent->sxyFoot, &extent->dp, &extent->flag, &extent->otzFoot);
-            }
-            if (extent->sxyFoot.vy > extent->sxyHead.vy) {
-                extent->sxyHead.vx = extent->sxyFoot.vy;
-                extent->sxyFoot.vy = extent->sxyHead.vy;
-                extent->sxyHead.vy = extent->sxyHead.vx;
-            }
-            extent->sxyFoot.vy -= 0x10;
-            extent->sxyHead.vy += 0x10;
-            halfWidth           = (extent->sxyHead.vy - extent->sxyFoot.vy) >> 1;
-            if (halfWidth >= 0x60) {
-                halfWidth = 0x5F;
-            }
-            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
-                if (task->spawnArg1.value == 0) {
-                    halfWidth = 0x5F;
-                } else {
-                    extent->otzFoot = extent->otzHead + 0xA;
-                }
-            }
-            extent->left = extent->sxyFoot.vx - halfWidth;
-            if (extent->left < -0xA0) {
-                extent->left = -0xA0;
-            }
-            extent->right = extent->sxyFoot.vx + halfWidth;
-            if (extent->right > 0xA0) {
-                extent->right = 0xA0;
-            }
-            extent->top = extent->sxyFoot.vy;
-            if (extent->top < -0x78) {
-                extent->top = -0x78;
-            }
-            extent->bottom = extent->sxyHead.vy;
-            if (extent->bottom > 0x78) {
-                extent->bottom = 0x78;
-            }
-            if (extent->top < work->field_A0[3] && work->field_A0[2] < extent->bottom && extent->left < work->field_A0[1] &&
-                work->field_A0[0] < extent->right) {
-                DR_TPAGE* mode;
-
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                texX            = extent->left + (u16)(width + 0xA0);
-                extent->texX    = texX & 0xFFC0;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 1, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
-                for (layer = work->field_8; layer < 3; layer++) {
-                    poly            = (POLY_FT4*)gGpuPrimCursor;
-                    gGpuPrimCursor += sizeof(POLY_FT4);
-                    setPolyFT4(poly);
-                    setSemiTrans(poly, 1);
-                    if (work->field_8 == 1) {
-                        setShadeTex(poly, 0);
-                        poly->r0 = poly->g0 = poly->b0 = 0x80;
-                    } else {
-                        setShadeTex(poly, 1);
-                    }
-                    poly->x0 = poly->x2 = extent->left;
-                    poly->x1 = poly->x3 = extent->right;
-                    poly->y0 = poly->y1 = extent->top;
-                    poly->y2 = poly->y3 = extent->bottom;
-                    poly->tpage         = getTPage(2, layer, extent->texX, 0x100);
-                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + width - extent->texX;
-                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + width - extent->texX;
-                    poly->v0 = poly->v1 = poly->y0 + 0x78;
-                    poly->v2 = poly->v3 = poly->y2 + 0x78;
-                    addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                            poly);
-                }
-                mode            = (DR_TPAGE*)gGpuPrimCursor;
-                gGpuPrimCursor += sizeof(DR_TPAGE);
-                setDrawTPage(mode, 0, 0, 0);
-                addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
-                        mode);
-            } else {
-                extra->flags |= 0x80;
-            }
-            SCRATCH_POP_BYTES(0x34);
-        }
-    }
-
-    {
-        GpCoord*   ownerParts;
-        TmdObject* ownerBody;
-        GpCoord*   ownParts;
-        MATRIX     mtx;
-
-        ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
-        ownerBody   = gameGetPtrSlot(3)->extra.tmd;
-        ownParts    = task->extra.tmd->coords;
-        work->light = *ownerBody->lightMtx;
-        work->color = *ownerBody->colorMtx;
-        Gp_UpdateCoord(ownParts);
-        gte_TransposeMatrix(&ownParts->workm, &mtx);
-        gte_MulMatrix0(&ownerParts->workm, &mtx, &mtx);
-        gte_MulMatrix0(&work->light, &mtx, &work->light);
-    }
-}
-
-/// Scale applied to reflections with `spawnArg1 >= 2`: X negated, Y and Z kept.
-static const VECTOR D_neo_ark_observatory_8017D5C4 = { -0x1000, 0x1000, 0x1000 };
-
-/// Per-frame callback of a held-object reflection. `Task::spawnArg2` is the
-/// mirror task the room set up and the parent is the held-object task being
-/// reflected. On the first frame it clones the parent's TMD source, parents the
-/// clone's root coordinate to the mirrored player's corresponding part, points
-/// the clone at the mirror's light and color matrices and negates the X
-/// translation; every frame it republishes the mirror model's draw flags onto
-/// the clone.
-void func_neo_ark_observatory_8017F22C(Task* task)
-{
-    Task*           mirror;
-    TmdObject*      mirrorExtra;
-    RoomMirrorWork* work;
-    GpCoord*        mirrorPart;
-    TmdObject*      src;
-    GpCoord*        srcParts;
-    TmdObject*      extra;
-    GpCoord*        parts;
-    VECTOR          scale;
-    u16             flags;
-
-    if (task->parent == NULL) {
-        Task_CallExit(task);
-    }
-    mirror      = (Task*)task->spawnArg2.pointer;
-    mirrorPart  = &mirror->extra.tmd->coords[D_neo_ark_observatory_80180DB8[task->spawnArg1.value]];
-    work        = (RoomMirrorWork*)mirror->work;
-    mirrorExtra = mirror->extra.tmd;
-    if (task->state == 0) {
-        src      = task->parent->extra.tmd;
-        srcParts = src->coords;
-        if (Gp_AttachTmd(task, src->source) == NULL) {
-            Task_CallExit(task);
-            return;
-        }
-        extra        = task->extra.tmd;
-        parts        = extra->coords;
-        extra->tpage = src->tpage;
-        tmdProcessStream(extra);
-        tmdProcessStream(extra);
-        extra->flags    = 0x10;
-        extra->otOffset = 0x1F;
-        parts->sub      = mirrorPart;
-        extra->lightMtx = &work->light;
-        extra->colorMtx = &work->color;
-        if (task->spawnArg1.value >= 2) {
-            scale = D_neo_ark_observatory_8017D5C4;
-            ScaleMatrix(&parts->coord, &scale);
-        }
-        parts->coord.t[0] = -srcParts->coord.t[0];
-        parts->coord.t[1] = srcParts->coord.t[1];
-        parts->coord.t[2] = srcParts->coord.t[2];
-        parts->flg        = 0;
-        task->state++;
-    }
-    extra        = task->extra.tmd;
-    flags        = mirrorExtra->flags;
-    extra->flags = flags;
-    if (task->spawnArg1.value >= 2) {
-        extra->flags = flags & 0xFFEF;
-    }
-}
-
-/// Mirror task: runs the set-up state, then the per-frame state.
-void func_neo_ark_observatory_8017F3FC(Task* task)
-{
-    TaskFunc states[2] = {
-        func_neo_ark_observatory_8017D6F4,
-        func_neo_ark_observatory_8017D8A8,
-    };
-
-    states[task->state](task);
-}
+#undef REFLECTION_SCALE_IN_CODE
 
 /// Picks the room a departure into area `arg0->field_0` lands in, for the
 /// areas whose room depends on story progress: areas 5, 41 and 45 take a
@@ -2964,7 +2291,7 @@ void func_neo_ark_observatory_8017F588(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_observatory_80187A30.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_observatory_80187A30.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_observatory_80187A30.warp;
@@ -2993,7 +2320,7 @@ static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMa
     desc->room = rec.pad_2[1];
 }
 
-s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF * arg2, s32 arg3)
+s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
 {
     RoomDeparture     desc;
     _MapMarkerResolve resolve;
@@ -3121,7 +2448,7 @@ s32 func_neo_ark_observatory_8017FBE0(Task* task, s32 msgId, GpMessageArg arg2, 
 /// reached from both routes (nibbles 0xD1 == 3 and 0x4C == 9) and the script
 /// raises one of the two arrival ids with no sub-state pending, nibble 0x4C is
 /// cleared and the room's area records are applied.
-s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

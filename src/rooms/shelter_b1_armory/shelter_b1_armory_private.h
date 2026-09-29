@@ -16,9 +16,9 @@ typedef struct {
 } ShelterB1ArmoryStorage557C;
 STATIC_ASSERT_SIZEOF(ShelterB1ArmoryStorage557C, 8);
 
-extern s32 D_shelter_b1_armory_80185574;
+extern s32 Shop_Data_80187628;
 
-extern GpItemMap* D_shelter_b1_armory_80185578;
+extern GpItemMap* Shop_Data_8018762C;
 
 extern RoomEventMsg D_shelter_b1_armory_80185584;
 

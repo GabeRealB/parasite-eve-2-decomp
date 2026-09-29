@@ -22,7 +22,10 @@ Exit status is 1 when anything is lost, so this can gate a commit or CI.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+import json
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -31,6 +34,7 @@ MATCHED = re.compile(r"^([0-9a-f]+) matched (\S+) (\d+)$")
 INCLUDE = re.compile(r'INCLUDE_ASM\("[^"]*",\s*([A-Za-z0-9_]+)\)')
 # a definition at column 0 whose next line opens a block
 FUNC_DEF = re.compile(r"^[A-Za-z_][\w \*]*\b(\w+)\([^;]*\)\s*\n\{", re.M)
+SOURCE_INCLUDE = re.compile(r'^\s*#\s*include\s*"[^"\n]+\.(?:c|inc)"', re.M)
 
 
 def matched_functions(root: Path) -> dict[str, str]:
@@ -74,11 +78,48 @@ def compiled_sources(root: Path) -> set[str] | None:
     for ld in lds:
         for m in re.finditer(r"build/\w+/(src/\S+?)\.c\.o", ld.read_text(errors="replace")):
             out.add(m.group(1) + ".c")
+    # Included implementations are compiled as part of their parent TU. Ask
+    # the preprocessor for active dependencies: a textual include in #if 0
+    # must not make an otherwise stranded body appear live.
+    parents = {p for p in out if (root / p).is_file()
+               and SOURCE_INCLUDE.search((root / p).read_text(errors="replace"))}
+    database = root / "compile_commands.json"
+    if parents and database.is_file():
+        entries = [e for e in json.loads(database.read_text()) if e["file"] in parents]
+
+        def dependencies(entry: dict) -> set[str]:
+            command = entry.get("arguments") or shlex.split(entry["command"])
+            args = []
+            skip = False
+            for arg in command:
+                if skip:
+                    skip = False
+                elif arg == "-o":
+                    skip = True
+                elif arg not in {"-c", "-E", "-P", "-lang-c"}:
+                    args.append(arg)
+            result = subprocess.run(args + ["-M", "-MT", "dependencies"],
+                                    cwd=entry.get("directory", str(root)),
+                                    capture_output=True, text=True)
+            if result.returncode:
+                raise RuntimeError(f"cannot check source includes in {entry['file']}:\n"
+                                   f"{result.stderr.strip()}")
+            paths = shlex.split(result.stdout.replace("\\\n", " ").split(":", 1)[1])
+            live = set()
+            for path in paths:
+                source = (Path(entry.get("directory", str(root))) / path).resolve()
+                if source.is_relative_to(root.resolve()):
+                    live.add(str(source.relative_to(root.resolve())))
+            return live
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            for included_files in pool.map(dependencies, entries):
+                out.update(included_files)
     return out
 
 
 def stranded(root: Path) -> list[tuple[str, int]]:
-    """Files that define C bodies but that no linker script names.
+    """Files with C bodies neither linked directly nor included by a live TU.
 
     A body here is not lost in the sense the check above tests - it is still in
     the tree, and a search for the function finds it - but nothing compiles it,
@@ -114,7 +155,11 @@ def main() -> int:
 
     matched, inc, owns = matched_functions(root), included(root), owns_asm(root)
     lost = sorted(fn for fn in matched.keys() & inc.keys() if fn in owns)
-    orphan = stranded(root)
+    try:
+        orphan = stranded(root)
+    except RuntimeError as error:
+        print(error, file=sys.stderr)
+        return 1
 
     if orphan:
         total = sum(n for _f, n in orphan)
@@ -124,9 +169,9 @@ def main() -> int:
                 print(f"  {f:64} {n:3} bodies")
             if len(orphan) > 20:
                 print(f"  ... and {len(orphan) - 20} more")
-            print("\nNo linker script names these files, so their overlays are built"
-                  "\nfrom the assembly the bodies were decompiled from. Move them into"
-                  "\nthe unit the manifest does name, or delete them if superseded.")
+            print("\nNo linked translation unit compiles these files directly or through"
+                  "\nan active source include. Move them into a live unit, include them"
+                  "\nfrom one, or delete them if superseded.")
         return 1
 
     if not lost:

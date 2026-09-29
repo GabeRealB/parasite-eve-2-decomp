@@ -106,7 +106,7 @@ D_neo_ark_observatory_80187A30 = 0x80187A30; // size:0xC defined:True
 D_80137A60 = 0x80137A60; // absolute:True
 D_map_neo_ark_8017B010 = 0x8017B010; // absolute:True
 D_neo_ark_observatory_801812C0 = 0x801812C0; // size:0xA8 defined:True
-D_neo_ark_observatory_80180DB8 = 0x80180DB8; // size:0x4 defined:True
+Reflection_Data_8017FC8C = 0x80180DB8; // size:0x4 defined:True
 D_neo_ark_observatory_80180DBC = 0x80180DBC; // size:0x18 defined:True
 D_neo_ark_observatory_80180DD4 = 0x80180DD4; // size:0xC defined:True
 D_neo_ark_observatory_80180DE0 = 0x80180DE0; // size:0x48 defined:True
@@ -124,3 +124,7 @@ func_neo_ark_observatory_80180DAC = 0x80180DAC; // type:func
 func_neo_ark_observatory_8017FA98 = 0x8017FA98; // type:func
 
 func_neo_ark_observatory_80180124 = 0x80180124; // type:func
+Reflection_InitPlayer = 0x8017D6F4; // type:func
+Reflection_UpdatePlayer = 0x8017D8A8; // type:func
+Reflection_HeldObjectTask = 0x8017F22C; // type:func
+Reflection_Data_8017D5C4 = 0x8017D5C4;

@@ -103,13 +103,13 @@ extern RoomDeparture D_shelter_b1_underground_parking_8018D77C;
 extern TaskDesc D_shelter_b1_underground_parking_8018720C[];
 
 /// The "%" suffix appended to the play-data percentages.
-extern u8 D_shelter_b1_underground_parking_8018691C[];
+static u8 Telephone_Data_80181A78[];
 
 /// Descriptor of the play-data panels' shared frame.
-extern UiObjectDesc D_shelter_b1_underground_parking_80186B34;
+static UiObjectDesc Telephone_Data_80181C90;
 
 /// The item id the shop list's cursor last rested on.
-extern s32 D_shelter_b1_underground_parking_80186FB0;
+static s32 Shop_Data_801819EC;
 
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
 /// markers: it selects 0x180 or 0x60 as the second argument of their draw
@@ -124,176 +124,176 @@ extern UiObjectDesc D_800611E4;
 
 /// Labels of the nine play-data rows, and the help line each row shows while
 /// it is selected.
-extern u8 D_shelter_b1_underground_parking_801868C4[];
-extern u8 D_shelter_b1_underground_parking_801868CC[];
-extern u8 D_shelter_b1_underground_parking_801868D0[];
-extern u8 D_shelter_b1_underground_parking_801868D8[];
-extern u8 D_shelter_b1_underground_parking_801868E4[];
-extern u8 D_shelter_b1_underground_parking_801868F4[];
-extern u8 D_shelter_b1_underground_parking_801868FC[];
-extern u8 D_shelter_b1_underground_parking_80186904[];
-extern u8 D_shelter_b1_underground_parking_8018690C[];
-extern u8 D_shelter_b1_underground_parking_80186920[];
-extern u8 D_shelter_b1_underground_parking_8018694C[];
-extern u8 D_shelter_b1_underground_parking_80186970[];
-extern u8 D_shelter_b1_underground_parking_801869A0[];
-extern u8 D_shelter_b1_underground_parking_801869D4[];
-extern u8 D_shelter_b1_underground_parking_80186A08[];
-extern u8 D_shelter_b1_underground_parking_80186A40[];
-extern u8 D_shelter_b1_underground_parking_80186A74[];
-extern u8 D_shelter_b1_underground_parking_80186AAC[];
+static u8 Telephone_Data_80181A20[];
+static u8 Telephone_Data_80181A28[];
+static u8 Telephone_Data_80181A2C[];
+static u8 Telephone_Data_80181A34[];
+static u8 Telephone_Data_80181A40[];
+static u8 Telephone_Data_80181A50[];
+static u8 Telephone_Data_80181A58[];
+static u8 Telephone_Data_80181A60[];
+static u8 Telephone_Data_80181A68[];
+static u8 Telephone_Data_80181A7C[];
+static u8 Telephone_Data_80181AA8[];
+static u8 Telephone_Data_80181ACC[];
+static u8 Telephone_Data_80181AFC[];
+static u8 Telephone_Data_80181B30[];
+static u8 Telephone_Data_80181B64[];
+static u8 Telephone_Data_80181B9C[];
+static u8 Telephone_Data_80181BD0[];
+static u8 Telephone_Data_80181C08[];
 
 /// The unit suffix appended to the play-data counts.
-extern u8 D_shelter_b1_underground_parking_80186914[];
+static u8 Telephone_Data_80181A70[];
 
 /// The list the weapon and PE usage panels fill.
-extern UiList D_shelter_b1_underground_parking_80186B10;
+static UiList Telephone_Data_80181C6C;
 
 /// Title and list of the menu `func_shelter_b1_underground_parking_8017EDE8`
 /// runs.
-static const char D_shelter_b1_underground_parking_8017D638[];
-extern UiList     D_shelter_b1_underground_parking_80186B98;
+static const char Telephone_Data_8017D638[];
+static UiList     Telephone_Data_80181CF4;
 
 /// List of the menu `func_shelter_b1_underground_parking_8017F2A0` runs.
-extern UiList D_shelter_b1_underground_parking_80186AE8;
+static UiList Telephone_Data_80181C44;
 
 /// Texts the menu's four row handlers draw.
-extern u8 D_shelter_b1_underground_parking_8018689C[];
-extern u8 D_shelter_b1_underground_parking_801868A4[];
-extern u8 D_shelter_b1_underground_parking_801868B0[];
-extern u8 D_shelter_b1_underground_parking_801868BC[];
+static u8 Telephone_Data_801819F8[];
+static u8 Telephone_Data_80181A00[];
+static u8 Telephone_Data_80181A0C[];
+static u8 Telephone_Data_80181A18[];
 
 /// Descriptors of the panels the rows open.
-extern UiObjectDesc D_shelter_b1_underground_parking_80186B50;
-extern UiObjectDesc D_shelter_b1_underground_parking_80186B6C;
+static UiObjectDesc Telephone_Data_80181CAC;
+static UiObjectDesc Telephone_Data_80181CC8;
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_underground_parking_8017F80C`
 /// chooses from.
-extern u16 D_shelter_b1_underground_parking_80186BBC[];
-extern u16 D_shelter_b1_underground_parking_80186BC4[];
-extern u16 D_shelter_b1_underground_parking_80186BCC[];
-extern u16 D_shelter_b1_underground_parking_80186BD4[];
-extern u16 D_shelter_b1_underground_parking_80186BE4[];
-extern u16 D_shelter_b1_underground_parking_80186BF4[];
-extern u16 D_shelter_b1_underground_parking_80186C04[];
-extern u16 D_shelter_b1_underground_parking_80186C0C[];
-extern u16 D_shelter_b1_underground_parking_80186C1C[];
-extern u16 D_shelter_b1_underground_parking_80186C2C[];
-extern u16 D_shelter_b1_underground_parking_80186C3C[];
-extern u16 D_shelter_b1_underground_parking_80186C44[];
-extern u16 D_shelter_b1_underground_parking_80186C58[];
-extern u16 D_shelter_b1_underground_parking_80186C70[];
-extern u16 D_shelter_b1_underground_parking_80186C84[];
-extern u16 D_shelter_b1_underground_parking_80186C8C[];
-extern u16 D_shelter_b1_underground_parking_80186C9C[];
-extern u16 D_shelter_b1_underground_parking_80186CB4[];
-extern u16 D_shelter_b1_underground_parking_80186CC8[];
-extern u16 D_shelter_b1_underground_parking_80186CD0[];
-extern u16 D_shelter_b1_underground_parking_80186CE4[];
-extern u16 D_shelter_b1_underground_parking_80186D00[];
-extern u16 D_shelter_b1_underground_parking_80186D10[];
-extern u16 D_shelter_b1_underground_parking_80186D1C[];
-extern u16 D_shelter_b1_underground_parking_80186D34[];
-extern u16 D_shelter_b1_underground_parking_80186D50[];
-extern u16 D_shelter_b1_underground_parking_80186D64[];
-extern u16 D_shelter_b1_underground_parking_80186D6C[];
-extern u16 D_shelter_b1_underground_parking_80186D80[];
-extern u16 D_shelter_b1_underground_parking_80186DA0[];
-extern u16 D_shelter_b1_underground_parking_80186DB0[];
-extern u16 D_shelter_b1_underground_parking_80186DBC[];
-extern u16 D_shelter_b1_underground_parking_80186DD4[];
-extern u16 D_shelter_b1_underground_parking_80186DD8[];
-extern u16 D_shelter_b1_underground_parking_80186DDC[];
-extern u16 D_shelter_b1_underground_parking_80186DE4[];
-extern u16 D_shelter_b1_underground_parking_80186DF4[];
-extern u16 D_shelter_b1_underground_parking_80186DFC[];
-extern u16 D_shelter_b1_underground_parking_80186E04[];
-extern u16 D_shelter_b1_underground_parking_80186E0C[];
-extern u16 D_shelter_b1_underground_parking_80186E18[];
-extern u16 D_shelter_b1_underground_parking_80186E20[];
-extern u16 D_shelter_b1_underground_parking_80186E2C[];
-extern u16 D_shelter_b1_underground_parking_80186E34[];
-extern u16 D_shelter_b1_underground_parking_80186E40[];
-extern u16 D_shelter_b1_underground_parking_80186E4C[];
-extern u16 D_shelter_b1_underground_parking_80186E54[];
-extern u16 D_shelter_b1_underground_parking_80186E5C[];
-extern u16 D_shelter_b1_underground_parking_80186E68[];
-extern u16 D_shelter_b1_underground_parking_80186E74[];
-extern u16 D_shelter_b1_underground_parking_80186E7C[];
-extern u16 D_shelter_b1_underground_parking_80186E88[];
-extern u16 D_shelter_b1_underground_parking_80186E94[];
-extern u16 D_shelter_b1_underground_parking_80186EA0[];
-extern u16 D_shelter_b1_underground_parking_80186EA4[];
-extern u16 D_shelter_b1_underground_parking_80186EB0[];
-extern u16 D_shelter_b1_underground_parking_80186EBC[];
-extern u16 D_shelter_b1_underground_parking_80186EC8[];
-extern u16 D_shelter_b1_underground_parking_80186ED0[];
-extern u16 D_shelter_b1_underground_parking_80186EDC[];
-extern u16 D_shelter_b1_underground_parking_80186EE8[];
-extern u16 D_shelter_b1_underground_parking_80186EF4[];
-extern u16 D_shelter_b1_underground_parking_80186EFC[];
-extern u16 D_shelter_b1_underground_parking_80186F08[];
-extern u16 D_shelter_b1_underground_parking_80187098[];
+static u16 Shop_Data_801815F8[];
+static u16 Shop_Data_80181600[];
+static u16 Shop_Data_80181608[];
+static u16 Shop_Data_80181610[];
+static u16 Shop_Data_80181620[];
+static u16 Shop_Data_80181630[];
+static u16 Shop_Data_80181640[];
+static u16 Shop_Data_80181648[];
+static u16 Shop_Data_80181658[];
+static u16 Shop_Data_80181668[];
+static u16 Shop_Data_80181678[];
+static u16 Shop_Data_80181680[];
+static u16 Shop_Data_80181694[];
+static u16 Shop_Data_801816AC[];
+static u16 Shop_Data_801816C0[];
+static u16 Shop_Data_801816C8[];
+static u16 Shop_Data_801816D8[];
+static u16 Shop_Data_801816F0[];
+static u16 Shop_Data_80181704[];
+static u16 Shop_Data_8018170C[];
+static u16 Shop_Data_80181720[];
+static u16 Shop_Data_8018173C[];
+static u16 Shop_Data_8018174C[];
+static u16 Shop_Data_80181758[];
+static u16 Shop_Data_80181770[];
+static u16 Shop_Data_8018178C[];
+static u16 Shop_Data_801817A0[];
+static u16 Shop_Data_801817A8[];
+static u16 Shop_Data_801817BC[];
+static u16 Shop_Data_801817DC[];
+static u16 Shop_Data_801817EC[];
+static u16 Shop_Data_801817F8[];
+static u16 Shop_Data_80181810[];
+static u16 Shop_Data_80181814[];
+static u16 Shop_Data_80181818[];
+static u16 Shop_Data_80181820[];
+static u16 Shop_Data_80181830[];
+static u16 Shop_Data_80181838[];
+static u16 Shop_Data_80181840[];
+static u16 Shop_Data_80181848[];
+static u16 Shop_Data_80181854[];
+static u16 Shop_Data_8018185C[];
+static u16 Shop_Data_80181868[];
+static u16 Shop_Data_80181870[];
+static u16 Shop_Data_8018187C[];
+static u16 Shop_Data_80181888[];
+static u16 Shop_Data_80181890[];
+static u16 Shop_Data_80181898[];
+static u16 Shop_Data_801818A4[];
+static u16 Shop_Data_801818B0[];
+static u16 Shop_Data_801818B8[];
+static u16 Shop_Data_801818C4[];
+static u16 Shop_Data_801818D0[];
+static u16 Shop_Data_801818DC[];
+static u16 Shop_Data_801818E0[];
+static u16 Shop_Data_801818EC[];
+static u16 Shop_Data_801818F8[];
+static u16 Shop_Data_80181904[];
+static u16 Shop_Data_8018190C[];
+static u16 Shop_Data_80181918[];
+static u16 Shop_Data_80181924[];
+static u16 Shop_Data_80181930[];
+static u16 Shop_Data_80181938[];
+static u16 Shop_Data_80181944[];
+static u16 Shop_Data_80181AD4[];
 
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-extern u8           D_shelter_b1_underground_parking_80186FD0[];
-extern u8           D_shelter_b1_underground_parking_80186FE0[];
-extern u8           D_shelter_b1_underground_parking_80186FE4[];
-extern UiObjectDesc D_shelter_b1_underground_parking_80187148;
-extern UiObjectDesc D_shelter_b1_underground_parking_8018719C;
+static u8           Shop_Data_80181A0C[];
+static u8           Shop_Data_80181A1C[];
+static u8           Shop_Data_80181A20[];
+static UiObjectDesc Shop_Data_80181B84;
+static UiObjectDesc Shop_Data_80181BD8;
 
 /// The shop's unlockable stock rows.
-extern RoomShopTier D_shelter_b1_underground_parking_80186F14[13];
+static RoomShopTier Shop_Data_80181950[13];
 
 /// The shop list's row handlers and the balance panel beside it.
-extern UiListItemFunc D_shelter_b1_underground_parking_8018709C[];
-extern UiObjectDesc   D_shelter_b1_underground_parking_801871B8;
+static UiListItemFunc Shop_Data_80181AD8[];
+static UiObjectDesc   Shop_Data_80181BF4;
 
 /// Texts of the four rows that pick an entry of the shop's id list, and the
 /// panel they open.
-extern u8           D_shelter_b1_underground_parking_80187020[];
-extern u8           D_shelter_b1_underground_parking_80187028[];
-extern u8           D_shelter_b1_underground_parking_80187034[];
-extern u8           D_shelter_b1_underground_parking_8018703C[];
-extern UiObjectDesc D_shelter_b1_underground_parking_80187110;
+static u8           Shop_Data_80181A5C[];
+static u8           Shop_Data_80181A64[];
+static u8           Shop_Data_80181A70[];
+static u8           Shop_Data_80181A78[];
+static UiObjectDesc Shop_Data_80181B4C;
 
 /// List of the menu `func_shelter_b1_underground_parking_80180C90` runs, and
 /// the panel it opens first.
-extern UiList       D_shelter_b1_underground_parking_801870A4;
-extern UiObjectDesc D_shelter_b1_underground_parking_8018712C;
+static UiList       Shop_Data_80181AE0;
+static UiObjectDesc Shop_Data_80181B68;
 
 /// The purchase confirmation: its text and the panels it answers with.
-extern u8           D_shelter_b1_underground_parking_80186FB4[];
-extern UiObjectDesc D_shelter_b1_underground_parking_80187164;
-extern UiObjectDesc D_shelter_b1_underground_parking_801871D4;
+static u8           Shop_Data_801819F0[];
+static UiObjectDesc Shop_Data_80181BA0;
+static UiObjectDesc Shop_Data_80181C10;
 
 /// The three messages the notice panel picks from.
-extern u8 D_shelter_b1_underground_parking_80187044[];
-extern u8 D_shelter_b1_underground_parking_80187058[];
-extern u8 D_shelter_b1_underground_parking_80187068[];
+static u8 Shop_Data_80181A80[];
+static u8 Shop_Data_80181A94[];
+static u8 Shop_Data_80181AA4[];
 
 /// The charge panel's title, and the quantity and item map of the slot it is
 /// animating.
-static const char D_shelter_b1_underground_parking_8017D774[];
-extern s32        D_shelter_b1_underground_parking_8018D744;
-extern GpItemMap* D_shelter_b1_underground_parking_8018D748;
+static const char Shop_Data_8017D6F4[];
+static s32        Shop_Data_80187628;
+static GpItemMap* Shop_Data_8018762C;
 
 /// Label of the held-quantity line.
-extern u8 D_shelter_b1_underground_parking_80187088[];
+static u8 Shop_Data_80181AC4[];
 
 /// Text the quantity picker draws beside the item.
-extern u8 D_shelter_b1_underground_parking_80187094[];
+static u8 Shop_Data_80181AD0[];
 
 /// Text of the row that closes its panel.
-extern u8 D_shelter_b1_underground_parking_80186FC8[];
+static u8 Shop_Data_80181A04[];
 
 /// The list `func_shelter_b1_underground_parking_80181D88` drives.
-extern UiList D_shelter_b1_underground_parking_801870D0;
+static UiList Shop_Data_80181B0C;
 
 /// The descriptor of the modal panel `func_shelter_b1_underground_parking_80181EB0`
 /// runs.
-extern UiObjectDesc D_shelter_b1_underground_parking_801870F4;
+static UiObjectDesc Shop_Data_80181B30;
 
 /// The scene sub-task the cutscene runner spawned, while it runs.
 extern Task* D_shelter_b1_underground_parking_8018D754;
@@ -364,35 +364,14 @@ static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1
 static void func_shelter_b1_underground_parking_80185F08(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
-static void func_shelter_b1_underground_parking_8017F7D0(Task* task);
+#define TELEPHONE_TITLE_BYTES "Telephone\0<\x9E"
+#include "../../shared/telephone.h"
+
 static void func_shelter_b1_underground_parking_801848BC(Task* task);
 static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_shelter_b1_underground_parking_8017FE7C(UiList*, UiObject*);
-
-void func_shelter_b1_underground_parking_8017DA50(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_8017E21C(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_8017EC34(Task*);
-void func_shelter_b1_underground_parking_8017F0E0(Task*);
-void func_shelter_b1_underground_parking_8017F2A0(Task*);
-void func_shelter_b1_underground_parking_8017F494(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_8017F578(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_8017F640(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_8017F708(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_80180820(Task*);
-void func_shelter_b1_underground_parking_80180A70(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_80180C90(Task*);
-void func_shelter_b1_underground_parking_80180E38(Task*);
-void func_shelter_b1_underground_parking_8018101C(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_80181230(Task*);
-void func_shelter_b1_underground_parking_80181CCC(UiList*, UiObject*);
-void func_shelter_b1_underground_parking_80181D88(Task*);
-
-void func_shelter_b1_underground_parking_80180820(Task*);
-void func_shelter_b1_underground_parking_801813B0(Task*);
-void func_shelter_b1_underground_parking_80181678(Task*);
-void func_shelter_b1_underground_parking_8018184C(Task*);
-void func_shelter_b1_underground_parking_80181EB0(Task*);
+#define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
+#include "../../shared/shop.h"
 
 extern GpGridParams   D_shelter_b1_underground_parking_80187E50[1];
 extern GpGridParams   D_shelter_b1_underground_parking_801884D4[1];
@@ -441,1077 +420,13 @@ extern GpSprtCmd  D_shelter_b1_underground_parking_80189EC4[2];
 extern GpSprtElem D_shelter_b1_underground_parking_80189AF8[13];
 extern GpSprtElem D_shelter_b1_underground_parking_80189C14[32];
 
-u8 D_shelter_b1_underground_parking_8018689C[8] = {
-    83,
-    97,
-    118,
-    101,
-    0,
-    0,
-    0,
-    0,
-};
+#include "../../shared/telephone_data.inc.c"
 
-u8 D_shelter_b1_underground_parking_801868A4[12] = {
-    80,
-    108,
-    97,
-    121,
-    32,
-    68,
-    97,
-    116,
-    97,
-    0,
-    0,
-    0,
-};
+#include "../../shared/shop_data.inc.c"
 
-u8 D_shelter_b1_underground_parking_801868B0[12] = {
-    87,
-    101,
-    97,
-    112,
-    111,
-    110,
-    32,
-    68,
-    97,
-    116,
-    97,
-    0,
-};
+#include "../../shared/shop_panels.inc.c"
 
-u8 D_shelter_b1_underground_parking_801868BC[8] = {
-    80,
-    69,
-    32,
-    68,
-    97,
-    116,
-    97,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868C4[8] = {
-    84,
-    105,
-    109,
-    101,
-    0,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868CC[4] = {
-    87,
-    111,
-    110,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868D0[8] = {
-    69,
-    115,
-    99,
-    97,
-    112,
-    101,
-    100,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868D8[12] = {
-    66,
-    97,
-    116,
-    116,
-    108,
-    101,
-    115,
-    32,
-    119,
-    111,
-    110,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868E4[16] = {
-    69,
-    120,
-    116,
-    101,
-    114,
-    109,
-    105,
-    110,
-    97,
-    116,
-    101,
-    100,
-    0,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868F4[8] = {
-    83,
-    97,
-    118,
-    101,
-    100,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801868FC[8] = {
-    67,
-    108,
-    101,
-    97,
-    114,
-    101,
-    100,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186904[8] = {
-    77,
-    97,
-    120,
-    32,
-    69,
-    88,
-    80,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_8018690C[8] = {
-    77,
-    97,
-    120,
-    32,
-    66,
-    80,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186914[8] = {
-    32,
-    116,
-    105,
-    109,
-    101,
-    115,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_8018691C[4] = {
-    37,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186920[44] = {
-    84,
-    111,
-    116,
-    97,
-    108,
-    32,
-    97,
-    109,
-    111,
-    117,
-    110,
-    116,
-    32,
-    111,
-    102,
-    10,
-    116,
-    105,
-    109,
-    101,
-    32,
-    115,
-    112,
-    101,
-    110,
-    116,
-    32,
-    102,
-    111,
-    114,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_8018694C[36] = {
-    78,
-    117,
-    109,
-    98,
-    101,
-    114,
-    32,
-    111,
-    102,
-    32,
-    115,
-    97,
-    118,
-    101,
-    115,
-    10,
-    117,
-    115,
-    101,
-    100,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186970[48] = {
-    84,
-    111,
-    116,
-    97,
-    108,
-    32,
-    110,
-    117,
-    109,
-    98,
-    101,
-    114,
-    32,
-    111,
-    102,
-    32,
-    101,
-    110,
-    101,
-    109,
-    105,
-    101,
-    115,
-    10,
-    100,
-    101,
-    102,
-    101,
-    97,
-    116,
-    101,
-    100,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801869A0[52] = {
-    84,
-    111,
-    116,
-    97,
-    108,
-    32,
-    110,
-    117,
-    109,
-    98,
-    101,
-    114,
-    32,
-    111,
-    102,
-    32,
-    101,
-    115,
-    99,
-    97,
-    112,
-    101,
-    115,
-    10,
-    102,
-    114,
-    111,
-    109,
-    32,
-    98,
-    97,
-    116,
-    116,
-    108,
-    101,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_801869D4[52] = {
-    67,
-    117,
-    114,
-    114,
-    101,
-    110,
-    116,
-    32,
-    112,
-    101,
-    114,
-    99,
-    101,
-    110,
-    116,
-    32,
-    111,
-    102,
-    32,
-    116,
-    111,
-    116,
-    97,
-    108,
-    10,
-    98,
-    97,
-    116,
-    116,
-    108,
-    101,
-    115,
-    32,
-    119,
-    111,
-    110,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186A08[56] = {
-    67,
-    117,
-    114,
-    114,
-    101,
-    110,
-    116,
-    32,
-    112,
-    101,
-    114,
-    99,
-    101,
-    110,
-    116,
-    32,
-    111,
-    102,
-    32,
-    116,
-    111,
-    116,
-    97,
-    108,
-    10,
-    101,
-    110,
-    101,
-    109,
-    105,
-    101,
-    115,
-    32,
-    100,
-    101,
-    102,
-    101,
-    97,
-    116,
-    101,
-    100,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186A40[52] = {
-    78,
-    117,
-    109,
-    98,
-    101,
-    114,
-    32,
-    111,
-    102,
-    32,
-    116,
-    105,
-    109,
-    101,
-    115,
-    32,
-    121,
-    111,
-    117,
-    32,
-    104,
-    97,
-    118,
-    101,
-    10,
-    99,
-    108,
-    101,
-    97,
-    114,
-    101,
-    100,
-    32,
-    116,
-    104,
-    101,
-    32,
-    103,
-    97,
-    109,
-    101,
-    32,
-    115,
-    111,
-    32,
-    102,
-    97,
-    114,
-    46,
-    0,
-    0,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186A74[56] = {
-    71,
-    114,
-    101,
-    97,
-    116,
-    101,
-    115,
-    116,
-    32,
-    97,
-    109,
-    111,
-    117,
-    110,
-    116,
-    32,
-    111,
-    102,
-    32,
-    69,
-    88,
-    80,
-    32,
-    103,
-    97,
-    116,
-    104,
-    101,
-    114,
-    101,
-    100,
-    10,
-    98,
-    121,
-    32,
-    116,
-    104,
-    101,
-    32,
-    101,
-    110,
-    100,
-    32,
-    111,
-    102,
-    32,
-    116,
-    104,
-    101,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-};
-
-u8 D_shelter_b1_underground_parking_80186AAC[56] = {
-    71,
-    114,
-    101,
-    97,
-    116,
-    101,
-    115,
-    116,
-    32,
-    97,
-    109,
-    111,
-    117,
-    110,
-    116,
-    32,
-    111,
-    102,
-    32,
-    66,
-    80,
-    32,
-    103,
-    97,
-    116,
-    104,
-    101,
-    114,
-    101,
-    100,
-    10,
-    98,
-    121,
-    32,
-    116,
-    104,
-    101,
-    32,
-    101,
-    110,
-    100,
-    32,
-    111,
-    102,
-    32,
-    116,
-    104,
-    101,
-    32,
-    103,
-    97,
-    109,
-    101,
-    46,
-    0,
-    0,
-};
-
-UiListItemFunc D_shelter_b1_underground_parking_80186AE4[1] = {
-    func_shelter_b1_underground_parking_8017DA50,
-};
-
-UiList D_shelter_b1_underground_parking_80186AE8 = { D_shelter_b1_underground_parking_80186AE4, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiListItemFunc D_shelter_b1_underground_parking_80186B0C[1] = {
-    func_shelter_b1_underground_parking_8017E21C,
-};
-
-UiList D_shelter_b1_underground_parking_80186B10 = { D_shelter_b1_underground_parking_80186B0C, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80186B34 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, func_shelter_b1_underground_parking_8017F0E0, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80186B50 = { 2, 0xFF70, 0xFF98, 288, 120, 40, 0, 0, 192, func_shelter_b1_underground_parking_8017F2A0, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80186B6C = { 2, 0xFF70, 0xFF98, 288, 168, 40, 0, 0, 192, func_shelter_b1_underground_parking_8017EC34, 0 };
-
-UiListItemFunc D_shelter_b1_underground_parking_80186B88[4] = {
-    func_shelter_b1_underground_parking_8017F494,
-    func_shelter_b1_underground_parking_8017F578,
-    func_shelter_b1_underground_parking_8017F640,
-    func_shelter_b1_underground_parking_8017F708,
-};
-
-UiList D_shelter_b1_underground_parking_80186B98 = { D_shelter_b1_underground_parking_80186B88, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-u16 D_shelter_b1_underground_parking_80186BBC[4] = {
-    140, 143, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186BC4[4] = {
-    172, 175, 0xFFFE, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186BCC[4] = {
-    103, 98, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186BD4[8] = {
-    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186BE4[8] = {
-    131, 140, 143, 10, 70, 138, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186BF4[8] = {
-    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C04[4] = {
-    108, 100, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C0C[8] = {
-    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C1C[8] = {
-    132, 140, 143, 10, 70, 66, 138, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186C2C[8] = {
-    160, 172, 171, 169, 175, 0xFFFE, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C3C[4] = {
-    98, 105, 106, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186C44[10] = {
-    65, 59, 58, 1, 2, 6, 8, 4,
-    0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C58[12] = {
-    131, 157, 140, 142, 143, 10, 70, 69,
-    67, 138, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C70[10] = {
-    160, 161, 172, 173, 171, 169, 175, 0xFFFE,
-    0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C84[4] = {
-    108, 100, 102, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186C8C[8] = {
-    65, 59, 1, 6, 8, 4, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186C9C[12] = {
-    157, 9, 140, 142, 138, 143, 10, 70,
-    69, 66, 67, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186CB4[10] = {
-    162, 166, 173, 174, 171, 169, 170, 175,
-    0xFFFE, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186CC8[4] = {
-    100, 98, 97, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186CD0[10] = {
-    65, 59, 58, 1, 2, 3, 6, 8,
-    4, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186CE4[14] = {
-    157, 9, 140, 142, 143, 10, 70, 69,
-    66, 67, 68, 138, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186D00[8] = {
-    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186D10[6] = {
-    103, 98, 100, 97, 107, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186D1C[12] = {
-    65, 59, 58, 1, 2, 3, 6, 7,
-    8, 4, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186D34[14] = {
-    140, 142, 138, 143, 10, 70, 69, 66,
-    67, 68, 157, 9, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186D50[10] = {
-    162, 166, 173, 174, 171, 169, 170, 175,
-    0xFFFE, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186D64[4] = {
-    100, 98, 97, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186D6C[10] = {
-    65, 59, 58, 1, 2, 3, 6, 8,
-    4, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186D80[16] = {
-    140, 142, 138, 139, 143, 10, 70, 69,
-    66, 67, 68, 144, 157, 9, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DA0[8] = {
-    162, 173, 174, 171, 170, 0xFFFE, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DB0[6] = {
-    100, 98, 97, 103, 107, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186DBC[12] = {
-    65, 59, 58, 1, 2, 3, 6, 7,
-    8, 4, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DD4[2] = {
-    139, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186DD8[2] = {
-    171, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186DDC[4] = {
-    108, 13, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DE4[8] = {
-    65, 59, 58, 60, 11, 55, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DF4[4] = {
-    131, 138, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186DFC[4] = {
-    160, 171, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E04[4] = {
-    108, 100, 13, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E0C[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E18[4] = {
-    140, 138, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E20[6] = {
-    160, 172, 171, 175, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E2C[4] = {
-    98, 13, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E34[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E40[6] = {
-    131, 138, 143, 70, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E4C[4] = {
-    160, 171, 175, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E54[4] = {
-    108, 100, 13, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E5C[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E68[6] = {
-    140, 138, 143, 70, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E74[4] = {
-    171, 175, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E7C[6] = {
-    108, 100, 98, 13, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186E88[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186E94[6] = {
-    140, 138, 143, 70, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186EA0[2] = {
-    171, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EA4[6] = {
-    108, 100, 98, 103, 13, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EB0[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EBC[6] = {
-    140, 138, 143, 70, 157, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EC8[4] = {
-    171, 175, 0xFFFE, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186ED0[6] = {
-    108, 100, 98, 13, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186EDC[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EE8[6] = {
-    140, 138, 143, 70, 157, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186EF4[4] = {
-    171, 0xFFFE, 0xFFFF, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80186EFC[6] = {
-    108, 100, 98, 103, 13, 0xFFFF,
-};
-
-u16 D_shelter_b1_underground_parking_80186F08[6] = {
-    65, 59, 58, 60, 11, 0xFFFF,
-};
-
-RoomShopTier D_shelter_b1_underground_parking_80186F14[13] = {
-    { 0x38A4, { 109, 55, 2 }, { 0, 0 } },
-    { 0x3E80, { 70, 10, 58 }, { 0, 0 } },
-    { 0xABE0, { 69, 60, 161 }, { 0, 0 } },
-    { 0xC738, { 66, 13, 6 }, { 0, 0 } },
-    { 0xDEA8, { 67, 11, 97 }, { 0, 0 } },
-    { 0xF230, { 68, 14, 56 }, { 0, 0 } },
-    { 0x101D0, { 107, 162, 57 }, { 0, 0 } },
-    { 0x10D88, { 142, 174, 173 }, { 0, 0 } },
-    { 0x11940, { 136, 166, 54 }, { 0, 0 } },
-    { 0x124F8, { 144, 167, 5 }, { 0, 0 } },
-    { 0x30D40, { 139, 170, 3 }, { 0, 0 } },
-    { 0x61A80, { 149, 63, 7 }, { 0, 0 } },
-    { 0x7FFFFFFF, { 150, 61, 62 }, { 0, 0 } },
-};
-
-s32 D_shelter_b1_underground_parking_80186FB0 = -1;
-
-u8 D_shelter_b1_underground_parking_80186FB4[20] = {
-    80, 117, 114, 99, 104, 97, 115, 101, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80186FC8[8] = {
-    80, 97, 115, 115, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80186FD0[16] = {
-    66, 97, 116, 116, 101, 114, 105, 101, 115, 47, 70, 117, 101, 108, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80186FE0[4] = { 0 };
-
-u8 D_shelter_b1_underground_parking_80186FE4[60] = {
-    87, 101, 97, 112, 111, 110, 115, 32, 117, 115, 105, 110, 103, 32, 98, 97,
-    116, 116, 101, 114, 105, 101, 115, 32, 111, 114, 32, 102, 117, 101, 108, 10,
-    99, 97, 110, 32, 98, 101, 32, 114, 101, 108, 111, 97, 100, 101, 100, 32,
-    102, 111, 114, 32, 102, 114, 101, 101, 46, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187020[8] = {
-    87, 101, 97, 112, 111, 110, 115, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187028[12] = {
-    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187034[8] = {
-    65, 114, 109, 111, 114, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_8018703C[8] = {
-    73, 116, 101, 109, 115, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187044[20] = {
-    73, 110, 115, 117, 102, 102, 105, 99, 105, 101, 110, 116, 32, 66, 80, 46,
-    0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187058[16] = {
-    73, 110, 118, 101, 110, 116, 111, 114, 121, 32, 102, 117, 108, 108, 46, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187068[32] = {
-    65, 109, 109, 117, 110, 105, 116, 105, 111, 110, 32, 99, 97, 112, 97, 99,
-    105, 116, 121, 32, 114, 101, 97, 99, 104, 101, 100, 46, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187088[12] = {
-    65, 109, 111, 117, 110, 116, 0, 0, 0, 0, 0, 0,
-};
-
-u8 D_shelter_b1_underground_parking_80187094[4] = {
-    120, 0, 0, 0,
-};
-
-u16 D_shelter_b1_underground_parking_80187098[2] = {
-    0xFFFF, 0,
-};
-
-UiListItemFunc D_shelter_b1_underground_parking_8018709C[1] = {
-    func_shelter_b1_underground_parking_8017FE7C,
-};
-
-UiListItemFunc D_shelter_b1_underground_parking_801870A0[1] = {
-    func_shelter_b1_underground_parking_80180A70,
-};
-
-UiList D_shelter_b1_underground_parking_801870A4 = { D_shelter_b1_underground_parking_801870A0, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiListItemFunc D_shelter_b1_underground_parking_801870C8[2] = {
-    func_shelter_b1_underground_parking_8018101C,
-    func_shelter_b1_underground_parking_80181CCC,
-};
-
-UiList D_shelter_b1_underground_parking_801870D0 = { D_shelter_b1_underground_parking_801870C8, 2, { .u = 2 }, 1, 10, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_801870F4 = { 2, 0xFF70, 0xFF98, 128, 40, 56, 0, 0, 192, func_shelter_b1_underground_parking_80180C90, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80187110 = { 2, 0xFF74, 0xFFA3, 188, 160, 48, 0, 0, 192, func_shelter_b1_underground_parking_80180820, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_8018712C = { 0, 48, 4, 96, 60, 52, 0, 0, 192, func_shelter_b1_underground_parking_80180E38, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80187148 = { 0, 48, 32, 70, 32, 20, 0, 0, 192, func_shelter_b1_underground_parking_80181D88, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_80187164 = { 2, 0xFFA0, 0xFFD0, 192, 96, 8, 0, 0, 192, func_shelter_b1_underground_parking_80181230, 0 };
-
-// Retained data: Complete UI descriptor follows the adjacent UI descriptors. Its last 12 bytes also resemble a TaskDesc, which is its embedded task seed.
-UiObjectDesc D_shelter_b1_underground_parking_80187180 = { 0, 0xFF80, 0xFFE0, 160, 92, 48, 0, 0, 192, func_shelter_b1_underground_parking_80180820, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_8018719C = { 2, 0xFFB8, 0xFFDC, 144, 64, 32, 0, 0, 192, func_shelter_b1_underground_parking_801813B0, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_801871B8 = { 0, 48, 0xFFA3, 96, 97, 44, 0, 0, 192, func_shelter_b1_underground_parking_80181678, 0 };
-
-UiObjectDesc D_shelter_b1_underground_parking_801871D4 = { 3, 0xFFB8, 0xFFE0, 184, 48, 16, 0, 0, 192, func_shelter_b1_underground_parking_8018184C, 0 };
-
-ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { 0, 192, func_shelter_b1_underground_parking_80181EB0, { .model = NULL } }, { 0 } };
+ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { 0, 192, Shop_SessionTask, { .model = NULL } }, { 0 } };
 
 TaskDesc D_shelter_b1_underground_parking_80187200 = { 0, 32, func_shelter_b1_underground_parking_80181FE4, { .model = NULL } };
 
@@ -1900,7 +815,7 @@ u8 D_shelter_b1_underground_parking_80187904[24] = {
     24,
 };
 
-u8 * D_shelter_b1_underground_parking_8018791C[8] = {
+u8* D_shelter_b1_underground_parking_8018791C[8] = {
     D_8010CAF8,
     D_shelter_b1_underground_parking_80187874,
     D_shelter_b1_underground_parking_8018788C,
@@ -2226,7 +1141,7 @@ s16 D_shelter_b1_underground_parking_80187DF8[4] = {
     -1,
 };
 
-s16 * D_shelter_b1_underground_parking_80187E00[20] = {
+s16* D_shelter_b1_underground_parking_80187E00[20] = {
     D_shelter_b1_underground_parking_80187CD4,
     D_shelter_b1_underground_parking_80187CE4,
     D_shelter_b1_underground_parking_80187CF4,
@@ -2647,7 +1562,7 @@ s16 D_shelter_b1_underground_parking_8018847C[4] = {
     -1,
 };
 
-s16 * D_shelter_b1_underground_parking_80188484[20] = {
+s16* D_shelter_b1_underground_parking_80188484[20] = {
     D_shelter_b1_underground_parking_801882E0,
     D_shelter_b1_underground_parking_801882F0,
     D_shelter_b1_underground_parking_80188300,
@@ -3091,7 +2006,7 @@ s16 D_shelter_b1_underground_parking_80188B6C[4] = {
     -1,
 };
 
-s16 * D_shelter_b1_underground_parking_80188B74[20] = {
+s16* D_shelter_b1_underground_parking_80188B74[20] = {
     D_shelter_b1_underground_parking_801889B8,
     D_shelter_b1_underground_parking_801889C8,
     D_shelter_b1_underground_parking_801889D8,
@@ -3456,7 +2371,7 @@ s16 D_shelter_b1_underground_parking_801890D4[4] = {
     -1,
 };
 
-s16 * D_shelter_b1_underground_parking_801890DC[20] = {
+s16* D_shelter_b1_underground_parking_801890DC[20] = {
     D_shelter_b1_underground_parking_80188F7C,
     D_shelter_b1_underground_parking_80188F8C,
     D_shelter_b1_underground_parking_80188FA4,
@@ -3851,7 +2766,7 @@ s16 D_shelter_b1_underground_parking_801896FC[4] = {
     -1,
 };
 
-s16 * D_shelter_b1_underground_parking_80189704[20] = {
+s16* D_shelter_b1_underground_parking_80189704[20] = {
     D_shelter_b1_underground_parking_80189590,
     D_shelter_b1_underground_parking_801895A4,
     D_shelter_b1_underground_parking_801895B8,
@@ -4539,7 +3454,7 @@ GpRoomParamRec D_shelter_b1_underground_parking_8018D71C[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_b1_underground_parking_8018D724[8] = {
+GpRoomParamRec* D_shelter_b1_underground_parking_8018D724[8] = {
     D_shelter_b1_underground_parking_8018D70C,
     D_shelter_b1_underground_parking_8018D714,
     D_shelter_b1_underground_parking_8018D71C,
@@ -4550,15 +3465,15 @@ GpRoomParamRec * D_shelter_b1_underground_parking_8018D724[8] = {
     D_shelter_b1_underground_parking_8018D70C,
 };
 
-s32 D_shelter_b1_underground_parking_8018D744 = 0;
+static s32 Shop_Data_80187628 = 0;
 
-GpItemMap * D_shelter_b1_underground_parking_8018D748 = NULL;
+static GpItemMap* Shop_Data_8018762C = NULL;
 
-Task * D_shelter_b1_underground_parking_8018D74C = NULL;
+Task* D_shelter_b1_underground_parking_8018D74C = NULL;
 
 GpFadeWork D_shelter_b1_underground_parking_8018D750 = { 0 };
 
-Task * D_shelter_b1_underground_parking_8018D754 = NULL;
+Task* D_shelter_b1_underground_parking_8018D754 = NULL;
 
 s32 D_shelter_b1_underground_parking_8018D758 = 0;
 
@@ -4574,2161 +3489,26 @@ u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
 
 u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
-static void       func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj);
-static void       func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj);
-static void       func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals);
-static u8*        func_shelter_b1_underground_parking_8017F1AC(u8* buf, s32 value, s32 decimals);
-static void       func_shelter_b1_underground_parking_8017F390(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6);
-static u16*       func_shelter_b1_underground_parking_8017F80C(s32 mode);
-static void       func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item);
-static void       func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj);
-static inline s32 _shelter_b1_underground_parkingAddItemCount(s32 item, s32 count);
+static inline s32 Shop_AddItemCount(s32 item, s32 count);
 static void       func_shelter_b1_underground_parking_801826C0(Task* roomTask);
 static void       func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b);
 static void       func_shelter_b1_underground_parking_80183B9C(void);
 static void       func_shelter_b1_underground_parking_80183CEC(Task* task);
 
-void func_shelter_b1_underground_parking_8017DA50(UiList* arg0, UiObject* arg1)
-{
-    u8  buf[0x20];
-    u8* p;
-
-    p = buf;
-    if (((arg1->panel.field_0.w >> 16) == 1) || (arg1->panel.field_0.w == 1)) {
-        if (arg0->field_10 == arg0->field_8) {
-            u8* tbl[9] = {
-                D_shelter_b1_underground_parking_80186920,
-                D_shelter_b1_underground_parking_8018694C,
-                D_shelter_b1_underground_parking_80186970,
-                D_shelter_b1_underground_parking_801869A0,
-                D_shelter_b1_underground_parking_801869D4,
-                D_shelter_b1_underground_parking_80186A08,
-                D_shelter_b1_underground_parking_80186A40,
-                D_shelter_b1_underground_parking_80186A74,
-                D_shelter_b1_underground_parking_80186AAC,
-            };
-
-            Ui_SetHolderParam(tbl[arg0->field_8], 0, 0);
-        }
-    }
-
-    switch (arg0->field_8) {
-        case 0: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868C4);
-            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 1: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868F4);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
-            Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 2: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868CC);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CC);
-            Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 3: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868D0);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_6CE);
-            Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 4: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868D8);
-            if (Mc_SaveData[0].state.field_6CC == 0) {
-                pct = 0;
-            } else {
-                pct = (Mc_SaveData[0].state.field_6CC * 10000) / (Mc_SaveData[0].state.field_6CC + Mc_SaveData[0].state.field_6CE);
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_shelter_b1_underground_parking_8018691C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 5: {
-            TextDrawReq req;
-            s32         y;
-            s32         pct;
-            s32         total;
-            s32         cnt;
-            s32         len;
-            s32         n;
-            s32         i;
-            u8*         q;
-
-            total          = Mc_SaveData[0].state.field_6CC;
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868E4);
-            cnt   = 326;
-            total = total + (GameFlag_GetNibble(0x167) + GameFlag_GetNibble(0x168));
-            if (total == 0) {
-                pct = 0;
-            } else {
-                pct = (total * 10000) / cnt;
-            }
-            if (pct < 100) {
-                Text_ItoaPadded(p, pct, 3);
-            } else {
-                Text_ItoaUnsigned(p, pct);
-            }
-            n   = 2;
-            q   = p;
-            len = 0;
-            while (*q != 0) {
-                q++;
-                len++;
-            }
-            if (len < n) {
-                n = len;
-            }
-            n++;
-            for (i = 0; i < n; i++) {
-                q[1] = q[0];
-                q--;
-            }
-            q[1] = 0x2E;
-            Text_Strcat(p, D_shelter_b1_underground_parking_8018691C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
-            arg0->field_1A = (u16)arg0->field_1A + 5;
-            break;
-        }
-        case 6: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_801868FC);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
-            Text_Strcat(p, D_shelter_b1_underground_parking_80186914);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            break;
-        }
-        case 7: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_80186904);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_92C), arg0->field_1C, 3, 2);
-            break;
-        }
-        case 8: {
-            TextDrawReq req;
-            s32         y;
-
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
-            req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
-            req.field_8    = arg0->field_1C;
-            req.glyphTable = 0;
-            req.centerMode = 0;
-            req.field_E    = 1;
-            Text_DrawString(&req, D_shelter_b1_underground_parking_8018690C);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.field_930), arg0->field_1C, 3, 2);
-            break;
-        }
-    }
-}
-
-/// Title of the play-data menu.
-static const char D_shelter_b1_underground_parking_8017D610[] = "Play Data";
-
-/// Drawn in place of a usage percentage that reached 100.
-static const u8 D_shelter_b1_underground_parking_8017D61C[] = "100.0%";
-
-void func_shelter_b1_underground_parking_8017E21C(UiList* arg0, UiObject* arg1)
-{
-    u8             buf[0x20];
-    TextDrawReq    req;
-    TextDrawReq*   r;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    u8*            p;
-    u8*            q;
-    s32            item;
-    s32            value;
-    s32            x;
-    s32            y;
-    s32            color;
-    s32            textY;
-    s32            limit;
-    s32            n;
-    s32            len;
-    s32            i;
-    s32            avail;
-    s32            base;
-    s32            barW;
-    s32            barX;
-    s32            rowY;
-    s32            one;
-    s32            tx;
-    s32            ty;
-
-    p     = buf;
-    r     = &req;
-    x     = arg0->field_18;
-    y     = arg0->field_1A;
-    work  = (RoomItemUsage*)arg1->owner->work;
-    item  = work->itemIds[arg0->field_8];
-    value = work->percents[arg0->field_8];
-    color = arg0->field_1C;
-    if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        textY          = arg1->panel.field_22.u - 6;
-        req.y          = textY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
-        req.field_8    = color;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        r->field_E     = 1;
-        Text_DrawString(r, (u8*)Gp_GetItemText(item, 0, 0));
-        func_800CE5D0(arg1, x, y, item);
-    }
-    limit = 1;
-    if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, D_shelter_b1_underground_parking_8017D61C, arg0->field_1C, 3, 2);
-    } else {
-        for (i = 2; i > 0; i--) {
-            limit *= 10;
-        }
-        if (value < limit) {
-            Text_ItoaPadded(p, value, 3);
-        } else {
-            Text_ItoaUnsigned(p, value);
-        }
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = '.';
-        Text_Strcat(p, D_shelter_b1_underground_parking_8018691C);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-    }
-
-    base  = (s16)arg1->panel.field_1C.s + 0x80;
-    avail = (s16)arg1->panel.field_1E.u - 0x4A;
-    barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
-    rowY  = arg0->field_1A - 0xC;
-    barW  = barW + 2;
-    barX  = avail - barW;
-    if (barW >= 2) {
-        prim                     = (POLY_G4*)gGpuPrimCursor;
-        tx                       = arg1->panel.field_20.u + barX + 1;
-        prim->x2                 = tx;
-        prim->x0                 = tx;
-        ty                       = arg1->panel.field_22.u;
-        gGpuPrimCursor           = prim + 1;
-        ty                       = ty + rowY;
-        ty                      += 1;
-        PRIM_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
-        PRIM_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
-        tx                       = (u16)prim->x0 + barW - 1;
-        prim->y1                 = ty;
-        prim->y0                 = ty;
-        ty                      += 8;
-        prim->y3                 = ty;
-        prim->y2                 = ty;
-        prim->x3                 = tx;
-        prim->x1                 = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
-    }
-    one = 1;
-    Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);
-    if (((arg1->panel.field_0.w >> 16) == one) || (arg1->panel.field_0.w == one)) {
-        if (arg0->field_10 == arg0->field_8) {
-            Gp_SetPreviewItem(item, 0);
-            Gp_SetHolderItemText(item);
-        }
-    }
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
-            arg1->panel.field_0.w = 0;
-        }
-    }
-}
-
-/// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
-///
-/// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
-/// and whose counter is non-zero is marked seen and appended to `itemIds`,
-/// while the counters are summed. The ids are then insertion-sorted by use
-/// count, most-used first. Finally each row gets `percents` - its share of all
-/// recorded uses in hundredths of a percent, rounded - and `barWidths`, its
-/// counter as a 12-bit fraction of the top row's. Both are scaled down by
-/// halving until the top counter fits in 17 bits, so the multiply and the
-/// shift cannot overflow.
-static void func_shelter_b1_underground_parking_8017E618(UiList* list, UiObject* obj)
-{
-    RoomItemUsage* work;
-    s32            count;
-    s32            total;
-    s32            i;
-    s32            j;
-    s32            k;
-    s32            id;
-    s32            tmp;
-    s32            uses;
-    s32            scale;
-    s32            top;
-    s32            shift;
-    s16*           p;
-    u8             c;
-
-    count = 0;
-    total = 0;
-    work  = (RoomItemUsage*)obj->owner->work;
-    p     = work->itemIds;
-
-    for (i = 0; i < 0x20; i++) {
-        id = i + 0x80;
-        c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
-            Gp_SetItemSeenBit(id, 1);
-            *p++ = id;
-            count++;
-            total += Mc_SaveData[0].state.weaponUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
-            for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
-                    tmp = work->itemIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->itemIds[k + 1] = work->itemIds[k];
-                    }
-                    work->itemIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            work->percents[i] =
-                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
-            work->barWidths[i] =
-                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Fills the "Play Data" PE-usage panel's `RoomPeUsage` block from the
-/// save's per-slot use counters.
-///
-/// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
-/// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
-/// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
-/// are addressed by page and column, with three slots per page. The ids are
-/// then insertion-sorted by use count, most-used first, and each row gets
-/// `percents`, its share of all recorded uses in hundredths of a percent, and
-/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
-/// scaled down by halving until the top counter fits in 17 bits, so the
-/// multiply and the shift cannot overflow.
-static void func_shelter_b1_underground_parking_8017E914(UiList* list, UiObject* obj)
-{
-    RoomPeUsage* work;
-    s16*         p;
-    s32          count;
-    s32          total;
-    s32          i;
-    s32          j;
-    s32          k;
-    s32          id;
-    s32          slot;
-    s32          uses;
-    s32          scale;
-    s32          shift;
-    s32          top;
-    s32          tmp;
-
-    count = 0;
-    total = 0;
-    i     = 0;
-    work  = (RoomPeUsage*)obj->owner->work;
-    p     = work->peIds;
-
-    for (; i < 12; i++) {
-        s32 useCount;
-
-        useCount = Mc_SaveData[0].state.attachUseCounts[i];
-        id       = i * 3 + 0xF;
-        if (useCount > 0) {
-            s32 page;
-            s32 column;
-
-            page   = i / 3;
-            column = i % 3;
-            *p     = id;
-            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
-            }
-            p++;
-            count++;
-            total += Mc_SaveData[0].state.attachUseCounts[i];
-        }
-    }
-
-    if (count >= 2) {
-        for (i = 1; i < count; i++) {
-            slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].state.attachUseCounts[slot];
-            for (j = 0; j < i; j++) {
-                slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
-                    tmp = work->peIds[i];
-                    for (k = i - 1; k >= j; k--) {
-                        work->peIds[k + 1] = work->peIds[k];
-                    }
-                    work->peIds[j] = tmp;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (count > 0) {
-        scale = 0x4E20;
-        slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].state.attachUseCounts[slot];
-        shift = 0xC;
-        while (top > 0x1869F) {
-            top   >>= 1;
-            scale >>= 1;
-            total >>= 1;
-            shift--;
-        }
-        for (i = 0; i < count; i++) {
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
-        }
-    }
-
-    list->field_4   = count;
-    list->field_9.u = 0;
-    list->field_10  = 0;
-}
-
-/// Titles of the weapon and PE usage panels.
-static const char D_shelter_b1_underground_parking_8017D624[] = "Weapon Data";
-static const char D_shelter_b1_underground_parking_8017D630[] = "PE Data";
-
-void func_shelter_b1_underground_parking_8017EC34(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    UiObject* childObj;
-    void*     work;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    list          = &D_shelter_b1_underground_parking_80186B10;
-    if (task->spawnArg1.value == 0) {
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_underground_parking_8017D624);
-    } else {
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_underground_parking_8017D630);
-    }
-    if (task->state == 0) {
-        work = memCalloc(0xC4, 0);
-        if (work == NULL) {
-            return;
-        }
-        task->work = work;
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80186B34, 0, 0, 1, obj);
-        if (task->spawnArg1.value == 0) {
-            func_shelter_b1_underground_parking_8017E618(list, obj);
-        } else {
-            func_shelter_b1_underground_parking_8017E914(list, obj);
-        }
-        Ui_InitList(list, &(obj)->panel);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-    if (task->firstChild != NULL) {
-        child = task->firstChild;
-        do {
-            childObj = child->spawnArg2.pointer;
-            next     = child->nextSibling;
-            if (childObj->field_2E == -1 || childObj->field_2E == 6) {
-                Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-/// Title of the menu below. The two bytes after its terminator are not zero,
-/// so it stays assembly.
-/// "Telephone", followed by the non-zero padding the original toolchain left.
-static const char D_shelter_b1_underground_parking_8017D638[12] = "Telephone\0<\x9E";
+#include "../../shared/telephone.inc.c"
 
 void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 {
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s32       ready;
-    s32       sel;
-    s32       kind;
-    s32       mode;
-    s32       one;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    ready         = Mc_SaveData[0].state.demoScene == 1;
-    list          = &D_shelter_b1_underground_parking_80186B98;
-    one           = 1;
-    if (Mc_SaveData[0].state.clearCount > 0) {
-        ready = one;
-    }
-    if (ready == 0) {
-        if (task->state == 0) {
-            gGameSession->uiOpen = one;
-            Ui_SpawnFromDesc(&D_800611E4, 0, 0, 0, obj);
-            obj->panel.field_0.w = 0;
-            obj->panel.field_4  |= 0x80000000;
-            task->state          = task->state + 1;
-        }
-    } else if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.field_0.w = one;
-        gGameSession->uiOpen = one;
-        Ui_SetListScrollFlag(list, 1);
-        Gp_ClearPreviewItems();
-        D_80067634   = NULL;
-        Wip_UiHolder = NULL;
-        task->state  = task->state + 1;
-    } else {
-        /* The literal carries its trailing "\0\1" - the room's rodata has
-         * those two bytes right after the string and nothing else claims them. */
-        Ui_DrawText(&(obj)->panel, D_shelter_b1_underground_parking_8017D638);
-        Ui_UpdateListNoAnim(list, obj);
-    }
-    if (obj->field_2E == 6) {
-        obj->field_2E = 0;
-        Ui_SetState4(obj, task);
-        obj->panel.field_0.w = 0;
-    }
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        if (task->state != 0) {
-            SndEvt_EnqueueType6(0x3B, 0, 0);
-        }
-        gGameSession->uiOpen = 0;
-        obj->field_2E        = -1;
-        obj->field_2C        = 0x34;
-    }
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        sel      = childObj->field_2E;
-        switch (sel) {
-            case 6:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else if (task->state == 3) {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                } else {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(0x3B, 0, 0);
-                    Ui_StartCloseAnim(&(obj)->panel, task);
-                    obj->panel.field_0.w = 1;
-                }
-                break;
-            case -1:
-                if (task->state == 1) {
-                    kind = childObj->field_2C;
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    mode = 0xF;
-                    if (kind == 0x33) {
-                        mode = 0x11;
-                    }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
-                    if (ready == 0) {
-                        task->state = 3;
-                    } else {
-                        task->state = 2;
-                    }
-                } else {
-                    obj->field_2E = -1;
-                    obj->field_2C = 0x34;
-                }
-                break;
-        }
-    }
+    Telephone_MenuTask(task);
 }
 
-void func_shelter_b1_underground_parking_8017F0E0(Task* task)
-{
-    UiObject* obj;
+#include "../../shared/telephone_panels.inc.c"
 
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Wip_UiHolder       = obj;
-        task->exitCallback = func_shelter_b1_underground_parking_8017F7D0;
-        task->state       += 1;
-    }
-    Gp_DrawPromptLines(obj, task);
-}
+#undef TELEPHONE_TITLE_BYTES
 
-/// Inserts a '.' into a digit string so `decimals` characters sit after the
-/// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
-/// one to the right to open a slot. No-op when `decimals <= 0`.
-static void func_shelter_b1_underground_parking_8017F13C(u8* str, s32 decimals)
-{
-    s32 len = 0;
-    s32 i;
+#include "../../shared/shop.inc.c"
 
-    if (decimals > 0) {
-        while (*str != 0) {
-            str++;
-            len++;
-        }
-        if (len < decimals) {
-            decimals = len;
-        }
-        decimals++;
-        for (i = 0; i < decimals; i++) {
-            str[1] = str[0];
-            str--;
-        }
-        str[1] = '.';
-    }
-}
-
-/// Format `value` as a percentage with `decimals` fractional digits into `buf`:
-/// print the integer with at least `decimals + 1` digits when it is small enough
-/// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
-/// shift the last `decimals` digits right by one and drop a '.' in front of
-/// them. Appends "%" and returns `buf`.
-static u8* func_shelter_b1_underground_parking_8017F1AC(u8* buf, s32 value, s32 decimals)
-{
-    s32 limit;
-    s32 i;
-    s32 len;
-    s32 n;
-    u8* p;
-
-    limit = 1;
-    for (i = decimals; i > 0; i--) {
-        limit *= 10;
-    }
-
-    if (value < limit) {
-        Text_ItoaPadded(buf, value, decimals + 1);
-    } else {
-        Text_ItoaUnsigned(buf, value);
-    }
-
-    n   = decimals;
-    p   = buf;
-    len = 0;
-    if (n > 0) {
-        while (*p != 0) {
-            p++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            p[1] = p[0];
-            p--;
-        }
-        p[1] = '.';
-    }
-
-    Text_Strcat(buf, D_shelter_b1_underground_parking_8018691C);
-    return buf;
-}
-
-void func_shelter_b1_underground_parking_8017F2A0(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-
-    list          = &D_shelter_b1_underground_parking_80186AE8;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, D_shelter_b1_underground_parking_8017D610);
-    if (task->state == 0) {
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80186B34, 0, 0, 1, obj);
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.h += 5;
-        list->field_A                     = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-        obj->field_2E = 6;
-    }
-}
-
-/// Queues a gouraud-shaded rectangle into the current OT one slot past the
-/// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
-/// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
-/// take `arg6`. A zero color or width < 2 draws nothing.
-static void func_shelter_b1_underground_parking_8017F390(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
-{
-    POLY_G4* prim;
-    s16      x;
-    s32      y;
-    s16      bottom;
-
-    if ((arg5 != 0) && (arg3 >= 2)) {
-        prim           = (POLY_G4*)gGpuPrimCursor;
-        x              = arg0->field_20.u + arg1 + 1;
-        prim->x2       = x;
-        prim->x0       = x;
-        y              = arg0->field_22.u;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = arg5;
-        setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = arg5;
-        PRIM_COLOR_WORD(prim, 3) = arg6;
-        PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                       += arg2;
-        y++;
-        x        = prim->x0 + arg3 - 1;
-        prim->y1 = y;
-        prim->y0 = y;
-        prim->x3 = x;
-        prim->x1 = x;
-        bottom   = y + arg4 - 1;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
-        addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, prim);
-    }
-}
-
-void func_shelter_b1_underground_parking_8017F494(UiList* prompt, UiObject* obj)
-{
-    s32 sel;
-
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_8018689C, prompt->field_1C, 1, 0);
-    sel = prompt->field_C;
-    if (sel == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        gDisplayState.gameMode = 0xFF;
-        Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.field_0.w = 0;
-        obj->field_2E        = 6;
-        obj->owner->state    = sel;
-    }
-}
-
-void func_shelter_b1_underground_parking_8017F578(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_801868A4, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80186B50, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-void func_shelter_b1_underground_parking_8017F640(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_801868B0, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80186B6C, 0, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-void func_shelter_b1_underground_parking_8017F708(UiList* prompt, UiObject* obj)
-{
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_801868BC, prompt->field_1C, 1, 0);
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80186B6C, 1, 1, 1, obj);
-        obj->field_2E        = 6;
-        obj->panel.field_0.w = 0;
-        obj->owner->state    = 2;
-    }
-}
-
-/// Task exit callback for the save-prompt UI: if this task still owns
-/// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-static void func_shelter_b1_underground_parking_8017F7D0(Task* task)
-{
-    UiObject* holder;
-
-    holder = task->spawnArg2.pointer;
-    if (Wip_UiHolder == holder) {
-        Wip_UiHolder = NULL;
-    }
-    Ui_FreeAndKill(task);
-}
-
-/// Returns the 0xFFFF-terminated list of item ids the shop list starts from.
-/// `Mc_SaveData[0].state.gameMode` picks one of two sets of lists (below 2, or 2 and
-/// up); within a set the low half of `mode` picks the list group (0x20, 0x21,
-/// 0x30-0x33 and 0x40 each have one, every other value shares one) and the
-/// high half the entry within it (0-3). A high half outside 0-3 gets a single
-/// fallback list.
-static u16* func_shelter_b1_underground_parking_8017F80C(s32 mode)
-{
-    if (Mc_SaveData[0].state.gameMode < 2) {
-        switch ((u16)mode) {
-            case 0x30:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186C9C;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186CB4;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186CC8;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186CD0;
-                }
-            case 0x31:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186CE4;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186D00;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186D10;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186D1C;
-                }
-            case 0x32:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186D34;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186D50;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186D64;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186D6C;
-                }
-            case 0x33:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186D80;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186DA0;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186DB0;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186DBC;
-                }
-            case 0x20:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186BE4;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186BF4;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186C04;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186C0C;
-                }
-                break;
-            case 0x21:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186C58;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186C70;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186C84;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186C8C;
-                }
-                break;
-            case 0x40:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186C1C;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186C2C;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186C3C;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186C44;
-                }
-                break;
-            default:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186BBC;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186BC4;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186BCC;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186BD4;
-                }
-                break;
-        }
-    } else {
-        switch ((u16)mode) {
-            case 0x30:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186E68;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186E74;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186E7C;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186E88;
-                }
-            case 0x31:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186E94;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186EA0;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186EA4;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186EB0;
-                }
-            case 0x32:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186EBC;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186EC8;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186ED0;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186EDC;
-                }
-            case 0x33:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186EE8;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186EF4;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186EFC;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186F08;
-                }
-            case 0x20:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186DF4;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186DFC;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186E04;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186E0C;
-                }
-                break;
-            case 0x21:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186E40;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186E4C;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186E54;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186E5C;
-                }
-                break;
-            case 0x40:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186E18;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186E20;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186E2C;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186E34;
-                }
-                break;
-            default:
-                switch ((u32)mode >> 16) {
-                    case 0:
-                        return D_shelter_b1_underground_parking_80186DD4;
-                    case 1:
-                        return D_shelter_b1_underground_parking_80186DD8;
-                    case 2:
-                        return D_shelter_b1_underground_parking_80186DDC;
-                    case 3:
-                        return D_shelter_b1_underground_parking_80186DE4;
-                }
-                break;
-        }
-    }
-    return D_shelter_b1_underground_parking_80187098;
-}
-
-void func_shelter_b1_underground_parking_8017FE7C(UiList* prompt, UiObject* obj)
-{
-    TextDrawReq   req;
-    u8            buf[0x20];
-    RoomShopList* shop;
-    McItemScan*   scan;
-    s32           y;
-    s32           scaled;
-    UiObject*     child;
-    UiObject*     child2;
-    s32           blocked;
-    s32           status;
-    s32           itemId;
-    s32           price;
-
-    shop    = (RoomShopList*)obj->owner->work;
-    blocked = 0;
-    itemId  = shop->items[prompt->field_8];
-    /* &Mc_SaveData[0].state.carriedItems hoisted into a saved register here, as the original does,
-       instead of being rematerialised at the Gp_SumScanQty call. */
-    scan = &Mc_SaveData[0].state.carriedItems;
-    if (prompt->field_C == 1) {
-        D_shelter_b1_underground_parking_80186FB0 = itemId;
-    }
-
-    if (itemId == 0xFFFE) {
-        status = obj->panel.field_0.w;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
-                Ui_SetHolderParam(D_shelter_b1_underground_parking_80186FE4, 0, 0);
-            }
-        }
-        if (Gp_HasMappedItem() == 0) {
-            prompt->field_1C = Ui_LookupTable(obj, 2);
-            prompt->field_C  = 0;
-        }
-        req.x          = obj->panel.field_20.u + prompt->field_18;
-        y              = obj->panel.field_22.u - 4;
-        req.y          = prompt->field_1A + y;
-        req.otIndex    = obj->panel.field_14.s + 1;
-        req.field_8    = prompt->field_1C;
-        req.glyphTable = 0;
-        req.centerMode = 0;
-        req.field_E    = 1;
-        Text_DrawString(&req, D_shelter_b1_underground_parking_80186FD0);
-        if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(0x16, 0, 0);
-            Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_8018719C, 0, 1, 1, obj);
-            obj->panel.field_0.w = 0;
-        }
-        return;
-    }
-
-    if (itemId == 0xFFFC) {
-        status = obj->panel.field_0.w;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-            }
-        }
-        if (Gp_SumScanQty(scan, 0x8F) != 0) {
-            blocked          = 1;
-            prompt->field_1C = Ui_LookupTable(obj, 2);
-        }
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_80186FE0, prompt->field_1C, 1, 0);
-        if (prompt->field_C == 1 && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(0x16, 0, 0);
-            child = Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187148, itemId, 1, 1, obj);
-            if (child != NULL) {
-                Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
-                obj->panel.field_0.w = 0;
-            }
-        }
-        return;
-    }
-
-    price = Gp_ItemDescs[itemId].price;
-    if (func_800B7420(itemId) != 0) {
-        blocked          = 1;
-        prompt->field_1C = Ui_LookupTable(obj, 2);
-    }
-    if (prompt->field_22 != 0x41) {
-        status = obj->panel.field_0.w;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->field_10 == prompt->field_8) {
-                Gp_SetHolderItemText(itemId);
-                Gp_SetPreviewItem(itemId, 0);
-            }
-        }
-    }
-    if (prompt->field_C == 1) {
-        if (blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            child2 = Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187148, itemId, 1, 1, obj);
-            if (child2 != NULL) {
-                SndEvt_EnqueueType6(0x16, 0, 0);
-                Ui_ClampDialogRect(&(child2)->panel, prompt, &(obj)->panel);
-                obj->panel.field_0.w = 0;
-            }
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
-            SndEvt_EnqueueType6(3, 0, 0);
-            Ui_SpawnFromDesc(&D_8010EFA0, itemId, 1, 1, obj);
-            obj->panel.field_0.w = 0;
-        }
-    }
-    Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, itemId, prompt->field_1C, 0);
-    if ((u32)(itemId - 0xA0) < 0x20) {
-        /* Dead: emits the scaled index before the table base so the
-           `addu` is index-first, matching the original. */
-        scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
-    }
-    Text_ItoaUnsigned(buf, price);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, 2);
-}
-
-/// Adds an item id to the room's shop list, keeping one entry per item kind:
-/// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
-/// the same kind is overwritten only by a higher level.
-static void func_shelter_b1_underground_parking_80180308(RoomShopList* shop, UiObject* obj, s32 item)
-{
-    Task*         task = obj->owner;
-    s32           mode = task->spawnArg1.value;
-    RoomShopList* list = (RoomShopList*)task->work;
-    s32           i;
-
-    for (i = 0; i < shop->list.field_4; i++) {
-        s32 cur = list->items[i];
-        s32 q;
-
-        if (cur == item) {
-            return;
-        }
-        if (((mode & 0xFFFF) == 0x10) &&
-            (((u32)(item - 0x9D) < 3U) || (item == 0x8A) || (item == 0x65))) {
-            return;
-        }
-        if (((u32)(item - 0xF) < 0x24U) && ((u16)(cur - 0xF) < 0x24U)) {
-            q = (item - 0xF) / 3;
-            if ((q == (cur - 0xF) / 3) && (((item - 0xF) % 3 + 1) > ((cur - 0xF) % 3 + 1))) {
-                list->items[i] = item;
-                return;
-            }
-        }
-    }
-
-    Gp_SetItemSeenBit(item, 1);
-    list->items[shop->list.field_4] = item;
-    shop->list.field_4++;
-}
-
-/// Fills `shop` with the ids the shop currently offers, then sorts them by
-/// `Gp_ItemSortKey` and caps the visible row count at 9.
-///
-/// The upper halfword of the owning task's `spawnArg1` is the shop's mode. It
-/// picks the fixed id list and which items of each unlocked price row are
-/// stocked: mode 0 takes 0x80-0x9F plus a handful of other ids, mode 1
-/// 0xA0-0xBF, mode 2 0x60-0x7F and 0xD, and mode 3 everything from 1 to 0x5F
-/// the other modes do not take, plus the twelve two-bit stock levels of
-/// `Mc_SaveData[0].state.shopStock`. A demo save unlocks every row and every level.
-static void func_shelter_b1_underground_parking_80180454(RoomShopList* shop, UiObject* obj)
-{
-    RoomShopList* list;
-    u16*          ids;
-    s32           mode;
-    s32           tier;
-    s32           slot;
-    s32           level;
-    s32           id;
-    s32           item;
-    s32           unlocked;
-    s32           i;
-    s32           j;
-    s32           k;
-    s32           key;
-    s32           otherKey;
-    u16           tmp;
-    u8            count;
-
-    mode = obj->owner->spawnArg1.value;
-    ids  = func_shelter_b1_underground_parking_8017F80C(mode);
-
-    shop->list.field_4 = 0;
-    while (*ids != 0xFFFF) {
-        func_shelter_b1_underground_parking_80180308(shop, obj, *ids);
-        ids++;
-    }
-
-    if (Mc_SaveData[0].state.demoScene == 1) {
-        Mc_SaveData[0].state.shopTiers = 0x1FFF;
-        Mc_SaveData[0].state.shopStock = -1;
-    }
-
-    if (Mc_SaveData[0].state.gameMode == 0) {
-        if (Mc_SaveData[0].state.shopTiers != 0) {
-            for (tier = 0; tier < 13; tier++) {
-                unlocked = Mc_SaveData[0].state.shopTiers & (1 << tier);
-                if (unlocked != 0) {
-                    for (j = 0; j < 3; j++) {
-                        item = D_shelter_b1_underground_parking_80186F14[tier].items[j];
-                        switch (mode >> 16) {
-                            case 0:
-                                if (((u32)(item - 0x80) < 0x20U) || (item == 0xC) || (item == 9) ||
-                                    (item == 0xA) || (item == 0x46) || (item == 0x45) ||
-                                    (item == 0x42) || (item == 0x43) || (item == 0x44)) {
-                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
-                                }
-                                break;
-                            case 1:
-                                if ((u32)(item - 0xA0) < 0x20U) {
-                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
-                                }
-                                break;
-                            case 2:
-                                if (((u32)(item - 0x60) < 0x20U) || (item == 0xD)) {
-                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
-                                }
-                                break;
-                            case 3:
-                                if (((u32)(item - 1) < 0x5FU) && (item != 0xD) && (item != 0xC) &&
-                                    (item != 9) && (item != 0xA) && (item != 0x46) &&
-                                    (item != 0x45) && (item != 0x42) && (item != 0x43) &&
-                                    (item != 0x44)) {
-                                    func_shelter_b1_underground_parking_80180308(shop, obj, item);
-                                }
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if ((mode >> 16) == 3) {
-            for (slot = 0; slot < 0xC; slot++) {
-                level = (Mc_SaveData[0].state.shopStock >> (slot * 2)) & 3;
-                if (slot == 0 ? level >= 2 : level > 0) {
-                    /* The assignment keeps `+ 0xE` on the level instead of
-                       letting GCC reassociate it onto the row base. */
-                    func_shelter_b1_underground_parking_80180308(shop, obj, slot * 3 + (id = level + 0xE));
-                }
-            }
-        }
-    }
-
-    list = (RoomShopList*)obj->owner->work;
-    for (i = 0; i < shop->list.field_4 - 1; i++) {
-        key = Gp_ItemSortKey(list->items[i]);
-        for (k = i + 1; k < shop->list.field_4; k++) {
-            otherKey = Gp_ItemSortKey(list->items[k]);
-            if (otherKey < key) {
-                tmp            = list->items[i];
-                key            = otherKey;
-                list->items[i] = list->items[k];
-                list->items[k] = tmp;
-            }
-        }
-    }
-
-    count                = shop->list.field_4;
-    shop->list.field_5.u = count;
-    if ((s8)count >= 0xA) {
-        shop->list.field_5.u = 9;
-    }
-    D_shelter_b1_underground_parking_80186FB0 = -1;
-}
-
-/// Title of the shop list.
-static const u8 D_shelter_b1_underground_parking_8017D750[] = "Select";
-
-/// Label drawn ahead of the BP balance and the purchase total.
-static const u8 D_shelter_b1_underground_parking_8017D758[] = "BP";
-
-/// The shop's "Select" panel. On its first frame it allocates the
-/// `RoomShopList` work block, fills it through
-/// `func_shelter_b1_underground_parking_80180454` and opens the panel
-/// `D_shelter_b1_underground_parking_801871B8` beside it. Every frame it draws the list and the
-/// "BP" caption; menu reports -1 and cancel 6 to the parent. A child that
-/// reports 6 is torn down and the list takes input again; one that reports -1
-/// passes it up.
-void func_shelter_b1_underground_parking_80180820(Task* task)
-{
-    TextDrawReq   req;
-    UiObject*     obj;
-    RoomShopList* shop;
-    Task*         head;
-    Task*         child;
-    Task*         next;
-    UiObject*     childObj;
-    void*         mem;
-    s32           code;
-    s32           x;
-    s32           y;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_underground_parking_8017D750);
-    if (task->state == 0) {
-        mem = memCalloc(sizeof(RoomShopList), 0);
-        if (mem != NULL) {
-            shop               = mem;
-            task->work         = (TaskIdMap*)shop;
-            shop->list.funcs   = D_shelter_b1_underground_parking_8018709C;
-            shop->list.field_6 = 0;
-            shop->list.field_7 = 0xF;
-            func_shelter_b1_underground_parking_80180454(shop, obj);
-            Ui_LayoutListPanel(&shop->list, &(obj)->panel);
-            shop->list.field_A = 1;
-            Ui_SetListScrollFlag(&shop->list, 1);
-            obj->panel.bounds.unsignedRect.h += 8;
-            shop->list.field_17               = 8;
-            Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_801871B8, 0, 0, 0, obj);
-            task->state += 1;
-        }
-    }
-    shop = (RoomShopList*)task->work;
-    Ui_UpdateListNoAnim(shop, obj);
-    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 6);
-
-    x              = obj->panel.field_20.u - 2;
-    req.x          = obj->panel.field_1E.u + x;
-    y              = obj->panel.field_22.u + 2;
-    req.y          = obj->panel.field_18.u + y;
-    req.otIndex    = obj->panel.field_14.s + 1;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
-    Text_DrawString(&req, D_shelter_b1_underground_parking_8017D758);
-
-    if (obj->panel.field_0.w == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
-        }
-    }
-
-    head = task->firstChild;
-    if (head != NULL) {
-        child = head;
-        do {
-            childObj = child->spawnArg2.pointer;
-            code     = childObj->field_2E;
-            next     = child->nextSibling;
-            if (code != -1) {
-                if (code == 6) {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    obj->panel.field_0.w = 1;
-                }
-            } else {
-                obj->field_2E = code;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-void func_shelter_b1_underground_parking_80180A70(UiList* prompt, UiObject* obj)
-{
-    u8* text;
-    s32 status;
-    s32 one;
-    s32 one2;
-
-    if ((prompt->field_4 - 1) == prompt->field_8) {
-        one = 1;
-        Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, D_shelter_b1_underground_parking_80186FC8, prompt->field_1C, one, 0);
-        if (prompt->field_C == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
-            obj->field_2E = 6;
-        }
-        return;
-    }
-
-    text                  = D_shelter_b1_underground_parking_80187020;
-    obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
-    switch (prompt->field_8) {
-        case 0:
-            break;
-        case 1:
-            text                   = D_shelter_b1_underground_parking_80187028;
-            obj->owner->spawnArg1.value |= 0x10000;
-            break;
-        case 2:
-            text                   = D_shelter_b1_underground_parking_80187034;
-            obj->owner->spawnArg1.value |= 0x20000;
-            break;
-        case 3:
-            text                   = D_shelter_b1_underground_parking_8018703C;
-            obj->owner->spawnArg1.value |= 0x30000;
-            break;
-    }
-
-    if (*func_shelter_b1_underground_parking_8017F80C(obj->owner->spawnArg1.value) == 0xFFFF) {
-        prompt->field_1C = Ui_LookupTable(obj, 2);
-        prompt->field_C  = 0;
-    }
-
-    one2 = 1;
-    Text_DrawPrompt(obj, prompt->field_18, prompt->field_1A, text, prompt->field_1C, one2, 0);
-
-    status = obj->panel.field_0.w;
-    if (((status >> 16) == one2) || (status == one2)) {
-        if (prompt->field_10 == prompt->field_8) {
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
-        }
-    }
-
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187110, obj->owner->spawnArg1, 1, 1, obj);
-        obj->panel.field_0.w = 0;
-    }
-}
-
-/// Title of the menu below.
-static const u8 D_shelter_b1_underground_parking_8017D75C[] = "List";
-
-void func_shelter_b1_underground_parking_80180C90(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       code;
-
-    obj           = task->spawnArg2.pointer;
-    list          = &D_shelter_b1_underground_parking_801870A4;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_underground_parking_8017D75C);
-    if (task->state == 0) {
-        Gp_ClearPreviewItems();
-        D_80067634 = NULL;
-        Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_8018712C, task->spawnArg1, 0, 1, obj);
-        Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 0, obj);
-        list->field_4   = 5;
-        list->field_5.u = 5;
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A = 1;
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->field_2E = -1;
-    }
-
-    head = task->firstChild;
-    if (head != NULL) {
-        child = head;
-        do {
-            childObj = child->spawnArg2.pointer;
-            code     = childObj->field_2E;
-            next     = child->nextSibling;
-            if (code != -1) {
-                if (code == 6) {
-                    Ui_TeardownTree(childObj, childObj->owner);
-                    obj->panel.field_0.w = 1;
-                }
-            } else {
-                Wip_UiHolder  = NULL;
-                obj->field_2E = code;
-            }
-            child = next;
-        } while (child != task->firstChild);
-    }
-}
-
-/// Label of the balance panel's item-count line.
-static const u8 D_shelter_b1_underground_parking_8017D764[] = "TOTAL";
-
-void func_shelter_b1_underground_parking_80180E38(Task* task)
-{
-    s8            digits[0x20];
-    s8            total[0x20];
-    TextDrawReq   req0;
-    TextDrawReq   req1;
-    UiObject*     obj;
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    s8*           p;
-    s32           x;
-    s32           y;
-    s32           y2;
-    s32           col;
-    s32           capacity;
-    s32           count;
-
-    obj = task->spawnArg2.pointer;
-    cfg = &Player_Status;
-    x   = (s16)obj->panel.field_1C.s + 2;
-    col = (s16)obj->panel.field_1E.u - 2;
-    y   = (s16)obj->panel.field_18.u;
-
-    req0.x          = obj->panel.field_20.u + x;
-    req0.y          = obj->panel.field_22.u + y + 9;
-    req0.otIndex    = obj->panel.field_14.s + 1;
-    req0.field_8    = 0x606060;
-    req0.glyphTable = 5;
-    req0.centerMode = 0;
-    req0.field_E    = 1;
-    Text_DrawString(&req0, D_shelter_b1_underground_parking_8017D758);
-
-    Text_ItoaUnsigned((u8*)digits, cfg->bp);
-    Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, 2);
-
-    y2              = y + 0x28;
-    req1.x          = obj->panel.field_20.u + x;
-    req1.y          = obj->panel.field_22.u + (y2 - 6);
-    req1.otIndex    = obj->panel.field_14.s + 1;
-    req1.field_8    = 0x606060;
-    req1.glyphTable = 5;
-    req1.centerMode = 0;
-    req1.field_E    = 1;
-    Text_DrawString(&req1, (char*)D_shelter_b1_underground_parking_8017D764);
-
-    p        = total;
-    scan     = &Mc_SaveData[0].state.carriedItems;
-    count    = Gp_CountScanItems(scan);
-    capacity = scan->rowCount;
-    Text_ItoaUnsigned((u8*)p, count);
-    while (*p != 0) {
-        p++;
-    }
-    *p = '/';
-    Text_ItoaUnsigned((u8*)(p + 1), capacity);
-    Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, 3, 2);
-}
-
-void func_shelter_b1_underground_parking_8018101C(UiList* prompt, UiObject* obj)
-{
-    TextDrawReq   req;
-    UiObject*     child;
-    PlayerStatus* cfg;
-    McItemScan*   scan;
-    s32           itemId;
-    s32           mode;
-    s32           price;
-
-    itemId = obj->owner->spawnArg1.value;
-
-    req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
-    req.y          = obj->panel.field_22.u + (u16)prompt->field_1A;
-    req.otIndex    = obj->panel.field_14.s + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
-    Text_DrawString(&req, D_shelter_b1_underground_parking_80186FB4);
-
-    mode = prompt->field_C;
-    if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        cfg   = &Player_Status;
-        price = Gp_ItemDescs[itemId].price;
-        scan  = &Mc_SaveData[0].state.carriedItems;
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        if (cfg->bp >= price) {
-            if (Gp_CanAddItem(scan, itemId) == 0) {
-                if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
-                    Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187164, 2, 1, 1, obj);
-                } else {
-                    Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187164, 1, 1, 1, obj);
-                }
-                obj->panel.field_0.w = 0;
-            } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
-                child = Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_801871D4, itemId, 1, 1, obj);
-                if (child != NULL) {
-                    Ui_ClampDialogRect(&(child)->panel, prompt, &(obj)->panel);
-                    obj->panel.field_0.w = 0;
-                }
-            } else {
-                cfg->bp -= price;
-                Gp_GiveItem(scan, itemId, -1);
-                obj->field_2E = 6;
-            }
-        } else {
-            Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_80187164, 0, 1, 1, obj);
-            obj->panel.field_0.w = 0;
-        }
-    }
-}
-
-/// Title of the notice panel.
-static const u8 D_shelter_b1_underground_parking_8017D76C[] = "Notice";
-
-void func_shelter_b1_underground_parking_80181230(Task* task)
-{
-    UiObject* obj;
-    u8*       text;
-    s32       kind;
-
-    kind = task->spawnArg1.value;
-    obj  = task->spawnArg2.pointer;
-    switch (kind) {
-        case 1:
-            text = D_shelter_b1_underground_parking_80187058;
-            break;
-        case 2:
-            text = D_shelter_b1_underground_parking_80187068;
-            break;
-        default:
-            text = D_shelter_b1_underground_parking_80187044;
-            break;
-    }
-
-    Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_underground_parking_8017D76C);
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Ui_SizeFromTextPlain(&(obj)->panel, text);
-        task->killCountdown = 0xBC;
-        task->state        += 1;
-    }
-    Text_DrawMultiLine(obj, (s16)obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, text, 0x606060, 1, 0);
-    task->killCountdown -= gDisplayState.frameTicks;
-    if (obj->panel.field_0.w == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
-            return;
-        }
-        if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2.pointer)->field_2E = 6;
-            task->killCountdown                            = 0x7FFF;
-        }
-    }
-}
-
-/// Title of the charge panel; the byte after its terminator is not zero, so
-/// it stays assembly.
-/// "Charge", followed by the non-zero padding the original toolchain left.
-static const char D_shelter_b1_underground_parking_8017D774[8] = "Charge\0o";
-
-/// The charge station's transfer panel: steps through the mapped item slots,
-/// takes the slot's current level as the bar's starting value and its related
-/// quantity as the target, then animates the bar up to it over 0xBC frames.
-/// Confirm or cancel (or the timer running out) advances to the next slot;
-/// running out of slots reports code 6 to the parent.
-void func_shelter_b1_underground_parking_801813B0(Task* task)
-{
-    UiObject*   obj;
-    GpItemMap*  map;
-    McItemSlot* slot;
-    s32         slotId;
-    s32         itemId;
-    s32         curItem;
-    s32         relItem;
-    s32         qty;
-    s32         y;
-    s32         h;
-    s32         status;
-    s16         countdown;
-
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    Ui_DrawText(&(obj)->panel, (char*)D_shelter_b1_underground_parking_8017D774);
-
-    if (task->state == 0) {
-        task->spawnArg1.value = 0;
-        task->state     = task->state + 1;
-    }
-    if (task->state == 1) {
-        slotId          = Gp_NextMappedSlot(task->spawnArg1.value);
-        task->spawnArg1.value = slotId;
-        if (slotId < 0) {
-            obj->field_2E = 6;
-        } else {
-            map                                       = Gp_GetItemMap(slotId);
-            D_shelter_b1_underground_parking_8018D748 = map;
-            itemId                                    = map->field_1;
-            slot                                      = Gp_GetItemSlot(itemId);
-            if (D_shelter_b1_underground_parking_8018D748->field_0 == 0) {
-                D_shelter_b1_underground_parking_8018D744 = slot->ammoQty;
-                slot->ammoQty                             = Gp_GetRelatedQty(itemId, 0);
-            } else {
-                D_shelter_b1_underground_parking_8018D744 = slot->attachQty;
-                slot->attachQty                           = Gp_GetRelatedQty(itemId, 1);
-            }
-            task->killCountdown                         = 0xBC;
-            D_shelter_b1_underground_parking_8018D744 <<= 8;
-            task->state                                 = task->state + 1;
-        }
-    }
-
-    curItem = D_shelter_b1_underground_parking_8018D748->field_1;
-    relItem = D_shelter_b1_underground_parking_8018D748->field_2;
-    if (D_shelter_b1_underground_parking_8018D748->field_0 == 0) {
-        qty = Gp_GetRelatedQty(curItem, 0);
-    } else {
-        qty = Gp_GetRelatedQty(curItem, 1);
-    }
-    qty                                      <<= 8;
-    D_shelter_b1_underground_parking_8018D744 += 0x40;
-    if (qty < D_shelter_b1_underground_parking_8018D744) {
-        D_shelter_b1_underground_parking_8018D744 = qty;
-    }
-
-    y = (s16)obj->panel.field_18.u;
-    Gp_DrawItemLabel(obj, (s16)obj->panel.field_1C.s + 2, y + 0xF, curItem, 0x606060, 0);
-    Ui_DrawHBar(&(obj)->panel, (s16)obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, y + 0x12);
-    Gp_DrawItemLabel(obj, (s16)obj->panel.field_1C.s + 2, y + 0x23, relItem, 0x606060, 0);
-    Gp_DrawQty(obj, (s16)obj->panel.field_1C.s + 2, y + 0x23, D_shelter_b1_underground_parking_8018D744 >> 8, 0x606060);
-    h = (s16)obj->panel.field_1A.u;
-    func_800C0E20(&(obj)->panel, (s16)obj->panel.field_1C.s + 2, (s16)obj->panel.field_1E.u - 2, h - 6, qty,
-                  D_shelter_b1_underground_parking_8018D744, 0x1741F);
-
-    if (task->state == 2) {
-        countdown           = task->killCountdown - 1;
-        task->killCountdown = countdown;
-        status              = obj->panel.field_0.w;
-        if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
-            task->state     = status;
-            task->spawnArg1.value = task->spawnArg1.value + 1;
-        }
-    }
-}
-
-static inline s32 _shelter_b1_underground_parkingAddItemCount(s32 item, s32 count)
-{
-    s32         i;
-    s32         n;
-    McItemRec*  rec;
-    McItemScan* scan;
-
-    if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, item);
-    } else {
-        scan = &Mc_SaveData[0].state.carriedItems;
-        rec  = Gp_GetItemTable(scan) + scan->firstRow;
-        n    = scan->rowCount;
-        for (i = 0; i < n; i++) {
-            if (rec[i].itemId == item) {
-                count++;
-            }
-        }
-    }
-    return count;
-}
-
-/// Draws the preview of the item the shop list's cursor rests on and, for an
-/// item id below 0x100, the "Amount" caption with how many of it the player
-/// already holds. Stackable items (0xA0..0xBF) ask the scan for their stack
-/// quantity; everything else is counted by walking the item table.
-void func_shelter_b1_underground_parking_80181678(Task* task)
-{
-    u8          buf[0x10];
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         item;
-    s32         y;
-    s32         ry;
-    s32         count;
-
-    item         = D_shelter_b1_underground_parking_80186FB0;
-    obj          = task->spawnArg2.pointer;
-    task->status = 0;
-    if ((CdCmd_IsIdle() & 0xFFFF) && D_shelter_b1_underground_parking_80186FB0 == Gp_GetPreviewItem()) {
-        func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, 0x20);
-    } else {
-        func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, 0x120);
-    }
-    y = (s16)obj->panel.field_18.u + 0x50;
-    if (item < 0x100) {
-        req.x          = obj->panel.field_1C.s + (obj->panel.field_20.u + 2);
-        ry             = obj->panel.field_22.u - 6;
-        req.y          = ry + y;
-        req.otIndex    = obj->panel.field_14.s + 1;
-        req.glyphTable = 5;
-        req.field_8    = 0x606060;
-        req.centerMode = 0;
-        req.field_E    = 1;
-        Text_DrawString(&req, D_shelter_b1_underground_parking_80187088);
-        count = 0;
-        count = _shelter_b1_underground_parkingAddItemCount(item, count);
-        Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
-    }
-}
-
-void func_shelter_b1_underground_parking_8018184C(Task* task)
-{
-    u8          buf[0x20];
-    TextDrawReq req;
-    UiObject*   obj;
-    UiObject*   parentObj;
-    s32         itemId;
-    s32         price;
-    s32         maxQty;
-    s32         scaled;
-    s32         afford;
-    s32         held;
-    /* The stock ceiling stays in $v0, so the scan count the shop just fetched
-       has to be copied out of the return register instead of coalescing into
-       it. */
-    register s32 maxHeld asm("v0");
-    s32          count;
-    s32          left;
-    s32          top;
-    s32          x;
-    s32          y;
-    s32          i;
-
-    itemId = task->spawnArg1.value;
-    obj    = task->spawnArg2.pointer;
-    maxQty = 1;
-    price  = Gp_ItemDescs[itemId].price;
-
-    if (task->state == 0) {
-        task->extraState.value = 1;
-        Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(3) - 3);
-        task->state = task->state + 1;
-    }
-
-    if ((u32)(itemId - 0xA0) < 0x20) {
-        /* Dead: emits the scaled index before the table base so the
-           `addu` is index-first, matching the original. */
-        scaled = itemId * 4;
-        if (gpItemStock(itemId)->perBuy != 0) {
-            held    = Gp_ScanStackQty(&Mc_SaveData[0].state.carriedItems, itemId);
-            maxHeld = gpItemStock(itemId)->maxHeld;
-            maxQty  = maxHeld - held;
-            if (maxQty <= 0) {
-                maxQty = 1;
-            } else {
-                maxQty = (maxQty - 1) / gpItemStock(itemId)->perBuy;
-                maxQty = maxQty + 1;
-            }
-        }
-    } else {
-        maxQty = Mc_SaveData[0].state.carriedItems.rowCount - Gp_CountScanItems(&Mc_SaveData[0].state.carriedItems);
-    }
-
-    afford = Player_Status.bp / price;
-    if (afford < maxQty) {
-        maxQty = afford;
-    }
-
-    left = (s16)obj->panel.field_1C.s;
-    x    = left + 2;
-    top  = (s16)obj->panel.field_18.u;
-    y    = top + 0xF;
-    Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
-    if ((u32)(itemId - 0xA0) < 0x20) {
-        /* Dead: same index-first ordering as above. */
-        scaled = itemId * 4;
-        Gp_DrawQty(obj, x, y, gpItemStock(itemId)->perBuy, 0x606060);
-    }
-
-    count = task->extraState.value;
-    Text_DrawPrompt(obj, left + 0x98, y, D_shelter_b1_underground_parking_80187094, 0x606060, 3, 2);
-    Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, 2);
-    Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
-
-    req.x          = obj->panel.field_20.u - x;
-    y              = top + 0x1A;
-    req.y          = obj->panel.field_22.u + y;
-    req.otIndex    = obj->panel.field_14.s + 1;
-    req.field_8    = 0x606060;
-    req.glyphTable = 5;
-    req.centerMode = 2;
-    req.field_E    = 1;
-    Text_DrawString(&req, D_shelter_b1_underground_parking_8017D758);
-
-    Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, 2);
-
-    if (obj->panel.field_0.w == 1) {
-        parentObj = task->parent->spawnArg2.pointer;
-        if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
-            if (task->extraState.value < maxQty) {
-                task->extraState.value = task->extraState.value + 1;
-                SndEvt_EnqueueType6(0x15, 0, 0);
-            }
-        } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
-            if (task->extraState.value >= 2) {
-                task->extraState.value = task->extraState.value - 1;
-                SndEvt_EnqueueType6(0x15, 0, 0);
-            }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState.value;
-            for (i = 0; i < task->extraState.value; i++) {
-                Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, itemId, -1);
-            }
-            SndEvt_EnqueueType6(0x16, 0, 0);
-            parentObj->field_2E = 6;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
-            parentObj->field_2E = 6;
-        }
-    }
-}
-
-void func_shelter_b1_underground_parking_80181CCC(UiList* prompt, UiObject* obj)
-{
-    TextDrawReq req;
-
-    req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
-    req.y          = obj->panel.field_22.u + (u16)prompt->field_1A;
-    req.otIndex    = obj->panel.field_14.s + 1;
-    req.field_8    = prompt->field_1C;
-    req.glyphTable = 0;
-    req.centerMode = 0;
-    req.field_E    = 1;
-    Text_DrawString(&req, D_shelter_b1_underground_parking_80186FC8);
-
-    if (prompt->field_C == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(0x16, 0, 0);
-        obj->field_2E = 6;
-    }
-}
-
-void func_shelter_b1_underground_parking_80181D88(Task* task)
-{
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s16       code;
-
-    list          = &D_shelter_b1_underground_parking_801870D0;
-    obj           = task->spawnArg2.pointer;
-    obj->field_2E = 0;
-    if (task->state == 0) {
-        Ui_LayoutListPanel(list, &(obj)->panel);
-        Ui_SetListScrollFlag(list, 1);
-        task->state += 1;
-    }
-    Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.field_0.w == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(4, 0, 0);
-            obj->field_2E = 6;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
-            obj->field_2E = -1;
-        }
-    }
-
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        code     = childObj->field_2E;
-        if (code != -1) {
-            if (code == 6) {
-                Ui_TeardownTree(childObj, childObj->owner);
-                obj->panel.field_0.w = 1;
-            }
-        } else {
-            obj->field_2E = -1;
-        }
-    }
-}
-
-/// Runs a modal panel over the room: takes the prim buffer and stops the frame
-/// timer while the panel is up, waits for the panel to report closed, then
-/// gives both back and ends the stage.
-void func_shelter_b1_underground_parking_80181EB0(Task* task)
-{
-    UiObject* obj;
-
-    if (task->state == 0) {
-        Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&D_shelter_b1_underground_parking_801870F4, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
-            return;
-        }
-        GameMain_SetFrameTiming(0);
-        gGameSession->uiOpen = 1;
-        task->spawnArg2.pointer      = obj;
-        task->state++;
-    }
-
-    if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->field_2E == -1 || obj->field_2E == 6) {
-            Ui_TeardownTree(obj, obj->owner);
-            task->killCountdown = 10;
-            task->state         = 2;
-        }
-    }
-
-    if (task->state == 2) {
-        task->killCountdown--;
-        if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(1);
-            gGameSession->uiOpen = 0;
-            taskKill(task);
-            Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
-        }
-    }
-}
+#undef SHOP_CHARGE_TITLE_BYTES
 
 /// The departure task, carrying out `D_shelter_b1_underground_parking_8018D77C`.
 /// State 0 sends the departure's halfword to the slot-3 game pointer as message
@@ -6774,7 +3554,7 @@ void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
@@ -6809,7 +3589,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                 Gp_MsgAllyWeapon(0);
             }
             if (rec->field_0 > 0) {
-                D_80115694                  = Mc_SaveData[0].state.at4.loc.view;
+                D_80115694                        = Mc_SaveData[0].state.at4.loc.view;
                 Mc_SaveData[0].state.at4.loc.view = rec->field_0;
             } else {
                 D_80115694 = -rec->field_0;
@@ -7034,7 +3814,7 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// Room event handler keyed on `msg->field_2`: 1 calls `func_80131E38` in
 /// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
-s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg * msg, GpMessageArg arg3)
+s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, GpMessageArg arg3)
 {
     if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
         func_80131E38();
@@ -7251,11 +4031,11 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 rec.sndEvent = 0x54140008;
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
-                p           = &rec;
-                msg.prefix.packed   = p->area;
-                msg.field_2 = p->warp;
-                msg.field_3 = p->room;
-                msg.field_5 = 0;
+                p                 = &rec;
+                msg.prefix.packed = p->area;
+                msg.field_2       = p->warp;
+                msg.field_3       = p->room;
+                msg.field_5       = 0;
                 handler(&msg, &msg);
                 p->area                                   = msg.prefix.packed;
                 p->warp                                   = msg.field_2;
@@ -7444,7 +4224,7 @@ s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2,
     return 0;
 }
 
-s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -7520,9 +4300,9 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
             return;
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
-                gGameSession->at4.loc.room  = 6;
+                gGameSession->at4.loc.room        = 6;
                 Mc_SaveData[0].state.at4.loc.room = 6;
-                gGameSession->roomObjsDirty = state;
+                gGameSession->roomObjsDirty       = state;
                 func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
                 GameFlag_SetNibble(0xF4, 1);
                 Gp_SetItemSeenBit(0x123, 1);
@@ -7582,10 +4362,10 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
 
 void func_shelter_b1_underground_parking_801837D8(u8 arg0)
 {
-    gGameSession->at4.loc.room  = arg0;
+    gGameSession->at4.loc.room        = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->roomObjsDirty = 1;
-    gGameSession->viewDirty     = 1;
+    gGameSession->roomObjsDirty       = 1;
+    gGameSession->viewDirty           = 1;
 }
 
 /// Room script callback: latch this room's script argument into `D_80115768`.
@@ -7915,8 +4695,8 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer             = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
-    task->work                  = (TaskIdMap*)st;
+    task->spawnArg2.pointer           = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->work                        = (TaskIdMap*)st;
     Mc_SaveData[0].state.at4.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them
        by loop depth. The outer one keeps the state load below the mode store;
@@ -8034,9 +4814,9 @@ static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 2;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
@@ -8072,9 +4852,9 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
         Display_ReleaseRef();
-        gGameSession->eventState    = 0;
-        gGameSession->hideHud       = 0;
-        gGameSession->cutsceneHold  = 0;
+        gGameSession->eventState          = 0;
+        gGameSession->hideHud             = 0;
+        gGameSession->cutsceneHold        = 0;
         Mc_SaveData[0].state.at4.loc.view = 2;
         Task_RequestKill(task, 0);
     }
@@ -8114,8 +4894,8 @@ static void func_shelter_b1_underground_parking_801848BC(Task* task)
 static void func_shelter_b1_underground_parking_8018491C(void)
 {
     Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->at4.loc.room  = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->roomObjsDirty = 1;
+    gGameSession->at4.loc.room        = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    gGameSession->roomObjsDirty       = 1;
 }
 
 /// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any

@@ -263,7 +263,7 @@ GpRoomObjRec D_dryfield_night_trailer_coach_80189508[1] = {
     { D_dryfield_night_trailer_coach_80189A20, D_dryfield_night_trailer_coach_8018BBA4, D_dryfield_night_trailer_coach_8018BD1C, NULL },
 };
 
-u8 * D_dryfield_night_trailer_coach_80189518[1] = {
+u8* D_dryfield_night_trailer_coach_80189518[1] = {
     D_8010CAF8,
 };
 
@@ -459,7 +459,7 @@ s16 D_dryfield_night_trailer_coach_801899EC[20] = {
     -1,
 };
 
-s16 * D_dryfield_night_trailer_coach_80189A14[3] = {
+s16* D_dryfield_night_trailer_coach_80189A14[3] = {
     D_dryfield_night_trailer_coach_801899A0,
     D_dryfield_night_trailer_coach_801899C4,
     D_dryfield_night_trailer_coach_801899EC,
@@ -988,7 +988,7 @@ GpRoomParamRec D_dryfield_night_trailer_coach_8018C1E0[1] = {
     { 0, 0, 1, 0, D_dryfield_night_trailer_coach_8018C1C4 },
 };
 
-GpRoomParamRec * D_dryfield_night_trailer_coach_8018C1E8[8] = {
+GpRoomParamRec* D_dryfield_night_trailer_coach_8018C1E8[8] = {
     D_dryfield_night_trailer_coach_8018C1D0,
     D_dryfield_night_trailer_coach_8018C1D0,
     D_dryfield_night_trailer_coach_8018C1D0,
@@ -1004,11 +1004,11 @@ GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2] = {
     { 255, 0, 0, 0 },
 };
 
-s32 D_dryfield_night_trailer_coach_8018C210 = 0;
+s32 Shop_Data_80187628 = 0;
 
-GpItemMap * D_dryfield_night_trailer_coach_8018C214 = NULL;
+GpItemMap* Shop_Data_8018762C = NULL;
 
-Task * D_dryfield_night_trailer_coach_8018C218 = NULL;
+Task* D_dryfield_night_trailer_coach_8018C218 = NULL;
 
 RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C = { 0 };
 

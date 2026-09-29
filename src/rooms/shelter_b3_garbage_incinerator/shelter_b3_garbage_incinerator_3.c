@@ -1051,7 +1051,7 @@ s16 D_shelter_b3_garbage_incinerator_801882CC[24] = {
     -1,
 };
 
-s16 * D_shelter_b3_garbage_incinerator_801882FC[35] = {
+s16* D_shelter_b3_garbage_incinerator_801882FC[35] = {
     NULL,
     NULL,
     NULL,
@@ -2654,7 +2654,7 @@ GpRoomParamRec D_shelter_b3_garbage_incinerator_8018FB44[1] = {
     { 0, 0, 1, 0, D_shelter_b3_garbage_incinerator_8018FB14 },
 };
 
-GpRoomParamRec * D_shelter_b3_garbage_incinerator_8018FB4C[8] = {
+GpRoomParamRec* D_shelter_b3_garbage_incinerator_8018FB4C[8] = {
     D_shelter_b3_garbage_incinerator_8018FB2C,
     D_shelter_b3_garbage_incinerator_8018FB34,
     D_shelter_b3_garbage_incinerator_8018FB2C,
@@ -2714,33 +2714,35 @@ u16 D_shelter_b3_garbage_incinerator_8018FBFC[6][4] = {
 
 RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C = { 0 };
 
-Task * D_shelter_b3_garbage_incinerator_8018FC34 = NULL;
+Task* D_shelter_b3_garbage_incinerator_8018FC34 = NULL;
 
-OverlayWaveCtx * D_shelter_b3_garbage_incinerator_8018FC38 = NULL;
+OverlayWaveCtx* D_shelter_b3_garbage_incinerator_8018FC38 = NULL;
 
-Task * D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
+Task* D_shelter_b3_garbage_incinerator_8018FC3C = NULL;
 
-GpCapEntry * D_shelter_b3_garbage_incinerator_8018FC40 = NULL;
+GpCapEntry* CapCaption_Data_8015E650 = NULL;
 
-GlyphUvwh * D_shelter_b3_garbage_incinerator_8018FC44 = NULL;
+GlyphUvwh* CapCaption_Data_8015E654 = NULL;
 
-GpEvt12 * D_shelter_b3_garbage_incinerator_8018FC48 = NULL;
+GpEvt12* CapCaption_Data_8015E658 = NULL;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC4C = 0;
+s16 CapCaption_Data_8015E65C = 0;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC4E = 0;
+s16 CapCaption_Data_8015E65E = 0;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC50 = 0;
+s16 CapCaption_Data_8015E660 = 0;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC52 = 0;
+s16 CapCaption_Data_8015E662 = 0;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC54 = 0;
+s16 CapCaption_Data_8015E664 = 0;
 
-s16 D_shelter_b3_garbage_incinerator_8018FC56 = 0;
+s16 CapCaption_Data_8015E666 = 0;
 
-u16 D_shelter_b3_garbage_incinerator_8018FC58 = 0;
+u16 CapCaption_Data_8015E668 = 0;
 
-u8 D_shelter_b3_garbage_incinerator_8018FC5C[4] = {
+u16 CapCaption_Data_8015E66A = 0;
+
+u8 CapCaption_Data_8015E66C[4] = {
     0,
     196,
     94,

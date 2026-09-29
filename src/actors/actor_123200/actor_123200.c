@@ -129,7 +129,7 @@ extern Actor123200MessageEntry D_actor_123200_80137214[4];
 
 /// Integer part of the last movement step `func_actor_123200_801329F0`
 /// applied.
-extern SVECTOR D_actor_123200_80137240;
+static SVECTOR ActorContact_ScratchPosition;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -143,6 +143,8 @@ void             func_actor_123200_801341A8(Task*);
 s32 func_actor_123200_80133E30(Task*, s32, s32);
 s32 func_actor_123200_80133EDC(Task*, s32, GpCmdArg*);
 s32 func_actor_123200_80133F90(Task*, s32, GpXformArg*);
+
+#include "../../shared/actor_contacts.h"
 
 GpU16Pair D_actor_123200_80134204[1] = {
     { 24, 7 },
@@ -171,8 +173,15 @@ u32 D_actor_123200_80134A90[1048] = {
 };
 
 TmdSource D_actor_123200_80135AF0 = {
-    0, 5984, 1264, 6,
-    D_actor_123200_801342F0, D_actor_123200_80134308, D_actor_123200_80134638, D_actor_123200_80134218, D_actor_123200_80134A90,
+    0,
+    5984,
+    1264,
+    6,
+    D_actor_123200_801342F0,
+    D_actor_123200_80134308,
+    D_actor_123200_80134638,
+    D_actor_123200_80134218,
+    D_actor_123200_80134A90,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -183,7 +192,7 @@ typedef union {
 
 Actor123200PoseBank3CF4 D_actor_123200_80135B14 = { .poses = {
 #include "assets/actor_123200_animation_03E30_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80135B44[21] = {
 #include "assets/actor_123200_animation_03E30_bank4.inc"
@@ -198,7 +207,8 @@ u16 D_actor_123200_80135C44[6] = {
 };
 
 GpAnimSet D_actor_123200_80135C50 = {
-    D_actor_123200_80135B98, D_actor_123200_80135C44,
+    D_actor_123200_80135B98,
+    D_actor_123200_80135C44,
     { NULL, D_actor_123200_80135B14.words, NULL, NULL, D_actor_123200_80135B44, NULL, NULL, NULL },
 };
 
@@ -210,7 +220,7 @@ typedef union {
 
 Actor123200PoseBank3E58 D_actor_123200_80135C78 = { .poses = {
 #include "assets/actor_123200_animation_040F4_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80135D5C[36] = {
 #include "assets/actor_123200_animation_040F4_bank4.inc"
@@ -225,7 +235,8 @@ u16 D_actor_123200_80135F08[6] = {
 };
 
 GpAnimSet D_actor_123200_80135F14 = {
-    D_actor_123200_80135DEC, D_actor_123200_80135F08,
+    D_actor_123200_80135DEC,
+    D_actor_123200_80135F08,
     { NULL, D_actor_123200_80135C78.words, NULL, NULL, D_actor_123200_80135D5C, NULL, NULL, NULL },
 };
 
@@ -237,7 +248,7 @@ typedef union {
 
 Actor123200PoseBank411C D_actor_123200_80135F3C = { .poses = {
 #include "assets/actor_123200_animation_04398_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_8013602C[31] = {
 #include "assets/actor_123200_animation_04398_bank4.inc"
@@ -252,7 +263,8 @@ u16 D_actor_123200_801361AC[6] = {
 };
 
 GpAnimSet D_actor_123200_801361B8 = {
-    D_actor_123200_801360A8, D_actor_123200_801361AC,
+    D_actor_123200_801360A8,
+    D_actor_123200_801361AC,
     { NULL, D_actor_123200_80135F3C.words, NULL, NULL, D_actor_123200_8013602C, NULL, NULL, NULL },
 };
 
@@ -264,7 +276,7 @@ typedef union {
 
 Actor123200PoseBank43C0 D_actor_123200_801361E0 = { .poses = {
 #include "assets/actor_123200_animation_04578_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80136228[38] = {
 #include "assets/actor_123200_animation_04578_bank4.inc"
@@ -279,7 +291,8 @@ u16 D_actor_123200_8013638C[6] = {
 };
 
 GpAnimSet D_actor_123200_80136398 = {
-    D_actor_123200_801362C0, D_actor_123200_8013638C,
+    D_actor_123200_801362C0,
+    D_actor_123200_8013638C,
     { NULL, D_actor_123200_801361E0.words, NULL, NULL, D_actor_123200_80136228, NULL, NULL, NULL },
 };
 
@@ -291,7 +304,7 @@ typedef union {
 
 Actor123200PoseBank45A0 D_actor_123200_801363C0 = { .poses = {
 #include "assets/actor_123200_animation_046B0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_801363F0[13] = {
 #include "assets/actor_123200_animation_046B0_bank4.inc"
@@ -306,7 +319,8 @@ u16 D_actor_123200_801364C4[6] = {
 };
 
 GpAnimSet D_actor_123200_801364D0 = {
-    D_actor_123200_80136424, D_actor_123200_801364C4,
+    D_actor_123200_80136424,
+    D_actor_123200_801364C4,
     { NULL, D_actor_123200_801363C0.words, NULL, NULL, D_actor_123200_801363F0, NULL, NULL, NULL },
 };
 
@@ -318,7 +332,7 @@ typedef union {
 
 Actor123200PoseBank46D8 D_actor_123200_801364F8 = { .poses = {
 #include "assets/actor_123200_animation_04850_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_8013654C[28] = {
 #include "assets/actor_123200_animation_04850_bank4.inc"
@@ -333,7 +347,8 @@ u16 D_actor_123200_80136664[6] = {
 };
 
 GpAnimSet D_actor_123200_80136670 = {
-    D_actor_123200_801365BC, D_actor_123200_80136664,
+    D_actor_123200_801365BC,
+    D_actor_123200_80136664,
     { NULL, D_actor_123200_801364F8.words, NULL, NULL, D_actor_123200_8013654C, NULL, NULL, NULL },
 };
 
@@ -345,7 +360,7 @@ typedef union {
 
 Actor123200PoseBank4878 D_actor_123200_80136698 = { .poses = {
 #include "assets/actor_123200_animation_04A64_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_801366E0[42] = {
 #include "assets/actor_123200_animation_04A64_bank4.inc"
@@ -360,7 +375,8 @@ u16 D_actor_123200_80136878[6] = {
 };
 
 GpAnimSet D_actor_123200_80136884 = {
-    D_actor_123200_80136788, D_actor_123200_80136878,
+    D_actor_123200_80136788,
+    D_actor_123200_80136878,
     { NULL, D_actor_123200_80136698.words, NULL, NULL, D_actor_123200_801366E0, NULL, NULL, NULL },
 };
 
@@ -372,7 +388,7 @@ typedef union {
 
 Actor123200PoseBank4A8C D_actor_123200_801368AC = { .poses = {
 #include "assets/actor_123200_animation_04E74_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80136978[85] = {
 #include "assets/actor_123200_animation_04E74_bank4.inc"
@@ -387,7 +403,8 @@ u16 D_actor_123200_80136C88[6] = {
 };
 
 GpAnimSet D_actor_123200_80136C94 = {
-    D_actor_123200_80136ACC, D_actor_123200_80136C88,
+    D_actor_123200_80136ACC,
+    D_actor_123200_80136C88,
     { NULL, D_actor_123200_801368AC.words, NULL, NULL, D_actor_123200_80136978, NULL, NULL, NULL },
 };
 
@@ -399,7 +416,7 @@ typedef union {
 
 Actor123200PoseBank4E9C D_actor_123200_80136CBC = { .poses = {
 #include "assets/actor_123200_animation_05134_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80136D4C[52] = {
 #include "assets/actor_123200_animation_05134_bank4.inc"
@@ -414,7 +431,8 @@ u16 D_actor_123200_80136F48[6] = {
 };
 
 GpAnimSet D_actor_123200_80136F54 = {
-    D_actor_123200_80136E1C, D_actor_123200_80136F48,
+    D_actor_123200_80136E1C,
+    D_actor_123200_80136F48,
     { NULL, D_actor_123200_80136CBC.words, NULL, NULL, D_actor_123200_80136D4C, NULL, NULL, NULL },
 };
 
@@ -426,7 +444,7 @@ typedef union {
 
 Actor123200PoseBank515C D_actor_123200_80136F7C = { .poses = {
 #include "assets/actor_123200_animation_0530C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_123200_80136FB8[19] = {
 #include "assets/actor_123200_animation_0530C_bank4.inc"
@@ -441,7 +459,8 @@ u16 D_actor_123200_80137120[6] = {
 };
 
 GpAnimSet D_actor_123200_8013712C = {
-    D_actor_123200_80137004, D_actor_123200_80137120,
+    D_actor_123200_80137004,
+    D_actor_123200_80137120,
     { NULL, D_actor_123200_80136F7C.words, NULL, NULL, D_actor_123200_80136FB8, NULL, NULL, NULL },
 };
 
@@ -649,15 +668,15 @@ Actor123200MessageEntry D_actor_123200_80137214[4] = {
 
 TaskDesc D_actor_123200_80137234 = { 1, 96, func_actor_123200_801341A8, { .model = &D_actor_123200_80135AF0 } };
 
-SVECTOR D_actor_123200_80137240 = { 0 };
+static SVECTOR ActorContact_ScratchPosition = { 0 };
+
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 GpEffArg D_actor_123200_80137248 = { 0 };
 
-static void            func_actor_123200_80131E50(GpCoord* coord, s16 yaw);
-static s32             func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count);
-static s32             func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static s32             func_actor_123200_801329F0(GpCoord* coord, GpRec18* movement, s16 arg2);
-static s32             func_actor_123200_80132B94(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
 static __inline__ void Actor123200_ResetSlots(Actor123200Work* arg0);
 static __inline__ void Actor123200_TickSlots(Task* task);
 static void            func_actor_123200_801332E0(Task* task);
@@ -671,321 +690,9 @@ static void            func_actor_123200_801339F0(GpEnemy* enemy, Task* task);
 static void            func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1);
 static void            func_actor_123200_80134060(GpCoord* coord, s16 scale);
 
-/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
-/// rotation in a matrix carved off the scratchpad head, applies the turn,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it.
-static void func_actor_123200_80131E50(GpCoord* coord, s16 yaw)
-{
-    MATRIX*  rotation;
-    GpCoord* out;
+#include "../../shared/actor_contacts.h"
 
-    SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->flg = 0;
-    Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
-}
-
-/// Walks the first `count` records of `recs`, up to an empty key, and for
-/// every kind 0x10000 or 0x30000 record computes the XZ push-out of the
-/// coordinate's world position from it; the last such push is kept in the
-/// scratch block, and its length is scaled down to 0x100 when longer. Returns
-/// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData[0].state.field_5C1` or the session's `viewReady` is 1.
-static s32 func_actor_123200_8013215C(GpCoord* coord, GpRec18* recs, s16 count)
-{
-    ActorRepelScratch* head;
-    ActorRepelScratch* s;
-    ActorRepelScratch* blk;
-    SVECTOR*           offset;
-
-    if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
-        return 0;
-    }
-    coord->flg                      = 0;
-    head                            = SCRATCH_HEAD(ActorRepelScratch);
-    blk                             = head - 1;
-    SCRATCH_HEAD(ActorRepelScratch) = blk;
-    s                               = blk;
-    Gp_UpdateCoord(coord);
-    s->pos.vx  = coord->workm.t[0];
-    s->pos.vy  = coord->workm.t[1];
-    s->pos.vz  = coord->workm.t[2];
-    s->last.vz = 0;
-    s->last.vy = 0;
-    s->last.vx = 0;
-    s->hit     = 0;
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
-            s->dist[s->i] = 0x7FFE;
-            break;
-        }
-        s->kind = recs[s->i].key & 0xFFFF0000;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            actorCalcPush(&s->pos, &recs[s->i], &s->offset);
-            s->last.vx = s->offset.vx;
-            s->last.vz = s->offset.vz;
-        }
-    }
-    s->len = SquareRoot0(s->offset.vx * s->offset.vx + s->offset.vy * s->offset.vy +
-                         s->offset.vz * s->offset.vz);
-    if (s->len > 0x100) {
-        offset = &s->offset;
-        VectorNormalSS(offset, offset);
-        gte_lddp(0x100);
-        gte_ldsv(offset);
-        gte_gpf12();
-        gte_stsv(offset);
-    }
-    coord->flg = 0;
-    SCRATCH_POP(ActorRepelScratch);
-    return s->hit;
-}
-
-/// Collects the bearings of up to eight kind 0x10000 / 0x30000 records among
-/// the first `count` of `recs`, drops both bearings of every pair more than 0x400 apart, and
-/// for each bearing left steps `coord` 10 units away from it, accumulating the
-/// total XZ step in `pos`. Returns whether any kind 0x10000 record was met;
-/// returns 0 at once when the session's `viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 func_actor_123200_801324A4(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
-
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.field_5C1 == 1) {
-        return 0;
-    }
-
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    pos->vz          = 0;
-    pos->vy          = 0;
-    pos->vx          = 0;
-
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key == 0) {
-            break;
-        }
-        s->kind = recs[s->i].key & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_POP_BYTES(sizeof(OverlayAvoidScratch));
-    return s->blocked != 0;
-}
-
-/// Steps `coord` by the movement the first `arg2` records of `movement`
-/// resolve to, and latches the integer part of that delta into
-/// `D_actor_123200_80137240`. Returns the "moved" flag: set when the X or Z
-/// delta is nonzero; where a delta also has a fractional part, the coordinate
-/// and the latched step are nudged one unit further away from zero.
-static s32 func_actor_123200_801329F0(GpCoord* coord, GpRec18* movement, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_PUSH(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_123200_80137240.vx = s->delta.vx.w >> 16;
-        D_actor_123200_80137240.vy = s->delta.vy.w >> 16;
-        D_actor_123200_80137240.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_123200_80137240.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_123200_80137240.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_123200_80137240.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_123200_80137240.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_POP(OverlayDeltaFlag);
-    return s->moved;
-}
-
-/// Pushes `coord` `push` units away from each obstacle among the first
-/// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
-/// 0x400 of every other obstacle's. Bearings are taken in world space from the
-/// frame's position, relative to the point one unit in front of it. Returns
-/// whether any push was applied; returns 0 at once when
-/// `gGameSession->viewReady` is 1.
-static s32 func_actor_123200_80132B94(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
-{
-    OverlayBisectorScratch* st;
-    s32                     hit;
-
-    if (gGameSession->viewReady == 1) {
-        return 0;
-    }
-
-    SCRATCH_PUSH(OverlayBisectorScratch);
-    st         = SCRATCH_HEAD(OverlayBisectorScratch);
-    st->eye.vx = (u16)coord->coord.t[0];
-    st->eye.vy = (u16)coord->coord.t[1];
-    st->eye.vz = (u16)coord->coord.t[2];
-
-    overlayToWorld(coord->sub, &st->eye);
-
-    st->aim.vx = 0;
-    st->aim.vy = 0;
-    st->aim.vz = 0x1000;
-
-    overlayToWorld2(coord, &st->aim);
-
-    for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key == 0) {
-            st->angle[st->i] = 0x7FFE;
-            break;
-        }
-        st->kind = recs[st->i].key & 0xFFFF0000;
-        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
-            st->angle[st->i] = 0x7FFF;
-        } else {
-            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
-            st->angle[st->i] = ratan2(st->delta.vx, st->delta.vz);
-
-            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)st->aim.vz - (u16)st->eye.vz;
-            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, st->delta.vz);
-
-            st->angle[st->i] = actorWrapAngle(st->angle[st->i]);
-        }
-    }
-
-    st->hit = 0;
-    for (st->i = 0; st->i < count; st->i++) {
-        if (st->angle[st->i] == 0x7FFE) {
-            break;
-        }
-        if (st->angle[st->i] == 0x7FFF) {
-            continue;
-        }
-        for (st->j = 0; st->j < count; st->j++) {
-            if (st->i == st->j) {
-                continue;
-            }
-            if (st->angle[st->j] == 0x7FFF) {
-                continue;
-            }
-            if (st->angle[st->j] != 0x7FFE) {
-                st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
-                st->diff = actorWrapAngle(st->diff);
-                if (abs(st->diff) > 0x400) {
-                    break;
-                }
-                if (st->angle[st->j] != 0x7FFE) {
-                    if (st->j + 1 < count) {
-                        continue;
-                    }
-                }
-            }
-            st->hit = 1;
-            Gfx_RotMatrixY(&st->m,
-                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
-                           1);
-            Gfx_MatrixCol2(&st->m, &st->aim);
-            VectorNormalSS(&st->aim, &st->aim);
-            gte_lddp(-push);
-            gte_ldsv(&st->aim);
-            gte_gpf12();
-            gte_stsv(&st->delta);
-            coord->coord.t[0] += st->delta.vx;
-            coord->coord.t[2] += st->delta.vz;
-            break;
-        }
-    }
-
-    hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
-    return hit;
-}
+#include "../../shared/actor_contacts.inc.c"
 
 /// Restarts animation slots 1-5 on the motion in `field_174` at the combined
 /// rate `field_176 + field_178`, and records that motion as the one playing.

@@ -32,9 +32,9 @@ extern GpGridParams D_dryfield_night_garage_80183DD4;
 
 extern GpObj4C D_dryfield_night_garage_80186D7C[16];
 
-extern s32 D_dryfield_night_garage_80187628;
+extern s32 Shop_Data_80187628;
 
-extern GpItemMap* D_dryfield_night_garage_8018762C;
+extern GpItemMap* Shop_Data_8018762C;
 
 /// Returns the task of the room work object whose id is the current area and
 /// stage with `arg0` in bits 12 and up, or NULL when there is none.
