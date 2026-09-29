@@ -430,9 +430,9 @@ GpAreaTmdRec D_neo_ark_forest_zone_80182930[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_neo_ark_forest_zone_80182948[2] = {
+AreaPlacement D_neo_ark_forest_zone_80182948[2] = {
     { 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_neo_ark_forest_zone_80182968[13] = {

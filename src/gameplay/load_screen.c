@@ -67,11 +67,11 @@ static inline u16 _gpAdvanceAreaCd(void)
 {
     switch (D_80114C74) {
         case 0:
-            D_80114C70 = 0;
+            D_80114C70 = LOADING_AREA_INIT;
             D_80114C74 = 1;
         case 1:
             if (func_800AA120()) {
-                Gp_AreaCdPhase = 0;
+                Gp_AreaCdPhase = LOADING_AREA_INIT;
                 D_80114C74++;
             }
             return 0;

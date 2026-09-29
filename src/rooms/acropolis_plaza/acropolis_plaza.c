@@ -3663,8 +3663,8 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     CdCmdQueue*                q    = &CdCmd_Queue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
-    GameLocationKey*           sessionKey;
-    GpAreaPlace*               entry;
+    GameLocationKey*                 sessionKey;
+    AreaPlacement*             entry;
     s32                        idx;
 
     switch (task->state) {
@@ -3765,14 +3765,14 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
                first exit test into the loop preheader and the walk stops
                matching. */
-            if (entry->entryId != 0xFF) {
+            if (entry->entryId != AREA_PLACEMENT_END) {
                 for (;;) {
                     if (entry->entryId == 0x6C) {
                         goto found6;
                     }
                     entry++;
                     idx++;
-                    if (entry->entryId == 0xFF) {
+                    if (entry->entryId == AREA_PLACEMENT_END) {
                         goto found6;
                     }
                 }
@@ -3799,22 +3799,22 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey      = &gGameSession->at4.loc;
-                buf.key.stage   = sessionKey->stage;
-                buf.key.area    = sessionKey->area;
-                buf.key.room    = gGameSession->sprtVariant;
-                buf.key.view    = gGameSession->at4.loc.view;
+                sessionKey    = &gGameSession->at4.loc;
+                buf.key.stage = sessionKey->stage;
+                buf.key.area  = sessionKey->area;
+                buf.key.room  = gGameSession->sprtVariant;
+                buf.key.view  = gGameSession->at4.loc.view;
                 buf.key.variant = sessionKey->variant;
-                entry           = Gp_GetNestedAreaRec(&buf.key)->field_0;
-                idx             = 0;
-                if (entry->entryId != 0xFF) {
+                entry         = Gp_GetNestedAreaRec(&buf.key)->field_0;
+                idx           = 0;
+                if (entry->entryId != AREA_PLACEMENT_END) {
                     for (;;) {
                         if (entry->entryId == 0x6C) {
                             goto found8;
                         }
                         entry++;
                         idx++;
-                        if (entry->entryId == 0xFF) {
+                        if (entry->entryId == AREA_PLACEMENT_END) {
                             goto found8;
                         }
                     }

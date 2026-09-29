@@ -78,131 +78,131 @@ extern GpRoomParamRec** D_map_akropolis_8017AC6C[];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location.
-extern GpAreaPlace D_map_akropolis_8017ACBC[];
+extern AreaPlacement D_map_akropolis_8017ACBC[];
 
-extern GpAreaPlace D_map_akropolis_8017ACDC[];
+extern AreaPlacement D_map_akropolis_8017ACDC[];
 
-extern GpAreaPlace D_map_akropolis_8017ACFC[];
+extern AreaPlacement D_map_akropolis_8017ACFC[];
 
-extern GpAreaPlace D_map_akropolis_8017AD2C[];
+extern AreaPlacement D_map_akropolis_8017AD2C[];
 
-extern GpAreaPlace D_map_akropolis_8017AD7C[];
+extern AreaPlacement D_map_akropolis_8017AD7C[];
 
-extern GpAreaPlace D_map_akropolis_8017ADEC[];
+extern AreaPlacement D_map_akropolis_8017ADEC[];
 
-extern GpAreaPlace D_map_akropolis_8017AE3C[];
+extern AreaPlacement D_map_akropolis_8017AE3C[];
 
-extern GpAreaPlace D_map_akropolis_8017AE6C[];
+extern AreaPlacement D_map_akropolis_8017AE6C[];
 
-extern GpAreaPlace D_map_akropolis_8017AE9C[];
+extern AreaPlacement D_map_akropolis_8017AE9C[];
 
-extern GpAreaPlace D_map_akropolis_8017AEDC[];
+extern AreaPlacement D_map_akropolis_8017AEDC[];
 
-extern GpAreaPlace D_map_akropolis_8017AF1C[];
+extern AreaPlacement D_map_akropolis_8017AF1C[];
 
-extern GpAreaPlace D_map_akropolis_8017AF3C[];
+extern AreaPlacement D_map_akropolis_8017AF3C[];
 
-extern GpAreaPlace D_map_akropolis_8017AF6C[];
+extern AreaPlacement D_map_akropolis_8017AF6C[];
 
-extern GpAreaPlace D_map_akropolis_8017AFCC[];
+extern AreaPlacement D_map_akropolis_8017AFCC[];
 
-extern GpAreaPlace D_map_akropolis_8017AFEC[];
+extern AreaPlacement D_map_akropolis_8017AFEC[];
 
-extern GpAreaPlace D_map_akropolis_8017B01C[];
+extern AreaPlacement D_map_akropolis_8017B01C[];
 
-extern GpAreaPlace D_map_akropolis_8017B04C[];
+extern AreaPlacement D_map_akropolis_8017B04C[];
 
-extern GpAreaPlace D_map_akropolis_8017B0DC[];
+extern AreaPlacement D_map_akropolis_8017B0DC[];
 
-extern GpAreaPlace D_map_akropolis_8017B0FC[];
+extern AreaPlacement D_map_akropolis_8017B0FC[];
 
-extern GpAreaPlace D_map_akropolis_8017B11C[];
+extern AreaPlacement D_map_akropolis_8017B11C[];
 
-extern GpAreaPlace D_map_akropolis_8017B17C[];
+extern AreaPlacement D_map_akropolis_8017B17C[];
 
-extern GpAreaPlace D_map_akropolis_8017B1AC[];
+extern AreaPlacement D_map_akropolis_8017B1AC[];
 
-extern GpAreaPlace D_map_akropolis_8017B1DC[];
+extern AreaPlacement D_map_akropolis_8017B1DC[];
 
-extern GpAreaPlace D_map_akropolis_8017B1FC[];
+extern AreaPlacement D_map_akropolis_8017B1FC[];
 
-extern GpAreaPlace D_map_akropolis_8017B24C[];
+extern AreaPlacement D_map_akropolis_8017B24C[];
 
-extern GpAreaPlace D_map_akropolis_8017B29C[];
+extern AreaPlacement D_map_akropolis_8017B29C[];
 
-extern GpAreaPlace D_map_akropolis_8017B2EC[];
+extern AreaPlacement D_map_akropolis_8017B2EC[];
 
-extern GpAreaPlace D_map_akropolis_8017B33C[];
+extern AreaPlacement D_map_akropolis_8017B33C[];
 
-extern GpAreaPlace D_map_akropolis_8017B35C[];
+extern AreaPlacement D_map_akropolis_8017B35C[];
 
-extern GpAreaPlace D_map_akropolis_8017B41C[];
+extern AreaPlacement D_map_akropolis_8017B41C[];
 
-extern GpAreaPlace D_map_akropolis_8017B48C[];
+extern AreaPlacement D_map_akropolis_8017B48C[];
 
-extern GpAreaPlace D_map_akropolis_8017B4FC[];
+extern AreaPlacement D_map_akropolis_8017B4FC[];
 
-extern GpAreaPlace D_map_akropolis_8017B54C[];
+extern AreaPlacement D_map_akropolis_8017B54C[];
 
-extern GpAreaPlace D_map_akropolis_8017B5BC[];
+extern AreaPlacement D_map_akropolis_8017B5BC[];
 
-extern GpAreaPlace D_map_akropolis_8017B5EC[];
+extern AreaPlacement D_map_akropolis_8017B5EC[];
 
-extern GpAreaPlace D_map_akropolis_8017B65C[];
+extern AreaPlacement D_map_akropolis_8017B65C[];
 
-extern GpAreaPlace D_map_akropolis_8017B67C[];
+extern AreaPlacement D_map_akropolis_8017B67C[];
 
-extern GpAreaPlace D_map_akropolis_8017B6AC[];
+extern AreaPlacement D_map_akropolis_8017B6AC[];
 
-extern GpAreaPlace D_map_akropolis_8017B6DC[];
+extern AreaPlacement D_map_akropolis_8017B6DC[];
 
-extern GpAreaPlace D_map_akropolis_8017B70C[];
+extern AreaPlacement D_map_akropolis_8017B70C[];
 
-extern GpAreaPlace D_map_akropolis_8017B73C[];
+extern AreaPlacement D_map_akropolis_8017B73C[];
 
-extern GpAreaPlace D_map_akropolis_8017B7DC[];
+extern AreaPlacement D_map_akropolis_8017B7DC[];
 
-extern GpAreaPlace D_map_akropolis_8017B80C[];
+extern AreaPlacement D_map_akropolis_8017B80C[];
 
-extern GpAreaPlace D_map_akropolis_8017B82C[];
+extern AreaPlacement D_map_akropolis_8017B82C[];
 
-extern GpAreaPlace D_map_akropolis_8017B85C[];
+extern AreaPlacement D_map_akropolis_8017B85C[];
 
-extern GpAreaPlace D_map_akropolis_8017B8DC[];
+extern AreaPlacement D_map_akropolis_8017B8DC[];
 
-extern GpAreaPlace D_map_akropolis_8017B98C[];
+extern AreaPlacement D_map_akropolis_8017B98C[];
 
-extern GpAreaPlace D_map_akropolis_8017B9AC[];
+extern AreaPlacement D_map_akropolis_8017B9AC[];
 
-extern GpAreaPlace D_map_akropolis_8017BA5C[];
+extern AreaPlacement D_map_akropolis_8017BA5C[];
 
-extern GpAreaPlace D_map_akropolis_8017BA8C[];
+extern AreaPlacement D_map_akropolis_8017BA8C[];
 
-extern GpAreaPlace D_map_akropolis_8017BABC[];
+extern AreaPlacement D_map_akropolis_8017BABC[];
 
-extern GpAreaPlace D_map_akropolis_8017BB1C[];
+extern AreaPlacement D_map_akropolis_8017BB1C[];
 
-extern GpAreaPlace D_map_akropolis_8017BB9C[];
+extern AreaPlacement D_map_akropolis_8017BB9C[];
 
-extern GpAreaPlace D_map_akropolis_8017BBFC[];
+extern AreaPlacement D_map_akropolis_8017BBFC[];
 
-extern GpAreaPlace D_map_akropolis_8017BC7C[];
+extern AreaPlacement D_map_akropolis_8017BC7C[];
 
-extern GpAreaPlace D_map_akropolis_8017BCEC[];
+extern AreaPlacement D_map_akropolis_8017BCEC[];
 
-extern GpAreaPlace D_map_akropolis_8017BCFC[];
+extern AreaPlacement D_map_akropolis_8017BCFC[];
 
-extern GpAreaPlace D_map_akropolis_8017BD0C[];
+extern AreaPlacement D_map_akropolis_8017BD0C[];
 
-extern GpAreaPlace D_map_akropolis_8017BD2C[];
+extern AreaPlacement D_map_akropolis_8017BD2C[];
 
-extern GpAreaPlace D_map_akropolis_8017BD4C[];
+extern AreaPlacement D_map_akropolis_8017BD4C[];
 
-extern GpAreaPlace D_map_akropolis_8017BD8C[];
+extern AreaPlacement D_map_akropolis_8017BD8C[];
 
-extern GpAreaPlace D_map_akropolis_8017BDBC[];
+extern AreaPlacement D_map_akropolis_8017BDBC[];
 
-extern GpAreaPlace D_map_akropolis_8017BDEC[];
+extern AreaPlacement D_map_akropolis_8017BDEC[];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
 /// location, each ended by a key of -1.

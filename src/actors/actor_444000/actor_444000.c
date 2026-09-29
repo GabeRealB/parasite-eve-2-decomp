@@ -8665,9 +8665,9 @@ static void func_actor_444000_80141618(Task* task)
     GfxCoord*                coord;
     GfxCoord*                facing;
     TmdObject*               model;
-    GpAreaPlace*             entry;
-    GameLocationKey          key;
-    GameLocationKey*         sessionKey;
+    AreaPlacement*           entry;
+    GameLocationKey                key;
+    GameLocationKey*               sessionKey;
     s32                      cueId;
     s32                      cuePan;
     s32                      blastId;
@@ -8706,8 +8706,8 @@ static void func_actor_444000_80141618(Task* task)
                     key.view   = sessionKey->view;
                     areaSyncLocationVariant(&key);
                     entry        = &Gp_GetNestedAreaRec(&key)->field_0[2];
-                    model->tpage = entry->tpage;
-                    model->clut  = entry->clut;
+                    model->tpage = entry->texturePageOffset;
+                    model->clut  = entry->clutRowOffset;
                     if (model->buffer != NULL) {
                         tmdProcessStream(model);
                         tmdProcessStream(model);
@@ -8854,9 +8854,9 @@ out:
 /// current area, and reprocesses its stream when it already has one.
 static inline void _actor444000TintEscort(TmdObject* model)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    GpAreaPlace*     entry;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    AreaPlacement* entry;
 
     sessionKey = &gGameSession->at4.loc;
     key.stage  = sessionKey->stage;
@@ -8865,8 +8865,8 @@ static inline void _actor444000TintEscort(TmdObject* model)
     key.view   = sessionKey->view;
     areaSyncLocationVariant(&key);
     entry        = &Gp_GetNestedAreaRec(&key)->field_0[2];
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -9714,14 +9714,14 @@ static void func_actor_444000_801435CC(Task* arg0)
 /// CLUT, run its stream twice when it has one, and step the task on.
 static void func_actor_444000_801436CC(GpEnemy* enemy, Task* task)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    AreaPlacement* entry;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     sessionKey = &gGameSession->at4.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
@@ -9737,8 +9737,8 @@ static void func_actor_444000_801436CC(GpEnemy* enemy, Task* task)
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
     entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

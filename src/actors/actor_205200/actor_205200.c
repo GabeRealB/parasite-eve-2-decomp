@@ -448,17 +448,17 @@ static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
     s32                  i;
     u16                  timer;
 
-    kind = ((u16*)enemy->place)[1];
+    kind = enemy->place->mode;
     if ((u16)(kind - 1) >= 3) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    work = memCalloc(0x30, false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work                    = (TaskIdMap*)work;
+    task->work                    = work;
     work->field_1E                = kind;
     D_actor_205200_8015B458.state = 2;
     for (i = 0; i < D_actor_205200_8014CA1C[work->field_1E]; i++) {

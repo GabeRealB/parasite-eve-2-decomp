@@ -2400,53 +2400,53 @@ GpAreaTmdRec D_mine_mesa_801896E0[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_mine_mesa_80189704[2] = {
+AreaPlacement D_mine_mesa_80189704[2] = {
     { 1, 1, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_mesa_80189724[5] = {
+AreaPlacement D_mine_mesa_80189724[5] = {
     { 16, 0, 0, 5900, -1670, 3600, 400, 0, 0, 2, 0 },
     { 16, 0, 0, 6700, -1300, 4600, 1200, 0, 0, 2, 0 },
     { 16, 0, 0, 7800, -1300, 3550, 2600, 0, 0, 2, 0 },
     { 16, 0, 0, 9000, 0, 4200, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_mesa_80189774[7] = {
+AreaPlacement D_mine_mesa_80189774[7] = {
     { 25, 0, 2, 9200, 0, 6800, 2800, 0, 0, 2, 2 },
     { 25, 0, 2, 9700, 0, 1200, 3300, 0, 0, 2, 2 },
     { 15, 0, 2, 2200, -3000, 7800, 3950, 0, 2, 4, 0 },
     { 15, 0, 2, 0x2EE0, -2500, 7800, 500, 0, 2, 4, 0 },
     { 15, 0, 2, 6300, -1800, 8350, -200, 0, 2, 4, 0 },
     { 15, 0, 2, 0x2EE0, -1500, 200, 700, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_mesa_801897E4[7] = {
+AreaPlacement D_mine_mesa_801897E4[7] = {
     { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
     { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
     { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
     { 15, 0, 2, 8700, -2000, 8000, 0, 0, 2, 4, 0 },
     { 15, 0, 2, 5000, -3000, 0, 2048, 0, 2, 4, 0 },
     { 15, 0, 2, 0x2EE0, -2000, 500, 1024, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_mesa_80189854[3] = {
+AreaPlacement D_mine_mesa_80189854[3] = {
     { 20, 3, 1, 7000, 0, 6500, 1024, 0, 0, 2, 0 },
     { 57, 4, 1, 6000, 0, 2000, 1024, 0, 3, 5, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_mesa_80189884[7] = {
+AreaPlacement D_mine_mesa_80189884[7] = {
     { 25, 0, 1, 0x2968, 0, 1500, 3072, 0, 0, 2, 0 },
     { 25, 0, 1, 8500, 0, 2500, 3072, 0, 0, 2, 0 },
     { 25, 0, 1, 8000, 0, 6000, 3072, 0, 0, 2, 0 },
     { 37, 0, 0, 1600, -1800, 3500, 0, 0, 2, 4, 0 },
     { 37, 0, 0, 2800, -1800, 1400, 0, 0, 2, 4, 0 },
     { 37, 0, 0, 5000, -1800, 6500, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_mine_mesa_801898F4[12] = {
@@ -4127,9 +4127,9 @@ static void func_mine_mesa_80181358(Task* arg0)
     _MineMesaSpawnPoint* table;
     _MineMesaSpawnPoint* pt;
     TmdObject*           tmd;
-    GameLocationKey*     loc;
-    GpAreaPlace*         place;
-    GfxCoord*            coords;
+    GameLocationKey*           loc;
+    AreaPlacement*       place;
+    GfxCoord*             coords;
     GpEnemy*             enemy;
 
     for (i = 0; i < 2; i++) {
@@ -4191,10 +4191,10 @@ static void func_mine_mesa_80181358(Task* arg0)
         key.view                                                     = gGameSession->at4.loc.view;
         areaSyncLocationVariant(&key);
         place      = Gp_GetNestedAreaRec(&key)->field_0;
-        tmd->tpage = place->tpage;
-        tmd->clut  = place->clut;
+        tmd->tpage = place->texturePageOffset;
+        tmd->clut  = place->clutRowOffset;
         if (Mc_SaveData[0].state.demoScene == 10) {
-            printf("tpage=%x, clut=%x, eno=%x\n", (s8)place->tpage, (s8)place->clut, 0);
+            printf("tpage=%x, clut=%x, eno=%x\n", place->texturePageOffset, place->clutRowOffset, 0);
         }
         if (tmd->buffer != NULL) {
             tmdProcessStream(tmd);

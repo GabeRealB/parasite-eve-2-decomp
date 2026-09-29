@@ -859,112 +859,112 @@ GpRoomParamRec** D_map_akropolis_8017AC6C[20] = {
     D_mist_shooting_gallery_8018E09C,
 };
 
-GpAreaPlace D_map_akropolis_8017ACBC[2] = {
-    { 0x13, 0, 0, 0x1770, -0x898, 0xC8F, 0x800, 0, 0xFF, 2, 0 },
-    { 0xFF },
+AreaPlacement D_map_akropolis_8017ACBC[2] = {
+    { 0x13, 0, 0, 0x1770, -0x898, 0xC8F, 0x800, 0, -1, 2, 0 },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017ACDC[2] = {
-    { 0x6E, 0, 0, 0, 0, 0, 0, 0, 0xFF, 2, 0 },
-    { 0xFF },
+AreaPlacement D_map_akropolis_8017ACDC[2] = {
+    { 0x6E, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017ACFC[3] = {
+AreaPlacement D_map_akropolis_8017ACFC[3] = {
     { 0x6B, 0, 0, -0xB54, 0, 0x640, 0x600, 0, 4, 6, 0 },
     { 0x13, 4, 0, -0xAF0, 0, 0x5DC, -0x200, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AD2C[5] = {
+AreaPlacement D_map_akropolis_8017AD2C[5] = {
     { 0xA, 0, 2, -0x1770, -0xEC4, -0x76C, 0, 0, 0, 2, 0 },
     { 0xA, 0, 2, -0x13EC, -0xEC4, -0x76C, 0, 0, 0, 2, 0 },
     { 0x13, 4, 2, -0x1B58, 0, 0x2BC, 0xAF0, 0, 0, 2, 0 },
     { 0x13, 4, 2, -0x1C84, 0, -0x320, -0x258, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AD7C[7] = {
+AreaPlacement D_map_akropolis_8017AD7C[7] = {
     { 8, 0, 0, -0x170C, -0x3E8, 0x5DC, 0, 0, 0, 2, 0 },
     { 8, 0, 0, -0x1644, -0x3E8, 0x5DC, -0xC8, 0, 0, 2, 0 },
     { 8, 0, 0, -0x17D4, -0x3E8, 0x5DC, 0xC8, 0, 0, 2, 0 },
     { 7, 0, 0, -0x1E14, 0, 0x12C, 0xC00, 0, 2, 4, 1 },
     { 7, 0, 0, -0x1E14, 0, 0x320, 0x9C4, 0, 2, 4, 1 },
     { 7, 0, 0, -0x1D4C, 0, 0x1F4, 0xAF0, 0, 2, 4, 1 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017ADEC[5] = {
+AreaPlacement D_map_akropolis_8017ADEC[5] = {
     { 0xA, 4, 0, -0x1B58, 0, 0x2BC, 0xAF0, 0, 0, 2, 0 },
     { 0xA, 4, 0, -0x1C84, 0, -0x320, -0x258, 0, 0, 2, 0 },
     { 8, 0, 0, -0x1838, -0x320, 0x492, 0x10E, 0, 2, 4, 1 },
     { 8, 0, 0, -0x1518, -0x3E8, 0x44C, 0xED8, 0, 2, 4, 1 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AE3C[3] = {
+AreaPlacement D_map_akropolis_8017AE3C[3] = {
     { 0xA, 0, 0, 0x64, 1, -0x3E8, 0x1CC, 0, 0, 2, 0 },
     { 0xA, 0, 0, -0x9C4, 0, 0x1F4, -0x200, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AE6C[3] = {
+AreaPlacement D_map_akropolis_8017AE6C[3] = {
     { 9, 4, 0x212, 0x14AA, 1, -0x10E, 0x456, 0, 0, 2, 0 },
     { 9, 0, 0x1212, 0x14DC, 1, 0x33E, 0x456, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AE9C[4] = {
+AreaPlacement D_map_akropolis_8017AE9C[4] = {
     { 0xA, 1, 0x20, -0xD48, -0x12C, -0x708, 0, 0, 0, 2, 0 },
     { 0x1D, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
     { 0x66, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AEDC[4] = {
+AreaPlacement D_map_akropolis_8017AEDC[4] = {
     { 0xA, 1, 0x20, -0xD48, -0x12C, -0x708, 0, 0, 0, 2, 0 },
     { 0x13, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
     { 0x66, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AF1C[2] = {
+AreaPlacement D_map_akropolis_8017AF1C[2] = {
     { 0x12, 0x14, 2, 0x64, -0x12C, 0, 0x7D0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AF3C[3] = {
+AreaPlacement D_map_akropolis_8017AF3C[3] = {
     { 0x12, 0x14, 2, 0x64, -0x12C, 0, 0x7D0, 0, 0, 2, 0 },
     { 0x12, 0x10, 2, 0x64, -0x12C, 0x5DC, 0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AF6C[6] = {
+AreaPlacement D_map_akropolis_8017AF6C[6] = {
     { 0xC, 0, 0, 0x9C4, -0x12C, 0x226, 0x898, 0, 0, 2, 0 },
     { 0xC, 0, 0, 0x104, -0x12C, 0x640, 0x71E, 0, 0, 2, 0 },
     { 0xC, 0, 0, 0x47E, -0x12C, -0xA0, 0x762, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x302, -0x12C, -0x816, 0xE9C, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x4B0, -0x12C, 0x6C2, 0x15E, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AFCC[2] = {
+AreaPlacement D_map_akropolis_8017AFCC[2] = {
     { 0x39, 3, 1, -0xED8, -0x12C, 0x3E8, 0x800, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017AFEC[3] = {
+AreaPlacement D_map_akropolis_8017AFEC[3] = {
     { 0x6D, 0, 0, 0x3520, 0, 0x11F8, 0x6AA, 2, 2, 4, 0 },
     { 0x6C, 0, 0, 0x3CA, 0, 0x393A, 0x800, 1, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B01C[3] = {
+AreaPlacement D_map_akropolis_8017B01C[3] = {
     { 0x66, 0, 0, -0x1444, 0, -0xAF0, 0x100, 0, 0, 2, 0 },
     { 0x6E, 0, 0, -0x127A, 0, -0xD72, 0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B04C[9] = {
+AreaPlacement D_map_akropolis_8017B04C[9] = {
     { 7, 0, 0, 0x3E8, -0x3E8, -0x3E8, 0xC00, 0, 0, 2, 0 },
     { 7, 0, 0, 0x3E8, -0x3E8, -0x1F4, 0x800, 0, 0, 2, 0 },
     { 7, 0, 0, 0x320, -0x3E8, -0x384, 0x400, 0, 0, 2, 0 },
@@ -973,83 +973,83 @@ GpAreaPlace D_map_akropolis_8017B04C[9] = {
     { 7, 0, 0, -0x44C, -0x3E8, -0x3E8, 0x5DC, 0, 0, 2, 0 },
     { 7, 0, 0, -0x320, -0x3E8, -0x320, 0x898, 0, 0, 2, 0 },
     { 7, 0, 0, -0x258, -0x3E8, -0x384, 0xA8C, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B0DC[2] = {
+AreaPlacement D_map_akropolis_8017B0DC[2] = {
     { 0x12, 0x10, 0, 0, -0x3E8, -0x1F4, 0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B0FC[2] = {
+AreaPlacement D_map_akropolis_8017B0FC[2] = {
     { 0x12, 0x10, 0, 0, -0x3E8, -0x1F4, 0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B11C[6] = {
+AreaPlacement D_map_akropolis_8017B11C[6] = {
     { 0x12, 0x10, 2, 0, -0x3E8, -0x1F4, 0x400, 0, 0, 2, 0 },
     { 7, 0, 0, 0x3E8, -0x3E8, -0x3E8, 0, 0, 2, 4, 1 },
     { 7, 0, 0, 0x3E8, -0x3E8, -0x1F4, 0x800, 0, 2, 4, 1 },
     { 7, 0, 0, 0x3E8, -0x3E8, 0x3E8, 0x800, 0, 2, 4, 1 },
     { 7, 0, 0, 0x1F4, -0x3E8, 0x3E8, 0x400, 0, 2, 4, 1 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B17C[3] = {
+AreaPlacement D_map_akropolis_8017B17C[3] = {
     { 0xB, 0, 0, -0xEB0, 0, -0x6A4, -0x200, 0, 0, 2, 0 },
     { 0xB, 0, 0, 0x208, 2, -0x1130, 0xE10, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B1AC[3] = {
+AreaPlacement D_map_akropolis_8017B1AC[3] = {
     { 0x31, 0, 0, -0xEB0, 0, -0x6A4, -0x200, 0, 0, 2, 0 },
     { 0x31, 0, 0, 0x208, 2, -0x1130, 0xE10, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B1DC[2] = {
+AreaPlacement D_map_akropolis_8017B1DC[2] = {
     { 0x13, 4, 0, -0x1F4, 1, -0x2BC, 0x44C, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B1FC[5] = {
+AreaPlacement D_map_akropolis_8017B1FC[5] = {
     { 0xA, 0, 0, -0xFA0, 0, -0x3E8, 0x320, 0, 0, 2, 0 },
     { 7, 0, 0, -0x1F4, 0, -0x4B0, 0x2BC, 0, 2, 4, 0 },
     { 7, 0, 0, 0, 0, -0x320, 0x400, 0, 2, 4, 0 },
     { 7, 0, 0, 0, 0, -0x12C, 0x514, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B24C[5] = {
+AreaPlacement D_map_akropolis_8017B24C[5] = {
     { 0x37, 3, 0xA, 0x2BC, 0, -0x1194, 0xE10, 0, 0, 2, 0 },
     { 0x37, 0, 0xA, 0x578, 0, -0x960, 0xD48, 0, 0, 2, 0 },
     { 0x37, 2, 0xA, 0x7D0, 0, 0, 0xC00, 0, 0, 2, 0 },
     { 0x37, 1, 0xA, 0x4B0, 0, 0x5DC, 0xB86, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B29C[5] = {
+AreaPlacement D_map_akropolis_8017B29C[5] = {
     { 0x14, 3, 1, -0x73A, 0, 0x320, 0x9F6, 0, 0, 2, 0 },
     { 7, 0, 0, -0x1F4, 0, -0x4B0, 0x2BC, 0, 3, 5, 7 },
     { 7, 0, 0, 0, 0, -0x320, 0x400, 0, 3, 5, 7 },
     { 7, 0, 0, 0, 0, -0x12C, 0x514, 0, 3, 5, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B2EC[5] = {
+AreaPlacement D_map_akropolis_8017B2EC[5] = {
     { 0x1A, 3, 0xA, 0x2BC, 0, -0x1194, 0xE10, 0, 0, 2, 7 },
     { 0x1A, 0, 0xA, 0x578, 0, -0x960, 0xD48, 0, 0, 2, 7 },
     { 0x1A, 2, 0xA, 0x7D0, 0, 0, 0xC00, 0, 0, 2, 7 },
     { 0x1A, 1, 0xA, 0x4B0, 0, 0x5DC, 0xB86, 0, 0, 2, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B33C[2] = {
+AreaPlacement D_map_akropolis_8017B33C[2] = {
     { 0x12, 4, 0, -0x186, 1, -0x384, 0x44C, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B35C[12] = {
+AreaPlacement D_map_akropolis_8017B35C[12] = {
     { 7, 0, 0, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 0 },
     { 7, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
     { 7, 0, 0, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 4 },
@@ -1061,93 +1061,93 @@ GpAreaPlace D_map_akropolis_8017B35C[12] = {
     { 8, 0, 0, -0x1900, -0x320, -0xB20, 0, 0, 0, 2, 4 },
     { 8, 0, 0, -0x16BF, -0x320, -0x7A1, 0, 0, 0, 2, 6 },
     { 8, 0, 0, -0x14E0, -0x320, -0x6A0, 0, 0, 0, 2, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B41C[7] = {
+AreaPlacement D_map_akropolis_8017B41C[7] = {
     { 0x18, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x18, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
     { 0x18, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
     { 0x18, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
     { 0x18, 0, 0, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
     { 0x18, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B48C[7] = {
+AreaPlacement D_map_akropolis_8017B48C[7] = {
     { 0x19, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x19, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
     { 0x19, 0, 1, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
     { 0x19, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
     { 0x19, 0, 1, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
     { 0x19, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B4FC[5] = {
+AreaPlacement D_map_akropolis_8017B4FC[5] = {
     { 0x1A, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x1A, 0, 1, -0x1518, 0, -0x7D0, 0x200, 0, 0, 2, 0 },
     { 0x1A, 0, 2, -0x1518, -0x1770, 0, 0, 0, 0, 2, 0 },
     { 0x1A, 0, 2, -0x1388, -0x1770, -0xA8C, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B54C[7] = {
+AreaPlacement D_map_akropolis_8017B54C[7] = {
     { 0x25, 0, 0, -0xA28, -0x3E8, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x25, 0, 1, -0x1500, -0x3E8, -0xAA0, 0, 0, 0, 2, 1 },
     { 0x25, 0, 2, -0x2E0, -0x3E8, -0x480, 0, 0, 0, 2, 2 },
     { 0x25, 0, 0, -0x3C0, -0x3E8, 0x80, 0, 0, 0, 2, 3 },
     { 0x25, 0, 0, -0x4A0, -0x3E8, 0x520, 0, 0, 0, 2, 4 },
     { 0x25, 0, 0, -0x1820, -0x3E8, -0x1C0, 0, 0, 0, 2, 5 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B5BC[3] = {
+AreaPlacement D_map_akropolis_8017B5BC[3] = {
     { 0xF, 0, 0, -0xA28, -0x5DC, -0x3E8, 0, 0, 0, 2, 0 },
     { 0xF, 0, 1, -0x14B4, -0x5DC, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B5EC[7] = {
+AreaPlacement D_map_akropolis_8017B5EC[7] = {
     { 0x26, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x26, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
     { 0x26, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
     { 0x26, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
     { 0x26, 0, 0, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
     { 0x26, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B65C[2] = {
+AreaPlacement D_map_akropolis_8017B65C[2] = {
     { 0x10, 0, 0, -0xA60, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B67C[3] = {
+AreaPlacement D_map_akropolis_8017B67C[3] = {
     { 0x2E, 0, 0, -0x147D, 0, -0xCCF, 0, 0, 0, 2, 0 },
     { 0x2F, 0, 0, -0xA60, 0, -0x3E8, 0x3E8, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B6AC[3] = {
+AreaPlacement D_map_akropolis_8017B6AC[3] = {
     { 0x46, 0, 0, -0xA60, 0, -0x3E8, 0, 0, 0, 2, 0 },
     { 0x48, 0, 0, 0x3C, 0, 0x380, 0x3E8, 0, 2, 3, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B6DC[3] = {
+AreaPlacement D_map_akropolis_8017B6DC[3] = {
     { 0x13, 0, 0, -0x9C4, -0xBAE, -0x1450, 0x708, 0, 0, 2, 0 },
     { 0x13, 4, 0, -0x139E, -0xBAE, -0x1F97, -0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B70C[3] = {
+AreaPlacement D_map_akropolis_8017B70C[3] = {
     { 0xB, 1, 0, -0x640, -0xBAE, -0x1194, 0x800, 0, 0, 2, 0 },
     { 0xB, 0, 0, -0x1194, -0xBAE, -0x1F40, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B73C[10] = {
+AreaPlacement D_map_akropolis_8017B73C[10] = {
     { 0x25, 0, 0x1E, -0x76C, -0x2454, -0x1C84, 0, 0, 0, 2, 0 },
     { 0x25, 0, 0x1E, -0x8FC, -0x251C, -0x1B58, 0, 0, 0, 2, 0 },
     { 0x25, 0, 0x1E, -0xA28, -0x24B8, -0x1CE8, 0, 0, 0, 2, 0 },
@@ -1157,27 +1157,27 @@ GpAreaPlace D_map_akropolis_8017B73C[10] = {
     { 0x25, 0, 0x1E, -0x5DC, -0x2454, -0x1AF4, 0, 0, 0, 2, 0 },
     { 0x25, 0, 0x1E, -0x834, -0x251C, -0x1C20, 0, 0, 0, 2, 0 },
     { 0x25, 0, 0x1E, -0x6A4, -0x251C, -0x1B58, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B7DC[3] = {
+AreaPlacement D_map_akropolis_8017B7DC[3] = {
     { 0x31, 1, 0, -0x640, -0xBAE, -0x1194, 0x800, 0, 0, 2, 0 },
     { 0x31, 0, 0, -0x1194, -0xBAE, -0x1F40, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B80C[2] = {
+AreaPlacement D_map_akropolis_8017B80C[2] = {
     { 0x12, 0, 0, -0x1194, -0xBAE, -0x1D4C, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B82C[3] = {
+AreaPlacement D_map_akropolis_8017B82C[3] = {
     { 0xB, 1, 0, -0x5DC, 0x28, -0x1770, 0x8FC, 0, 0, 2, 0 },
     { 0xB, 1, 0, -0x1F4, 0x28, -0x3E8, 0x800, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B85C[8] = {
+AreaPlacement D_map_akropolis_8017B85C[8] = {
     { 7, 0, 0, -0x898, 0x28, -0x1A2C, 0x898, 0, 2, 4, 1 },
     { 7, 0, 0, -0x7D0, 0x28, -0x1CE8, 0x8FC, 0, 2, 4, 1 },
     { 7, 0, 0, -0x640, 0x28, -0x1B26, 0x9C4, 0, 2, 4, 1 },
@@ -1185,10 +1185,10 @@ GpAreaPlace D_map_akropolis_8017B85C[8] = {
     { 8, 0, 0, -0x898, -0x7D0, -0xAF0, 0xAF0, 0, 2, 4, 0 },
     { 8, 0, 0, -0x898, -0x708, -0xBB8, 0xC00, 0, 2, 4, 0 },
     { 8, 0, 0, -0x898, -0x898, -0xC80, 0xC80, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B8DC[11] = {
+AreaPlacement D_map_akropolis_8017B8DC[11] = {
     { 0x37, 0, 0, -0x7D0, 0x28, 0x258, 0x258, 0, 0, 2, 0 },
     { 0x37, 0, 0, -0x640, 0x28, -0x384, 0x258, 0, 0, 2, 0 },
     { 0x37, 0, 0, -0x12C, 0x28, -0x258, -0xC8, 0, 0, 2, 0 },
@@ -1199,15 +1199,15 @@ GpAreaPlace D_map_akropolis_8017B8DC[11] = {
     { 8, 0, 0, 0x320, -0x9C4, -0x1068, 0x258, 0, 2, 4, 1 },
     { 8, 0, 0, 0x320, -0xAF0, -0xF3C, 0x400, 0, 2, 4, 1 },
     { 8, 0, 0, 0x320, -0x960, -0xE10, 0x640, 0, 2, 4, 1 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B98C[2] = {
+AreaPlacement D_map_akropolis_8017B98C[2] = {
     { 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017B9AC[11] = {
+AreaPlacement D_map_akropolis_8017B9AC[11] = {
     { 0x1A, 0, 0, -0x7D0, 0x28, 0x258, 0x258, 0, 0, 2, 7 },
     { 0x1A, 0, 0, -0x640, 0x28, -0x384, 0x258, 0, 0, 2, 7 },
     { 0x1A, 0, 0, -0x12C, 0x28, -0x258, -0xC8, 0, 0, 2, 7 },
@@ -1218,31 +1218,31 @@ GpAreaPlace D_map_akropolis_8017B9AC[11] = {
     { 8, 0, 0, 0x320, -0x9C4, -0x1068, 0x258, 0, 2, 4, 7 },
     { 8, 0, 0, 0x320, -0xAF0, -0xF3C, 0x400, 0, 2, 4, 7 },
     { 8, 0, 0, 0x320, -0x960, -0xE10, 0x640, 0, 2, 4, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BA5C[3] = {
+AreaPlacement D_map_akropolis_8017BA5C[3] = {
     { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x66, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BA8C[3] = {
+AreaPlacement D_map_akropolis_8017BA8C[3] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x66, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BABC[6] = {
+AreaPlacement D_map_akropolis_8017BABC[6] = {
     { 0x6E, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x37, 0, 0xB, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 2, 4, 0 },
     { 0x37, 1, 0xB, -0x1450, -0x1388, -0x1E14, 0xC8, 0, 2, 4, 0 },
     { 0x37, 2, 0xB, -0x1DB0, -0x1388, -0x2328, 0, 0, 2, 4, 0 },
     { 0x37, 3, 0xB, -0xF3C, -0x1388, -0x1644, 0xAF0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BB1C[8] = {
+AreaPlacement D_map_akropolis_8017BB1C[8] = {
     { 0x37, 0, 3, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 0, 2, 0 },
     { 0x37, 0, 3, -0x1450, -0x14B4, -0x1E14, 0xC8, 0, 0, 2, 0 },
     { 0x37, 0, 3, -0x1DB0, -0x15E0, -0x2328, 0, 0, 0, 2, 0 },
@@ -1250,19 +1250,19 @@ GpAreaPlace D_map_akropolis_8017BB1C[8] = {
     { 8, 0, 0, -0x157C, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
     { 8, 0, 0, -0xFA0, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
     { 8, 0, 0, -0x1388, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BB9C[6] = {
+AreaPlacement D_map_akropolis_8017BB9C[6] = {
     { 0x6E, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x1A, 0, 0xB, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 2, 4, 7 },
     { 0x1A, 1, 0xB, -0x1450, -0x1388, -0x1E14, 0xC8, 0, 2, 4, 7 },
     { 0x1A, 2, 0xB, -0x1DB0, -0x1388, -0x2328, 0, 0, 2, 4, 7 },
     { 0x1A, 3, 0xB, -0xF3C, -0x1388, -0x1644, 0xAF0, 0, 2, 4, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BBFC[8] = {
+AreaPlacement D_map_akropolis_8017BBFC[8] = {
     { 0x1A, 0, 3, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 0, 2, 7 },
     { 0x1A, 0, 3, -0x1450, -0x14B4, -0x1E14, 0xC8, 0, 0, 2, 7 },
     { 0x1A, 0, 3, -0x1DB0, -0x15E0, -0x2328, 0, 0, 0, 2, 7 },
@@ -1270,60 +1270,60 @@ GpAreaPlace D_map_akropolis_8017BBFC[8] = {
     { 8, 0, 0, -0x157C, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
     { 8, 0, 0, -0xFA0, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
     { 8, 0, 0, -0x1388, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BC7C[7] = {
+AreaPlacement D_map_akropolis_8017BC7C[7] = {
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x7A0, 0, 0, 0, 2, 0 },
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x548, 0, 0, 0, 2, 0 },
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x610, 0, 0, 0, 2, 0 },
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x7A0, 0, 0, 0, 2, 0 },
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x548, 0, 0, 0, 2, 0 },
     { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x76C, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BCEC[1] = {
-    { 0xFF },
+AreaPlacement D_map_akropolis_8017BCEC[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BCFC[1] = {
-    { 0xFF },
+AreaPlacement D_map_akropolis_8017BCFC[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BD0C[2] = {
+AreaPlacement D_map_akropolis_8017BD0C[2] = {
     { 0xA, 0, 0, 0x4B0, 0, -0x5DC, -0x200, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BD2C[2] = {
+AreaPlacement D_map_akropolis_8017BD2C[2] = {
     { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BD4C[4] = {
+AreaPlacement D_map_akropolis_8017BD4C[4] = {
     { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x90, 0, 0, 0, 0, 0, 0, 0, 3, 5, 0 },
     { 0xFE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BD8C[3] = {
+AreaPlacement D_map_akropolis_8017BD8C[3] = {
     { 0x90, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x69, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BDBC[3] = {
+AreaPlacement D_map_akropolis_8017BDBC[3] = {
     { 0x8F, 0, 0, 0x13A6, 0, -0x1630, -0x128, 0, 0, 2, 0 },
     { 0x73, 0, 0, 0x210C, 0, 0x5C, 0x7FF, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_akropolis_8017BDEC[3] = {
+AreaPlacement D_map_akropolis_8017BDEC[3] = {
     { 0x4C, 0, 0xFF, -0x1DB0, 0, 0x4EC, 0x800, 0, 0, 2, 0 },
     { 0x8F, 0, 0, -0x27F6, 0, 0x1388, 0x800, 0, 4, 0x12, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
 static GpBit2Rec D_map_akropolis_8017BE1C[6] = {

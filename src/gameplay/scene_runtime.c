@@ -2818,7 +2818,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaRec*     areaRecords;
     GpAreaVariant* variants;
     GpAreaObj*     areaState;
-    GpAreaPlace*   placement;
+    AreaPlacement*   placement;
     GpAreaTmdRec*  resource;
     GpEnemy*       enemy;
     Task*          task;
@@ -2844,7 +2844,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     if (placement == NULL) {
         return;
     }
-    if (placement->entryId == AREA_TABLE_END_ID) {
+    if (placement->entryId == AREA_PLACEMENT_END) {
         return;
     }
     // Match each placement with the resource entry that defines its actor.
@@ -2885,8 +2885,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                             model = task->extra.tmd;
                             coord = model->coords;
                             if (task->spawnType == 1) {
-                                model->tpage = placement->tpage;
-                                model->clut  = placement->clut;
+                                model->tpage = placement->texturePageOffset;
+                                model->clut  = placement->clutRowOffset;
                                 if (model->buffer != NULL) {
                                     tmdProcessStream(model);
                                     tmdProcessStream(model);
@@ -2933,7 +2933,7 @@ void Gp_SpawnArea(GameLocationKey* location)
         }
         placementIndex++;
         placement++;
-    } while (placement->entryId != AREA_TABLE_END_ID);
+    } while (placement->entryId != AREA_PLACEMENT_END);
 }
 
 void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
@@ -3152,20 +3152,20 @@ static void func_800B51F4(Task* task)
 
 void Gp_ApplyAreaTmdFlags(void)
 {
-    Task*            head;
-    Task*            iter;
-    GameLocationKey* key;
-    GpAreaRec*       rec;
-    GpAreaVariant*   nested;
-    GpAreaTmdRec*    table;
-    GpAreaTmdRec*    entry;
-    GpWorkObj*       work;
-    GpAreaPlace*     place;
-    TmdObject*       extra;
-    u16              id;
-    u16              flags;
-    u16              limit;
-    u8               idx;
+    Task*          head;
+    Task*          iter;
+    GameLocationKey*     key;
+    GpAreaRec*     rec;
+    GpAreaVariant* nested;
+    GpAreaTmdRec*  table;
+    GpAreaTmdRec*  entry;
+    GpWorkObj*     work;
+    AreaPlacement* place;
+    TmdObject*     extra;
+    u16            id;
+    u16            flags;
+    u16            limit;
+    u8             idx;
 
     head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
@@ -3187,8 +3187,8 @@ void Gp_ApplyAreaTmdFlags(void)
                 }
                 entry = table;
                 id    = entry->field_0;
-                if (id != 0xFF) {
-                    limit = 0xFF;
+                if (id != AREA_PLACEMENT_END) {
+                    limit = AREA_PLACEMENT_END;
                     do {
                         if (id == place->entryId) {
                             flags = entry->field_8->flags;

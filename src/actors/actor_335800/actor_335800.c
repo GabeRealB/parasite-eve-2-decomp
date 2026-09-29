@@ -1257,7 +1257,7 @@ static void func_actor_335800_80162640(Task* arg0)
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
-        GpAreaPlace*   place;
+        AreaPlacement* place;
         s32            idx;
 
         work->child0 = spawned;
@@ -1271,8 +1271,8 @@ static void func_actor_335800_80162640(Task* arg0)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1282,7 +1282,7 @@ static void func_actor_335800_80162640(Task* arg0)
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
-        GpAreaPlace*   place;
+        AreaPlacement* place;
         s32            idx;
 
         work->child1 = spawned;
@@ -1296,8 +1296,8 @@ static void func_actor_335800_80162640(Task* arg0)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

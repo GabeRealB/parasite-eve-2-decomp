@@ -2566,7 +2566,7 @@ void Actor02300_Fn02518(Task* arg0)
 /// model object to the block's own light/colour matrices, primes the nineteen
 /// animation slots, then spawns the two companion enemies from the overlay's
 /// table (entries 2 and 1) and points each one's model at the texture page and
-/// CLUT row its room's `GpAreaPlace` names.
+/// CLUT row its room's `AreaPlacement` names.
 ///
 /// `GpEnemy::spawnState` then picks how the enemy starts: 0 builds the full
 /// object set -- the four `GpObj` nodes with their `WorldCollisionContact` tables, the voice

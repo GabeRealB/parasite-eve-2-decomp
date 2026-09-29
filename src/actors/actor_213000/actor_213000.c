@@ -513,7 +513,7 @@ static void func_actor_213000_8014A488(Task* task);
 /// countdown, hides the model, then spawns the four children of the spawn
 /// table -- entries 1 and 2 attached to part 8 and parked at `field_4BC` /
 /// `field_4C0`, entry 3 attached to part 9 and entry 4 to part 12. Each of the
-/// last two has its model's `tpage` / `clut` loaded from the `GpAreaPlace` of
+/// last two has its model's `tpage` / `clut` loaded from the `AreaPlacement` of
 /// the current area selected by the model id the parent's `spawnArg2` carries
 /// at `GpEnemy::placeKey >> 12`, and has its texture stream processed twice
 /// when it has a buffer. It then publishes the work block's matrices on the
@@ -545,11 +545,11 @@ static void func_actor_213000_80149E54(Task* task)
     spawned1        = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
     spawned2        = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
-        TmdObject*       model;
-        GpAreaVariant*   rec;
-        GpAreaPlace*     place;
-        GameLocationKey* sessionKey;
-        s32              idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        AreaPlacement* place;
+        GameLocationKey*     sessionKey;
+        s32            idx;
 
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
         model      = spawned1->extra.tmd;
@@ -561,19 +561,19 @@ static void func_actor_213000_80149E54(Task* task)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
         }
     }
     if (spawned2 != NULL) {
-        TmdObject*       model;
-        GpAreaVariant*   rec;
-        GpAreaPlace*     place;
-        GameLocationKey* sessionKey;
-        s32              idx;
+        TmdObject*     model;
+        GpAreaVariant* rec;
+        AreaPlacement* place;
+        GameLocationKey*     sessionKey;
+        s32            idx;
 
         model      = spawned2->extra.tmd;
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
@@ -585,8 +585,8 @@ static void func_actor_213000_80149E54(Task* task)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

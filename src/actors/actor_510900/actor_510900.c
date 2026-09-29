@@ -2209,26 +2209,26 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 /// handler; otherwise the task moves to the tick handler (`state` 1).
 void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
 {
-    TmdObject*             obj;
-    GfxCoord*               coord;
-    Actor510900Work*       work;
-    GpEnemy*               spawned;
-    GpEffWork*             eff;
-    u32                    raw1;
-    u32                    raw2;
-    u32                    index1;
-    u32                    index2;
-    TmdObject*             model1;
-    TmdObject*             model2;
-    GpAreaPlace*           entry1;
-    GpAreaPlace*           entry2;
-    GameLocationKey              key;
-    GameLocationKey*             sessionKey1;
-    GameLocationKey*             sessionKey2;
-    WorldCollisionContact* records1;
-    WorldCollisionContact* records2;
-    u8                     areaByte0;
-    s32                    i;
+    TmdObject*       obj;
+    GfxCoord*         coord;
+    Actor510900Work* work;
+    GpEnemy*         spawned;
+    GpEffWork*       eff;
+    u32              raw1;
+    u32              raw2;
+    u32              index1;
+    u32              index2;
+    TmdObject*       model1;
+    TmdObject*       model2;
+    AreaPlacement*   entry1;
+    AreaPlacement*   entry2;
+    GameLocationKey        key;
+    GameLocationKey*       sessionKey1;
+    GameLocationKey*       sessionKey2;
+    WorldCollisionContact*         records1;
+    WorldCollisionContact*         records2;
+    u8               areaByte0;
+    s32              i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -2274,8 +2274,8 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
     entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-    model1->tpage = entry1->tpage;
-    model1->clut  = entry1->clut;
+    model1->tpage = entry1->texturePageOffset;
+    model1->clut  = entry1->clutRowOffset;
     if (model1->buffer != NULL) {
         tmdProcessStream(model1);
         tmdProcessStream(model1);
@@ -2301,8 +2301,8 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
     entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-    model2->tpage = entry2->tpage;
-    model2->clut  = entry2->clut;
+    model2->tpage = entry2->texturePageOffset;
+    model2->clut  = entry2->clutRowOffset;
     if (model2->buffer != NULL) {
         tmdProcessStream(model2);
         tmdProcessStream(model2);

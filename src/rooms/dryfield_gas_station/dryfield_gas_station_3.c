@@ -465,12 +465,12 @@ GpAreaTmdRec D_dryfield_gas_station_80184998[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_gas_station_801849B0[5] = {
+AreaPlacement D_dryfield_gas_station_801849B0[5] = {
     { 44, 0, 0, 4226, 0, -4480, 0, 0, 0, 2, 0 },
     { 44, 0, 1, 472, -4624, -2512, 1024, 0, 0, 2, 0 },
     { 44, 0, 0, 7277, 0, -3553, 512, 0, 0, 2, 0 },
     { 44, 0, 0, 6255, 0, -5322, -1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_dryfield_gas_station_80184A00[2] = {
@@ -478,9 +478,9 @@ GpAreaTmdRec D_dryfield_gas_station_80184A00[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_gas_station_80184A18[2] = {
+AreaPlacement D_dryfield_gas_station_80184A18[2] = {
     { 1, 0, 0, 6255, 0, -5322, -1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_gas_station_80184A38[12] = {

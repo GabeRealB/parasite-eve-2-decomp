@@ -3119,28 +3119,30 @@ void func_actor_511000_80133900(Task* task)
 /// entry 3, and advances to state 1. An allocation failure destroys the enemy.
 static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 {
-    GameLocationKey        key;
-    GameLocationKey*       sessionKey;
-    u8                     areaByte0;
-    u8                     areaByte3;
-    GpAreaVariant*         rec;
+    enum { MODEL_HIDDEN = 0x80,
+           STATE_UPDATE = 1 };
+    GameLocationKey              key;
+    GameLocationKey*             sessionKey;
+    u8                     view;
+    u8                     stage;
+    GpAreaVariant*         layout;
     TmdObject*             model;
     GfxCoord*              coord;
     Actor511000ParentWork* work;
     TaskDesc*              table;
-    u32                    idx;
+    u32                    placementWord;
     GpEnemy*               spawned;
     GameSession*           session;
 
     model = task->extra.tmd;
     coord = model->coords;
-    work  = memCalloc(0x488, 0);
+    work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work      = (TaskIdMap*)work;
-    model->flags    = 0x80;
+    task->work      = work;
+    model->flags    = MODEL_HIDDEN;
     model->lightMtx = &work->field_45C;
     model->colorMtx = &work->field_43C;
     func_800B3F84(&work->anim, D_actor_511000_801550C0, model, work->field_30C, work->slots);
@@ -3151,54 +3153,54 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     table   = D_actor_511000_80155070;
     spawned = Gp_SpawnEnemyFromTable(table, 1, 0, enemy);
     session = gGameSession;
-    /* Reusing `spawned` for the task, rather than a new local, keeps the
-       spawn result's v0 preference off the byte copied into a0. */
-    spawned    = (GpEnemy*)spawned->task;
-    sessionKey = &session->at4.loc;
-    idx        = enemy->placeKey;
-    areaByte3  = sessionKey->stage;
-    model      = ((Task*)spawned)->extra.tmd;
-    key.stage  = areaByte3;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = session->at4.loc.view;
-    idx        = idx >> 12;
-    key.view   = areaByte0;
-    areaSyncLocationVariant(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    idx        <<= 4;
-    idx         += (s32)rec->field_0;
-    model->tpage = ((GpAreaPlace*)idx)->tpage;
-    model->clut  = ((GpAreaPlace*)idx)->clut;
+    // Child models inherit the texture relocation of the parent's placement.
+    // Reusing the spawn result preserves its register preference at the task load.
+    spawned       = (GpEnemy*)spawned->task;
+    sessionKey    = &session->at4.loc;
+    placementWord = enemy->placeKey;
+    stage         = sessionKey->stage;
+    model         = ((Task*)spawned)->extra.tmd;
+    key.stage     = stage;
+    key.area      = sessionKey->area;
+    key.room      = sessionKey->room;
+    view          = session->at4.loc.view;
+    placementWord = placementWord >> 12;
+    key.view      = view;
+    Gp_SyncAreaKeyIndex(&key);
+    layout          = Gp_GetNestedAreaRec(&key);
+    placementWord <<= 4;
+    placementWord  += (u32)layout->field_0;
+    model->tpage    = ((AreaPlacement*)placementWord)->texturePageOffset;
+    model->clut     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    spawned    = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
-    session    = gGameSession;
-    spawned    = (GpEnemy*)spawned->task;
-    sessionKey = &session->at4.loc;
-    idx        = enemy->placeKey;
-    areaByte3  = sessionKey->stage;
-    model      = ((Task*)spawned)->extra.tmd;
-    key.stage  = areaByte3;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = session->at4.loc.view;
-    idx        = idx >> 12;
-    key.view   = areaByte0;
-    areaSyncLocationVariant(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    idx        <<= 4;
-    idx         += (s32)rec->field_0;
-    model->tpage = ((GpAreaPlace*)idx)->tpage;
-    model->clut  = ((GpAreaPlace*)idx)->clut;
+    spawned       = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
+    session       = gGameSession;
+    spawned       = (GpEnemy*)spawned->task;
+    sessionKey    = &session->at4.loc;
+    placementWord = enemy->placeKey;
+    stage         = sessionKey->stage;
+    model         = ((Task*)spawned)->extra.tmd;
+    key.stage     = stage;
+    key.area      = sessionKey->area;
+    key.room      = sessionKey->room;
+    view          = session->at4.loc.view;
+    placementWord = placementWord >> 12;
+    key.view      = view;
+    Gp_SyncAreaKeyIndex(&key);
+    layout          = Gp_GetNestedAreaRec(&key);
+    placementWord <<= 4;
+    placementWord  += (u32)layout->field_0;
+    model->tpage    = ((AreaPlacement*)placementWord)->texturePageOffset;
+    model->clut     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
     Gp_SpawnEnemyFromTable(table, 3, 0, enemy);
-    task->state = 1;
+    task->state = STATE_UPDATE;
 }
 
 static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)

@@ -1194,8 +1194,8 @@ static void func_actor_113100_80131E58(Task* task)
     GameLocationKey* sessionKey3;
     TmdObject*       model2;
     TmdObject*       model3;
-    GpAreaPlace*     entry2;
-    GpAreaPlace*     entry3;
+    AreaPlacement*   entry2;
+    AreaPlacement*   entry3;
     GpObj*           obj;
     u8               areaByte0;
     u32              raw2;
@@ -1232,8 +1232,8 @@ static void func_actor_113100_80131E58(Task* task)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-        model2->tpage = entry2->tpage;
-        model2->clut  = entry2->clut;
+        model2->tpage = entry2->texturePageOffset;
+        model2->clut  = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1253,8 +1253,8 @@ static void func_actor_113100_80131E58(Task* task)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-        model3->tpage = entry3->tpage;
-        model3->clut  = entry3->clut;
+        model3->tpage = entry3->texturePageOffset;
+        model3->clut  = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);

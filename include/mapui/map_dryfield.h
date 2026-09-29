@@ -75,115 +75,115 @@ extern GpRoomParamRec** D_map_dryfield_8017AC9C[];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location.
-extern GpAreaPlace D_map_dryfield_8017AD34[];
+extern AreaPlacement D_map_dryfield_8017AD34[];
 
-extern GpAreaPlace D_map_dryfield_8017AD44[];
+extern AreaPlacement D_map_dryfield_8017AD44[];
 
-extern GpAreaPlace D_map_dryfield_8017AD74[];
+extern AreaPlacement D_map_dryfield_8017AD74[];
 
-extern GpAreaPlace D_map_dryfield_8017ADE4[];
+extern AreaPlacement D_map_dryfield_8017ADE4[];
 
-extern GpAreaPlace D_map_dryfield_8017AE14[];
+extern AreaPlacement D_map_dryfield_8017AE14[];
 
-extern GpAreaPlace D_map_dryfield_8017AE44[];
+extern AreaPlacement D_map_dryfield_8017AE44[];
 
-extern GpAreaPlace D_map_dryfield_8017AEA4[];
+extern AreaPlacement D_map_dryfield_8017AEA4[];
 
-extern GpAreaPlace D_map_dryfield_8017AED4[];
+extern AreaPlacement D_map_dryfield_8017AED4[];
 
-extern GpAreaPlace D_map_dryfield_8017AF04[];
+extern AreaPlacement D_map_dryfield_8017AF04[];
 
-extern GpAreaPlace D_map_dryfield_8017AF44[];
+extern AreaPlacement D_map_dryfield_8017AF44[];
 
-extern GpAreaPlace D_map_dryfield_8017AF64[];
+extern AreaPlacement D_map_dryfield_8017AF64[];
 
-extern GpAreaPlace D_map_dryfield_8017AF94[];
+extern AreaPlacement D_map_dryfield_8017AF94[];
 
-extern GpAreaPlace D_map_dryfield_8017AFA4[];
+extern AreaPlacement D_map_dryfield_8017AFA4[];
 
-extern GpAreaPlace D_map_dryfield_8017B004[];
+extern AreaPlacement D_map_dryfield_8017B004[];
 
-extern GpAreaPlace D_map_dryfield_8017B054[];
+extern AreaPlacement D_map_dryfield_8017B054[];
 
-extern GpAreaPlace D_map_dryfield_8017B0B4[];
+extern AreaPlacement D_map_dryfield_8017B0B4[];
 
-extern GpAreaPlace D_map_dryfield_8017B0E4[];
+extern AreaPlacement D_map_dryfield_8017B0E4[];
 
-extern GpAreaPlace D_map_dryfield_8017B154[];
+extern AreaPlacement D_map_dryfield_8017B154[];
 
-extern GpAreaPlace D_map_dryfield_8017B1C4[];
+extern AreaPlacement D_map_dryfield_8017B1C4[];
 
-extern GpAreaPlace D_map_dryfield_8017B1D4[];
+extern AreaPlacement D_map_dryfield_8017B1D4[];
 
-extern GpAreaPlace D_map_dryfield_8017B204[];
+extern AreaPlacement D_map_dryfield_8017B204[];
 
-extern GpAreaPlace D_map_dryfield_8017B284[];
+extern AreaPlacement D_map_dryfield_8017B284[];
 
-extern GpAreaPlace D_map_dryfield_8017B2A4[];
+extern AreaPlacement D_map_dryfield_8017B2A4[];
 
-extern GpAreaPlace D_map_dryfield_8017B2D4[];
+extern AreaPlacement D_map_dryfield_8017B2D4[];
 
-extern GpAreaPlace D_map_dryfield_8017B354[];
+extern AreaPlacement D_map_dryfield_8017B354[];
 
-extern GpAreaPlace D_map_dryfield_8017B394[];
+extern AreaPlacement D_map_dryfield_8017B394[];
 
-extern GpAreaPlace D_map_dryfield_8017B3F4[];
+extern AreaPlacement D_map_dryfield_8017B3F4[];
 
-extern GpAreaPlace D_map_dryfield_8017B474[];
+extern AreaPlacement D_map_dryfield_8017B474[];
 
-extern GpAreaPlace D_map_dryfield_8017B4B4[];
+extern AreaPlacement D_map_dryfield_8017B4B4[];
 
-extern GpAreaPlace D_map_dryfield_8017B534[];
+extern AreaPlacement D_map_dryfield_8017B534[];
 
-extern GpAreaPlace D_map_dryfield_8017B564[];
+extern AreaPlacement D_map_dryfield_8017B564[];
 
-extern GpAreaPlace D_map_dryfield_8017B5E4[];
+extern AreaPlacement D_map_dryfield_8017B5E4[];
 
-extern GpAreaPlace D_map_dryfield_8017B644[];
+extern AreaPlacement D_map_dryfield_8017B644[];
 
-extern GpAreaPlace D_map_dryfield_8017B664[];
+extern AreaPlacement D_map_dryfield_8017B664[];
 
-extern GpAreaPlace D_map_dryfield_8017B674[];
+extern AreaPlacement D_map_dryfield_8017B674[];
 
-extern GpAreaPlace D_map_dryfield_8017B6A4[];
+extern AreaPlacement D_map_dryfield_8017B6A4[];
 
-extern GpAreaPlace D_map_dryfield_8017B724[];
+extern AreaPlacement D_map_dryfield_8017B724[];
 
-extern GpAreaPlace D_map_dryfield_8017B744[];
+extern AreaPlacement D_map_dryfield_8017B744[];
 
-extern GpAreaPlace D_map_dryfield_8017B7A4[];
+extern AreaPlacement D_map_dryfield_8017B7A4[];
 
-extern GpAreaPlace D_map_dryfield_8017B7E4[];
+extern AreaPlacement D_map_dryfield_8017B7E4[];
 
-extern GpAreaPlace D_map_dryfield_8017B984[];
+extern AreaPlacement D_map_dryfield_8017B984[];
 
-extern GpAreaPlace D_map_dryfield_8017B994[];
+extern AreaPlacement D_map_dryfield_8017B994[];
 
-extern GpAreaPlace D_map_dryfield_8017B9B4[];
+extern AreaPlacement D_map_dryfield_8017B9B4[];
 
-extern GpAreaPlace D_map_dryfield_8017B9C4[];
+extern AreaPlacement D_map_dryfield_8017B9C4[];
 
-extern GpAreaPlace D_map_dryfield_8017BA14[];
+extern AreaPlacement D_map_dryfield_8017BA14[];
 
-extern GpAreaPlace D_map_dryfield_8017BA34[];
+extern AreaPlacement D_map_dryfield_8017BA34[];
 
-extern GpAreaPlace D_map_dryfield_8017BA44[];
+extern AreaPlacement D_map_dryfield_8017BA44[];
 
-extern GpAreaPlace D_map_dryfield_8017BA84[];
+extern AreaPlacement D_map_dryfield_8017BA84[];
 
-extern GpAreaPlace D_map_dryfield_8017BAF4[];
+extern AreaPlacement D_map_dryfield_8017BAF4[];
 
-extern GpAreaPlace D_map_dryfield_8017BB24[];
+extern AreaPlacement D_map_dryfield_8017BB24[];
 
-extern GpAreaPlace D_map_dryfield_8017BB54[];
+extern AreaPlacement D_map_dryfield_8017BB54[];
 
-extern GpAreaPlace D_map_dryfield_8017BB74[];
+extern AreaPlacement D_map_dryfield_8017BB74[];
 
-extern GpAreaPlace D_map_dryfield_8017BB84[];
+extern AreaPlacement D_map_dryfield_8017BB84[];
 
-extern GpAreaPlace D_map_dryfield_8017BC14[];
+extern AreaPlacement D_map_dryfield_8017BC14[];
 
-extern GpAreaPlace D_map_dryfield_8017BCC4[];
+extern AreaPlacement D_map_dryfield_8017BCC4[];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
 /// location, each ended by a key of -1.

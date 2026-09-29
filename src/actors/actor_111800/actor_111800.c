@@ -371,8 +371,8 @@ static void func_actor_111800_80132390(Task* task)
     Actor111800Work* work;
     Actor111800Work* work2;
     TmdObject*       obj;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
     s32              i;
 
     coord      = task->extra.tmd->coords;
@@ -403,10 +403,10 @@ static void func_actor_111800_80132390(Task* task)
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
     place           = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    while (place->entryId != 0xFF && place->entryId != 0x13) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x13) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
+    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Builds `arg0`'s absolute rotation in `arg1`, seeded from `src` rather than

@@ -1479,42 +1479,42 @@ GpAreaTmdRec D_shelter_b2_main_corridor_801891D8[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_801891FC[4] = {
+AreaPlacement D_shelter_b2_main_corridor_801891FC[4] = {
     { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
     { 4, 0, 17, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
     { 4, 0, 33, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_8018923C[4] = {
+AreaPlacement D_shelter_b2_main_corridor_8018923C[4] = {
     { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
     { 4, 0, 17, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
     { 4, 0, 33, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_8018927C[3] = {
+AreaPlacement D_shelter_b2_main_corridor_8018927C[3] = {
     { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 4 },
     { 49, 2, 0, 0, 0, -0x2EE0, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_801892AC[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b2_main_corridor_801892AC[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_801892BC[4] = {
+AreaPlacement D_shelter_b2_main_corridor_801892BC[4] = {
     { 21, 20, 2048, -3600, -1750, -7000, 1024, 0, 0, 2, 7 },
     { 21, 20, 0, 3600, -1750, -7000, 3072, 0, 0, 2, 7 },
     { 23, 8, 1, 0, 0, -2000, 2048, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_main_corridor_801892FC[4] = {
+AreaPlacement D_shelter_b2_main_corridor_801892FC[4] = {
     { 21, 23, 2048, -3600, -1750, -7000, 1024, 0, 0, 2, 7 },
     { 21, 23, 0, 3600, -1750, -7000, 3072, 0, 0, 2, 7 },
     { 57, 4, 1, 0, 0, -6000, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b2_main_corridor_8018933C[22] = {

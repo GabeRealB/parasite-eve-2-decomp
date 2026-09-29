@@ -737,58 +737,58 @@ GpAreaTmdRec D_shelter_b2_breeding_room_80183CC4[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183CDC[5] = {
+AreaPlacement D_shelter_b2_breeding_room_80183CDC[5] = {
     { 26, 0, 1, 6500, 0, 2300, 3900, 0, 0, 2, 0 },
     { 26, 0, 0, 6200, 0, 50, 1500, 0, 0, 2, 0 },
     { 26, 0, 1, 0x2904, 0, 2000, 0, 0, 0, 2, 0 },
     { 26, 0, 0, 0x2E7C, 0, 300, 300, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183D2C[6] = {
+AreaPlacement D_shelter_b2_breeding_room_80183D2C[6] = {
     { 26, 0, 0, 8400, 0, 3400, 1000, 0, 0, 2, 0 },
     { 26, 0, 0, 6400, 0, 5200, 700, 0, 0, 2, 0 },
     { 26, 0, 0, 2300, 0, 2400, 2900, 0, 0, 2, 0 },
     { 24, 0, 0, 7500, 0, 300, 3800, 0, 2, 4, 0 },
     { 24, 0, 0, 0x2AF8, 0, 900, 4000, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183D8C[6] = {
+AreaPlacement D_shelter_b2_breeding_room_80183D8C[6] = {
     { 44, 0, 1, 6800, -2350, 4800, 3072, 0, 0, 2, 0 },
     { 44, 0, 1, 2400, -2900, 4700, 0, 0, 0, 2, 0 },
     { 70, 0, 0, 6500, 0, 1600, 0, 0, 2, 4, 0 },
     { 71, 0, 1, 0x2968, 0, 1250, 0, 0, 2, 4, 0 },
     { 71, 0, 1, 0x2E7C, 0, 200, 3650, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183DEC[5] = {
+AreaPlacement D_shelter_b2_breeding_room_80183DEC[5] = {
     { 44, 0, 0, 1800, 0, 2600, 1024, 0, 0, 2, 0 },
     { 44, 0, 0, 8750, 0, 4000, 2048, 0, 0, 2, 0 },
     { 72, 0, 0, 6250, 0, 0, 1024, 0, 2, 4, 0 },
     { 73, 0, 1, 900, 0, -350, 2750, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183E3C[2] = {
+AreaPlacement D_shelter_b2_breeding_room_80183E3C[2] = {
     { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183E5C[7] = {
+AreaPlacement D_shelter_b2_breeding_room_80183E5C[7] = {
     { 26, 0, 0, 0x2E7C, 0, 150, 500, 0, 0, 2, 1 },
     { 26, 0, 0, 0x2F44, 0, 1950, 450, 0, 0, 2, 1 },
     { 38, 0, 0, 6300, 0, 50, 3000, 0, 2, 4, 0 },
     { 38, 0, 0, 6400, 0, 1100, 1024, 0, 2, 4, 0 },
     { 38, 0, 0, 7300, 0, 1100, 0, 0, 2, 4, 0 },
     { 38, 0, 0, 8000, 0, 2000, 2050, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_breeding_room_80183ECC[2] = {
+AreaPlacement D_shelter_b2_breeding_room_80183ECC[2] = {
     { 39, 0, 0, 3000, 0, 4400, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b2_breeding_room_80183EEC[22] = {

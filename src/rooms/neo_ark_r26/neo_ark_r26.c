@@ -388,10 +388,10 @@ GpAreaTmdRec D_neo_ark_r26_8017E940[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_neo_ark_r26_8017E964[3] = {
+AreaPlacement D_neo_ark_r26_8017E964[3] = {
     { 111, 0, 0, 0, 0, 2850, 2048, 0, 0, 2, 0 },
     { 112, 0, 0, 0, 0, 855, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_neo_ark_r26_8017E994[11] = {

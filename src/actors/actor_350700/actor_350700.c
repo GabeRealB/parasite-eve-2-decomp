@@ -1054,7 +1054,7 @@ s32 func_actor_350700_80162AF4(Task* task, s32 arg1, GpCmdArg* msg)
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
 /// parking them at `child0` / `child1` / `child2`. The first two are
 /// models: each has `TmdObject::tpage` / `field_25` loaded with the texture
-/// page and CLUT row of the `GpAreaPlace` that entry selects, reached through
+/// page and CLUT row of the `AreaPlacement` that entry selects, reached through
 /// the area key `&gGameSession->at4.loc` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
@@ -1085,7 +1085,7 @@ static void func_actor_350700_80162B30(Task* arg0)
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
-        GpAreaPlace*   place;
+        AreaPlacement* place;
         s32            idx;
 
         work->child0 = spawned;
@@ -1099,8 +1099,8 @@ static void func_actor_350700_80162B30(Task* arg0)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1110,7 +1110,7 @@ static void func_actor_350700_80162B30(Task* arg0)
     if (spawned != NULL) {
         TmdObject*     model;
         GpAreaVariant* rec;
-        GpAreaPlace*   place;
+        AreaPlacement* place;
         s32            idx;
 
         work->child1 = spawned;
@@ -1125,8 +1125,8 @@ static void func_actor_350700_80162B30(Task* arg0)
         areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->tpage;
-        model->clut  = place->clut;
+        model->tpage = place->texturePageOffset;
+        model->clut  = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

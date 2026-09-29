@@ -521,9 +521,9 @@ GpAreaTmdRec D_dryfield_garage_801800A8[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_garage_801800C0[2] = {
+AreaPlacement D_dryfield_garage_801800C0[2] = {
     { 75, 0, 0, 4676, 0, 2038, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_garage_801800E0[13] = {

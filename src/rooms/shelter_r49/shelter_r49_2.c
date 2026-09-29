@@ -149,9 +149,9 @@ GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_r49_8017DD54[2] = {
+AreaPlacement D_shelter_r49_8017DD54[2] = {
     { 111, 0, 0, 0, 0, 3210, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_r49_8017DD74[13] = {

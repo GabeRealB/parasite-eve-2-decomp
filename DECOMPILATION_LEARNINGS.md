@@ -81957,6 +81957,7 @@ call instead —
 ```c
     id    = mode;
     place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 ```
 
 — makes the pseudo live across that call, forces the callee-saved register, and
@@ -111619,6 +111620,9 @@ value "modified", so cse cannot fold the second `&key` into it:
         key.view = areaByte0;
         areaSyncLocationVariant(keyp);
         entry       = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+        key.field_0 = areaByte0;
+        Gp_SyncAreaKeyIndex(keyp);
+        entry       = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, 2);
 ```
 
 Each argument then keeps its own single-use pseudo, which dies at its call and
@@ -123626,14 +123630,18 @@ place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 id    = place->entryId;
 while (id != 0xFF) {
     if (id == 0x6A) { break; }
+place   = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+entryId = place->entryId;
+while (entryId != AREA_PLACEMENT_END) {
+    if (entryId == TEXTURE_RESOURCE_ENTRY_ID) { break; }
     place++;
-    id = place->entryId;
+    entryId = place->entryId;
 }
-Gp_SetTmdBytes(arg0->extra, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
 ```
 
 Three things came along with the splice that would each have cost a build to
-rediscover: the `(s8*)` cast the `u8`-declared `tpage`/`clut` need (the
+rediscover: the signed `texturePageOffset`/`clutRowOffset` byte loads (the
 `lb`-versus-`lbu` trap above), the two-variable `kill` / `killCopy` + `TOUCH_REG`
 pair the NULL test needs, and the loop's `while` + `break` shape instead of
 m2c's `goto`. The only genuine edit was the coordinate part index:
@@ -124554,7 +124562,7 @@ own `* 16`.
 matched sibling does, casting the base so no element size is applied:
 
 ```c
-place = (GpAreaPlace*)((idx << 4) + (s32)rec->field_0);
+place = gpAreaPlaceAt(rec->field_0, idx);
 ```
 
 `src/actors/actor_150400/actor_150400.c` is the worked example - same body, same
@@ -127842,6 +127850,8 @@ TOUCH_REG(keyp);
 ...
 areaSyncLocationVariant(keyp);      /* first call through the pointer */
 entry = (GpAreaPlace*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
+Gp_SyncAreaKeyIndex(keyp);      /* first call through the pointer */
+entry = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
 ```
 
 Placement is load-bearing. With the barrier one statement later -- after

@@ -2067,32 +2067,32 @@ GpAreaTmdRec D_mine_cavern_8018E150[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_mine_cavern_8018E168[2] = {
+AreaPlacement D_mine_cavern_8018E168[2] = {
     { 30, 0, 0, 2000, 0, 3960, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_cavern_8018E188[3] = {
+AreaPlacement D_mine_cavern_8018E188[3] = {
     { 6, 0, 1, 0x2C24, 0, 1750, 900, 0, 0, 2, 0 },
     { 6, 0, 1, 6700, 0, 1500, 3000, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_cavern_8018E1B8[3] = {
+AreaPlacement D_mine_cavern_8018E1B8[3] = {
     { 6, 0, 1, 2272, 0, 1792, 1536, 0, 0, 2, 0 },
     { 6, 0, 1, 0x2920, 0, 7296, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_cavern_8018E1E8[3] = {
+AreaPlacement D_mine_cavern_8018E1E8[3] = {
     { 3, 0, 0, 5500, 0, 1500, 1024, 0, 0, 2, 0 },
     { 3, 0, 1, 8500, 0, 7500, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_cavern_8018E218[2] = {
+AreaPlacement D_mine_cavern_8018E218[2] = {
     { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_mine_cavern_8018E238[22] = {

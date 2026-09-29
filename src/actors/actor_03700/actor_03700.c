@@ -732,7 +732,7 @@ static const GpEnemyTaskFuncTable3 Actor03700_D00004 = {
 
 /// Spawn handler. Allocates the 0x270-byte work block onto the task, points the
 /// model at its light/colour matrices and links the enemy node. The model
-/// variant (`GpAreaPlace::mode`) picks the mode: tens digit 0 allocates
+/// variant (`AreaPlacement::mode`) picks the mode: tens digit 0 allocates
 /// the model buffers and takes the units digit (0..2) as the pose, nudging the
 /// root coordinate for poses 1 and 2; 1..3 set model flag 4 and mode 7 or 10.
 /// The animation slots then get a shared random phase, and the collision object
@@ -1718,15 +1718,15 @@ static inline void _actor03700UpdateColor(Task* task)
 /// CLUT of the actor's placement in the current area.
 static inline void _actor03700SpawnRemains(Task* task)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               view;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GpEffWork*       eff;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    u8             view;
+    GpAreaVariant* rec;
+    AreaPlacement* entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
@@ -1750,8 +1750,8 @@ static inline void _actor03700SpawnRemains(Task* task)
     areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

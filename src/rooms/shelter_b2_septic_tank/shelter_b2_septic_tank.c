@@ -1078,42 +1078,42 @@ GpAreaTmdRec D_shelter_b2_septic_tank_80186DDC[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186E00[3] = {
+AreaPlacement D_shelter_b2_septic_tank_80186E00[3] = {
     { 4, 0, 4, -1952, 3000, -7000, 0, 0, 0, 2, 0 },
     { 4, 0, 5, 1792, 3000, -0x2E60, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186E30[3] = {
+AreaPlacement D_shelter_b2_septic_tank_80186E30[3] = {
     { 4, 0, 1, 1700, 1500, -3900, 2500, 0, 0, 2, 0 },
     { 4, 0, 17, -1700, 3000, -5500, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186E60[3] = {
+AreaPlacement D_shelter_b2_septic_tank_80186E60[3] = {
     { 4, 0, 33, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
     { 49, 1, 0, 300, 0, -5500, 2200, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186E90[2] = {
+AreaPlacement D_shelter_b2_septic_tank_80186E90[2] = {
     { 4, 0, 33, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186EB0[5] = {
+AreaPlacement D_shelter_b2_septic_tank_80186EB0[5] = {
     { 21, 4, 0, -700, -2400, 300, 2048, 0, 0, 2, 5 },
     { 21, 4, 0, 700, -2400, 300, 2048, 0, 0, 2, 5 },
     { 4, 0, 7, 1700, 0, -8300, 0, 0, 2, 4, 0 },
     { 4, 0, 7, -1800, 0, -8000, 1600, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_septic_tank_80186F00[4] = {
+AreaPlacement D_shelter_b2_septic_tank_80186F00[4] = {
     { 21, 4, 0, -700, -2400, -0x3200, 0, 0, 0, 2, 5 },
     { 21, 4, 0, 700, -2400, -0x3200, 0, 0, 0, 2, 5 },
     { 20, 9, 1, 0, 0, -0x2710, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b2_septic_tank_80186F40[22] = {

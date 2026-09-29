@@ -4058,7 +4058,7 @@ static void Actor00400_Fn06380(Task* arg0)
 /// the per-enemy value `Actor00400_D1609C` selects - is stored in the work.
 static inline void Actor00400_SpawnMarker(Task* arg0)
 {
-    GpAreaPlace*           params;
+    AreaPlacement*         params;
     Actor100400MarkerWork* marker;
     GfxCoord*              coords;
     GfxCoord*              origin;

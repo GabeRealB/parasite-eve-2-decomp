@@ -786,7 +786,7 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg1->state     = 1;
 }
 
-/// Applies the spawn variant (`GpAreaPlace::mode`) to the freshly allocated
+/// Applies the spawn variant (`AreaPlacement::mode`) to the freshly allocated
 /// work block: the tens digit picks the mode (`field_350`) and the units digit
 /// of mode 0 the idle pose, seeding the look-around countdown from the LCG.
 /// Modes 1 and 2 instead detach the model: the work block's own coordinate is
@@ -2184,15 +2184,15 @@ static void Actor03800_Fn02E50(Task* actor)
 
 static void Actor03800_Fn03008(Task* actor, u32 variant)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GpEffWork*       eff;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    AreaPlacement* entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     switch (variant) {
         case 0:
@@ -2228,8 +2228,8 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     rec = Gp_GetNestedAreaRec(&key);
 
     entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

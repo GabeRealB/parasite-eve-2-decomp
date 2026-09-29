@@ -365,7 +365,7 @@ GpAreaTmdRec D_shelter_b1_south_maintenance_walkway_801833B4[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_south_maintenance_walkway_801833D8[9] = {
+AreaPlacement D_shelter_b1_south_maintenance_walkway_801833D8[9] = {
     { 21, 0, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
     { 21, 0, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
     { 7, 0, 0, 2300, 0, -2500, -200, 0, 2, 4, 4 },
@@ -374,19 +374,19 @@ GpAreaPlace D_shelter_b1_south_maintenance_walkway_801833D8[9] = {
     { 7, 0, 0, 1700, 0, -2200, -500, 0, 2, 4, 4 },
     { 7, 0, 0, 2300, 0, -1900, 2600, 0, 2, 4, 4 },
     { 7, 0, 0, 1700, 0, -1900, 1600, 0, 2, 4, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_south_maintenance_walkway_80183468[6] = {
+AreaPlacement D_shelter_b1_south_maintenance_walkway_80183468[6] = {
     { 11, 0, 0, 2000, 0, 800, 0, 0, 0, 2, 0 },
     { 11, 0, 0, 2400, 0, -4000, 3072, 0, 0, 2, 0 },
     { 24, 0, 0, 2550, 0, 0, 3600, 0, 2, 4, 0 },
     { 24, 0, 0, 1750, 0, -600, 3072, 0, 2, 4, 0 },
     { 24, 0, 0, 1550, 0, -1600, 1024, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_south_maintenance_walkway_801834C8[9] = {
+AreaPlacement D_shelter_b1_south_maintenance_walkway_801834C8[9] = {
     { 24, 0, 1, 2000, 0, -800, 0, 0, 0, 2, 0 },
     { 24, 0, 0, 1500, 0, 2400, 450, 0, 0, 2, 0 },
     { 24, 0, 0, 2350, 0, 400, 3400, 0, 0, 2, 0 },
@@ -395,14 +395,14 @@ GpAreaPlace D_shelter_b1_south_maintenance_walkway_801834C8[9] = {
     { 26, 0, 0, 2500, 0, -4500, 3400, 0, 2, 4, 0 },
     { 26, 0, 0, 2450, 0, -3400, 0, 0, 2, 4, 0 },
     { 26, 0, 0, 1500, 0, -3300, 1600, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_south_maintenance_walkway_80183558[4] = {
+AreaPlacement D_shelter_b1_south_maintenance_walkway_80183558[4] = {
     { 21, 4, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
     { 21, 4, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
     { 20, 0, 0, 2000, 0, 3500, 2048, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12] = {

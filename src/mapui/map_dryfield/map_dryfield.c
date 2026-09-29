@@ -833,144 +833,144 @@ GpRoomParamRec** D_map_dryfield_8017AC9C[38] = {
     D_dryfield_underpass_80181164,
 };
 
-GpAreaPlace D_map_dryfield_8017AD34[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017AD34[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AD44[3] = {
+AreaPlacement D_map_dryfield_8017AD44[3] = {
     { 0x65, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 1, 0, 0, -0x68, 0, 0x11F8, -0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AD74[7] = {
+AreaPlacement D_map_dryfield_8017AD74[7] = {
     { 0x19, 0, 1, -0xDAC, 0, 0x1194, 0x1F4, 0, 0, 2, 0 },
     { 0x19, 0, 1, -0x5DC, 0, 0x12C0, 0xE74, 0, 0, 2, 0 },
     { 0x19, 0, 2, -0x7D0, 0, 0x1D4C, 0x898, 0, 0, 2, 0 },
     { 0x19, 0, 2, -0xDAC, 0, 0x1964, 0x5DC, 0, 0, 2, 0 },
     { 0x19, 0, 2, -0x6A4, 0, 0x12C, 0xE74, 0, 0, 2, 0 },
     { 0x19, 0, 2, -0xC80, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017ADE4[3] = {
+AreaPlacement D_map_dryfield_8017ADE4[3] = {
     { 1, 2, 0, -0x1770, 0, 0x1AF4, 0x76C, 0, 0, 2, 0 },
     { 1, 2, 0, -0x157C, 0, -0xF3C, 0xFD2, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AE14[3] = {
+AreaPlacement D_map_dryfield_8017AE14[3] = {
     { 0x14, 6, 1, -0x898, 0, 0xFA0, 0x800, 0, 0, 2, 0 },
     { 0x17, 4, 1, -0x1838, 0, 0xFA0, 0, 0, 3, 5, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AE44[6] = {
+AreaPlacement D_map_dryfield_8017AE44[6] = {
     { 0x28, 0, 0, 0xD8E, 0, 0xE16, 0x400, 0, 0, 2, 0 },
     { 0x28, 0, 0, 0x418, 0, 0x1373, -0x400, 0, 0, 2, 0 },
     { 0x28, 0, 0, 0xD8C, 0, 0x12A4, 0, 0, 0, 2, 0 },
     { 0x28, 0, 0, 0x4D2, 0, 0xE39, 0x80, 0, 0, 2, 0 },
     { 0x28, 0, 0, 0xC31, 0, 0x74D, -0x80, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AEA4[3] = {
+AreaPlacement D_map_dryfield_8017AEA4[3] = {
     { 1, 2, 0, 0x2710, 2, 0xBB8, 0x258, 0, 2, 4, 0 },
     { 1, 2, 0, -0x1F4, 2, 0x1004, 0x4B0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AED4[3] = {
+AreaPlacement D_map_dryfield_8017AED4[3] = {
     { 0x14, 6, 1, -0x5DC, 0, 0x1388, 0x400, 0, 0, 2, 0 },
     { 0x38, 0, 0, 0x25E4, 0, 0x1644, 0x800, 0, 3, 5, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AF04[4] = {
+AreaPlacement D_map_dryfield_8017AF04[4] = {
     { 0xF, 0, 2, 0x4B0, -0x7D0, 0, 0, 0, 0, 2, 0 },
     { 0x28, 1, 0, 0x157C, 1, -0xAF0, 0xAF0, 0, 2, 4, 0 },
     { 0x28, 1, 0, 0xBB8, 1, -0x2BC, -0x320, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AF44[2] = {
+AreaPlacement D_map_dryfield_8017AF44[2] = {
     { 0x84, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AF64[3] = {
+AreaPlacement D_map_dryfield_8017AF64[3] = {
     { 0x22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 0x1D, 0, 0, -0x7D0, 0, -0x708, 0, 0, 3, 5, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AF94[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017AF94[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017AFA4[6] = {
+AreaPlacement D_map_dryfield_8017AFA4[6] = {
     { 0xC, 1, 0, 0xA28, 1, 0xAF0, 0x708, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x5DC, 1, 0xC80, 0xED8, 0, 0, 2, 0 },
     { 0xC, 0, 0, 0x1F4, 1, 0xD48, 0x400, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x3E8, 1, 0x15E0, 0x17C, 0, 0, 2, 0 },
     { 0x12, 0x10, 0, 0x708, 1, 0xBB8, 0x800, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B004[5] = {
+AreaPlacement D_map_dryfield_8017B004[5] = {
     { 0x70, 0, 0, -0xD91, 0, 0x3E1, 0x1000, 0, 0, 2, 0 },
     { 0x70, 0, 0, -0xD91, 0, 0x3E1, 0x1000, 0, 0, 2, 0 },
     { 0xC, 0, 0, 0x6B8, 0, 0x8FA, 0x100, 0, 0, 2, 0 },
     { 0xC, 0, 0, 0x905, 0, 0xD8B, -0x3E8, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B054[6] = {
+AreaPlacement D_map_dryfield_8017B054[6] = {
     { 0x28, 1, 0, 0xA28, 1, 0xAF0, 0x708, 0, 0, 2, 0 },
     { 0x28, 1, 0, 0x5DC, 1, 0xC80, 0xED8, 0, 0, 2, 0 },
     { 0x28, 0, 0, 0x1F4, 1, 0xD48, 0x400, 0, 0, 2, 0 },
     { 0x28, 1, 0, 0x3E8, 1, 0x15E0, 0x17C, 0, 0, 2, 0 },
     { 0x12, 0x10, 1, 0x708, 1, 0xBB8, 0x800, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B0B4[3] = {
+AreaPlacement D_map_dryfield_8017B0B4[3] = {
     { 0x12, 0x10, 0, 0x960, 1, 0xFA0, 0, 0, 2, 4, 0 },
     { 0x12, 0x10, 0, 0x1194, 1, 0x1388, 0, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B0E4[7] = {
+AreaPlacement D_map_dryfield_8017B0E4[7] = {
     { 0xF, 0, 3, 0x9C4, -0xA28, 0x5DC, 0x190, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0xC8, -0x708, 0x834, 0xC00, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0xBB8, 1, 0x1324, 0xA28, 0, 2, 4, 0 },
     { 0xC, 1, 0, 0x1194, 1, 0x14B4, 0xA8C, 0, 2, 4, 0 },
     { 0xC, 1, 0, 0x1F4, 1, 0x1388, 0xE74, 0, 2, 4, 0 },
     { 0xC, 1, 0, 0x1F4, 1, 0xB54, 0x320, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B154[7] = {
+AreaPlacement D_map_dryfield_8017B154[7] = {
     { 0xF, 0, 3, 0x9C4, -0xA28, 0x5DC, 0x190, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0xC8, -0x708, 0x834, 0xC00, 0, 0, 2, 0 },
     { 0x28, 1, 0, 0xBB8, 1, 0x1324, 0xA28, 0, 2, 4, 0 },
     { 0x28, 1, 0, 0x1194, 1, 0x14B4, 0xA8C, 0, 2, 4, 0 },
     { 0x28, 1, 0, 0x1F4, 1, 0x1388, 0xE74, 0, 2, 4, 0 },
     { 0x28, 1, 0, 0x1F4, 1, 0xB54, 0x320, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B1C4[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017B1C4[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B1D4[3] = {
+AreaPlacement D_map_dryfield_8017B1D4[3] = {
     { 1, 2, 2, 0x549, 0, 0x320, 0xF00, 0, 0, 2, 0 },
     { 1, 2, 2, 0x157C, 0, 0xDAC, 0xC80, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B204[8] = {
+AreaPlacement D_map_dryfield_8017B204[8] = {
     { 0x19, 0, 2, -0x8FC, 0, 0x44C, 0x1F4, 0, 2, 4, 0 },
     { 0x19, 0, 2, 0xC1C, 0, 0x4B0, 0xE10, 0, 2, 4, 0 },
     { 0x19, 0, 2, -0x5DC, 0, 0x76C, 0x4B0, 0, 2, 4, 0 },
@@ -978,21 +978,21 @@ GpAreaPlace D_map_dryfield_8017B204[8] = {
     { 0x19, 0, 2, 0x384, 0, 0x384, 0, 0, 2, 4, 0 },
     { 0x19, 0, 2, 0x384, 0, 0x834, 0x5DC, 0, 2, 4, 0 },
     { 1, 0, 0, -0xBB8, 0, 0x5DC, 0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B284[2] = {
+AreaPlacement D_map_dryfield_8017B284[2] = {
     { 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B2A4[3] = {
+AreaPlacement D_map_dryfield_8017B2A4[3] = {
     { 9, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0 },
     { 0xA, 0x10, 0, -0x636, 1, -0x4EC, 0x17C, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B2D4[8] = {
+AreaPlacement D_map_dryfield_8017B2D4[8] = {
     { 0xC, 1, 0, -0x708, 1, -0x1F4, 0, 0, 0, 2, 0 },
     { 0xC, 1, 0, -0xC8, 1, -0x708, 0xC00, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x2BC, 1, 0xC8, 0x9C4, 0, 0, 2, 0 },
@@ -1000,26 +1000,26 @@ GpAreaPlace D_map_dryfield_8017B2D4[8] = {
     { 0xC, 1, 0, 0x320, 1, 0x3E8, 0xC8, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x190, 1, 0x4B0, 0x898, 0, 0, 2, 0 },
     { 0xC, 1, 0, 0x384, 1, 0x6A4, 0x9C4, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B354[4] = {
+AreaPlacement D_map_dryfield_8017B354[4] = {
     { 0x18, 0, 1, 0, 1, 0x5DC, 0x672, 0, 0, 2, 0 },
     { 0x18, 0, 1, 0x2BC, 1, 0x578, 0x8FC, 0, 0, 2, 0 },
     { 0x18, 0, 1, 0x1F4, 1, 0x44C, 0xB54, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B394[6] = {
+AreaPlacement D_map_dryfield_8017B394[6] = {
     { 0xF, 0, 3, 0x1F4, -0xBB8, -0x898, 0x76C, 0, 0, 2, 0 },
     { 0xF, 0, 3, -0x1F4, -0xE42, -0x8FC, 0x7D0, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0x4B0, -0xE42, 0, -0x190, 0, 0, 2, 0 },
     { 0xF, 0, 3, -0x3E8, -0xE42, 0, 0x800, 0, 0, 2, 0 },
     { 0xF, 0, 3, -0x6A4, -0xBB8, 0x3E8, 0x898, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B3F4[8] = {
+AreaPlacement D_map_dryfield_8017B3F4[8] = {
     { 0xF, 0, 3, 0x960, -0xBB8, -0x320, 0x190, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0x1F4, -0xBB8, -0x834, 0x898, 0, 0, 2, 0 },
     { 0xC, 1, 0, -0x2BC, 0, 0xDAC, 0xDAC, 0, 2, 4, 0 },
@@ -1027,17 +1027,17 @@ GpAreaPlace D_map_dryfield_8017B3F4[8] = {
     { 0xC, 1, 0, 0, 0, 0x1F4, 0x400, 0, 2, 4, 0 },
     { 0xC, 1, 0, 0x898, 0, 0x640, 0xE74, 0, 2, 4, 0 },
     { 0xC, 1, 0, 0x578, 0, -0xC8, 0xA8C, 0, 2, 4, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B474[4] = {
+AreaPlacement D_map_dryfield_8017B474[4] = {
     { 0xF, 0, 3, 0x15E, -0xBB8, -0xFA, 0x800, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0, -0xBB8, -0x1F4, 0x898, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0x1F4, -0x640, -0x9C4, 0x800, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B4B4[8] = {
+AreaPlacement D_map_dryfield_8017B4B4[8] = {
     { 0xF, 0, 2, -0x320, -0x640, 0, 0xC00, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0x384, -0x640, -0x708, 0x400, 0, 0, 2, 0 },
     { 7, 0, 0, 0x1F4, 0, -0x7D0, 0x76C, 0, 2, 4, 2 },
@@ -1045,16 +1045,16 @@ GpAreaPlace D_map_dryfield_8017B4B4[8] = {
     { 7, 0, 0, -0xC8, 0, -0x640, 0x898, 0, 2, 4, 2 },
     { 7, 0, 0, 0x258, 0, -0x7D0, 0x514, 0, 2, 4, 2 },
     { 7, 0, 0, 0x258, 0, -0x5DC, 0x640, 0, 2, 4, 2 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B534[3] = {
+AreaPlacement D_map_dryfield_8017B534[3] = {
     { 1, 1, 0, -0x620, 0, 0x980, 0xC00, 0, 0, 2, 0 },
     { 1, 1, 0, -0x238, 0, 0x598, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B564[8] = {
+AreaPlacement D_map_dryfield_8017B564[8] = {
     { 0x19, 0, 2, 0, 0, -0xED8, 0xA28, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0x834, 0, 0, 0x9C4, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0x10CC, 0, 0x3E8, 0x9C4, 0, 0, 2, 0 },
@@ -1062,34 +1062,34 @@ GpAreaPlace D_map_dryfield_8017B564[8] = {
     { 0x19, 0, 0, -0x320, 0, -0x76C, 0x190, 0, 0, 2, 0 },
     { 0x19, 0, 0, 0x3E8, 0, -0x7D0, 0, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x320, 0, 0x320, 0x640, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B5E4[6] = {
+AreaPlacement D_map_dryfield_8017B5E4[6] = {
     { 0x19, 0, 1, 0x898, 0, -0x3E8, 0x800, 0, 0, 2, 0 },
     { 0x19, 0, 1, 0x7D0, 0, 0x320, 0, 0, 0, 2, 0 },
     { 0x19, 0, 1, 0x2BC, 0, -0x708, 0xDAC, 0, 0, 2, 0 },
     { 0x19, 0, 1, 0x1F4, 0, 0x7D0, 0x9C4, 0, 0, 2, 0 },
     { 0x19, 0, 1, 0, 0, 0, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B644[2] = {
+AreaPlacement D_map_dryfield_8017B644[2] = {
     { 0x8C, 0, 0, 0x9E3, -0x2EE5, -0x284, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B664[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017B664[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B674[3] = {
+AreaPlacement D_map_dryfield_8017B674[3] = {
     { 0x65, 0, 0, 0x4330, 1, 0xA8C, 0, 0, 0, 2, 0 },
     { 1, 0, 2, 0x4330, 1, 0xA8C, -0x600, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B6A4[8] = {
+AreaPlacement D_map_dryfield_8017B6A4[8] = {
     { 0x19, 0, 2, 0x445C, 0, 0x5DC, 0xC1C, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0x2710, 0, 0x708, 0x400, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0x445C, 0, 0xB54, 0xAF0, 0, 0, 2, 0 },
@@ -1097,31 +1097,31 @@ GpAreaPlace D_map_dryfield_8017B6A4[8] = {
     { 0x19, 0, 2, 0x38A4, 0, 0x898, 0xA8C, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0x34BC, 0, 0x5DC, 0x1F4, 0, 0, 2, 0 },
     { 0x19, 0, 0, 0x2F44, 0, 0x578, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B724[2] = {
+AreaPlacement D_map_dryfield_8017B724[2] = {
     { 0x6A, 0, 0, 0x1244, 0, 0x7F6, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B744[6] = {
+AreaPlacement D_map_dryfield_8017B744[6] = {
     { 0xF, 0, 3, 0x320, -0xE74, 0x1770, 0x800, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0x7D0, -0xE74, 0x14B4, 0x898, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0x2710, -0x9C4, 0x1838, 0x400, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0x2710, -0x76C, 0x1388, 0x190, 0, 0, 2, 0 },
     { 0xF, 0, 2, 0x2454, -0x8FC, 0x1E78, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B7A4[4] = {
+AreaPlacement D_map_dryfield_8017B7A4[4] = {
     { 0xF, 0, 3, 0x320, -0xE74, 0x12C0, 0x190, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0x8FC, -0xE74, 0x157C, 0xDAC, 0, 0, 2, 0 },
     { 0xF, 0, 3, 0x76C, -0xE74, 0xED8, 0xF3C, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B7E4[26] = {
+AreaPlacement D_map_dryfield_8017B7E4[26] = {
     { 0x25, 0, 0xA, -0x640, 0, 0xA28, 0x980, 0, 0, 2, 0 },
     { 0x25, 0, 0xB, -0x640, 0, 0x992, 0x900, 0, 0, 2, 0 },
     { 0x25, 0, 0xB, -0x640, 0, 0x8FC, 0x880, 0, 0, 2, 0 },
@@ -1147,78 +1147,78 @@ GpAreaPlace D_map_dryfield_8017B7E4[26] = {
     { 0x25, 0, 0xE, -0x514, 0, 0xA28, 0x680, 0, 0, 2, 3 },
     { 0x25, 0, 0xE, -0x514, 0, 0x992, 0x700, 0, 0, 2, 3 },
     { 0x25, 0, 0xE, -0x514, 0, 0x8FC, 0x780, 0, 0, 2, 3 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B984[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017B984[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B994[2] = {
+AreaPlacement D_map_dryfield_8017B994[2] = {
     { 1, 0, 0, 0x1244, 0, 0x7F6, 0xC00, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B9B4[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017B9B4[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017B9C4[5] = {
+AreaPlacement D_map_dryfield_8017B9C4[5] = {
     { 0x19, 0, 2, 0xC80, 0, 0x76C, 0xC80, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0xFA0, 0, 0x3E8, 0xBB8, 0, 0, 2, 0 },
     { 0x19, 0, 2, 0xE10, 0, 0xBB8, 0xA8C, 0, 0, 2, 0 },
     { 0x19, 0, 1, 0x4B0, 0, 0x384, 0x320, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BA14[2] = {
+AreaPlacement D_map_dryfield_8017BA14[2] = {
     { 0x6A, 0, 0, 0xEE2, 0, -0x852, 0x200, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BA34[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017BA34[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BA44[4] = {
+AreaPlacement D_map_dryfield_8017BA44[4] = {
     { 0x12, 0x10, 0, -0x1770, -0xC80, 0x4B0, 0x800, 0, 0, 2, 0 },
     { 0x12, 0x10, 0, -0x157C, -0xC80, -0x1194, 0, 0, 0, 2, 0 },
     { 0x12, 0x10, 0, -0x157C, -0xC80, 0xDAC, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BA84[7] = {
+AreaPlacement D_map_dryfield_8017BA84[7] = {
     { 0x19, 0, 0, -0x16A8, -0xC80, 0x2904, 0x800, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x1964, -0xC80, 0x1D4C, 0x6A4, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x1518, -0xC80, 0x1770, 0x800, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x1964, -0xC80, -0x514, 0x5E8, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x157C, -0xC80, -0xA8C, 0x200, 0, 0, 2, 0 },
     { 0x19, 0, 0, -0x17D4, -0xC80, -0x1194, 0x400, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BAF4[3] = {
+AreaPlacement D_map_dryfield_8017BAF4[3] = {
     { 3, 0, 0, -0x1770, -0xC80, 0x4B0, 0x800, 0, 0, 2, 0 },
     { 3, 0, 1, -0x1770, -0xC80, 0x1F40, 0x800, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BB24[3] = {
+AreaPlacement D_map_dryfield_8017BB24[3] = {
     { 0x38, 0, 0, -0x7D0, -0xC80, 0x25E4, 0x800, 0, 0, 2, 0 },
     { 0x39, 6, 1, -0x157C, -0xC80, 0x7D0, 0x800, 0, 3, 5, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BB54[2] = {
+AreaPlacement D_map_dryfield_8017BB54[2] = {
     { 0x65, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BB74[1] = {
-    { 0xFF },
+AreaPlacement D_map_dryfield_8017BB74[1] = {
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BB84[9] = {
+AreaPlacement D_map_dryfield_8017BB84[9] = {
     { 0x25, 0, 1, 0x2D50, -0x7D0, -0xC80, 0x258, 0, 0, 2, 2 },
     { 0x25, 0, 1, 0x2C88, -0x7D0, -0xE10, 0x190, 0, 0, 2, 2 },
     { 0x25, 0, 1, 0x2AF8, -0x7D0, -0xC1C, 0xC8, 0, 0, 2, 2 },
@@ -1227,10 +1227,10 @@ GpAreaPlace D_map_dryfield_8017BB84[9] = {
     { 0x25, 0, 2, 0x2710, -0x708, -0xC1C, 0xC00, 0, 0, 2, 2 },
     { 0x25, 0, 2, 0x2710, -0x44C, -0xDAC, 0xC00, 0, 0, 2, 2 },
     { 0x25, 0, 2, 0x2710, -0x4B0, -0xBB8, 0xC00, 0, 0, 2, 2 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BC14[11] = {
+AreaPlacement D_map_dryfield_8017BC14[11] = {
     { 0x25, 0, 1, 0xED8, -0x9C4, 0xE10, 0x4B0, 0, 0, 2, 2 },
     { 0x25, 0, 1, 0xCE4, -0x9C4, 0x12C, 0x2BC, 0, 0, 2, 2 },
     { 0x25, 0, 1, 0x125C, -0x9C4, 0x190, 0x190, 0, 0, 2, 2 },
@@ -1241,12 +1241,12 @@ GpAreaPlace D_map_dryfield_8017BC14[11] = {
     { 0x25, 0, 2, 0xED8, -0x6A4, 0x1194, 0, 0, 0, 2, 2 },
     { 7, 0, 0, 0x1194, 0, 0x708, 0x12C, 0, 2, 4, 2 },
     { 7, 0, 0, 0x1BBC, 0, 0x1F4, 0xD48, 0, 2, 4, 2 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
-GpAreaPlace D_map_dryfield_8017BCC4[2] = {
+AreaPlacement D_map_dryfield_8017BCC4[2] = {
     { 5, 0, 0, 0x4074, -0xFA0, -0x209E, 0, 0, 0, 2, 0 },
-    { 0xFF },
+    { AREA_PLACEMENT_END },
 };
 
 GpGiveRec D_map_dryfield_8017BCE4[13] = {

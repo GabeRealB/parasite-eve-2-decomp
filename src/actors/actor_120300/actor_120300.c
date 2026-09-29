@@ -1314,7 +1314,7 @@ static inline void _actor120300BlendAll(Task* task, u16 anim);
 static inline void _actor120300ResetAll(Task* task, u16 anim);
 static void        func_actor_120300_80132C60(Task* arg0);
 static s32         func_actor_120300_801334A4(Task* arg0);
-static void        func_actor_120300_801335D8(Task* arg0);
+static void        func_actor_120300_801335D8(Task* task);
 
 /// Fill part-1 translation and hand it to `func_800D7A9C`. `vec` is a
 /// parameter rather than a local so its address stays out of the CSE class of
@@ -1402,43 +1402,42 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
 /// coordinate `parent` under part 4 of the spawning task's model
 /// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
 /// stepping to state 1. The texture page / CLUT row then come from the
-/// placement record at the nested area table's `field_0` list whose id matches
-/// neither 0xFF (end) nor 0x6A (the skip marker). Every tick after that reads
+/// placement record at the nested area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent). Every tick after that reads
 /// the parent work block's `field_4E0` and primes the colour matrix with the
 /// root coordinate's own translation through `func_800D7A9C`, then replaces
 /// that translation with the parent scale broadcast over all three axes and
 /// folds it in with `ScaleMatrix`.
-void func_actor_120300_80132004(Task* arg0)
+void func_actor_120300_80132004(Task* task)
 {
-    VECTOR       vec;
-    GpAreaPlace* place;
-    s32          scale;
-    u16          scaleRaw;
-    TmdObject*   tmd2;
-    u8           id;
+    VECTOR         vec;
+    AreaPlacement* place;
+    s32            scale;
+    u16            scaleRaw;
+    TmdObject*     tmd2;
+    u8             id;
 
-    if (arg0->state == 0) {
-        if (_actor120300InitChild(arg0, 4) != 0) {
-            taskKill(arg0);
+    if (task->state == 0) {
+        if (_actor120300InitChild(task, 4) != 0) {
+            taskKill(task);
             return;
         }
         place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
         id    = place->entryId;
-        while (id != 0xFF) {
+        while (id != AREA_PLACEMENT_END) {
             if (id == 0x6A) {
                 break;
             }
             place++;
             id = place->entryId;
         }
-        Gp_SetTmdBytes(arg0->extra.tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
-        arg0->state += 1;
+        Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+        task->state += 1;
     }
-    tmd2     = arg0->extra.tmd;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4E0;
+    tmd2     = task->extra.tmd;
+    scaleRaw = ((Actor120300Work*)((Task*)task->spawnArg2.pointer)->work)->field_4E0;
     vec.vx   = tmd2->coords->workm.t[0];
-    vec.vy   = arg0->extra.tmd->coords->workm.t[1];
-    vec.vz   = arg0->extra.tmd->coords->workm.t[2];
+    vec.vy   = task->extra.tmd->coords->workm.t[1];
+    vec.vz   = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
     scale  = scaleRaw & 0xFFFF;
     vec.vz = scale;
@@ -1956,69 +1955,65 @@ static s32 func_actor_120300_801334A4(Task* arg0)
     return 0;
 }
 
-/// Spawn tick: allocates the 0x4E4-byte `Actor120300Work` block, zeroes it and
-/// parks it in `Task::work`, then wires the model object up -- `Tmd_AllocBuffers`,
-/// the work block's light/colour matrices into `TmdObject::lightMtx` / `field_20`,
-/// bit 2 of `TmdObject::flags` cleared and the animation context handed to
-/// `func_800B3F84` along with the work block's slot array.
-/// The texture page / CLUT row come from the placement record at the nested
-/// area table's `field_0` list whose id matches neither 0xFF (end) nor 0x6A
-/// (the skip marker).  Animation slots 1..19 are then re-armed with slot count
-/// 0xE, and the two helper tasks the shared table's entries 2 and 3 spawn are
-/// reparented under this one, which also lifts `field_4E0` to 0x1000.
-static void func_actor_120300_801335D8(Task* arg0)
+/// Initialize the cutscene actor's model, animations and child tasks.
+///
+/// Uses the area placement for resource-entry 0x6A, or the end record when
+/// that entry is absent. Allocation failure kills `task`.
+static void func_actor_120300_801335D8(Task* task)
 {
+    enum { TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
+
     Actor120300Work* work;
-    TaskIdMap*       map;
+    Actor120300Work* allocatedWork;
     Actor120300Work* animWork;
     TmdObject*       tmd;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
-    u8               id;
-    s32              i;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
+    u8               entryId;
+    s32              slotIndex;
 
-    tmd        = arg0->extra.tmd;
-    coord      = tmd->coords;
-    map        = Mem_Malloc(0x4E4, 0);
-    arg0->work = map;
-    if (map == NULL) {
-        taskKill(arg0);
+    tmd           = task->extra.tmd;
+    coord         = tmd->coords;
+    allocatedWork = Mem_Malloc(sizeof(Actor120300Work), 0);
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(task);
         return;
     }
-    work = (Actor120300Work*)map;
-    Mem_Set(work, 0, 0x4E4);
+    work = allocatedWork;
+    Mem_Set(work, 0, sizeof(*work));
     work->field_4B4         = gameGetPtrSlot(3);
-    D_actor_120300_80141BA8 = arg0;
-    coord->parent           = &gGfxViewCoord;
+    D_actor_120300_80141BA8 = task;
+    coord->parent              = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
     tmd->flags   &= 0xFFFB;
     place         = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    id            = place->entryId;
-    while (id != 0xFF) {
-        if (id == 0x6A) {
+    entryId       = place->entryId;
+    while (entryId != AREA_PLACEMENT_END) {
+        if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
             break;
         }
         place++;
-        id = place->entryId;
+        entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
     func_800B3F84(&work->rig.anim, D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
-    animWork            = (Actor120300Work*)arg0->work;
+    animWork            = (Actor120300Work*)task->work;
     animWork->field_4D4 = 0xE;
-    i                   = 1;
+    slotIndex           = 1;
     do {
-        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 0xE);
-        i++;
-    } while ((u16)i < 0x14U);
-    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, arg0);
-    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, arg0);
-    arg0->msgTable  = D_actor_120300_80140A44;
+        animWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        Gp_AnimResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(animWork->rig.slots));
+    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
+    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
+    task->msgTable  = D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
-    Task_Reparent(arg0, work->field_4B8);
-    Task_Reparent(arg0, work->field_4BC);
+    Task_Reparent(task, work->field_4B8);
+    Task_Reparent(task, work->field_4BC);
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is

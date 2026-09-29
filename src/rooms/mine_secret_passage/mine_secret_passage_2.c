@@ -557,28 +557,28 @@ GpAreaTmdRec D_mine_secret_passage_80183268[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_mine_secret_passage_80183280[2] = {
+AreaPlacement D_mine_secret_passage_80183280[2] = {
     { 58, 0, 0, 960, 0, 4500, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_secret_passage_801832A0[3] = {
+AreaPlacement D_mine_secret_passage_801832A0[3] = {
     { 6, 0, 0, 960, 0, 7600, 0, 0, 0, 2, 0 },
     { 6, 0, 0, 2304, 0, 9400, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_secret_passage_801832D0[3] = {
+AreaPlacement D_mine_secret_passage_801832D0[3] = {
     { 3, 0, 0, 1500, 0, 0x2710, 2048, 0, 0, 2, 0 },
     { 3, 0, 1, 0x2904, 0, 3500, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_mine_secret_passage_80183300[4] = {
+AreaPlacement D_mine_secret_passage_80183300[4] = {
     { 6, 0, 0, 0x4074, 0, 4700, 1500, 0, 0, 2, 0 },
     { 6, 0, 0, 0x41A0, 0, 2200, 800, 0, 0, 2, 0 },
     { 6, 0, 0, 1500, 0, 0x2904, 1900, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_mine_secret_passage_80183340[12] = {

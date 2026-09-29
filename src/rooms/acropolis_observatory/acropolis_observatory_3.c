@@ -259,9 +259,9 @@ GpAreaTmdRec D_acropolis_observatory_80181090[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_801810A8[2] = {
+AreaPlacement D_acropolis_observatory_801810A8[2] = {
     { 10, 0, 4, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_acropolis_observatory_801810C8[2] = {
@@ -269,19 +269,19 @@ GpAreaTmdRec D_acropolis_observatory_801810C8[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_801810E0[2] = {
+AreaPlacement D_acropolis_observatory_801810E0[2] = {
     { 12, 0, 0, -1529, -2990, -6500, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_acropolis_observatory_80181100[7] = {
+AreaPlacement D_acropolis_observatory_80181100[7] = {
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181170[2] = {
@@ -289,20 +289,20 @@ GpAreaTmdRec D_acropolis_observatory_80181170[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_80181188[3] = {
+AreaPlacement D_acropolis_observatory_80181188[3] = {
     { 40, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 40, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_acropolis_observatory_801811B8[1] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_801811C4[3] = {
+AreaPlacement D_acropolis_observatory_801811C4[3] = {
     { 9, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 18, 0, 0, -3838, -2990, -4000, 1500, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_acropolis_observatory_801811F4[2] = {
@@ -310,9 +310,9 @@ GpAreaTmdRec D_acropolis_observatory_801811F4[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_8018120C[2] = {
+AreaPlacement D_acropolis_observatory_8018120C[2] = {
     { 18, 0, 0, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_acropolis_observatory_8018122C[2] = {
@@ -320,9 +320,9 @@ GpAreaTmdRec D_acropolis_observatory_8018122C[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_acropolis_observatory_80181244[2] = {
+AreaPlacement D_acropolis_observatory_80181244[2] = {
     { 19, 0, 0, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_acropolis_observatory_80181264[19] = {

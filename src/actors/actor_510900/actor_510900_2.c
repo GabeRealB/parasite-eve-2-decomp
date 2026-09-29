@@ -1629,8 +1629,8 @@ static void func_actor_510900_801373B8(Task* arg0)
     GameLocationKey* sessionKey;
     TmdObject*       model;
     GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GameLocationKey  key;
+    AreaPlacement*   entry;
+    GameLocationKey        key;
     s32              idx;
     s32              snd;
     s32              pan;
@@ -1657,8 +1657,8 @@ static void func_actor_510900_801373B8(Task* arg0)
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
         entry        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = entry->tpage;
-        model->clut  = entry->clut;
+        model->tpage = entry->texturePageOffset;
+        model->clut  = entry->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);

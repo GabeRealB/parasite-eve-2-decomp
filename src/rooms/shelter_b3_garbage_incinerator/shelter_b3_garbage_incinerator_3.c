@@ -1684,11 +1684,11 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b3_garbage_incinerator_8018F92C[4] = {
+AreaPlacement D_shelter_b3_garbage_incinerator_8018F92C[4] = {
     { 32, 1, 0, 5500, 1, -2400, 1024, 0, 0, 2, 0 },
     { 103, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { 44, 1, 0, 0x38C0, 0, -5888, 2048, 0, 4, 6, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F96C[4] = {
@@ -1698,19 +1698,19 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F96C[4] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b3_garbage_incinerator_8018F99C[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b3_garbage_incinerator_8018F99C[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9AC[1] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
+AreaPlacement D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
     { 44, 1, 0, 0x38C0, 4000, -5888, 2048, 0, 0, 2, 0 },
     { 70, 1, 0, 0x2B5C, 0, -8200, 2048, 0, 2, 4, 0 },
     { 71, 1, 1, 5000, 0, -5900, 2048, 0, 3, 5, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
@@ -1720,10 +1720,10 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b3_garbage_incinerator_8018FA28[3] = {
+AreaPlacement D_shelter_b3_garbage_incinerator_8018FA28[3] = {
     { 32, 1, 0, 5500, 1, -2400, 1024, 0, 0, 2, 0 },
     { 44, 1, 0, 0x38C0, 0, -5888, 2048, 0, 4, 6, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {

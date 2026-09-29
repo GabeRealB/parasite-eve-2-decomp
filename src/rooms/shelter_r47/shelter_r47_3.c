@@ -157,9 +157,9 @@ GpAreaTmdRec D_shelter_r47_80187C58[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_r47_80187C70[2] = {
+AreaPlacement D_shelter_r47_80187C70[2] = {
     { 143, 0, 0, 0x3E80, -1000, 5910, 0, 0, 4, 6, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_r47_80187C90[2] = {
@@ -167,8 +167,8 @@ GpAreaTmdRec D_shelter_r47_80187C90[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_r47_80187CA8[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_r47_80187CA8[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_r47_80187CB8[12] = {

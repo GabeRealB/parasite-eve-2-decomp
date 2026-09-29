@@ -102,13 +102,13 @@ GpAreaTmdRec D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_pod_service_gantry_8017FB98[6] = {
-    { 34, 0, 0, 0, 0, 0, 0, 0, 255, 2, 0 },
+AreaPlacement D_shelter_b1_pod_service_gantry_8017FB98[6] = {
+    { 34, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
     { 131, 0, 0, 0, 0, 0, 0, 1, 2, 8, 0 },
     { 101, 0, 0, 0, 0, 0, 0, 2, 4, 5, 0 },
     { 59, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0 },
     { 101, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {

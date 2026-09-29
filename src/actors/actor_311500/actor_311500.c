@@ -443,7 +443,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     GpEnemy*         enemy;
     GfxCoord*        coords;
     TmdObject*       tmd;
-    GpAreaPlace*     place;
+    AreaPlacement*   place;
     s32              i;
     u8               rate;
 
@@ -501,10 +501,10 @@ static void func_actor_311500_801629D8(Task* arg0)
     arg0->msgTable   = D_actor_311500_80169330;
     work2->field_4D4 = 1;
     place            = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    while (place->entryId != 0xFF && place->entryId != 0xA) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0xA) {
         place++;
     }
-    Gp_SetTmdBytes(tmd, (s8)place->tpage, (s8)place->clut);
+    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Sets animation slots 1 to 18 to play at `rate` and restarts each of them.

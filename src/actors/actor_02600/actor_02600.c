@@ -2105,21 +2105,21 @@ static void Actor02600_Fn02C94(Task* actor)
 /// timer. Modes >= 10 re-read the variant index from the parameters.
 static void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
-    SVECTOR                rot;
-    WorldCollisionContact* rec0;
-    WorldCollisionContact* rec1;
-    WorldCollisionContact* rec2;
-    WorldCollisionContact* rec3;
-    SVECTOR*               positions;
-    MATRIX*                matrix;
-    Actor105500Work*       work;
-    s32                    variant;
-    s32                    quotient;
-    s32                    i;
-    s32                    mode;
-    GpAreaPlace*           params;
-    GfxCoord*               coord;
-    TmdObject*             obj;
+    SVECTOR          rot;
+    WorldCollisionContact*         rec0;
+    WorldCollisionContact*         rec1;
+    WorldCollisionContact*         rec2;
+    WorldCollisionContact*         rec3;
+    SVECTOR*         positions;
+    MATRIX*          matrix;
+    Actor105500Work* work;
+    s32              variant;
+    s32              quotient;
+    s32              i;
+    s32              mode;
+    AreaPlacement*   params;
+    GfxCoord*         coord;
+    TmdObject*       obj;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
@@ -2571,15 +2571,15 @@ static void Actor02600_Fn03B58(Task* arg0)
 
 static void Actor02600_Fn03C4C(Task* actor)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GpEffWork*       eff;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    AreaPlacement* entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     D_80067704[0] = &Actor02600_D05F10;
     eff           = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 4, 0x100, NULL);
@@ -2600,8 +2600,8 @@ static void Actor02600_Fn03C4C(Task* actor)
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
     entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

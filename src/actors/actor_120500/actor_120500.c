@@ -333,7 +333,7 @@ TaskDesc D_actor_120500_80138448 = { 257, 192, func_actor_120500_8013241C, { .mo
 Task* D_actor_120500_80138454 = NULL;
 
 static void func_actor_120500_80132028(Task* arg0);
-static void func_actor_120500_801322A0(Task* arg0);
+static void func_actor_120500_801322A0(Task* task);
 
 /// Entry 0 of the task table: plays a streamed sequence, then restores the
 /// scene. It looks up the stream slot for the current location with view 0x64
@@ -508,62 +508,58 @@ static void func_actor_120500_80132028(Task* arg0)
     work->field_4B8 = 0;
 }
 
-/// Builds the actor's work block for its scene: `Mem_Malloc(0x4CC, 0)`, and
-/// on failure it kills the task and returns. The task in pointer slot 3 goes
-/// to `field_4B4`, the task itself is published in `D_actor_120500_80138454`,
-/// and the model in `Task::extra` is shown, its coordinate parented to
-/// `gGfxViewCoord` and its light and colour matrices pointed at the work
-/// block. The area's placement records are then walked to the one whose id is
-/// 0x65, stopping at the 0xFF terminator, and its two texture bytes are handed
-/// to `Gp_SetTmdBytes` before the animation banks seed the work block. Finally
-/// `Task::msgTable` takes the message table and every animation slot but slot
-/// 0 is reset at rate 0x10.
-static void func_actor_120500_801322A0(Task* arg0)
+/// Initialize the cutscene actor's model and animations.
+///
+/// Uses the area placement for resource-entry 0x65, or the end record when
+/// that entry is absent. Allocation failure kills `task`.
+static void func_actor_120500_801322A0(Task* task)
 {
-    Actor120500Work* work;
-    Actor120500Work* slotsWork;
-    TaskIdMap*       map;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
-    s32              i;
-    u8               id;
+    enum { TEXTURE_RESOURCE_ENTRY_ID = 0x65 };
 
-    tmd        = arg0->extra.tmd;
-    coord      = tmd->coords;
-    map        = Mem_Malloc(0x4CC, 0);
-    arg0->work = map;
-    if (map == NULL) {
-        taskKill(arg0);
+    Actor120500Work* work;
+    Actor120500Work* allocatedWork;
+    Actor120500Work* slotsWork;
+    TmdObject*       tmd;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
+    s32              slotIndex;
+    u8               entryId;
+
+    tmd           = task->extra.tmd;
+    coord         = tmd->coords;
+    allocatedWork = Mem_Malloc(sizeof(Actor120500Work), 0);
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(task);
         return;
     }
-    work = (Actor120500Work*)map;
-    Mem_Set(work, 0, 0x4CC);
+    work = allocatedWork;
+    Mem_Set(work, 0, sizeof(*work));
     work->field_4B4         = gameGetPtrSlot(3);
-    D_actor_120500_80138454 = arg0;
-    coord->parent           = &gGfxViewCoord;
+    D_actor_120500_80138454 = task;
+    coord->parent              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_474;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_494;
     place                   = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    id                      = place->entryId;
-    while (id != 0xFF) {
-        if (id == 0x65) {
+    entryId                 = place->entryId;
+    while (entryId != AREA_PLACEMENT_END) {
+        if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
             break;
         }
         place++;
-        id = place->entryId;
+        entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
+    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
     func_800B3F84(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
-    slotsWork      = (Actor120500Work*)arg0->work;
-    arg0->msgTable = D_actor_120500_80138408;
-    i              = 1;
+    slotsWork      = (Actor120500Work*)task->work;
+    task->msgTable = D_actor_120500_80138408;
+    slotIndex      = 1;
     do {
-        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
-        i++;
-    } while ((u16)i < 0x14U);
+        slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
 }
 
 /// Per-frame body of the actor task, entry 4 of the task table. State 0 waits

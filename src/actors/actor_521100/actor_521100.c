@@ -1634,8 +1634,8 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     Actor521100Work* work;
     GpEnemy*         spawned;
     TmdObject*       model;
-    GameLocationKey* sessionKey;
-    GpAreaPlace*     place;
+    GameLocationKey*       sessionKey;
+    AreaPlacement*   place;
     s32              idx;
     u32              raw;
     s32              i;
@@ -1714,8 +1714,8 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
        index onto the table. */
     place        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
+    model->tpage = place->texturePageOffset;
+    model->clut  = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

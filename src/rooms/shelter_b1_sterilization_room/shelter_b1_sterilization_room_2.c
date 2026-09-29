@@ -819,13 +819,13 @@ GpAreaTmdRec D_shelter_b1_sterilization_room_8018C104[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_sterilization_room_8018C11C[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b1_sterilization_room_8018C11C[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_sterilization_room_8018C12C[2] = {
+AreaPlacement D_shelter_b1_sterilization_room_8018C12C[2] = {
     { 117, 0, 0, 6080, 0, 4000, -967, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {

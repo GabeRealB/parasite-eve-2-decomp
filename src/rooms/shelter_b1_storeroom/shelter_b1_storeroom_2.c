@@ -527,16 +527,16 @@ GpAreaTmdRec D_shelter_b1_storeroom_80186B38[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_storeroom_80186B5C[6] = {
+AreaPlacement D_shelter_b1_storeroom_80186B5C[6] = {
     { 18, 16, 1, 3000, 0, 1350, 1024, 0, 0, 2, 0 },
     { 18, 16, 1, -500, 0, -1550, 3072, 0, 0, 2, 0 },
     { 7, 0, 0, 6200, 0, -600, 700, 0, 2, 4, 4 },
     { 7, 0, 0, 6200, 0, -100, 900, 0, 2, 4, 4 },
     { 7, 0, 0, 6250, 0, 0, 1700, 0, 2, 4, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_storeroom_80186BBC[8] = {
+AreaPlacement D_shelter_b1_storeroom_80186BBC[8] = {
     { 24, 0, 1, -3750, 0, 2050, 1900, 0, 0, 2, 0 },
     { 24, 0, 0, 6200, 0, -300, 1200, 0, 0, 2, 0 },
     { 24, 0, 0, 6100, 0, -200, 1024, 0, 0, 2, 0 },
@@ -544,19 +544,19 @@ GpAreaPlace D_shelter_b1_storeroom_80186BBC[8] = {
     { 24, 0, 0, 3300, 0, 1000, 900, 0, 0, 2, 0 },
     { 24, 0, 0, -1850, 0, 0, 1024, 0, 0, 2, 0 },
     { 24, 0, 0, -500, 0, -1550, 800, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_storeroom_80186C3C[3] = {
+AreaPlacement D_shelter_b1_storeroom_80186C3C[3] = {
     { 3, 0, 0, 4000, 0, 1300, 3072, 0, 0, 2, 0 },
     { 3, 0, 1, -1000, 0, -1300, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_storeroom_80186C6C[3] = {
+AreaPlacement D_shelter_b1_storeroom_80186C6C[3] = {
     { 20, 8, 1, -3000, 0, 1400, 1024, 0, 0, 2, 0 },
     { 56, 6, 1, 3000, 0, -1400, 3072, 0, 3, 5, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_storeroom_80186C9C[22] = {

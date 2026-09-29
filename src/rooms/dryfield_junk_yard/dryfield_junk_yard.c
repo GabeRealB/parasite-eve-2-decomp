@@ -371,10 +371,10 @@ GpAreaTmdRec D_dryfield_junk_yard_8017F510[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_junk_yard_8017F528[3] = {
+AreaPlacement D_dryfield_junk_yard_8017F528[3] = {
     { 1, 0, 0, 5685, 0, 2272, 4096, 0, 0, 2, 0 },
     { 1, 0, 0, 5485, 0, 2072, 4352, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_junk_yard_8017F558[13] = {

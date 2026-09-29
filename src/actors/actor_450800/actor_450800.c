@@ -2752,11 +2752,11 @@ void func_actor_450800_80132108(void)
 /// actor's placement in the current area, then streams it twice.
 static inline void _actor450800TintModel(Task* spawned, Task* actor)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    GpAreaPlace*     entry;
-    TmdObject*       model;
-    u32              idx;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    AreaPlacement* entry;
+    TmdObject*     model;
+    u32            idx;
 
     sessionKey = &gGameSession->at4.loc;
     idx        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 12;
@@ -2767,8 +2767,8 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     key.view   = gGameSession->at4.loc.view;
     areaSyncLocationVariant(&key);
     entry        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

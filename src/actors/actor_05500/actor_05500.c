@@ -2058,21 +2058,21 @@ static void Actor05500_Fn02C94(Task* actor)
 
 static void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
 {
-    SVECTOR                rot;
-    WorldCollisionContact* rec0;
-    WorldCollisionContact* rec1;
-    WorldCollisionContact* rec2;
-    WorldCollisionContact* rec3;
-    SVECTOR*               positions;
-    MATRIX*                matrix;
-    Actor105500Work*       work;
-    s32                    variant;
-    s32                    quotient;
-    s32                    i;
-    s32                    mode;
-    GpAreaPlace*           params;
-    GfxCoord*               coord;
-    TmdObject*             obj;
+    SVECTOR          rot;
+    WorldCollisionContact*         rec0;
+    WorldCollisionContact*         rec1;
+    WorldCollisionContact*         rec2;
+    WorldCollisionContact*         rec3;
+    SVECTOR*         positions;
+    MATRIX*          matrix;
+    Actor105500Work* work;
+    s32              variant;
+    s32              quotient;
+    s32              i;
+    s32              mode;
+    AreaPlacement*   params;
+    GfxCoord*         coord;
+    TmdObject*       obj;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
@@ -2511,15 +2511,15 @@ static void Actor05500_Fn03B60(Task* arg0)
 
 static void Actor05500_Fn03C54(Task* actor)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     entry;
-    GpEffWork*       eff;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    u8             areaByte0;
+    GpAreaVariant* rec;
+    AreaPlacement* entry;
+    GpEffWork*     eff;
+    TmdObject*     model;
+    s32            idx;
+    u32            raw;
 
     D_80067704[0] = &Actor05500_D05F18;
     eff           = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 4, 0x100, NULL);
@@ -2538,8 +2538,8 @@ static void Actor05500_Fn03C54(Task* actor)
     areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->tpage;
-    model->clut  = entry->clut;
+    model->tpage = entry->texturePageOffset;
+    model->clut  = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

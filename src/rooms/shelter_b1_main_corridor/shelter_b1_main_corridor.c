@@ -613,37 +613,37 @@ GpAreaTmdRec D_shelter_b1_main_corridor_80185AEC[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_main_corridor_80185B10[6] = {
+AreaPlacement D_shelter_b1_main_corridor_80185B10[6] = {
     { 21, 34, 2048, -3600, -1750, -7800, 1024, 0, 0, 2, 2 },
     { 21, 4, 0, 1100, -2100, -0x3C8C, 0, 0, 0, 2, 3 },
     { 21, 4, 0, -1100, -2100, -0x3C8C, 0, 0, 0, 2, 3 },
     { 11, 1, 0, 0, 0, -2000, 2048, 0, 2, 4, 0 },
     { 11, 1, 0, 0, 0, -0x2710, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_main_corridor_80185B70[4] = {
+AreaPlacement D_shelter_b1_main_corridor_80185B70[4] = {
     { 6, 0, 1, 0, 0, -4000, 0, 0, 0, 2, 0 },
     { 6, 0, 1, 0, 0, -8500, 2048, 0, 0, 2, 0 },
     { 6, 0, 1, 0, 0, -0x38A4, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_main_corridor_80185BB0[3] = {
+AreaPlacement D_shelter_b1_main_corridor_80185BB0[3] = {
     { 3, 0, 0, 0, 0, -3000, 2048, 0, 0, 2, 0 },
     { 3, 0, 1, 0, 0, -0x2710, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_main_corridor_80185BE0[2] = {
+AreaPlacement D_shelter_b1_main_corridor_80185BE0[2] = {
     { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_main_corridor_80185C00[3] = {
+AreaPlacement D_shelter_b1_main_corridor_80185C00[3] = {
     { 56, 6, 1, 0, 0, -2000, 2048, 0, 0, 2, 0 },
     { 57, 4, 1, -2000, 0, -0x2710, 1024, 0, 3, 5, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_main_corridor_80185C30[22] = {

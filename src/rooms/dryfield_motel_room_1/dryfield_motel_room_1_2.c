@@ -881,12 +881,12 @@ GpAreaTmdRec D_dryfield_motel_room_1_80181468[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_motel_room_1_8018148C[5] = {
+AreaPlacement D_dryfield_motel_room_1_8018148C[5] = {
     { 112, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
     { 112, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
     { 12, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
     { 12, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_motel_room_1_801814DC[13] = {

@@ -669,48 +669,48 @@ GpAreaTmdRec D_shelter_b4_upper_sewer_80188A08[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188A2C[5] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188A2C[5] = {
     { 70, 0, 0, -1600, 0, 6900, 3200, 0, 0, 2, 0 },
     { 70, 0, 0, 300, 0, 500, 4000, 0, 0, 2, 0 },
     { 71, 0, 1, 1350, 0, 4000, 3300, 0, 0, 2, 0 },
     { 71, 0, 1, 1350, 0, 7300, 2550, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188A7C[2] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188A7C[2] = {
     { 4, 0, 1, 200, 1000, -3400, 0, 0, 2, 4, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188A9C[5] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188A9C[5] = {
     { 24, 0, 1, -4350, -2000, 9300, 2650, 0, 0, 2, 0 },
     { 24, 0, 1, 600, -2000, 8350, 3400, 0, 0, 2, 0 },
     { 4, 0, 1, 200, 1000, -3400, 0, 0, 2, 4, 2 },
     { 4, 0, 17, 160, 1000, 6300, 3072, 0, 2, 4, 2 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188AEC[4] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188AEC[4] = {
     { 49, 1, 0, -3400, -2000, 9200, 2250, 0, 0, 2, 0 },
     { 4, 0, 1, 200, 1000, -3400, 0, 0, 2, 4, 2 },
     { 4, 0, 17, 160, 1000, 6300, 3072, 0, 2, 4, 2 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188B2C[2] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188B2C[2] = {
     { 23, 3, 1, -3000, 0, 6700, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188B4C[2] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188B4C[2] = {
     { 23, 5, 1, -3000, -2000, 9000, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_upper_sewer_80188B6C[3] = {
+AreaPlacement D_shelter_b4_upper_sewer_80188B6C[3] = {
     { 3, 0, 0, 1000, -2000, 9000, 3072, 0, 0, 2, 0 },
     { 4, 0, 1, 200, 1000, -3400, 0, 0, 2, 4, 6 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b4_upper_sewer_80188B9C[12] = {

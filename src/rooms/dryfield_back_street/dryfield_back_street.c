@@ -243,10 +243,10 @@ GpAreaTmdRec D_dryfield_back_street_80180A08[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_back_street_80180A20[3] = {
+AreaPlacement D_dryfield_back_street_80180A20[3] = {
     { 15, 0, 0, 6900, -2000, 6050, 0, 0, 0, 2, 0 },
     { 15, 0, 1, 8000, -2800, 3600, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_back_street_80180A50[13] = {

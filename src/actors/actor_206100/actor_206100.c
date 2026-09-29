@@ -137,7 +137,7 @@ extern GpAnimSet* D_actor_206100_80158B24[];
 /// and 0xFF on the sixth, the value `Gp_SpawnArea` stops its walk on.  The
 /// overlay indexes it with the variant it was spawned for rather than walking
 /// it, so the tail entry is reachable.
-extern GpAreaPlace D_actor_206100_80155134[];
+extern AreaPlacement D_actor_206100_80155134[];
 
 /// One vertex of the 8-point ring `func_actor_206100_8014FAE4` steps the actor's
 /// root coordinate around: radius 7600 in the XZ plane, one 45-degree step per
@@ -944,13 +944,13 @@ TmdSource D_actor_206100_80155110 = {
     D_actor_206100_80154CD8,
 };
 
-GpAreaPlace D_actor_206100_80155134[6] = {
+AreaPlacement D_actor_206100_80155134[6] = {
     { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 },
     { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5 },
     { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7 },
     { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpU16Pair D_actor_206100_80155194 = { 26, 5 };

@@ -75,17 +75,17 @@ typedef struct Actor121300Work {
     /* 0x488 */ Task*          field_488; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
     /* 0x48C */ Task*          field_48C;
     /* 0x490 */ byte           pad_490[0x8];
-    /* 0x498 */ s16            field_498; // set by func_actor_121300_80134250
-    /* 0x49A */ s16            field_49A; // cleared alongside field_498
+    /* 0x498 */ s16            field_498;         // set by func_actor_121300_80134250
+    /* 0x49A */ s16            field_49A;         // cleared alongside field_498
     /* 0x49C */ s16            field_49C;
-    /* 0x49E */ s16            field_49E; // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ u16            field_4A0; // animation slot count, set by func_actor_121300_80133BFC
-    /* 0x4A2 */ u16            field_4A2; // state of the waypoint walker func_actor_121300_80133730
-    /* 0x4A4 */ u16            field_4A4; // frames spent on the current waypoint
-    /* 0x4A6 */ s16            field_4A6; // waypoint index handed to func_dryfield_r08_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ s16            field_4A8; // effect-count reduction, bumped by func_actor_121300_80133580
-    /* 0x4AA */ s16            field_4AA; // frame counter for field_4A8 (wraps at 20)
-    /* 0x4AC */ s16            field_4AC; // GpAreaPlace::tpage, the TmdObject texture page
+    /* 0x49E */ s16            field_49E;         // waypoint cursor: index into D_actor_121300_8013CC20
+    /* 0x4A0 */ u16            field_4A0;         // animation slot count, set by func_actor_121300_80133BFC
+    /* 0x4A2 */ u16            field_4A2;         // state of the waypoint walker func_actor_121300_80133730
+    /* 0x4A4 */ u16            field_4A4;         // frames spent on the current waypoint
+    /* 0x4A6 */ s16            field_4A6;         // waypoint index handed to func_dryfield_r08_8017F334 / Task_SpawnFromTable
+    /* 0x4A8 */ s16            field_4A8;         // effect-count reduction, bumped by func_actor_121300_80133580
+    /* 0x4AA */ s16            field_4AA;         // frame counter for field_4A8 (wraps at 20)
+    s16                        texturePageOffset; // Texture relocation for image uploads, in 64-word VRAM columns
     /* 0x4AE */ byte           pad_4AE[0x2];
 } Actor121300Work;
 STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
@@ -1735,7 +1735,7 @@ static void        func_actor_121300_80133730(Task* arg0);
 static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim);
 static inline void func_actor_121300_SetCC04(s32 v);
 static void        func_actor_121300_80133854(Task* arg0);
-static void        func_actor_121300_80133BFC(Task* arg0);
+static void        func_actor_121300_80133BFC(Task* task);
 
 /// Screen-wave task spawned from `D_actor_121300_8013BBCC` with the cutscene
 /// actor's `Actor121300Work::wave` ramp as its argument. State 0 seeds the
@@ -2186,84 +2186,86 @@ void func_actor_121300_80133064(Task* task)
     taskKill(task);
 }
 
-/// Texture loader: uploads CLUT/texel blocks into the texture page
-/// `Actor121300Work::field_4AC` of the parent task named by `spawnArg2`,
-/// picking the images by `spawnArg1`; the two-state variants upload one
-/// block per frame before killing the task.
-void func_actor_121300_8013322C(Task* arg0)
+/// Uploads this actor's images using its parent's texture-page offset.
+///
+/// `Actor121300Work::texturePageOffset` holds the signed offset, and `spawnArg2`
+/// names the parent task. `spawnArg1` selects the images; the two-state variants
+/// upload one block per frame before killing the task.
+void func_actor_121300_8013322C(Task* task)
 {
     RECT rect;
-    s32  page;
+    s32  imageX;
 
-    switch (arg0->spawnArg1.value) {
+    // Relocate each image by the placement's 64-word texture-page offset.
+    switch (task->spawnArg1.value) {
         case 0:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-            page <<= 6;
-            page  += 0x180;
-            rect.x = page;
-            rect.y = 0x140;
-            rect.w = 0x19;
-            rect.h = 0x14;
+            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX <<= 6;
+            imageX  += 0x180;
+            rect.x   = imageX;
+            rect.y   = 0x140;
+            rect.w   = 0x19;
+            rect.h   = 0x14;
             LoadImage(&rect, D_actor_121300_8013BBE8);
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-            page <<= 6;
-            page  += 0x18C;
-            rect.x = page;
-            rect.y = 0x1A0;
-            rect.w = 0xE;
-            rect.h = 0x14;
+            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX <<= 6;
+            imageX  += 0x18C;
+            rect.x   = imageX;
+            rect.y   = 0x1A0;
+            rect.w   = 0xE;
+            rect.h   = 0x14;
             LoadImage(&rect, D_actor_121300_8013C7A0);
-            taskKill(arg0);
+            taskKill(task);
             break;
         case 1:
-            switch (arg0->state) {
+            switch (task->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-                    page <<= 6;
-                    page  += 0x180;
-                    rect.x = page;
-                    rect.y = 0x140;
-                    rect.w = 0x19;
-                    rect.h = 0x14;
+                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX <<= 6;
+                    imageX  += 0x180;
+                    rect.x   = imageX;
+                    rect.y   = 0x140;
+                    rect.w   = 0x19;
+                    rect.h   = 0x14;
                     LoadImage(&rect, D_actor_121300_8013BFD0);
-                    arg0->state++;
+                    task->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-                    page <<= 6;
-                    page  += 0x180;
-                    rect.x = page;
-                    rect.y = 0x140;
-                    rect.w = 0x19;
-                    rect.h = 0x14;
+                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX <<= 6;
+                    imageX  += 0x180;
+                    rect.x   = imageX;
+                    rect.y   = 0x140;
+                    rect.w   = 0x19;
+                    rect.h   = 0x14;
                     LoadImage(&rect, D_actor_121300_8013C3B8);
-                    taskKill(arg0);
+                    taskKill(task);
                     break;
             }
             break;
         case 2:
-            switch (arg0->state) {
+            switch (task->state) {
                 case 0:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-                    page <<= 6;
-                    page  += 0x180;
-                    rect.x = page;
-                    rect.y = 0x140;
-                    rect.w = 0x19;
-                    rect.h = 0x14;
+                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX <<= 6;
+                    imageX  += 0x180;
+                    rect.x   = imageX;
+                    rect.y   = 0x140;
+                    rect.w   = 0x19;
+                    rect.h   = 0x14;
                     LoadImage(&rect, D_actor_121300_8013BFD0);
-                    arg0->state++;
+                    task->state++;
                     break;
                 case 1:
-                    page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-                    page <<= 6;
-                    page  += 0x180;
-                    rect.x = page;
-                    rect.y = 0x140;
-                    rect.w = 0x19;
-                    rect.h = 0x14;
+                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX <<= 6;
+                    imageX  += 0x180;
+                    rect.x   = imageX;
+                    rect.y   = 0x140;
+                    rect.w   = 0x19;
+                    rect.h   = 0x14;
                     LoadImage(&rect, D_actor_121300_8013BBE8);
-                    taskKill(arg0);
+                    taskKill(task);
                     break;
             }
             break;
@@ -2271,15 +2273,15 @@ void func_actor_121300_8013322C(Task* arg0)
             break;
         case 4:
         case 5:
-            page   = ((Actor121300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4AC;
-            page <<= 6;
-            page  += 0x18C;
-            rect.x = page;
-            rect.y = 0x1A0;
-            rect.w = 0xE;
-            rect.h = 0x14;
+            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX <<= 6;
+            imageX  += 0x18C;
+            rect.x   = imageX;
+            rect.y   = 0x1A0;
+            rect.w   = 0xE;
+            rect.h   = 0x14;
             LoadImage(&rect, D_actor_121300_8013C9D0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -2531,68 +2533,62 @@ static void func_actor_121300_80133854(Task* arg0)
     }
 }
 
-/// First tick of the cutscene actor: allocates the 0x4B0-byte
-/// `Actor121300Work` block, zeroes it and parks it in `Task::work`, then wires
-/// the model object up -- the work block's light and colour matrices into
-/// `TmdObject::lightMtx` / `field_20`, `field_C` cleared and the animation
-/// context handed to `func_800B3F84`, and slots 1..18 re-armed through
-/// `Gp_AnimResetSlot`.  The texture page / CLUT row come from the placement
-/// record at the nested area table's `field_0` list whose id matches neither
-/// 0xFF (end) nor 0x84 (the skip marker).
+/// Initialize the cutscene model, animations and image-upload relocation.
 ///
-/// The slot loop reaches the work block through `Task::work` again rather than
-/// through the pointer the setup above uses: the compiler cannot prove
-/// `Gp_AnimResetSlot` leaves the task alone, so it reloads, and the reload must
-/// stay a separate local for the reload to land in `$s0` as retail does.
-static void func_actor_121300_80133BFC(Task* arg0)
+/// Uses the area placement for resource-entry 0x84, or the end record when
+/// that entry is absent. Allocation failure kills `task`.
+static void func_actor_121300_80133BFC(Task* task)
 {
-    Actor121300Work* work;
-    Actor121300Work* slotsWork;
-    TaskIdMap*       map;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
-    s32              i;
-    u8               id;
+    enum { TEXTURE_RESOURCE_ENTRY_ID = 0x84 };
 
-    tmd        = arg0->extra.tmd;
-    coord      = tmd->coords;
-    map        = Mem_Malloc(0x4B0, 0);
-    arg0->work = map;
-    if (map == NULL) {
-        taskKill(arg0);
+    Actor121300Work* work;
+    Actor121300Work* allocatedWork;
+    Actor121300Work* slotsWork;
+    TmdObject*       tmd;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
+    s32              slotIndex;
+    u8               entryId;
+
+    tmd           = task->extra.tmd;
+    coord         = tmd->coords;
+    allocatedWork = Mem_Malloc(sizeof(Actor121300Work), 0);
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(task);
         return;
     }
-    work = (Actor121300Work*)map;
-    Mem_Set(work, 0, 0x4B0);
+    work = allocatedWork;
+    Mem_Set(work, 0, sizeof(*work));
     work->field_488         = gameGetPtrSlot(3);
-    D_actor_121300_8013D418 = arg0;
-    coord->parent           = &gGfxViewCoord;
+    D_actor_121300_8013D418 = task;
+    coord->parent              = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;
     place                   = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    id                      = place->entryId;
-    while (id != 0xFF) {
-        if (id == 0x84) {
+    entryId                 = place->entryId;
+    while (entryId != AREA_PLACEMENT_END) {
+        if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
             break;
         }
         place++;
-        id = place->entryId;
+        entryId = place->entryId;
     }
-    Gp_SetTmdBytes(tmd, ((s8*)place)[0xD], ((s8*)place)[0xE]);
-    work->field_4AC = (s16)(s8)place->tpage;
+    Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
+    // Keep the image-column offset for later streamed texture uploads.
+    work->texturePageOffset = place->texturePageOffset;
     func_800B3F84(&work->rig.anim, &D_actor_121300_8013CC08, tmd, work->rig.poses,
                   work->rig.slots);
-    slotsWork            = (Actor121300Work*)arg0->work;
+    slotsWork            = (Actor121300Work*)task->work;
     slotsWork->field_4A0 = 1;
-    i                    = 1;
+    slotIndex            = 1;
     do {
-        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
-        i++;
-    } while ((u16)i < 0x13U);
-    arg0->msgTable = D_actor_121300_8013CC88;
+        slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
+    task->msgTable = D_actor_121300_8013CC88;
 }
 
 /// State machine of the cutscene actor, run once per frame from its slot.

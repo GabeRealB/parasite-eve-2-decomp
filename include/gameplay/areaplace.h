@@ -3,43 +3,36 @@
 
 #include "common.h"
 
-/// One placement of an area: a model the area starts, where it stands and how
-/// it is dressed. A 0x10-byte record in the 0xFF-terminated table at nested
-/// `GpAreaRec.field_0`, which the area spawn walks against the area's
-/// `GpAreaTmdRec` table.
+/// End marker for an area placement's resource-entry ID.
+enum { AREA_PLACEMENT_END = 0xFF };
+
+/// An actor placement and its resource-loading parameters in an area layout.
 ///
-/// `entryId` is the id of the entry a placement dresses -- that entry holds the
-/// task to start -- so a placement is spawned by matching the two, and 0xFF ends
-/// the table. `variant` and `mode` are the placement's spawn parameters, which
-/// the spawn hands the started task as its first spawn argument; the actor the
-/// placement starts reads them back from here and gives them its own meaning.
-/// `rowIndex` is likewise the actor's: it selects the row that actor reads out
-/// of its own per-placement data tables.
+/// `GpAreaVariant.field_0` points to a table terminated by `AREA_PLACEMENT_END`.
+/// Area spawning matches `entryId` against `GpAreaTmdRec` task descriptors.
+/// The actor receives `(variant << 16) | mode` as its first spawn argument;
+/// both values and `rowIndex` have actor-specific interpretations.
 ///
-/// `x` / `y` / `z` and `yaw` place the spawned model's root coordinate in the
-/// world; `tpage` and `clut` are the texture page and CLUT its `TmdObject` is
-/// dressed with.
+/// The loader combines `fileIdLow` with the resource entry's file ID and applies
+/// the same signed texture offsets to its images that the model uses for its
+/// primitives. Positions are in world-coordinate units and yaw uses 4096 units
+/// per turn. Saved actor poses can override this initial transform.
 ///
-/// The loader that streams an area in (`Gp_PollAreaCdLoads`) walks the same list
-/// for a purpose of its own, forwarding three of these bytes into the CD command
-/// that brings the area's files in: it reads `pad_C` as param1[0] and `tpage` /
-/// `clut` as param2[2] / param2[3]. That is the same record read a second way,
-/// not a second kind of record, so the fields keep the names the spawn gives
-/// them and the loader is what passes three of them along.
-///
+/// Actors borrow these records from the loaded area resource, or from their
+/// own placement tables; the table must outlive every actor that refers to it.
 typedef struct {
-    /* 0x00 */ u8  entryId;
-    /* 0x01 */ u8  variant;
-    /* 0x02 */ u16 mode;
-    /* 0x04 */ s16 x;
-    /* 0x06 */ s16 y;
-    /* 0x08 */ s16 z;
-    /* 0x0A */ s16 yaw;
-    /* 0x0C */ u8  pad_C; // Role unproven: the spawn reads nothing here, the CD loader forwards it
-    /* 0x0D */ u8  tpage;
-    /* 0x0E */ u8  clut;
-    /* 0x0F */ u8  rowIndex;
-} GpAreaPlace;
-STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
+    u8  entryId;           // Resource-entry ID; AREA_PLACEMENT_END terminates the table
+    u8  variant;           // Actor-defined spawn argument, bits 16..23
+    u16 mode;              // Actor-defined spawn argument, bits 0..15
+    s16 x;                 // Initial world X coordinate
+    s16 y;                 // Initial world Y coordinate
+    s16 z;                 // Initial world Z coordinate
+    s16 yaw;               // Initial Y rotation, 4096 units per turn
+    u8  fileIdLow;         // Low base-100 file-ID component (0 base resource, nonzero additional file)
+    s8  texturePageOffset; // Signed texture-page offset, in 64-word VRAM columns
+    s8  clutRowOffset;     // Signed CLUT row offset, added to the encoded CLUT as offset << 6
+    u8  rowIndex;          // Actor-specific parameter-table row; must fit that actor's tables
+} AreaPlacement;
+STATIC_ASSERT_SIZEOF(AreaPlacement, 0x10);
 
 #endif // GAMEPLAY_AREAPLACE_H

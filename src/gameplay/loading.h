@@ -15,6 +15,13 @@
 
 // Room-resource loading, view setup and sprite-list construction.
 
+/// Phases shared by the base-resource and additional-file loading passes.
+enum {
+    LOADING_AREA_INIT  = 0,
+    LOADING_AREA_QUEUE = 1,
+    LOADING_AREA_WAIT  = 2
+};
+
 /// Phase for `Gp_PollAreaCdLoads` (0 init, 1 walk/enqueue, 2 wait idle).
 /// `Gp_LoadWaitAreaCd` clears it when phase 1 (`func_800AA120`) finishes
 /// so phase 2 can start.
@@ -28,8 +35,10 @@ extern u16 D_80114C70;
 /// `Gp_LoadWaitSave` clears it when advancing to this task state.
 extern u16 D_80114C74;
 
+/// Queues additional files selected by the layout's placements; returns 1 when finished.
 u16 Gp_PollAreaCdLoads(void);
 
+/// Queues the layout's base resources and their texture relocation; returns 1 when finished.
 u16 func_800AA120(void);
 
 extern const TaskFuncTable3 Gp_SessionStates;

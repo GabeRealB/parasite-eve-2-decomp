@@ -1409,16 +1409,16 @@ GpAreaTmdRec D_shelter_b1_underground_parking_8018B554[1] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_underground_parking_8018B560[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b1_underground_parking_8018B560[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_b1_underground_parking_8018B570[1] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_underground_parking_8018B57C[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaTmdRec D_shelter_b1_underground_parking_8018B58C[2] = {
@@ -1426,9 +1426,9 @@ GpAreaTmdRec D_shelter_b1_underground_parking_8018B58C[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_underground_parking_8018B5A4[2] = {
+AreaPlacement D_shelter_b1_underground_parking_8018B5A4[2] = {
     { 116, 0, 0, 3700, 0, -114, 2488, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22] = {

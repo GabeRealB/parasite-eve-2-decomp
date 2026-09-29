@@ -387,7 +387,7 @@ GpAreaTmdRec D_shelter_b2_elevator_hall_80184AB8[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b2_elevator_hall_80184ADC[8] = {
+AreaPlacement D_shelter_b2_elevator_hall_80184ADC[8] = {
     { 26, 0, 0, 7500, 0, 4150, 1800, 0, 0, 2, 0 },
     { 26, 0, 0, 7000, 0, 1950, 1300, 0, 0, 2, 0 },
     { 26, 0, 0, 5300, 0, 3600, 1700, 0, 0, 2, 0 },
@@ -395,37 +395,37 @@ GpAreaPlace D_shelter_b2_elevator_hall_80184ADC[8] = {
     { 26, 0, 0, 1850, 0, 350, 1250, 0, 0, 2, 0 },
     { 26, 0, 0, 300, 0, 600, 1200, 0, 0, 2, 0 },
     { 26, 0, 0, 300, 0, -800, 900, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_elevator_hall_80184B5C[3] = {
+AreaPlacement D_shelter_b2_elevator_hall_80184B5C[3] = {
     { 3, 0, 0, 6500, 0, 3300, 2048, 0, 0, 2, 0 },
     { 3, 0, 1, -4000, 0, 0, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_elevator_hall_80184B8C[4] = {
+AreaPlacement D_shelter_b2_elevator_hall_80184B8C[4] = {
     { 49, 2, 0, -7800, 0, -200, 1200, 0, 0, 2, 0 },
     { 49, 2, 0, 250, 0, 600, 1600, 0, 0, 2, 0 },
     { 49, 2, 0, 4350, 0, 500, 1800, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_elevator_hall_80184BCC[6] = {
+AreaPlacement D_shelter_b2_elevator_hall_80184BCC[6] = {
     { 21, 3, 0, 7500, -1800, -1400, 0, 0, 0, 2, 0 },
     { 21, 3, 0, 5500, -1800, -1400, 0, 0, 0, 2, 0 },
     { 21, 3, 0, 7500, -1800, 4900, 2048, 0, 0, 2, 0 },
     { 21, 3, 0, 5500, -1800, 4900, 2048, 0, 0, 2, 0 },
     { 57, 3, 1, 6500, 0, 3000, 2048, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_elevator_hall_80184C2C[5] = {
+AreaPlacement D_shelter_b2_elevator_hall_80184C2C[5] = {
     { 21, 3, 0, 8500, -1800, 4900, 2048, 0, 0, 2, 7 },
     { 21, 3, 0, 6500, -1800, 4900, 2048, 0, 0, 2, 7 },
     { 57, 9, 1, -2000, 0, 0, 1024, 0, 2, 4, 0 },
     { 57, 0, 0, 9600, 0, -500, 3072, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b2_elevator_hall_80184C7C[22] = {

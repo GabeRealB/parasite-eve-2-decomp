@@ -93,7 +93,7 @@ typedef struct Actor101500Work {
     /* 0x37C */ s16                   field_37C;
     /* 0x37E */ s16                   field_37E;
     /* 0x380 */ s16                   field_380;
-    /* 0x382 */ s16                   field_382; // spawn variant, `GpAreaPlace.variant`
+    /* 0x382 */ s16                   field_382; // spawn variant, `AreaPlacement.variant`
 } Actor101500Work;
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_352`.
@@ -748,17 +748,17 @@ SVECTOR Actor01500_D0A090 = { 1110, -0x2EE0, -2500, 0 };
 SVECTOR Actor01500_D0A098 = { 1900, -0x2EE0, 1000, 0 };
 
 /// Spawn handler: allocates the work area, binds the model and collision
-/// objects, and seeds the pose from the spawn variant in `GpAreaPlace.variant`.
+/// objects, and seeds the pose from the spawn variant in `AreaPlacement.variant`.
 static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
 {
-    Actor101500Work*       work;
-    TmdObject*             obj;
-    GfxCoord*               coord;
-    GpAreaPlace*           place;
-    WorldCollisionContact* records;
-    u32                    draw;
-    s32                    i;
-    s32                    r;
+    Actor101500Work* work;
+    TmdObject*       obj;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
+    WorldCollisionContact*         records;
+    u32              draw;
+    s32              i;
+    s32              r;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -1539,28 +1539,28 @@ static void Actor01500_Fn01988(Task* arg0)
 
 static void Actor01500_Fn01AB0(Task* arg0)
 {
-    GameLocationKey  key;
-    u8               areaByte0;
-    u32              raw1, index1;
-    GpEffWork*       effect1;
-    TmdObject*       model1;
-    GpAreaPlace*     entry1;
-    GameLocationKey* sessionKey1;
-    u32              raw2, index2;
-    GpEffWork*       effect2;
-    TmdObject*       model2;
-    GpAreaPlace*     entry2;
-    GameLocationKey* sessionKey2;
-    u32              raw3, index3;
-    GpEffWork*       effect3;
-    TmdObject*       model3;
-    GpAreaPlace*     entry3;
-    GameLocationKey* sessionKey3;
-    u32              raw4, index4;
-    GpEffWork*       effect4;
-    TmdObject*       model4;
-    GpAreaPlace*     entry4;
-    GameLocationKey* sessionKey4;
+    GameLocationKey      key;
+    u8             areaByte0;
+    u32            raw1, index1;
+    GpEffWork*     effect1;
+    TmdObject*     model1;
+    AreaPlacement* entry1;
+    GameLocationKey*     sessionKey1;
+    u32            raw2, index2;
+    GpEffWork*     effect2;
+    TmdObject*     model2;
+    AreaPlacement* entry2;
+    GameLocationKey*     sessionKey2;
+    u32            raw3, index3;
+    GpEffWork*     effect3;
+    TmdObject*     model3;
+    AreaPlacement* entry3;
+    GameLocationKey*     sessionKey3;
+    u32            raw4, index4;
+    GpEffWork*     effect4;
+    TmdObject*     model4;
+    AreaPlacement* entry4;
+    GameLocationKey*     sessionKey4;
 
     D_80067704[0] = &Actor01500_D0458C;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
@@ -1576,8 +1576,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-        model1->tpage = entry1->tpage;
-        model1->clut  = entry1->clut;
+        model1->tpage = entry1->texturePageOffset;
+        model1->clut  = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
             tmdProcessStream(model1);
             tmdProcessStream(model1);
@@ -1598,8 +1598,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-        model2->tpage = entry2->tpage;
-        model2->clut  = entry2->clut;
+        model2->tpage = entry2->texturePageOffset;
+        model2->clut  = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1620,8 +1620,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-        model3->tpage = entry3->tpage;
-        model3->clut  = entry3->clut;
+        model3->tpage = entry3->texturePageOffset;
+        model3->clut  = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);
@@ -1642,8 +1642,8 @@ static void Actor01500_Fn01AB0(Task* arg0)
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
         entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
-        model4->tpage = entry4->tpage;
-        model4->clut  = entry4->clut;
+        model4->tpage = entry4->texturePageOffset;
+        model4->clut  = entry4->clutRowOffset;
         if (model4->buffer != NULL) {
             tmdProcessStream(model4);
             tmdProcessStream(model4);

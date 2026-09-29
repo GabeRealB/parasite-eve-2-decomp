@@ -276,13 +276,13 @@ GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F134[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_golem_freezer_1_8017F14C[1] = {
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+AreaPlacement D_shelter_b1_golem_freezer_1_8017F14C[1] = {
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_golem_freezer_1_8017F15C[2] = {
+AreaPlacement D_shelter_b1_golem_freezer_1_8017F15C[2] = {
     { 143, 0, 0, 1140, 0, 1060, 1251, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {

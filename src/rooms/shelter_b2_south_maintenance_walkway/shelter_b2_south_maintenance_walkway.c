@@ -385,7 +385,7 @@ GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b2_south_maintenance_walkway_801835CC[9] = {
+AreaPlacement D_shelter_b2_south_maintenance_walkway_801835CC[9] = {
     { 21, 3, 0, 950, -2000, 2500, 1024, 0, 0, 2, 1 },
     { 21, 3, 0, 950, -2000, -500, 1024, 0, 0, 2, 7 },
     { 21, 2, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
@@ -394,40 +394,40 @@ GpAreaPlace D_shelter_b2_south_maintenance_walkway_801835CC[9] = {
     { 24, 0, 0, 2400, 0, -2900, 3200, 0, 2, 4, 0 },
     { 24, 0, 0, 2400, 0, -850, 3600, 0, 2, 4, 0 },
     { 24, 0, 0, 1450, 0, -2500, 1700, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_south_maintenance_walkway_8018365C[4] = {
+AreaPlacement D_shelter_b2_south_maintenance_walkway_8018365C[4] = {
     { 72, 0, 0, 2150, 0, 2050, 3700, 0, 0, 2, 0 },
     { 49, 0, 0, 1600, 0, -3600, 3500, 0, 2, 4, 0 },
     { 49, 0, 0, 1650, 0, 0, 1000, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_south_maintenance_walkway_8018369C[5] = {
+AreaPlacement D_shelter_b2_south_maintenance_walkway_8018369C[5] = {
     { 44, 0, 0, 2050, 0, 720, 3584, 0, 0, 2, 0 },
     { 72, 0, 0, 2000, 0, -1400, 2048, 0, 2, 4, 0 },
     { 72, 0, 0, 850, 0, -4200, 3072, 0, 2, 4, 0 },
     { 73, 0, 1, 1500, 0, -230, 1000, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_south_maintenance_walkway_801836EC[6] = {
+AreaPlacement D_shelter_b2_south_maintenance_walkway_801836EC[6] = {
     { 24, 0, 1, 2150, 0, 1750, 2000, 0, 0, 2, 0 },
     { 55, 0, 3, 2550, -2700, 550, 3360, 0, 2, 4, 5 },
     { 55, 0, 3, 2050, -2700, -1050, 3900, 0, 2, 4, 3 },
     { 55, 0, 3, 1600, -2700, -2200, 200, 0, 2, 4, 4 },
     { 55, 0, 3, 1000, -2700, -4100, 200, 0, 2, 4, 5 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b2_south_maintenance_walkway_8018374C[6] = {
+AreaPlacement D_shelter_b2_south_maintenance_walkway_8018374C[6] = {
     { 21, 3, 0, 800, -2200, 2500, 1024, 0, 0, 2, 1 },
     { 21, 3, 0, 800, -2200, 0, 1024, 0, 0, 2, 5 },
     { 21, 2, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
     { 21, 2, 0, 2600, -2000, 5000, 2048, 0, 0, 2, 5 },
     { 23, 7, 1, 2000, 0, -3000, 0, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {

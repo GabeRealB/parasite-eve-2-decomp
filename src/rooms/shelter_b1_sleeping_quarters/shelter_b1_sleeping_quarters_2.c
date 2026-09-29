@@ -713,16 +713,16 @@ GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183E54[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_sleeping_quarters_80183E6C[6] = {
+AreaPlacement D_shelter_b1_sleeping_quarters_80183E6C[6] = {
     { 18, 16, 1, 1950, 0, -100, 0, 0, 0, 2, 0 },
     { 7, 0, 0, 1100, 0, 4700, 2750, 0, 2, 4, 4 },
     { 7, 0, 0, 1200, 0, 4300, 3072, 0, 2, 4, 4 },
     { 7, 0, 0, 1100, 0, 3900, 2500, 0, 2, 4, 4 },
     { 7, 0, 0, 1350, 0, 3650, 3400, 0, 2, 4, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_sleeping_quarters_80183ECC[8] = {
+AreaPlacement D_shelter_b1_sleeping_quarters_80183ECC[8] = {
     { 24, 0, 0, 3450, 0, 50, 3400, 0, 0, 2, 0 },
     { 24, 0, 0, -250, 0, 500, 1600, 0, 0, 2, 0 },
     { 24, 0, 0, 7950, 0, 550, 2048, 0, 0, 2, 0 },
@@ -730,25 +730,25 @@ GpAreaPlace D_shelter_b1_sleeping_quarters_80183ECC[8] = {
     { 24, 0, 0, 0x29FE, 0, 550, 2048, 0, 0, 2, 0 },
     { 24, 0, 1, 0x300C, 0, 400, 2048, 0, 0, 2, 0 },
     { 24, 0, 1, 5750, 0, 1100, 0, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_sleeping_quarters_80183F4C[5] = {
+AreaPlacement D_shelter_b1_sleeping_quarters_80183F4C[5] = {
     { 44, 0, 1, 0x2904, -3400, 4000, 1024, 0, 0, 2, 0 },
     { 44, 0, 1, 1800, -3000, 2200, 0, 0, 0, 2, 0 },
     { 72, 0, 0, 9200, 0, 500, -100, 0, 2, 4, 0 },
     { 72, 0, 0, 7650, 0, 4150, 2048, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_sleeping_quarters_80183F9C[2] = {
+AreaPlacement D_shelter_b1_sleeping_quarters_80183F9C[2] = {
     { 22, 0, 0, 3000, 0, 3600, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_sleeping_quarters_80183FBC[2] = {
+AreaPlacement D_shelter_b1_sleeping_quarters_80183FBC[2] = {
     { 39, 0, 0, 3000, 0, 3600, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {

@@ -3385,28 +3385,28 @@ static void func_actor_110600_80136ECC(Task* arg0)
     u32              raw1, index1;
     GpEffWork*       effect1;
     TmdObject*       model1;
-    GpAreaPlace*     entry1;
-    GameLocationKey* sessionKey1;
+    AreaPlacement*   entry1;
+    GameLocationKey*       sessionKey1;
     u32              raw2, index2;
     GpEffWork*       effect2;
     TmdObject*       model2;
-    GpAreaPlace*     entry2;
-    GameLocationKey* sessionKey2;
+    AreaPlacement*   entry2;
+    GameLocationKey*       sessionKey2;
     u32              raw3, index3;
     GpEffWork*       effect3;
     TmdObject*       model3;
-    GpAreaPlace*     entry3;
-    GameLocationKey* sessionKey3;
+    AreaPlacement*   entry3;
+    GameLocationKey*       sessionKey3;
     u32              raw4, index4;
     GpEffWork*       effect4;
     TmdObject*       model4;
-    GpAreaPlace*     entry4;
-    GameLocationKey* sessionKey4;
+    AreaPlacement*   entry4;
+    GameLocationKey*       sessionKey4;
     u32              raw5, index5;
     GpEffWork*       effect5;
     TmdObject*       model5;
-    GpAreaPlace*     entry5;
-    GameLocationKey* sessionKey5;
+    AreaPlacement*   entry5;
+    GameLocationKey*       sessionKey5;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3434,8 +3434,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
             entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-            model1->tpage = entry1->tpage;
-            model1->clut  = entry1->clut;
+            model1->tpage = entry1->texturePageOffset;
+            model1->clut  = entry1->clutRowOffset;
             if (model1->buffer != NULL) {
                 tmdProcessStream(model1);
                 tmdProcessStream(model1);
@@ -3455,8 +3455,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
             entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-            model2->tpage = entry2->tpage;
-            model2->clut  = entry2->clut;
+            model2->tpage = entry2->texturePageOffset;
+            model2->clut  = entry2->clutRowOffset;
             if (model2->buffer != NULL) {
                 tmdProcessStream(model2);
                 tmdProcessStream(model2);
@@ -3476,8 +3476,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
             entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-            model3->tpage = entry3->tpage;
-            model3->clut  = entry3->clut;
+            model3->tpage = entry3->texturePageOffset;
+            model3->clut  = entry3->clutRowOffset;
             if (model3->buffer != NULL) {
                 tmdProcessStream(model3);
                 tmdProcessStream(model3);
@@ -3497,8 +3497,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
             entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
-            model4->tpage = entry4->tpage;
-            model4->clut  = entry4->clut;
+            model4->tpage = entry4->texturePageOffset;
+            model4->clut  = entry4->clutRowOffset;
             if (model4->buffer != NULL) {
                 tmdProcessStream(model4);
                 tmdProcessStream(model4);
@@ -3518,8 +3518,8 @@ static void func_actor_110600_80136ECC(Task* arg0)
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
             entry5        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
-            model5->tpage = entry5->tpage;
-            model5->clut  = entry5->clut;
+            model5->tpage = entry5->texturePageOffset;
+            model5->clut  = entry5->clutRowOffset;
             if (model5->buffer != NULL) {
                 tmdProcessStream(model5);
                 tmdProcessStream(model5);

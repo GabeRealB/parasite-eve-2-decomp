@@ -4054,7 +4054,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
 {
     SVECTOR         rot;
     GpEnemy*        ctx;
-    GpAreaPlace*    params;
+    AreaPlacement*  params;
     Actor01600Work* work;
     GfxCoord*       rootCoord;
     GfxCoord*       coord;

@@ -408,41 +408,41 @@ GpAreaTmdRec D_shelter_b4_lower_sewer_80183BF4[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183C18[3] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183C18[3] = {
     { 44, 0, 0, -500, 0, 700, 2700, 0, 0, 2, 0 },
     { 44, 0, 0, 4500, 0, 2500, 3400, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183C48[2] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183C48[2] = {
     { 4, 0, 1, 0x2CEC, 1000, 1000, 1280, 0, 0, 2, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183C68[6] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183C68[6] = {
     { 4, 0, 1, 0x2CEC, 1000, 1000, 3072, 0, 0, 2, 2 },
     { 4, 0, 17, -5000, 1000, 2000, 1024, 0, 0, 2, 2 },
     { 72, 0, 0, 0, -2000, -930, 1024, 0, 2, 4, 0 },
     { 73, 0, 1, -3600, -2000, -1400, 1200, 0, 2, 4, 0 },
     { 73, 0, 1, 2250, -2000, -400, 700, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183CC8[2] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183CC8[2] = {
     { 20, 4, 1, -2000, 0, 1600, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183CE8[2] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183CE8[2] = {
     { 23, 5, 1, 7000, -2000, -1000, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_lower_sewer_80183D08[4] = {
+AreaPlacement D_shelter_b4_lower_sewer_80183D08[4] = {
     { 4, 0, 1, 0x2CEC, 1000, 1000, 3072, 0, 0, 2, 3 },
     { 4, 0, 17, -5000, 1000, 2000, 1024, 0, 0, 2, 3 },
     { 49, 1, 0, 1950, -2000, -1300, 200, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {

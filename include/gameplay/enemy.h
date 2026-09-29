@@ -47,7 +47,7 @@ typedef struct GpEnemy {
     byte                   pad_28[4];
     VECTOR3                playerRelPos;  // `bodyPos` brought to world space and made relative to the player, refreshed each frame; the aim and lock-on scans take their angle and distance from it
     byte                   pad_38[4];
-    GpAreaPlace*           place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
+    AreaPlacement*           place;         // Placement record behind the enemy's spawn parameters (an actor may publish a table of its own here)
     s16                    hp;            // Hit points left; damage subtracts from it and the readout shows it against `hpMax`
     u16                    hpMax;         // Hit points the enemy is spawned with; a damage reaction is picked by fractions of it
     byte                   pad_44[4];
@@ -104,9 +104,9 @@ typedef struct _GpWorkObj {
         u16 as_u16;
         u8  as_u8;
     } field_8;
-    /* 0x0A */ u16          field_A;
-    /* 0x0C */ byte         pad_C[0x30];
-    /* 0x3C */ GpAreaPlace* field_3C;
+    /* 0x0A */ u16            field_A;
+    /* 0x0C */ byte           pad_C[0x30];
+    /* 0x3C */ AreaPlacement* field_3C;
 } GpWorkObj;
 
 #endif // GAMEPLAY_ENEMY_H

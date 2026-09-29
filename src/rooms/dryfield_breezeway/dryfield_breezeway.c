@@ -451,10 +451,10 @@ GpAreaTmdRec D_dryfield_breezeway_801842A4[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_breezeway_801842C8[3] = {
+AreaPlacement D_dryfield_breezeway_801842C8[3] = {
     { 101, 0, 0, 0x41D5, 0, 2735, -1400, 0, 0, 2, 0 },
     { 1, 0, 0, 0x41D5, 0, 2735, -1400, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_breezeway_801842F8[13] = {

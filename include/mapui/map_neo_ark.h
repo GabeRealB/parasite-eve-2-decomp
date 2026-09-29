@@ -78,185 +78,185 @@ extern GpRoomParamRec** D_map_neo_ark_8017AE3C[];
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location; one location's list runs on
 /// into the next one's.
-extern GpAreaPlace D_map_neo_ark_8017AEC0[];
+extern AreaPlacement D_map_neo_ark_8017AEC0[];
 
-extern GpAreaPlace D_map_neo_ark_8017AED0[];
+extern AreaPlacement D_map_neo_ark_8017AED0[];
 
-extern GpAreaPlace D_map_neo_ark_8017AF00[];
+extern AreaPlacement D_map_neo_ark_8017AF00[];
 
-extern GpAreaPlace D_map_neo_ark_8017AF30[];
+extern AreaPlacement D_map_neo_ark_8017AF30[];
 
-extern GpAreaPlace D_map_neo_ark_8017AF80[];
+extern AreaPlacement D_map_neo_ark_8017AF80[];
 
-extern GpAreaPlace D_map_neo_ark_8017AFD0[];
+extern AreaPlacement D_map_neo_ark_8017AFD0[];
 
-extern GpAreaPlace D_map_neo_ark_8017AFF0[];
+extern AreaPlacement D_map_neo_ark_8017AFF0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B010[];
+extern AreaPlacement D_map_neo_ark_8017B010[];
 
-extern GpAreaPlace D_map_neo_ark_8017B030[];
+extern AreaPlacement D_map_neo_ark_8017B030[];
 
-extern GpAreaPlace D_map_neo_ark_8017B080[];
+extern AreaPlacement D_map_neo_ark_8017B080[];
 
-extern GpAreaPlace D_map_neo_ark_8017B0F0[];
+extern AreaPlacement D_map_neo_ark_8017B0F0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B120[];
+extern AreaPlacement D_map_neo_ark_8017B120[];
 
-extern GpAreaPlace D_map_neo_ark_8017B160[];
+extern AreaPlacement D_map_neo_ark_8017B160[];
 
-extern GpAreaPlace D_map_neo_ark_8017B190[];
+extern AreaPlacement D_map_neo_ark_8017B190[];
 
-extern GpAreaPlace D_map_neo_ark_8017B1C0[];
+extern AreaPlacement D_map_neo_ark_8017B1C0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B1F0[];
+extern AreaPlacement D_map_neo_ark_8017B1F0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B210[];
+extern AreaPlacement D_map_neo_ark_8017B210[];
 
-extern GpAreaPlace D_map_neo_ark_8017B2C0[];
+extern AreaPlacement D_map_neo_ark_8017B2C0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B300[];
+extern AreaPlacement D_map_neo_ark_8017B300[];
 
-extern GpAreaPlace D_map_neo_ark_8017B330[];
+extern AreaPlacement D_map_neo_ark_8017B330[];
 
-extern GpAreaPlace D_map_neo_ark_8017B360[];
+extern AreaPlacement D_map_neo_ark_8017B360[];
 
-extern GpAreaPlace D_map_neo_ark_8017B390[];
+extern AreaPlacement D_map_neo_ark_8017B390[];
 
-extern GpAreaPlace D_map_neo_ark_8017B3C0[];
+extern AreaPlacement D_map_neo_ark_8017B3C0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B3D0[];
+extern AreaPlacement D_map_neo_ark_8017B3D0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B410[];
+extern AreaPlacement D_map_neo_ark_8017B410[];
 
-extern GpAreaPlace D_map_neo_ark_8017B470[];
+extern AreaPlacement D_map_neo_ark_8017B470[];
 
-extern GpAreaPlace D_map_neo_ark_8017B4B0[];
+extern AreaPlacement D_map_neo_ark_8017B4B0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B4E0[];
+extern AreaPlacement D_map_neo_ark_8017B4E0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B530[];
+extern AreaPlacement D_map_neo_ark_8017B530[];
 
-extern GpAreaPlace D_map_neo_ark_8017B550[];
+extern AreaPlacement D_map_neo_ark_8017B550[];
 
-extern GpAreaPlace D_map_neo_ark_8017B590[];
+extern AreaPlacement D_map_neo_ark_8017B590[];
 
-extern GpAreaPlace D_map_neo_ark_8017B5C0[];
+extern AreaPlacement D_map_neo_ark_8017B5C0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B600[];
+extern AreaPlacement D_map_neo_ark_8017B600[];
 
-extern GpAreaPlace D_map_neo_ark_8017B610[];
+extern AreaPlacement D_map_neo_ark_8017B610[];
 
-extern GpAreaPlace D_map_neo_ark_8017B630[];
+extern AreaPlacement D_map_neo_ark_8017B630[];
 
-extern GpAreaPlace D_map_neo_ark_8017B6E0[];
+extern AreaPlacement D_map_neo_ark_8017B6E0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B700[];
+extern AreaPlacement D_map_neo_ark_8017B700[];
 
-extern GpAreaPlace D_map_neo_ark_8017B780[];
+extern AreaPlacement D_map_neo_ark_8017B780[];
 
-extern GpAreaPlace D_map_neo_ark_8017B7D0[];
+extern AreaPlacement D_map_neo_ark_8017B7D0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B850[];
+extern AreaPlacement D_map_neo_ark_8017B850[];
 
-extern GpAreaPlace D_map_neo_ark_8017B8B0[];
+extern AreaPlacement D_map_neo_ark_8017B8B0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B8D0[];
+extern AreaPlacement D_map_neo_ark_8017B8D0[];
 
-extern GpAreaPlace D_map_neo_ark_8017B950[];
+extern AreaPlacement D_map_neo_ark_8017B950[];
 
-extern GpAreaPlace D_map_neo_ark_8017B9E0[];
+extern AreaPlacement D_map_neo_ark_8017B9E0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BA60[];
+extern AreaPlacement D_map_neo_ark_8017BA60[];
 
-extern GpAreaPlace D_map_neo_ark_8017BB00[];
+extern AreaPlacement D_map_neo_ark_8017BB00[];
 
-extern GpAreaPlace D_map_neo_ark_8017BB70[];
+extern AreaPlacement D_map_neo_ark_8017BB70[];
 
-extern GpAreaPlace D_map_neo_ark_8017BBF0[];
+extern AreaPlacement D_map_neo_ark_8017BBF0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BC70[];
+extern AreaPlacement D_map_neo_ark_8017BC70[];
 
-extern GpAreaPlace D_map_neo_ark_8017BCE0[];
+extern AreaPlacement D_map_neo_ark_8017BCE0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BD50[];
+extern AreaPlacement D_map_neo_ark_8017BD50[];
 
-extern GpAreaPlace D_map_neo_ark_8017BD80[];
+extern AreaPlacement D_map_neo_ark_8017BD80[];
 
-extern GpAreaPlace D_map_neo_ark_8017BDB0[];
+extern AreaPlacement D_map_neo_ark_8017BDB0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BDC0[];
+extern AreaPlacement D_map_neo_ark_8017BDC0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BDD0[];
+extern AreaPlacement D_map_neo_ark_8017BDD0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BE40[];
+extern AreaPlacement D_map_neo_ark_8017BE40[];
 
-extern GpAreaPlace D_map_neo_ark_8017BE70[];
+extern AreaPlacement D_map_neo_ark_8017BE70[];
 
-extern GpAreaPlace D_map_neo_ark_8017BEB0[];
+extern AreaPlacement D_map_neo_ark_8017BEB0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BEF0[];
+extern AreaPlacement D_map_neo_ark_8017BEF0[];
 
-extern GpAreaPlace D_map_neo_ark_8017BF40[];
+extern AreaPlacement D_map_neo_ark_8017BF40[];
 
-extern GpAreaPlace D_map_neo_ark_8017BF90[];
+extern AreaPlacement D_map_neo_ark_8017BF90[];
 
-extern GpAreaPlace D_map_neo_ark_8017C020[];
+extern AreaPlacement D_map_neo_ark_8017C020[];
 
-extern GpAreaPlace D_map_neo_ark_8017C050[];
+extern AreaPlacement D_map_neo_ark_8017C050[];
 
-extern GpAreaPlace D_map_neo_ark_8017C070[];
+extern AreaPlacement D_map_neo_ark_8017C070[];
 
-extern GpAreaPlace D_map_neo_ark_8017C090[];
+extern AreaPlacement D_map_neo_ark_8017C090[];
 
-extern GpAreaPlace D_map_neo_ark_8017C0E0[];
+extern AreaPlacement D_map_neo_ark_8017C0E0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C0F0[];
+extern AreaPlacement D_map_neo_ark_8017C0F0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C140[];
+extern AreaPlacement D_map_neo_ark_8017C140[];
 
-extern GpAreaPlace D_map_neo_ark_8017C1D0[];
+extern AreaPlacement D_map_neo_ark_8017C1D0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C210[];
+extern AreaPlacement D_map_neo_ark_8017C210[];
 
-extern GpAreaPlace D_map_neo_ark_8017C270[];
+extern AreaPlacement D_map_neo_ark_8017C270[];
 
-extern GpAreaPlace D_map_neo_ark_8017C2A0[];
+extern AreaPlacement D_map_neo_ark_8017C2A0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C2E0[];
+extern AreaPlacement D_map_neo_ark_8017C2E0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C320[];
+extern AreaPlacement D_map_neo_ark_8017C320[];
 
-extern GpAreaPlace D_map_neo_ark_8017C350[];
+extern AreaPlacement D_map_neo_ark_8017C350[];
 
-extern GpAreaPlace D_map_neo_ark_8017C380[];
+extern AreaPlacement D_map_neo_ark_8017C380[];
 
-extern GpAreaPlace D_map_neo_ark_8017C3C0[];
+extern AreaPlacement D_map_neo_ark_8017C3C0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C3F0[];
+extern AreaPlacement D_map_neo_ark_8017C3F0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C420[];
+extern AreaPlacement D_map_neo_ark_8017C420[];
 
-extern GpAreaPlace D_map_neo_ark_8017C450[];
+extern AreaPlacement D_map_neo_ark_8017C450[];
 
-extern GpAreaPlace D_map_neo_ark_8017C4A0[];
+extern AreaPlacement D_map_neo_ark_8017C4A0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C4D0[];
+extern AreaPlacement D_map_neo_ark_8017C4D0[];
 
-extern GpAreaPlace D_map_neo_ark_8017C510[];
+extern AreaPlacement D_map_neo_ark_8017C510[];
 
-extern GpAreaPlace D_map_neo_ark_8017C530[];
+extern AreaPlacement D_map_neo_ark_8017C530[];
 
-extern GpAreaPlace D_map_neo_ark_8017C550[];
+extern AreaPlacement D_map_neo_ark_8017C550[];
 
-extern GpAreaPlace D_map_neo_ark_8017C580[];
+extern AreaPlacement D_map_neo_ark_8017C580[];
 
-extern GpAreaPlace D_map_neo_ark_8017C620[];
+extern AreaPlacement D_map_neo_ark_8017C620[];
 
-extern GpAreaPlace D_map_neo_ark_8017C690[];
+extern AreaPlacement D_map_neo_ark_8017C690[];
 
-extern GpAreaPlace D_map_neo_ark_8017C720[];
+extern AreaPlacement D_map_neo_ark_8017C720[];
 
-extern GpAreaPlace D_map_neo_ark_8017C760[];
+extern AreaPlacement D_map_neo_ark_8017C760[];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
 /// location, each ended by a key of -1.

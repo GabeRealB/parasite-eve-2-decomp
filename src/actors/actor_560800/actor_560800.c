@@ -4403,7 +4403,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 TmdObject*           tmd   = arg0->extra.tmd;
                 GfxCoord*            coord = tmd->coords;
                 Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
-                GpAreaPlace*         place;
+                AreaPlacement*       place;
                 u8                   id;
 
                 arg0->work = (TaskIdMap*)block;
@@ -4417,14 +4417,14 @@ void func_actor_560800_801326C4(Task* arg0)
                     arg0->msgTable = D_actor_560800_8016F34C;
                     place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
                     id             = place->entryId;
-                    while (id != 0xFF) {
+                    while (id != AREA_PLACEMENT_END) {
                         if (id == 0x83) {
                             break;
                         }
                         place++;
                         id = place->entryId;
                     }
-                    Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+                    Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                     Task_Reparent(D_actor_560800_8017578C, arg0);
                     failed = 0;
                 }
@@ -4505,7 +4505,7 @@ void func_actor_560800_80132A14(Task* arg0)
         Task*                parent = arg0->spawnArg2.pointer;
         GfxCoord*            coord  = tmd->coords;
         Actor560800AnimWork* block;
-        GpAreaPlace*         place;
+        AreaPlacement*       place;
         u8                   id;
 
         block      = Mem_Malloc(0x4CC, 0);
@@ -4531,27 +4531,27 @@ void func_actor_560800_80132A14(Task* arg0)
         if (arg0->spawnArg1.value < 2) {
             place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
-            while (id != 0xFF) {
+            while (id != AREA_PLACEMENT_END) {
                 if (id == 0x65) {
                     break;
                 }
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         } else if (arg0->spawnArg1.value == 2) {
             Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
         } else if (arg0->spawnArg1.value == 3) {
             place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
-            while (id != 0xFF) {
+            while (id != AREA_PLACEMENT_END) {
                 if (id == 0x22) {
                     break;
                 }
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         }
         Task_Reparent(parent, arg0);
         arg0->msgTable = D_actor_560800_8016F34C;
@@ -4580,7 +4580,7 @@ void func_actor_560800_80132C60(Task* arg0)
             TmdObject*           tmd   = arg0->extra.tmd;
             GfxCoord*            coord = tmd->coords;
             Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
-            GpAreaPlace*         place;
+            AreaPlacement*       place;
             u8                   id;
 
             arg0->work = (TaskIdMap*)block;
@@ -4594,14 +4594,14 @@ void func_actor_560800_80132C60(Task* arg0)
                 arg0->msgTable = D_actor_560800_8016F34C;
                 place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
                 id             = place->entryId;
-                while (id != 0xFF) {
+                while (id != AREA_PLACEMENT_END) {
                     if (id == 0x65) {
                         break;
                     }
                     place++;
                     id = place->entryId;
                 }
-                Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+                Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                 Task_Reparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }
@@ -4670,7 +4670,7 @@ void func_actor_560800_80132F64(Task* arg0)
             TmdObject*           tmd   = arg0->extra.tmd;
             GfxCoord*            coord = tmd->coords;
             Actor560800AnimWork* block = Mem_Malloc(0x4CC, 0);
-            GpAreaPlace*         place;
+            AreaPlacement*       place;
             u8                   id;
 
             arg0->work = (TaskIdMap*)block;
@@ -4684,14 +4684,14 @@ void func_actor_560800_80132F64(Task* arg0)
                 arg0->msgTable = D_actor_560800_8016F34C;
                 place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
                 id             = place->entryId;
-                while (id != 0xFF) {
+                while (id != AREA_PLACEMENT_END) {
                     if (id == 0x22) {
                         break;
                     }
                     place++;
                     id = place->entryId;
                 }
-                Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+                Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
                 Task_Reparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }

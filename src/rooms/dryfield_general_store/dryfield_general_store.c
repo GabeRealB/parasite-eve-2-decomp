@@ -1493,7 +1493,7 @@ GpAreaTmdRec D_dryfield_general_store_801855A0[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_general_store_801855C4[9] = {
+AreaPlacement D_dryfield_general_store_801855C4[9] = {
     { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
     { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
     { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
@@ -1502,7 +1502,7 @@ GpAreaPlace D_dryfield_general_store_801855C4[9] = {
     { 40, 0, 0, 3468, 0, 4772, 0, 0, 0, 2, 0 },
     { 40, 0, 0, 1234, 0, 3641, 128, 0, 0, 2, 0 },
     { 40, 0, 0, -1234, 0, 3641, -128, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_general_store_80185654[13] = {

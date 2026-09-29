@@ -1252,7 +1252,7 @@ void func_actor_160900_80132A14(Task* arg0)
         GfxCoord*              coord  = tmd->coords;
         Actor160900Child3Work* work;
         Actor160900Child3Work* block;
-        GpAreaPlace*           place;
+        AreaPlacement*         place;
         u8                     id;
 
         block      = Mem_Malloc(0x4BC, 0);
@@ -1277,14 +1277,14 @@ void func_actor_160900_80132A14(Task* arg0)
         if (arg0->spawnArg1.value < 2) {
             place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
             id    = place->entryId;
-            while (id != 0xFF) {
+            while (id != AREA_PLACEMENT_END) {
                 if (id == 0x65) {
                     break;
                 }
                 place++;
                 id = place->entryId;
             }
-            Gp_SetTmdBytes(arg0->extra.tmd, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         } else if (arg0->spawnArg1.value == 2) {
             Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
         }
@@ -1329,7 +1329,7 @@ void func_actor_160900_80132C08(Task* task)
     TmdObject*             obj2;
     GfxCoord*              coord;
     Actor160900Child3Work* work;
-    GpAreaPlace*           place;
+    AreaPlacement*         place;
     VECTOR                 pos;
     s32                    failed;
 
@@ -1348,10 +1348,10 @@ void func_actor_160900_80132C08(Task* task)
             obj->flags    |= 0x84;
             task->msgTable = D_actor_160900_8013F200;
             place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-            while (place->entryId != 0xFF && place->entryId != 0x65) {
+            while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x65) {
                 place++;
             }
-            Gp_SetTmdBytes(task->extra.tmd, (s8)place->tpage, (s8)place->clut);
+            Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
             Task_Reparent(D_actor_160900_8013FBB4, task);
             failed = 0;
         }

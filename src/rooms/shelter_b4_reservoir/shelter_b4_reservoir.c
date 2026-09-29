@@ -853,30 +853,30 @@ GpAreaTmdRec D_shelter_b4_reservoir_80187258[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b4_reservoir_80187270[2] = {
+AreaPlacement D_shelter_b4_reservoir_80187270[2] = {
     { 4, 0, 1, 900, 1000, -2400, 3072, 0, 0, 2, 4 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_reservoir_80187290[5] = {
+AreaPlacement D_shelter_b4_reservoir_80187290[5] = {
     { 44, 0, 0, 2950, 0, -2800, 1200, 0, 0, 2, 0 },
     { 44, 0, 0, 1650, 0, -400, 2100, 0, 0, 2, 0 },
     { 72, 0, 0, -1800, -2000, -2150, 200, 0, 2, 4, 0 },
     { 72, 0, 0, -2350, -2000, -4350, 400, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_reservoir_801872E0[4] = {
+AreaPlacement D_shelter_b4_reservoir_801872E0[4] = {
     { 24, 0, 0, -2100, -2000, 780, 2048, 0, 0, 2, 0 },
     { 70, 0, 0, 780, 0, -4300, 3584, 0, 2, 4, 0 },
     { 71, 0, 1, 1750, 0, 3450, 2048, 0, 2, 4, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b4_reservoir_80187320[3] = {
+AreaPlacement D_shelter_b4_reservoir_80187320[3] = {
     { 4, 0, 0, 850, 0, -1000, 3200, 0, 0, 2, 0 },
     { 4, 0, 0, 350, 0, -4600, 300, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b4_reservoir_80187350[12] = {

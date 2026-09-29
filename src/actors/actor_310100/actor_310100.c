@@ -763,8 +763,8 @@ void func_actor_310100_801620FC(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
     u8               mode;
 
     work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
@@ -795,7 +795,7 @@ void func_actor_310100_801620FC(Task* task)
         skip:
             modelTask = work->field_4E4;
             place     = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-            while (place->entryId != 0xFF && place->entryId != mode) {
+            while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
             }
             obj               = modelTask->extra.tmd;
@@ -827,8 +827,8 @@ void func_actor_310100_80162284(Task* task)
     Actor310100Work* display;
     Task*            modelTask;
     TmdObject*       obj;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
     u8               mode;
 
     work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
@@ -859,7 +859,7 @@ void func_actor_310100_80162284(Task* task)
         skip:
             modelTask = work->field_4E4;
             place     = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-            while (place->entryId != 0xFF && place->entryId != mode) {
+            while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
             }
             obj               = modelTask->extra.tmd;
@@ -886,8 +886,8 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
     u16              mode;
     u16              active;
     u8               id;
@@ -929,10 +929,10 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     task->msgTable = D_actor_310100_801798B4;
     id             = mode;
     place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    while (place->entryId != 0xFF && place->entryId != id) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
+    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Common spawn of the two floor-quad display handlers: `func_actor_310100_801631B0`
@@ -946,8 +946,8 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     Actor310100Work* work;
     Actor310100Work* work2;
     TmdObject*       obj;
-    GfxCoord*        coord;
-    GpAreaPlace*     place;
+    GfxCoord*         coord;
+    AreaPlacement*   place;
     u16              mode;
     u16              active;
     u8               id;
@@ -990,10 +990,10 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     task->msgTable = D_actor_310100_801798B4;
     id             = mode;
     place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-    while (place->entryId != 0xFF && place->entryId != id) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
-    Gp_SetTmdBytes(obj, (s8)place->tpage, (s8)place->clut);
+    Gp_SetTmdBytes(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Controller for the display model spawned from `D_actor_310100_801798FC`.
@@ -1007,8 +1007,8 @@ void func_actor_310100_801627BC(Task* task)
 {
     Actor310100Work* work;
     Actor310100Work* work2;
-    GpAreaPlace*     place;
-    GfxCoord*        coord;
+    AreaPlacement*   place;
+    GfxCoord*         coord;
     Task*            child;
     u16              st;
     u16              on;
@@ -1038,7 +1038,7 @@ void func_actor_310100_801627BC(Task* task)
             if (on) {
                 work  = (Actor310100Work*)task->work;
                 place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-                while (place->entryId != 0xFF && place->entryId != 0x6C) {
+                while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x6C) {
                     place++;
                 }
                 child             = Task_SpawnFromTable(D_actor_310100_801798FC, 2, 1, 0);
@@ -1078,8 +1078,8 @@ void func_actor_310100_801627BC(Task* task)
 void func_actor_310100_801629FC(Task* task)
 {
     Actor310100Work* work;
-    GpAreaPlace*     place;
-    GfxCoord*        coord;
+    AreaPlacement*   place;
+    GfxCoord*         coord;
     Task*            child;
     u16              st;
     u16              on;
@@ -1116,7 +1116,7 @@ void func_actor_310100_801629FC(Task* task)
             }
             if (on) {
                 place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
-                while (place->entryId != 0xFF && place->entryId != 0x6D) {
+                while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x6D) {
                     place++;
                 }
                 child             = Task_SpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->field_504), 0);

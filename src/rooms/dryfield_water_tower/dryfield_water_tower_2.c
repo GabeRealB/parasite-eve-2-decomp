@@ -1677,9 +1677,9 @@ GpAreaTmdRec D_dryfield_water_tower_80187544[2] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_dryfield_water_tower_8018755C[2] = {
+AreaPlacement D_dryfield_water_tower_8018755C[2] = {
     { 1, 0, 0, -1568, 0, 2432, 3072, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_dryfield_water_tower_8018757C[13] = {

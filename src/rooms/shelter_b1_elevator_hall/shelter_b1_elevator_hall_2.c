@@ -432,20 +432,20 @@ GpAreaTmdRec D_shelter_b1_elevator_hall_801847CC[3] = {
     { 255, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaPlace D_shelter_b1_elevator_hall_801847F0[4] = {
+AreaPlacement D_shelter_b1_elevator_hall_801847F0[4] = {
     { 6, 0, 0, -700, 0, 0, 1024, 0, 0, 2, 0 },
     { 6, 0, 0, 6050, 0, 3250, 1700, 0, 0, 2, 0 },
     { 6, 0, 0, -2150, 0, -500, 3700, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_elevator_hall_80184830[3] = {
+AreaPlacement D_shelter_b1_elevator_hall_80184830[3] = {
     { 3, 0, 0, -5500, 0, 0, 3072, 0, 0, 2, 0 },
     { 3, 0, 1, -2500, 0, 0, 1024, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_elevator_hall_80184860[11] = {
+AreaPlacement D_shelter_b1_elevator_hall_80184860[11] = {
     { 21, 0, 0, 0, -2000, 1500, 2048, 0, 0, 2, 0 },
     { 21, 0, 0, 3000, -2000, 1500, 2048, 0, 0, 2, 2 },
     { 21, 0, 0, 0, -2000, -1500, 0, 0, 0, 2, 0 },
@@ -456,13 +456,13 @@ GpAreaPlace D_shelter_b1_elevator_hall_80184860[11] = {
     { 21, 0, 0, 8000, -2000, 4900, 2048, 0, 0, 2, 0 },
     { 21, 0, 0, 7000, -2000, 4900, 2048, 0, 0, 2, 0 },
     { 21, 0, 0, 6000, -2000, 4900, 2048, 0, 0, 2, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaPlace D_shelter_b1_elevator_hall_80184910[3] = {
+AreaPlacement D_shelter_b1_elevator_hall_80184910[3] = {
     { 23, 2, 1, 9000, 0, 1500, 0, 0, 0, 2, 0 },
     { 56, 7, 1, 5000, 0, 0, 3072, 0, 3, 5, 0 },
-    { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 GpAreaVariant D_shelter_b1_elevator_hall_80184940[12] = {

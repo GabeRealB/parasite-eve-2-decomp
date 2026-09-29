@@ -2492,14 +2492,14 @@ static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 {
     GpAreaVariant* rec;
-    GpAreaPlace*   place;
+    AreaPlacement* place;
     s32            idx;
 
     idx          = enemy->placeKey >> 12;
     rec          = actorGetCurrentAreaRec();
     place        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
+    model->tpage = place->texturePageOffset;
+    model->clut  = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -2509,12 +2509,12 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
 static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    GpAreaVariant*   rec;
-    GpAreaPlace*     place;
-    TmdObject*       model;
-    s32              idx;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    GpAreaVariant* rec;
+    AreaPlacement* place;
+    TmdObject*     model;
+    s32            idx;
 
     sessionKey = &gGameSession->at4.loc;
     idx        = enemy->placeKey >> 12;
@@ -2526,8 +2526,8 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     place        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = place->tpage;
-    model->clut  = place->clut;
+    model->tpage = place->texturePageOffset;
+    model->clut  = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
