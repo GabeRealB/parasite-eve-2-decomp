@@ -17,11 +17,13 @@
 #include "main/gfx.h"
 #include "main/tmd.h"
 
-extern GfxCoord* _gGpCurCoord;
-
 static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
-GfxCoord* _gGpCurCoord = NULL;
+/// Last node explicitly submitted for composition through its full parent chain.
+///
+/// Initially NULL; updates with an excluded ancestor leave this snapshot alone.
+/// No game code reads it. The pointer is borrowed and may outlive its node.
+static GfxCoord* _gActorRenderLastFullChainCoord = NULL;
 
 // "Item obtained!"
 // "Bonus item!!"
@@ -226,14 +228,14 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 
 void Gp_UpdateCoord(GfxCoord* coord)
 {
-    _gGpCurCoord = coord;
+    _gActorRenderLastFullChainCoord = coord;
     _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
 }
 
 void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root)
 {
     if (coord->parent == NULL) {
-        _gGpCurCoord = coord;
+        _gActorRenderLastFullChainCoord = coord;
         _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
