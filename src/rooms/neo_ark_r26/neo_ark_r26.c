@@ -456,7 +456,7 @@ void func_neo_ark_r26_8017D5D0(void)
         Mc_SaveData[0].state.at4.loc.room  = 1;
         gDisplayState.spriteVariant        = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 1);
     }
 }
 

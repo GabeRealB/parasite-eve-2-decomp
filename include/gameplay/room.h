@@ -11,7 +11,7 @@ struct _GpObj4C;
 
 /// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
 /// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
-/// `&table[GpAreaKey.view]` when that index is in range,
+/// `&table[GameLocationKey.view]` when that index is in range,
 /// otherwise `(GpRoomBoundVec*)&Gp_RoomBoundDefault`. `func_800D7A9C` reads
 /// `field_0` / `field_2` / `field_4` as signed XYZ minimums.
 typedef struct _GpRoomBoundVec {
@@ -38,7 +38,7 @@ typedef struct _GpRoomCoordSet {
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 
 /// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
-/// by `GpAreaKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
+/// by `GameLocationKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
 /// `Gp_GetRoomCoordSet` returns `field_0`, the room view's lights (or NULL).
 /// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
 /// back to `Gp_RoomBoundDefault`.
@@ -63,7 +63,7 @@ typedef struct _GpRoomParamRec {
 STATIC_ASSERT_SIZEOF(GpRoomParamRec, 8);
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
-/// Indexed 1-based by `GameSession.at4.loc.room` / `GpAreaKey.room`.
+/// Indexed 1-based by `GameSession.at4.loc.room` / `GameLocationKey.room`.
 /// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&gGfxViewCoord` and
 /// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpRoomObjRec {
@@ -75,7 +75,7 @@ typedef struct _GpRoomObjRec {
 STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
 
 /// Per-stage wrapper. `field_0` is an array of `GpRoomObjRec*`, indexed
-/// 1-based by `GameSession.at4.loc.area` / `GpAreaKey.area`.
+/// 1-based by `GameSession.at4.loc.area` / `GameLocationKey.area`.
 typedef struct _GpRoomObjTbl {
     /* 0x0 */ GpRoomObjRec** field_0;
 } GpRoomObjTbl;

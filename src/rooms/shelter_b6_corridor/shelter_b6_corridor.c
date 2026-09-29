@@ -810,7 +810,7 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
         ptr += 1;
     } while (i <= 0x12BFF);
     D_shelter_b6_corridor_801851B0.value = 2;
-    if (gGameSession->at4.loc.place == 1) {
+    if (gGameSession->at4.loc.variant == 1) {
         gStageSceneMusicEntry    = 2;
         gGameSession->flowFlags |= 1;
         gGameSession->flowFlags |= 2;
@@ -1093,11 +1093,11 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 
 void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    GpSprtCmd* cmd;
-    s32        run = arg0 & 0xFF;
-    s32        flag;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    GpSprtCmd*       cmd;
+    s32              run = arg0 & 0xFF;
+    s32              flag;
 
     if (run == 0) {
         flag = arg1 & 0xFF;

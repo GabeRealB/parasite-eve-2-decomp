@@ -1262,7 +1262,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 2:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                slot = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0);
+                slot = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
             }
@@ -1519,7 +1519,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);

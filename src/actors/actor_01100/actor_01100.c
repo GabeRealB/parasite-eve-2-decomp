@@ -1260,7 +1260,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         return;
     }
 
-    map = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
+    map = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -1268,7 +1268,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
-    if ((map & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 32, 0, 0)) {
+    if ((map & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0)) {
         param1[0]       = 2;
         work->field_BB8 = 1;
     } else {
@@ -1736,7 +1736,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
             work->field_B92 = hp;
             enemy->hp       = hp;
             if (work->field_B92 <= 0) {
-                if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) {
+                if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
                     work->field_BC8 = 0;
                 } else {
                     Gp_ReleaseStateF0Add(task, (s8)work->field_BBB);
@@ -3414,7 +3414,7 @@ static void Actor01100_Fn05678(
     GpObj*        obj;
 
     extra = task->extra.tmd;
-    if (((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
+    if (((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &Player_Status;
         if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
@@ -3479,7 +3479,7 @@ static void Actor01100_Fn05678(
     } else {
         time            = work->field_B8C - 1;
         work->field_B8C = time;
-        if ((time == 0) && ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(5, 24, 0, 0))) {
+        if ((time == 0) && ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(5, 24, 0, 0))) {
             work->field_BA6 = 0x10;
         }
     }
@@ -3686,12 +3686,12 @@ static void Actor01100_Fn06198(Task* task)
     s16                       countdown;
 
     work       = task->work;
-    map        = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
-    map       &= GP_LOC_STAGE_AREA;
+    map        = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
+    map       &= GAME_LOCATION_STAGE_AREA_MASK;
     coord      = task->extra.tmd->coords;
     soundCoord = coord;
     d4         = &work->rec;
-    flag       = map == GP_LOC_KEY(3, 32, 0, 0);
+    flag       = map == GAME_LOCATION_KEY(3, 32, 0, 0);
     if (Gp_StateF0.field_4 == 0) {
         d4->end1.vx         = -work->vel.vx;
         d4->end1.vy         = -work->vel.vy;
@@ -3749,7 +3749,7 @@ static void Actor01100_Fn0638C(Task* task)
     GpMtxWords*               rotation;
 
     coord   = task->extra.tmd->coords;
-    area    = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA;
+    area    = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     variant = area == 0x03200000;
     work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {

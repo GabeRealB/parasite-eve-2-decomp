@@ -14,7 +14,7 @@ void Gp_ApplyNpcRoomSnd(void);
 
 void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1);
 
-void Gp_MarkAreaVisited(GpAreaKey* arg0);
+void Gp_MarkAreaVisited(GameLocationKey* arg0);
 
 void Gp_SessionState1(Task* task);
 

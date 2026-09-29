@@ -59,9 +59,9 @@ GpSpawnTransform D_80114CB0;
 
 static inline u16 _gpAdvanceAreaCd(void);
 
-static void Gp_InitStageVisit(GpAreaKey* arg0);
+static void Gp_InitStageVisit(GameLocationKey* arg0);
 
-void func_80724748(GpAreaKey* arg0);
+void func_80724748(GameLocationKey* arg0);
 
 static inline u16 _gpAdvanceAreaCd(void)
 {
@@ -94,15 +94,15 @@ GpRoomParamRec*** Gp_RoomParamTables[5] = { D_map_akropolis_8017AC6C, D_map_dryf
 
 void func_800AA548(s32 arg0)
 {
-    GpWarpRec    rec;
-    GpActorFlags flags;
-    TmdObject*   model;
-    GpAreaKey*   sess;
-    GameSession* session;
-    PlayerPos*   pos;
-    s32          stage;
-    s32          warp;
-    u32          playerId;
+    GpWarpRec        rec;
+    GpActorFlags     flags;
+    TmdObject*       model;
+    GameLocationKey* sess;
+    GameSession*     session;
+    PlayerPos*       pos;
+    s32              stage;
+    s32              warp;
+    u32              playerId;
 
     session                    = gGameSession;
     session->deathVariant      = 0;
@@ -130,7 +130,7 @@ void func_800AA548(s32 arg0)
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
-        if (((GP_LOC_WORD(gGameSession->at4.loc) & ~0xFF) == GP_LOC_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
+        if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & ~0xFF) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
             Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = 2;
         } else {
             Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = rec.field_34;
@@ -340,7 +340,7 @@ void Gp_LoadState2(Task* task)
     s8                yoff;
     McSaveData*       save;
     StageMusicParams* pair;
-    GpAreaKey*        sess;
+    GameLocationKey*  sess;
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
@@ -369,7 +369,7 @@ void Gp_LoadState2(Task* task)
         Gp_InitStageVisit(sess);
         save = &Mc_SaveData[0];
         Mem_ConfigureAuxHeap(save->state.at4.loc.stage, save->state.at4.loc.area);
-        if ((GP_LOC_WORD(save->state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(save->state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
         }
         Mem_InitAux();
@@ -448,17 +448,17 @@ void Gp_LoadWaitCompanion(Task* task)
 
 void Gp_LoadWaitSave(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
-    u8            param1[8];
-    u8            param2[8];
-    GpAreaKey*    saveKey;
-    GameSession*  sess;
+    TILE*            tile;
+    DR_TPAGE*        dr;
+    DisplayState*    ds;
+    s32              color;
+    s32              queued;
+    s32              buf;
+    s8               yoff;
+    u8               param1[8];
+    u8               param2[8];
+    GameLocationKey* saveKey;
+    GameSession*     sess;
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
@@ -486,7 +486,7 @@ void Gp_LoadWaitSave(Task* task)
         GameSession* session;
 
         session = gGameSession;
-        if ((GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(session->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 1, 0, 0)) {
             if (session->at4.loc.room >= 4) {
                 Snd_InitFromStage(session->at4.loc.stage, session->at4.loc.area);
                 param1[3] = gGameSession->at4.loc.stage;
@@ -500,14 +500,14 @@ void Gp_LoadWaitSave(Task* task)
             }
         }
         sess = gGameSession;
-        if (sess->applySavePlace == 1) {
-            Gp_SetAreaObjId(&sess->at4.loc, Mc_SaveData[0].state.at4.loc.place, -1);
-            gGameSession->applySavePlace = 0;
+        if (sess->applySaveVariant == 1) {
+            areaSetPlacementVariant(&sess->at4.loc, Mc_SaveData[0].state.at4.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            gGameSession->applySaveVariant = 0;
         }
-        saveKey = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
+        saveKey = &Mc_SaveData[0].state.at4.loc;
         Gp_MarkAreaVisited(saveKey);
-        Gp_SyncAreaKeyIndex(saveKey);
-        gGameSession->at4.loc.place = saveKey->place;
+        areaSyncLocationVariant(saveKey);
+        gGameSession->at4.loc.variant = saveKey->variant;
         CdCmd_BuildVlcIfStream();
         D_80114C74 = 0;
         task->state++;
@@ -600,7 +600,7 @@ void Gp_FadeGrayHold(Task* task)
     }
 }
 
-static void Gp_InitStageVisit(GpAreaKey* arg0)
+static void Gp_InitStageVisit(GameLocationKey* arg0)
 {
     McSaveData*  save;
     GpFlagBank** banks;

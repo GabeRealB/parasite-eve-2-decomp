@@ -520,13 +520,13 @@ s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, GpMessageArg arg2
 
 /// First state of the room task: publishes the room's message table and claims
 /// pointer slot 7. When game nibble 0xAF is still clear and the session's place
-/// (`gGameSession->at4.loc.place`) is 1, it sets the nibble to 1 and spawns
+/// (`gGameSession->at4.loc.variant`) is 1, it sets the nibble to 1 and spawns
 /// entry 0 of `D_8013E51C`. Advances to the next state either way.
 static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
     Game_SetPtrSlot(task, 7);
-    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->at4.loc.place == 1) {
+    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->at4.loc.variant == 1) {
         GameFlag_SetNibble(0xAF, 1);
         Task_SpawnFromTable(D_8013E51C, 0, 0, 0);
     }

@@ -1851,7 +1851,7 @@ void func_shelter_b1_underground_parking_80182154(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1995,7 +1995,7 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
 s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, GpMessageArg arg3)
 {
-    if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
+    if (msg->field_2 == 1 && gGameSession->at4.loc.variant == 0x15) {
         func_80131E38();
     }
     if (msg->field_2 == 0xA) {
@@ -2558,7 +2558,7 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
     Game_SetPtrSlot(arg0, 7);
     func_shelter_b1_underground_parking_801848A4();
-    if (gGameSession->at4.loc.place == 0x15) {
+    if (gGameSession->at4.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);
     }
     if ((GameFlag_GetNibble(0x7A) >= 6) && (GameFlag_GetNibble(0x123) == 0)) {

@@ -1326,8 +1326,8 @@ static void            func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2
 static void            func_actor_401000_80133D50(Task* arg0);
 static void            func_actor_401000_80134DB4(Task* arg0);
 static void            func_actor_401000_80134F98(Task* arg0);
-static void            func_actor_401000_801352DC(GpAreaKey* session, GfxCoord* coord);
-static __inline__ s32  Actor401000_HasHeightClamp(GpAreaKey* session);
+static void            func_actor_401000_801352DC(GameLocationKey* session, GfxCoord* coord);
+static __inline__ s32  Actor401000_HasHeightClamp(GameLocationKey* session);
 static s32             func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
 static s32             func_actor_401000_80135704(Task* arg0, GpRec18* recs, s16 count);
 static void            func_actor_401000_80135AA4(Task* arg0);
@@ -2607,7 +2607,7 @@ static void func_actor_401000_80134F98(Task* arg0)
     SCRATCH_POP(ActorChaseScratch);
 }
 
-static void func_actor_401000_801352DC(GpAreaKey* session, GfxCoord* coord)
+static void func_actor_401000_801352DC(GameLocationKey* session, GfxCoord* coord)
 {
     ActorHeightClamp* row;
     s32               offset;
@@ -2631,11 +2631,11 @@ static void func_actor_401000_801352DC(GpAreaKey* session, GfxCoord* coord)
 }
 
 /// Whether `D_actor_401000_80154FD0` has a row matching the session's
-/// `GpAreaKey::stage` / `area` pair. The helper behind both
+/// `GameLocationKey::stage` / `area` pair. The helper behind both
 /// height-clamp probes of `func_actor_401000_80135374`; the second probe is
 /// followed by the `func_actor_401000_801352DC` call itself, which walks the
 /// same rows to clamp the root Y. Same helper as `Actor401300_HasHeightClamp`.
-static __inline__ s32 Actor401000_HasHeightClamp(GpAreaKey* session)
+static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
 {
     ActorHeightClamp* row;
     s16               i;
@@ -2681,7 +2681,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401000_HasHeightClamp(&gGameSession->at4.loc.view)) {
+        if (Actor401000_HasHeightClamp(&gGameSession->at4.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) <= 0x12C) {
                 goto addStep;
@@ -2727,8 +2727,8 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, GpRec18* rec, s16 arg2, s
             }
         }
     }
-    if (Actor401000_HasHeightClamp(&gGameSession->at4.loc.view)) {
-        func_actor_401000_801352DC(&gGameSession->at4.loc.view, coord);
+    if (Actor401000_HasHeightClamp(&gGameSession->at4.loc)) {
+        func_actor_401000_801352DC(&gGameSession->at4.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {

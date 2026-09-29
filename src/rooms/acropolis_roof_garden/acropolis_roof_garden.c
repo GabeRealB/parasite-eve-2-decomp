@@ -916,7 +916,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
             return;
     }
 
-    state = (u8)gGameSession->at4.loc.view;
+    state = gGameSession->at4.loc.view;
     if (state != 5) {
         vol = 0;
         if (state == 7) {
@@ -966,12 +966,12 @@ s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, 
 {
     switch (in->field_2) {
         case 1:
-            if (((gGameSession->at4.loc.place == 1) || (gGameSession->at4.loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
+            if (((gGameSession->at4.loc.variant == 1) || (gGameSession->at4.loc.variant == 7)) && (GameFlag_GetNibble(0xCB) == 0)) {
                 GameFlag_SetNibble(0xCB, 1);
             }
             break;
         case 2:
-            if (((gGameSession->at4.loc.place == 1) || (gGameSession->at4.loc.place == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
+            if (((gGameSession->at4.loc.variant == 1) || (gGameSession->at4.loc.variant == 7)) && (GameFlag_GetNibble(0xCB) == 1)) {
                 func_800E8614(D_acropolis_roof_garden_80184B08, 1);
                 GameFlag_SetNibble(0xCB, 2);
             }
@@ -1091,7 +1091,7 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 
 static void func_acropolis_roof_garden_8017DBEC(Task* task)
 {
-    GpAreaKey key;
+    GameLocationKey key;
 
     if ((gGameSession->at4.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
@@ -1099,7 +1099,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
         GameFlag_SetNibble(6, 1);
         key.stage = 1;
         key.area  = 0xC;
-        Gp_SetAreaObjId(&key, 3, 1);
+        areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
     }
 }
 
@@ -1145,13 +1145,13 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
         task->state = task->state + 1;
     }
     if (Gp_State1C->eventState < 4) {
-        if ((0x30 >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+        if ((0x30 >> (gGameSession->at4.loc.view - 1)) & 1) {
             work->move.vx = -0x12A2;
             work->move.vy = -0xDC;
             work->move.vz = -0xF19;
             Gp_SpawnEff(0x60090, coord, 0x60E, &work->move);
         }
-        if ((u8)gGameSession->at4.loc.view == 7) {
+        if (gGameSession->at4.loc.view == 7) {
             work->move.vx = -0x12A2;
             work->move.vy = -0xDC;
             work->move.vz = -0xF19;
@@ -1195,7 +1195,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (Gp_State1C->eventState < 2) {
-        if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+        if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1) {
             Gp_UpdateCoord(coord);
             scratch  = (void**)G_SCRATCH_HEAD;
             head     = *scratch;

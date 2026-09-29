@@ -2858,7 +2858,7 @@ poseEnd:
             CdCmd_Enqueue(0x21, cmd38, cmd30);
         }
     }
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
         func_mine_mesa_801811C4(0x7D0);
     }
     Gp_ClearRec18Occupied(&work->objs[2].field_20);
@@ -3221,7 +3221,7 @@ static void Actor00100_Fn04270(Task* arg0)
         ctx->recs = 0;
     }
     if (work->field_6 >= 0x3D && work->field_C18 == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, ctx->placeKey >> 12, 0);
         }
         arg0->state++;
@@ -3523,7 +3523,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         }
 
         if ((var_v0_6 >= 0x601) && ((u32)scratch->distanceSquared >= 0xE11U)) {
-            if (((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) && Actor00100_InRegion(arg0)) {
+            if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && Actor00100_InRegion(arg0)) {
                 if (Actor00100_FacingAway(arg0->extra.tmd->coords)) {
                     work->field_0 = 6;
                 } else {
@@ -5018,7 +5018,7 @@ static void Actor00100_Fn09310(Task* arg0)
         ctx->recs = 0;
     }
     if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
         }
         arg0->state++;
@@ -5383,7 +5383,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
                             work->field_8DC = (s32)((s32)work->field_8DC >> 1);
                             work->field_8E0 = (s32)((s32)work->field_8E0 >> 1);
                         }
-                    } else if (((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) && (work->field_8D8 != 0) && (work->field_8E0 != 0) && ((s16)work->field_C28 < 6)) {
+                    } else if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->field_8D8 != 0) && (work->field_8E0 != 0) && ((s16)work->field_C28 < 6)) {
                         if (Actor00100_InRegion(player)) {
                             if (Actor00100_InDirection(player, (VECTOR*)&work->field_8D8)) {
                                 work->field_8E8     = 0x38;
@@ -5458,7 +5458,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
             nextAction = work->field_BFC;
             switch (nextAction) {
                 case 1:
-                    if ((((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(4, 1, 0, 0)) || (work->field_8E8 != 0x38)) && (config->hp > 0)) {
+                    if ((((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->field_8E8 != 0x38)) && (config->hp > 0)) {
                         nextMessage     = &work->field_BF8;
                         work->field_C00 = 0;
                         work->field_C04 = 0;

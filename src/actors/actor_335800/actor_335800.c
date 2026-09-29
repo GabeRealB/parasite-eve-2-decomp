@@ -1119,10 +1119,10 @@ void func_actor_335800_8016224C(void)
 /// flag 0x7F's nibble to 1, 0 draws them again.
 void func_actor_335800_801622C0(s32 arg0)
 {
-    GameSession* g;
-    GpAreaKey*   sess;
-    GpSprtRec*   rec;
-    GpSprtCmd*   cmd;
+    GameSession*     g;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       cmd;
 
     g    = gGameSession;
     sess = &g->at4.loc;
@@ -1236,9 +1236,9 @@ void func_actor_335800_80162588(Task* arg0)
 static void func_actor_335800_80162640(Task* arg0)
 {
     Actor335800MainWork* work;
-    GpAreaKey            key;
-    GpAreaKey*           sessionKey;
-    u8*                  keyAddr;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    GameLocationKey*     keyAddr;
     Task*                spawned;
 
     work = (Actor335800MainWork*)memCalloc(0x50C, false);
@@ -1268,7 +1268,7 @@ static void func_actor_335800_80162640(Task* arg0)
         key.area     = sessionKey->area;
         key.room     = sessionKey->room;
         key.view     = sessionKey->view;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
@@ -1288,12 +1288,12 @@ static void func_actor_335800_80162640(Task* arg0)
         work->child1 = spawned;
         model        = spawned->extra.tmd;
         idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
-        sessionKey   = (GpAreaKey*)(keyAddr = &gGameSession->at4.loc.view);
+        sessionKey   = (keyAddr = &gGameSession->at4.loc);
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
-        key.room     = ((GpAreaKey*)keyAddr)->room;
-        key.view     = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
-        Gp_SyncAreaKeyIndex(&key);
+        key.room     = keyAddr->room;
+        key.view     = gGameSession->at4.loc.view;
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;

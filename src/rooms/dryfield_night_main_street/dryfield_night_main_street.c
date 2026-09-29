@@ -77,12 +77,12 @@
 /// starts on the view named by its first byte.
 #define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)      \
     {                                                                   \
-        GpAreaKey* sess;                                                \
-        GpSprtRec* rec;                                                 \
-        GpSprtCmd* cmd;                                                 \
-        u8*        p;                                                   \
-        s16        idx;                                                 \
-        u8**       tbl;                                                 \
+        GameLocationKey* sess;                                          \
+        GpSprtRec*       rec;                                           \
+        GpSprtCmd*       cmd;                                           \
+        u8*              p;                                             \
+        s16              idx;                                           \
+        u8**             tbl;                                           \
                                                                         \
         idx  = GameFlag_GetNibble(nibble);                              \
         tbl  = table;                                                   \

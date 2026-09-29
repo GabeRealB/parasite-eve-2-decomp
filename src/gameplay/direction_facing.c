@@ -200,15 +200,15 @@ void Gp_RunDirAction(void)
 
 void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
 {
-    GpAreaKey  key;
-    GpAreaRec* tbl;
-    GpAreaObj* obj;
-    GpAreaKey* sess;
-    s32        i;
-    s32        stage;
-    s32        mask;
-    s8         apply;
-    s8         mode;
+    GameLocationKey  key;
+    GpAreaRec*       tbl;
+    GpAreaObj*       obj;
+    GameLocationKey* sess;
+    s32              i;
+    s32              stage;
+    s32              mask;
+    s8               apply;
+    s8               mode;
 
     apply = 0;
     sess  = &gGameSession->at4.loc;
@@ -237,14 +237,14 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
             }
         }
         if (apply) {
-            Gp_SetAreaObjId(&key, recs[i].field_2, 1);
+            areaSetPlacementVariant(&key, recs[i].field_2, AREA_VARIANT_RESET_ALWAYS);
             if (tbl != NULL) {
                 obj = tbl[recs[i].field_1].field_4;
                 if (obj != NULL) {
                     if (recs[i].field_3 & 0xF) {
-                        obj->field_1 |= 4;
+                        obj->spawnFlags |= 4;
                     } else {
-                        obj->field_1 &= 0xFB;
+                        obj->spawnFlags &= 0xFB;
                     }
                 }
             }

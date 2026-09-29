@@ -197,7 +197,7 @@ void Gp_EndingTask(Task* arg0)
         work                = arg0->spawnArg2.pointer;
         work->field_4       = 1;
         arg0->killCountdown = 0x1E;
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 48, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(0xB, 0, 0);

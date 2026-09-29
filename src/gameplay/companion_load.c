@@ -206,7 +206,7 @@ void Gp_ApplyNpcRoomSnd(void)
 
     save  = &Mc_SaveData[0];
     stage = save->state.at4.loc.stage;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(3, 32, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
@@ -265,7 +265,7 @@ static void Gp_ClearFlagBank(s32 arg0)
     bank->visitedAreas[1] = 0;
 }
 
-void Gp_MarkAreaVisited(GpAreaKey* arg0)
+void Gp_MarkAreaVisited(GameLocationKey* arg0)
 {
     McSaveData* save;
     GpFlagBank* bank;
@@ -357,7 +357,7 @@ void Gp_LoadFinishTask(Task* task)
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
         taskKill(task);
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             func_800AA548(1);
         } else {
             func_800AA548(0);
@@ -366,7 +366,7 @@ void Gp_LoadFinishTask(Task* task)
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
             CdCmd_SetupMdecBuffers();
             CdCmd_SelectMdecBuffer();
@@ -453,14 +453,14 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_LinkRoomObjectsSpawn(Task* task)
 {
-    GpAreaKey*    sess;
-    GpRoomObjRec* recs;
-    GpGridParams* grid;
-    GpObj4A*      list1;
-    GpObj4A*      list2;
-    GpObj3A*      list3;
-    s32           i;
-    Task*         spawned;
+    GameLocationKey* sess;
+    GpRoomObjRec*    recs;
+    GpGridParams*    grid;
+    GpObj4A*         list1;
+    GpObj4A*         list2;
+    GpObj3A*         list3;
+    s32              i;
+    Task*            spawned;
 
     sess = &gGameSession->at4.loc;
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];

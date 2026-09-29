@@ -430,7 +430,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         DecDCTvlcBuild(D_8006AC38);
         return 0U;
     }
-    Mdec_SetupBuffers(&gGameSession->at4.loc.view);
+    Mdec_SetupBuffers((u8*)&gGameSession->at4.loc);
     return 0U;
 }
 

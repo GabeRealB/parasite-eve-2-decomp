@@ -5050,7 +5050,7 @@ static void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
         work->vel.vx = 0;
     }
 
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -5104,7 +5104,7 @@ static void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
 
     work->field_1AC++;
 
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -8694,8 +8694,8 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     GfxCoord*                facing;
     TmdObject*               model;
     GpAreaPlace*             entry;
-    GpAreaKey                key;
-    GpAreaKey*               sessionKey;
+    GameLocationKey          key;
+    GameLocationKey*         sessionKey;
     s32                      cueId;
     s32                      cuePan;
     s32                      blastId;
@@ -8734,7 +8734,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                         key.area   = sessionKey->area;
                         key.room   = sessionKey->room;
                         key.view   = sessionKey->view;
-                        Gp_SyncAreaKeyIndex(&key);
+                        areaSyncLocationVariant(&key);
                         entry        = &Gp_GetNestedAreaRec(&key)->field_0[3];
                         model->tpage = entry->tpage;
                         model->clut  = entry->clut;
@@ -9696,14 +9696,14 @@ static void func_actor_403200_8014123C(Task* arg0)
 /// CLUT, run its stream twice when it has one, and step the task on.
 static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     sessionKey = &gGameSession->at4.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
@@ -9714,7 +9714,7 @@ static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
     areaByte0  = sessionKey->view;
     idx        = raw >> 12;
     key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */

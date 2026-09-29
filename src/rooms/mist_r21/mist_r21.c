@@ -87,7 +87,7 @@ static void func_mist_r21_8017D678(Task* task)
         Mc_SaveData[0].state.at4.loc.area = 5;
         Mc_SaveData[0].state.at4.loc.warp = 1;
         Mc_SaveData[0].state.at4.loc.view = 2;
-        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 0);
         Task_Spawn(0, 0x11, 1, 0);
         taskKill(task);
     }

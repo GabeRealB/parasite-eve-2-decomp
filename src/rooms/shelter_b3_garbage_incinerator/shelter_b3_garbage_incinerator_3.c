@@ -3014,7 +3014,7 @@ static void func_shelter_b3_garbage_incinerator_80184EEC(void)
     normals = Gp_GridParams->field_4;
     verts   = Gp_GridParams->field_8;
     faces   = Gp_GridParams->field_C;
-    if (gGameSession->at4.loc.place == 2) {
+    if (gGameSession->at4.loc.variant == 2) {
         i = 6;
         do {
             verts[i * 4].vx = verts[i * 4 + 2].vx = 13000;

@@ -1243,7 +1243,7 @@ void func_acropolis_square_80181228(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1340,8 +1340,8 @@ static const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
 
 s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, RoomEventMsg* arg3)
 {
-    GpAreaKey key; // filled in but never used: the Gp_SetAreaObjId call the
-                   // sibling rooms make with it is absent here
+    GameLocationKey key; // filled in but never used: the areaSetPlacementVariant call the
+                         // sibling rooms make with it is absent here
     u16 temp_s1;
 
     key.stage = 1;
@@ -1733,13 +1733,13 @@ void func_acropolis_square_80182308(Task* task)
 
 s32 func_acropolis_square_80182360(s32 unused)
 {
-    GpAreaKey key;
+    GameLocationKey key;
 
     if (GameFlag_GetNibble(0x1F) == 0) {
         GameFlag_SetNibble(0x1F, 1);
         key.stage = 1;
         key.area  = 1;
-        Gp_SetAreaObjId(&key, 2, 1);
+        areaSetPlacementVariant(&key, 2, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
         Task_SpawnFromTable(D_acropolis_square_80183808, 0, 0, 0);
         return 0;
@@ -1764,21 +1764,21 @@ void func_acropolis_square_801823DC(Task* task)
             task->state++;
             return;
         case 1:
-            if ((0x268 >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+            if ((0x268 >> (gGameSession->at4.loc.view - 1)) & 1) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8DE;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
                             &work->move);
             }
-            if ((u8)gGameSession->at4.loc.view == 0xE) {
+            if (gGameSession->at4.loc.view == 0xE) {
                 work->move.vx = 0x18D2;
                 work->move.vy = -0x100B;
                 work->move.vz = 0x8AB;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
                             &work->move);
             }
-            if ((u8)gGameSession->at4.loc.view == 9) {
+            if (gGameSession->at4.loc.view == 9) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8E8;

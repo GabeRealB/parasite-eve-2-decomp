@@ -2497,8 +2497,8 @@ void func_actor_443500_8013206C(s8 arg0)
 static void func_actor_443500_80132078(Task* task)
 {
     Actor443500Work* work;
-    GpAreaKey        key;
-    GpAreaKey*       sessionKey;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
     u8               areaByte0;
     GpAreaVariant*   rec;
     GpAreaPlace*     entry;
@@ -2528,7 +2528,7 @@ static void func_actor_443500_80132078(Task* task)
         areaByte0  = sessionKey->view;
         idx        = raw >> 12;
         key.view   = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */

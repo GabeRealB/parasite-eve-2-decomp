@@ -1965,10 +1965,10 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
 /// the ordering table.
 static void func_mine_forked_tunnel_8017E48C(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* v28;
-    GpSprtCmd* v34;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       v28;
+    GpSprtCmd*       v34;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];

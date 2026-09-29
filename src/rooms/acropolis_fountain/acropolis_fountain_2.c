@@ -1383,7 +1383,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     s32               level;
 
     coord = task->extra.tmd->coords;
-    if (Gp_State1C->eventState < 4 && ((0x1040C0 >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+    if (Gp_State1C->eventState < 4 && ((0x1040C0 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
         head        = *scratch;
@@ -1597,7 +1597,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             break;
 
         case 1:
-            view = Gp_FindViewIndex((u8)gGameSession->at4.loc.view);
+            view = Gp_FindViewIndex(gGameSession->at4.loc.view);
             func_acropolis_fountain_8017E15C(task, (u16)view);
             switch ((u16)view) {
                 case 3:

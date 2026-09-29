@@ -231,7 +231,7 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.place == 1) {
+    if (gGameSession->at4.loc.variant == 1) {
         gGameSession->flowFlags = 1;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {

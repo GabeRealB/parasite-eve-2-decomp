@@ -1325,9 +1325,9 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
 /// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
 void func_dryfield_water_tank_8017EFF4(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* view;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       view;
 
     sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {

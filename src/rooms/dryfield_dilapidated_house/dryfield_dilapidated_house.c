@@ -4103,7 +4103,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     GfxCoord* coord;
     s32       mask;
 
-    mask  = 1 << (u8)gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);

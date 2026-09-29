@@ -765,7 +765,7 @@ SVECTOR D_acropolis_helicopter_landing_pad_80187F88 = { 0, 0, 0, 0 };
 GpSaveLoc D_acropolis_helicopter_landing_pad_80187F90 = { { .bytes = { 0, 0 } }, 0, 0, 0, 0, 0 };
 
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
-/// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData[0].state.at4.loc.place`), stamps
+/// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData[0].state.at4.loc.variant`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
 /// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
 /// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
@@ -789,7 +789,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->spawnArg1.value = 0;
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
-            if (Mc_SaveData[0].state.at4.loc.place >= 2) {
+            if (Mc_SaveData[0].state.at4.loc.variant >= 2) {
                 Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
             Mc_SaveData[0].state.at4.loc.view = 0x12;
@@ -804,7 +804,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             }
             break;
         case 2:
-            if (Mc_SaveData[0].state.at4.loc.place < 2) {
+            if (Mc_SaveData[0].state.at4.loc.variant < 2) {
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D9, 0, 0);
             }
             task->state += 1;
@@ -830,7 +830,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 6:
-            if (Mc_SaveData[0].state.at4.loc.place < 2) {
+            if (Mc_SaveData[0].state.at4.loc.variant < 2) {
                 param1[2] = 0x33;
                 param2[0] = 0xA;
                 param2[2] = 3;
@@ -847,7 +847,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 7:
             task->spawnArg1.value -= 1;
-            if (Mc_SaveData[0].state.at4.loc.place >= 2) {
+            if (Mc_SaveData[0].state.at4.loc.variant >= 2) {
                 task->state = 9;
             } else if (CdCmd_IsIdle()) {
                 func_800A99B4();
@@ -856,9 +856,9 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 8:
             task->spawnArg1.value -= 1;
-            Gp_SetAreaObjId((GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view, 2, 1);
-            Gp_SyncAreaKeyIndex((GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view);
-            Gp_SpawnArea((GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view);
+            areaSetPlacementVariant(&Mc_SaveData[0].state.at4.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+            areaSyncLocationVariant(&Mc_SaveData[0].state.at4.loc);
+            Gp_SpawnArea(&Mc_SaveData[0].state.at4.loc);
             D_acropolis_helicopter_landing_pad_80184D9C = 4;
             task->state                                += 1;
             break;

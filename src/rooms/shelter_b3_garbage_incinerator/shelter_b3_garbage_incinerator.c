@@ -206,7 +206,7 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     if (gGameSession->at4.loc.room >= 4) {
         Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
-    if (gGameSession->at4.loc.place == 2) {
+    if (gGameSession->at4.loc.variant == 2) {
         Task_SpawnFromTable(&D_8016BFE0, 0, 0, 0);
     }
     task->state = task->state + 1;

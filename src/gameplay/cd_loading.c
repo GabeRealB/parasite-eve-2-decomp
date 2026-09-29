@@ -710,9 +710,9 @@ static void Gp_EnqueueWeaponCd(void)
 
 void Gp_EnqueueViewCd(Task* task)
 {
-    GpAreaKey* sess;
-    u8         param1[8];
-    u8         param2[8];
+    GameLocationKey* sess;
+    u8               param1[8];
+    u8               param2[8];
 
     sess = &gGameSession->at4.loc;
     if (CdCmd_IsIdle() & 0xFFFF) {
@@ -953,7 +953,7 @@ void Gp_EnqueueStageCd(void)
     u8 param1[8];
     u8 param2[8];
 
-    CdCmd_Enqueue(0x54, &gGameSession->at4.loc.view, NULL);
+    CdCmd_Enqueue(0x54, (u8*)&gGameSession->at4.loc, NULL);
     param1[3] = 0;
     param1[2] = 0x5A;
     param1[0] = gGameSession->at4.loc.stage;

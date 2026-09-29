@@ -72,7 +72,7 @@ typedef GpSpawnAnimArg Actor113100SpawnAnim;
 
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
-/// `gGameSession->at4.loc.place == 2` and its task lands in
+/// `gGameSession->at4.loc.variant == 2` and its task lands in
 /// `Actor113100Work::field_534`; indices 2 and 3 are the two modelled parts the
 /// handler re-dresses from the area record.
 extern TaskDesc D_actor_113100_80144308[];
@@ -1177,7 +1177,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
 /// `D_actor_113100_80144308` -- index 1 only in arena mode
-/// (`gGameSession->at4.loc.place == 2`), then indices 2 and 3, whose models get the
+/// (`gGameSession->at4.loc.variant == 2`), then indices 2 and 3, whose models get the
 /// texture page and CLUT of the area record the actor's own location key
 /// resolves to. It then builds the work block's display node: `field_C` points
 /// at the `GpRec18` table that follows it, the position triple is zeroed, the
@@ -1189,9 +1189,9 @@ static void func_actor_113100_80131E58(Task* task)
     Actor113100Work* work;
     Task*            child2;
     Task*            child3;
-    GpAreaKey        key;
-    GpAreaKey*       sessionKey2;
-    GpAreaKey*       sessionKey3;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey2;
+    GameLocationKey* sessionKey3;
     TmdObject*       model2;
     TmdObject*       model3;
     GpAreaPlace*     entry2;
@@ -1215,7 +1215,7 @@ static void func_actor_113100_80131E58(Task* task)
     work->walk.acc[0].w = 0;
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
-    if (gGameSession->at4.loc.place == 2) {
+    if (gGameSession->at4.loc.variant == 2) {
         work->field_534 = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
 
@@ -1230,7 +1230,7 @@ static void func_actor_113100_80131E58(Task* task)
         areaByte0   = gGameSession->at4.loc.view;
         index2      = raw2 >> 12;
         key.view    = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
@@ -1251,7 +1251,7 @@ static void func_actor_113100_80131E58(Task* task)
         areaByte0   = gGameSession->at4.loc.view;
         index3      = raw3 >> 12;
         key.view    = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;

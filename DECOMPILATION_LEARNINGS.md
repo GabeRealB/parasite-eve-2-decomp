@@ -12262,7 +12262,7 @@ overlay of the whole object:
 
 ```c
 typedef struct { u8 data[8]; } GBytes8;
-typedef union { GpAreaKey loc; GBytes8 raw; } GameLoc;   /* GameSession.at4 */
+typedef union { GameLocationKey loc; GBytes8 raw; } GameLoc;   /* GameSession.at4 */
 
 dst->at4.raw = src->at4.raw;
 ```
@@ -25529,12 +25529,12 @@ Assign the result first so the temps stay distinct and delay-slot filling
 puts the zero in the `beqz` delay:
 
 ```c
-rec = table[key->field_3];
+rec = table[key->stage];
 ret = NULL;
 if (rec != NULL) {
-    ret = rec[key->field_2].field_0;
+    ret = rec[key->area].field_0;
     if (ret != NULL) {
-        ret = &ret[key->field_5];
+        ret = &ret[key->variant];
     }
 }
 ```
@@ -30189,7 +30189,7 @@ if (slot->attachId != 0xFF) {
 
 A pointer used only inside `if (iter->spawnType == 1)` is rematerialized
 next to its later dereference, leaving a `nop` after `lbu spawnType` and
-an extra `lw` after `key->field_3`. Assign it *before* the flag test so
+an extra `lw` after `key->stage`. Assign it *before* the flag test so
 the scheduler fills that delay:
 
 ```
@@ -33633,7 +33633,7 @@ and keep `addiu a0, v0, %lo` at the merge:
 
 ```c
 if (key == 0x50B0000 || key == 0x51D0000) {
-    if (gGameSession->at4.loc.place - 1 < 3U) {
+    if (gGameSession->at4.loc.variant - 1 < 3U) {
         goto skip_count;
     }
 }
@@ -47820,7 +47820,7 @@ expands a0 first, so the block begins with the load and the slot stays a `nop`
 Two consecutive calls on the same stack local
 
 ```c
-Gp_SyncAreaKeyIndex(&key);
+areaSyncLocationVariant(&key);
 rec = Gp_GetNestedAreaRec(&key);
 ```
 
@@ -47837,13 +47837,13 @@ insn immediately before the `jal` (otherwise `dbr` cannot pull it into the
 delay slot and fills it from after the second call):
 
 ```c
-key.field_1 = src->field_1;
-b0          = src->field_0;   /* load split out */
+key.room = src->room;
+b0          = src->view;   /* load split out */
 SOFT_BARRIER();               /* keeps the addiu next to the call */
 kp = &key;
 TOUCH_REG(kp);                /* invalidates the CSE entry for &key */
-key.field_0 = b0;             /* fills the jal delay slot */
-Gp_SyncAreaKeyIndex(kp);
+key.view = b0;             /* fills the jal delay slot */
+areaSyncLocationVariant(kp);
 rec = Gp_GetNestedAreaRec(&key);   /* fresh addiu */
 ```
 
@@ -54578,9 +54578,9 @@ sb    $v0, 0x12($sp)
 ```
 
 and never reads those bytes or takes the address of anything on the stack. m2c
-drops them entirely. They are a leftover `GpAreaKey key; key.field_3 = 1;
-key.field_2 = 4;` — the sibling rooms follow it with
-`Gp_SetAreaObjId(&key, …)` (`func_acropolis_bridge_8017D6F4`,
+drops them entirely. They are a leftover `GameLocationKey key; key.stage = 1;
+key.area = 4;` — the sibling rooms follow it with
+`areaSetPlacementVariant(&key, …)` (`func_acropolis_bridge_8017D6F4`,
 `func_acropolis_roof_garden_8017DBEC`), this room does not. GCC 2.8.1 does not
 dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
 struct back reproduces them exactly; the offsets in the asm give the field
@@ -64659,7 +64659,7 @@ Related warning: this function is a near-copy of `Actor02000_Fn0251C` in
 `actors/lib/actor_102000_text.c`, which needs `SOFT_BARRIER()` plus
 `TOUCH_REG(keyPtr)` to stop GCC CSE-ing the two `&key` call arguments into one
 long-lived pseudo. Copying those hacks over cost three attempts here: with the
-load/shift split in place, plain `Gp_SyncAreaKeyIndex(&key)` and
+load/shift split in place, plain `areaSyncLocationVariant(&key)` and
 `Gp_GetNestedAreaRec(&key)` match at 100%. Score the sibling's *shape* first and
 add its scheduling hacks only if a penalty asks for them.
 
@@ -81313,7 +81313,7 @@ other side. `func_dryfield_toilet_8017D8C8` tests the incoming message's sub-id
 and then compares it against the session's:
 
 ```c
-if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == in->field_2) {
+if (in->field_2 == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.variant == in->field_2) {
 ```
 
 Two loads of `in->field_2` are free to CSE only when nothing between them can
@@ -81330,7 +81330,7 @@ The fix is to make it one read: m2c's seed already did, via its scratch local.
 ```c
 u8 subId = in->field_2;
 
-if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == subId) {
+if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.variant == subId) {
 ```
 
 Generalizing: when two reads of one expression are separated by a call, the
@@ -81951,7 +81951,7 @@ call instead —
 
 ```c
     id    = mode;
-    place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc.view)->field_0;
+    place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 ```
 
 — makes the pseudo live across that call, forces the callee-saved register, and
@@ -84863,7 +84863,7 @@ Inputs: `base.i` (m2c shared variable, 91.815%)
 ## A 2D array access distributes the element-size multiply; a flat table with an explicit `* N` does not
 
 `func_actor_161500_80131FBC` indexes an 8-entry pointer table by
-`(gGameSession->at4.loc.place == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
+`(gGameSession->at4.loc.variant == 1)` (row) and `GameFlag_GetNibble(0x103)` (column),
 and the target scales the **sum**:
 
 ```
@@ -84898,7 +84898,7 @@ table whose index already carries the inner multiply:
 ```c
 extern s32 D_actor_161500_80134920[8];
 ...
-temp_s0 = (gGameSession->at4.loc.place == 1) * 4;
+temp_s0 = (gGameSession->at4.loc.variant == 1) * 4;
 temp_v0 = GameFlag_GetNibble(0x103);
 func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
 ```
@@ -84950,7 +84950,7 @@ void func_actor_161500_80131F50(s32 arg0)
         Gp_CapFile = 0;
         if (arg0 <= 0) {
             capFile = 1;
-            if (gGameSession->at4.loc.place == 1) {
+            if (gGameSession->at4.loc.variant == 1) {
                 capFile = 2;
             }
             arg0 = capFile;   /* after the join — see below */
@@ -84976,7 +84976,7 @@ that stores the constant.** This fails:
 ```c
 capFile = 1;
 arg0 = capFile;                 /* <- in the same arm */
-if (gGameSession->at4.loc.place == 1) {
+if (gGameSession->at4.loc.variant == 1) {
     capFile = 2;
     arg0 = capFile;
 }
@@ -88345,7 +88345,7 @@ callee, the target has **one** `jal` and four blocks, not two calls. This room's
 target is 17 instructions:
 
 ```
-lbu   $v1, 0x9($v0)                ; gGameSession->at4.loc.place
+lbu   $v1, 0x9($v0)                ; gGameSession->at4.loc.variant
 addiu $v0, $zero, 0x1
 beq   $v1, $v0, .L_E4              ; first disjunct -> the then block
 addiu $v0, $zero, 0x7              ;   (delay slot: the second test's constant)
@@ -88368,7 +88368,7 @@ The source is an ordinary selection, and either spelling of it works:
 ```c
 s32 offset;
 
-if (gGameSession->at4.loc.place == 1 || gGameSession->at4.loc.place == 7) {
+if (gGameSession->at4.loc.variant == 1 || gGameSession->at4.loc.variant == 7) {
     offset = 0x7D0;
 } else {
     offset = 0x190;
@@ -91653,7 +91653,7 @@ against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
 the constant back in `$v0`. Nothing about statement order moved it - and it did
 not need to. Rewriting the seed against the real headers (`Task*`, the real
 `Gp_SpawnIfCapIdle`/`GameFlag_SetNibble`/`Game_SetPtrSlot` prototypes, the real
-`gGameSession->at4.loc.place`) was 100.000% on the first build, with the source order
+`gGameSession->at4.loc.variant`) was 100.000% on the first build, with the source order
 unchanged.
 
 The mechanism is visible in two dumps. m2c's `M2C_UNK GameFlag_SetNibble(...)`
@@ -91818,13 +91818,13 @@ project style (`Task*` and `->` instead of `M2C_FIELD`). The port also scored
 100.000%, but only because it kept m2c's temporary:
 
 ```c
-temp_v1 = gGameSession->at4.loc.place;      /* lbu $v1, 0x9($a0) */
+temp_v1 = gGameSession->at4.loc.variant;      /* lbu $v1, 0x9($a0) */
 if (temp_v1 == 1) {
     gGameSession->field_69 = temp_v1; /* sb $v1, 0x69($a0) - the LOADED reg */
 }
 ```
 
-Rewriting that to the "obvious" `gGameSession->field_69 = gGameSession->at4.loc.place;`
+Rewriting that to the "obvious" `gGameSession->field_69 = gGameSession->at4.loc.variant;`
 loses the store: the preceding compare has already proven the value is `1`, so
 the folder replaces the store's source with the constant and emits `li`+`sb`
 instead of the target's `sb $v1`. The tell is a delay slot or a store whose
@@ -92449,7 +92449,7 @@ A room handler whose body never returns anything:
 ```c
 s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
 {
-    if ((msg->field_2 == 2) && (gGameSession->at4.loc.place != 1)) {
+    if ((msg->field_2 == 2) && (gGameSession->at4.loc.variant != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
     }
 }
@@ -93881,7 +93881,7 @@ register. `main/session.h` already models the sub-object as `GameSession.at4`, a
 union at 0x4 whose `loc` is the place key, declared for exactly this shape:
 
 ```c
-GpAreaKey* sess = &gGameSession->at4.loc;
+GameLocationKey* sess = &gGameSession->at4.loc;
 if (sess->stage == 2) {
     ... sess->area ...
 }
@@ -94273,7 +94273,7 @@ induction variables assigned *before* the branch:
     u16* ptr = (u16*)Fs_ImgBuffers;   /* outside the if */
     s32  i   = 0;
     ...
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
 ```
 
@@ -94288,7 +94288,7 @@ with the loop body itself still instruction-for-instruction correct.
 ranges start after the test:
 
 ```c
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;
 
@@ -94305,8 +94305,8 @@ seed is mechanical: move the declaration into the branch, not the assignment.
 A handler that forces a session state and passes the same state on:
 
 ```c
-    if (gGameSession->at4.loc.place != 4 && gGameSession->field_126 != 0) {
-        gGameSession->at4.loc.place = 4;
+    if (gGameSession->at4.loc.variant != 4 && gGameSession->field_126 != 0) {
+        gGameSession->at4.loc.variant = 4;
     }
     if (arg0->killCountdown < 0x780) {
         arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
@@ -94332,8 +94332,8 @@ copy instead of a raw constant:
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (gGameSession->at4.loc.place != mode && gGameSession->field_126 != 0) {
-            gGameSession->at4.loc.place = mode;
+        if (gGameSession->at4.loc.variant != mode && gGameSession->field_126 != 0) {
+            gGameSession->at4.loc.variant = mode;
         }
         ...
         func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, mode);
@@ -95385,7 +95385,7 @@ and `allocno_compare` ranks by `floor_log2 (n_refs) * n_refs / live_length`. One
 shared pair therefore gets a completely different allocation order from two
 short per-repetition pairs, and the registers come out swapped.
 
-`func_actor_510900_801350F8` runs the `Gp_SyncAreaKeyIndex` /
+`func_actor_510900_801350F8` runs the `areaSyncLocationVariant` /
 `Gp_GetNestedAreaRec` room-texture lookup twice. With one shared `model` and
 `index` the priorities were 3*12/52 = 0.69 against 3*8/41 = 0.59, so `model`
 took `$s0` and `index` `$s1` — the reverse of the target. Splitting them into
@@ -100100,7 +100100,7 @@ dumps that locate it.
 
 An m2c seed that fills a four-byte area one field at a time scores 71.7% with
 `lbu`/`sb` counts *three short* of the target on each side. The cause is not a
-pass: `sp28` has its address taken (`Gp_SyncAreaKeyIndex(&sp28, ...)`), so it
+pass: `sp28` has its address taken (`areaSyncLocationVariant(&sp28, ...)`), so it
 gets a stack slot and its byte store is emitted, but `sp29` / `sp2A` / `sp2B`
 are ordinary locals whose addresses are never taken. Those three become plain
 `reg/v` pseudos that nothing reads, so `flow` drops them — and by then it is
@@ -100110,24 +100110,24 @@ dumps name pseudos by number, which is what makes this read as "the compiler
 lost three statements" rather than "the destinations were never addressable".
 
 The ROM's shape gives it away: all four stores are to one object that is then
-passed by address — a `GpAreaKey key;` handed to `Gp_SyncAreaKeyIndex(&key)`
+passed by address — a `GameLocationKey key;` handed to `areaSyncLocationVariant(&key)`
 and `Gp_GetNestedAreaRec(&key)`. Writing the area as a named struct local makes
 every field addressable, and all four `lbu`/`sb` pairs appear. The canonical
 caller pattern (`src/actors/actor_150400/actor_150400.c`,
 `actor_302600_7.c`, `actor_510900.c`) is the template:
 
 ```c
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
 
-    sessionKey  = (GpAreaKey*)&gGameSession->at4.loc.view;
-    key.field_3 = sessionKey->field_3;
-    key.field_2 = sessionKey->field_2;
-    key.field_1 = sessionKey->field_1;
+    sessionKey  = &gGameSession->at4.loc;
+    key.stage = sessionKey->stage;
+    key.area = sessionKey->area;
+    key.room = sessionKey->room;
     idx         = raw >> 12;
-    areaByte0   = sessionKey->field_0;
-    key.field_0 = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaByte0   = sessionKey->view;
+    key.view = areaByte0;
+    areaSyncLocationVariant(&key);
 ```
 
 So when an m2c seed is short a whole family of byte or halfword stores that
@@ -102157,14 +102157,14 @@ trying before any register pin or scheduling barrier.
 The seed here (`base.c`, 81.298%, `stack=0 branch=3 regs=39 reorder=1 insert=5
 delete=10`) came out with a 0x30 frame and four callee-saved slots
 (`$s3`/`$s2`/`$s1`/`$s0`) where the target has 0x28 and three, plus `move a0,
-s1` in both `Gp_SyncAreaKeyIndex` / `Gp_GetNestedAreaRec` argument slots. That
+s1` in both `areaSyncLocationVariant` / `Gp_GetNestedAreaRec` argument slots. That
 is the signature the "`&local` passed to two back-to-back calls" entry above
 describes: the two `&sp10` computations CSE'd into one pseudo, live across the
 first `jal`, so `global-alloc` owed it a callee-saved register. The difference
 is that here nothing had to be done about it — the address pseudo was a symptom
 of the seed, not of the source. m2c's rendering carried an untyped `void* task`
 with `M2C_FIELD(...)` nested loads and four separate `u8 sp10..sp13` scalars;
-rewriting in the sibling's typed form (`Task* task`, a real `GpAreaKey key;`,
+rewriting in the sibling's typed form (`Task* task`, a real `GameLocationKey key;`,
 a typed work struct, `model = (TmdObject*)spawned->extra`) removed the extra
 live values, the surviving pseudo never formed, and `&key` rematerializes as
 `addiu a0, sp, 0x10` per call on its own. Same source body, 100.000%, no
@@ -107579,7 +107579,7 @@ surrounding struct offset differs. So transcribe the helper verbatim, barrier ma
 SOFT_BARRIER();
 keyPtr = &key;
 TOUCH_REG(keyPtr);
-key.field_0 = areaByte0;
+key.view = areaByte0;
 ```
 
 Do not re-derive that barrier from your own dump. It reads like a scheduling nudge to be
@@ -110927,13 +110927,13 @@ call site:
 ```
 lbu   $v0,0x4($a1)
 addiu $a0,$sp,0x18        /* arg 1 */
-jal   Gp_SyncAreaKeyIndex
+jal   areaSyncLocationVariant
 sb    $v0,0x18($sp)
 jal   Gp_GetNestedAreaRec
 addiu $a0,$sp,0x18        /* arg 2 */
 ```
 
-With `Gp_SyncAreaKeyIndex(&key);` and the second call taking `&key` as well,
+With `areaSyncLocationVariant(&key);` and the second call taking `&key` as well,
 `expand_call` materialises the address into a **fresh pseudo per call site**,
 because `&key` is `(plus $fp N)` and not the bare frame-pointer register cse
 can move directly. cse then records the value and rewrites the second call's
@@ -110957,8 +110957,8 @@ local, touch it, and take the second address directly.
 SOFT_BARRIER();
 keyPtr      = &key;
 TOUCH_REG(keyPtr);
-key.field_0 = areaByte0;
-Gp_SyncAreaKeyIndex(keyPtr);
+key.view = areaByte0;
+areaSyncLocationVariant(keyPtr);
 rec         = Gp_GetNestedAreaRec(&key);
 ```
 
@@ -111583,8 +111583,8 @@ compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (func_actor_403200_8013F700, 2026-09-16)
 
-A local `GpAreaKey` is filled from `gGameSession` and its address passed to
-`Gp_SyncAreaKeyIndex` and then to `Gp_GetNestedAreaRec`. The target rematerializes
+A local `GameLocationKey` is filled from `gGameSession` and its address passed to
+`areaSyncLocationVariant` and then to `Gp_GetNestedAreaRec`. The target rematerializes
 the address at both calls (`addiu $a0, $sp, 0x18` twice). Written the obvious way
 both arguments go through `copy_to_mode_reg` (the address costs more than 2, and
 `-fexpensive-optimizations` makes `preserve_subexpressions_p()` return 1), giving
@@ -111607,12 +111607,12 @@ first call and a fresh `&key` to the second. The `+r` asm makes the register's
 value "modified", so cse cannot fold the second `&key` into it:
 
 ```c
-        areaByte0   = sessionKey->field_0;
+        areaByte0   = sessionKey->view;
         SOFT_BARRIER();
         keyp        = &key;
         TOUCH_REG(keyp);
-        key.field_0 = areaByte0;
-        Gp_SyncAreaKeyIndex(keyp);
+        key.view = areaByte0;
+        areaSyncLocationVariant(keyp);
         entry       = (GpAreaPlace*)(0x20 + (s32)Gp_GetNestedAreaRec(&key)->field_0);
 ```
 
@@ -114642,8 +114642,8 @@ compiler SHA256
 Scratch `nonmatchings/func_actor_110600_80132A84-vacuum`.
 ## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (func_actor_335800_80162640, 2026-09-17)
 
-Two sibling `if` bodies that each build the same `GpAreaKey` from the session
-(`sessionKey = (GpAreaKey*)&gGameSession->at4.loc.view;` then four byte loads) sat at
+Two sibling `if` bodies that each build the same `GameLocationKey` from the session
+(`sessionKey = &gGameSession->at4.loc;` then four byte loads) sat at
 97.504% with `regs=16 stack=2 reorder=4`, the whole delta in *both* bodies a
 rotation of three registers - the `gGameSession` load, the `session+4` pointer
 and the first key byte. `sessionKey` was a function-scope variable assigned in
@@ -114656,11 +114656,11 @@ variable and re-reading the address expression for two of the four bytes
 (behaviour-preserving: same reads, same order, no writes between) goes to 100%:
 
 ```c
-        sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
-        key.field_3 = sessionKey->field_3;
-        key.field_2 = sessionKey->field_2;
-        key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-        key.field_0 = ((GpAreaKey*)(&gGameSession->at4.loc.view))->field_0;
+        sessionKey  = (keyAddr = &gGameSession->at4.loc);
+        key.stage = sessionKey->stage;
+        key.area = sessionKey->area;
+        key.room = keyAddr->room;
+        key.view = gGameSession->at4.loc.view;
 ```
 
 `.greg` then reads `;; 5 regs to allocate:` where the parent had 6, and the
@@ -114672,7 +114672,7 @@ target keeps in the first callee-saved registers must not be a pseudo spanning
 two blocks. Unlike the loop case there is no redeclaration involved - the
 variable is still function-scope - so read `.lreg`'s `N refs / M insns; dies in
 2 places` and check whether that pseudo is in the `.greg` allocation list.
-`base_4.c` (only the direct `key.field_0 = gGameSession->at4.loc.view;`) stays at
+`base_4.c` (only the direct `key.view = gGameSession->at4.loc.view;`) stays at
 97.5%, so the extra name is load-bearing, not incidental.
 
 Two things stay open: which pass splits the value (the expander emits one
@@ -117442,7 +117442,7 @@ target `be56732624c165051d3398830f9f47808700b2c833f33e383f1ec3eb574c5062`.
 ### A new local for an intermediate pointer adds an allocno whose preferences push a neighbour off its register (func_actor_511000_80133958, 2026-09-17)
 
 **Symptom:** the area-key tint block (`gGameSession` bytes copied into a stack
-`GpAreaKey`, repeated twice) was at 97.96% with `regs` only: the session pointer
+`GameLocationKey`, repeated twice) was at 97.96% with `regs` only: the session pointer
 landed in `$a2` instead of `$a1` and the `field_3` byte temp in `$a1` instead of
 `$a0`, which also moved `addiu a0,sp,0x18` earlier.
 
@@ -117455,8 +117455,8 @@ landed in `$a2` instead of `$a1` and the `field_3` byte temp in `$a1` instead of
 **Fix:** no new allocno. Reassign the existing pointer
 (`spawned = (GpEnemy*)spawned->task; model = ((Task*)spawned)->extra;`) - this
 keeps the early `lw v0,0(v0)` that a chained `spawned->task->extra` loses, and
-went straight to 100%. The byte temp itself (`areaByte3 = key->field_3; model =
-...; key.field_3 = areaByte3;`) was needed because it is set in both blocks, so
+went straight to 100%. The byte temp itself (`areaByte3 = key->stage; model =
+...; key.stage = areaByte3;`) was needed because it is set in both blocks, so
 combine cannot fold it into the store.
 
 ## `addu s0, i, base` then `addiu s0, s0, 0xC` kept apart: build the member address in two statements into one pointer (func_actor_511000_80132E6C, 2026-09-17)
@@ -117727,7 +117727,7 @@ stays in `$v0`, while the `model` pseudo takes `$s0`. That fixed the copy and
 the `$s2`/`$s3` swap together (99.23% -> 99.62%, penalties down to one reorder).
 
 The same function also combined three documented fixes: a `union { VECTOR;
-GpAreaKey; }` for the one 12-byte frame slot, separate `sound`/`sound2` locals
+GameLocationKey; }` for the one 12-byte frame slot, separate `sound`/`sound2` locals
 so each sound id stays block-local and takes `$s0` ahead of the pan value, and
 `keyPtr = &key; TOUCH_REG(keyPtr);` placed right after the `field_1` store with
 no `SOFT_BARRIER` - that order puts `addiu $a0,$sp,0x28` before the `sb` of
@@ -122790,14 +122790,14 @@ build sat in `$a2` where the target had it in `$v1`; the instruction order moved
 too, because `addiu $a0,$sp,0x10` (the `&key` argument) can only be hoisted once
 the register holding that block's area key is free.
 
-Both blocks fill a `GpAreaKey` from `&gGameSession->at4.loc.view`, and the first
+Both blocks fill a `GameLocationKey` from `&gGameSession->at4.loc`, and the first
 attempt spelled them the same way:
 
 ```c
-sessionKey = (GpAreaKey*)&gGameSession->at4.loc.view;
-key.field_3 = sessionKey->field_3;
+sessionKey = &gGameSession->at4.loc;
+key.stage = sessionKey->stage;
 ...
-key.field_0 = sessionKey->field_0;
+key.view = sessionKey->view;
 ```
 
 `.lreg` then reports **one** pseudo for that address, `used 8 times across 18
@@ -122812,11 +122812,11 @@ The fix is to stop the two blocks sharing a value. The near-twin
 *second* block, and its source is the match:
 
 ```c
-sessionKey  = (GpAreaKey*)(keyAddr = (u8*)&gGameSession->at4.loc.view);
-key.field_3 = sessionKey->field_3;
-key.field_2 = sessionKey->field_2;
-key.field_1 = ((GpAreaKey*)keyAddr)->field_1;
-key.field_0 = ((GpAreaKey*)(&gGameSession->at4.loc.view))->field_0;
+sessionKey  = (keyAddr = &gGameSession->at4.loc);
+key.stage = sessionKey->stage;
+key.area = sessionKey->area;
+key.room = keyAddr->room;
+key.view = gGameSession->at4.loc.view;
 ```
 
 With that, `.lreg` shows the address as two entries — `Register 82 used 4 times
@@ -123617,7 +123617,7 @@ matched* scored 100.000% with every penalty zero on the first build.
 
 ```c
 /* from func_actor_120300_801335D8, same file, already matched */
-place = (GpAreaPlace*)Gp_GetNestedAreaRec((GpAreaKey*)&gGameSession->at4.loc.view)->field_0;
+place = (GpAreaPlace*)Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
 id    = place->entryId;
 while (id != 0xFF) {
     if (id == 0x6A) { break; }
@@ -126809,7 +126809,7 @@ both a use and a definition:
 ```c
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    Gp_SyncAreaKeyIndex(keyPtr);
+    areaSyncLocationVariant(keyPtr);
     rec = Gp_GetNestedAreaRec(&key);
 ```
 
@@ -127802,7 +127802,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
 ## A stack object passed twice in one block: global CSE costs a saved register unless the address is re-derived (func_actor_135600_80132234, 2026-09-17)
 
 The setup handler builds an area key on the stack and hands it to two calls in
-one block, `Gp_SyncAreaKeyIndex(&key)` then `Gp_GetNestedAreaRec(&key)`. Take the
+one block, `areaSyncLocationVariant(&key)` then `Gp_GetNestedAreaRec(&key)`. Take the
 whole block at face value and each `&key` expands to its own address pseudo
 (`force_operand` on `vsv + 0x30`), but cse merges them into one pseudo whose live
 range crosses the first call, so it demands a callee-saved register. The frame is
@@ -127814,7 +127814,7 @@ call:
 ```asm
 addiu $a0, $sp, 0x40        /* before the first jal */
 ...
-jal   Gp_SyncAreaKeyIndex
+jal   areaSyncLocationVariant
 jal   Gp_GetNestedAreaRec
 addiu $a0, $sp, 0x40        /* in the second jal's delay slot */
 ```
@@ -127829,18 +127829,18 @@ in `actorTintEffect` and `func_actor_450800_80132160` for this same call
 pair:
 
 ```c
-key.field_2 = sessionKey->field_2;
+key.area = sessionKey->area;
 SOFT_BARRIER();                 /* after the middle store, not after the last */
 keyp        = &key;
-key.field_1 = sessionKey->field_1;
+key.room = sessionKey->room;
 TOUCH_REG(keyp);
 ...
-Gp_SyncAreaKeyIndex(keyp);      /* first call through the pointer */
+areaSyncLocationVariant(keyp);      /* first call through the pointer */
 entry = (GpAreaPlace*)((idx * 0x10) + (s32)Gp_GetNestedAreaRec(&key)->field_0);
 ```
 
 Placement is load-bearing. With the barrier one statement later -- after
-`key.field_1` -- the address computation is ordered behind that store and lands
+`key.room` -- the address computation is ordered behind that store and lands
 one slot too late, leaving a `nop` where the target has the `addiu` (97.35%,
 `reorder=2 insert=2`). With it before the store the block matches exactly.
 
@@ -129708,8 +129708,8 @@ changes the sign.
 
 ## Two calls on `&local` in a row: CSE parks the address in a callee-saved register (ActorsShared80131f9cSub0, 2026-09-17)
 
-**Symptom.** `Gp_SyncAreaKeyIndex(&key); rec = Gp_GetNestedAreaRec(&key);` on a
-stack `GpAreaKey`. At expand these are two separate `(set (reg N) (plus (reg
+**Symptom.** `areaSyncLocationVariant(&key); rec = Gp_GetNestedAreaRec(&key);` on a
+stack `GameLocationKey`. At expand these are two separate `(set (reg N) (plus (reg
 <frame>) (const_int off)))` insns; `cse` unifies them, the surviving pseudo is
 live across the first call, and it costs a whole extra callee-saved register -
 which then renumbers every other `$sN` and adds a save/restore pair and 8 bytes
@@ -129720,13 +129720,13 @@ field store off into a temporary so the barrier can sit before it, then break
 the value with a `"+r"` touch.
 
 ```c
-    key.field_1 = sessionKey->field_1;
-    areaByte0   = sessionKey->field_0;
+    key.room = sessionKey->room;
+    areaByte0   = sessionKey->view;
     SOFT_BARRIER();
     keyPtr = &key;
     TOUCH_REG(keyPtr);
-    key.field_0 = areaByte0;
-    Gp_SyncAreaKeyIndex(keyPtr);
+    key.view = areaByte0;
+    areaSyncLocationVariant(keyPtr);
     rec = Gp_GetNestedAreaRec(&key);
 ```
 
@@ -129953,7 +129953,7 @@ gets one hard register. Declare one pointer per use site.
 **Problem.** A stack struct passed to two calls in a row,
 
 ```c
-Gp_SyncAreaKeyIndex(&key);
+areaSyncLocationVariant(&key);
 rec = Gp_GetNestedAreaRec(&key);
 ```
 
@@ -129985,8 +129985,8 @@ second block rematerialises too:
 
 ```c
 keyPtr      = &key;
-key.field_0 = areaByte0;
-Gp_SyncAreaKeyIndex(keyPtr);
+key.view = areaByte0;
+areaSyncLocationVariant(keyPtr);
 SOFT_DEF_REG(keyPtr);          /* emits nothing; &key is no longer available */
 keyPtr = &key;                 /* fresh addiu, free to enter the delay slot */
 rec    = Gp_GetNestedAreaRec(keyPtr);
@@ -138194,14 +138194,14 @@ The address order around that store is a LUID tie. Both the slot `lui` and the T
 
 The spawn-handler entry above found that writing the body in a matched
 sibling's typed form made the CSE'd `&key` pseudo disappear on its own. Here it
-did not: the fully typed body (real `GpAreaKey key`, typed work struct,
+did not: the fully typed body (real `GameLocationKey key`, typed work struct,
 `model = spawned->extra`, the `sessionKey`/`raw`/`areaByte0` ordering of
 `func_actor_443500_80132078`) still scored 91.9% with `move a0, s1` in both
 argument slots and every other callee-saved register shifted up one. The
 pseudo is formed in CSE regardless of typing; whether it survives depends on
 local-alloc finding a free callee-saved register over the block, and here one
 was free. The `SOFT_BARRIER(); keyPtr = &key; TOUCH_REG(keyPtr); key.view =
-areaByte0; Gp_SyncAreaKeyIndex(keyPtr);` recipe took it straight to 100% with no
+areaByte0; areaSyncLocationVariant(keyPtr);` recipe took it straight to 100% with no
 other change. So: retype first, but if the extra `sN` is still there, apply the
 recipe rather than searching further for a typing that removes it.
 
@@ -138230,7 +138230,7 @@ removed the extra callee-saved `&key` register here too (95.4% to 99.1%), but
 its `SOFT_BARRIER()` form left the `addiu a0, sp, 0x28` after the last key-byte
 load, one slot later than target. The target has it in the load-delay slot of
 the `room` byte, then the `view` load and the `srl` of the placement index just
-before `jal Gp_SyncAreaKeyIndex`. Matching form: no `SOFT_BARRIER`, and the
+before `jal areaSyncLocationVariant`. Matching form: no `SOFT_BARRIER`, and the
 asm between the `room` and `view` stores:
 
 ```c
@@ -138241,7 +138241,7 @@ keyPtr    = &key;
 TOUCH_REG(keyPtr);
 key.view  = sessionKey->view;
 idx       = raw >> 12;
-Gp_SyncAreaKeyIndex(keyPtr);
+areaSyncLocationVariant(keyPtr);
 ```
 
 Dropping only the barrier (asm still after all four stores) regressed to 96%
@@ -138268,7 +138268,7 @@ SOFT_BARRIER();
 keyPtr = &key;
 TOUCH_REG(keyPtr);
 key.view = view;
-Gp_SyncAreaKeyIndex(keyPtr);
+areaSyncLocationVariant(keyPtr);
 ```
 
 So when the one-slot reorder is `addiu` too *early*, stage the last key byte
@@ -140536,7 +140536,7 @@ and with `&&` the first two also merge into one masked `lw` (see the
 `fold_truthop` entry above).
 
 **Fix.** Nest the tests, and read the first two through a local
-`GpAreaKey* k = &gGameSession->at4.loc;` while the third stays spelled from
+`GameLocationKey* k = &gGameSession->at4.loc;` while the third stays spelled from
 `gGameSession`. The separate address computation survives because `k` is a
 distinct pseudo that CSE does not fold back into the base.
 
@@ -142789,7 +142789,7 @@ When a merged tail sits in the wrong copy, change how the other copies exit
 rather than adding a barrier.
 
 ## `&key` passed to two calls from a non-zero frame offset: the key belongs to an inline helper, not to a pointer local and `TOUCH_REG` (func_actor_461800_80132390, 2026-09-26)
-The area-key sequence (`Gp_SyncAreaKeyIndex(&key)` then
+The area-key sequence (`areaSyncLocationVariant(&key)` then
 `Gp_GetNestedAreaRec(&key)`, target `addiu a0,sp,N` at both calls) was
 matched here and in `actorTintEffect` with the `SOFT_BARRIER(); keyp = &key;
 TOUCH_REG(keyp);` recipe of the entries above, because a caller-scope key at a

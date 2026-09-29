@@ -18,7 +18,8 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#define GP_LOC_STAGE_AREA_VIEW GP_LOC_KEY(0xFF, 0xFF, 0, 0xFF)
+/// Selects stage, area and room-local view while ignoring the room byte.
+#define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
 
 #include "main/display.h"
 #include "main/gamemain.h"
@@ -1304,7 +1305,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     extra   = arg0->extra.tmd;
     obj     = arg0->spawnArg2.pointer;
     session = gGameSession;
-    mapId   = GP_LOC_WORD(session->at4.loc) & GP_LOC_STAGE_AREA_VIEW;
+    mapId   = GAME_LOCATION_WORD(session->at4.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
     item    = obj->field_A;
     coord   = extra->coords;
     rot     = coord + 2;

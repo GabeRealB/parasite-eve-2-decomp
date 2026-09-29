@@ -234,11 +234,11 @@ static void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 
 static void Gp_LightFalloff(GpPointLight* light);
 
-static GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0);
+static GpRoomBoundVec* Gp_GetRoomBound(GameLocationKey* arg0);
 
 static s32 Gp_CountRoomCoords(void);
 
-static GpRoomCoordSet* Gp_GetRoomCoordSet(GpAreaKey* arg0);
+static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0);
 
 static s32 Gp_GetObjLuma(GpLight* arg0);
 
@@ -255,7 +255,7 @@ void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4
 
 static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 
-static GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0);
+static GpRoomCoordRec* Gp_GetRoomCoordRec(GameLocationKey* arg0);
 
 static void Gp_CopyDefaultBound(GpRoomBoundVec* bound);
 
@@ -392,7 +392,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
 
     base = &light->head;
     room = base->u.at.room;
-    if (room != 0 && (u8)gGameSession->at4.loc.view != room) {
+    if (room != 0 && gGameSession->at4.loc.view != room) {
         return 0;
     }
     block          = SCRATCH_PUSH(GpAttnScratch);
@@ -719,7 +719,7 @@ static __inline__ s32 solve_luma(GpLight* arg0)
     s16 val;
 
     val = arg0->u.at.room;
-    if (val != 0 && (u8)gGameSession->at4.loc.view != val) {
+    if (val != 0 && gGameSession->at4.loc.view != val) {
         return 0;
     }
     {
@@ -1457,7 +1457,7 @@ void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-static GpRoomBoundVec* Gp_GetRoomBound(GpAreaKey* arg0)
+static GpRoomBoundVec* Gp_GetRoomBound(GameLocationKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
@@ -1498,7 +1498,7 @@ static s32 Gp_CountRoomCoords(void)
     return count;
 }
 
-static GpRoomCoordSet* Gp_GetRoomCoordSet(GpAreaKey* arg0)
+static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;
@@ -1531,7 +1531,7 @@ static s32 Gp_GetObjLuma(GpLight* arg0)
     s16 val;
 
     val = arg0->u.at.room;
-    if (val != 0 && (u8)gGameSession->at4.loc.view != val) {
+    if (val != 0 && gGameSession->at4.loc.view != val) {
         return 0;
     }
     arg0->u.at.scale = 0x1000;
@@ -1673,7 +1673,7 @@ static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
     arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
 }
 
-static GpRoomCoordRec* Gp_GetRoomCoordRec(GpAreaKey* arg0)
+static GpRoomCoordRec* Gp_GetRoomCoordRec(GameLocationKey* arg0)
 {
     GpRoomCoordRec** mid;
     GpRoomCoordRec*  rec;

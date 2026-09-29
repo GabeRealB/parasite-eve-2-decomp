@@ -845,7 +845,7 @@ static void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
 
     arg0->msgTable = D_neo_ark_power_plant_2_801801F8;
     Game_SetPtrSlot(arg0, 7);
-    temp_v1 = gGameSession->at4.loc.place;
+    temp_v1 = gGameSession->at4.loc.variant;
     if (temp_v1 == 1) {
         gGameSession->flowFlags = temp_v1;
     }
@@ -1584,9 +1584,9 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
 /// `arg0`; values other than 0 and 1 leave it unchanged.
 void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd* cmd;
-    s32        mode;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtCmd*       cmd;
+    s32              mode;
 
     cmd  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].field_4;
     mode = arg0 & 0xFF;

@@ -157,7 +157,7 @@ void* CdCmd_SetupMdecBuffers(void)
     D_8006AC00 = NULL;
     if (gGameSession->at4.loc.stage == 0) {
         D_8006AC00 = Mem_Malloc(0x4B000, 1);
-    } else if (Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0) < 0) {
+    } else if (Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0) < 0) {
         return NULL;
     } else {
         sizeRow = CdCmd_MapHeapSizes[Mc_SaveData[0].state.at4.loc.stage];
@@ -1081,7 +1081,7 @@ void CdCmd_SelectMdecBuffer(void)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0) >= 0) {
+    if (Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
     p->field_1E6 = 0;

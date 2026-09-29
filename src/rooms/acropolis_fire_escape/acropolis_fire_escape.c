@@ -652,7 +652,7 @@ void func_acropolis_fire_escape_8017F48C(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -826,7 +826,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
             return;
     }
 
-    switch ((u8)gGameSession->at4.loc.view) {
+    switch (gGameSession->at4.loc.view) {
         case 8:
             vol = 0x64;
             if (Mc_SaveData[0].state.sceneEvent == 5) {
@@ -979,25 +979,25 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
             break;
         case 1:
             if (Gp_State1C->eventState < 4) {
-                if ((u8)gGameSession->at4.loc.view == 3) {
+                if (gGameSession->at4.loc.view == 3) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
                     Gp_SpawnEff(0x6004F, coord, 0x60E, &work->move);
                 }
-                if ((u8)gGameSession->at4.loc.view == 8) {
+                if (gGameSession->at4.loc.view == 8) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
                     Gp_SpawnEff(0x6004F, coord, 0x8000030E, &work->move);
                 }
-                if ((u8)gGameSession->at4.loc.view == 6) {
+                if (gGameSession->at4.loc.view == 6) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
                     Gp_SpawnEff(0x6004F, coord, 0x10408, &work->move);
                 }
-                if ((u8)gGameSession->at4.loc.view == 9) {
+                if (gGameSession->at4.loc.view == 9) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;

@@ -8,6 +8,9 @@
 #include "main/gameflag_types.h"
 #include "main/task_types.h"
 
+/// Terminates both area placement lists and their resource-entry lists.
+enum { AREA_TABLE_END_ID = 0xFF };
+
 /// One 0xFF-terminated area resource entry. The CD loader uses field_2/field_4;
 /// spawning uses field_5/field_8. TaskDesc.flags also controls the model flags.
 typedef struct _GpAreaTmdRec {

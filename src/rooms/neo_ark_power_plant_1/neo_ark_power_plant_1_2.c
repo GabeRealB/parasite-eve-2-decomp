@@ -948,10 +948,10 @@ static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg
 /// value is ignored.
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* view;
-    s32        v;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       view;
+    s32              v;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];

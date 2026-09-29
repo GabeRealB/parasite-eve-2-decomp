@@ -202,8 +202,8 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaOpeningWork, 0x8);
 /// 0x6C room, and `slot` is the CD stream-slot triple state 13 hands to
 /// `CdCmd_Enqueue(0x71, ...)`; the task only ever has one of them in flight.
 typedef union AcropolisPlazaOpeningBuf {
-    /* 0x0 */ GpAreaKey key;
-    /* 0x0 */ u8        slot[4];
+    /* 0x0 */ GameLocationKey key;
+    /* 0x0 */ u8              slot[4];
 } AcropolisPlazaOpeningBuf;
 
 /// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
@@ -3279,7 +3279,7 @@ L_case0:
     q->field_1FA   = 0;
     q->field_1E8   = 0;
     if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
-        slot[0]   = Stream_FindSlot(&gGameSession->at4.loc.view, q->field_1F8, 0);
+        slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->field_1F8, 0);
         frameOfs  = (q->field_1EA - 1) * 10;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
@@ -3375,7 +3375,7 @@ L_case2:
         }
     }
 L_enqueue:
-    slot[0]   = Stream_FindSlot(&gGameSession->at4.loc.view, q->field_1F8, 0);
+    slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->field_1F8, 0);
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
@@ -3576,7 +3576,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 2;
-            buf.slot[0]  = Stream_FindSlot(&gGameSession->at4.loc.view, 2, 0);
+            buf.slot[0]  = Stream_FindSlot((u8*)&gGameSession->at4.loc, 2, 0);
             buf.slot[1]  = 0;
             buf.slot[2]  = 0;
             CdCmd_Enqueue(0x72, 0, buf.slot);
@@ -3637,7 +3637,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// display and jumps straight to state 8.
 ///
 /// States 6 and 8 both look the room's own work object up by location: they
-/// build a `GpAreaKey` from `gGameSession`, walk the nested area records for
+/// build a `GameLocationKey` from `gGameSession`, walk the nested area records for
 /// the 0x6C entry and pack that index into the id `Gp_FindWorkById` matches.
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
@@ -3663,7 +3663,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     CdCmdQueue*                q    = &CdCmd_Queue;
     AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
     AcropolisPlazaOpeningWork* newWork;
-    GpAreaKey*                 sessionKey;
+    GameLocationKey*           sessionKey;
     GpAreaPlace*               entry;
     s32                        idx;
 
@@ -3705,7 +3705,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 4;
-            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 4, 0);
+            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 4, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3732,7 +3732,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 5;
-            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 5, 0);
+            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 5, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3759,7 +3759,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             buf.key.area            = sessionKey->area;
             buf.key.room            = gGameSession->sprtVariant;
             buf.key.view            = gGameSession->at4.loc.view;
-            buf.key.place           = sessionKey->place;
+            buf.key.variant         = sessionKey->variant;
             entry                   = Gp_GetNestedAreaRec(&buf.key)->field_0;
             idx                     = 0;
             /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
@@ -3799,14 +3799,14 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey    = &gGameSession->at4.loc;
-                buf.key.stage = sessionKey->stage;
-                buf.key.area  = sessionKey->area;
-                buf.key.room  = gGameSession->sprtVariant;
-                buf.key.view  = gGameSession->at4.loc.view;
-                buf.key.place = sessionKey->place;
-                entry         = Gp_GetNestedAreaRec(&buf.key)->field_0;
-                idx           = 0;
+                sessionKey      = &gGameSession->at4.loc;
+                buf.key.stage   = sessionKey->stage;
+                buf.key.area    = sessionKey->area;
+                buf.key.room    = gGameSession->sprtVariant;
+                buf.key.view    = gGameSession->at4.loc.view;
+                buf.key.variant = sessionKey->variant;
+                entry           = Gp_GetNestedAreaRec(&buf.key)->field_0;
+                idx             = 0;
                 if (entry->entryId != 0xFF) {
                     for (;;) {
                         if (entry->entryId == 0x6C) {
@@ -3840,7 +3840,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->field_1EE = 1;
             q->field_1EA = 1;
             q->field_1F8 = 3;
-            slot[0]      = Stream_FindSlot(&gGameSession->at4.loc.view, 3, 0);
+            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
             slot[1]      = 0;
             slot[2]      = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3881,7 +3881,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 q->field_1EE = 1;
                 q->field_1EA = 1;
                 q->field_1F8 = 3;
-                buf.slot[0]  = Stream_FindSlot(&gGameSession->at4.loc.view, 3, 0);
+                buf.slot[0]  = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
                 buf.slot[1]  = 0;
                 buf.slot[2]  = 0;
                 CdCmd_Enqueue(0x71, 0, buf.slot);

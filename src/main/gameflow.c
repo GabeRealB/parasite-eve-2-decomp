@@ -147,9 +147,9 @@ void GameFlow_StateByField34(Task* task)
             Title_RestoreDemoCard();
             MEM_CLEAR(gGameSession, sizeof(GameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            gDisplayState.gameRunning                    = 0;
-            gGameSession->applySavePlace                 = 1;
-            gGameSession->field_80                       = 0;
+            gDisplayState.gameRunning                  = 0;
+            gGameSession->applySaveVariant             = 1;
+            gGameSession->field_80                     = 0;
             Snd_SetMutedVolumes(1);
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.stopTaskWalk                   = 1;
@@ -175,12 +175,12 @@ void GameFlow_StateByField34(Task* task)
             task->state                    = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(GameSession));
-            gDisplayState.gameRunning                    = 1;
+            gDisplayState.gameRunning                  = 1;
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            p->field_248                                 = 1;
-            p->field_244                                 = 1;
-            Wip_SysFlags.field_4                         = 1;
-            gGameSession->applySavePlace                 = 1;
+            p->field_248                               = 1;
+            p->field_244                               = 1;
+            Wip_SysFlags.field_4                       = 1;
+            gGameSession->applySaveVariant             = 1;
         }
         gDisplayState.stopTaskWalk = 1;
         taskKill(task);
@@ -334,7 +334,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* task)
     u8 param2[8];
 
     if ((u8)LoadUi_PollDiskSwap() == 0) {
-        Fs_BeginBootLoad(&gGameSession->at4.loc.view, 0);
+        Fs_BeginBootLoad((u8*)&gGameSession->at4.loc, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;

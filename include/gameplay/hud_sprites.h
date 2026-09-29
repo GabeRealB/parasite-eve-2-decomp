@@ -23,7 +23,7 @@ void Gp_ApplyView(GpViewRec* arg0);
 
 void Gp_SpawnViewTasks(void);
 
-GpViewRec* Gp_GetStageView(GpAreaKey* arg0);
+GpViewRec* Gp_GetStageView(GameLocationKey* arg0);
 
 void Gp_SpawnCurView(s32 arg0);
 

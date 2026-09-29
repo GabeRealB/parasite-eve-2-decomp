@@ -372,7 +372,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     Game_SetPtrSlot(task, 7);
     (D_dryfield_night_garage_80186D7C + 3)->field_4A &= 0xBF;
     player                                            = gameGetPtrSlot(0xA);
-    if (gGameSession->at4.loc.place == 3 && player != NULL) {
+    if (gGameSession->at4.loc.variant == 3 && player != NULL) {
         Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.animBlock.index);
         Gp_DispatchMsgPtr(player, 0x3E8, &D_dryfield_night_garage_80181C68, 0);
@@ -386,7 +386,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
             func_800E8614(D_dryfield_night_garage_80181C7C, 1);
         }
     }
-    if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0x6C) > 0) {
+    if (gGameSession->at4.loc.variant == 2 && GameFlag_GetNibble(0x6C) > 0) {
         if (GameFlag_GetNibble(0x6C) == 1) {
             GameFlag_SetNibble(0x6C, 2);
         }
@@ -404,7 +404,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
     GpObj4A* obj;
 
     if (msg->field_2 == 6) {
-        if (gGameSession->at4.loc.place == 2) {
+        if (gGameSession->at4.loc.variant == 2) {
             if (GameFlag_GetNibble(0x6C) == 0) {
                 if (Gp_HasCollectedBit(0x113) == 0) {
                     Gp_MsgPlayerWeapon(0);
@@ -444,7 +444,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
             Gp_SpawnIfCapIdle(0x36, 0);
         }
     }
-    if (msg->field_2 == 2 && gGameSession->at4.loc.place == 3 && gameGetPtrSlot(0xA) != NULL) {
+    if (msg->field_2 == 2 && gGameSession->at4.loc.variant == 3 && gameGetPtrSlot(0xA) != NULL) {
         Task_SpawnFromTable(D_8013B11C, 1, 0, 0);
     }
     return 0;

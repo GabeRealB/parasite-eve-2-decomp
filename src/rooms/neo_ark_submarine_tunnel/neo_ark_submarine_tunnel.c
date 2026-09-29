@@ -723,30 +723,30 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
 /// register allocator needs to see.
 void func_neo_ark_submarine_tunnel_8017E288(Task* task)
 {
-    s32        xLeft  = -0xA0;
-    s32        xRight = 0xA0;
-    s32        buf    = gDisplayState.otBuffer;
-    s32        passes = 1;
-    GpAreaKey* loc    = &gGameSession->at4.loc;
-    s32        area   = loc->area;
-    s32        start;
-    s32        end;
-    POLY_FT4*  prim;
-    u8*        base;
-    s32        size;
-    s32        sinArg;
-    s32        cosArg;
-    s32        otz;
-    s32        pass;
-    s32        y;
-    s32        y0;
-    s32        wave;
-    s32        sinv;
-    s32        cosv;
-    s32        v;
-    s32        x0;
-    s32        x1;
-    u16        spare;
+    s32              xLeft  = -0xA0;
+    s32              xRight = 0xA0;
+    s32              buf    = gDisplayState.otBuffer;
+    s32              passes = 1;
+    GameLocationKey* loc    = &gGameSession->at4.loc;
+    s32              area   = loc->area;
+    s32              start;
+    s32              end;
+    POLY_FT4*        prim;
+    u8*              base;
+    s32              size;
+    s32              sinArg;
+    s32              cosArg;
+    s32              otz;
+    s32              pass;
+    s32              y;
+    s32              y0;
+    s32              wave;
+    s32              sinv;
+    s32              cosv;
+    s32              v;
+    s32              x0;
+    s32              x1;
+    u16              spare;
 
     if (area == 12) {
         switch (gGameSession->at4.loc.view) {
@@ -808,7 +808,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
         task->state++;
     }
 
-    if (area == 12 && loc->place == 3) {
+    if (area == 12 && loc->variant == 3) {
         size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
         base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
@@ -1090,7 +1090,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     u8 temp_s0_4;
 
     temp_s0 = arg2->field_2;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->at4.loc.place == 3)) {
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->at4.loc.variant == 3)) {
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
@@ -1098,14 +1098,14 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         func_800E8634(&D_80135220, 0, &D_80135FD0);
     }
     if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
-        temp_s0_2 = gGameSession->at4.loc.place;
+        temp_s0_2 = gGameSession->at4.loc.variant;
         if (temp_s0_2 == 1) {
             func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
     temp_s0_3 = arg2->field_2;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.place == temp_s0_3)) {
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.variant == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
         func_800E8614(&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
@@ -1145,7 +1145,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 {
     if (arg2 < 6) {
         if (arg2 >= 4) {
-            if (gGameSession->at4.loc.place == 1) {
+            if (gGameSession->at4.loc.variant == 1) {
                 Gp_SpawnIfCapIdle(arg2, 0);
             }
         }

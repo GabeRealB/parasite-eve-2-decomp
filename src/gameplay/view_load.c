@@ -50,11 +50,11 @@ s16 D_80114C40;
 
 void Gp_ViewBeginLoad(Task* task)
 {
-    DisplayState* ds;
-    CdCmdQueue*   q;
-    GpAreaKey*    sess;
-    u8            param1[8];
-    u8            param2[8];
+    DisplayState*    ds;
+    CdCmdQueue*      q;
+    GameLocationKey* sess;
+    u8               param1[8];
+    u8               param2[8];
 
     sess = &gGameSession->at4.loc;
     q    = &CdCmd_Queue;
@@ -71,7 +71,7 @@ void Gp_ViewBeginLoad(Task* task)
             Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
             task->state = 5;
         } else {
-            D_80114C40 = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 1);
+            D_80114C40 = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 1);
             if (D_80114C40 >= 0) {
                 Gp_FreeSlot4TmdBuffers();
                 q->field_210 = 1;

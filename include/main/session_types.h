@@ -21,30 +21,36 @@ typedef struct {
     u8 data[8];
 } GBytes8;
 
-/// 6-byte key of a place in the world.
+/// Location selector shared by the live session, saved state and world lookups.
 ///
-/// `stage` / `area` select `Gp_AreaTables`; `place` indexes the nested record
-/// (written from the area object's id). `view`, `room` and `warp` select the
-/// per-room view, the room within the area, and the per-area warp. The same
-/// key is `GameSession.at4.loc` and `Mc_SaveData[0].state.at4.loc`, and is passed into
-/// area, view, room and warp lookups.
-typedef struct GpAreaKey {
-    u8 view;  // 1-based view slot; innermost index of the per-room view table
-    u8 room;  // 1-based room index within the area
-    u8 area;  // 1-based area / CDF folder within the stage
-    u8 stage; // 1-based stage; indexes per-stage tables
-    u8 warp;  // 1-based warp slot; indexes the per-area warp table
-    u8 place; // nested place index, synced from the area object's id
-} GpAreaKey;
-STATIC_ASSERT_SIZEOF(GpAreaKey, 0x6);
+/// The six unsigned bytes select parts of the location. `view` is
+/// a room-local slot; a lookup maps it to the camera/image index. `variant`
+/// selects the area's placement and resource layout and mirrors the saved
+/// per-area variant after synchronization. Each layout supplies a placement
+/// list and its associated resources.
+///
+/// Active stage, area, room, view and warp IDs are 1-based. Stage 0 means no
+/// active stage; the other upper bounds depend on the selected loaded tables.
+/// Each lookup requires only the components it reads to be initialized and in
+/// range. The key is byte-aligned; packed word reads require a word-aligned
+/// instance. Whole location-cell transfers use the eight-byte `GameLoc`.
+typedef struct {
+    u8 view;    // 1-based view slot within the room, mapped to a camera/image index
+    u8 room;    // 1-based room within the area
+    u8 area;    // 1-based area and CDF folder within the stage
+    u8 stage;   // Stage ID (0 no active stage, 1..5 active stages)
+    u8 warp;    // 1-based arrival record within the area's warp table
+    u8 variant; // Placement/resource layout within the area (1 default)
+} GameLocationKey;
+STATIC_ASSERT_SIZEOF(GameLocationKey, 0x6);
 
-/// 8-byte location cell: the 6-byte place key followed by two bytes a
-/// whole-cell copy also moves. `loc` is the key the lookups index by; `raw` is
-/// the whole cell, used by the copies between the session and the save and by
-/// the callers that hand the cell on as bytes.
+/// Eight-byte location cell copied between the live session and saved state.
+///
+/// `loc` holds the six location selectors. `raw` covers the whole cell,
+/// including its last two bytes, whose roles are unproven.
 typedef union {
-    GpAreaKey loc;
-    GBytes8   raw;
+    GameLocationKey loc;
+    GBytes8         raw;
 } GameLoc;
 STATIC_ASSERT_SIZEOF(GameLoc, 8);
 
@@ -55,14 +61,14 @@ STATIC_ASSERT_SIZEOF(GameLoc, 8);
 /// buttons, and the flags that cutscenes, view loads and death/restart share.
 /// New game, load and reset zero the whole object, which pins the size at 0x13C.
 typedef struct {
-    s8           deathVariant;   // (0 none, 1/2 which death cutscene file); nonzero blocks resume and menu
-    s8           eventState;     // 0 idle; nonzero blocks player-dir handling and room scripts
-    u8           uiOpen;         // 1 while a UI overlay is up; enables d-pad auto-repeat
+    s8           deathVariant;     // (0 none, 1/2 which death cutscene file); nonzero blocks resume and menu
+    s8           eventState;       // 0 idle; nonzero blocks player-dir handling and room scripts
+    u8           uiOpen;           // 1 while a UI overlay is up; enables d-pad auto-repeat
     byte         unknown_3;
-    GameLoc      at4;            // current place in the world
-    struct Task* ptrSlots[16];   // tasks the session keeps by slot
-    u8           applySavePlace; // 1: next area load writes the save's place id into the area object
-    u8           viewReady;      // (0 loading/transitioning, 1 current view finished loading)
+    GameLoc      at4;              // current place in the world
+    struct Task* ptrSlots[16];     // tasks the session keeps by slot
+    u8           applySaveVariant; // 1: next area load restores the saved placement variant
+    u8           viewReady;        // (0 loading/transitioning, 1 current view finished loading)
     u16          field_4E;
     byte         unknown_50[2];
     s16          viewDirty;      // nonzero: respawn the view from the save

@@ -2077,7 +2077,7 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     DR_MODE*          dr;
     s32               otz;
     s32               i;
-    GpAreaKey*        k;
+    GameLocationKey*  k;
 
     e     = D_shelter_b2_main_corridor_80182DEC;
     phase = -(gDisplayState.animFrame * 16);

@@ -2725,7 +2725,7 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
 {
     Actor100400AreaConfig* cfg;
     Actor100400Work*       work;
-    GpAreaKey*             ses;
+    GameLocationKey*       ses;
     u16                    flags;
 
     work = arg0->work;
@@ -2938,7 +2938,7 @@ static void Actor00400_Fn03920(Task* arg0)
             }
             break;
         case 1:
-            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 45, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->work;
@@ -3506,9 +3506,9 @@ static void Actor00400_Fn04E18(Task* arg0)
     TmdObject*       ctx2;
     TmdObject*       ctx3;
     TmdObject*       ctxN;
-    GpAreaKey*       sess;
-    GfxCoord*        coord;
-    GfxCoord*        coordN;
+    GameLocationKey* sess;
+    GfxCoord*         coord;
+    GfxCoord*         coordN;
     MATRIX*          dst;
     s32              i;
 

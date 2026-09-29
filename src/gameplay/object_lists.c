@@ -967,7 +967,7 @@ void Gp_CommitObj4CSave(void)
     for (node = Gp_Obj4CList; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
             node->field_4B = 0;
-            if ((u8)gGameSession->at4.loc.view == node->field_48) {
+            if (gGameSession->at4.loc.view == node->field_48) {
                 Mc_SaveData[0].state.at4.loc.view = node->field_49;
             }
         }

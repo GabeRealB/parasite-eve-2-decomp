@@ -2184,15 +2184,15 @@ static void Actor03800_Fn02E50(Task* actor)
 
 static void Actor03800_Fn03008(Task* actor, u32 variant)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    GpEffWork*     eff;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     switch (variant) {
         case 0:
@@ -2224,7 +2224,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     areaByte0  = sessionKey->view;
     idx        = raw >> 12;
     key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec = Gp_GetNestedAreaRec(&key);
 
     entry        = gpAreaPlaceAt(rec->field_0, idx);

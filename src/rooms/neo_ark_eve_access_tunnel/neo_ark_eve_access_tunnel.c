@@ -733,7 +733,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* sr
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 {
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {
@@ -803,7 +803,7 @@ static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;
 
@@ -824,11 +824,11 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 {
     CdCmdQueue* queue = &CdCmd_Queue;
 
-    if (gGameSession->at4.loc.place < 4U) {
+    if (gGameSession->at4.loc.variant < 4U) {
         func_neo_ark_eve_access_tunnel_8017E090(0, 0);
         func_neo_ark_eve_access_tunnel_8017E090(1, 0);
     }
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         queue->field_22A = 2;
     }
 }

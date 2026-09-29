@@ -66,8 +66,8 @@ void Gp_AreaEnterTask(Task* arg0)
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2.pointer;
-        key  = GP_LOC_WORD(gGameSession->at4.loc);
-        key &= GP_LOC_STAGE_AREA;
+        key  = GAME_LOCATION_WORD(gGameSession->at4.loc);
+        key &= GAME_LOCATION_STAGE_AREA_MASK;
         Stage_InitPrimBufOnce();
         for (i = 0; i < 2; i++) {
             slot = Gp_ActorSlots[i];
@@ -77,7 +77,7 @@ void Gp_AreaEnterTask(Task* arg0)
         }
         SndEvt_EnqueueType8(0xD);
         Gp_EnqueueSndCd((Gp_GetAttachLevel(7) + 0x15) & 0xFF);
-        if (key == GP_LOC_KEY(1, 20, 0, 0)) {
+        if (key == GAME_LOCATION_KEY(1, 20, 0, 0)) {
             arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);
         } else {
             arg0->spawnArg2.pointer = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
@@ -86,8 +86,8 @@ void Gp_AreaEnterTask(Task* arg0)
                 work->field_0 = 0;
                 Gp_SetAreaFlag2(1, &gGameSession->at4.loc);
                 gGameSession->field_126 = 1;
-                if (!((key == GP_LOC_KEY(5, 11, 0, 0) || key == GP_LOC_KEY(5, 29, 0, 0)) &&
-                      gGameSession->at4.loc.place - 1 < 3U)) {
+                if (!((key == GAME_LOCATION_KEY(5, 11, 0, 0) || key == GAME_LOCATION_KEY(5, 29, 0, 0)) &&
+                      gGameSession->at4.loc.variant - 1 < 3U)) {
                     if (Mc_SaveData[0].state.field_6CC < 0x270FU) {
                         Mc_SaveData[0].state.field_6CC++;
                     }

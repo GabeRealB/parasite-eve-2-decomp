@@ -2203,9 +2203,9 @@ void func_shelter_r48_8017E224(Task* task)
 
 void func_shelter_r48_8017E27C(u8 arg0)
 {
-    GpAreaKey* loc = &gGameSession->at4.loc;
-    GpSprtRec* rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
-    GpSprtCmd* cmd;
+    GameLocationKey* loc = &gGameSession->at4.loc;
+    GpSprtRec*       rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
+    GpSprtCmd*       cmd;
 
     if (arg0 == 0) {
         cmd            = rec[1].field_4;

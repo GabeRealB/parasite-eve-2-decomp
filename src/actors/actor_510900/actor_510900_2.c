@@ -1625,12 +1625,12 @@ static void func_actor_510900_801373B8(Task* arg0)
 {
     Actor510900Work* work;
     GpEnemy*         enemy;
-    GfxCoord*        coord;
-    GpAreaKey*       sessionKey;
+    GfxCoord*         coord;
+    GameLocationKey* sessionKey;
     TmdObject*       model;
     GpAreaVariant*   rec;
     GpAreaPlace*     entry;
-    GpAreaKey        key;
+    GameLocationKey  key;
     s32              idx;
     s32              snd;
     s32              pan;
@@ -1652,7 +1652,7 @@ static void func_actor_510900_801373B8(Task* arg0)
         key.area        = sessionKey->area;
         key.room        = sessionKey->room;
         key.view        = gGameSession->at4.loc.view;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */

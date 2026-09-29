@@ -1234,7 +1234,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
 /// `D_dryfield_night_water_hole_80180964`, and once it is set the parameter
 /// overrides are applied instead.
 ///
-/// On the visit whose sub-id (`gGameSession::at4.loc.place`) is 1 and that has
+/// On the visit whose sub-id (`gGameSession::at4.loc.variant`) is 1 and that has
 /// already latched nibble 0x95, and with the slot-4 task present, the room
 /// announces itself to it with message 0x7DB, carrying the payload record
 /// `gGameSession::at4.loc.warp` selects. On sub-id 0xA, with pointer slot 0xA
@@ -1249,14 +1249,14 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     } else {
         func_dryfield_night_water_hole_8017DE88(D_dryfield_night_water_hole_801835D8);
     }
-    if (gGameSession->at4.loc.place == 1 && Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x95) != 0) {
+    if (gGameSession->at4.loc.variant == 1 && Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x95) != 0) {
         if (gGameSession->at4.loc.warp == 2) {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_water_hole_80180660, 0);
         } else {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
-    if (gGameSession->at4.loc.place == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {
+    if (gGameSession->at4.loc.variant == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {
         GameFlag_SetNibble(0xCF, 2);
         func_800E3FAC(0xA2, 0x25);
         Task_SpawnFromTable(D_801351FC, 1, 0, 0);
@@ -1386,12 +1386,12 @@ s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_s0;
 
-    if ((in->field_2 == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.place == 1)) {
+    if ((in->field_2 == 2) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.variant == 1)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614(D_dryfield_night_water_hole_8018067C, 0);
     }
     temp_s0 = in->field_2;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.place == temp_s0)) {
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0x95) == 0) && (gGameSession->at4.loc.variant == temp_s0)) {
         GameFlag_SetNibble(0x95, 1);
         func_800E8614(D_dryfield_night_water_hole_801807FC, 0);
     }
@@ -1422,7 +1422,7 @@ void func_dryfield_night_water_hole_8017DE30(Task* task)
 /// `Gp_RoomParams` out of it. The list ends at the first NULL record.
 static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 {
-    GpAreaKey*       sess;
+    GameLocationKey* sess;
     s32              i;
     GpRoomParamRec** recs;
 

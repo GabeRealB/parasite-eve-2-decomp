@@ -55,7 +55,7 @@ extern GpPairSrcE D_neo_ark_forest_zone_80182D1C;
 extern GpU16Pair  D_neo_ark_forest_zone_80182D04[6];
 
 /// How many spawns each session slot arms, indexed by
-/// `gGameSession->at4.loc.place`, for the second and the first arming task
+/// `gGameSession->at4.loc.variant`, for the second and the first arming task
 /// respectively; zero disables that task's work in the slot.
 extern u8 D_neo_ark_forest_zone_80182D44[];
 extern u8 D_neo_ark_forest_zone_80182D54[];
@@ -645,7 +645,7 @@ static void func_neo_ark_forest_zone_801804B0(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.place] == 0) {
+    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -653,10 +653,10 @@ static void func_neo_ark_forest_zone_801804B0(Task* task)
     task->msgTable                 = D_neo_ark_forest_zone_80182D6C;
     D_neo_ark_forest_zone_80182D64 = GameFlag_GetNibble(0x10C);
     nib                            = GameFlag_GetNibble(0x10D);
-    if (gGameSession->at4.loc.place != nib) {
-        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.place];
+    if (gGameSession->at4.loc.variant != nib) {
+        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant];
         GameFlag_SetNibble(0x10C, D_neo_ark_forest_zone_80182D64);
-        GameFlag_SetNibble(0x10D, gGameSession->at4.loc.place);
+        GameFlag_SetNibble(0x10D, gGameSession->at4.loc.variant);
     }
     if (D_neo_ark_forest_zone_80182D64 >= 6) {
         D_neo_ark_forest_zone_80182D64 = 5;
@@ -689,7 +689,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.place] == 0) {
+    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_forest_zone_80182D62 > 0) {
@@ -717,7 +717,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
             }
         }
         GameFlag_SetNibble(0x10C, count);
-        Gp_SyncAreaKeyIndex(&gGameSession->at4);
+        areaSyncLocationVariant(&gGameSession->at4.loc);
     }
     D_neo_ark_forest_zone_80182DC4 = Gp_StateF0.field_6;
     if (gGameSession->field_126 == 1 && D_neo_ark_forest_zone_80182D62 == 0) {
@@ -824,7 +824,7 @@ static void func_neo_ark_forest_zone_80180BB4(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.place] == 0) {
+    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -832,10 +832,10 @@ static void func_neo_ark_forest_zone_80180BB4(Task* task)
     task->msgTable                 = D_neo_ark_forest_zone_80182DC8;
     D_neo_ark_forest_zone_80182D64 = GameFlag_GetNibble(0x10A);
     nib                            = GameFlag_GetNibble(0x10B);
-    if (gGameSession->at4.loc.place != nib) {
-        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.place];
+    if (gGameSession->at4.loc.variant != nib) {
+        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant];
         GameFlag_SetNibble(0x10A, D_neo_ark_forest_zone_80182D64);
-        GameFlag_SetNibble(0x10B, gGameSession->at4.loc.place);
+        GameFlag_SetNibble(0x10B, gGameSession->at4.loc.variant);
     }
     if (D_neo_ark_forest_zone_80182D64 >= 6) {
         D_neo_ark_forest_zone_80182D64 = 5;
@@ -862,7 +862,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.place] == 0) {
+    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_forest_zone_80182D62 > 0) {
@@ -893,7 +893,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
             }
         }
         GameFlag_SetNibble(0x10A, count);
-        Gp_SyncAreaKeyIndex(&gGameSession->at4);
+        areaSyncLocationVariant(&gGameSession->at4.loc);
         D_neo_ark_forest_zone_80182D62 = 0x96;
     }
     D_neo_ark_forest_zone_80182DC4 = Gp_StateF0.field_6;

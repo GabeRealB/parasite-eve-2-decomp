@@ -1580,7 +1580,7 @@ u8 D_acropolis_patio_80187065;
 /// actors need for the current point in the story: the first visit
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
-/// `gGameSession::at4.loc.place`.
+/// `gGameSession::at4.loc.variant`.
 static void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     GpCmdArg msg;
@@ -1600,13 +1600,13 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
             Gp_DispatchMsgPtr(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             Gp_DispatchMsgPtr(temp, 0x7DB, &D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->at4.loc.place == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+    if ((gGameSession->at4.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.from.loc.stage = 1;
         msg.from.loc.area  = 3;
         msg.command        = 0;
@@ -2004,7 +2004,7 @@ void func_acropolis_patio_8017E324(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
@@ -2103,7 +2103,7 @@ void func_acropolis_patio_8017E730(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     if (Gp_State1C->eventState < 4 &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> ((u8)gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->at4.loc.view - 1)) & 1)) {
         sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {

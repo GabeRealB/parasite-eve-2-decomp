@@ -1005,7 +1005,7 @@ void func_shelter_b6_nursery_8017F4E8(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -1289,9 +1289,9 @@ void func_shelter_b6_nursery_8017FFF4(void)
 /// room in the first stage table. Only low-byte values 0 and 1 change the flag.
 void func_shelter_b6_nursery_80180038(s32 arg0)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd* cmd;
-    s32        mode;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtCmd*       cmd;
+    s32              mode;
 
     cmd  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
     mode = arg0 & 0xFF;

@@ -216,10 +216,10 @@ GpBit2Rec D_801149B8[] = {
 
 static void Gp_SpawnPlaceById(u16 arg0)
 {
-    GpAreaKey*  sess;
-    GpBit2List* lists;
-    GpBit2Rec*  place;
-    u16         id;
+    GameLocationKey* sess;
+    GpBit2List*      lists;
+    GpBit2Rec*       place;
+    u16              id;
 
     sess  = &Mc_SaveData[0].state.at4.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
@@ -243,7 +243,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     }
 }
 
-void Gp_SpawnPlaces(GpAreaKey* arg0)
+void Gp_SpawnPlaces(GameLocationKey* arg0)
 {
     GpBit2List*  lists;
     GpBit2Rec*   place;

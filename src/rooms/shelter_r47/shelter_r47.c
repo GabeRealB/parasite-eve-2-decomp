@@ -614,7 +614,7 @@ static void func_shelter_r47_8017F628(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -737,7 +737,7 @@ static void func_shelter_r47_8017FB94(Task* task)
 
 static void func_shelter_r47_8017FCC0(Task* task)
 {
-    u8 place = gGameSession->at4.loc.place;
+    u8 place = gGameSession->at4.loc.variant;
 
     if (place != 1 || Gp_StateC08.field_A == place) {
         return;
@@ -790,7 +790,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, G
     GpObj4A* p;
     GpObj4A* q;
 
-    field9 = gGameSession->at4.loc.place;
+    field9 = gGameSession->at4.loc.variant;
     if (field9 == 1) {
         switch (arg2->field_2) {
             case 2:
@@ -1080,7 +1080,7 @@ static void func_shelter_r47_80180714(Task* task)
     if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
         Gp_MsgPlayer3F3(1);
         Gp_MsgPlayerWeapon(1);
-        if (gGameSession->at4.loc.place == 1) {
+        if (gGameSession->at4.loc.variant == 1) {
             Gp_MsgSlot4Chain(0, 1);
         }
         if (gameGetPtrSlot(0xA) != NULL) {

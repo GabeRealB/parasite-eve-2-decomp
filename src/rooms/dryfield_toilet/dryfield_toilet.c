@@ -208,14 +208,14 @@ s32 func_dryfield_toilet_8017D8C0(void)
 /// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
 /// direction record `Gp_PostMsg13EF` posts. On the visit whose sub-id
 /// (`field_2`) is 1, that agrees with the session's own sub-id
-/// (`gGameSession::at4.loc.place`) and that has not yet latched nibble 0x60, the
+/// (`gGameSession::at4.loc.variant`) and that has not yet latched nibble 0x60, the
 /// toilet starts its cutscene pair and latches the nibble. The outgoing record
 /// is never written: this handler only consumes the message.
 s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 subId = in->field_2;
 
-    if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == subId) {
+    if (subId == 1 && GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.variant == subId) {
         func_800E8634(D_dryfield_toilet_80180C58, 1, D_dryfield_toilet_80180F40);
         GameFlag_SetNibble(0x60, 1);
     }
@@ -224,14 +224,14 @@ s32 func_dryfield_toilet_8017D8C8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEven
 
 /// The room task's entry state: publish the message table, claim game pointer
 /// slot 7, and on the visit that agrees with the session's sub-id
-/// (`gGameSession::at4.loc.place` == 1) and has not yet latched nibble 0x60, post
+/// (`gGameSession::at4.loc.variant` == 1) and has not yet latched nibble 0x60, post
 /// message `0x7DA` with the room's payload and run the scene setup. Advance to
 /// the next state either way.
 static void func_dryfield_toilet_8017D940(Task* arg0)
 {
     arg0->msgTable = D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
-    if (GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.place == 1) {
+    if (GameFlag_GetNibble(0x60) == 0 && gGameSession->at4.loc.variant == 1) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_toilet_801802D4, 0x7DB);
         func_dryfield_toilet_8017D5E4();
     }

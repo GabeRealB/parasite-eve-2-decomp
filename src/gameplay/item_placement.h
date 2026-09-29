@@ -3,6 +3,6 @@
 
 #include "main/session_types.h"
 
-void Gp_SpawnPlaces(GpAreaKey* arg0);
+void Gp_SpawnPlaces(GameLocationKey* arg0);
 
 #endif // GAMEPLAY_PRIVATE_ITEM_PLACEMENT_H

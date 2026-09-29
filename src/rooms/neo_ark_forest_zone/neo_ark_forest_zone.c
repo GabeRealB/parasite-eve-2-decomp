@@ -221,7 +221,7 @@ s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     visit = in->field_2;
     if (visit == 1) {
-        if (GameFlag_GetNibble(0xBD) == 0 && gGameSession->at4.loc.place == visit) {
+        if (GameFlag_GetNibble(0xBD) == 0 && gGameSession->at4.loc.variant == visit) {
             GameFlag_SetNibble(0xBD, 1);
             func_800E8614(D_neo_ark_forest_zone_80181E6C, 0);
         }
@@ -257,7 +257,7 @@ void func_neo_ark_forest_zone_8017DA48(void)
 
 /// State 0 of the room setup task: installs the message table and pointer
 /// slot 7, starts the ambience, spawns the room's own task, and on the first
-/// visit (`gGameSession->at4.loc.place == 1`) with flag 0xBD unset has the
+/// visit (`gGameSession->at4.loc.variant == 1`) with flag 0xBD unset has the
 /// slot-4 task relay message 0x7DA carrying the first payload record. Then
 /// advances state.
 static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
@@ -266,19 +266,19 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     SndEvt_EnqueueType6(0x550B0006, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
-    if (gGameSession->at4.loc.place == 1 && GameFlag_GetNibble(0xBD) == 0) {
+    if (gGameSession->at4.loc.variant == 1 && GameFlag_GetNibble(0xBD) == 0) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_neo_ark_forest_zone_80181E30, 0x7DB);
     }
     arg0->state = arg0->state + 1;
 }
 
 /// State 1 of the room setup task: on the first visit
-/// (`gGameSession->at4.loc.place == 1`) with flag 0xBD unset, sends message
+/// (`gGameSession->at4.loc.variant == 1`) with flag 0xBD unset, sends message
 /// 0x7DB to the room's own task carrying its first payload record, then
 /// advances state.
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 {
-    if (gGameSession->at4.loc.place == 1 && GameFlag_GetNibble(0xBD) == 0) {
+    if (gGameSession->at4.loc.variant == 1 && GameFlag_GetNibble(0xBD) == 0) {
         Gp_DispatchMsgPtr(D_neo_ark_forest_zone_80181E68, 0x7DB, &D_neo_ark_forest_zone_80181E30, 0);
     }
     arg0->state = arg0->state + 1;

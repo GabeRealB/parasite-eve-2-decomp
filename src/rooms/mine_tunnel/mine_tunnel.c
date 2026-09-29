@@ -126,7 +126,7 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     u8 temp_v1;
 
     temp_v1 = msg->field_2;
-    if ((temp_v1 == 1) && (gGameSession->at4.loc.place == temp_v1) && (GameFlag_GetNibble(0xA1) == 0)) {
+    if ((temp_v1 == 1) && (gGameSession->at4.loc.variant == temp_v1) && (GameFlag_GetNibble(0xA1) == 0)) {
         GameFlag_SetNibble(0xA1, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614(D_mine_tunnel_8017E024, 1);
@@ -149,7 +149,7 @@ static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
+    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0xA1) == 1)) {
         func_mine_tunnel_8017D6E0(2);
     }
     arg0->state           = (s32)(arg0->state + 1);

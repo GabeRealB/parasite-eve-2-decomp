@@ -2599,8 +2599,8 @@ s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* i
         out->field_3 = val;
     }
     if (in->prefix.packed == 3) {
-        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.place == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place)) {
+        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.variant == 1) &&
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }
@@ -3342,10 +3342,10 @@ static void func_dryfield_night_gas_station_80180C20(void)
 /// last three views instead.
 void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* view;
-    s32        flag;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       view;
+    s32              flag;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
@@ -3389,9 +3389,9 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 /// the flag both write is command 6's.
 static void func_dryfield_night_gas_station_80180D1C(void)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtRec* view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
-    s32        flag = GameFlag_GetNibble(0x8D);
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtRec*       view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    s32              flag = GameFlag_GetNibble(0x8D);
 
     switch (flag) {
         case 0:
@@ -3412,8 +3412,8 @@ static void func_dryfield_night_gas_station_80180D1C(void)
 /// blinking-light table, whose own exit passes 0.
 static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtRec* rec =
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtRec*       rec =
         Gp_SprtTables[sess->stage - 1][0]
             .field_0[sess->area - 1];
     GpSprtCmd* view;

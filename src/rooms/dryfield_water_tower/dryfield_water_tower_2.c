@@ -3229,8 +3229,8 @@ void func_dryfield_water_tower_80180220(void)
 /// 2 has a record to write.
 void func_dryfield_water_tower_801802D8(u8 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtCmd* vs;
+    GameLocationKey* sess;
+    GpSprtCmd*       vs;
 
     sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {

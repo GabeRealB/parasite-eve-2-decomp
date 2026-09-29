@@ -940,7 +940,7 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     u8 temp_v1;
 
     temp_v1 = in->field_2;
-    if ((temp_v1 == 1) && (gGameSession->at4.loc.place == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((temp_v1 == 1) && (gGameSession->at4.loc.variant == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
         GameFlag_SetNibble(0xC9, 1);
         func_800E8614(D_dryfield_underpass_8017E8D8, 0);
     }
@@ -955,7 +955,7 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_underpass_8017E89C, 0x7DB);
     }
     arg0->state = arg0->state + 1;

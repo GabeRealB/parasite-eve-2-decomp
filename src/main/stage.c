@@ -297,13 +297,13 @@ end:
 
 static Task* Display_SpawnFromMode(void)
 {
-    Task*      ret;
-    u32        mode;
-    Task*      slot;
-    GameActor* obj;
-    GfxCoord*  ptr;
-    GpAreaKey* ed;
-    s32        flag;
+    Task*            ret;
+    u32              mode;
+    Task*            slot;
+    GameActor*       obj;
+    GfxCoord*         ptr;
+    GameLocationKey* ed;
+    s32              flag;
 
     ret = Task_SpawnFromTable(Stage_Ctx->field_0, 0, Stage_Ctx->field_4, Stage_Ctx->field_8);
     if (ret != NULL) {
@@ -394,7 +394,7 @@ static void Display_TransitionTask(Task* task)
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    (gameGetPtrSlot(1))->spawnArg1.value = (u8)gGameSession->at4.loc.view;
+                    (gameGetPtrSlot(1))->spawnArg1.value = gGameSession->at4.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
@@ -597,7 +597,7 @@ s32 Stage_BeginTransition(s32 arg0, s32 arg1)
         temp->field_11  = arg1;
         temp->field_1c |= mask;
     }
-    return (u8)gGameSession->at4.loc.view;
+    return gGameSession->at4.loc.view;
 }
 
 s32 Stage_BeginTransitionKind7(s32 arg0)
@@ -616,7 +616,7 @@ s32 Stage_BeginTransitionKind7(s32 arg0)
         temp->field_28       = 0;
         temp->field_11       = 7;
         temp->field_1c      |= mask;
-        ret                  = (u8)gGameSession->at4.loc.view;
+        ret                  = gGameSession->at4.loc.view;
         Stage_Ctx->field_1c |= 0x80000000;
     }
     return ret;
@@ -734,7 +734,7 @@ static s32 Stage_BeginTransitionKind3(void)
     flags = temp->field_1c;
     if (!(flags & 0x40000000)) {
         temp->field_1c = flags | 0x50000000;
-        val            = (u8)gGameSession->at4.loc.view;
+        val            = gGameSession->at4.loc.view;
         temp->field_24 = 0;
         temp->field_28 = 0;
         temp->field_11 = 3;
@@ -759,7 +759,7 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
     temp->field_8 = arg2;
     temp->field_C = arg3;
     if (arg3 == 0) {
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             temp->field_C = 1;
         }
     }

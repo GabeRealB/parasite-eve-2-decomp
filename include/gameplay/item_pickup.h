@@ -9,7 +9,7 @@
 
 /// 12-byte location-keyed grant record walked by `Gp_GrantLocationItems`.
 /// `field_0` is `(stage << 24) | (area << 16) | (sub << 8)` from
-/// `GpAreaKey.stage` / `field_2` / `field_5`, or `-1` to end
+/// `GameLocationKey.stage` / `field_2` / `field_5`, or `-1` to end
 /// the list. `items[0..3]` are item ids granted with `Gp_GiveItem`
 /// when `func_800B7420` is 0; a 0 slot is skipped. `items[3]` also
 /// requires `func_800B9D80(0x80000)`.

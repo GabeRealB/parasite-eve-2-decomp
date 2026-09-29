@@ -41,8 +41,8 @@
 
 /// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
 /// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as
-/// `GpAreaKey.area`); `field_1` is the apply flag (nonzero →
-/// `GpAreaObj.field_1 |= 4`).
+/// `GameLocationKey.area`); `field_1` is the apply flag (nonzero →
+/// `GpAreaObj.spawnFlags |= 4`).
 typedef struct _GpAreaFlagRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
@@ -91,7 +91,7 @@ static const GpVoidFuncTable6 Gp_WarpPhaseFns;
 
 static const GpVoidFuncTable5 D_80093990;
 
-static inline s32 _gpGetAreaFlag4(GpAreaKey* key);
+static inline s32 _gpGetAreaFlag4(GameLocationKey* key);
 
 static inline s16 _gpStageFlagNibble(u16* table, s16 idx);
 
@@ -123,7 +123,7 @@ static void Gp_MsgPlayer3EF(void);
 
 static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
-static inline s32 _gpGetAreaFlag4(GpAreaKey* key)
+static inline s32 _gpGetAreaFlag4(GameLocationKey* key)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
@@ -133,7 +133,7 @@ static inline s32 _gpGetAreaFlag4(GpAreaKey* key)
     if (rec != NULL) {
         obj = rec[key->area].field_4;
         if (obj != NULL) {
-            val = obj->field_1 & 4;
+            val = obj->spawnFlags & 4;
             return val != 0;
         }
     }
@@ -291,7 +291,7 @@ void Gp_ApplyNewGameAreaFlags(void)
                 if (rec->field_1 != 0) {
                     obj = tbl[rec->field_0].field_4;
                     if (obj != NULL) {
-                        obj->field_1 |= 0x4;
+                        obj->spawnFlags |= 0x4;
                     }
                 }
             }
@@ -309,7 +309,7 @@ void Gp_ApplyNewGameAreaFlags(void)
                 if (rec->field_1 != 0) {
                     obj = tbl[rec->field_0].field_4;
                     if (obj != NULL) {
-                        obj->field_1 |= 0x4;
+                        obj->spawnFlags |= 0x4;
                     }
                 }
             }
@@ -327,7 +327,7 @@ void Gp_ApplyNewGameAreaFlags(void)
                 if (rec->field_1 != 0) {
                     obj = tbl[rec->field_0].field_4;
                     if (obj != NULL) {
-                        obj->field_1 |= 0x4;
+                        obj->spawnFlags |= 0x4;
                     }
                 }
             }
@@ -345,7 +345,7 @@ void Gp_ApplyNewGameAreaFlags(void)
                 if (rec->field_1 != 0) {
                     obj = tbl[rec->field_0].field_4;
                     if (obj != NULL) {
-                        obj->field_1 |= 0x4;
+                        obj->spawnFlags |= 0x4;
                     }
                 }
             }
@@ -355,11 +355,11 @@ void Gp_ApplyNewGameAreaFlags(void)
 
 void Gp_RebuildAreaIdBits(void)
 {
-    GpAreaKey  key;
-    GpAreaKey* sess;
-    s32        count;
-    s32        i;
-    u8         stage;
+    GameLocationKey  key;
+    GameLocationKey* sess;
+    s32              count;
+    s32              i;
+    u8               stage;
 
     sess      = &gGameSession->at4.loc;
     stage     = sess->stage;
@@ -476,16 +476,16 @@ s16 Gp_LookupStageFlag(s16 idx)
     return -1;
 }
 
-void Gp_ClearAreaFlag4(GpAreaKey* arg0)
+void Gp_ClearAreaFlag4(GameLocationKey* key)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = Gp_AreaTables[arg0->stage];
+    rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
-        obj = rec[arg0->area].field_4;
+        obj = rec[key->area].field_4;
         if (obj != NULL) {
-            obj->field_1 &= 0xFB;
+            obj->spawnFlags &= 0xFB;
         }
     }
 }
@@ -707,16 +707,16 @@ static void Gp_MsgPlayer3EF(void)
 
 void Gp_SetCurAreaFlag4(void)
 {
-    GpAreaKey* key;
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    GameLocationKey* key;
+    GpAreaRec*       rec;
+    GpAreaObj*       obj;
 
     key = &gGameSession->at4.loc;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
         obj = rec[key->area].field_4;
         if (obj != NULL) {
-            obj->field_1 |= 0x4;
+            obj->spawnFlags |= 0x4;
         }
     }
 }
@@ -732,7 +732,7 @@ static void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1)
             if (arg1->field_1 != 0) {
                 obj = rec[arg1->field_0].field_4;
                 if (obj != NULL) {
-                    obj->field_1 |= 0x4;
+                    obj->spawnFlags |= 0x4;
                 }
             }
         }

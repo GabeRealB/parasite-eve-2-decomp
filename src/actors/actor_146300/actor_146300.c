@@ -1513,7 +1513,7 @@ void func_actor_146300_80132418(s32 arg0)
 ///
 /// The companion task from `D_actor_146300_801427C8` carries the model whose
 /// texture page and CLUT row come out of the current area record - the session
-/// location key is copied onto the stack, `Gp_SyncAreaKeyIndex` fills in its
+/// location key is copied onto the stack, `areaSyncLocationVariant` fills in its
 /// nested index and the enemy's `placeKey >> 12` selects the 0x10-byte record.
 /// The actor's task is then reparented under that companion, the model gets the
 /// block's light and colour matrices and is relit from a point 0x320 above its

@@ -229,7 +229,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
                 return 0;
             }
             Gp_SetNibbleIf(in->field_6, 2);
-            if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->at4.loc.place == Gp_StateF0.prefix.bytes.field_0) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->at4.loc.variant == Gp_StateF0.prefix.bytes.field_0) {
                 Gp_RunCapCmd1(9);
                 return 0;
             }
@@ -248,7 +248,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     }
 
     if (in->prefix.packed == 5) {
-        if (gGameSession->at4.loc.place == 1 || gGameSession->at4.loc.place == 4) {
+        if (gGameSession->at4.loc.variant == 1 || gGameSession->at4.loc.variant == 4) {
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 if (in->field_5 == 0) {
                     Gp_RunCapCmd1(0xB);
@@ -271,7 +271,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             return 0;
         }
         if (Gp_StateF0.prefix.bytes.field_0 == arg2) {
-            temp = gGameSession->at4.loc.place;
+            temp = gGameSession->at4.loc.variant;
             if (temp == arg2 || temp == 4) {
                 cmd = 0xA;
                 goto cap_only;
@@ -300,7 +300,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         Gp_RunCapCmd1(cmd);
     }
 rest:
-    temp = gGameSession->at4.loc.place;
+    temp = gGameSession->at4.loc.variant;
     if (temp == 1 || temp == 4) {
         switch (arg2) {
             case 8:
@@ -380,7 +380,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
+    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
         func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);

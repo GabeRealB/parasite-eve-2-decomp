@@ -172,18 +172,18 @@ void func_800AD6BC(void)
 
 void Gp_SetupDirWarp(void)
 {
-    Task*         slot7;
-    Task*         slot3;
-    PlayerStatus* cfg;
-    GameActor*    actor;
-    GpAreaKey*    sess;
-    GpWarpRec     rec;
-    GpXformArg    msg;
-    SVECTOR       pos;
-    SVECTOR       pos2;
-    s32           stage;
-    s32           room;
-    s16           ret;
+    Task*            slot7;
+    Task*            slot3;
+    PlayerStatus*    cfg;
+    GameActor*       actor;
+    GameLocationKey* sess;
+    GpWarpRec        rec;
+    GpXformArg       msg;
+    SVECTOR          pos;
+    SVECTOR          pos2;
+    s32              stage;
+    s32              room;
+    s16              ret;
 
     sess  = &gGameSession->at4.loc;
     stage = sess->stage;
@@ -323,13 +323,13 @@ void Gp_FadeDirWaitMsg(void)
 
 void Gp_CommitWarp(void)
 {
-    Task*         slot3;
-    Task*         slot7;
-    PlayerStatus* cfg;
-    GpAreaKey*    sess;
-    GpWarpRec     rec;
-    GpSaveLoc*    loc;
-    u8            fade;
+    Task*            slot3;
+    Task*            slot7;
+    PlayerStatus*    cfg;
+    GameLocationKey* sess;
+    GpWarpRec        rec;
+    GpSaveLoc*       loc;
+    u8               fade;
 
     slot3 = gameGetPtrSlot(3);
     cfg   = &Player_Status;

@@ -3119,8 +3119,8 @@ void func_actor_511000_80133900(Task* task)
 /// entry 3, and advances to state 1. An allocation failure destroys the enemy.
 static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
 {
-    GpAreaKey              key;
-    GpAreaKey*             sessionKey;
+    GameLocationKey        key;
+    GameLocationKey*       sessionKey;
     u8                     areaByte0;
     u8                     areaByte3;
     GpAreaVariant*         rec;
@@ -3164,7 +3164,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     areaByte0  = session->at4.loc.view;
     idx        = idx >> 12;
     key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     idx        <<= 4;
     idx         += (s32)rec->field_0;
@@ -3187,7 +3187,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     areaByte0  = session->at4.loc.view;
     idx        = idx >> 12;
     key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     idx        <<= 4;
     idx         += (s32)rec->field_0;

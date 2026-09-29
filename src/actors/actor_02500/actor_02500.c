@@ -1302,24 +1302,24 @@ done:
 
 static void Actor02500_Fn0184C(Task* arg0)
 {
-    GpAreaKey    key;
-    u32          raw1, raw2, raw3;
-    u8           areaByte0;
-    TmdObject*   model1;
-    TmdObject*   model2;
-    TmdObject*   model3;
-    u32          index1;
-    u32          index2;
-    u32          index3;
-    GpEffWork*   effect1;
-    GpEffWork*   effect2;
-    GpEffWork*   effect3;
-    GpAreaPlace* entry1;
-    GpAreaPlace* entry2;
-    GpAreaPlace* entry3;
-    GpAreaKey*   sessionKey1;
-    GpAreaKey*   sessionKey2;
-    GpAreaKey*   sessionKey3;
+    GameLocationKey  key;
+    u32              raw1, raw2, raw3;
+    u8               areaByte0;
+    TmdObject*       model1;
+    TmdObject*       model2;
+    TmdObject*       model3;
+    u32              index1;
+    u32              index2;
+    u32              index3;
+    GpEffWork*       effect1;
+    GpEffWork*       effect2;
+    GpEffWork*       effect3;
+    GpAreaPlace*     entry1;
+    GpAreaPlace*     entry2;
+    GpAreaPlace*     entry3;
+    GameLocationKey* sessionKey1;
+    GameLocationKey* sessionKey2;
+    GameLocationKey* sessionKey3;
 
     D_80067704[0] = &Actor02500_D04448;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
@@ -1333,7 +1333,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         areaByte0   = gGameSession->at4.loc.view;
         index1      = raw1 >> 12;
         key.view    = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
         model1->tpage = entry1->tpage;
         model1->clut  = entry1->clut;
@@ -1354,7 +1354,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         areaByte0   = gGameSession->at4.loc.view;
         index2      = raw2 >> 12;
         key.view    = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
         model2->tpage = entry2->tpage;
         model2->clut  = entry2->clut;
@@ -1375,7 +1375,7 @@ static void Actor02500_Fn0184C(Task* arg0)
         areaByte0   = gGameSession->at4.loc.view;
         index3      = raw3 >> 12;
         key.view    = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
         model3->tpage = entry3->tpage;
         model3->clut  = entry3->clut;

@@ -1596,13 +1596,13 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
                 arg1->state = 2;
             }
         }
-        map = GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA;
+        map = GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
         if (map != 0x3260000 && map != 0x4070000 && map != 0x4010000) {
             if (coord->coord.t[1] >= 0x65) {
                 coord->coord.t[1] = -0xA;
             }
         }
-        if (((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 29, 0, 0)) && (coord->coord.t[1] >= -0x3E7)) {
+        if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 29, 0, 0)) && (coord->coord.t[1] >= -0x3E7)) {
             id = (((u16)((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40100005;
             SndEvt_EnqueueType6(id, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             id = (((u16)((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x4010000A;
@@ -1610,7 +1610,7 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
             Actor01600_Fn06F10(arg1);
             Actor01600_Fn06FDC(arg1, 0);
         }
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             if (coord->coord.t[1] > 0) {
                 work->field_532 = 1;
             }
@@ -4101,7 +4101,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
     ctx   = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if ((u32)(gGameSession->at4.loc.stage - 2) < 2U) {
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_KEY(0, 255, 255, 0)) == GP_LOC_KEY(0, 34, 1, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_KEY(0, 255, 255, 0)) == GAME_LOCATION_KEY(0, 34, 1, 0)) {
             if ((u16)work->field_4FE < 2U) {
                 work->field_4FE = 4;
             }
@@ -4146,14 +4146,14 @@ static s32 Actor01600_Fn05558(Task* arg0)
                 }
                 work->field_532 = 1;
             } else if (scriptArg == 2) {
-                if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(3, 15, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 15, 0, 0)) {
                     tableA            = Actor01600_D09F1C;
                     pos               = &Actor01600_D09F1C[(u16)ctx->placeKey >> 0xC];
                     coord->coord.t[0] = pos->vx;
                     coord->coord.t[1] = pos->vy;
                     coord->coord.t[2] = pos->vz;
                 }
-                if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 4, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 4, 0, 0)) {
                     tableB            = Actor01600_D09F3C;
                     pos2              = &Actor01600_D09F3C[(u16)ctx->placeKey >> 0xC];
                     coord->coord.t[0] = pos2->vx;

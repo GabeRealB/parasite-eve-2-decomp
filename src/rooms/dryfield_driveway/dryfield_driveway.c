@@ -715,14 +715,14 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->field_5 == 0) {
                 if (gGameSession->at4.loc.stage == 2) {
-                    if (gGameSession->at4.loc.place == 1) {
+                    if (gGameSession->at4.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(D_dryfield_driveway_8017E2FC, 1, 0, 0);
                             return 0;
                         }
                     }
                 }
-                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place) {
+                if (gGameSession->at4.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);

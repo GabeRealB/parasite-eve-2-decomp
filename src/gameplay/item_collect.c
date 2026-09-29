@@ -44,7 +44,7 @@ static void func_800BB7B4(Task* arg0);
 
 static void Gp_ApplyBit2List(GpBit2List* table, u32* dest);
 
-static s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1);
+static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1);
 
 static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1);
 
@@ -332,7 +332,7 @@ s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
     return ret;
 }
 
-static s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
+static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1)
 {
     return _gpReadBit2Flag(Gp_Bit2Banks[arg0->stage].field_4, arg1);
 }

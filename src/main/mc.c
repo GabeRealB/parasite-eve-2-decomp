@@ -717,16 +717,16 @@ static void Mc_InitDualBankBuffers(void)
         p = &Mc_SaveData[0];
     } while (0);
 
-    one                    = 1;
-    p->state.at4.loc.area  = 0x14;
-    two                    = 2;
-    p->state.at4.loc.stage = one;
-    p->state.at4.loc.view  = one;
-    p->state.at4.loc.room  = one;
-    p->state.at4.loc.warp  = 7;
-    p->state.at4.loc.place = one;
-    p->state.sceneEvent    = two;
-    p->state.characterId   = one;
+    one                      = 1;
+    p->state.at4.loc.area    = 0x14;
+    two                      = 2;
+    p->state.at4.loc.stage   = one;
+    p->state.at4.loc.view    = one;
+    p->state.at4.loc.room    = one;
+    p->state.at4.loc.warp    = 7;
+    p->state.at4.loc.variant = one;
+    p->state.sceneEvent      = two;
+    p->state.characterId     = one;
     Player_InitNewGameStats();
     idx                          = p->state.characterId - 1;
     (&Player_Status)[idx].weapon = two;

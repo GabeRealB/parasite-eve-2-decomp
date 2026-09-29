@@ -1277,30 +1277,30 @@ void func_neo_ark_woodland_path_8017D694(Task* task)
 /// retail frame carries (the same construct as `func_actor_361100_80161FF8`).
 void func_neo_ark_woodland_path_8017E2E8(Task* task)
 {
-    s32        xLeft  = -0xA0;
-    s32        xRight = 0xA0;
-    s32        buf    = gDisplayState.otBuffer;
-    s32        passes = 1;
-    GpAreaKey* loc    = &gGameSession->at4.loc;
-    s32        area   = loc->area;
-    s32        start;
-    s32        end;
-    POLY_FT4*  prim;
-    u8*        base;
-    s32        size;
-    s32        sinArg;
-    s32        cosArg;
-    s32        otz;
-    s32        pass;
-    s32        y;
-    s32        y0;
-    s32        wave;
-    s32        sinv;
-    s32        cosv;
-    s32        v;
-    s32        x0;
-    s32        x1;
-    u16        spare;
+    s32              xLeft  = -0xA0;
+    s32              xRight = 0xA0;
+    s32              buf    = gDisplayState.otBuffer;
+    s32              passes = 1;
+    GameLocationKey* loc    = &gGameSession->at4.loc;
+    s32              area   = loc->area;
+    s32              start;
+    s32              end;
+    POLY_FT4*        prim;
+    u8*              base;
+    s32              size;
+    s32              sinArg;
+    s32              cosArg;
+    s32              otz;
+    s32              pass;
+    s32              y;
+    s32              y0;
+    s32              wave;
+    s32              sinv;
+    s32              cosv;
+    s32              v;
+    s32              x0;
+    s32              x1;
+    u16              spare;
 
     if (area == 12) {
         switch (gGameSession->at4.loc.view) {
@@ -1362,7 +1362,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
         task->state++;
     }
 
-    if (area == 12 && loc->place == 3) {
+    if (area == 12 && loc->variant == 3) {
         size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
         base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);

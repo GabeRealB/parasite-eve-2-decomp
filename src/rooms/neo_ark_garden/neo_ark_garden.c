@@ -640,30 +640,30 @@ void func_neo_ark_garden_8017D64C(Task* task)
 /// register allocator needs to see.
 void func_neo_ark_garden_8017E2A0(Task* task)
 {
-    s32        xLeft  = -0xA0;
-    s32        xRight = 0xA0;
-    s32        buf    = gDisplayState.otBuffer;
-    s32        passes = 1;
-    GpAreaKey* loc    = &gGameSession->at4.loc;
-    s32        area   = loc->area;
-    s32        start;
-    s32        end;
-    POLY_FT4*  prim;
-    u8*        base;
-    s32        size;
-    s32        sinArg;
-    s32        cosArg;
-    s32        otz;
-    s32        pass;
-    s32        y;
-    s32        y0;
-    s32        wave;
-    s32        sinv;
-    s32        cosv;
-    s32        v;
-    s32        x0;
-    s32        x1;
-    u16        spare;
+    s32              xLeft  = -0xA0;
+    s32              xRight = 0xA0;
+    s32              buf    = gDisplayState.otBuffer;
+    s32              passes = 1;
+    GameLocationKey* loc    = &gGameSession->at4.loc;
+    s32              area   = loc->area;
+    s32              start;
+    s32              end;
+    POLY_FT4*        prim;
+    u8*              base;
+    s32              size;
+    s32              sinArg;
+    s32              cosArg;
+    s32              otz;
+    s32              pass;
+    s32              y;
+    s32              y0;
+    s32              wave;
+    s32              sinv;
+    s32              cosv;
+    s32              v;
+    s32              x0;
+    s32              x1;
+    u16              spare;
 
     if (area == 12) {
         switch (gGameSession->at4.loc.view) {
@@ -725,7 +725,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
         task->state++;
     }
 
-    if (area == 12 && loc->place == 3) {
+    if (area == 12 && loc->variant == 3) {
         size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
         base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
@@ -886,7 +886,8 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_garden_801813B0;
     Game_SetPtrSlot(arg0, 7);
-    if (*(u16*)&gGameSession->at4.loc.warp == 0x203) {
+    // Match arrival warp 3 and placement variant 2 as one halfword.
+    if (*(u16*)&gGameSession->at4.loc.warp == ((2 << 8) | 3)) {
         func_800E8634(&D_801334EC, 0, &D_80133954);
         func_800E3FAC(0xA2, 0x34);
     }

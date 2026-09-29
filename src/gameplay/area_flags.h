@@ -6,7 +6,7 @@
 #include "gameplay/area_flags.h"
 
 /// 8-byte entry in `Gp_Bit2Banks`, indexed by session field_7 /
-/// `GpAreaKey.stage` / `Mc_SaveData[0].state.at4.loc.stage`. field_0 is a
+/// `GameLocationKey.stage` / `Mc_SaveData[0].state.at4.loc.stage`. field_0 is a
 /// `GpBit2List` table applied by `Gp_ApplyBit2Bank` / `Gp_ApplyBit2List`.
 /// field_4 is packed 2-bit flags (`Gp_GetBit2Flag` / `Gp_SetBit2Flag` /
 /// `Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag` / `Gp_SpawnPlaceById`).

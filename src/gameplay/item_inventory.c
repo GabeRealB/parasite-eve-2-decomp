@@ -979,9 +979,9 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    word  = GP_LOC_WORD(Mc_SaveData[0].state.at4.loc);
-    word &= GP_LOC_STAGE_AREA;
-    if (word == GP_LOC_KEY(1, 0x14, 0, 0)) {
+    word  = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
+    word &= GAME_LOCATION_STAGE_AREA_MASK;
+    if (word == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
         Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);

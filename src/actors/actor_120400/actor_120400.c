@@ -905,9 +905,9 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
 static void func_actor_120400_80131E5C(Task* arg0)
 {
     Actor120400MainWork* work;
-    GpAreaKey            key;
-    GpAreaKey*           sessionKey;
-    u8*                  keyAddr;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    GameLocationKey*     keyAddr;
     Task*                spawned;
 
     work = (Actor120400MainWork*)memCalloc(0x504, false);
@@ -936,7 +936,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
@@ -955,16 +955,13 @@ static void func_actor_120400_80131E5C(Task* arg0)
 
         model = spawned->extra.tmd;
         idx   = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
-        /* Re-derived address, not the block-1 form: with `sessionKey->field_0`
-           for the last byte, global CSE merges this block's area key with the
-           one above into a single cross-block pseudo, and the allocation of
-           `spawned` and every address temp after it shifts. */
-        sessionKey = (GpAreaKey*)(keyAddr = &gGameSession->at4.loc.view);
+        // Keep this block's key address separate across the spawn calls.
+        sessionKey = (keyAddr = &gGameSession->at4.loc);
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
-        key.room   = ((GpAreaKey*)keyAddr)->room;
-        key.view   = ((GpAreaKey*)(&gGameSession->at4.loc.view))->view;
-        Gp_SyncAreaKeyIndex(&key);
+        key.room   = keyAddr->room;
+        key.view   = gGameSession->at4.loc.view;
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;

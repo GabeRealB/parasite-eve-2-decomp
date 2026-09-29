@@ -445,7 +445,7 @@ static void func_shelter_b6_training_room_8017D874(Task* task)
     u8 place;
 
     CdCmd_Queue.field_22A = 2;
-    place                 = gGameSession->at4.loc.place;
+    place                 = gGameSession->at4.loc.variant;
     if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
         func_800E8614(D_shelter_b6_training_room_80184274, 0);
         D_shelter_b6_training_room_80185C58 = 2;

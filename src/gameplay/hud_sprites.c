@@ -662,7 +662,7 @@ u8* Gp_GetAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -678,7 +678,7 @@ s32 Gp_IsDebugAttachRoom(void)
     PlayerStatus* p;
 
     p = &Player_Status;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         return 0;
     }
     return p->field_26 == 4;
@@ -905,7 +905,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
     ret = 1;
     if (arg0 < 0xC) {
         p = &Player_Status;
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -936,7 +936,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -1276,14 +1276,14 @@ void func_800A8654(Task* task)
 
 void Gp_LoadStageView(void)
 {
-    GpAreaKey* sess;
-    GpViewTbl* tbl;
-    GpViewRec* recs;
-    GpViewRec* rec;
-    GfxCoord*  c1;
-    MATRIX*    rot;
-    VECTOR3*   trans;
-    u8         idx;
+    GameLocationKey* sess;
+    GpViewTbl*       tbl;
+    GpViewRec*       recs;
+    GpViewRec*       rec;
+    GfxCoord*         c1;
+    MATRIX*          rot;
+    VECTOR3*         trans;
+    u8               idx;
 
     sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
@@ -1398,11 +1398,11 @@ static void Gp_ResetView(void)
 
 void Gp_SpawnViewTasks(void)
 {
-    GpAreaKey* sess;
-    GpViewTbl* tbl;
-    GpViewRec* recs;
-    GpViewRec* rec;
-    u8         idx;
+    GameLocationKey* sess;
+    GpViewTbl*       tbl;
+    GpViewRec*       recs;
+    GpViewRec*       rec;
+    u8               idx;
 
     sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
@@ -1413,7 +1413,7 @@ void Gp_SpawnViewTasks(void)
     Task_Spawn(0, 0x17, 0, 0);
 }
 
-GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
+GpViewRec* Gp_GetStageView(GameLocationKey* arg0)
 {
     GpViewTbl* tbl;
     GpViewRec* recs;
@@ -1481,11 +1481,11 @@ static void func_800A8D5C(void)
 
 void Gp_SpawnCurView(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpViewTbl* tbl;
-    GpViewRec* recs;
-    GpViewRec* rec;
-    u8         idx;
+    GameLocationKey* sess;
+    GpViewTbl*       tbl;
+    GpViewRec*       recs;
+    GpViewRec*       rec;
+    u8               idx;
 
     sess = &gGameSession->at4.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
@@ -1524,7 +1524,7 @@ void Gp_ViewGateTask(Task* task)
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
-                loc                   = (u8)gGameSession->at4.loc.view;
+                loc                   = gGameSession->at4.loc.view;
                 task->killCountdown   = 2;
                 task->spawnArg1.value = loc;
                 if (task->state == 3) {

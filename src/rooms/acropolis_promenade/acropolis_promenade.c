@@ -1545,7 +1545,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     if (Mc_SaveData[0].state.sceneEvent == 6) {
         Mc_SaveData[0].state.sceneEvent = 5;
     }
-    temp = gGameSession->at4.loc.place;
+    temp = gGameSession->at4.loc.variant;
     if (temp == 1) {
         gGameSession->flowFlags = 0xA;
         f0                      = Gp_StateF0.prefix.bytes.field_0;

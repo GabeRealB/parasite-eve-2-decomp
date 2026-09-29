@@ -55,11 +55,11 @@ typedef struct _GpBit2List {
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 
 /// 4-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaRecs`.
-/// `field_0` indexes `Gp_AreaTables` (same role as `GpAreaKey.stage`);
-/// `field_1` indexes that table (same role as `GpAreaKey.area`);
-/// `field_2` is the id written by `Gp_SetAreaObjId`. High nibble of `field_3`
+/// `field_0` indexes `Gp_AreaTables` (same role as `GameLocationKey.stage`);
+/// `field_1` indexes that table (same role as `GameLocationKey.area`);
+/// `field_2` is the id written by `areaSetPlacementVariant`. High nibble of `field_3`
 /// is a `Mc_SaveData[0].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
-/// 1 or 3); low nibble nonzero sets `GpAreaObj.field_1` bit 2, else clears.
+/// 1 or 3); low nibble nonzero sets `GpAreaObj.spawnFlags` bit 2, else clears.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;

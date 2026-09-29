@@ -3651,8 +3651,8 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 /// `GpSprtCmd::field_4`: 0 hides both, 1 shows command 2 and 2 shows command 1.
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
-    GpAreaKey* g4 = &gGameSession->at4.loc;
-    GpSprtCmd* vs = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
+    GameLocationKey* g4 = &gGameSession->at4.loc;
+    GpSprtCmd*       vs = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
 
     if (arg0 == 0) {
         vs[1].field_4 = 1;

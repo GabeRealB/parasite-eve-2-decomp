@@ -1051,14 +1051,14 @@ static void Actor02600_Fn00A94(Task* actor)
     VECTOR*          delta;
     VECTOR*          scratchEnd;
 
-    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    delta                                                                     = scratchEnd - 1;
+    scratchEnd                         = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
+    delta                              = scratchEnd - 1;
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
-    coord                                                                     = actor->extra.tmd->coords;
-    work                                                                      = actor->work;
-    state                                                                     = work->field_39C;
-    sessionFlags                                                              = GP_LOC_WORD(gGameSession->at4.loc);
-    value                                                                     = 0;
+    coord                              = actor->extra.tmd->coords;
+    work                               = actor->work;
+    state                              = work->field_39C;
+    sessionFlags                       = GAME_LOCATION_WORD(gGameSession->at4.loc);
+    value                              = 0;
     switch (state) {
         case 0:
             if (work->field_3C6 == 0) {
@@ -1084,7 +1084,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
-                if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
+                if ((sessionFlags & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
@@ -1108,7 +1108,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(Actor02600_D08950, 5);
                 work->field_2E4.flags |= 0x8000;
-                if ((sessionFlags & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 32, 0, 0)) {
+                if ((sessionFlags & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
@@ -2571,15 +2571,15 @@ static void Actor02600_Fn03B58(Task* arg0)
 
 static void Actor02600_Fn03C4C(Task* actor)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    GpEffWork*     eff;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     D_80067704[0] = &Actor02600_D05F10;
     eff           = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 4, 0x100, NULL);
@@ -2595,7 +2595,7 @@ static void Actor02600_Fn03C4C(Task* actor)
     areaByte0  = sessionKey->view;
     idx        = raw >> 12;
     key.view   = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */

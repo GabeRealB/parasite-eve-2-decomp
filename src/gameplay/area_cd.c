@@ -71,12 +71,12 @@ u16 Gp_PollAreaCdLoads(void)
             }
             Gp_AreaCdPhase++;
         case 1:
-            while (Gp_CdRecCur->entryId != 0xFF) {
+            while (Gp_CdRecCur->entryId != AREA_TABLE_END_ID) {
                 if (Gp_CdRecCur->entryId == 0) {
                     Gp_CdRecCur++;
                     continue;
                 }
-                for (D_80114C68 = D_80114C64->field_4; D_80114C68->field_0 != 0xFF; D_80114C68++) {
+                for (D_80114C68 = D_80114C64->field_4; D_80114C68->field_0 != AREA_TABLE_END_ID; D_80114C68++) {
                     if (Gp_CdRecCur->entryId == D_80114C68->field_0) {
                         break;
                     }
@@ -103,7 +103,7 @@ u16 Gp_PollAreaCdLoads(void)
                 Gp_AreaCdPhase++;
                 break;
             }
-            if (Gp_CdRecCur->entryId == 0xFF) {
+            if (Gp_CdRecCur->entryId == AREA_TABLE_END_ID) {
                 return 1;
             }
             break;
@@ -141,15 +141,15 @@ u16 func_800AA120(void)
             }
             D_80114C70++;
         case 1:
-            if (D_80114C68->field_0 == 0xFF) {
+            if (D_80114C68->field_0 == AREA_TABLE_END_ID) {
                 return 1;
             }
             do {
                 Gp_CdRecCur = D_80114C64->field_0;
                 D_80114C72  = 0;
-                if (Gp_CdRecCur->entryId != 0xFF) {
+                if (Gp_CdRecCur->entryId != AREA_TABLE_END_ID) {
                     key = D_80114C68->field_0;
-                    while (Gp_CdRecCur->entryId != 0xFF) {
+                    while (Gp_CdRecCur->entryId != AREA_TABLE_END_ID) {
                         if (Gp_CdRecCur->entryId == key && Gp_CdRecCur->pad_C == 0) {
                             D_80114C72 = 1;
                             break;
@@ -219,8 +219,8 @@ u16 func_800AA120(void)
                 } else {
                     D_80114C68 = rec12 + 1;
                 }
-            } while (rec12[1].field_0 != 0xFF);
-            if (D_80114C68->field_0 == 0xFF) {
+            } while (rec12[1].field_0 != AREA_TABLE_END_ID);
+            if (D_80114C68->field_0 == AREA_TABLE_END_ID) {
             finished:
                 return 1;
             }

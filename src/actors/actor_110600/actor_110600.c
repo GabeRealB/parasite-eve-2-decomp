@@ -2461,7 +2461,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     work->walker.avoidRecs  = contactRecs;
     work->walker.scale      = 0;
     work->walker.field_5A   = 0x20;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 3, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 3, 0, 0)) {
         work->walker.field_6B = 0;
     } else {
         work->walker.field_6B = enabled;
@@ -3380,33 +3380,33 @@ static void func_actor_110600_80136ECC(Task* arg0)
     Actor110600Work* work;
     GpEnemy*         enemy;
     TmdObject*       obj;
-    GpAreaKey        key;
+    GameLocationKey  key;
     u8               areaByte0;
     u32              raw1, index1;
     GpEffWork*       effect1;
     TmdObject*       model1;
     GpAreaPlace*     entry1;
-    GpAreaKey*       sessionKey1;
+    GameLocationKey* sessionKey1;
     u32              raw2, index2;
     GpEffWork*       effect2;
     TmdObject*       model2;
     GpAreaPlace*     entry2;
-    GpAreaKey*       sessionKey2;
+    GameLocationKey* sessionKey2;
     u32              raw3, index3;
     GpEffWork*       effect3;
     TmdObject*       model3;
     GpAreaPlace*     entry3;
-    GpAreaKey*       sessionKey3;
+    GameLocationKey* sessionKey3;
     u32              raw4, index4;
     GpEffWork*       effect4;
     TmdObject*       model4;
     GpAreaPlace*     entry4;
-    GpAreaKey*       sessionKey4;
+    GameLocationKey* sessionKey4;
     u32              raw5, index5;
     GpEffWork*       effect5;
     TmdObject*       model5;
     GpAreaPlace*     entry5;
-    GpAreaKey*       sessionKey5;
+    GameLocationKey* sessionKey5;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3432,7 +3432,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             areaByte0   = gGameSession->at4.loc.view;
             index1      = raw1 >> 12;
             key.view    = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
             model1->tpage = entry1->tpage;
             model1->clut  = entry1->clut;
@@ -3453,7 +3453,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             areaByte0   = gGameSession->at4.loc.view;
             index2      = raw2 >> 12;
             key.view    = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
             model2->tpage = entry2->tpage;
             model2->clut  = entry2->clut;
@@ -3474,7 +3474,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             areaByte0   = gGameSession->at4.loc.view;
             index3      = raw3 >> 12;
             key.view    = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
             model3->tpage = entry3->tpage;
             model3->clut  = entry3->clut;
@@ -3495,7 +3495,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             areaByte0   = gGameSession->at4.loc.view;
             index4      = raw4 >> 12;
             key.view    = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
             model4->tpage = entry4->tpage;
             model4->clut  = entry4->clut;
@@ -3516,7 +3516,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             areaByte0   = gGameSession->at4.loc.view;
             index5      = raw5 >> 12;
             key.view    = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             entry5        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
             model5->tpage = entry5->tpage;
             model5->clut  = entry5->clut;

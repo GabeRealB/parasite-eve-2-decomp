@@ -364,8 +364,8 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
 /// area's sprite table: 1 when the low byte of `arg0` is zero, 0 otherwise.
 static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd* cmd;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtCmd*       cmd;
 
     cmd = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].field_4;
     if ((arg0 & 0xFF) == 0) {

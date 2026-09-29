@@ -540,7 +540,7 @@ and pick the form from how the bytes are used:
 ```c
 typedef struct GameSession {
     s8 field_0;
-    union { GpAreaKey loc; GBytes8 raw; } at4;  /* at4.loc.view / at4.loc.stage */
+    union { GameLocationKey loc; GBytes8 raw; } at4;  /* at4.loc.view / at4.loc.stage */
     ...
 ```
 
@@ -573,7 +573,7 @@ allocation without implying another interpretation. Read the accesses before
 choosing an aggregate or union. Where both views are justified, use named members:
 
 ```c
-union { GpAreaKey loc; GBytes8 raw; } at4;   /* session->at4.loc.stage, session->at4.raw */
+union { GameLocationKey loc; GBytes8 raw; } at4;   /* session->at4.loc.stage, session->at4.raw */
 ```
 
 Do not introduce a union just to hide a cast or satisfy an audit. Casts may also

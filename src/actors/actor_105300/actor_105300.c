@@ -669,7 +669,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
     if ((s16)work->field_330 == 0) {
         Gp_ReleaseStateF0Add(arg1, D_actor_105300_80133A2C[work->field_334]);
         work->field_330 = 1;
-        Gp_ClearAreaFlag4((GpAreaKey*)&gGameSession->at4);
+        Gp_ClearAreaFlag4(&gGameSession->at4.loc);
     }
     _actor105300TickPose(arg1);
     tmp    = arg1->extra.tmd->coords;
@@ -828,18 +828,18 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
 
 static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 {
-    Actor05300Work* work;
-    TmdObject*      obj;
-    GfxCoord*       coord;
-    GpAreaKey*      sessionKey;
-    GpAreaVariant*  rec;
-    GpAreaPlace*    place;
-    TmdObject*      model;
-    GpEnemy*        spawned;
-    GpAreaKey       key;
-    u16             idx;
-    s32             sound;
-    s32             i;
+    Actor05300Work*  work;
+    TmdObject*       obj;
+    GfxCoord*         coord;
+    GameLocationKey* sessionKey;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     place;
+    TmdObject*       model;
+    GpEnemy*         spawned;
+    GameLocationKey  key;
+    u16              idx;
+    s32              sound;
+    s32              i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -906,7 +906,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     key.area           = sessionKey->area;
     key.room           = sessionKey->room;
     key.view           = sessionKey->view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     place        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = place->tpage;

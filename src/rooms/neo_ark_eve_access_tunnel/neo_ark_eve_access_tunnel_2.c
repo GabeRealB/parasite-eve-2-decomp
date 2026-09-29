@@ -158,11 +158,11 @@ GpSprtCmd D_neo_ark_eve_access_tunnel_8017F17C[2] = {
 /// any other value changes nothing.
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtRec* rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    GpSprtCmd* view;
-    s32        run = arg0 & 0xFF;
-    s32        flag;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    GpSprtCmd*       view;
+    s32              run = arg0 & 0xFF;
+    s32              flag;
 
     if (run == 0) {
         flag = arg1 & 0xFF;

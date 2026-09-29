@@ -1054,8 +1054,8 @@ void func_dryfield_r08_8017F334(s32 arg0)
 /// so `[3].field_4` reaches the command list its tail holds there.
 void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
-    GpAreaKey* sess;
-    GpSprtCmd* cmd;
+    GameLocationKey* sess;
+    GpSprtCmd*       cmd;
 
     sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
@@ -1070,9 +1070,9 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 
 static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* cmd;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       cmd;
 
     sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {

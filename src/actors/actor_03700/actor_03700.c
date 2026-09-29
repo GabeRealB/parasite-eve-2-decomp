@@ -1718,15 +1718,15 @@ static inline void _actor03700UpdateColor(Task* task)
 /// CLUT of the actor's placement in the current area.
 static inline void _actor03700SpawnRemains(Task* task)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             view;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    GpEffWork*     eff;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               view;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     if ((Gp_LcgState >> 16) & 1) {
@@ -1747,7 +1747,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     view       = sessionKey->view;
     idx        = raw >> 12;
     key.view   = view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     entry        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = entry->tpage;

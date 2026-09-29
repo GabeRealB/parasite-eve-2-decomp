@@ -771,22 +771,22 @@ void Gp_ClearSlotNodeFlags(void)
 
 s32 Gp_GrantLocationItems(McItemScan* arg0)
 {
-    GpAreaKey* loc;
-    GpGiveRec* rec;
-    s32        key;
-    s32        ret;
-    s32        i;
-    u16        item;
-    s8         mode;
-    u8         stage;
-    u8         area;
-    u8         sub;
+    GameLocationKey* loc;
+    GpGiveRec*       rec;
+    s32              key;
+    s32              ret;
+    s32              i;
+    u16              item;
+    s8               mode;
+    u8               stage;
+    u8               area;
+    u8               sub;
 
     ret   = 0;
     loc   = &gGameSession->at4.loc;
     stage = loc->stage;
     area  = loc->area;
-    sub   = loc->place;
+    sub   = loc->variant;
     key   = (stage << 24) | (area << 16) | (sub << 8);
     mode  = Mc_SaveData[0].state.gameMode;
     if ((mode == 0) || (mode == 2)) {

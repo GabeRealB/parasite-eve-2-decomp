@@ -2187,7 +2187,7 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    gGameSession->at4.loc.place     = 4;
+    gGameSession->at4.loc.variant   = 4;
     Gp_StateF0.prefix.bytes.field_0 = 0;
     Gp_StateF0.field_5              = 0;
     Gp_StateF0.field_6              = 0;
@@ -2203,9 +2203,9 @@ void func_mine_cavern_8017E394(void)
 
 void func_mine_cavern_8017E3A0(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    s32        v;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    s32              v;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
@@ -4001,7 +4001,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     blk                                 = (_MineCavernHitScratch*)(head - 0x28);
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
-        (gGameSession->at4.loc.place != Gp_StateF0.prefix.bytes.field_0 && gGameSession->at4.loc.place != 4)) {
+        (gGameSession->at4.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->at4.loc.variant != 4)) {
         arg0->node.state.b.flags = 1;
     } else {
         arg0->node.state.b.flags = 0;
@@ -4035,7 +4035,7 @@ found:
     if (key & 0x8000) {
         blk->key = 0;
     }
-    if (gGameSession->at4.loc.place != 1 && gGameSession->at4.loc.place != 4) {
+    if (gGameSession->at4.loc.variant != 1 && gGameSession->at4.loc.variant != 4) {
         blk->key = 0;
     }
 

@@ -586,30 +586,30 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
 /// register allocator needs to see.
 void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
 {
-    s32        xLeft  = -0xA0;
-    s32        xRight = 0xA0;
-    s32        buf    = gDisplayState.otBuffer;
-    s32        passes = 1;
-    GpAreaKey* loc    = &gGameSession->at4.loc;
-    s32        area   = loc->area;
-    s32        start;
-    s32        end;
-    POLY_FT4*  prim;
-    u8*        base;
-    s32        size;
-    s32        sinArg;
-    s32        cosArg;
-    s32        otz;
-    s32        pass;
-    s32        y;
-    s32        y0;
-    s32        wave;
-    s32        sinv;
-    s32        cosv;
-    s32        v;
-    s32        x0;
-    s32        x1;
-    u16        spare;
+    s32              xLeft  = -0xA0;
+    s32              xRight = 0xA0;
+    s32              buf    = gDisplayState.otBuffer;
+    s32              passes = 1;
+    GameLocationKey* loc    = &gGameSession->at4.loc;
+    s32              area   = loc->area;
+    s32              start;
+    s32              end;
+    POLY_FT4*        prim;
+    u8*              base;
+    s32              size;
+    s32              sinArg;
+    s32              cosArg;
+    s32              otz;
+    s32              pass;
+    s32              y;
+    s32              y0;
+    s32              wave;
+    s32              sinv;
+    s32              cosv;
+    s32              v;
+    s32              x0;
+    s32              x1;
+    u16              spare;
 
     if (area == 12) {
         switch (gGameSession->at4.loc.view) {
@@ -671,7 +671,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
         task->state++;
     }
 
-    if (area == 12 && loc->place == 3) {
+    if (area == 12 && loc->variant == 3) {
         size  = 0x30000 - Fs_ChunkOutputSizes[0];
         size &= ~7;
         base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
@@ -880,7 +880,7 @@ s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, GpMe
             }
             break;
         case 3:
-            if (gGameSession->at4.loc.place == 4) {
+            if (gGameSession->at4.loc.variant == 4) {
                 Gp_SpawnIfCapIdle(5, 0);
             } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_SpawnIfCapIdle(3, 0);
@@ -901,7 +901,7 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.place == 4) {
+    if (gGameSession->at4.loc.variant == 4) {
         Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -983,7 +983,7 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 
 static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
-    if (gGameSession->at4.loc.place != 4) {
+    if (gGameSession->at4.loc.variant != 4) {
         arg0->killCountdown = 0;
     } else {
         arg0->killCountdown = 0x780;
@@ -996,8 +996,8 @@ static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (gGameSession->at4.loc.place != mode && gGameSession->field_126 != 0) {
-            gGameSession->at4.loc.place = mode;
+        if (gGameSession->at4.loc.variant != mode && gGameSession->field_126 != 0) {
+            gGameSession->at4.loc.variant = mode;
         }
         if (arg0->killCountdown < 0x780) {
             arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);

@@ -2737,7 +2737,7 @@ void Gp_RestartSessionTask(Task* arg0)
         DrawSync(0);
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
-    memset(&gGameSession->at4.loc.view, 0, 8);
+    memset(&gGameSession->at4, 0, sizeof(gGameSession->at4));
     Mem_ConfigureAuxHeap(0, 0);
     if (gGameSession->restartMode == flag) {
         Gpu_PrimHeapSize   = 0xB000;

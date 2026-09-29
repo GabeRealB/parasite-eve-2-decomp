@@ -60,7 +60,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewRec*`, indexed by
-/// `GameSession.at4.loc.area - 1` / `GpAreaKey.area - 1`.
+/// `GameSession.at4.loc.area - 1` / `GameLocationKey.area - 1`.
 typedef struct _GpViewTbl {
     /* 0x0 */ GpViewRec** field_0;
 } GpViewTbl;

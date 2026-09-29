@@ -3,16 +3,15 @@
 
 #include "gameplay/area_flags.h"
 
+#include "main/session_types.h"
 #include "main/task_types.h"
 
 // Area transitions and persistent area-flag updates.
 
-struct GpAreaKey;
-
 /// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears bit 2 of
-/// `GpAreaObj.field_1` on the record selected by `Gp_AreaTables[arg0->stage]`
-/// + `arg0->area`. Null records are skipped, as in the setter.
-void Gp_ClearAreaFlag4(struct GpAreaKey* arg0);
+/// `GpAreaObj.spawnFlags` on the record selected by `Gp_AreaTables[key->stage]`
+/// + `key->area`. Null records are skipped, as in the setter.
+void Gp_ClearAreaFlag4(GameLocationKey* key);
 
 void func_800AEE8C(Task* arg0);
 

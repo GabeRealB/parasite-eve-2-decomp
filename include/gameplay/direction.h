@@ -27,7 +27,7 @@ typedef struct _GpMsg13EF {
 STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
 
 /// 0x38-byte record in tables pointed to by `Gp_WarpTables`. Indexed
-/// 1-based by `GpAreaKey.stage` / `area`, then
+/// 1-based by `GameLocationKey.stage` / `area`, then
 /// `(Gp_DirNibble >> 4)`. `Gp_CommitWarp` copies one record onto the
 /// stack and writes `field_36` into `GpSaveLoc.field_6`. The transform words
 /// keep the record 4-aligned for its 56-byte assignment.

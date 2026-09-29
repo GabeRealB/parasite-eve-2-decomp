@@ -33,11 +33,17 @@ typedef struct _GpFlagBank {
 STATIC_ASSERT_SIZEOF(GpFlagBank, 0x20);
 STATIC_ASSERT(OFFSET_OF(GpFlagBank, entryStates) == 0xC, game_flag_entry_states_offset);
 
-/// Per-area variant selector and persistent spawn flags. field_0 is compared
-/// with GpAreaKey.place; field_1 holds bits 0/1/2/4 read by the area helpers.
-typedef struct _GpAreaObj {
-    s8 field_0;
-    u8 field_1;
+/// Default placement layout and controls for saved enemy poses.
+enum {
+    AREA_DEFAULT_VARIANT           = 1,
+    AREA_SPAWN_RESET_SAVED_POSES   = 0x01,
+    AREA_SPAWN_RESTORE_SAVED_POSES = 0x02
+};
+
+/// Saved placement variant and spawn flags for one area.
+typedef struct {
+    s8 variant;    // Placement/resource layout (0 uninitialized, 1 default); copied into `GameLocationKey.variant`
+    u8 spawnFlags; // Bit 0 discard saved enemy poses, bit 1 restore them, bit 2 used by the area status lists
 } GpAreaObj;
 STATIC_ASSERT_SIZEOF(GpAreaObj, 2);
 

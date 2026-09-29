@@ -923,7 +923,7 @@ void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
 void func_800CFD78(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80114DCC = GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA;
+        D_80114DCC = GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (D_80114DCC) {
         case 0x1010000:
@@ -991,7 +991,7 @@ void Gp_MapTaskState2(Task* arg0)
             obj->field_2C = 0x101;
             func_800D1F90(arg0);
             obj->field_2E = 6;
-            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -1000,7 +1000,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -1056,7 +1056,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (child->field_2E == -1) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -3098,7 +3098,7 @@ s32 func_800D4D2C(s32 arg0)
 {
     s32 val;
 
-    val                           = *(volatile s32*)&Mc_SaveData[0].state.at4.loc.view;
+    val                           = *(volatile s32*)&Mc_SaveData[0].state.at4.loc;
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:

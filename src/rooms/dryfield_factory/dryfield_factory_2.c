@@ -735,9 +735,9 @@ static void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant)
 /// it. No-op unless `GameSession.loc.stage` is 2.
 void func_dryfield_factory_80181620(s32 arg0)
 {
-    GameSession* g;
-    GpAreaKey*   sess;
-    GpSprtCmd*   cmd;
+    GameSession*     g;
+    GameLocationKey* sess;
+    GpSprtCmd*       cmd;
 
     g    = gGameSession;
     sess = &g->at4.loc;
@@ -919,9 +919,9 @@ static void func_dryfield_factory_80181AB8(Task* task)
 /// it. No-op unless `GameSession.loc.stage` is 2.
 void func_dryfield_factory_80181B38(s32 arg0)
 {
-    GameSession* g;
-    GpAreaKey*   sess;
-    GpSprtCmd*   cmd;
+    GameSession*     g;
+    GameLocationKey* sess;
+    GpSprtCmd*       cmd;
 
     g    = gGameSession;
     sess = &g->at4.loc;

@@ -282,7 +282,7 @@ void func_dryfield_gas_station_8017F4B4(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -396,8 +396,8 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         out->field_3 = val;
     }
     if (in->prefix.packed == 3) {
-        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.place == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place)) {
+        if ((gGameSession->at4.loc.stage == in->prefix.packed) && (gGameSession->at4.loc.variant == 1) &&
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant)) {
             if (in->field_5 == 0) {
                 Gp_RunCapCmd1(0x15);
             }

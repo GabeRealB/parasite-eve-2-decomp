@@ -5128,7 +5128,7 @@ static void func_actor_403100_80136610(Task* arg0)
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & ~0xFF) != GP_LOC_KEY(3, 29, 2, 0) ||
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & ~0xFF) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
         (arg0->work = memCalloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
@@ -8823,7 +8823,7 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.bp    = 0;
     D_actor_403100_8014762C.mp    = 0;
     D_actor_403100_8014762C.exp >>= 1;
-    gGameSession->at4.loc.place   = 4;
+    gGameSession->at4.loc.variant = 4;
     Gp_ReleaseStateF0Add(arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;

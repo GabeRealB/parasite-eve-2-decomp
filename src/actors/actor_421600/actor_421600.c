@@ -7095,7 +7095,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
             nextAction = work->field_E80;
             switch (nextAction) {
                 case 1:
-                    if (((((GP_LOC_WORD(gGameSession->at4.loc)) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(4, 1, 0, 0)) || (work->field_8B4 != 0x38)) && (config->hp > 0)) {
+                    if (((((GAME_LOCATION_WORD(gGameSession->at4.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->field_8B4 != 0x38)) && (config->hp > 0)) {
                         nextMessage     = &work->field_E7C;
                         work->field_E84 = 0;
                         work->field_E88 = 0;

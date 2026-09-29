@@ -2222,9 +2222,9 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     TmdObject*       model2;
     GpAreaPlace*     entry1;
     GpAreaPlace*     entry2;
-    GpAreaKey        key;
-    GpAreaKey*       sessionKey1;
-    GpAreaKey*       sessionKey2;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey1;
+    GameLocationKey* sessionKey2;
     GpRec18*         records1;
     GpRec18*         records2;
     u8               areaByte0;
@@ -2272,7 +2272,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     key.room    = sessionKey1->room;
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
     model1->tpage = entry1->tpage;
     model1->clut  = entry1->clut;
@@ -2299,7 +2299,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     key.room    = sessionKey2->room;
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
     model2->tpage = entry2->tpage;
     model2->clut  = entry2->clut;

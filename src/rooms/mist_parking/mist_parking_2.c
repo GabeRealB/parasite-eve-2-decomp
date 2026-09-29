@@ -1005,7 +1005,7 @@ void func_mist_parking_8018316C(s32 arg0)
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
+        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 0);
     }
 }
 
@@ -1159,8 +1159,8 @@ void func_mist_parking_8018357C(Task* arg0)
     Mc_SaveData[0].state.at4.loc.area  = 1;
     Mc_SaveData[0].state.at4.loc.warp  = 1;
     Mc_SaveData[0].state.at4.loc.room  = 1;
-    gDisplayState.spriteVariant        = 1;
-    Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
+    gDisplayState.spriteVariant          = 1;
+    Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.at4.loc, 1);
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(arg0);

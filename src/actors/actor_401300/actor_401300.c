@@ -1269,8 +1269,8 @@ static void            func_actor_401300_801320A4(GfxCoord* coord, s16 yaw);
 static s32             func_actor_401300_801323B0(GfxCoord* coord, GpRec18* recs, s16 count);
 static s32             func_actor_401300_8013267C(GfxCoord* coord, s16 arg1, s16 arg2);
 static s32             func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count);
-static void            func_actor_401300_80132BE4(GpAreaKey* session, GfxCoord* coord);
-static __inline__ s32  Actor401300_HasHeightClamp(GpAreaKey* session);
+static void            func_actor_401300_80132BE4(GameLocationKey* session, GfxCoord* coord);
+static __inline__ s32  Actor401300_HasHeightClamp(GameLocationKey* session);
 static s32             func_actor_401300_80132C78(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
 static s32             func_actor_401300_80132FF4(Task* arg0);
 static void            func_actor_401300_80133254(Task* arg0);
@@ -1556,7 +1556,7 @@ static s32 func_actor_401300_80132910(Task* arg0, GpRec18* recs, s16 count)
     return s->hit;
 }
 
-static void func_actor_401300_80132BE4(GpAreaKey* session, GfxCoord* coord)
+static void func_actor_401300_80132BE4(GameLocationKey* session, GfxCoord* coord)
 {
     ActorHeightClamp* row;
     s32               offset;
@@ -1578,7 +1578,7 @@ static void func_actor_401300_80132BE4(GpAreaKey* session, GfxCoord* coord)
     }
 }
 
-static __inline__ s32 Actor401300_HasHeightClamp(GpAreaKey* session)
+static __inline__ s32 Actor401300_HasHeightClamp(GameLocationKey* session)
 {
     ActorHeightClamp* row;
     s16               i;
@@ -1612,7 +1612,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, GpRec18* rec, s16 arg2, s
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401300_HasHeightClamp(&gGameSession->at4.loc.view)) {
+        if (Actor401300_HasHeightClamp(&gGameSession->at4.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x15E) {
                 s->step.vy = (vy <= 0) ? -0x15E : 0x15E;
@@ -1650,8 +1650,8 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, GpRec18* rec, s16 arg2, s
             }
         }
     }
-    if (Actor401300_HasHeightClamp(&gGameSession->at4.loc.view)) {
-        func_actor_401300_80132BE4(&gGameSession->at4.loc.view, coord);
+    if (Actor401300_HasHeightClamp(&gGameSession->at4.loc)) {
+        func_actor_401300_80132BE4(&gGameSession->at4.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2253,7 +2253,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }
-        if (snd != 0 && (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
+        if (snd != 0 && (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
@@ -3054,7 +3054,7 @@ static void func_actor_401300_80136238(Task* arg0)
     aim                                   = SCRATCH_HEAD(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
+        if (func_actor_401300_80132FF4(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -6194,7 +6194,7 @@ static void func_actor_401300_80141C88(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(5, 29, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;

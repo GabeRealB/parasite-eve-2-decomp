@@ -2629,7 +2629,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->at4.loc.view == 0x12) {
+            if (gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->field_0A = 1;
@@ -2804,7 +2804,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->at4.loc.view == 0x12) {
+            if (gGameSession->at4.loc.view == 0x12) {
                 if (work->field_0A <= 0) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->field_0A = 1;
@@ -2987,7 +2987,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
             }
             break;
         case 2:
-            if ((u8)gGameSession->at4.loc.view != 0x12) {
+            if (gGameSession->at4.loc.view != 0x12) {
                 break;
             }
             if (work->field_0A <= 0) {

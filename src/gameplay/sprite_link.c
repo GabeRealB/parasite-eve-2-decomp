@@ -55,14 +55,14 @@ GpSprtPrim* Gp_SprtLists[2] = {
 
 void Gp_LinkViewSprts(void)
 {
-    GpAreaKey*    sess;
-    s32           view;
-    DisplayState* ds;
-    GpSprtPrim**  table;
-    GpSprtTbl*    tbl;
-    GpSprtRec*    recs;
-    GpSprtCmd*    rec;
-    GpSprtElem*   base;
+    GameLocationKey* sess;
+    s32              view;
+    DisplayState*    ds;
+    GpSprtPrim**     table;
+    GpSprtTbl*       tbl;
+    GpSprtRec*       recs;
+    GpSprtCmd*       rec;
+    GpSprtElem*      base;
 
     sess          = &gGameSession->at4.loc;
     view          = Gp_GetViewIndex();
@@ -138,13 +138,13 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 
 static void Gp_SetSprtShadeBits(s32 arg0)
 {
-    GpAreaKey*  sess;
-    s32         view;
-    GpSprtPrim* prim;
-    GpSprtTbl*  tbl;
-    GpSprtRec*  recs;
-    GpSprtCmd*  rec;
-    u32         i;
+    GameLocationKey* sess;
+    s32              view;
+    GpSprtPrim*      prim;
+    GpSprtTbl*       tbl;
+    GpSprtRec*       recs;
+    GpSprtCmd*       rec;
+    u32              i;
 
     sess          = &gGameSession->at4.loc;
     view          = Gp_GetViewIndex();
@@ -174,8 +174,8 @@ static void Gp_SetSprtShadeBits(s32 arg0)
 
 void Gp_AllocSprtLists(void)
 {
-    GpAreaKey* sess;
-    u8         view;
+    GameLocationKey* sess;
+    u8               view;
     union {
         u32         address;
         GpSprtPrim* records;
@@ -253,13 +253,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GpAreaKey*    sess;
-    GpRoomObjRec* recs;
-    GpGridParams* grid;
-    GpObj4A*      list1;
-    GpObj4A*      list2;
-    GpObj3A*      list3;
-    s32           i;
+    GameLocationKey* sess;
+    GpRoomObjRec*    recs;
+    GpGridParams*    grid;
+    GpObj4A*         list1;
+    GpObj4A*         list2;
+    GpObj3A*         list3;
+    s32              i;
 
     sess = &gGameSession->at4.loc;
     Gp_LoadStageView();
@@ -313,10 +313,10 @@ static void Gp_LinkRoomObjects(Task* task)
 
 s8 Gp_FindViewIndex(s32 arg0)
 {
-    s16        idx;
-    GpAreaKey* sess;
-    s16        limit;
-    u8*        bytes;
+    s16              idx;
+    GameLocationKey* sess;
+    s16              limit;
+    u8*              bytes;
 
     idx   = 0;
     sess  = &gGameSession->at4.loc;
@@ -335,18 +335,18 @@ s8 Gp_FindViewIndex(s32 arg0)
 
 static s32 Gp_ViewSprtCmdEmpty(void)
 {
-    GameSession*    session;
-    GpAreaKey*      sess;
-    GpSprtTbl**     tbl68;
-    s32             i;
-    GpViewIndexTbl* tbl;
-    u8***           mid;
-    u8**            inner;
-    u8*             bytes;
-    u8              idx;
-    GpSprtTbl*      tbl2;
-    GpSprtRec**     mid2;
-    GpSprtRec*      recs;
+    GameSession*     session;
+    GameLocationKey* sess;
+    GpSprtTbl**      tbl68;
+    s32              i;
+    GpViewIndexTbl*  tbl;
+    u8***            mid;
+    u8**             inner;
+    u8*              bytes;
+    u8               idx;
+    GpSprtTbl*       tbl2;
+    GpSprtRec**      mid2;
+    GpSprtRec*       recs;
 
     session = gGameSession;
     tbl68   = Gp_SprtTables;
@@ -366,19 +366,19 @@ static s32 Gp_ViewSprtCmdEmpty(void)
 
 static void func_800AD024(void)
 {
-    RECT            rect;
-    GameSession*    session;
-    GpAreaKey*      sess;
-    GpViewIndexTbl* tbl;
-    u8***           mid;
-    u8**            inner;
-    u8*             bytes;
-    u8              idx;
-    GpSprtTbl*      tbl2;
-    GpSprtRec**     mid2;
-    GpSprtRec*      recs;
-    GpDrawAreaRec*  area;
-    DR_AREA*        prim;
+    RECT             rect;
+    GameSession*     session;
+    GameLocationKey* sess;
+    GpViewIndexTbl*  tbl;
+    u8***            mid;
+    u8**             inner;
+    u8*              bytes;
+    u8               idx;
+    GpSprtTbl*       tbl2;
+    GpSprtRec**      mid2;
+    GpSprtRec*       recs;
+    GpDrawAreaRec*   area;
+    DR_AREA*         prim;
 
     session = gGameSession;
     sess    = &session->at4.loc;
@@ -419,12 +419,12 @@ static void func_800AD024(void)
 
 s32 Gp_GetViewIndex(void)
 {
-    GameSession*    session;
-    GpAreaKey*      sess;
-    GpViewIndexTbl* tbl;
-    u8***           mid;
-    u8**            inner;
-    u8*             bytes;
+    GameSession*     session;
+    GameLocationKey* sess;
+    GpViewIndexTbl*  tbl;
+    u8***            mid;
+    u8**             inner;
+    u8*              bytes;
 
     session = gGameSession;
     sess    = &session->at4.loc;
@@ -437,16 +437,16 @@ s32 Gp_GetViewIndex(void)
 
 void* Gp_GetViewSprtExtra(void)
 {
-    GameSession*    session;
-    GpAreaKey*      sess;
-    GpViewIndexTbl* tbl;
-    u8***           mid;
-    u8**            inner;
-    u8*             bytes;
-    u8              idx;
-    GpSprtTbl*      tbl2;
-    GpSprtRec**     mid2;
-    GpSprtRec*      recs;
+    GameSession*     session;
+    GameLocationKey* sess;
+    GpViewIndexTbl*  tbl;
+    u8***            mid;
+    u8**             inner;
+    u8*              bytes;
+    u8               idx;
+    GpSprtTbl*       tbl2;
+    GpSprtRec**      mid2;
+    GpSprtRec*       recs;
 
     session = gGameSession;
     sess    = &session->at4.loc;
@@ -463,10 +463,10 @@ void* Gp_GetViewSprtExtra(void)
 
 void Gp_RoomObjState1(Task* task)
 {
-    if (task->spawnArg1.value != (u8)gGameSession->at4.loc.view) {
+    if (task->spawnArg1.value != gGameSession->at4.loc.view) {
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
-        task->spawnArg1.value = (u8)gGameSession->at4.loc.view;
+        task->spawnArg1.value = gGameSession->at4.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {
         Gp_LinkRoomObjects(task);

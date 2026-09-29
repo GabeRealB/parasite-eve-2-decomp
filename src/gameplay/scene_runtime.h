@@ -27,9 +27,9 @@ void Gp_ApplyAreaTmdFlags(void);
 
 void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1);
 
-void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1);
+void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key);
 
-void Gp_SetAreaFlag0(GpAreaKey* arg0);
+void Gp_SetAreaFlag0(GameLocationKey* location);
 
 void Gp_FreeSlot4TmdBuffers(void);
 

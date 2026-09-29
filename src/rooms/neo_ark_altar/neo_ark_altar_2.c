@@ -566,9 +566,9 @@ void func_neo_ark_altar_8017DBF0(Task* arg0)
 /// `6 - s`, where `s` is the lower of the old and new states.
 void func_neo_ark_altar_8017DC40(s32 arg0)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* cmd;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       cmd;
 
     sess  = &gGameSession->at4.loc;
     rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
@@ -797,10 +797,10 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
 /// `D_neo_ark_altar_801800B0` are cleared for `func_neo_ark_altar_8017E260`.
 static void func_neo_ark_altar_8017E148(void)
 {
-    GpAreaKey* sess;
-    GpSprtRec* rec;
-    GpSprtCmd* cmd;
-    s32        i;
+    GameLocationKey* sess;
+    GpSprtRec*       rec;
+    GpSprtCmd*       cmd;
+    s32              i;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];

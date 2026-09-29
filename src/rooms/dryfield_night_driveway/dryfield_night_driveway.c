@@ -1039,14 +1039,14 @@ s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->field_5 == 0) {
                 if (gGameSession->at4.loc.stage == 2) {
-                    if (gGameSession->at4.loc.place == 1) {
+                    if (gGameSession->at4.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(D_dryfield_night_driveway_8017F34C, 1, 0, 0);
                             return 0;
                         }
                     }
                 }
-                if (gGameSession->at4.loc.place == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.place) {
+                if (gGameSession->at4.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);

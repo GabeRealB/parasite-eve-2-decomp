@@ -156,11 +156,11 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 /// its first store, below the key reads.
 static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
 {
-    s32        stage;
-    s32        area;
-    s32        view;
-    GpAreaKey* key;
-    s32        one;
+    s32              stage;
+    s32              area;
+    s32              view;
+    GameLocationKey* key;
+    s32              one;
 
     key = &Mc_SaveData[0].state.at4.loc;
     one = 1;
@@ -187,7 +187,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
             break;
         case 4:
             if (area == 0x12) {
-                if (key->place == 0xB) {
+                if (key->variant == 0xB) {
                     cfg->field_10 = 0;
                     cfg->subject  = Gp_LookupSlot4(0);
                     if (view == 4 || view == 1) {
@@ -649,7 +649,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         func_80131FB8();
         if (Mc_SaveData[0].state.demoScene != 9) {
             func_800E8634(&D_80132D70, 0, &D_80133088);

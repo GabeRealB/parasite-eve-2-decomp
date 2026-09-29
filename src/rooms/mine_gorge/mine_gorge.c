@@ -242,7 +242,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageAr
 {
     u8 temp_s0 = arg2->field_2;
 
-    if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.place == temp_s0) {
+    if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.variant == temp_s0) {
         GameFlag_SetNibble(0xC5, 1);
         func_800E8614(D_mine_gorge_8017E610, 0);
     }
@@ -297,7 +297,7 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
+    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
         Gp_StateF0.field_1A = 0x15;
     }
     if ((GameFlag_GetNibble(0xBE) == 2) && (GameFlag_GetNibble(0x166) == 0)) {

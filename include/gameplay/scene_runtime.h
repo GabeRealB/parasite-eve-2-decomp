@@ -108,21 +108,47 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 ar
 /// is ignored and may be `NULL`.
 AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot);
 
-void Gp_SaveEnemyPose(GpEnemy* arg0);
+/// Records an enemy's state and world pose under its packed placement key.
+///
+/// Requires the enemy's model and task to remain live. An existing record keeps
+/// its pose. A full list evicts a pose from another saved area, with the final
+/// slot as the fallback; positions and angles retain the save format's widths.
+void Gp_SaveEnemyPose(GpEnemy* enemy);
 
-void Gp_SpawnArea(GpAreaKey* arg0);
+/// Spawns the placement/resource layout selected by stage, area and variant.
+void Gp_SpawnArea(GameLocationKey* location);
 
 GpWorkObj* Gp_FindWorkById(u16 arg0);
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2);
 
-s32 Gp_GetAreaFlag2(GpAreaKey* arg0);
+s32 Gp_GetAreaFlag2(GameLocationKey* key);
 
-void Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2);
+/// Controls when changing a placement variant discards saved enemy poses.
+enum {
+    AREA_VARIANT_RESET_IF_CHANGED = -1,
+    AREA_VARIANT_SKIP_POSE_RESET  = 0,
+    AREA_VARIANT_RESET_ALWAYS     = 1
+};
 
-GpAreaVariant* Gp_GetNestedAreaRec(GpAreaKey* arg0);
+/// Sets an area's saved placement variant and updates its saved-pose state.
+///
+/// `resetMode` is -1 to reset poses only on a variant change, 0 to clear the
+/// reset request, or other nonzero values to force it. A variant of 0 always
+/// initializes layout 1 and resets poses. Only stage and area are read from `key`;
+/// the selected variant must be valid for that area's placement/resource table.
+void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode);
 
-void Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
+/// Returns the stage/area/variant layout, or NULL when its tables are absent.
+GpAreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key);
+
+/// Copies the area's saved placement variant into `key->variant`.
+///
+/// Defaults the key to layout 1 when its tables are absent. A saved selector
+/// of 0 is initialized to 1 and requests removal of that area's saved poses.
+/// Only stage and area need to be initialized before this call.
+/// An existing layout table requires its saved area-state record to exist too.
+void areaSyncLocationVariant(GameLocationKey* key);
 
 /// Draws a semi-transparent textured square of side `arg1` on the XZ plane,
 /// anchored at `arg2` (or at the coordinate's own origin when `arg2` is

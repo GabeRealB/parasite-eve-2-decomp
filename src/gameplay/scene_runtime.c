@@ -101,6 +101,14 @@ enum {
     ANIMATION_SLOT_SETTLED             = 0x100                                    // Playback has settled on its end pose
 };
 
+/// Packed saved placement key: high nibble placement, next nibble stage, low byte area.
+enum {
+    AREA_PLACEMENT_INDEX_SHIFT     = 12,
+    AREA_PLACEMENT_STAGE_SHIFT     = 8,
+    AREA_PLACEMENT_STAGE_AREA_MASK = 0xFFF
+};
+
+
 /// Encoded inputs and optional outputs of one animation slot's pose blend.
 ///
 /// The slot selects encoding 1 (translation and rotation) or 4 (rotation only).
@@ -299,13 +307,13 @@ static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 
 static void func_800B51F4(Task* task);
 
-static void Gp_SetCurAreaFlag2(s32 arg0);
+static void Gp_SetCurAreaFlag2(s32 useSavedPoses);
 
-static GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0);
+static GpAreaObj* Gp_GetAreaObj(GameLocationKey* key);
 
-static void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1);
+static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState);
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GpAreaKey* arg0);
+static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key);
 
 static void Gp_KillSlot4Children(void);
 
@@ -1800,51 +1808,51 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) {
-        case GP_LOC_KEY(5, 27, 0, 0):
+    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+        case GAME_LOCATION_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 15, 0, 0):
+        case GAME_LOCATION_KEY(5, 15, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 14, 0, 0):
+        case GAME_LOCATION_KEY(5, 14, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 13, 0, 0):
+        case GAME_LOCATION_KEY(5, 13, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 12, 0, 0):
+        case GAME_LOCATION_KEY(5, 12, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, 1, 0, 0);
             break;
-        case GP_LOC_KEY(5, 7, 0, 0):
+        case GAME_LOCATION_KEY(5, 7, 0, 0):
             Task_SpawnFromTable(D_neo_ark_observatory_80180DBC, 0, 0, 0);
             break;
-        case GP_LOC_KEY(2, 30, 0, 0):
+        case GAME_LOCATION_KEY(2, 30, 0, 0):
             Task_SpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, 1, 0);
             break;
-        case GP_LOC_KEY(3, 30, 0, 0):
+        case GAME_LOCATION_KEY(3, 30, 0, 0):
             Task_SpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, 1, 0);
             break;
-        case GP_LOC_KEY(4, 18, 0, 0):
+        case GAME_LOCATION_KEY(4, 18, 0, 0):
             Task_SpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 31, 0, 0):
+        case GAME_LOCATION_KEY(5, 31, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
             break;
-        case GP_LOC_KEY(5, 30, 0, 0):
+        case GAME_LOCATION_KEY(5, 30, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 0, 0, 0);
             Task_SpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 1, 0, 0);
             break;
-        case GP_LOC_KEY(5, 29, 0, 0):
+        case GAME_LOCATION_KEY(5, 29, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
-        case GP_LOC_KEY(4, 22, 0, 0):
+        case GAME_LOCATION_KEY(4, 22, 0, 0):
             Task_SpawnFromTable(D_801637C8, 0, 0, 0);
             break;
-        case GP_LOC_KEY(4, 48, 0, 0):
+        case GAME_LOCATION_KEY(4, 48, 0, 0):
             Task_SpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
             break;
-        case GP_LOC_KEY(1, 20, 0, 0):
+        case GAME_LOCATION_KEY(1, 20, 0, 0):
             func_mist_shooting_gallery_8017FBD8();
             break;
     }
@@ -2744,172 +2752,174 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 
     slot->bufPose  = 0;
 }
 
-void Gp_SaveEnemyPose(GpEnemy* arg0)
+void Gp_SaveEnemyPose(GpEnemy* enemy)
 {
-    McPosRec*  rec;
-    GpAreaKey* loc;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    SVECTOR*   euler;
-    u16        id;
-    s32        i;
+    McPosRec*        savedPose;
+    GameLocationKey* savedLocation;
+    TmdObject*       model;
+    GfxCoord*         coord;
+    SVECTOR*         euler;
+    u16              placementKey;
+    s32              poseIndex;
 
-    rec   = Mc_SaveData[0].state.enemyPoses;
-    loc   = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
-    extra = arg0->task->extra.tmd;
-    coord = extra->coords;
-    if (arg0->spawnState == 0) {
-        arg0->spawnState = 1;
+    savedPose     = Mc_SaveData[0].state.enemyPoses;
+    savedLocation = &Mc_SaveData[0].state.at4.loc;
+    model         = enemy->task->extra.tmd;
+    coord         = model->coords;
+    if (enemy->spawnState == 0) {
+        enemy->spawnState = 1;
     }
-    id = arg0->placeKey;
-    for (i = 0; i < 0x20; i++, rec++) {
-        if (rec->placeKey == id) {
+    placementKey = enemy->placeKey;
+    for (poseIndex = 0; poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+        if (savedPose->placeKey == placementKey) {
             return;
         }
     }
 
-    euler = SCRATCH_PUSH(SVECTOR);
-    rec   = Mc_SaveData[0].state.enemyPoses;
-    for (i = 0; i < 0x20; i++, rec++) {
-        if (rec->spawnState == 0) {
+    euler     = SCRATCH_PUSH(SVECTOR);
+    savedPose = Mc_SaveData[0].state.enemyPoses;
+    for (poseIndex = 0; poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+        if (savedPose->spawnState == 0) {
             break;
         }
     }
-    if (i == 0x20) {
-        u32 key;
+    if (poseIndex == (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+        u32 stageAreaKey;
 
-        rec = Mc_SaveData[0].state.enemyPoses;
-        key = (loc->stage << 8) | loc->area;
-        for (i = 0; i < 0x1F; i++, rec++) {
-            if ((rec->placeKey & 0xFFF) != key) {
+        // Evict a pose from another area, using the final slot as the fallback.
+        savedPose    = Mc_SaveData[0].state.enemyPoses;
+        stageAreaKey = (savedLocation->stage << AREA_PLACEMENT_STAGE_SHIFT) | savedLocation->area;
+        for (poseIndex = 0; poseIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+            if ((savedPose->placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) != stageAreaKey) {
                 break;
             }
         }
-        for (; i < 0x1F; i++, rec++) {
-            rec[0] = rec[1];
+        for (; poseIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+            savedPose[0] = savedPose[1];
         }
     }
-    rec->spawnState = arg0->spawnState;
-    rec->placeKey   = arg0->placeKey;
-    rec->x          = coord->coord.t[0];
-    rec->y          = coord->coord.t[1];
-    rec->z          = coord->coord.t[2];
+    savedPose->spawnState = enemy->spawnState;
+    savedPose->placeKey   = enemy->placeKey;
+    savedPose->x          = coord->coord.t[0];
+    savedPose->y          = coord->coord.t[1];
+    savedPose->z          = coord->coord.t[2];
     Gfx_MatrixToEuler(&coord->coord, euler);
-    euler->vx  = euler->vx >> 8;
-    rec->pitch = euler->vx;
-    euler->vy  = euler->vy >> 8;
-    rec->yaw   = euler->vy;
-    euler->vz  = euler->vz >> 8;
-    rec->roll  = euler->vz;
+    euler->vx        = euler->vx >> 8;
+    savedPose->pitch = euler->vx;
+    euler->vy        = euler->vy >> 8;
+    savedPose->yaw   = euler->vy;
+    euler->vz        = euler->vz >> 8;
+    savedPose->roll  = euler->vz;
     SCRATCH_POP(SVECTOR);
 }
 
-void Gp_SpawnArea(GpAreaKey* arg0)
+void Gp_SpawnArea(GameLocationKey* location)
 {
-    GpAreaRec*     recs;
-    GpAreaVariant* nested;
-    GpAreaObj*     obj;
-    GpAreaPlace*   place;
-    GpAreaTmdRec*  entry;
+    GpAreaRec*     areaRecords;
+    GpAreaVariant* variants;
+    GpAreaObj*     areaState;
+    GpAreaPlace*   placement;
+    GpAreaTmdRec*  resource;
     GpEnemy*       enemy;
     Task*          task;
-    TmdObject*     extra;
-    GfxCoord*      coord;
-    u16            id;
-    s8             placeNo;
-    s32            i;
+    TmdObject*     model;
+    GfxCoord*       coord;
+    u16            resourceId;
+    s8             placementIndex;
+    s32            poseIndex;
 
-    recs = Gp_AreaTables[arg0->stage];
+    areaRecords = Gp_AreaTables[location->stage];
     Gp_ResetLinkState();
-    if (recs == NULL) {
+    if (areaRecords == NULL) {
         return;
     }
-    nested = recs[arg0->area].field_0;
-    obj    = recs[arg0->area].field_4;
-    if (nested == NULL) {
+    variants  = areaRecords[location->area].field_0;
+    areaState = areaRecords[location->area].field_4;
+    if (variants == NULL) {
         return;
     }
-    func_800B5A48(arg0, obj);
-    place   = nested[arg0->place].field_0;
-    placeNo = 0;
-    if (place == NULL) {
+    _areaPrepareSpawnState(location, areaState);
+    placement      = variants[location->variant].field_0;
+    placementIndex = 0;
+    if (placement == NULL) {
         return;
     }
-    if (place->entryId == 0xFF) {
+    if (placement->entryId == AREA_TABLE_END_ID) {
         return;
     }
+    // Match each placement with the resource entry that defines its actor.
     do {
-        entry = nested[arg0->place].field_4;
-        id    = entry->field_0;
-        if (id != 0xFF) {
+        resource   = variants[location->variant].field_4;
+        resourceId = resource->field_0;
+        if (resourceId != AREA_TABLE_END_ID) {
             do {
-                if (id == place->entryId) {
-                    if (obj->field_1 & 2) {
-                        McPosRec* rec;
-                        s32       found;
-                        s32       j;
+                if (resourceId == placement->entryId) {
+                    if (areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES) {
+                        McPosRec* savedPose;
+                        s32       poseFound;
+                        s32       savedPoseIndex;
 
-                        rec   = Mc_SaveData[0].state.enemyPoses;
-                        found = 0;
-                        for (j = 0; j < 0x20; j++, rec++) {
-                            if (rec->placeKey == ((placeNo << 12) | (arg0->stage << 8) | arg0->area)) {
-                                found = 1;
+                        savedPose = Mc_SaveData[0].state.enemyPoses;
+                        poseFound = 0;
+                        for (savedPoseIndex = 0; savedPoseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); savedPoseIndex++, savedPose++) {
+                            if (savedPose->placeKey == ((placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area)) {
+                                poseFound = 1;
                                 break;
                             }
                         }
-                        if (found == 0) {
+                        if (poseFound == 0) {
                             break;
                         }
                     }
-                    enemy = Gp_SpawnEnemyFromTable(entry->field_8, entry->field_5,
-                                                   (place->variant << 16) | place->mode, NULL);
+                    enemy = Gp_SpawnEnemyFromTable(resource->field_8, resource->field_5,
+                                                   (placement->variant << 16) | placement->mode, NULL);
                     if (enemy != NULL) {
-                        u16 key;
+                        u16 placementKey;
 
-                        key             = (placeNo << 12) | (arg0->stage << 8) | arg0->area;
+                        placementKey    = (placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area;
                         enemy->workType = 0x900;
-                        enemy->place    = place;
-                        enemy->placeKey = key;
+                        enemy->place    = placement;
+                        enemy->placeKey = placementKey;
                         task            = enemy->task;
                         if (task->spawnType != 0) {
-                            extra = task->extra.tmd;
-                            coord = extra->coords;
+                            model = task->extra.tmd;
+                            coord = model->coords;
                             if (task->spawnType == 1) {
-                                extra->tpage = place->tpage;
-                                extra->clut  = place->clut;
-                                if (extra->buffer != NULL) {
-                                    tmdProcessStream(extra);
-                                    tmdProcessStream(extra);
+                                model->tpage = placement->tpage;
+                                model->clut  = placement->clut;
+                                if (model->buffer != NULL) {
+                                    tmdProcessStream(model);
+                                    tmdProcessStream(model);
                                 }
                             }
-                            if (!(obj->field_1 & 2)) {
-                                coord->coord.t[0]   = place->x;
-                                coord->coord.t[1]   = place->y;
-                                coord->coord.t[2]   = place->z;
-                                coord->param.rot.vy = place->yaw;
-                                Gfx_RotMatrixY(&coord->coord, place->yaw, 1);
+                            if (!(areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES)) {
+                                coord->coord.t[0]   = placement->x;
+                                coord->coord.t[1]   = placement->y;
+                                coord->coord.t[2]   = placement->z;
+                                coord->param.rot.vy = placement->yaw;
+                                Gfx_RotMatrixY(&coord->coord, placement->yaw, 1);
                             } else {
-                                McPosRec* rec;
+                                McPosRec* savedPose;
 
-                                rec = Mc_SaveData[0].state.enemyPoses;
-                                i   = 0;
+                                savedPose = Mc_SaveData[0].state.enemyPoses;
+                                poseIndex = 0;
                                 do {
-                                    if (rec->placeKey == enemy->placeKey) {
-                                        coord->coord.t[0]   = rec->x;
-                                        coord->coord.t[1]   = rec->y;
-                                        coord->coord.t[2]   = rec->z;
-                                        coord->param.rot.vx = rec->pitch << 8;
-                                        coord->param.rot.vy = rec->yaw << 8;
-                                        coord->param.rot.vz = rec->roll << 8;
+                                    if (savedPose->placeKey == enemy->placeKey) {
+                                        coord->coord.t[0]   = savedPose->x;
+                                        coord->coord.t[1]   = savedPose->y;
+                                        coord->coord.t[2]   = savedPose->z;
+                                        coord->param.rot.vx = savedPose->pitch << 8;
+                                        coord->param.rot.vy = savedPose->yaw << 8;
+                                        coord->param.rot.vz = savedPose->roll << 8;
                                         RotMatrix_gte(&coord->param.rot,
                                                       &coord->coord);
-                                        enemy->spawnState = rec->spawnState;
+                                        enemy->spawnState = savedPose->spawnState;
                                         break;
                                     }
-                                    i++;
-                                    rec++;
-                                } while (i < 0x20);
-                                if (i == 0x20) {
+                                    poseIndex++;
+                                    savedPose++;
+                                } while (poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses));
+                                if (poseIndex == (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
                                     Gp_DestroyEnemy(enemy, enemy->task);
                                 }
                             }
@@ -2917,13 +2927,13 @@ void Gp_SpawnArea(GpAreaKey* arg0)
                     }
                     break;
                 }
-                entry++;
-                id = entry->field_0;
-            } while (id != 0xFF);
+                resource++;
+                resourceId = resource->field_0;
+            } while (resourceId != AREA_TABLE_END_ID);
         }
-        placeNo++;
-        place++;
-    } while (place->entryId != 0xFF);
+        placementIndex++;
+        placement++;
+    } while (placement->entryId != AREA_TABLE_END_ID);
 }
 
 void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
@@ -3142,20 +3152,20 @@ static void func_800B51F4(Task* task)
 
 void Gp_ApplyAreaTmdFlags(void)
 {
-    Task*          head;
-    Task*          iter;
-    GpAreaKey*     key;
-    GpAreaRec*     rec;
-    GpAreaVariant* nested;
-    GpAreaTmdRec*  table;
-    GpAreaTmdRec*  entry;
-    GpWorkObj*     work;
-    GpAreaPlace*   place;
-    TmdObject*     extra;
-    u16            id;
-    u16            flags;
-    u16            limit;
-    u8             idx;
+    Task*            head;
+    Task*            iter;
+    GameLocationKey* key;
+    GpAreaRec*       rec;
+    GpAreaVariant*   nested;
+    GpAreaTmdRec*    table;
+    GpAreaTmdRec*    entry;
+    GpWorkObj*       work;
+    GpAreaPlace*     place;
+    TmdObject*       extra;
+    u16              id;
+    u16              flags;
+    u16              limit;
+    u8               idx;
 
     head = (gameGetPtrSlot(4))->firstChild;
     if (head != NULL) {
@@ -3163,7 +3173,7 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2.pointer;
             if (iter->spawnType == 1) {
-                key   = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
+                key   = &Mc_SaveData[0].state.at4.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -3172,7 +3182,7 @@ void Gp_ApplyAreaTmdFlags(void)
                 if (rec != NULL) {
                     nested = rec[key->area].field_0;
                     if (nested != NULL) {
-                        table = nested[key->place].field_4;
+                        table = nested[key->variant].field_4;
                     }
                 }
                 entry = table;
@@ -3251,182 +3261,184 @@ void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
     }
 }
 
-static void Gp_SetCurAreaFlag2(s32 arg0)
+static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
-    GpAreaKey* key;
+    GpAreaRec*       areaRecords;
+    GpAreaObj*       areaState;
+    GameLocationKey* key;
 
-    key = (GpAreaKey*)&Mc_SaveData[0].state.at4.loc.view;
-    rec = Gp_AreaTables[key->stage];
-    if (rec != NULL) {
-        obj = rec[key->area].field_4;
-        if (obj != NULL) {
-            if (obj->field_0 == key->place) {
-                if (arg0 == 0) {
-                    obj->field_1 &= 0xFD;
+    key         = &Mc_SaveData[0].state.at4.loc;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].field_4;
+        if (areaState != NULL) {
+            if (areaState->variant == key->variant) {
+                if (useSavedPoses == 0) {
+                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
                     return;
                 }
-                obj->field_1 |= 2;
+                areaState->spawnFlags |= AREA_SPAWN_RESTORE_SAVED_POSES;
             }
         }
     }
 }
 
-s32 Gp_GetAreaFlag2(GpAreaKey* arg0)
+s32 Gp_GetAreaFlag2(GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
-    s32        val;
+    GpAreaRec* areaRecords;
+    GpAreaObj* areaState;
+    s32        savedPoseFlag;
 
-    rec = Gp_AreaTables[arg0->stage];
-    if (rec != NULL) {
-        obj = rec[arg0->area].field_4;
-        if (obj != NULL) {
-            val = obj->field_1 & 2;
-            return val != 0;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].field_4;
+        if (areaState != NULL) {
+            savedPoseFlag = areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES;
+            return savedPoseFlag != 0;
         }
     }
     return 0;
 }
 
-static GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
+static GpAreaObj* Gp_GetAreaObj(GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* ret;
+    GpAreaRec* areaRecords;
+    GpAreaObj* areaState;
 
-    rec = Gp_AreaTables[arg0->stage];
-    if (rec == NULL) {
-        ret = NULL;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords == NULL) {
+        areaState = NULL;
     } else {
-        ret = rec[arg0->area].field_4;
+        areaState = areaRecords[key->area].field_4;
     }
-    return ret;
+    return areaState;
 }
 
-static void func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1)
+/// Initializes the placement selector and applies a requested saved-pose reset.
+static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
 {
-    s32       j;
-    s32       i;
-    McPosRec* recs;
+    s32       shiftIndex;
+    s32       poseIndex;
+    McPosRec* savedPoses;
 
-    if (arg1->field_0 == 0) {
-        arg1->field_0  = 1;
-        arg1->field_1 |= 1;
+    if (areaState->variant == 0) {
+        areaState->variant     = AREA_DEFAULT_VARIANT;
+        areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
     }
-    if (arg1->field_1 & 1) {
-        arg1->field_1 &= 0xFC;
-        i              = 0x1F;
-        recs           = Mc_SaveData[0].state.enemyPoses;
+    // A changed layout invalidates saved poses for every placement in this area.
+    if (areaState->spawnFlags & AREA_SPAWN_RESET_SAVED_POSES) {
+        areaState->spawnFlags &= 0xFF ^ (AREA_SPAWN_RESET_SAVED_POSES | AREA_SPAWN_RESTORE_SAVED_POSES);
+        poseIndex              = ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1);
+        savedPoses             = Mc_SaveData[0].state.enemyPoses;
         do {
-            if ((recs[i].placeKey & 0xFFF) == ((arg0->stage << 8) | arg0->area)) {
-                if (i != 0x1F) {
-                    for (j = i; j < 0x1F; j++) {
-                        recs[j] = recs[j + 1];
+            if ((savedPoses[poseIndex].placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) == ((key->stage << AREA_PLACEMENT_STAGE_SHIFT) | key->area)) {
+                if (poseIndex != ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)) {
+                    for (shiftIndex = poseIndex; shiftIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); shiftIndex++) {
+                        savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
                     }
                 }
-                recs[0x1F].spawnState = 0;
-                recs[0x1F].placeKey   = 0;
+                savedPoses[((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].spawnState = 0;
+                savedPoses[((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey   = 0;
             }
-            i--;
-        } while (i >= 0);
+            poseIndex--;
+        } while (poseIndex >= 0);
     }
 }
 
-void Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2)
+void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    GpAreaRec* areaRecords;
+    GpAreaObj* areaState;
 
-    rec = Gp_AreaTables[arg0->stage];
-    if (rec != NULL) {
-        obj = rec[arg0->area].field_4;
-        if (obj != NULL) {
-            if (arg2 != -1) {
-                obj->field_0 = arg1;
-                if (arg2 == 0) {
-                    obj->field_1 &= 0xFE;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].field_4;
+        if (areaState != NULL) {
+            if (resetMode != AREA_VARIANT_RESET_IF_CHANGED) {
+                areaState->variant = variant;
+                if (resetMode == AREA_VARIANT_SKIP_POSE_RESET) {
+                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESET_SAVED_POSES;
                 } else {
-                    obj->field_1 |= 1;
+                    areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
                 }
-                obj->field_1 &= 0xFD;
-            } else if (obj->field_0 != arg1) {
-                obj->field_0 = arg1;
-                obj->field_1 = (obj->field_1 | 1) & 0xFD;
+                areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
+            } else if (areaState->variant != variant) {
+                areaState->variant    = variant;
+                areaState->spawnFlags = (areaState->spawnFlags | AREA_SPAWN_RESET_SAVED_POSES) & (0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES);
             } else {
-                obj->field_1 &= 0xFE;
+                areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESET_SAVED_POSES;
             }
-            func_800B5A48(arg0, obj);
+            _areaPrepareSpawnState(key, areaState);
         }
     }
 }
 
-void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1)
+void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
 {
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    GpAreaRec* areaRecords;
+    GpAreaObj* areaState;
 
-    rec = Gp_AreaTables[arg1->stage];
-    if (rec != NULL) {
-        obj = rec[arg1->area].field_4;
-        if (obj != NULL) {
-            if (obj->field_0 == arg1->place) {
-                if (arg0 == 0) {
-                    obj->field_1 &= 0xFD;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].field_4;
+        if (areaState != NULL) {
+            if (areaState->variant == key->variant) {
+                if (useSavedPoses == 0) {
+                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
                     return;
                 }
-                obj->field_1 |= 2;
+                areaState->spawnFlags |= AREA_SPAWN_RESTORE_SAVED_POSES;
             }
         }
     }
 }
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GpAreaKey* arg0)
+static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key)
 {
-    GpAreaRec*     rec;
-    GpAreaVariant* nested;
-    GpAreaTmdRec*  ret;
+    GpAreaRec*     areaRecords;
+    GpAreaVariant* variants;
+    GpAreaTmdRec*  resources;
 
-    rec = Gp_AreaTables[arg0->stage];
-    ret = NULL;
-    if (rec != NULL) {
-        nested = rec[arg0->area].field_0;
-        if (nested != NULL) {
-            ret = nested[arg0->place].field_4;
+    areaRecords = Gp_AreaTables[key->stage];
+    resources   = NULL;
+    if (areaRecords != NULL) {
+        variants = areaRecords[key->area].field_0;
+        if (variants != NULL) {
+            resources = variants[key->variant].field_4;
         }
     }
-    return ret;
+    return resources;
 }
 
-GpAreaVariant* Gp_GetNestedAreaRec(GpAreaKey* arg0)
+GpAreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
 {
-    GpAreaRec*     rec;
-    GpAreaVariant* ret;
+    GpAreaRec*     areaRecords;
+    GpAreaVariant* variants;
 
-    rec = Gp_AreaTables[arg0->stage];
-    ret = NULL;
-    if (rec != NULL) {
-        ret = rec[arg0->area].field_0;
-        if (ret != NULL) {
-            ret = &ret[arg0->place];
+    areaRecords = Gp_AreaTables[key->stage];
+    variants    = NULL;
+    if (areaRecords != NULL) {
+        variants = areaRecords[key->area].field_0;
+        if (variants != NULL) {
+            variants = &variants[key->variant];
         }
     }
-    return ret;
+    return variants;
 }
 
-void Gp_SetAreaFlag0(GpAreaKey* arg0)
+void Gp_SetAreaFlag0(GameLocationKey* location)
 {
-    u32        key;
-    GpAreaRec* rec;
-    GpAreaObj* obj;
+    u32        stageAreaKey;
+    GpAreaRec* areaRecords;
+    GpAreaObj* areaState;
 
-    key = *(u32*)&arg0->view & 0xFFFF0000;
-    rec = Gp_AreaTables[arg0->stage];
-    if (key != 0x3260000) {
-        if (rec != NULL) {
-            obj = rec[arg0->area].field_4;
-            if (obj != NULL) {
-                obj->field_1 |= 1;
+    stageAreaKey = GAME_LOCATION_WORD(*location) & GAME_LOCATION_STAGE_AREA_MASK;
+    areaRecords  = Gp_AreaTables[location->stage];
+    if (stageAreaKey != GAME_LOCATION_KEY(3, 0x26, 0, 0)) {
+        if (areaRecords != NULL) {
+            areaState = areaRecords[location->area].field_4;
+            if (areaState != NULL) {
+                areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
             }
         }
     }
@@ -3544,27 +3556,27 @@ static void func_800B6014(void)
 {
 }
 
-void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
+void areaSyncLocationVariant(GameLocationKey* key)
 {
-    GpAreaRec*     rec;
-    GpAreaVariant* rec2;
-    GpAreaObj*     obj;
+    GpAreaRec*     areaRecords;
+    GpAreaVariant* variants;
+    GpAreaObj*     areaState;
 
-    rec         = Gp_AreaTables[arg0->stage];
-    arg0->place = 1;
-    if (rec == NULL) {
+    areaRecords  = Gp_AreaTables[key->stage];
+    key->variant = AREA_DEFAULT_VARIANT;
+    if (areaRecords == NULL) {
         return;
     }
-    rec2 = rec[arg0->area].field_0;
-    obj  = rec[arg0->area].field_4;
-    if (rec2 == NULL) {
+    variants  = areaRecords[key->area].field_0;
+    areaState = areaRecords[key->area].field_4;
+    if (variants == NULL) {
         return;
     }
-    if (obj->field_0 == 0) {
-        obj->field_0  = 1;
-        obj->field_1 |= 1;
+    if (areaState->variant == 0) {
+        areaState->variant     = AREA_DEFAULT_VARIANT;
+        areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
     }
-    arg0->place = obj->field_0;
+    key->variant = areaState->variant;
 }
 
 static void func_800B6094(Task* task)

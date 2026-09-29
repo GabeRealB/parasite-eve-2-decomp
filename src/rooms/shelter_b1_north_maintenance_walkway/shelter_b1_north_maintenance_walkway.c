@@ -269,7 +269,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.place == 2) {
+    if (gGameSession->at4.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (GameFlag_GetNibble(0x157) == 0) {
             GameFlag_SetNibble(0x157, 1);
@@ -302,10 +302,10 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
 
 static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 {
-    GpAreaKey* sess = &gGameSession->at4.loc;
-    GpSprtRec* rec;
-    GpSprtCmd* cmd;
-    s32        mode;
+    GameLocationKey* sess = &gGameSession->at4.loc;
+    GpSprtRec*       rec;
+    GpSprtCmd*       cmd;
+    s32              mode;
 
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     mode = arg0 & 0xFF;

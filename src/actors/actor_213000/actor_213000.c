@@ -524,7 +524,7 @@ static void func_actor_213000_80149E54(Task* task)
 {
     Actor213000Work* work;
     TmdObject*       obj;
-    GpAreaKey        key;
+    GameLocationKey  key;
     Task*            spawned1;
     Task*            spawned2;
 
@@ -545,11 +545,11 @@ static void func_actor_213000_80149E54(Task* task)
     spawned1        = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
     spawned2        = Task_SpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
     if (spawned1 != NULL) {
-        TmdObject*     model;
-        GpAreaVariant* rec;
-        GpAreaPlace*   place;
-        GpAreaKey*     sessionKey;
-        s32            idx;
+        TmdObject*       model;
+        GpAreaVariant*   rec;
+        GpAreaPlace*     place;
+        GameLocationKey* sessionKey;
+        s32              idx;
 
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
         model      = spawned1->extra.tmd;
@@ -558,7 +558,7 @@ static void func_actor_213000_80149E54(Task* task)
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;
@@ -569,11 +569,11 @@ static void func_actor_213000_80149E54(Task* task)
         }
     }
     if (spawned2 != NULL) {
-        TmdObject*     model;
-        GpAreaVariant* rec;
-        GpAreaPlace*   place;
-        GpAreaKey*     sessionKey;
-        s32            idx;
+        TmdObject*       model;
+        GpAreaVariant*   rec;
+        GpAreaPlace*     place;
+        GameLocationKey* sessionKey;
+        s32              idx;
 
         model      = spawned2->extra.tmd;
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
@@ -582,7 +582,7 @@ static void func_actor_213000_80149E54(Task* task)
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         place        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = place->tpage;

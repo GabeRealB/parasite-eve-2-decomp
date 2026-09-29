@@ -2475,15 +2475,15 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, GpRec18* records)
 /// Looks up the current area's placement record from the session location.
 static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 {
-    GpAreaKey  key;
-    GpAreaKey* sessionKey;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
 
     sessionKey = &gGameSession->at4.loc;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     return Gp_GetNestedAreaRec(&key);
 }
 
@@ -2509,12 +2509,12 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
 static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    GpAreaVariant* rec;
-    GpAreaPlace*   place;
-    TmdObject*     model;
-    s32            idx;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     place;
+    TmdObject*       model;
+    s32              idx;
 
     sessionKey = &gGameSession->at4.loc;
     idx        = enemy->placeKey >> 12;
@@ -2523,7 +2523,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     rec          = Gp_GetNestedAreaRec(&key);
     place        = gpAreaPlaceAt(rec->field_0, idx);
     model->tpage = place->tpage;

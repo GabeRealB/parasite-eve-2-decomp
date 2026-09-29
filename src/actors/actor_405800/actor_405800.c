@@ -2026,7 +2026,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     model = arg0->extra.tmd;
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     coord = model->coords;
-    if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(4, 8, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 8, 0, 0)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }

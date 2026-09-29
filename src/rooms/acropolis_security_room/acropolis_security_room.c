@@ -3297,9 +3297,9 @@ static s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s
 /// (`field_4` non-zero) or draws it.
 static void func_acropolis_security_room_8017FD64(s32 flags)
 {
-    GameSession* g    = gGameSession;
-    GpAreaKey*   sess = &g->at4.loc;
-    GpSprtCmd*   cmd;
+    GameSession*     g    = gGameSession;
+    GameLocationKey* sess = &g->at4.loc;
+    GpSprtCmd*       cmd;
 
     cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][5].field_4;
     switch (flags & 0xFF) {
@@ -3593,7 +3593,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
 
 L_case0:
     queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot(&gGameSession->at4.loc.view, 0, 0);
+    slotParam[0]     = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
@@ -3727,7 +3727,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
     LINE_F2*        prim;
 
     coord = task->extra.tmd->coords;
-    if ((0xC >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+    if ((0xC >> (gGameSession->at4.loc.view - 1)) & 1) {
         scratch   = (void**)G_SCRATCH_HEAD;
         head      = *scratch;
         blk       = (AsrBeamScratch*)(head - 0x14);
@@ -3962,7 +3962,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     }
 
     mem->age = mem->age + 1;
-    if ((u8)gGameSession->at4.loc.view != 0xF) {
+    if (gGameSession->at4.loc.view != 0xF) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }

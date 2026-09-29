@@ -1924,9 +1924,9 @@ static void func_acropolis_sanctuary_8017DD78(void)
 /// OT-linking each command's prims.
 static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 {
-    GameSession* g    = gGameSession;
-    GpAreaKey*   sess = &g->at4.loc;
-    GpSprtCmd*   cmd;
+    GameSession*     g    = gGameSession;
+    GameLocationKey* sess = &g->at4.loc;
+    GpSprtCmd*       cmd;
 
     cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].field_4;
     if ((arg0 & 0xFF) == 0) {
@@ -1948,9 +1948,9 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// 0xC, 0 otherwise.
 void func_acropolis_sanctuary_8017E00C(Task* task)
 {
-    GfxCoord*  coord;
-    GpAreaKey* sess;
-    s32        i;
+    GfxCoord*         coord;
+    GameLocationKey* sess;
+    s32              i;
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {
@@ -2190,7 +2190,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
             mem->move.vy       = -(mem->move.vy >> 1);
         }
     }
-    if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
+    if (gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
         mem->age = mem->age + 0x3C;
@@ -2358,7 +2358,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
             mem->age = mem->age + 0x3C;
         }
     }
-    if ((u8)gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
+    if (gGameSession->at4.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
         (coord->coord.t[0] < -0x28C0 ||
          (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
         mem->age = mem->age + 0x3C;
@@ -2395,7 +2395,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> ((u8)gGameSession->at4.loc.view - 1)) & 1) {
+    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
         scratch  = (void**)G_SCRATCH_HEAD;
         head     = *scratch;

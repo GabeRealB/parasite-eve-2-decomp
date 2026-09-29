@@ -681,7 +681,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_v1;
 
-    if ((gGameSession->at4.loc.place != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
+    if ((gGameSession->at4.loc.variant != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
         if (in->field_2 == 3) {
             func_800E8614(D_dryfield_night_water_tank_8017DDD8, 0);
         }
@@ -690,7 +690,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
         }
     }
     if (in->field_2 == 5) {
-        temp_v1 = gGameSession->at4.loc.place;
+        temp_v1 = gGameSession->at4.loc.variant;
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
@@ -707,7 +707,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 /// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
 /// `Task::msgTable`, claim game pointer slot 7, spawn the tank model's task
 /// from `8017EE28`, then branch on the visit sub-id
-/// (`gGameSession::at4.loc.place`).
+/// (`gGameSession::at4.loc.variant`).
 ///
 /// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
 /// prop updater `func_dryfield_night_water_tank_8017D9DC` on its zero argument;
@@ -719,13 +719,13 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
-    if ((u32)(gGameSession->at4.loc.place - 0xA) < 2U) {
+    if ((u32)(gGameSession->at4.loc.variant - 0xA) < 2U) {
         func_dryfield_night_water_tank_8017D9DC(0);
     }
-    if (gGameSession->at4.loc.place == 0xA) {
+    if (gGameSession->at4.loc.variant == 0xA) {
         Task_SpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         func_8013224C();
     }
     task->state = task->state + 1;
@@ -735,7 +735,7 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
 /// the play time while the visit sub-id is 0xB.
 static void func_dryfield_night_water_tank_8017D94C(Task* task)
 {
-    if (gGameSession->at4.loc.place == 0xB) {
+    if (gGameSession->at4.loc.variant == 0xB) {
         Gp_MarkPlayTime();
     }
 }

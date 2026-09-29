@@ -263,7 +263,7 @@ void func_shelter_1f_tent_8017F484(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -361,7 +361,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
 
     task->msgTable = D_shelter_1f_tent_80181CDC;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.place == 1) {
+    if (gGameSession->at4.loc.variant == 1) {
         func_80132210();
     }
     if (GameFlag_GetNibble(0x109) == 0) {

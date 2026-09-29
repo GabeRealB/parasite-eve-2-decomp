@@ -1628,13 +1628,13 @@ static __inline__ s32 Actor521100_GetHitType(s32 key);
 /// into the work block, which it cannot be scheduled across.
 static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
 {
-    GpAreaKey        key;
+    GameLocationKey  key;
     TmdObject*       obj;
     GfxCoord*        coord;
     Actor521100Work* work;
     GpEnemy*         spawned;
     TmdObject*       model;
-    GpAreaKey*       sessionKey;
+    GameLocationKey* sessionKey;
     GpAreaPlace*     place;
     s32              idx;
     u32              raw;
@@ -1710,7 +1710,7 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     key.room   = sessionKey->room;
     idx        = raw >> 12;
     key.view   = sessionKey->view;
-    Gp_SyncAreaKeyIndex(&key);
+    areaSyncLocationVariant(&key);
     /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
        index onto the table. */
     place        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);

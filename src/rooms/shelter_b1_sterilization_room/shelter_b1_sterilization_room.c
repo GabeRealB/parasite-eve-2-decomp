@@ -614,7 +614,7 @@ void func_shelter_b1_sterilization_room_8017F550(Task* task)
                 if (GameFlag_GetNibble(0) == 2) {
                     GameFlag_SetNibble(0, 3);
                     GameFlag_SetNibble(0xE, 4);
-                    if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 1, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
                         func_800E3FAC(0xA2, 5);
                     }
@@ -716,7 +716,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.place == 5 && GameFlag_GetNibble(0xEA) == 0) {
+    if (gGameSession->at4.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
         GameFlag_SetNibble(0xF4, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetPtrSlot(0xA) != NULL) {
@@ -724,7 +724,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             GameFlag_SetNibble(0xEA, 2);
             GameFlag_SetNibble(0x4B, 8);
             func_800E8634(&D_80135D78, 0, &D_80136258);
-            Gp_SetAreaObjId(&gGameSession->at4.loc, 6, 1);
+            areaSetPlacementVariant(&gGameSession->at4.loc, 6, AREA_VARIANT_RESET_ALWAYS);
         } else {
             GameFlag_SetNibble(0x116, 2);
             GameFlag_SetNibble(0xEA, 1);
@@ -732,7 +732,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);
-    if (gGameSession->at4.loc.place == 5) {
+    if (gGameSession->at4.loc.variant == 5) {
         target = Gp_LookupSlot4(0);
         if (target != NULL) {
             Gp_DispatchMsgPtr(target, 0x7DB, &D_shelter_b1_sterilization_room_80184E7C, 0);
@@ -741,7 +741,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     if (GameFlag_GetNibble(0xEA) != 1) {
         (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].field_4A &= 0xBF;
     }
-    if (gGameSession->at4.loc.place == 1) {
+    if (gGameSession->at4.loc.variant == 1) {
         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);
     }
     task->state++;
@@ -970,7 +970,7 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
         task = gameGetPtrSlot(3);
     }
     if (slot != NULL) {
-        if (gGameSession->at4.loc.place == 5 && GameFlag_GetNibble(0xEA) == 1) {
+        if (gGameSession->at4.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 1) {
             D_shelter_b1_sterilization_room_80184E80[1] = 0;
         } else {
             D_shelter_b1_sterilization_room_80184E80[1] = 0x2710;
@@ -1005,7 +1005,7 @@ s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
 
 static void func_shelter_b1_sterilization_room_80180464(Task* task)
 {
-    if (gGameSession->at4.loc.place == 5) {
+    if (gGameSession->at4.loc.variant == 5) {
         func_shelter_b1_sterilization_room_8018049C();
     }
 }

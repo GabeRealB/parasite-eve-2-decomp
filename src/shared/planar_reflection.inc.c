@@ -561,7 +561,7 @@ static void Reflection_UpdatePlayer(Task* task)
             if (halfWidth >= 0x60) {
                 halfWidth = 0x5F;
             }
-            if ((GP_LOC_WORD(Mc_SaveData[0].state.at4.loc) & GP_LOC_AREA_VIEW) == GP_LOC_KEY(0, 2, 0, 5)) {
+            if ((GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
                 if (task->spawnArg1.value == 0) {
                     halfWidth = 0x5F;
                 } else {

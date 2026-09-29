@@ -212,7 +212,7 @@ static void Actor01900_Fn0A6CC(Task* task);
 static s32  Actor01900_Fn03FF8(Task* arg0, GpRec18* recs, s16 count);
 static void Actor01900_Fn08724(Task* arg0);
 static void Actor01900_Fn0A7C0(Task* arg0);
-static void Actor01900_Fn03C04(GpAreaKey* session, GfxCoord* coord);
+static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
 s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, GpAnimArg* arg2);
 s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2);
 s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
@@ -803,7 +803,7 @@ static __inline__ void Actor01900_BindMatrices(Task* actor);
 static void            Actor01900_Fn02018(GpEnemy* enemy, Task* actor);
 static __inline__ s32  Actor01900_FindHit(GpRec18* records, SVECTOR* pos);
 static __inline__ s32  Actor01900_ArmIfPlayerLevel(Task* arg0);
-static __inline__ s32  Actor01900_HasHeightClamp(GpAreaKey* session);
+static __inline__ s32  Actor01900_HasHeightClamp(GameLocationKey* session);
 static s32             Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3);
 static __inline__ s32  Actor01900_HasHit(GpRec18* records);
 static void            Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor);
@@ -1892,7 +1892,7 @@ static void Actor01900_Fn03854(Task* arg0)
     }
 }
 
-static void Actor01900_Fn03C04(GpAreaKey* session, GfxCoord* coord)
+static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord)
 {
     ActorHeightClamp* row;
     s32               offset;
@@ -1916,7 +1916,7 @@ static void Actor01900_Fn03C04(GpAreaKey* session, GfxCoord* coord)
 
 /// `Actor01900_Fn03C04`'s row scan without the clamp: nonzero when the
 /// current room has an `Actor01900_D172CC` row.
-static __inline__ s32 Actor01900_HasHeightClamp(GpAreaKey* session)
+static __inline__ s32 Actor01900_HasHeightClamp(GameLocationKey* session)
 {
     ActorHeightClamp* row;
     s16               i;
@@ -1950,7 +1950,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor01900_HasHeightClamp(&gGameSession->at4.loc.view)) {
+        if (Actor01900_HasHeightClamp(&gGameSession->at4.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x180) {
                 s->step.vy = (vy <= 0) ? -0x180 : 0x180;
@@ -1988,8 +1988,8 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, GpRec18* rec, s16 arg2, s16 arg3)
             }
         }
     }
-    if (Actor01900_HasHeightClamp(&gGameSession->at4.loc.view)) {
-        Actor01900_Fn03C04(&gGameSession->at4.loc.view, coord);
+    if (Actor01900_HasHeightClamp(&gGameSession->at4.loc)) {
+        Actor01900_Fn03C04(&gGameSession->at4.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2679,7 +2679,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     }
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
-        (GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) == GP_LOC_KEY(1, 9, 0, 0)) {
+        (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         sound       = 0x51090009;
         if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
@@ -2702,7 +2702,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = 0x200;
         work->field_8B8.spawnArgHi = 2;
-        if ((GP_LOC_WORD(gGameSession->at4.loc) & GP_LOC_STAGE_AREA) != GP_LOC_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
+        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
         }
     }

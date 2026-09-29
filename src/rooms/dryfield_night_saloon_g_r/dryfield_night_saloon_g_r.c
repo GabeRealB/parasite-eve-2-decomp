@@ -2141,7 +2141,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* ar
         func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
         GameFlag_SetNibble(0x59, 1);
     }
-    temp_s0 = gGameSession->at4.loc.place;
+    temp_s0 = gGameSession->at4.loc.variant;
     if (temp_s0 == 2 && GameFlag_GetNibble(0xB0) == 0) {
         if (arg2->field_2 == 1) {
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
@@ -2168,7 +2168,7 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.place == 2 && GameFlag_GetNibble(0xB0) == 0) {
+    if (gGameSession->at4.loc.variant == 2 && GameFlag_GetNibble(0xB0) == 0) {
         msg.from.loc.stage = gGameSession->at4.loc.stage;
         msg.from.loc.area  = gGameSession->at4.loc.area;
         msg.command        = 0;

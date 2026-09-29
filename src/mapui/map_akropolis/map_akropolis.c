@@ -1413,26 +1413,26 @@ static GpBit2Rec D_map_akropolis_8017C03C[10] = {
 };
 
 GpGiveRec D_map_akropolis_8017C0DC[12] = {
-    { GP_LOC_KEY(1, 3, 2, 0), { 0x3B, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 3, 4, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GP_LOC_KEY(1, 4, 1, 0), { 2, 0, 0, 0xE } },
-    { GP_LOC_KEY(1, 8, 2, 0), { 0xA9, 0, 0, 0xAA } },
-    { GP_LOC_KEY(1, 9, 3, 0), { 8, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 9, 4, 0), { 1, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 10, 2, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GP_LOC_KEY(1, 10, 3, 0), { 0xA1, 0, 0, 0xA2 } },
-    { GP_LOC_KEY(1, 11, 1, 0), { 1, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 13, 1, 0), { 6, 0, 0, 1 } },
-    { GP_LOC_KEY(1, 15, 1, 0), { 2, 0, 0, 6 } },
+    { GAME_LOCATION_KEY(1, 3, 2, 0), { 0x3B, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 3, 4, 0), { 0xA1, 0, 0, 0xA2 } },
+    { GAME_LOCATION_KEY(1, 4, 1, 0), { 2, 0, 0, 0xE } },
+    { GAME_LOCATION_KEY(1, 8, 2, 0), { 0xA9, 0, 0, 0xAA } },
+    { GAME_LOCATION_KEY(1, 9, 3, 0), { 8, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 9, 4, 0), { 1, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 10, 2, 0), { 0xA1, 0, 0, 0xA2 } },
+    { GAME_LOCATION_KEY(1, 10, 3, 0), { 0xA1, 0, 0, 0xA2 } },
+    { GAME_LOCATION_KEY(1, 11, 1, 0), { 1, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 13, 1, 0), { 6, 0, 0, 1 } },
+    { GAME_LOCATION_KEY(1, 15, 1, 0), { 2, 0, 0, 6 } },
     { -1 },
 };
 
 GpGiveRec D_map_akropolis_8017C16C[6] = {
-    { GP_LOC_KEY(1, 4, 1, 0), { 0x3B, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 8, 7, 0), { 0xAB, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 9, 7, 0), { 0x41, 0xA2, 0x3A, 0 } },
-    { GP_LOC_KEY(1, 10, 7, 0), { 6, 0, 0, 0 } },
-    { GP_LOC_KEY(1, 11, 7, 0), { 0x83, 0xA2, 0x3C, 0 } },
+    { GAME_LOCATION_KEY(1, 4, 1, 0), { 0x3B, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 8, 7, 0), { 0xAB, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 9, 7, 0), { 0x41, 0xA2, 0x3A, 0 } },
+    { GAME_LOCATION_KEY(1, 10, 7, 0), { 6, 0, 0, 0 } },
+    { GAME_LOCATION_KEY(1, 11, 7, 0), { 0x83, 0xA2, 0x3C, 0 } },
     { -1 },
 };
 

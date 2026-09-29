@@ -2585,8 +2585,8 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                Gp_SetAreaObjId(&Mc_SaveData[0].state.at4.loc, 2, 1);
-                Gp_SyncAreaKeyIndex(&Mc_SaveData[0].state.at4.loc);
+                areaSetPlacementVariant(&Mc_SaveData[0].state.at4.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+                areaSyncLocationVariant(&Mc_SaveData[0].state.at4.loc);
                 Gp_SpawnArea(&Mc_SaveData[0].state.at4.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;

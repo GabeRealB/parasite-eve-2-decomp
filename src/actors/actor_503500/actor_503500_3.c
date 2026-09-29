@@ -265,21 +265,21 @@ static void        func_actor_503500_80139A20(Task* arg0, GpObj* arg1, GpRec18* 
 /// `func_actor_503500_80135D00` does) and applies preset 0x7D3.
 static void func_actor_503500_80132F64(Task* arg0)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    GpEnemy*       child;
-    TmdObject*     model;
-    u32            raw;
-    s32            idx;
-    s32            i;
-    TmdObject*     tmd;
-    GpEnemy*       enemy;
-    GfxCoord*      coord;
-    GfxCoord*      part;
-    GpRec18*       recs;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    GpEnemy*         child;
+    TmdObject*       model;
+    u32              raw;
+    s32              idx;
+    s32              i;
+    TmdObject*       tmd;
+    GpEnemy*         enemy;
+    GfxCoord*         coord;
+    GfxCoord*         part;
+    GpRec18*         recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
     Actor503500Work* work = &D_actor_503500_80176574.value;
@@ -343,7 +343,7 @@ static void func_actor_503500_80132F64(Task* arg0)
             areaByte0  = sessionKey->view;
             idx        = raw >> 12;
             key.view   = areaByte0;
-            Gp_SyncAreaKeyIndex(&key);
+            areaSyncLocationVariant(&key);
             rec          = Gp_GetNestedAreaRec(&key);
             entry        = gpAreaPlaceAt(rec->field_0, idx);
             model->tpage = entry->tpage;
@@ -1726,15 +1726,15 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 /// work block's `enemies` array. Returns the new enemy, or NULL.
 GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 {
-    GpAreaKey      key;
-    GpAreaKey*     sessionKey;
-    u8             areaByte0;
-    GpAreaVariant* rec;
-    GpAreaPlace*   entry;
-    GpEnemy*       enemy;
-    TmdObject*     model;
-    s32            idx;
-    u32            raw;
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    GpAreaPlace*     entry;
+    GpEnemy*         enemy;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
     Actor503500Work* work = &D_actor_503500_80176574.value;
@@ -1750,7 +1750,7 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         areaByte0  = sessionKey->view;
         idx        = raw >> 12;
         key.view   = areaByte0;
-        Gp_SyncAreaKeyIndex(&key);
+        areaSyncLocationVariant(&key);
         rec          = Gp_GetNestedAreaRec(&key);
         entry        = gpAreaPlaceAt(rec->field_0, idx);
         model->tpage = entry->tpage;

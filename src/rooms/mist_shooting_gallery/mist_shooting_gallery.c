@@ -1885,7 +1885,7 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
 {
     u8 temp_v1;
 
-    if ((gGameSession->at4.loc.place == 1) && (gGameSession->eventState == 0)) {
+    if ((gGameSession->at4.loc.variant == 1) && (gGameSession->eventState == 0)) {
         temp_v1 = gGameSession->at4.loc.view;
         if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
             Gp_MsgSlot4Chain(1, 0);
