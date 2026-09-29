@@ -71,6 +71,12 @@ void Gp_ClearCollectedBits(void);
 /// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
 s32 Gp_NthCollectedId(s32 arg0, s32 arg1);
 
+/// Angle units used when capturing the saved player facing (4096 per turn).
+enum {
+    PLAYER_YAW_HALF_TURN = 0x800,
+    PLAYER_YAW_FULL_TURN = 0x1000
+};
+
 void Gp_SavePlayerPos(void);
 
 void Gp_SyncHeldRelated(void);

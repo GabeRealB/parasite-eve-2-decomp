@@ -27013,10 +27013,10 @@ Nest the block as its own struct at that offset. Load the first halfword into
 an `s32` temp, then take the nested address and store through it:
 
 ```c
-temp = coord->field_18;          /* lhu v0; lui cannot sneak in first */
-p = &Player_Status.pos;          /* nested PlayerPos */
-p->x = temp;                     /* sh %lo(Player_Status+0x10) */
-p->y = coord->field_1C;
+storedX = (u16)coord->coord.t[0]; /* lhu v0; lui cannot sneak in first */
+savedPos = &Player_Status.pos;   /* nested PlayerPos */
+savedPos->x = storedX;           /* sh %lo(Player_Status+0x10) */
+savedPos->y = coord->coord.t[1];
 ...
 cfg = &Player_Status;            /* later, separate lui/addiu of the base */
 save->field_14 = cfg->exp;

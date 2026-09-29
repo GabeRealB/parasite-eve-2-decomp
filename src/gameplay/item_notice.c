@@ -42,8 +42,8 @@ void func_800B65B0(Task* task)
     UiObject*     spawned;
     Task*         child;
     GfxCoord*     coord;
-    PlayerPos*    p;
-    s32           temp;
+    PlayerPos*    savedPos;
+    s32           storedX;
     s32           angle;
     PlayerStatus* cfg;
     McSaveData*   save;
@@ -68,18 +68,19 @@ void func_800B65B0(Task* task)
                 desc = &D_8010F010;
                 break;
             case 8:
-                coord  = (gameGetPtrSlot(3))->extra.tmd->coords;
-                temp   = (u16)coord->coord.t[0];
-                p      = &Player_Status.pos;
-                p->x   = temp;
-                p->y   = (u16)coord->coord.t[1];
-                p->z   = (u16)coord->coord.t[2];
-                angle  = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-                p->yaw = angle;
-                if ((s16)angle >= 0x801) {
-                    p->yaw = angle - 0x1000;
-                } else if ((s16)angle < -0x800) {
-                    p->yaw = angle + 0x1000;
+                // Capture the root transform before presenting the save prompt.
+                coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
+                storedX       = (u16)coord->coord.t[0];
+                savedPos      = &Player_Status.pos;
+                savedPos->x   = storedX;
+                savedPos->y   = coord->coord.t[1];
+                savedPos->z   = coord->coord.t[2];
+                angle         = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+                savedPos->yaw = angle;
+                if ((s16)angle >= PLAYER_YAW_HALF_TURN + 1) {
+                    savedPos->yaw = angle - PLAYER_YAW_FULL_TURN;
+                } else if ((s16)angle < -PLAYER_YAW_HALF_TURN) {
+                    savedPos->yaw = angle + PLAYER_YAW_FULL_TURN;
                 }
                 gDisplayState.gameMode = DISPLAY_GAME_MODAL;
                 cfg                    = &Player_Status;

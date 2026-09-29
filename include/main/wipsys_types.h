@@ -18,17 +18,18 @@ typedef struct _WipSysFlags {
 } WipSysFlags;
 STATIC_ASSERT_SIZEOF(WipSysFlags, 0x20);
 
-/// Where the player is standing and which way they face: the player actor's
-/// root coordinate, kept so a room entry can put them back where they were
-/// rather than at the room's own start.
+/// Captured player position and facing for restoring the player at room entry.
 ///
-/// `PlayerStatus` carries it into a memory-card save, so a game resumed from a
-/// card re-enters its room at the spot the player saved at.
+/// `PlayerStatus` retains this snapshot independently of the live actor and
+/// includes it in memory-card saves. Coordinates use integer world units:
+/// capture keeps their low 16 bits, and restore sign-extends them to 32 bits.
+/// Yaw is taken from the root matrix's forward direction, with both half-turn
+/// endpoints retained in the range [-2048, 2048].
 typedef struct {
-    s16 x;   // World X of the player actor's root coordinate
-    s16 y;   // World Y, likewise
-    s16 z;   // World Z, likewise
-    s16 yaw; // Facing about Y, a 16-bit angle wrapped into [-0x800, 0x800)
+    s16 x;   // Captured root X position, in signed world units
+    s16 y;   // Captured root Y position, in signed world units
+    s16 z;   // Captured root Z position, in signed world units
+    s16 yaw; // Captured facing about Y, 4096 units per turn, inclusive [-2048, 2048]
 } PlayerPos;
 STATIC_ASSERT_SIZEOF(PlayerPos, 0x8);
 

@@ -99,7 +99,7 @@ void func_800AA548(s32 arg0)
     TmdObject*       model;
     GameLocationKey* sess;
     GameSession*     session;
-    PlayerPos*       pos;
+    PlayerPos*       savedPos;
     s32              stage;
     s32              warp;
     u32              playerId;
@@ -139,11 +139,12 @@ void func_800AA548(s32 arg0)
     Gp_ActorSlots[0] = NULL;
     Gp_ActorSlots[1] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
-        pos                      = &(&Player_Status)[Mc_SaveData[0].state.characterId - 1].pos;
-        D_80114CB0.words.field_0 = (s32)pos->yaw;
-        D_80114CB0.words.field_4 = (s32)pos->x;
-        D_80114CB0.words.field_8 = (s32)pos->y;
-        D_80114CB0.words.field_C = (s32)pos->z;
+        // Restore the captured signed coordinates instead of the warp's start.
+        savedPos                 = &(&Player_Status)[Mc_SaveData[0].state.characterId - 1].pos;
+        D_80114CB0.words.field_0 = savedPos->yaw;
+        D_80114CB0.words.field_4 = savedPos->x;
+        D_80114CB0.words.field_8 = savedPos->y;
+        D_80114CB0.words.field_C = savedPos->z;
         flags.field_0            = 0x23;
         flags.field_2            = 0;
         Gp_SpawnPlayer(&D_80114CB0.actor, Mc_SaveData[0].state.characterId & 0xFFFF, 0, &flags);

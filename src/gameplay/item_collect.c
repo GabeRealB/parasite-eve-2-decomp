@@ -340,24 +340,25 @@ static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1)
 void Gp_SavePlayerPos(void)
 {
     GfxCoord*     coord;
-    PlayerPos*    p;
+    PlayerPos*    savedPos;
     s32           angle;
-    s32           temp;
+    s32           storedX;
     PlayerStatus* cfg;
     McSaveData*   save;
 
-    coord  = (gameGetPtrSlot(3))->extra.tmd->coords;
-    temp   = (u16)coord->coord.t[0];
-    p      = &Player_Status.pos;
-    p->x   = temp;
-    p->y   = (u16)coord->coord.t[1];
-    p->z   = (u16)coord->coord.t[2];
-    angle  = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    p->yaw = angle;
-    if ((s16)angle >= 0x801) {
-        p->yaw = angle - 0x1000;
-    } else if ((s16)angle < -0x800) {
-        p->yaw = angle + 0x1000;
+    // Capture the root transform with each coordinate narrowed to 16 bits.
+    coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
+    storedX       = (u16)coord->coord.t[0];
+    savedPos      = &Player_Status.pos;
+    savedPos->x   = storedX;
+    savedPos->y   = coord->coord.t[1];
+    savedPos->z   = coord->coord.t[2];
+    angle         = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    savedPos->yaw = angle;
+    if ((s16)angle >= PLAYER_YAW_HALF_TURN + 1) {
+        savedPos->yaw = angle - PLAYER_YAW_FULL_TURN;
+    } else if ((s16)angle < -PLAYER_YAW_HALF_TURN) {
+        savedPos->yaw = angle + PLAYER_YAW_FULL_TURN;
     }
     cfg                   = &Player_Status;
     save                  = &Mc_SaveData[0];
