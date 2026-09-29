@@ -832,7 +832,7 @@ TmdSource Actor00100_D12470 = {
     Actor00100_D1216C,
 };
 
-GpPackedPose Actor00100_D12494[10] = {
+AnimationPackedPose Actor00100_D12494[10] = {
 #include "assets/actor_400100_animation_129A4_bank1.inc"
 };
 
@@ -854,7 +854,7 @@ GpAnimSet Actor00100_D129A4 = {
     { NULL, Actor00100_D12494, NULL, NULL, Actor00100_D1250C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D129CC[5] = {
+AnimationPackedPose Actor00100_D129CC[5] = {
 #include "assets/actor_400100_animation_12C60_bank1.inc"
 };
 
@@ -876,7 +876,7 @@ GpAnimSet Actor00100_D12C60 = {
     { NULL, Actor00100_D129CC, NULL, NULL, Actor00100_D12A08, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D12C88[13] = {
+AnimationPackedPose Actor00100_D12C88[13] = {
 #include "assets/actor_400100_animation_13294_bank1.inc"
 };
 
@@ -898,7 +898,7 @@ GpAnimSet Actor00100_D13294 = {
     { NULL, Actor00100_D12C88, NULL, NULL, Actor00100_D12D24, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D132BC[11] = {
+AnimationPackedPose Actor00100_D132BC[11] = {
 #include "assets/actor_400100_animation_1386C_bank1.inc"
 };
 
@@ -920,7 +920,7 @@ GpAnimSet Actor00100_D1386C = {
     { NULL, Actor00100_D132BC, NULL, NULL, Actor00100_D13340, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D13894[9] = {
+AnimationPackedPose Actor00100_D13894[9] = {
 #include "assets/actor_400100_animation_13CA0_bank1.inc"
 };
 
@@ -942,7 +942,7 @@ GpAnimSet Actor00100_D13CA0 = {
     { NULL, Actor00100_D13894, NULL, NULL, Actor00100_D13900, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D13CC8[19] = {
+AnimationPackedPose Actor00100_D13CC8[19] = {
 #include "assets/actor_400100_animation_14378_bank1.inc"
 };
 
@@ -964,7 +964,7 @@ GpAnimSet Actor00100_D14378 = {
     { NULL, Actor00100_D13CC8, NULL, NULL, Actor00100_D13DAC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D143A0[14] = {
+AnimationPackedPose Actor00100_D143A0[14] = {
 #include "assets/actor_400100_animation_14978_bank1.inc"
 };
 
@@ -986,7 +986,7 @@ GpAnimSet Actor00100_D14978 = {
     { NULL, Actor00100_D143A0, NULL, NULL, Actor00100_D14448, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D149A0[4] = {
+AnimationPackedPose Actor00100_D149A0[4] = {
 #include "assets/actor_400100_animation_14BD4_bank1.inc"
 };
 
@@ -1008,7 +1008,7 @@ GpAnimSet Actor00100_D14BD4 = {
     { NULL, Actor00100_D149A0, NULL, NULL, Actor00100_D149D0, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D14BFC[12] = {
+AnimationPackedPose Actor00100_D14BFC[12] = {
 #include "assets/actor_400100_animation_151F8_bank1.inc"
 };
 
@@ -1030,7 +1030,7 @@ GpAnimSet Actor00100_D151F8 = {
     { NULL, Actor00100_D14BFC, NULL, NULL, Actor00100_D14C8C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D15220[9] = {
+AnimationPackedPose Actor00100_D15220[9] = {
 #include "assets/actor_400100_animation_15648_bank1.inc"
 };
 
@@ -1052,7 +1052,7 @@ GpAnimSet Actor00100_D15648 = {
     { NULL, Actor00100_D15220, NULL, NULL, Actor00100_D1528C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D15670[12] = {
+AnimationPackedPose Actor00100_D15670[12] = {
 #include "assets/actor_400100_animation_15C2C_bank1.inc"
 };
 
@@ -1074,7 +1074,7 @@ GpAnimSet Actor00100_D15C2C = {
     { NULL, Actor00100_D15670, NULL, NULL, Actor00100_D15700, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D15C54[2] = {
+AnimationPackedPose Actor00100_D15C54[2] = {
 #include "assets/actor_400100_animation_15DA8_bank1.inc"
 };
 
@@ -1096,7 +1096,7 @@ GpAnimSet Actor00100_D15DA8 = {
     { NULL, Actor00100_D15C54, NULL, NULL, Actor00100_D15C6C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D15DD0[13] = {
+AnimationPackedPose Actor00100_D15DD0[13] = {
 #include "assets/actor_400100_animation_1644C_bank1.inc"
 };
 
@@ -1118,7 +1118,7 @@ GpAnimSet Actor00100_D1644C = {
     { NULL, Actor00100_D15DD0, NULL, NULL, Actor00100_D15E6C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D16474[30] = {
+AnimationPackedPose Actor00100_D16474[30] = {
 #include "assets/actor_400100_animation_16E64_bank1.inc"
 };
 
@@ -1140,7 +1140,7 @@ GpAnimSet Actor00100_D16E64 = {
     { NULL, Actor00100_D16474, NULL, NULL, Actor00100_D165DC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D16E8C[12] = {
+AnimationPackedPose Actor00100_D16E8C[12] = {
 #include "assets/actor_400100_animation_17284_bank1.inc"
 };
 
@@ -1162,7 +1162,7 @@ GpAnimSet Actor00100_D17284 = {
     { NULL, Actor00100_D16E8C, NULL, NULL, Actor00100_D16F1C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D172AC[4] = {
+AnimationPackedPose Actor00100_D172AC[4] = {
 #include "assets/actor_400100_animation_17548_bank1.inc"
 };
 
@@ -1184,7 +1184,7 @@ GpAnimSet Actor00100_D17548 = {
     { NULL, Actor00100_D172AC, NULL, NULL, Actor00100_D172DC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D17570[9] = {
+AnimationPackedPose Actor00100_D17570[9] = {
 #include "assets/actor_400100_animation_17A4C_bank1.inc"
 };
 
@@ -1206,7 +1206,7 @@ GpAnimSet Actor00100_D17A4C = {
     { NULL, Actor00100_D17570, NULL, NULL, Actor00100_D175DC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D17A74[13] = {
+AnimationPackedPose Actor00100_D17A74[13] = {
 #include "assets/actor_400100_animation_17FCC_bank1.inc"
 };
 
@@ -1228,7 +1228,7 @@ GpAnimSet Actor00100_D17FCC = {
     { NULL, Actor00100_D17A74, NULL, NULL, Actor00100_D17B10, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D17FF4[14] = {
+AnimationPackedPose Actor00100_D17FF4[14] = {
 #include "assets/actor_400100_animation_1857C_bank1.inc"
 };
 
@@ -1250,7 +1250,7 @@ GpAnimSet Actor00100_D1857C = {
     { NULL, Actor00100_D17FF4, NULL, NULL, Actor00100_D1809C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D185A4[13] = {
+AnimationPackedPose Actor00100_D185A4[13] = {
 #include "assets/actor_400100_animation_18C3C_bank1.inc"
 };
 
@@ -1272,7 +1272,7 @@ GpAnimSet Actor00100_D18C3C = {
     { NULL, Actor00100_D185A4, NULL, NULL, Actor00100_D18640, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D18C64[8] = {
+AnimationPackedPose Actor00100_D18C64[8] = {
 #include "assets/actor_400100_animation_190D0_bank1.inc"
 };
 
@@ -1294,7 +1294,7 @@ GpAnimSet Actor00100_D190D0 = {
     { NULL, Actor00100_D18C64, NULL, NULL, Actor00100_D18CC4, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D190F8[21] = {
+AnimationPackedPose Actor00100_D190F8[21] = {
 #include "assets/actor_400100_animation_19918_bank1.inc"
 };
 
@@ -1316,7 +1316,7 @@ GpAnimSet Actor00100_D19918 = {
     { NULL, Actor00100_D190F8, NULL, NULL, Actor00100_D191F4, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D19940[20] = {
+AnimationPackedPose Actor00100_D19940[20] = {
 #include "assets/actor_400100_animation_1A0B4_bank1.inc"
 };
 
@@ -1338,7 +1338,7 @@ GpAnimSet Actor00100_D1A0B4 = {
     { NULL, Actor00100_D19940, NULL, NULL, Actor00100_D19A30, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D1A0DC[15] = {
+AnimationPackedPose Actor00100_D1A0DC[15] = {
 #include "assets/actor_400100_animation_1A8C0_bank1.inc"
 };
 
@@ -1360,7 +1360,7 @@ GpAnimSet Actor00100_D1A8C0 = {
     { NULL, Actor00100_D1A0DC, NULL, NULL, Actor00100_D1A190, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D1A8E8[14] = {
+AnimationPackedPose Actor00100_D1A8E8[14] = {
 #include "assets/actor_400100_animation_1B0D4_bank1.inc"
 };
 
@@ -1382,7 +1382,7 @@ GpAnimSet Actor00100_D1B0D4 = {
     { NULL, Actor00100_D1A8E8, NULL, NULL, Actor00100_D1A990, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D1B0FC[5] = {
+AnimationPackedPose Actor00100_D1B0FC[5] = {
 #include "assets/actor_400100_animation_1B388_bank1.inc"
 };
 
@@ -1404,7 +1404,7 @@ GpAnimSet Actor00100_D1B388 = {
     { NULL, Actor00100_D1B0FC, NULL, NULL, Actor00100_D1B138, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor00100_D1B3B0[6] = {
+AnimationPackedPose Actor00100_D1B3B0[6] = {
 #include "assets/actor_400100_animation_1B6A8_bank1.inc"
 };
 
@@ -2105,7 +2105,7 @@ static void Actor00100_Fn01D74(Task* arg0)
     u8*        slotBase;
 
     work = (u8*)((Actor00100Work*)arg0->work);
-    anim = (GpAnimCtx*)(work + 0x1C);
+    anim = &((Actor00100Work*)work)->anim0;
     for (index = 1; index < 0x12; index++) {
         part = index - 1;
         switch (part) {
@@ -2134,12 +2134,12 @@ static void Actor00100_Fn01D74(Task* arg0)
             *(slotBase + 0x43D)     = (u8)((Actor00100Work*)work)->field_83A;
             *(s8*)(slotBase + 0x39) = (s8)(((Actor00100Work*)work)->field_832 - 3);
             animationTickSlotPose(anim, (s32)index, &pose, 0);
-            animationTickSlotPose((GpAnimCtx*)(work + 0x420), (s32)index, &otherPose, 0);
+            animationTickSlotPose(&((Actor00100Work*)work)->anim1, (s32)index, &otherPose, 0);
             Gp_AnimWritePoseCopy(anim, (s32)index, &pose, &otherPose, blend, invBlend);
         } else {
             offset                       = index * 0x28;
             *(s8*)(work + offset + 0x39) = (s8)(((Actor00100Work*)work)->field_832 - 3);
-            Gp_AnimTickIndex((GpAnimCtx*)(work + 0x1C), (s32)index);
+            Gp_AnimTickIndex(&((Actor00100Work*)work)->anim0, (s32)index);
         }
     }
 }

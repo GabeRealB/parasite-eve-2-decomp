@@ -207,7 +207,13 @@ void func_actor_342000_8016447C(void);
 void func_actor_342000_8016449C(void);
 void func_actor_342000_801644BC(void);
 
-GpPackedPose D_actor_342000_801644E4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor342000PoseBank26C4;
+
+Actor342000PoseBank26C4 D_actor_342000_801644E4 = { .poses = {
 #include "assets/actor_342000_animation_029A0_bank1.inc"
 };
 

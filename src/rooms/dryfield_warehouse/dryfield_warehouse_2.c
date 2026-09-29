@@ -103,7 +103,7 @@ TaskDesc D_dryfield_warehouse_8017F56C[2] = {
     { 0, 32, func_dryfield_warehouse_8017D5E8, { .model = NULL } },
 };
 
-GpPackedPose D_dryfield_warehouse_8017F584[2] = {
+AnimationPackedPose D_dryfield_warehouse_8017F584[2] = {
 #include "assets/dryfield_warehouse_animation_02260_bank1.inc"
 };
 

@@ -843,7 +843,13 @@ TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
     { 2, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
 };
 
-GpPackedPose D_shelter_b3_dumping_hole_80189AF4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB3DumpingHolePoseBankC534;
+
+ShelterB3DumpingHolePoseBankC534 D_shelter_b3_dumping_hole_80189AF4 = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank1.inc"
 };
 
@@ -865,7 +871,13 @@ GpAnimSet D_shelter_b3_dumping_hole_80189DD0 = {
     { NULL, D_shelter_b3_dumping_hole_80189AF4, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b3_dumping_hole_80189DF8[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} ShelterB3DumpingHolePoseBankC838;
+
+ShelterB3DumpingHolePoseBankC838 D_shelter_b3_dumping_hole_80189DF8 = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank1.inc"
 };
 
@@ -887,7 +899,13 @@ GpAnimSet D_shelter_b3_dumping_hole_8018A274 = {
     { NULL, D_shelter_b3_dumping_hole_80189DF8, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b3_dumping_hole_8018A29C[28] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[28];
+    AnimationPackedRotation        words[84];
+} ShelterB3DumpingHolePoseBankCCDC;
+
+ShelterB3DumpingHolePoseBankCCDC D_shelter_b3_dumping_hole_8018A29C = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank1.inc"
 };
 

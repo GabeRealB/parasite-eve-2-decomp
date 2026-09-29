@@ -215,7 +215,13 @@ TmdSource D_actor_150400_80139A64 = {
     D_actor_150400_80135030,
 };
 
-GpPackedPose D_actor_150400_80139A88[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} Actor150400PoseBank7C68;
+
+Actor150400PoseBank7C68 D_actor_150400_80139A88 = { .poses = {
 #include "assets/actor_150400_animation_08878_bank1.inc"
 };
 
@@ -237,7 +243,13 @@ GpAnimSet D_actor_150400_8013A698 = {
     { NULL, D_actor_150400_80139A88, NULL, NULL, D_actor_150400_80139B84, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_150400_8013A6C0[12] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[12];
+    AnimationPackedRotation        words[36];
+} Actor150400PoseBank88A0;
+
+Actor150400PoseBank88A0 D_actor_150400_8013A6C0 = { .poses = {
 #include "assets/actor_150400_animation_08FE0_bank1.inc"
 };
 
@@ -259,7 +271,13 @@ GpAnimSet D_actor_150400_8013AE00 = {
     { NULL, D_actor_150400_8013A6C0, NULL, NULL, D_actor_150400_8013A750, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_150400_8013AE28[20] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[20];
+    AnimationPackedRotation        words[60];
+} Actor150400PoseBank9008;
+
+Actor150400PoseBank9008 D_actor_150400_8013AE28 = { .poses = {
 #include "assets/actor_150400_animation_09BD0_bank1.inc"
 };
 
@@ -281,7 +299,13 @@ GpAnimSet D_actor_150400_8013B9F0 = {
     { NULL, D_actor_150400_8013AE28, NULL, NULL, D_actor_150400_8013AF18, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_150400_8013BA18[16] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[16];
+    AnimationPackedRotation        words[48];
+} Actor150400PoseBank9BF8;
+
+Actor150400PoseBank9BF8 D_actor_150400_8013BA18 = { .poses = {
 #include "assets/actor_150400_animation_0A538_bank1.inc"
 };
 

@@ -294,7 +294,13 @@ s32 func_acropolis_sanctuary_8017D808(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-GpPackedPose D_acropolis_sanctuary_80180348[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} AcropolisSanctuaryPoseBank2D88;
+
+AcropolisSanctuaryPoseBank2D88 D_acropolis_sanctuary_80180348 = { .poses = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
 };
 
@@ -563,7 +569,13 @@ GpEvsCmd D_acropolis_sanctuary_80181814[11] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpPackedPose D_acropolis_sanctuary_8018191C[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} AcropolisSanctuaryPoseBank435C;
+
+AcropolisSanctuaryPoseBank435C D_acropolis_sanctuary_8018191C = { .poses = {
 #include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
 };
 
@@ -585,7 +597,13 @@ GpAnimSet D_acropolis_sanctuary_80181CC8 = {
     { NULL, D_acropolis_sanctuary_8018191C, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_sanctuary_80181CF0[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} AcropolisSanctuaryPoseBank4730;
+
+AcropolisSanctuaryPoseBank4730 D_acropolis_sanctuary_80181CF0 = { .poses = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
 };
 

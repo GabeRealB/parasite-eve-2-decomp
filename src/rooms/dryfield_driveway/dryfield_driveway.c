@@ -89,7 +89,13 @@ void func_dryfield_driveway_8017D5E4(Task*);
 void func_dryfield_driveway_8017DAD0(Task*);
 void func_dryfield_driveway_8017DB68(Task*);
 
-GpPackedPose D_dryfield_driveway_8017DE80[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldDrivewayPoseBank8C0;
+
+DryfieldDrivewayPoseBank8C0 D_dryfield_driveway_8017DE80 = { .poses = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
 };
 

@@ -142,7 +142,13 @@ void func_acropolis_roof_garden_8017D5D4(Task*);
 void func_acropolis_roof_garden_8017D970(Task*);
 void func_acropolis_roof_garden_8017DA48(Task*);
 
-GpPackedPose D_acropolis_roof_garden_801801E0[38] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[38];
+    AnimationPackedRotation        words[114];
+} AcropolisRoofGardenPoseBank2C20;
+
+AcropolisRoofGardenPoseBank2C20 D_acropolis_roof_garden_801801E0 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
 };
 
@@ -164,7 +170,13 @@ GpAnimSet D_acropolis_roof_garden_80181724 = {
     { NULL, D_acropolis_roof_garden_801801E0, NULL, NULL, D_acropolis_roof_garden_801803A8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_roof_garden_8018174C[40] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[40];
+    AnimationPackedRotation        words[120];
+} AcropolisRoofGardenPoseBank418C;
+
+AcropolisRoofGardenPoseBank418C D_acropolis_roof_garden_8018174C = { .poses = {
 #include "assets/acropolis_roof_garden_animation_060FC_bank1.inc"
 };
 
@@ -186,7 +198,13 @@ GpAnimSet D_acropolis_roof_garden_801836BC = {
     { NULL, D_acropolis_roof_garden_8018174C, NULL, NULL, D_acropolis_roof_garden_8018192C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_roof_garden_801836E4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisRoofGardenPoseBank6124;
+
+AcropolisRoofGardenPoseBank6124 D_acropolis_roof_garden_801836E4 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_065F4_bank1.inc"
 };
 
@@ -333,7 +351,13 @@ GpEvsCmd D_acropolis_roof_garden_80184194[17] = {
 
 s32 D_acropolis_roof_garden_8018432C = 0;
 
-GpPackedPose D_acropolis_roof_garden_80184330[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisRoofGardenPoseBank6D70;
+
+AcropolisRoofGardenPoseBank6D70 D_acropolis_roof_garden_80184330 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
 };
 
@@ -355,7 +379,13 @@ GpAnimSet D_acropolis_roof_garden_8018460C = {
     { NULL, D_acropolis_roof_garden_80184330, NULL, NULL, D_acropolis_roof_garden_80184378, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_roof_garden_80184634[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} AcropolisRoofGardenPoseBank7074;
+
+AcropolisRoofGardenPoseBank7074 D_acropolis_roof_garden_80184634 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_074BC_bank1.inc"
 };
 

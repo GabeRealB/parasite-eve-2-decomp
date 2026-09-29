@@ -136,7 +136,13 @@ GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpPackedPose D_shelter_b6_corridor_8017EF54[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB6CorridorPoseBank1994;
+
+ShelterB6CorridorPoseBank1994 D_shelter_b6_corridor_8017EF54 = { .poses = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank1.inc"
 };
 

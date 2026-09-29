@@ -210,7 +210,13 @@ GpMsgEntry D_dryfield_main_street_80180EA0[6] = {
 
 s32 D_dryfield_main_street_80180ED0 = 514;
 
-GpPackedPose D_dryfield_main_street_80180ED4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldMainStreetPoseBank3914;
+
+DryfieldMainStreetPoseBank3914 D_dryfield_main_street_80180ED4 = { .poses = {
 #include "assets/dryfield_main_street_animation_03BF0_bank1.inc"
 };
 
@@ -232,7 +238,13 @@ GpAnimSet D_dryfield_main_street_801811B0 = {
     { NULL, D_dryfield_main_street_80180ED4, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_main_street_801811D8[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldMainStreetPoseBank3C18;
+
+DryfieldMainStreetPoseBank3C18 D_dryfield_main_street_801811D8 = { .poses = {
 #include "assets/dryfield_main_street_animation_03F84_bank1.inc"
 };
 

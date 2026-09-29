@@ -130,7 +130,13 @@ s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, GpMessageArg, GpMessageArg
 s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, GpMessageArg);
 void func_shelter_b2_septic_tank_8017D614(Task*);
 
-GpPackedPose D_shelter_b2_septic_tank_80182B74[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB2SepticTankPoseBank55B4;
+
+ShelterB2SepticTankPoseBank55B4 D_shelter_b2_septic_tank_80182B74 = { .poses = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
 };
 

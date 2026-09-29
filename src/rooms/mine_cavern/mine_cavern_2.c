@@ -267,7 +267,13 @@ TaskDesc D_mine_cavern_80183CA4[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpPackedPose D_mine_cavern_80183CBC[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MineCavernPoseBank66FC;
+
+MineCavernPoseBank66FC D_mine_cavern_80183CBC = { .poses = {
 #include "assets/mine_cavern_animation_069D8_bank1.inc"
 };
 
@@ -289,7 +295,13 @@ GpAnimSet D_mine_cavern_80183F98 = {
     { NULL, D_mine_cavern_80183CBC, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80183FC0[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} MineCavernPoseBank6A00;
+
+MineCavernPoseBank6A00 D_mine_cavern_80183FC0 = { .poses = {
 #include "assets/mine_cavern_animation_07178_bank1.inc"
 };
 
@@ -311,7 +323,13 @@ GpAnimSet D_mine_cavern_80184738 = {
     { NULL, D_mine_cavern_80183FC0, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80184760[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MineCavernPoseBank71A0;
+
+MineCavernPoseBank71A0 D_mine_cavern_80184760 = { .poses = {
 #include "assets/mine_cavern_animation_07544_bank1.inc"
 };
 
@@ -333,7 +351,13 @@ GpAnimSet D_mine_cavern_80184B04 = {
     { NULL, D_mine_cavern_80184760, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80184B2C[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineCavernPoseBank756C;
+
+MineCavernPoseBank756C D_mine_cavern_80184B2C = { .poses = {
 #include "assets/mine_cavern_animation_07784_bank1.inc"
 };
 
@@ -355,7 +379,13 @@ GpAnimSet D_mine_cavern_80184D44 = {
     { NULL, D_mine_cavern_80184B2C, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80184D6C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} MineCavernPoseBank77AC;
+
+MineCavernPoseBank77AC D_mine_cavern_80184D6C = { .poses = {
 #include "assets/mine_cavern_animation_07958_bank1.inc"
 };
 
@@ -377,7 +407,13 @@ GpAnimSet D_mine_cavern_80184F18 = {
     { NULL, D_mine_cavern_80184D6C, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80184F40[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} MineCavernPoseBank7980;
+
+MineCavernPoseBank7980 D_mine_cavern_80184F40 = { .poses = {
 #include "assets/mine_cavern_animation_07BA4_bank1.inc"
 };
 
@@ -399,7 +435,13 @@ GpAnimSet D_mine_cavern_80185164 = {
     { NULL, D_mine_cavern_80184F40, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_8018518C[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} MineCavernPoseBank7BCC;
+
+MineCavernPoseBank7BCC D_mine_cavern_8018518C = { .poses = {
 #include "assets/mine_cavern_animation_08178_bank1.inc"
 };
 
@@ -421,7 +463,13 @@ GpAnimSet D_mine_cavern_80185738 = {
     { NULL, D_mine_cavern_8018518C, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80185760[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineCavernPoseBank81A0;
+
+MineCavernPoseBank81A0 D_mine_cavern_80185760 = { .poses = {
 #include "assets/mine_cavern_animation_08420_bank1.inc"
 };
 
@@ -443,7 +491,13 @@ GpAnimSet D_mine_cavern_801859E0 = {
     { NULL, D_mine_cavern_80185760, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80185A08[12] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[12];
+    AnimationPackedRotation        words[36];
+} MineCavernPoseBank8448;
+
+MineCavernPoseBank8448 D_mine_cavern_80185A08 = { .poses = {
 #include "assets/mine_cavern_animation_08AC0_bank1.inc"
 };
 
@@ -465,7 +519,13 @@ GpAnimSet D_mine_cavern_80186080 = {
     { NULL, D_mine_cavern_80185A08, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_801860A8[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineCavernPoseBank8AE8;
+
+MineCavernPoseBank8AE8 D_mine_cavern_801860A8 = { .poses = {
 #include "assets/mine_cavern_animation_08CB4_bank1.inc"
 };
 
@@ -487,7 +547,13 @@ GpAnimSet D_mine_cavern_80186274 = {
     { NULL, D_mine_cavern_801860A8, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_8018629C[11] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[11];
+    AnimationPackedRotation        words[33];
+} MineCavernPoseBank8CDC;
+
+MineCavernPoseBank8CDC D_mine_cavern_8018629C = { .poses = {
 #include "assets/mine_cavern_animation_092C4_bank1.inc"
 };
 
@@ -509,7 +575,13 @@ GpAnimSet D_mine_cavern_80186884 = {
     { NULL, D_mine_cavern_8018629C, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_801868AC[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} MineCavernPoseBank92EC;
+
+MineCavernPoseBank92EC D_mine_cavern_801868AC = { .poses = {
 #include "assets/mine_cavern_animation_096E4_bank1.inc"
 };
 
@@ -531,7 +603,13 @@ GpAnimSet D_mine_cavern_80186CA4 = {
     { NULL, D_mine_cavern_801868AC, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80186CCC[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} MineCavernPoseBank970C;
+
+MineCavernPoseBank970C D_mine_cavern_80186CCC = { .poses = {
 #include "assets/mine_cavern_animation_099C8_bank1.inc"
 };
 
@@ -553,7 +631,13 @@ GpAnimSet D_mine_cavern_80186F88 = {
     { NULL, D_mine_cavern_80186CCC, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80186FB0[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineCavernPoseBank99F0;
+
+MineCavernPoseBank99F0 D_mine_cavern_80186FB0 = { .poses = {
 #include "assets/mine_cavern_animation_09C2C_bank1.inc"
 };
 
@@ -575,7 +659,13 @@ GpAnimSet D_mine_cavern_801871EC = {
     { NULL, D_mine_cavern_80186FB0, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80187214[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineCavernPoseBank9C54;
+
+MineCavernPoseBank9C54 D_mine_cavern_80187214 = { .poses = {
 #include "assets/mine_cavern_animation_09F1C_bank1.inc"
 };
 
@@ -597,7 +687,13 @@ GpAnimSet D_mine_cavern_801874DC = {
     { NULL, D_mine_cavern_80187214, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_cavern_80187504[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} MineCavernPoseBank9F44;
+
+MineCavernPoseBank9F44 D_mine_cavern_80187504 = { .poses = {
 #include "assets/mine_cavern_animation_0A38C_bank1.inc"
 };
 

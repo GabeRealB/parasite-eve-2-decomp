@@ -106,7 +106,13 @@ GpMsgEntry D_shelter_b6_training_room_80182AF4[6] = {
 
 s32 D_shelter_b6_training_room_80182B24 = 0x11805;
 
-GpPackedPose D_shelter_b6_training_room_80182B28[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB6TrainingRoomPoseBank5568;
+
+ShelterB6TrainingRoomPoseBank5568 D_shelter_b6_training_room_80182B28 = { .poses = {
 #include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
 };
 
@@ -128,7 +134,13 @@ GpAnimSet D_shelter_b6_training_room_80182E04 = {
     { NULL, D_shelter_b6_training_room_80182B28, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b6_training_room_80182E2C[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} ShelterB6TrainingRoomPoseBank586C;
+
+ShelterB6TrainingRoomPoseBank586C D_shelter_b6_training_room_80182E2C = { .poses = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank1.inc"
 };
 
@@ -150,7 +162,13 @@ GpAnimSet D_shelter_b6_training_room_80183534 = {
     { NULL, D_shelter_b6_training_room_80182E2C, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b6_training_room_8018355C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} ShelterB6TrainingRoomPoseBank5F9C;
+
+ShelterB6TrainingRoomPoseBank5F9C D_shelter_b6_training_room_8018355C = { .poses = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank1.inc"
 };
 
@@ -172,7 +190,13 @@ GpAnimSet D_shelter_b6_training_room_80183778 = {
     { NULL, D_shelter_b6_training_room_8018355C, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b6_training_room_801837A0[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} ShelterB6TrainingRoomPoseBank61E0;
+
+ShelterB6TrainingRoomPoseBank61E0 D_shelter_b6_training_room_801837A0 = { .poses = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank1.inc"
 };
 

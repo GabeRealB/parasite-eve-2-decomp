@@ -240,7 +240,13 @@ TmdSource D_actor_303600_801690A4 = {
     D_actor_303600_80164BF0,
 };
 
-GpPackedPose D_actor_303600_801690C8[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} Actor303600PoseBank72A8;
+
+Actor303600PoseBank72A8 D_actor_303600_801690C8 = { .poses = {
 #include "assets/actor_303600_animation_075A0_bank1.inc"
 };
 
@@ -262,7 +268,13 @@ GpAnimSet D_actor_303600_801693C0 = {
     { NULL, D_actor_303600_801690C8, NULL, NULL, D_actor_303600_80169104, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_303600_801693E8[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} Actor303600PoseBank75C8;
+
+Actor303600PoseBank75C8 D_actor_303600_801693E8 = { .poses = {
 #include "assets/actor_303600_animation_077F0_bank1.inc"
 };
 
@@ -284,7 +296,13 @@ GpAnimSet D_actor_303600_80169610 = {
     { NULL, D_actor_303600_801693E8, NULL, NULL, D_actor_303600_8016940C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_303600_80169638[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor303600PoseBank7818;
+
+Actor303600PoseBank7818 D_actor_303600_80169638 = { .poses = {
 #include "assets/actor_303600_animation_07C30_bank1.inc"
 };
 
@@ -306,7 +324,13 @@ GpAnimSet D_actor_303600_80169A50 = {
     { NULL, D_actor_303600_80169638, NULL, NULL, D_actor_303600_80169680, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_303600_80169A78[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor303600PoseBank7C58;
+
+Actor303600PoseBank7C58 D_actor_303600_80169A78 = { .poses = {
 #include "assets/actor_303600_animation_07E5C_bank1.inc"
 };
 

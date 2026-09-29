@@ -582,7 +582,7 @@ TmdSource Actor02000_D08FEC = {
     Actor02000_D08C9C,
 };
 
-GpPackedPose Actor02000_D09010[21] = {
+AnimationPackedPose Actor02000_D09010[21] = {
 #include "assets/actor_102000_animation_09C20_bank1.inc"
 };
 
@@ -604,7 +604,7 @@ GpAnimSet Actor02000_D09C20 = {
     { NULL, Actor02000_D09010, NULL, NULL, Actor02000_D0910C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D09C48[16] = {
+AnimationPackedPose Actor02000_D09C48[16] = {
 #include "assets/actor_102000_animation_0A588_bank1.inc"
 };
 
@@ -626,7 +626,7 @@ GpAnimSet Actor02000_D0A588 = {
     { NULL, Actor02000_D09C48, NULL, NULL, Actor02000_D09D08, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0A5B0[12] = {
+AnimationPackedPose Actor02000_D0A5B0[12] = {
 #include "assets/actor_102000_animation_0ABB0_bank1.inc"
 };
 
@@ -648,7 +648,7 @@ GpAnimSet Actor02000_D0ABB0 = {
     { NULL, Actor02000_D0A5B0, NULL, NULL, Actor02000_D0A640, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0ABD8[14] = {
+AnimationPackedPose Actor02000_D0ABD8[14] = {
 #include "assets/actor_102000_animation_0B3B0_bank1.inc"
 };
 
@@ -670,7 +670,7 @@ GpAnimSet Actor02000_D0B3B0 = {
     { NULL, Actor02000_D0ABD8, NULL, NULL, Actor02000_D0AC80, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0B3D8[47] = {
+AnimationPackedPose Actor02000_D0B3D8[47] = {
 #include "assets/actor_102000_animation_0CAA4_bank1.inc"
 };
 
@@ -692,7 +692,7 @@ GpAnimSet Actor02000_D0CAA4 = {
     { NULL, Actor02000_D0B3D8, NULL, NULL, Actor02000_D0B60C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0CACC[19] = {
+AnimationPackedPose Actor02000_D0CACC[19] = {
 #include "assets/actor_102000_animation_0D1E8_bank1.inc"
 };
 
@@ -714,7 +714,7 @@ GpAnimSet Actor02000_D0D1E8 = {
     { NULL, Actor02000_D0CACC, NULL, NULL, Actor02000_D0CBB0, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0D210[66] = {
+AnimationPackedPose Actor02000_D0D210[66] = {
 #include "assets/actor_102000_animation_0E7FC_bank1.inc"
 };
 
@@ -736,7 +736,7 @@ GpAnimSet Actor02000_D0E7FC = {
     { NULL, Actor02000_D0D210, NULL, NULL, Actor02000_D0D528, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0E824[21] = {
+AnimationPackedPose Actor02000_D0E824[21] = {
 #include "assets/actor_102000_animation_0F534_bank1.inc"
 };
 
@@ -758,7 +758,7 @@ GpAnimSet Actor02000_D0F534 = {
     { NULL, Actor02000_D0E824, NULL, NULL, Actor02000_D0E920, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0F55C[16] = {
+AnimationPackedPose Actor02000_D0F55C[16] = {
 #include "assets/actor_102000_animation_0FC6C_bank1.inc"
 };
 
@@ -780,7 +780,7 @@ GpAnimSet Actor02000_D0FC6C = {
     { NULL, Actor02000_D0F55C, NULL, NULL, Actor02000_D0F61C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D0FC94[8] = {
+AnimationPackedPose Actor02000_D0FC94[8] = {
 #include "assets/actor_102000_animation_10190_bank1.inc"
 };
 
@@ -802,7 +802,7 @@ GpAnimSet Actor02000_D10190 = {
     { NULL, Actor02000_D0FC94, NULL, NULL, Actor02000_D0FCF4, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D101B8[19] = {
+AnimationPackedPose Actor02000_D101B8[19] = {
 #include "assets/actor_102000_animation_10BA0_bank1.inc"
 };
 
@@ -824,7 +824,7 @@ GpAnimSet Actor02000_D10BA0 = {
     { NULL, Actor02000_D101B8, NULL, NULL, Actor02000_D1029C, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D10BC8[18] = {
+AnimationPackedPose Actor02000_D10BC8[18] = {
 #include "assets/actor_102000_animation_11648_bank1.inc"
 };
 
@@ -846,7 +846,7 @@ GpAnimSet Actor02000_D11648 = {
     { NULL, Actor02000_D10BC8, NULL, NULL, Actor02000_D10CA0, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D11670[8] = {
+AnimationPackedPose Actor02000_D11670[8] = {
 #include "assets/actor_102000_animation_11C28_bank1.inc"
 };
 
@@ -868,7 +868,7 @@ GpAnimSet Actor02000_D11C28 = {
     { NULL, Actor02000_D11670, NULL, NULL, Actor02000_D116D0, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D11C50[23] = {
+AnimationPackedPose Actor02000_D11C50[23] = {
 #include "assets/actor_102000_animation_1291C_bank1.inc"
 };
 
@@ -890,7 +890,7 @@ GpAnimSet Actor02000_D1291C = {
     { NULL, Actor02000_D11C50, NULL, NULL, Actor02000_D11D64, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D12944[31] = {
+AnimationPackedPose Actor02000_D12944[31] = {
 #include "assets/actor_102000_animation_13994_bank1.inc"
 };
 
@@ -912,7 +912,7 @@ GpAnimSet Actor02000_D13994 = {
     { NULL, Actor02000_D12944, NULL, NULL, Actor02000_D12AB8, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D139BC[9] = {
+AnimationPackedPose Actor02000_D139BC[9] = {
 #include "assets/actor_102000_animation_13E68_bank1.inc"
 };
 
@@ -934,7 +934,7 @@ GpAnimSet Actor02000_D13E68 = {
     { NULL, Actor02000_D139BC, NULL, NULL, Actor02000_D13A28, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D13E90[5] = {
+AnimationPackedPose Actor02000_D13E90[5] = {
 #include "assets/actor_102000_animation_14178_bank1.inc"
 };
 
@@ -956,7 +956,7 @@ GpAnimSet Actor02000_D14178 = {
     { NULL, Actor02000_D13E90, NULL, NULL, Actor02000_D13ECC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D141A0[2] = {
+AnimationPackedPose Actor02000_D141A0[2] = {
 #include "assets/actor_102000_animation_14354_bank1.inc"
 };
 
@@ -978,7 +978,7 @@ GpAnimSet Actor02000_D14354 = {
     { NULL, Actor02000_D141A0, NULL, NULL, Actor02000_D141B8, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D1437C[28] = {
+AnimationPackedPose Actor02000_D1437C[28] = {
 #include "assets/actor_102000_animation_1529C_bank1.inc"
 };
 
@@ -1000,7 +1000,7 @@ GpAnimSet Actor02000_D1529C = {
     { NULL, Actor02000_D1437C, NULL, NULL, Actor02000_D144CC, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D152C4[9] = {
+AnimationPackedPose Actor02000_D152C4[9] = {
 #include "assets/actor_102000_animation_15830_bank1.inc"
 };
 
@@ -1022,7 +1022,7 @@ GpAnimSet Actor02000_D15830 = {
     { NULL, Actor02000_D152C4, NULL, NULL, Actor02000_D15330, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D15858[5] = {
+AnimationPackedPose Actor02000_D15858[5] = {
 #include "assets/actor_102000_animation_15AF8_bank1.inc"
 };
 
@@ -1044,7 +1044,7 @@ GpAnimSet Actor02000_D15AF8 = {
     { NULL, Actor02000_D15858, NULL, NULL, Actor02000_D15894, NULL, NULL, NULL },
 };
 
-GpPackedPose Actor02000_D15B20[2] = {
+AnimationPackedPose Actor02000_D15B20[2] = {
 #include "assets/actor_102000_animation_15CD4_bank1.inc"
 };
 

@@ -135,7 +135,13 @@ void func_dryfield_night_driveway_8017DB8C(Task*);
 
 TaskDesc D_dryfield_night_driveway_8017E678 = { 0, 32, func_dryfield_night_driveway_8017D608, { .model = NULL } };
 
-GpPackedPose D_dryfield_night_driveway_8017E684[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldNightDrivewayPoseBank10C4;
+
+DryfieldNightDrivewayPoseBank10C4 D_dryfield_night_driveway_8017E684 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
 };
 
@@ -157,7 +163,13 @@ GpAnimSet D_dryfield_night_driveway_8017EACC = {
     { NULL, D_dryfield_night_driveway_8017E684, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_driveway_8017EAF4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightDrivewayPoseBank1534;
+
+DryfieldNightDrivewayPoseBank1534 D_dryfield_night_driveway_8017EAF4 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01870_bank1.inc"
 };
 
@@ -179,7 +191,13 @@ GpAnimSet D_dryfield_night_driveway_8017EE30 = {
     { NULL, D_dryfield_night_driveway_8017EAF4, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_driveway_8017EE58[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDrivewayPoseBank1898;
+
+DryfieldNightDrivewayPoseBank1898 D_dryfield_night_driveway_8017EE58 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank1.inc"
 };
 
@@ -201,7 +219,13 @@ GpAnimSet D_dryfield_night_driveway_8017F044 = {
     { NULL, D_dryfield_night_driveway_8017EE58, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_driveway_8017F06C[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightDrivewayPoseBank1AAC;
+
+DryfieldNightDrivewayPoseBank1AAC D_dryfield_night_driveway_8017F06C = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank1.inc"
 };
 

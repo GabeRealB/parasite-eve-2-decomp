@@ -113,7 +113,7 @@ TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { 0, 192, func_dryfield_gas_station_801801E4, { .model = NULL } },
 };
 
-GpPackedPose D_dryfield_gas_station_80181EA0[2] = {
+AnimationPackedPose D_dryfield_gas_station_80181EA0[2] = {
 #include "assets/dryfield_gas_station_animation_04A70_bank1.inc"
 };
 
@@ -135,7 +135,13 @@ GpAnimSet D_dryfield_gas_station_80182030 = {
     { NULL, D_dryfield_gas_station_80181EA0, NULL, NULL, D_dryfield_gas_station_80181EB8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_gas_station_80182058[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} DryfieldGasStationPoseBank4A98;
+
+DryfieldGasStationPoseBank4A98 D_dryfield_gas_station_80182058 = { .poses = {
 #include "assets/dryfield_gas_station_animation_05210_bank1.inc"
 };
 
@@ -157,7 +163,13 @@ GpAnimSet D_dryfield_gas_station_801827D0 = {
     { NULL, D_dryfield_gas_station_80182058, NULL, NULL, D_dryfield_gas_station_801820F4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_gas_station_801827F8[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldGasStationPoseBank5238;
+
+DryfieldGasStationPoseBank5238 D_dryfield_gas_station_801827F8 = { .poses = {
 #include "assets/dryfield_gas_station_animation_055A4_bank1.inc"
 };
 
@@ -179,7 +191,13 @@ GpAnimSet D_dryfield_gas_station_80182B64 = {
     { NULL, D_dryfield_gas_station_801827F8, NULL, NULL, D_dryfield_gas_station_8018284C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_gas_station_80182B8C[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldGasStationPoseBank55CC;
+
+DryfieldGasStationPoseBank55CC D_dryfield_gas_station_80182B8C = { .poses = {
 #include "assets/dryfield_gas_station_animation_05848_bank1.inc"
 };
 

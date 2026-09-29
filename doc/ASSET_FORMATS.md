@@ -652,7 +652,7 @@ Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind
 
 | `flags & 0xF` | Bank type | Layout |
 |---|---|---|
-| 1 | `GpPackedPose` | packed translation + rotation |
+| 1 | `AnimationPackedPose` | six signed halfwords: local XYZ translation, then XYZ Euler angles |
 | 4 | `AnimationPackedRotation` | `s32 rx:11, ry:10, rz:11` |
 
 **Clip walk.** Entry *n* of the index table gives the first record of clip *n*;
@@ -738,16 +738,19 @@ instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
 it once (`value->poseKind = op & 0xF`) and `animationTickSlotPose` reads
-`poseKind = slot->poseKind` for every record after that. The control records carry 0
+`op = slot->poseKind` for every record after that. The control records carry 0
 in those bits, so reading the kind per record throws away the final keyframe.
-Kind **1** is `GpPackedPose`, six `s16` — translation then ZYX Euler. Kind **4**
+Kind **1** is `AnimationPackedPose`, six `s16` — local XYZ translation followed
+by XYZ Euler angles, with 4096 angle units per turn. A pose takes three words;
+its record's word offset must identify the start of the full 12-byte pose.
+The C banks also expose a word-strided view for this indexing. Kind **4**
 is `AnimationPackedRotation`, one word split 11/10/11 with each component shifted `<< 3`;
 it has no translation, so the bone keeps its rest offset. The root comes out
 kind 1 and the limbs kind 4.
 
-**Playback interpolates.** `_animationBlendPose` / `_animationBlendPackedRotation` hold a
+**Playback interpolates.** `_animationBlendTranslationRotation` / `_animationBlendPackedRotation` hold a
 current and a next pose and blend with a GTE `GPF`/`GPL` pair over
-`field_C / field_E`, interpolating the Euler angles themselves rather than the
+`timeLeft / timeSpan`, interpolating the Euler angles themselves rather than the
 matrices. `sample_animation` does the same and takes a fractional frame, so
 motion is smooth rather than stepped. A track shorter than its set holds its
 last pose; the set loops as a whole.

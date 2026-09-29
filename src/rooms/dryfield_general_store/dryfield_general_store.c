@@ -125,7 +125,13 @@ GpMsgEntry D_dryfield_general_store_8017E188[6] = {
 
 s32 D_dryfield_general_store_8017E1B8 = 0x90302;
 
-GpPackedPose D_dryfield_general_store_8017E1BC[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldGeneralStorePoseBankBFC;
+
+DryfieldGeneralStorePoseBankBFC D_dryfield_general_store_8017E1BC = { .poses = {
 #include "assets/dryfield_general_store_animation_00ED8_bank1.inc"
 };
 

@@ -269,7 +269,13 @@ TmdSource D_dryfield_trailer_coach_80184554 = {
 
 #include "../../shared/telephone_data.inc.c"
 
-GpPackedPose D_dryfield_trailer_coach_80184898[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldTrailerCoachPoseBank72D8;
+
+DryfieldTrailerCoachPoseBank72D8 D_dryfield_trailer_coach_80184898 = { .poses = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank1.inc"
 };
 
@@ -291,7 +297,13 @@ GpAnimSet D_dryfield_trailer_coach_80184C28 = {
     { NULL, D_dryfield_trailer_coach_80184898, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_trailer_coach_80184C50[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldTrailerCoachPoseBank7690;
+
+DryfieldTrailerCoachPoseBank7690 D_dryfield_trailer_coach_80184C50 = { .poses = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank1.inc"
 };
 

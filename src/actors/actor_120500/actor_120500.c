@@ -170,7 +170,13 @@ TmdSource D_actor_120500_8013762C = {
     D_actor_120500_801340DC,
 };
 
-GpPackedPose D_actor_120500_80137650[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor120500PoseBank5830;
+
+Actor120500PoseBank5830 D_actor_120500_80137650 = { .poses = {
 #include "assets/actor_120500_animation_05BC8_bank1.inc"
 };
 
@@ -192,7 +198,13 @@ GpAnimSet D_actor_120500_801379E8 = {
     { NULL, D_actor_120500_80137650, NULL, NULL, D_actor_120500_80137668, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_120500_80137A10[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor120500PoseBank5BF0;
+
+Actor120500PoseBank5BF0 D_actor_120500_80137A10 = { .poses = {
 #include "assets/actor_120500_animation_05ECC_bank1.inc"
 };
 
@@ -214,7 +226,13 @@ GpAnimSet D_actor_120500_80137CEC = {
     { NULL, D_actor_120500_80137A10, NULL, NULL, D_actor_120500_80137A58, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_120500_80137D14[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor120500PoseBank5EF4;
+
+Actor120500PoseBank5EF4 D_actor_120500_80137D14 = { .poses = {
 #include "assets/actor_120500_animation_0607C_bank1.inc"
 };
 
@@ -236,7 +254,13 @@ GpAnimSet D_actor_120500_80137E9C = {
     { NULL, D_actor_120500_80137D14, NULL, NULL, D_actor_120500_80137D2C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_120500_80137EC4[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor120500PoseBank60A4;
+
+Actor120500PoseBank60A4 D_actor_120500_80137EC4 = { .poses = {
 #include "assets/actor_120500_animation_06234_bank1.inc"
 };
 

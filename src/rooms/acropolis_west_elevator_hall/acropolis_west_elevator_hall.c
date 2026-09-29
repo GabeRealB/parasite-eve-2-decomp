@@ -216,7 +216,13 @@ TmdSource D_acropolis_west_elevator_hall_8018077C = {
     D_acropolis_west_elevator_hall_80180618,
 };
 
-GpPackedPose D_acropolis_west_elevator_hall_801807A0[100] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[100];
+    AnimationPackedRotation        words[300];
+} AcropolisWestElevatorHallPoseBank31E0;
+
+AcropolisWestElevatorHallPoseBank31E0 D_acropolis_west_elevator_hall_801807A0 = { .poses = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_bank1.inc"
 };
 

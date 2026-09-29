@@ -255,7 +255,13 @@ void func_actor_341900_80163224(Task*, s32, s32);
 void func_actor_341900_801632A0(Task*, s32, GpXformArg*);
 void func_actor_341900_8016332C(void);
 
-GpPackedPose D_actor_341900_801636A0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor341900PoseBank1880;
+
+Actor341900PoseBank1880 D_actor_341900_801636A0 = { .poses = {
 #include "assets/actor_341900_animation_01B5C_bank1.inc"
 };
 

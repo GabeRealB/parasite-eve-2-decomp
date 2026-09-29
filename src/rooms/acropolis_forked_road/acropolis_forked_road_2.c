@@ -439,7 +439,13 @@ SVECTOR D_acropolis_forked_road_80180F80[300] = {
     { 6590, -2995, 1250, 0 },
 };
 
-GpPackedPose D_acropolis_forked_road_801818E0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisForkedRoadPoseBank4320;
+
+AcropolisForkedRoadPoseBank4320 D_acropolis_forked_road_801818E0 = { .poses = {
 #include "assets/acropolis_forked_road_animation_045FC_bank1.inc"
 };
 
@@ -461,7 +467,13 @@ GpAnimSet D_acropolis_forked_road_80181BBC = {
     { NULL, D_acropolis_forked_road_801818E0, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_forked_road_80181BE4[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} AcropolisForkedRoadPoseBank4624;
+
+AcropolisForkedRoadPoseBank4624 D_acropolis_forked_road_80181BE4 = { .poses = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank1.inc"
 };
 

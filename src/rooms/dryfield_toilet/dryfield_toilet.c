@@ -93,7 +93,13 @@ s16* D_dryfield_toilet_80180310[1] = {
 
 GpGridParams D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
 
-GpPackedPose D_dryfield_toilet_80180338[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldToiletPoseBank2D78;
+
+DryfieldToiletPoseBank2D78 D_dryfield_toilet_80180338 = { .poses = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
 };
 
@@ -115,7 +121,13 @@ GpAnimSet D_dryfield_toilet_80180614 = {
     { NULL, D_dryfield_toilet_80180338, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_toilet_8018063C[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} DryfieldToiletPoseBank307C;
+
+DryfieldToiletPoseBank307C D_dryfield_toilet_8018063C = { .poses = {
 #include "assets/dryfield_toilet_animation_035A4_bank1.inc"
 };
 

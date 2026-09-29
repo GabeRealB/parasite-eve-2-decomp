@@ -185,7 +185,13 @@ TmdSource D_actor_312200_80168148 = {
     D_actor_312200_80164E18,
 };
 
-GpPackedPose D_actor_312200_8016816C[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} Actor312200PoseBank634C;
+
+Actor312200PoseBank634C D_actor_312200_8016816C = { .poses = {
 #include "assets/actor_312200_animation_07368_bank1.inc"
 };
 
@@ -207,7 +213,13 @@ GpAnimSet D_actor_312200_80169188 = {
     { NULL, D_actor_312200_8016816C, NULL, NULL, D_actor_312200_80168268, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_312200_801691B0[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} Actor312200PoseBank7390;
+
+Actor312200PoseBank7390 D_actor_312200_801691B0 = { .poses = {
 #include "assets/actor_312200_animation_0773C_bank1.inc"
 };
 
@@ -229,7 +241,13 @@ GpAnimSet D_actor_312200_8016955C = {
     { NULL, D_actor_312200_801691B0, NULL, NULL, D_actor_312200_801691D4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_312200_80169584[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} Actor312200PoseBank7764;
+
+Actor312200PoseBank7764 D_actor_312200_80169584 = { .poses = {
 #include "assets/actor_312200_animation_07D78_bank1.inc"
 };
 
@@ -251,7 +269,13 @@ GpAnimSet D_actor_312200_80169B98 = {
     { NULL, D_actor_312200_80169584, NULL, NULL, D_actor_312200_801695B4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_312200_80169BC0[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} Actor312200PoseBank7DA0;
+
+Actor312200PoseBank7DA0 D_actor_312200_80169BC0 = { .poses = {
 #include "assets/actor_312200_animation_080E0_bank1.inc"
 };
 

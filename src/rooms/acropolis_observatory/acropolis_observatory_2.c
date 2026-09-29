@@ -654,7 +654,13 @@ SVECTOR D_acropolis_observatory_8017F16C[300] = {
     { -2915, -2995, -0x29FE, 0 },
 };
 
-GpPackedPose D_acropolis_observatory_8017FACC[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} AcropolisObservatoryPoseBank250C;
+
+AcropolisObservatoryPoseBank250C D_acropolis_observatory_8017FACC = { .poses = {
 #include "assets/acropolis_observatory_animation_02878_bank1.inc"
 };
 

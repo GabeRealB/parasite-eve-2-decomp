@@ -234,7 +234,13 @@ TaskDesc D_dryfield_water_tank_8017FF88[2] = {
     { 257, 192, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
 };
 
-GpPackedPose D_dryfield_water_tank_8017FFA0[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldWaterTankPoseBank29E0;
+
+DryfieldWaterTankPoseBank29E0 D_dryfield_water_tank_8017FFA0 = { .poses = {
 #include "assets/dryfield_water_tank_animation_02B70_bank1.inc"
 };
 
@@ -256,7 +262,13 @@ GpAnimSet D_dryfield_water_tank_80180130 = {
     { NULL, D_dryfield_water_tank_8017FFA0, NULL, NULL, D_dryfield_water_tank_8017FFB8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80180158[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldWaterTankPoseBank2B98;
+
+DryfieldWaterTankPoseBank2B98 D_dryfield_water_tank_80180158 = { .poses = {
 #include "assets/dryfield_water_tank_animation_02F04_bank1.inc"
 };
 
@@ -325,7 +337,13 @@ TaskDesc D_dryfield_water_tank_80180764[4] = {
 
 TaskDesc D_dryfield_water_tank_80180794 = { 0, 192, func_dryfield_water_tank_8017E9F8, { .model = NULL } };
 
-GpPackedPose D_dryfield_water_tank_801807A0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldWaterTankPoseBank31E0;
+
+DryfieldWaterTankPoseBank31E0 D_dryfield_water_tank_801807A0 = { .poses = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"
 };
 
@@ -347,7 +365,13 @@ GpAnimSet D_dryfield_water_tank_80180A7C = {
     { NULL, D_dryfield_water_tank_801807A0, NULL, NULL, D_dryfield_water_tank_801807E8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80180AA4[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldWaterTankPoseBank34E4;
+
+DryfieldWaterTankPoseBank34E4 D_dryfield_water_tank_80180AA4 = { .poses = {
 #include "assets/dryfield_water_tank_animation_0377C_bank1.inc"
 };
 
@@ -369,7 +393,13 @@ GpAnimSet D_dryfield_water_tank_80180D3C = {
     { NULL, D_dryfield_water_tank_80180AA4, NULL, NULL, D_dryfield_water_tank_80180AD4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80180D64[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldWaterTankPoseBank37A4;
+
+DryfieldWaterTankPoseBank37A4 D_dryfield_water_tank_80180D64 = { .poses = {
 #include "assets/dryfield_water_tank_animation_03A60_bank1.inc"
 };
 
@@ -391,7 +421,13 @@ GpAnimSet D_dryfield_water_tank_80181020 = {
     { NULL, D_dryfield_water_tank_80180D64, NULL, NULL, D_dryfield_water_tank_80180DA0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80181048[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldWaterTankPoseBank3A88;
+
+DryfieldWaterTankPoseBank3A88 D_dryfield_water_tank_80181048 = { .poses = {
 #include "assets/dryfield_water_tank_animation_03CB4_bank1.inc"
 };
 
@@ -413,7 +449,13 @@ GpAnimSet D_dryfield_water_tank_80181274 = {
     { NULL, D_dryfield_water_tank_80181048, NULL, NULL, D_dryfield_water_tank_80181060, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_8018129C[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldWaterTankPoseBank3CDC;
+
+DryfieldWaterTankPoseBank3CDC D_dryfield_water_tank_8018129C = { .poses = {
 #include "assets/dryfield_water_tank_animation_04000_bank1.inc"
 };
 
@@ -435,7 +477,13 @@ GpAnimSet D_dryfield_water_tank_801815C0 = {
     { NULL, D_dryfield_water_tank_8018129C, NULL, NULL, D_dryfield_water_tank_801812E4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_801815E8[22] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[22];
+    AnimationPackedRotation        words[66];
+} DryfieldWaterTankPoseBank4028;
+
+DryfieldWaterTankPoseBank4028 D_dryfield_water_tank_801815E8 = { .poses = {
 #include "assets/dryfield_water_tank_animation_047BC_bank1.inc"
 };
 
@@ -457,7 +505,13 @@ GpAnimSet D_dryfield_water_tank_80181D7C = {
     { NULL, D_dryfield_water_tank_801815E8, NULL, NULL, D_dryfield_water_tank_801816F0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80181DA4[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldWaterTankPoseBank47E4;
+
+DryfieldWaterTankPoseBank47E4 D_dryfield_water_tank_80181DA4 = { .poses = {
 #include "assets/dryfield_water_tank_animation_04AA0_bank1.inc"
 };
 
@@ -479,7 +533,13 @@ GpAnimSet D_dryfield_water_tank_80182060 = {
     { NULL, D_dryfield_water_tank_80181DA4, NULL, NULL, D_dryfield_water_tank_80181DE0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80182088[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldWaterTankPoseBank4AC8;
+
+DryfieldWaterTankPoseBank4AC8 D_dryfield_water_tank_80182088 = { .poses = {
 #include "assets/dryfield_water_tank_animation_04C98_bank1.inc"
 };
 
@@ -501,7 +561,13 @@ GpAnimSet D_dryfield_water_tank_80182258 = {
     { NULL, D_dryfield_water_tank_80182088, NULL, NULL, D_dryfield_water_tank_801820AC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80182280[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldWaterTankPoseBank4CC0;
+
+DryfieldWaterTankPoseBank4CC0 D_dryfield_water_tank_80182280 = { .poses = {
 #include "assets/dryfield_water_tank_animation_04FEC_bank1.inc"
 };
 
@@ -523,7 +589,13 @@ GpAnimSet D_dryfield_water_tank_801825AC = {
     { NULL, D_dryfield_water_tank_80182280, NULL, NULL, D_dryfield_water_tank_801822BC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_801825D4[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldWaterTankPoseBank5014;
+
+DryfieldWaterTankPoseBank5014 D_dryfield_water_tank_801825D4 = { .poses = {
 #include "assets/dryfield_water_tank_animation_051E4_bank1.inc"
 };
 
@@ -545,7 +617,13 @@ GpAnimSet D_dryfield_water_tank_801827A4 = {
     { NULL, D_dryfield_water_tank_801825D4, NULL, NULL, D_dryfield_water_tank_801825F8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_801827CC[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldWaterTankPoseBank520C;
+
+DryfieldWaterTankPoseBank520C D_dryfield_water_tank_801827CC = { .poses = {
 #include "assets/dryfield_water_tank_animation_05704_bank1.inc"
 };
 
@@ -567,7 +645,13 @@ GpAnimSet D_dryfield_water_tank_80182CC4 = {
     { NULL, D_dryfield_water_tank_801827CC, NULL, NULL, D_dryfield_water_tank_80182844, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80182CEC[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldWaterTankPoseBank572C;
+
+DryfieldWaterTankPoseBank572C D_dryfield_water_tank_80182CEC = { .poses = {
 #include "assets/dryfield_water_tank_animation_059E4_bank1.inc"
 };
 
@@ -589,7 +673,13 @@ GpAnimSet D_dryfield_water_tank_80182FA4 = {
     { NULL, D_dryfield_water_tank_80182CEC, NULL, NULL, D_dryfield_water_tank_80182D28, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80182FCC[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} DryfieldWaterTankPoseBank5A0C;
+
+DryfieldWaterTankPoseBank5A0C D_dryfield_water_tank_80182FCC = { .poses = {
 #include "assets/dryfield_water_tank_animation_05DB8_bank1.inc"
 };
 
@@ -611,7 +701,13 @@ GpAnimSet D_dryfield_water_tank_80183378 = {
     { NULL, D_dryfield_water_tank_80182FCC, NULL, NULL, D_dryfield_water_tank_8018302C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_801833A0[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldWaterTankPoseBank5DE0;
+
+DryfieldWaterTankPoseBank5DE0 D_dryfield_water_tank_801833A0 = { .poses = {
 #include "assets/dryfield_water_tank_animation_061A8_bank1.inc"
 };
 
@@ -633,7 +729,13 @@ GpAnimSet D_dryfield_water_tank_80183768 = {
     { NULL, D_dryfield_water_tank_801833A0, NULL, NULL, D_dryfield_water_tank_801833F4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80183790[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldWaterTankPoseBank61D0;
+
+DryfieldWaterTankPoseBank61D0 D_dryfield_water_tank_80183790 = { .poses = {
 #include "assets/dryfield_water_tank_animation_06514_bank1.inc"
 };
 
@@ -655,7 +757,13 @@ GpAnimSet D_dryfield_water_tank_80183AD4 = {
     { NULL, D_dryfield_water_tank_80183790, NULL, NULL, D_dryfield_water_tank_801837E4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80183AFC[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldWaterTankPoseBank653C;
+
+DryfieldWaterTankPoseBank653C D_dryfield_water_tank_80183AFC = { .poses = {
 #include "assets/dryfield_water_tank_animation_06840_bank1.inc"
 };
 
@@ -677,7 +785,13 @@ GpAnimSet D_dryfield_water_tank_80183E00 = {
     { NULL, D_dryfield_water_tank_80183AFC, NULL, NULL, D_dryfield_water_tank_80183B50, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80183E28[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldWaterTankPoseBank6868;
+
+DryfieldWaterTankPoseBank6868 D_dryfield_water_tank_80183E28 = { .poses = {
 #include "assets/dryfield_water_tank_animation_06C68_bank1.inc"
 };
 
@@ -699,7 +813,13 @@ GpAnimSet D_dryfield_water_tank_80184228 = {
     { NULL, D_dryfield_water_tank_80183E28, NULL, NULL, D_dryfield_water_tank_80183E64, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_water_tank_80184250[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldWaterTankPoseBank6C90;
+
+DryfieldWaterTankPoseBank6C90 D_dryfield_water_tank_80184250 = { .poses = {
 #include "assets/dryfield_water_tank_animation_06F48_bank1.inc"
 };
 

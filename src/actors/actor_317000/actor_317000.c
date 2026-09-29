@@ -145,7 +145,13 @@ TmdSource D_actor_317000_801683A4 = {
     D_actor_317000_80164554,
 };
 
-GpPackedPose D_actor_317000_801683C8[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} Actor317000PoseBank65A8;
+
+Actor317000PoseBank65A8 D_actor_317000_801683C8 = { .poses = {
 #include "assets/actor_317000_animation_0699C_bank1.inc"
 };
 
@@ -167,7 +173,13 @@ GpAnimSet D_actor_317000_801687BC = {
     { NULL, D_actor_317000_801683C8, NULL, NULL, D_actor_317000_801683F8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_801687E4[28] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[28];
+    AnimationPackedRotation        words[84];
+} Actor317000PoseBank69C4;
+
+Actor317000PoseBank69C4 D_actor_317000_801687E4 = { .poses = {
 #include "assets/actor_317000_animation_074C0_bank1.inc"
 };
 
@@ -189,7 +201,13 @@ GpAnimSet D_actor_317000_801692E0 = {
     { NULL, D_actor_317000_801687E4, NULL, NULL, D_actor_317000_80168934, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_80169308[32] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[32];
+    AnimationPackedRotation        words[96];
+} Actor317000PoseBank74E8;
+
+Actor317000PoseBank74E8 D_actor_317000_80169308 = { .poses = {
 #include "assets/actor_317000_animation_07F44_bank1.inc"
 };
 
@@ -211,7 +229,13 @@ GpAnimSet D_actor_317000_80169D64 = {
     { NULL, D_actor_317000_80169308, NULL, NULL, D_actor_317000_80169488, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_80169D8C[29] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[29];
+    AnimationPackedRotation        words[87];
+} Actor317000PoseBank7F6C;
+
+Actor317000PoseBank7F6C D_actor_317000_80169D8C = { .poses = {
 #include "assets/actor_317000_animation_08F08_bank1.inc"
 };
 
@@ -233,7 +257,13 @@ GpAnimSet D_actor_317000_8016AD28 = {
     { NULL, D_actor_317000_80169D8C, NULL, NULL, D_actor_317000_80169EE8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_8016AD50[27] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[27];
+    AnimationPackedRotation        words[81];
+} Actor317000PoseBank8F30;
+
+Actor317000PoseBank8F30 D_actor_317000_8016AD50 = { .poses = {
 #include "assets/actor_317000_animation_09F30_bank1.inc"
 };
 
@@ -255,7 +285,13 @@ GpAnimSet D_actor_317000_8016BD50 = {
     { NULL, D_actor_317000_8016AD50, NULL, NULL, D_actor_317000_8016AE94, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_8016BD78[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor317000PoseBank9F58;
+
+Actor317000PoseBank9F58 D_actor_317000_8016BD78 = { .poses = {
 #include "assets/actor_317000_animation_0A338_bank1.inc"
 };
 
@@ -277,7 +313,13 @@ GpAnimSet D_actor_317000_8016C158 = {
     { NULL, D_actor_317000_8016BD78, NULL, NULL, D_actor_317000_8016BDC0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_8016C180[18] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[18];
+    AnimationPackedRotation        words[54];
+} Actor317000PoseBankA360;
+
+Actor317000PoseBankA360 D_actor_317000_8016C180 = { .poses = {
 #include "assets/actor_317000_animation_0A98C_bank1.inc"
 };
 
@@ -299,7 +341,13 @@ GpAnimSet D_actor_317000_8016C7AC = {
     { NULL, D_actor_317000_8016C180, NULL, NULL, D_actor_317000_8016C258, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_317000_8016C7D4[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} Actor317000PoseBankA9B4;
+
+Actor317000PoseBankA9B4 D_actor_317000_8016C7D4 = { .poses = {
 #include "assets/actor_317000_animation_0B0D4_bank1.inc"
 };
 

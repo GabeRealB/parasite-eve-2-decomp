@@ -131,7 +131,7 @@ s32         func_actor_205200_8014C980(Task*, s32, s32);
 s32         func_actor_205200_8014C9A0(Task*, s32, GpCmdArg*);
 static void func_actor_205200_8014C540(Task*);
 
-GpPackedPose D_actor_205200_80151810[29] = {
+AnimationPackedPose D_actor_205200_80151810[29] = {
 #include "assets/actor_205200_animation_08B50_bank1.inc"
 };
 
@@ -153,7 +153,13 @@ GpAnimSet D_actor_205200_80152970 = {
     { NULL, D_actor_205200_80151810, NULL, NULL, D_actor_205200_8015196C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80152998[16] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[16];
+    AnimationPackedRotation        words[48];
+} Actor205200PoseBank8B78;
+
+Actor205200PoseBank8B78 D_actor_205200_80152998 = { .poses = {
 #include "assets/actor_205200_animation_0943C_bank1.inc"
 };
 
@@ -175,7 +181,13 @@ GpAnimSet D_actor_205200_8015325C = {
     { NULL, D_actor_205200_80152998, NULL, NULL, D_actor_205200_80152A58, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80153284[11] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[11];
+    AnimationPackedRotation        words[33];
+} Actor205200PoseBank9464;
+
+Actor205200PoseBank9464 D_actor_205200_80153284 = { .poses = {
 #include "assets/actor_205200_animation_09C1C_bank1.inc"
 };
 
@@ -197,7 +209,13 @@ GpAnimSet D_actor_205200_80153A3C = {
     { NULL, D_actor_205200_80153284, NULL, NULL, D_actor_205200_80153308, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80153A64[23] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[23];
+    AnimationPackedRotation        words[69];
+} Actor205200PoseBank9C44;
+
+Actor205200PoseBank9C44 D_actor_205200_80153A64 = { .poses = {
 #include "assets/actor_205200_animation_0A964_bank1.inc"
 };
 
@@ -219,7 +237,13 @@ GpAnimSet D_actor_205200_80154784 = {
     { NULL, D_actor_205200_80153A64, NULL, NULL, D_actor_205200_80153B78, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_801547AC[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} Actor205200PoseBankA98C;
+
+Actor205200PoseBankA98C D_actor_205200_801547AC = { .poses = {
 #include "assets/actor_205200_animation_0B1AC_bank1.inc"
 };
 
@@ -241,7 +265,13 @@ GpAnimSet D_actor_205200_80154FCC = {
     { NULL, D_actor_205200_801547AC, NULL, NULL, D_actor_205200_801548A8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80154FF4[20] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[20];
+    AnimationPackedRotation        words[60];
+} Actor205200PoseBankB1D4;
+
+Actor205200PoseBankB1D4 D_actor_205200_80154FF4 = { .poses = {
 #include "assets/actor_205200_animation_0B948_bank1.inc"
 };
 
@@ -263,7 +293,13 @@ GpAnimSet D_actor_205200_80155768 = {
     { NULL, D_actor_205200_80154FF4, NULL, NULL, D_actor_205200_801550E4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80155790[15] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[15];
+    AnimationPackedRotation        words[45];
+} Actor205200PoseBankB970;
+
+Actor205200PoseBankB970 D_actor_205200_80155790 = { .poses = {
 #include "assets/actor_205200_animation_0C154_bank1.inc"
 };
 
@@ -285,7 +321,13 @@ GpAnimSet D_actor_205200_80155F74 = {
     { NULL, D_actor_205200_80155790, NULL, NULL, D_actor_205200_80155844, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_205200_80155F9C[14] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[14];
+    AnimationPackedRotation        words[42];
+} Actor205200PoseBankC17C;
+
+Actor205200PoseBankC17C D_actor_205200_80155F9C = { .poses = {
 #include "assets/actor_205200_animation_0C968_bank1.inc"
 };
 

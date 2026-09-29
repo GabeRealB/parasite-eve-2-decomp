@@ -852,7 +852,13 @@ GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpPackedPose D_mine_forked_tunnel_80181CA8[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MineForkedTunnelPoseBank46E8;
+
+MineForkedTunnelPoseBank46E8 D_mine_forked_tunnel_80181CA8 = { .poses = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank1.inc"
 };
 
@@ -874,7 +880,13 @@ GpAnimSet D_mine_forked_tunnel_80181F84 = {
     { NULL, D_mine_forked_tunnel_80181CA8, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_forked_tunnel_80181FAC[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineForkedTunnelPoseBank49EC;
+
+MineForkedTunnelPoseBank49EC D_mine_forked_tunnel_80181FAC = { .poses = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank1.inc"
 };
 
@@ -896,7 +908,13 @@ GpAnimSet D_mine_forked_tunnel_80182210 = {
     { NULL, D_mine_forked_tunnel_80181FAC, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_forked_tunnel_80182238[33] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[33];
+    AnimationPackedRotation        words[99];
+} MineForkedTunnelPoseBank4C78;
+
+MineForkedTunnelPoseBank4C78 D_mine_forked_tunnel_80182238 = { .poses = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank1.inc"
 };
 

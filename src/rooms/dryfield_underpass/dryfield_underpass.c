@@ -73,7 +73,13 @@ s32  func_dryfield_underpass_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_underpass_8017D5D0(Task*);
 
-GpPackedPose D_dryfield_underpass_8017DEE0[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldUnderpassPoseBank920;
+
+DryfieldUnderpassPoseBank920 D_dryfield_underpass_8017DEE0 = { .poses = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
 };
 
@@ -95,7 +101,13 @@ GpAnimSet D_dryfield_underpass_8017E424 = {
     { NULL, D_dryfield_underpass_8017DEE0, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_underpass_8017E44C[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldUnderpassPoseBankE8C;
+
+DryfieldUnderpassPoseBankE8C D_dryfield_underpass_8017E44C = { .poses = {
 #include "assets/dryfield_underpass_animation_01230_bank1.inc"
 };
 

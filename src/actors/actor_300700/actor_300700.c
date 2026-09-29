@@ -148,7 +148,13 @@ TmdSource D_actor_300700_80165AC4 = {
     D_actor_300700_801656A0,
 };
 
-GpPackedPose D_actor_300700_80165AE8[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor300700PoseBank3CC8;
+
+Actor300700PoseBank3CC8 D_actor_300700_80165AE8 = { .poses = {
 #include "assets/actor_300700_animation_03D1C_bank1.inc"
 };
 

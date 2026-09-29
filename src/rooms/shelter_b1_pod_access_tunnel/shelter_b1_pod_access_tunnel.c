@@ -198,7 +198,13 @@ GpEvsCmd D_shelter_b1_pod_access_tunnel_80181120[7] = {
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { 0, 192, func_shelter_b1_pod_access_tunnel_8017DF40, { .model = NULL } };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_801811D4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB1PodAccessTunnelPoseBank3C14;
+
+ShelterB1PodAccessTunnelPoseBank3C14 D_shelter_b1_pod_access_tunnel_801811D4 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
 };
 
@@ -220,7 +226,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_801814B0 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801811D4, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_801814D8[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} ShelterB1PodAccessTunnelPoseBank3F18;
+
+ShelterB1PodAccessTunnelPoseBank3F18 D_shelter_b1_pod_access_tunnel_801814D8 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank1.inc"
 };
 
@@ -242,7 +254,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80181764 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801814D8, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_8018178C[14] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[14];
+    AnimationPackedRotation        words[42];
+} ShelterB1PodAccessTunnelPoseBank41CC;
+
+ShelterB1PodAccessTunnelPoseBank41CC D_shelter_b1_pod_access_tunnel_8018178C = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank1.inc"
 };
 
@@ -264,7 +282,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80181E9C = {
     { NULL, D_shelter_b1_pod_access_tunnel_8018178C, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_80181EC4[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} ShelterB1PodAccessTunnelPoseBank4904;
+
+ShelterB1PodAccessTunnelPoseBank4904 D_shelter_b1_pod_access_tunnel_80181EC4 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank1.inc"
 };
 
@@ -286,7 +310,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80182160 = {
     { NULL, D_shelter_b1_pod_access_tunnel_80181EC4, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_80182188[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} ShelterB1PodAccessTunnelPoseBank4BC8;
+
+ShelterB1PodAccessTunnelPoseBank4BC8 D_shelter_b1_pod_access_tunnel_80182188 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank1.inc"
 };
 
@@ -308,7 +338,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_801823B4 = {
     { NULL, D_shelter_b1_pod_access_tunnel_80182188, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_801823DC[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} ShelterB1PodAccessTunnelPoseBank4E1C;
+
+ShelterB1PodAccessTunnelPoseBank4E1C D_shelter_b1_pod_access_tunnel_801823DC = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank1.inc"
 };
 
@@ -330,7 +366,13 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80182938 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801823DC, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b1_pod_access_tunnel_80182960[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB1PodAccessTunnelPoseBank53A0;
+
+ShelterB1PodAccessTunnelPoseBank53A0 D_shelter_b1_pod_access_tunnel_80182960 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank1.inc"
 };
 

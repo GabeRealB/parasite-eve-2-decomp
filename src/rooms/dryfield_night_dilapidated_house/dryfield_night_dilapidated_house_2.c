@@ -64,7 +64,13 @@ GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017E728[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightDilapidatedHousePoseBank1168;
+
+DryfieldNightDilapidatedHousePoseBank1168 D_dryfield_night_dilapidated_house_8017E728 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_bank1.inc"
 };
 
@@ -86,7 +92,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017EA04 = {
     { NULL, D_dryfield_night_dilapidated_house_8017E728, NULL, NULL, D_dryfield_night_dilapidated_house_8017E770, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017EA2C[22] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[22];
+    AnimationPackedRotation        words[66];
+} DryfieldNightDilapidatedHousePoseBank146C;
+
+DryfieldNightDilapidatedHousePoseBank146C D_dryfield_night_dilapidated_house_8017EA2C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_bank1.inc"
 };
 
@@ -108,7 +120,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017F1D0 = {
     { NULL, D_dryfield_night_dilapidated_house_8017EA2C, NULL, NULL, D_dryfield_night_dilapidated_house_8017EB34, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017F1F8[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDilapidatedHousePoseBank1C38;
+
+DryfieldNightDilapidatedHousePoseBank1C38 D_dryfield_night_dilapidated_house_8017F1F8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_bank1.inc"
 };
 
@@ -130,7 +148,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017F3A4 = {
     { NULL, D_dryfield_night_dilapidated_house_8017F1F8, NULL, NULL, D_dryfield_night_dilapidated_house_8017F210, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017F3CC[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldNightDilapidatedHousePoseBank1E0C;
+
+DryfieldNightDilapidatedHousePoseBank1E0C D_dryfield_night_dilapidated_house_8017F3CC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_bank1.inc"
 };
 
@@ -152,7 +176,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017F75C = {
     { NULL, D_dryfield_night_dilapidated_house_8017F3CC, NULL, NULL, D_dryfield_night_dilapidated_house_8017F420, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017F784[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank21C4;
+
+DryfieldNightDilapidatedHousePoseBank21C4 D_dryfield_night_dilapidated_house_8017F784 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_bank1.inc"
 };
 
@@ -174,7 +204,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017F928 = {
     { NULL, D_dryfield_night_dilapidated_house_8017F784, NULL, NULL, D_dryfield_night_dilapidated_house_8017F7A8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017F950[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightDilapidatedHousePoseBank2390;
+
+DryfieldNightDilapidatedHousePoseBank2390 D_dryfield_night_dilapidated_house_8017F950 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_bank1.inc"
 };
 
@@ -196,7 +232,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8017FCF4 = {
     { NULL, D_dryfield_night_dilapidated_house_8017F950, NULL, NULL, D_dryfield_night_dilapidated_house_8017F998, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8017FD1C[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldNightDilapidatedHousePoseBank275C;
+
+DryfieldNightDilapidatedHousePoseBank275C D_dryfield_night_dilapidated_house_8017FD1C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_bank1.inc"
 };
 
@@ -218,7 +260,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8018000C = {
     { NULL, D_dryfield_night_dilapidated_house_8017FD1C, NULL, NULL, D_dryfield_night_dilapidated_house_8017FD70, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80180034[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldNightDilapidatedHousePoseBank2A74;
+
+DryfieldNightDilapidatedHousePoseBank2A74 D_dryfield_night_dilapidated_house_80180034 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_bank1.inc"
 };
 
@@ -240,7 +288,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8018040C = {
     { NULL, D_dryfield_night_dilapidated_house_80180034, NULL, NULL, D_dryfield_night_dilapidated_house_801800AC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80180434[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank2E74;
+
+DryfieldNightDilapidatedHousePoseBank2E74 D_dryfield_night_dilapidated_house_80180434 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_bank1.inc"
 };
 
@@ -262,7 +316,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80180608 = {
     { NULL, D_dryfield_night_dilapidated_house_80180434, NULL, NULL, D_dryfield_night_dilapidated_house_80180464, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80180630[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} DryfieldNightDilapidatedHousePoseBank3070;
+
+DryfieldNightDilapidatedHousePoseBank3070 D_dryfield_night_dilapidated_house_80180630 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_bank1.inc"
 };
 
@@ -284,7 +344,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80180944 = {
     { NULL, D_dryfield_night_dilapidated_house_80180630, NULL, NULL, D_dryfield_night_dilapidated_house_80180690, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8018096C[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightDilapidatedHousePoseBank33AC;
+
+DryfieldNightDilapidatedHousePoseBank33AC D_dryfield_night_dilapidated_house_8018096C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_bank1.inc"
 };
 
@@ -306,7 +372,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80180D4C = {
     { NULL, D_dryfield_night_dilapidated_house_8018096C, NULL, NULL, D_dryfield_night_dilapidated_house_801809B4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80180D74[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank37B4;
+
+DryfieldNightDilapidatedHousePoseBank37B4 D_dryfield_night_dilapidated_house_80180D74 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_bank1.inc"
 };
 
@@ -328,7 +400,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80180F8C = {
     { NULL, D_dryfield_night_dilapidated_house_80180D74, NULL, NULL, D_dryfield_night_dilapidated_house_80180DA4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80180FB4[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} DryfieldNightDilapidatedHousePoseBank39F4;
+
+DryfieldNightDilapidatedHousePoseBank39F4 D_dryfield_night_dilapidated_house_80180FB4 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_bank1.inc"
 };
 
@@ -350,7 +428,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80181360 = {
     { NULL, D_dryfield_night_dilapidated_house_80180FB4, NULL, NULL, D_dryfield_night_dilapidated_house_80181014, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80181388[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldNightDilapidatedHousePoseBank3DC8;
+
+DryfieldNightDilapidatedHousePoseBank3DC8 D_dryfield_night_dilapidated_house_80181388 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_bank1.inc"
 };
 
@@ -372,7 +456,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801816CC = {
     { NULL, D_dryfield_night_dilapidated_house_80181388, NULL, NULL, D_dryfield_night_dilapidated_house_801813DC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801816F4[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightDilapidatedHousePoseBank4134;
+
+DryfieldNightDilapidatedHousePoseBank4134 D_dryfield_night_dilapidated_house_801816F4 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_bank1.inc"
 };
 
@@ -394,7 +484,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80181B20 = {
     { NULL, D_dryfield_night_dilapidated_house_801816F4, NULL, NULL, D_dryfield_night_dilapidated_house_80181730, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80181B48[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank4588;
+
+DryfieldNightDilapidatedHousePoseBank4588 D_dryfield_night_dilapidated_house_80181B48 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_bank1.inc"
 };
 
@@ -416,7 +512,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80181DB4 = {
     { NULL, D_dryfield_night_dilapidated_house_80181B48, NULL, NULL, D_dryfield_night_dilapidated_house_80181B78, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80181DDC[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} DryfieldNightDilapidatedHousePoseBank481C;
+
+DryfieldNightDilapidatedHousePoseBank481C D_dryfield_night_dilapidated_house_80181DDC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_bank1.inc"
 };
 
@@ -438,7 +540,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801820E0 = {
     { NULL, D_dryfield_night_dilapidated_house_80181DDC, NULL, NULL, D_dryfield_night_dilapidated_house_80181E30, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80182108[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank4B48;
+
+DryfieldNightDilapidatedHousePoseBank4B48 D_dryfield_night_dilapidated_house_80182108 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_bank1.inc"
 };
 
@@ -460,7 +568,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80182498 = {
     { NULL, D_dryfield_night_dilapidated_house_80182108, NULL, NULL, D_dryfield_night_dilapidated_house_8018212C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801824C0[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightDilapidatedHousePoseBank4F00;
+
+DryfieldNightDilapidatedHousePoseBank4F00 D_dryfield_night_dilapidated_house_801824C0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_bank1.inc"
 };
 
@@ -482,7 +596,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801827EC = {
     { NULL, D_dryfield_night_dilapidated_house_801824C0, NULL, NULL, D_dryfield_night_dilapidated_house_801824FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80182814[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank5254;
+
+DryfieldNightDilapidatedHousePoseBank5254 D_dryfield_night_dilapidated_house_80182814 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_bank1.inc"
 };
 
@@ -504,7 +624,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801829E4 = {
     { NULL, D_dryfield_night_dilapidated_house_80182814, NULL, NULL, D_dryfield_night_dilapidated_house_80182838, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80182A0C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank544C;
+
+DryfieldNightDilapidatedHousePoseBank544C D_dryfield_night_dilapidated_house_80182A0C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_bank1.inc"
 };
 
@@ -526,7 +652,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80182BA8 = {
     { NULL, D_dryfield_night_dilapidated_house_80182A0C, NULL, NULL, D_dryfield_night_dilapidated_house_80182A30, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80182BD0[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank5610;
+
+DryfieldNightDilapidatedHousePoseBank5610 D_dryfield_night_dilapidated_house_80182BD0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_bank1.inc"
 };
 
@@ -548,7 +680,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80182E68 = {
     { NULL, D_dryfield_night_dilapidated_house_80182BD0, NULL, NULL, D_dryfield_night_dilapidated_house_80182C00, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80182E90[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank58D0;
+
+DryfieldNightDilapidatedHousePoseBank58D0 D_dryfield_night_dilapidated_house_80182E90 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_bank1.inc"
 };
 
@@ -570,7 +708,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8018302C = {
     { NULL, D_dryfield_night_dilapidated_house_80182E90, NULL, NULL, D_dryfield_night_dilapidated_house_80182EB4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80183054[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank5A94;
+
+DryfieldNightDilapidatedHousePoseBank5A94 D_dryfield_night_dilapidated_house_80183054 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_bank1.inc"
 };
 
@@ -592,7 +736,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_8018334C = {
     { NULL, D_dryfield_night_dilapidated_house_80183054, NULL, NULL, D_dryfield_night_dilapidated_house_80183078, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80183374[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDilapidatedHousePoseBank5DB4;
+
+DryfieldNightDilapidatedHousePoseBank5DB4 D_dryfield_night_dilapidated_house_80183374 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_bank1.inc"
 };
 
@@ -614,7 +764,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801835C8 = {
     { NULL, D_dryfield_night_dilapidated_house_80183374, NULL, NULL, D_dryfield_night_dilapidated_house_8018338C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801835F0[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} DryfieldNightDilapidatedHousePoseBank6030;
+
+DryfieldNightDilapidatedHousePoseBank6030 D_dryfield_night_dilapidated_house_801835F0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_bank1.inc"
 };
 
@@ -636,7 +792,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80183D5C = {
     { NULL, D_dryfield_night_dilapidated_house_801835F0, NULL, NULL, D_dryfield_night_dilapidated_house_801836EC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80183D84[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDilapidatedHousePoseBank67C4;
+
+DryfieldNightDilapidatedHousePoseBank67C4 D_dryfield_night_dilapidated_house_80183D84 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_bank1.inc"
 };
 
@@ -658,7 +820,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801842D0 = {
     { NULL, D_dryfield_night_dilapidated_house_80183D84, NULL, NULL, D_dryfield_night_dilapidated_house_80183D9C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801842F8[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank6D38;
+
+DryfieldNightDilapidatedHousePoseBank6D38 D_dryfield_night_dilapidated_house_801842F8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_bank1.inc"
 };
 
@@ -680,7 +848,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801844A8 = {
     { NULL, D_dryfield_night_dilapidated_house_801842F8, NULL, NULL, D_dryfield_night_dilapidated_house_8018431C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801844D0[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank6F10;
+
+DryfieldNightDilapidatedHousePoseBank6F10 D_dryfield_night_dilapidated_house_801844D0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_bank1.inc"
 };
 
@@ -702,7 +876,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_801848C4 = {
     { NULL, D_dryfield_night_dilapidated_house_801844D0, NULL, NULL, D_dryfield_night_dilapidated_house_801844F4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801848EC[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDilapidatedHousePoseBank732C;
+
+DryfieldNightDilapidatedHousePoseBank732C D_dryfield_night_dilapidated_house_801848EC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_bank1.inc"
 };
 
@@ -724,7 +904,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80184A80 = {
     { NULL, D_dryfield_night_dilapidated_house_801848EC, NULL, NULL, D_dryfield_night_dilapidated_house_80184904, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80184AA8[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank74E8;
+
+DryfieldNightDilapidatedHousePoseBank74E8 D_dryfield_night_dilapidated_house_80184AA8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_bank1.inc"
 };
 
@@ -746,7 +932,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80184C68 = {
     { NULL, D_dryfield_night_dilapidated_house_80184AA8, NULL, NULL, D_dryfield_night_dilapidated_house_80184ACC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80184C90[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank76D0;
+
+DryfieldNightDilapidatedHousePoseBank76D0 D_dryfield_night_dilapidated_house_80184C90 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_bank1.inc"
 };
 
@@ -768,7 +960,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80184F24 = {
     { NULL, D_dryfield_night_dilapidated_house_80184C90, NULL, NULL, D_dryfield_night_dilapidated_house_80184CB4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80184F4C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank798C;
+
+DryfieldNightDilapidatedHousePoseBank798C D_dryfield_night_dilapidated_house_80184F4C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_bank1.inc"
 };
 
@@ -790,7 +988,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80185104 = {
     { NULL, D_dryfield_night_dilapidated_house_80184F4C, NULL, NULL, D_dryfield_night_dilapidated_house_80184F70, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8018512C[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightDilapidatedHousePoseBank7B6C;
+
+DryfieldNightDilapidatedHousePoseBank7B6C D_dryfield_night_dilapidated_house_8018512C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_bank1.inc"
 };
 
@@ -812,7 +1016,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80185364 = {
     { NULL, D_dryfield_night_dilapidated_house_8018512C, NULL, NULL, D_dryfield_night_dilapidated_house_80185168, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8018538C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} DryfieldNightDilapidatedHousePoseBank7DCC;
+
+DryfieldNightDilapidatedHousePoseBank7DCC D_dryfield_night_dilapidated_house_8018538C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_bank1.inc"
 };
 
@@ -834,7 +1044,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80185588 = {
     { NULL, D_dryfield_night_dilapidated_house_8018538C, NULL, NULL, D_dryfield_night_dilapidated_house_801853B0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_801855B0[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightDilapidatedHousePoseBank7FF0;
+
+DryfieldNightDilapidatedHousePoseBank7FF0 D_dryfield_night_dilapidated_house_801855B0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_bank1.inc"
 };
 
@@ -856,7 +1072,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80185838 = {
     { NULL, D_dryfield_night_dilapidated_house_801855B0, NULL, NULL, D_dryfield_night_dilapidated_house_801855EC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80185860[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightDilapidatedHousePoseBank82A0;
+
+DryfieldNightDilapidatedHousePoseBank82A0 D_dryfield_night_dilapidated_house_80185860 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_bank1.inc"
 };
 
@@ -878,7 +1100,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80185C1C = {
     { NULL, D_dryfield_night_dilapidated_house_80185860, NULL, NULL, D_dryfield_night_dilapidated_house_80185878, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_80185C44[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank8684;
+
+DryfieldNightDilapidatedHousePoseBank8684 D_dryfield_night_dilapidated_house_80185C44 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_bank1.inc"
 };
 
@@ -900,7 +1128,13 @@ GpAnimSet D_dryfield_night_dilapidated_house_80186234 = {
     { NULL, D_dryfield_night_dilapidated_house_80185C44, NULL, NULL, D_dryfield_night_dilapidated_house_80185C74, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_dilapidated_house_8018625C[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightDilapidatedHousePoseBank8C9C;
+
+DryfieldNightDilapidatedHousePoseBank8C9C D_dryfield_night_dilapidated_house_8018625C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_bank1.inc"
 };
 

@@ -64,7 +64,13 @@ extern GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
-GpPackedPose D_dryfield_night_parking_lot_8017E7E4[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldNightParkingLotPoseBank1224;
+
+DryfieldNightParkingLotPoseBank1224 D_dryfield_night_parking_lot_8017E7E4 = { .poses = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
 };
 

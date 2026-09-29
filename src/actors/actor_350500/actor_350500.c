@@ -126,7 +126,13 @@ TmdSource D_actor_350500_8016785C = {
     D_actor_350500_80164240,
 };
 
-GpPackedPose D_actor_350500_80167880[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor350500PoseBank5A60;
+
+Actor350500PoseBank5A60 D_actor_350500_80167880 = { .poses = {
 #include "assets/actor_350500_animation_05C4C_bank1.inc"
 };
 
@@ -148,7 +154,13 @@ GpAnimSet D_actor_350500_80167A6C = {
     { NULL, D_actor_350500_80167880, NULL, NULL, D_actor_350500_80167898, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_350500_80167A94[22] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[22];
+    AnimationPackedRotation        words[66];
+} Actor350500PoseBank5C74;
+
+Actor350500PoseBank5C74 D_actor_350500_80167A94 = { .poses = {
 #include "assets/actor_350500_animation_06830_bank1.inc"
 };
 
@@ -170,7 +182,13 @@ GpAnimSet D_actor_350500_80168650 = {
     { NULL, D_actor_350500_80167A94, NULL, NULL, D_actor_350500_80167B9C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_350500_80168678[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} Actor350500PoseBank6858;
+
+Actor350500PoseBank6858 D_actor_350500_80168678 = { .poses = {
 #include "assets/actor_350500_animation_06C38_bank1.inc"
 };
 
@@ -192,7 +210,13 @@ GpAnimSet D_actor_350500_80168A58 = {
     { NULL, D_actor_350500_80168678, NULL, NULL, D_actor_350500_801686B4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_350500_80168A80[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} Actor350500PoseBank6C60;
+
+Actor350500PoseBank6C60 D_actor_350500_80168A80 = { .poses = {
 #include "assets/actor_350500_animation_07044_bank1.inc"
 };
 

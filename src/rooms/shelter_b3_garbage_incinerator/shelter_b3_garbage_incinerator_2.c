@@ -251,7 +251,13 @@ TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
 
 s32 D_shelter_b3_garbage_incinerator_80185BC4 = 256;
 
-GpPackedPose D_shelter_b3_garbage_incinerator_80185BC8[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} ShelterB3GarbageIncineratorPoseBank8608;
+
+ShelterB3GarbageIncineratorPoseBank8608 D_shelter_b3_garbage_incinerator_80185BC8 = { .poses = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"
 };
 
@@ -273,7 +279,13 @@ GpAnimSet D_shelter_b3_garbage_incinerator_80185EA4 = {
     { NULL, D_shelter_b3_garbage_incinerator_80185BC8, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b3_garbage_incinerator_80185ECC[16] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[16];
+    AnimationPackedRotation        words[48];
+} ShelterB3GarbageIncineratorPoseBank890C;
+
+ShelterB3GarbageIncineratorPoseBank890C D_shelter_b3_garbage_incinerator_80185ECC = { .poses = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank1.inc"
 };
 
@@ -295,7 +307,13 @@ GpAnimSet D_shelter_b3_garbage_incinerator_801868E0 = {
     { NULL, D_shelter_b3_garbage_incinerator_80185ECC, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_shelter_b3_garbage_incinerator_80186908[14] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[14];
+    AnimationPackedRotation        words[42];
+} ShelterB3GarbageIncineratorPoseBank9348;
+
+ShelterB3GarbageIncineratorPoseBank9348 D_shelter_b3_garbage_incinerator_80186908 = { .poses = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank1.inc"
 };
 

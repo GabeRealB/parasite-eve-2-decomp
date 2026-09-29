@@ -94,7 +94,13 @@ TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, func_neo_ark_submarine_
 
 TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { 0, 192, func_neo_ark_submarine_tunnel_8017E288, { .model = NULL } };
 
-GpPackedPose D_neo_ark_submarine_tunnel_801810FC[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} NeoArkSubmarineTunnelPoseBank3B3C;
+
+NeoArkSubmarineTunnelPoseBank3B3C D_neo_ark_submarine_tunnel_801810FC = { .poses = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
 };
 
@@ -116,7 +122,13 @@ GpAnimSet D_neo_ark_submarine_tunnel_801814A0 = {
     { NULL, D_neo_ark_submarine_tunnel_801810FC, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
 };
 
-GpPackedPose D_neo_ark_submarine_tunnel_801814C8[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} NeoArkSubmarineTunnelPoseBank3F08;
+
+NeoArkSubmarineTunnelPoseBank3F08 D_neo_ark_submarine_tunnel_801814C8 = { .poses = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank1.inc"
 };
 

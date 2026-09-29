@@ -185,7 +185,13 @@ void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
 ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, func_shelter_b2_main_corridor_8017D6BC, { .model = NULL } } };
 
-GpPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} ShelterB2MainCorridorPoseBank5330;
+
+ShelterB2MainCorridorPoseBank5330 D_shelter_b2_main_corridor_801828F0 = { .poses = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
 };
 

@@ -395,17 +395,17 @@ def package_id(path: Path) -> int | None:
 #
 # The pose *kind* is a property of the track, not of each record: the slot
 # takes it once in `Gp_AnimInitSlot` (`arg1->poseKind = op & 0xF`) and
-# `animationTickSlotPose` reads `poseKind = slot->poseKind` for every record afterwards. The
+# `animationTickIndex` reads `op = slot->poseKind` for every record afterwards. The
 # control records carry 0 in those bits, so reading the kind per record loses
 # the final keyframe.
 #
-#   1  GpPackedPose  6 x s16: translation then ZYX Euler rotation
+#   1  AnimationPackedPose  6 x s16: local XYZ translation then XYZ Euler angles
 #   4  AnimationPackedRotation  one word, 11/10/11 bits, each component << 3 into an angle
 #
 # Kind 4 carries no translation, so the bone keeps its rest offset - which is
 # the usual arrangement: the root translates, the limbs only rotate.
 #
-# Playback interpolates, as `_animationBlendPose` / `_animationBlendPackedRotation` do: they
+# Playback interpolates, as `_animationBlendTranslationRotation` / `_animationBlendPackedRotation` do: they
 # hold a current and a next pose and blend with a GTE GPF/GPL pair over the
 # record's duration, so a stepped player looks nothing like the game.
 
@@ -525,8 +525,8 @@ def sample_animation(
     """Local (rotation, translation) per bone at ``frame``, interpolated.
 
     The game blends between the current record's pose and the next one across
-    the record's duration (`_animationBlendPose` runs a GTE GPF/GPL pair over
-    `field_C / field_E`), and interpolates the Euler angles themselves rather
+    the record's duration (`_animationBlendTranslationRotation` runs a GTE GPF/GPL pair over
+    `timeLeft / timeSpan`), and interpolates the Euler angles themselves rather
     than the matrices, so this does the same. The track loops, so the pose
     after the last record is the first again.
     """

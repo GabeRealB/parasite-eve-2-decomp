@@ -62,7 +62,13 @@ extern GpAnimArg D_mine_gorge_8017E5E8;
 extern GpCopyArg D_mine_gorge_8017E5E0;
 void             func_mine_gorge_8017D8C8(s32);
 
-GpPackedPose D_mine_gorge_8017DE10[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} MineGorgePoseBank850;
+
+MineGorgePoseBank850 D_mine_gorge_8017DE10 = { .poses = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
 };
 

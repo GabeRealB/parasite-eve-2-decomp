@@ -201,7 +201,13 @@ void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
-GpPackedPose D_acropolis_patio_8017ECEC[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisPatioPoseBank172C;
+
+AcropolisPatioPoseBank172C D_acropolis_patio_8017ECEC = { .poses = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
 };
 
@@ -223,7 +229,13 @@ GpAnimSet D_acropolis_patio_8017EE60 = {
     { NULL, D_acropolis_patio_8017ECEC, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_8017EE88[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisPatioPoseBank18C8;
+
+AcropolisPatioPoseBank18C8 D_acropolis_patio_8017EE88 = { .poses = {
 #include "assets/acropolis_patio_animation_01B48_bank1.inc"
 };
 
@@ -245,7 +257,13 @@ GpAnimSet D_acropolis_patio_8017F108 = {
     { NULL, D_acropolis_patio_8017EE88, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_8017F130[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisPatioPoseBank1B70;
+
+AcropolisPatioPoseBank1B70 D_acropolis_patio_8017F130 = { .poses = {
 #include "assets/acropolis_patio_animation_01CE4_bank1.inc"
 };
 
@@ -267,7 +285,13 @@ GpAnimSet D_acropolis_patio_8017F2A4 = {
     { NULL, D_acropolis_patio_8017F130, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_8017F2CC[12] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[12];
+    AnimationPackedRotation        words[36];
+} AcropolisPatioPoseBank1D0C;
+
+AcropolisPatioPoseBank1D0C D_acropolis_patio_8017F2CC = { .poses = {
 #include "assets/acropolis_patio_animation_022B8_bank1.inc"
 };
 
@@ -289,7 +313,13 @@ GpAnimSet D_acropolis_patio_8017F878 = {
     { NULL, D_acropolis_patio_8017F2CC, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_8017F8A0[19] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[19];
+    AnimationPackedRotation        words[57];
+} AcropolisPatioPoseBank22E0;
+
+AcropolisPatioPoseBank22E0 D_acropolis_patio_8017F8A0 = { .poses = {
 #include "assets/acropolis_patio_animation_02AD0_bank1.inc"
 };
 
@@ -311,7 +341,13 @@ GpAnimSet D_acropolis_patio_80180090 = {
     { NULL, D_acropolis_patio_8017F8A0, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_801800B8[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisPatioPoseBank2AF8;
+
+AcropolisPatioPoseBank2AF8 D_acropolis_patio_801800B8 = { .poses = {
 #include "assets/acropolis_patio_animation_02CA4_bank1.inc"
 };
 
@@ -541,7 +577,13 @@ GpEvsCmd D_acropolis_patio_80180EDC[9] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpPackedPose D_acropolis_patio_80180FB4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisPatioPoseBank39F4;
+
+AcropolisPatioPoseBank39F4 D_acropolis_patio_80180FB4 = { .poses = {
 #include "assets/acropolis_patio_animation_03CD0_bank1.inc"
 };
 
@@ -563,7 +605,13 @@ GpAnimSet D_acropolis_patio_80181290 = {
     { NULL, D_acropolis_patio_80180FB4, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_801812B8[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} AcropolisPatioPoseBank3CF8;
+
+AcropolisPatioPoseBank3CF8 D_acropolis_patio_801812B8 = { .poses = {
 #include "assets/acropolis_patio_animation_04470_bank1.inc"
 };
 
@@ -585,7 +633,13 @@ GpAnimSet D_acropolis_patio_80181A30 = {
     { NULL, D_acropolis_patio_801812B8, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_80181A58[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} AcropolisPatioPoseBank4498;
+
+AcropolisPatioPoseBank4498 D_acropolis_patio_80181A58 = { .poses = {
 #include "assets/acropolis_patio_animation_0494C_bank1.inc"
 };
 
@@ -607,7 +661,13 @@ GpAnimSet D_acropolis_patio_80181F0C = {
     { NULL, D_acropolis_patio_80181A58, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_patio_80181F34[11] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[11];
+    AnimationPackedRotation        words[33];
+} AcropolisPatioPoseBank4974;
+
+AcropolisPatioPoseBank4974 D_acropolis_patio_80181F34 = { .poses = {
 #include "assets/acropolis_patio_animation_04FC8_bank1.inc"
 };
 

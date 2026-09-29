@@ -479,7 +479,13 @@ TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { 0, 192, func_acropolis_cafeteria_8017E47C, { .model = NULL } },
 };
 
-GpPackedPose D_acropolis_cafeteria_8018419C[23] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[23];
+    AnimationPackedRotation        words[69];
+} AcropolisCafeteriaPoseBank6BDC;
+
+AcropolisCafeteriaPoseBank6BDC D_acropolis_cafeteria_8018419C = { .poses = {
 #include "assets/acropolis_cafeteria_animation_07704_bank1.inc"
 };
 

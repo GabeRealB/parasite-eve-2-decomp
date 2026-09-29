@@ -265,7 +265,13 @@ TmdSource D_actor_521100_80164EBC = {
     D_actor_521100_80161114,
 };
 
-GpPackedPose D_actor_521100_80164EE0[136] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[136];
+    AnimationPackedRotation        words[408];
+} Actor521100PoseBank330C0;
+
+Actor521100PoseBank330C0 D_actor_521100_80164EE0 = { .poses = {
 #include "assets/actor_521100_animation_36E34_bank1.inc"
 };
 
@@ -287,7 +293,13 @@ GpAnimSet D_actor_521100_80168C54 = {
     { NULL, D_actor_521100_80164EE0, NULL, NULL, D_actor_521100_80165540, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_521100_80168C7C[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} Actor521100PoseBank36E5C;
+
+Actor521100PoseBank36E5C D_actor_521100_80168C7C = { .poses = {
 #include "assets/actor_521100_animation_372D8_bank1.inc"
 };
 
@@ -309,7 +321,13 @@ GpAnimSet D_actor_521100_801690F8 = {
     { NULL, D_actor_521100_80168C7C, NULL, NULL, D_actor_521100_80168CDC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_521100_80169120[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} Actor521100PoseBank37300;
+
+Actor521100PoseBank37300 D_actor_521100_80169120 = { .poses = {
 #include "assets/actor_521100_animation_37730_bank1.inc"
 };
 
@@ -331,7 +349,13 @@ GpAnimSet D_actor_521100_80169550 = {
     { NULL, D_actor_521100_80169120, NULL, NULL, D_actor_521100_80169168, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_521100_80169578[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} Actor521100PoseBank37758;
+
+Actor521100PoseBank37758 D_actor_521100_80169578 = { .poses = {
 #include "assets/actor_521100_animation_38334_bank1.inc"
 };
 
@@ -353,7 +377,13 @@ GpAnimSet D_actor_521100_8016A154 = {
     { NULL, D_actor_521100_80169578, NULL, NULL, D_actor_521100_80169674, NULL, NULL, NULL },
 };
 
-GpPackedPose D_actor_521100_8016A17C[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} Actor521100PoseBank3835C;
+
+Actor521100PoseBank3835C D_actor_521100_8016A17C = { .poses = {
 #include "assets/actor_521100_animation_38510_bank1.inc"
 };
 

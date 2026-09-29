@@ -177,7 +177,13 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, func_neo_ark_observatory_8017F588, { .model = NULL } };
 
-GpPackedPose D_neo_ark_observatory_80180DE0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} NeoArkObservatoryPoseBank3820;
+
+NeoArkObservatoryPoseBank3820 D_neo_ark_observatory_80180DE0 = { .poses = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
 };
 

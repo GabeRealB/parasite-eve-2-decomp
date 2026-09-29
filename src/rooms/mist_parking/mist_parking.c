@@ -161,7 +161,13 @@ TaskDesc D_mist_parking_801869B8[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpPackedPose D_mist_parking_801869DC[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MistParkingPoseBank941C;
+
+MistParkingPoseBank941C D_mist_parking_801869DC = { .poses = {
 #include "assets/mist_parking_animation_095D0_bank1.inc"
 };
 
@@ -296,7 +302,13 @@ TmdSource D_mist_parking_80187294 = {
     D_mist_parking_8018715C,
 };
 
-GpPackedPose D_mist_parking_801872B8[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MistParkingPoseBank9CF8;
+
+MistParkingPoseBank9CF8 D_mist_parking_801872B8 = { .poses = {
 #include "assets/mist_parking_animation_09FD4_bank1.inc"
 };
 
@@ -318,7 +330,13 @@ GpAnimSet D_mist_parking_80187594 = {
     { NULL, D_mist_parking_801872B8, NULL, NULL, D_mist_parking_80187300, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_801875BC[13] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[13];
+    AnimationPackedRotation        words[39];
+} MistParkingPoseBank9FFC;
+
+MistParkingPoseBank9FFC D_mist_parking_801875BC = { .poses = {
 #include "assets/mist_parking_animation_0A774_bank1.inc"
 };
 
@@ -340,7 +358,13 @@ GpAnimSet D_mist_parking_80187D34 = {
     { NULL, D_mist_parking_801875BC, NULL, NULL, D_mist_parking_80187658, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80187D5C[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MistParkingPoseBankA79C;
+
+MistParkingPoseBankA79C D_mist_parking_80187D5C = { .poses = {
 #include "assets/mist_parking_animation_0AC5C_bank1.inc"
 };
 
@@ -362,7 +386,13 @@ GpAnimSet D_mist_parking_8018821C = {
     { NULL, D_mist_parking_80187D5C, NULL, NULL, D_mist_parking_80187DA4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80188244[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} MistParkingPoseBankAC84;
+
+MistParkingPoseBankAC84 D_mist_parking_80188244 = { .poses = {
 #include "assets/mist_parking_animation_0B138_bank1.inc"
 };
 
@@ -384,7 +414,13 @@ GpAnimSet D_mist_parking_801886F8 = {
     { NULL, D_mist_parking_80188244, NULL, NULL, D_mist_parking_801882B0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80188720[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} MistParkingPoseBankB160;
+
+MistParkingPoseBankB160 D_mist_parking_80188720 = { .poses = {
 #include "assets/mist_parking_animation_0B700_bank1.inc"
 };
 
@@ -406,7 +442,13 @@ GpAnimSet D_mist_parking_80188CC0 = {
     { NULL, D_mist_parking_80188720, NULL, NULL, D_mist_parking_80188798, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80188CE8[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} MistParkingPoseBankB728;
+
+MistParkingPoseBankB728 D_mist_parking_80188CE8 = { .poses = {
 #include "assets/mist_parking_animation_0BAB4_bank1.inc"
 };
 
@@ -428,7 +470,13 @@ GpAnimSet D_mist_parking_80189074 = {
     { NULL, D_mist_parking_80188CE8, NULL, NULL, D_mist_parking_80188D24, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018909C[12] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[12];
+    AnimationPackedRotation        words[36];
+} MistParkingPoseBankBADC;
+
+MistParkingPoseBankBADC D_mist_parking_8018909C = { .poses = {
 #include "assets/mist_parking_animation_0C1B0_bank1.inc"
 };
 
@@ -450,7 +498,13 @@ GpAnimSet D_mist_parking_80189770 = {
     { NULL, D_mist_parking_8018909C, NULL, NULL, D_mist_parking_8018912C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80189798[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} MistParkingPoseBankC1D8;
+
+MistParkingPoseBankC1D8 D_mist_parking_80189798 = { .poses = {
 #include "assets/mist_parking_animation_0C688_bank1.inc"
 };
 
@@ -472,7 +526,13 @@ GpAnimSet D_mist_parking_80189C48 = {
     { NULL, D_mist_parking_80189798, NULL, NULL, D_mist_parking_801897EC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_80189C70[12] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[12];
+    AnimationPackedRotation        words[36];
+} MistParkingPoseBankC6B0;
+
+MistParkingPoseBankC6B0 D_mist_parking_80189C70 = { .poses = {
 #include "assets/mist_parking_animation_0CD80_bank1.inc"
 };
 
@@ -494,7 +554,13 @@ GpAnimSet D_mist_parking_8018A340 = {
     { NULL, D_mist_parking_80189C70, NULL, NULL, D_mist_parking_80189D00, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018A368[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} MistParkingPoseBankCDA8;
+
+MistParkingPoseBankCDA8 D_mist_parking_8018A368 = { .poses = {
 #include "assets/mist_parking_animation_0D060_bank1.inc"
 };
 
@@ -516,7 +582,13 @@ GpAnimSet D_mist_parking_8018A620 = {
     { NULL, D_mist_parking_8018A368, NULL, NULL, D_mist_parking_8018A38C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018A648[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MistParkingPoseBankD088;
+
+MistParkingPoseBankD088 D_mist_parking_8018A648 = { .poses = {
 #include "assets/mist_parking_animation_0D3E4_bank1.inc"
 };
 
@@ -538,7 +610,13 @@ GpAnimSet D_mist_parking_8018A9A4 = {
     { NULL, D_mist_parking_8018A648, NULL, NULL, D_mist_parking_8018A690, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018A9CC[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MistParkingPoseBankD40C;
+
+MistParkingPoseBankD40C D_mist_parking_8018A9CC = { .poses = {
 #include "assets/mist_parking_animation_0D6A4_bank1.inc"
 };
 
@@ -560,7 +638,13 @@ GpAnimSet D_mist_parking_8018AC64 = {
     { NULL, D_mist_parking_8018A9CC, NULL, NULL, D_mist_parking_8018A9FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018AC8C[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} MistParkingPoseBankD6CC;
+
+MistParkingPoseBankD6CC D_mist_parking_8018AC8C = { .poses = {
 #include "assets/mist_parking_animation_0DA94_bank1.inc"
 };
 
@@ -582,7 +666,13 @@ GpAnimSet D_mist_parking_8018B054 = {
     { NULL, D_mist_parking_8018AC8C, NULL, NULL, D_mist_parking_8018ACE0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018B07C[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} MistParkingPoseBankDABC;
+
+MistParkingPoseBankDABC D_mist_parking_8018B07C = { .poses = {
 #include "assets/mist_parking_animation_0DE94_bank1.inc"
 };
 
@@ -604,7 +694,13 @@ GpAnimSet D_mist_parking_8018B454 = {
     { NULL, D_mist_parking_8018B07C, NULL, NULL, D_mist_parking_8018B0F4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018B47C[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} MistParkingPoseBankDEBC;
+
+MistParkingPoseBankDEBC D_mist_parking_8018B47C = { .poses = {
 #include "assets/mist_parking_animation_0E1D0_bank1.inc"
 };
 
@@ -626,7 +722,13 @@ GpAnimSet D_mist_parking_8018B790 = {
     { NULL, D_mist_parking_8018B47C, NULL, NULL, D_mist_parking_8018B4DC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018B7B8[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} MistParkingPoseBankE1F8;
+
+MistParkingPoseBankE1F8 D_mist_parking_8018B7B8 = { .poses = {
 #include "assets/mist_parking_animation_0E6E0_bank1.inc"
 };
 
@@ -648,7 +750,13 @@ GpAnimSet D_mist_parking_8018BCA0 = {
     { NULL, D_mist_parking_8018B7B8, NULL, NULL, D_mist_parking_8018B830, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018BCC8[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} MistParkingPoseBankE708;
+
+MistParkingPoseBankE708 D_mist_parking_8018BCC8 = { .poses = {
 #include "assets/mist_parking_animation_0EA0C_bank1.inc"
 };
 
@@ -670,7 +778,13 @@ GpAnimSet D_mist_parking_8018BFCC = {
     { NULL, D_mist_parking_8018BCC8, NULL, NULL, D_mist_parking_8018BD1C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018BFF4[8] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[8];
+    AnimationPackedRotation        words[24];
+} MistParkingPoseBankEA34;
+
+MistParkingPoseBankEA34 D_mist_parking_8018BFF4 = { .poses = {
 #include "assets/mist_parking_animation_0EDE0_bank1.inc"
 };
 
@@ -692,7 +806,13 @@ GpAnimSet D_mist_parking_8018C3A0 = {
     { NULL, D_mist_parking_8018BFF4, NULL, NULL, D_mist_parking_8018C054, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018C3C8[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} MistParkingPoseBankEE08;
+
+MistParkingPoseBankEE08 D_mist_parking_8018C3C8 = { .poses = {
 #include "assets/mist_parking_animation_0F14C_bank1.inc"
 };
 
@@ -714,7 +834,13 @@ GpAnimSet D_mist_parking_8018C70C = {
     { NULL, D_mist_parking_8018C3C8, NULL, NULL, D_mist_parking_8018C41C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018C734[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} MistParkingPoseBankF174;
+
+MistParkingPoseBankF174 D_mist_parking_8018C734 = { .poses = {
 #include "assets/mist_parking_animation_0F574_bank1.inc"
 };
 
@@ -736,7 +862,13 @@ GpAnimSet D_mist_parking_8018CB34 = {
     { NULL, D_mist_parking_8018C734, NULL, NULL, D_mist_parking_8018C770, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018CB5C[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} MistParkingPoseBankF59C;
+
+MistParkingPoseBankF59C D_mist_parking_8018CB5C = { .poses = {
 #include "assets/mist_parking_animation_0F7F0_bank1.inc"
 };
 
@@ -758,7 +890,13 @@ GpAnimSet D_mist_parking_8018CDB0 = {
     { NULL, D_mist_parking_8018CB5C, NULL, NULL, D_mist_parking_8018CB80, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018CDD8[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} MistParkingPoseBankF818;
+
+MistParkingPoseBankF818 D_mist_parking_8018CDD8 = { .poses = {
 #include "assets/mist_parking_animation_0FC60_bank1.inc"
 };
 
@@ -780,7 +918,13 @@ GpAnimSet D_mist_parking_8018D220 = {
     { NULL, D_mist_parking_8018CDD8, NULL, NULL, D_mist_parking_8018CE14, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018D248[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MistParkingPoseBankFC88;
+
+MistParkingPoseBankFC88 D_mist_parking_8018D248 = { .poses = {
 #include "assets/mist_parking_animation_0FE5C_bank1.inc"
 };
 
@@ -802,7 +946,13 @@ GpAnimSet D_mist_parking_8018D41C = {
     { NULL, D_mist_parking_8018D248, NULL, NULL, D_mist_parking_8018D278, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mist_parking_8018D444[7] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[7];
+    AnimationPackedRotation        words[21];
+} MistParkingPoseBankFE84;
+
+MistParkingPoseBankFE84 D_mist_parking_8018D444 = { .poses = {
 #include "assets/mist_parking_animation_10174_bank1.inc"
 };
 

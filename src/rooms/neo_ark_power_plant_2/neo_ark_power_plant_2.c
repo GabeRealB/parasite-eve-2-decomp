@@ -105,7 +105,13 @@ s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, GpMessageArg, GpMessageArg)
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 
-GpPackedPose D_neo_ark_power_plant_2_8017FDF0[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} NeoArkPowerPlant2PoseBank2830;
+
+NeoArkPowerPlant2PoseBank2830 D_neo_ark_power_plant_2_8017FDF0 = { .poses = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
 };
 
@@ -127,7 +133,13 @@ GpAnimSet D_neo_ark_power_plant_2_8018000C = {
     { NULL, D_neo_ark_power_plant_2_8017FDF0, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
 };
 
-GpPackedPose D_neo_ark_power_plant_2_80180034[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} NeoArkPowerPlant2PoseBank2A74;
+
+NeoArkPowerPlant2PoseBank2A74 D_neo_ark_power_plant_2_80180034 = { .poses = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank1.inc"
 };
 

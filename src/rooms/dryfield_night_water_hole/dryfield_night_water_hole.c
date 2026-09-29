@@ -190,7 +190,13 @@ s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_night_water_hole_8017D7E8(Task*);
 
-GpPackedPose D_dryfield_night_water_hole_80180220[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightWaterHolePoseBank2C60;
+
+DryfieldNightWaterHolePoseBank2C60 D_dryfield_night_water_hole_80180220 = { .poses = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
 };
 

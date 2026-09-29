@@ -131,7 +131,13 @@ extern GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1];
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
 
-GpPackedPose D_neo_ark_forest_zone_80181580[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} NeoArkForestZonePoseBank3FC0;
+
+NeoArkForestZonePoseBank3FC0 D_neo_ark_forest_zone_80181580 = { .poses = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank1.inc"
 };
 
@@ -153,7 +159,13 @@ GpAnimSet D_neo_ark_forest_zone_80181924 = {
     { NULL, D_neo_ark_forest_zone_80181580, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_neo_ark_forest_zone_8018194C[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} NeoArkForestZonePoseBank438C;
+
+NeoArkForestZonePoseBank438C D_neo_ark_forest_zone_8018194C = { .poses = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank1.inc"
 };
 

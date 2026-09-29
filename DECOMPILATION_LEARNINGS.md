@@ -31020,8 +31020,9 @@ register void* sets asm("s1");
 extra = arg4;
 sets  = arg7;
 animationTickSlotPose(...);
+animationTickSlotPose(...);
 if (sets != NULL) {
-    ctx->field_0 = sets;
+    ctx->sets = sets;
     slot->sets    = sets;
 }
 idx = set->trackStart[slot->trackIndex] + extra;
@@ -32739,13 +32740,14 @@ val = one << 4;
 ## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
 
 `animationTickSlotPose(ctx, i, 0, field_8 + (i << 4))` wants `addu a3, a3, t0` in
+`animationTickSlotPose(ctx, i, 0, (u8*)ctx->poses + (i << 4))` wants `addu a3, a3, t0` in
 the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
-`call_a3 = field_8 + off` emits the add too early and leaves `a2 = 0` as
+`call_a3 = (u8*)ctx->poses + off` emits the add too early and leaves `a2 = 0` as
 the `jal` delay.
 
 Pin the base to `$a3` and add only at the call. A `register s32 raw
 asm("a2")` plus `asm volatile("" : "+r"(raw))` after saving `arg2` keeps
-the first `field_20` index as `sll v1, a2, 2` instead of the saved `$s2`
+the first `slot->sets` index as `sll v1, a2, 2` instead of the saved `$s2`
 copy:
 
 ```c
@@ -32755,8 +32757,9 @@ register s32 f8 asm("a3");
 
 raw = arg2;
 off = arg1 << 4;
-f8  = (s32)arg0->field_8;
+f8  = (s32)arg0->poses;
 asm volatile("" : "+r"(raw));
+animationTickSlotPose(arg0, arg1, 0, f8 + off);
 animationTickSlotPose(arg0, arg1, 0, f8 + off);
 ```
 
@@ -34374,7 +34377,7 @@ Leave `dest` unpinned; GCC still loads it into `$a3` after the return.
 
 ## Reuse `$v1` across scratch head, dividend, and bitfield pointer
 
-A 3-arg function that early-outs on `arg2->field_E`, allocates an 0x80-byte
+A 3-arg function that early-outs on `slot->timeSpan`, allocates an 0x80-byte
 scratch, then walks 11-10-11 bitfields wants `$v1` for three sequential
 lifetimes and the subtract in `$v0`:
 
@@ -34391,8 +34394,8 @@ tmp -= 1;
 ```
 
 `tmp -= 1` on the 0x80-byte struct is `addiu v0, v0, -0x80` / `sw v0, 0(v1)`;
-the copy into `$s0` fills the `beq field_0, field_4` delay. Pin `blend` so
-`lh v1, field_C` / `div v1, v0` / `mflo v1` and the invBlend phi stay in
+the copy into `$s0` fills the `beq currentPose, nextPose` delay. Pin `blend` so
+`lh v1, timeLeft` / `div v1, v0` / `mflo v1` and the nextWeight phi stay in
 `$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
 reloading the pointer from `$s1`. `_animationBlendPackedRotation` is the example.
 
@@ -36053,7 +36056,7 @@ Same `+r` pin as `func_8009AA5C`. `Gp_ExtractEuler` is the example.
 
 ## Memory clobber so `gte_lddp` reloads a just-stored weight
 
-`s->invBlend = inv; gte_lddp(s->blend); ... gte_lddp(s->invBlend)` CSEs
+`scratch->nextWeight = inv; gte_lddp(scratch->currentWeight); ... gte_lddp(scratch->nextWeight)` CSEs
 `inv` in `$v0`: the `sw 0x7C` sinks into the blend `lw` delay and the
 second `mtc2` uses `$v0` instead of `lw 0x7C`. The target stores
 `invBlend` at the join, then reloads both weights:
@@ -36074,19 +36077,23 @@ mtc2   t0, $8
 load from the struct:
 
 ```c
-s->invBlend = inv;
+scratch->nextWeight = inv;
 asm volatile("" ::: "memory");
-gte_lddp(s->blend);
+gte_lddp(scratch->currentWeight);
 gte_ldsv(src0);
 gte_gpf12();
-gte_lddp(s->invBlend);
+gte_lddp(scratch->nextWeight);
 ```
 
 Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
 cannot hoist into the `beqz dest` delay. Write `field_C` dest through
 `index->field_C->vx` (no local) so each `sh` reloads the pointer. A named
 `z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
-rather than the `vy` delay. `_animationBlendPose` is the example.
+rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
+cannot hoist into the `beqz dest` delay. Write the unpacked translation through
+`request->unpackedDestination->trans.vx` (no local) so each `sh` reloads the pointer. A named
+`z = scratch->translation.vz` before `coord->flg = 0` keeps that store in the `lh vz` delay
+rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 
 ## Put a later call's constant in each wrap-select arm
 
@@ -39065,6 +39072,7 @@ and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
 ## One C variable = one hard register: split reused temporaries per loop
 
 `animationTickSlotPose` stalled at ~98% with the *same* mismatch shape in two similar
+`animationTickSlotPose` stalled at ~98% with the *same* mismatch shape in two similar
 loops: the target used one register pair (`a2`/`t1`) for `(setIdx, field_15*2)`
 and mine used the swap, and likewise for `(idx, lim)`. GCC 2.8.1 builds one
 pseudo per declared local, so a variable reused in two disjoint loops gets a
@@ -39105,6 +39113,11 @@ same operands, different destination — from
 
 ```c
 scratch->src.currentPose = &((u8*)set->poseBanks[poseKind])[records[slot->curRec].pose * sizeof(u32)];
+The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
+same operands, different destination — from
+
+```c
+scratch->request.currentPose = &set->poseBanks[poseKind][records[slot->curRec].pose];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
@@ -39113,6 +39126,8 @@ Hoisting the inner pointer into its own local flips that choice:
 ```c
 poseBytes                = set->poseBanks[poseKind];
 scratch->src.currentPose = &poseBytes[records[slot->curRec].pose * sizeof(u32)];
+bankWords                     = set->poseBanks[poseKind];
+scratch->request.currentPose = &bankWords[records[slot->curRec].pose];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -39121,12 +39136,13 @@ Neither a temporary for the whole address (`p = &...; x = p;`) nor the
 ## `lbu` + `sll 24` + `sra 24` vs `lb`: it is the statement form, not the cast
 
 Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
+Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
 the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The cast is
 identical in both; what differs is the assignment:
 
 ```c
-base           = slot->timeLeft - 1;              /* lhu, then lb  for rate */
-slot->timeLeft = base - (((s8)slot->rate - 1) >> 1);
+decrementedTime = slot->timeLeft - 1;              /* lhu, then lb  for rate */
+slot->timeLeft = decrementedTime - (((s8)slot->rate - 1) >> 1);
 ...
 slot->timeLeft -= (s8)slot->rate;               /* lbu; sll 24; sra 24 */
 ```
@@ -67011,11 +67027,13 @@ a `preferences:` line naming an argument register, look for a pseudo that dies
 into it. Shorten the recipient to a single block rather than pinning.
 
 The opposite shape has a second fix: `expand_preferences` only merges across a
-dying copy when the two allocnos do **not** conflict. `_animationBlendPose` reads
+dying copy when the two allocnos do **not** conflict. `_animationBlendTranslationRotation` reads
 three packed-pose pointers off `index` (`field_0`, `field_4`, then `field_8`
+dying copy when the two allocnos do **not** conflict. `_animationBlendTranslationRotation` reads
+three packed-pose pointers off `request` (`currentPose`, `nextPose`, then `encodedDestination`
 after the call). With a separate `dest` for the last one, `dest` inherited
-`$a0` from the dying `index` and landed in `$a0`, not the target's `$v1`. Using
-one `pose` variable for all three reads makes it live while `index` is too, so
+`$a0` from the dying `request` and landed in `$a0`, not the target's `$v1`. Using
+one `pose` variable for all three reads makes it live while `request` is too, so
 the two conflict, nothing is inherited, and `pose` gets `$v1` at every read (the
 `.greg` header loses its `preferences:` line). If the target keeps successive
 reads in the same register, try a single variable before splitting.
@@ -124007,6 +124025,7 @@ pins, no empty asm, no permuter run. Scratch
 ## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
+function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
 function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
 `Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
 (`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at

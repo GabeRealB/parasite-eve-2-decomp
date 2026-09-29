@@ -378,7 +378,13 @@ s16* D_dryfield_night_gas_station_80184370[1] = {
 
 GpGridParams D_dryfield_night_gas_station_80184374 = { NULL, D_dryfield_night_gas_station_801842D4, D_dryfield_night_gas_station_801842F4, D_dryfield_night_gas_station_80184334, D_dryfield_night_gas_station_80184370, -0x3534, 312, 1, 1, 4000, 4 };
 
-GpPackedPose D_dryfield_night_gas_station_80184398[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} DryfieldNightGasStationPoseBank6DD8;
+
+DryfieldNightGasStationPoseBank6DD8 D_dryfield_night_gas_station_80184398 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_070B4_bank1.inc"
 };
 
@@ -400,7 +406,13 @@ GpAnimSet D_dryfield_night_gas_station_80184674 = {
     { NULL, D_dryfield_night_gas_station_80184398, NULL, NULL, D_dryfield_night_gas_station_801843E0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_8018469C[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightGasStationPoseBank70DC;
+
+DryfieldNightGasStationPoseBank70DC D_dryfield_night_gas_station_8018469C = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_073A4_bank1.inc"
 };
 
@@ -422,7 +434,13 @@ GpAnimSet D_dryfield_night_gas_station_80184964 = {
     { NULL, D_dryfield_night_gas_station_8018469C, NULL, NULL, D_dryfield_night_gas_station_801846D8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_8018498C[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldNightGasStationPoseBank73CC;
+
+DryfieldNightGasStationPoseBank73CC D_dryfield_night_gas_station_8018498C = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_077A4_bank1.inc"
 };
 
@@ -444,7 +462,13 @@ GpAnimSet D_dryfield_night_gas_station_80184D64 = {
     { NULL, D_dryfield_night_gas_station_8018498C, NULL, NULL, D_dryfield_night_gas_station_80184A04, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80184D8C[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} DryfieldNightGasStationPoseBank77CC;
+
+DryfieldNightGasStationPoseBank77CC D_dryfield_night_gas_station_80184D8C = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_07A58_bank1.inc"
 };
 
@@ -466,7 +490,13 @@ GpAnimSet D_dryfield_night_gas_station_80185018 = {
     { NULL, D_dryfield_night_gas_station_80184D8C, NULL, NULL, D_dryfield_night_gas_station_80184DBC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80185040[5] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[5];
+    AnimationPackedRotation        words[15];
+} DryfieldNightGasStationPoseBank7A80;
+
+DryfieldNightGasStationPoseBank7A80 D_dryfield_night_gas_station_80185040 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_07CFC_bank1.inc"
 };
 
@@ -488,7 +518,13 @@ GpAnimSet D_dryfield_night_gas_station_801852BC = {
     { NULL, D_dryfield_night_gas_station_80185040, NULL, NULL, D_dryfield_night_gas_station_8018507C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_801852E4[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightGasStationPoseBank7D24;
+
+DryfieldNightGasStationPoseBank7D24 D_dryfield_night_gas_station_801852E4 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_07F78_bank1.inc"
 };
 
@@ -510,7 +546,13 @@ GpAnimSet D_dryfield_night_gas_station_80185538 = {
     { NULL, D_dryfield_night_gas_station_801852E4, NULL, NULL, D_dryfield_night_gas_station_801852FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80185560[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightGasStationPoseBank7FA0;
+
+DryfieldNightGasStationPoseBank7FA0 D_dryfield_night_gas_station_80185560 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_08148_bank1.inc"
 };
 
@@ -532,7 +574,13 @@ GpAnimSet D_dryfield_night_gas_station_80185708 = {
     { NULL, D_dryfield_night_gas_station_80185560, NULL, NULL, D_dryfield_night_gas_station_80185578, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80185730[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightGasStationPoseBank8170;
+
+DryfieldNightGasStationPoseBank8170 D_dryfield_night_gas_station_80185730 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_08318_bank1.inc"
 };
 
@@ -554,7 +602,13 @@ GpAnimSet D_dryfield_night_gas_station_801858D8 = {
     { NULL, D_dryfield_night_gas_station_80185730, NULL, NULL, D_dryfield_night_gas_station_80185748, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80185900[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} DryfieldNightGasStationPoseBank8340;
+
+DryfieldNightGasStationPoseBank8340 D_dryfield_night_gas_station_80185900 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_0885C_bank1.inc"
 };
 
@@ -576,7 +630,13 @@ GpAnimSet D_dryfield_night_gas_station_80185E1C = {
     { NULL, D_dryfield_night_gas_station_80185900, NULL, NULL, D_dryfield_night_gas_station_8018596C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80185E44[24] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[24];
+    AnimationPackedRotation        words[72];
+} DryfieldNightGasStationPoseBank8884;
+
+DryfieldNightGasStationPoseBank8884 D_dryfield_night_gas_station_80185E44 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_09344_bank1.inc"
 };
 
@@ -598,7 +658,13 @@ GpAnimSet D_dryfield_night_gas_station_80186904 = {
     { NULL, D_dryfield_night_gas_station_80185E44, NULL, NULL, D_dryfield_night_gas_station_80185F64, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_8018692C[23] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[23];
+    AnimationPackedRotation        words[69];
+} DryfieldNightGasStationPoseBank936C;
+
+DryfieldNightGasStationPoseBank936C D_dryfield_night_gas_station_8018692C = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_09D80_bank1.inc"
 };
 
@@ -620,7 +686,13 @@ GpAnimSet D_dryfield_night_gas_station_80187340 = {
     { NULL, D_dryfield_night_gas_station_8018692C, NULL, NULL, D_dryfield_night_gas_station_80186A40, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80187368[10] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[10];
+    AnimationPackedRotation        words[30];
+} DryfieldNightGasStationPoseBank9DA8;
+
+DryfieldNightGasStationPoseBank9DA8 D_dryfield_night_gas_station_80187368 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_0A3FC_bank1.inc"
 };
 
@@ -642,7 +714,13 @@ GpAnimSet D_dryfield_night_gas_station_801879BC = {
     { NULL, D_dryfield_night_gas_station_80187368, NULL, NULL, D_dryfield_night_gas_station_801873E0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_801879E4[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightGasStationPoseBankA424;
+
+DryfieldNightGasStationPoseBankA424 D_dryfield_night_gas_station_801879E4 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_0A698_bank1.inc"
 };
 
@@ -664,7 +742,13 @@ GpAnimSet D_dryfield_night_gas_station_80187C58 = {
     { NULL, D_dryfield_night_gas_station_801879E4, NULL, NULL, D_dryfield_night_gas_station_801879FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80187C80[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} DryfieldNightGasStationPoseBankA6C0;
+
+DryfieldNightGasStationPoseBankA6C0 D_dryfield_night_gas_station_80187C80 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_0AA3C_bank1.inc"
 };
 
@@ -686,7 +770,13 @@ GpAnimSet D_dryfield_night_gas_station_80187FFC = {
     { NULL, D_dryfield_night_gas_station_80187C80, NULL, NULL, D_dryfield_night_gas_station_80187C98, NULL, NULL, NULL },
 };
 
-GpPackedPose D_dryfield_night_gas_station_80188024[9] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[9];
+    AnimationPackedRotation        words[27];
+} DryfieldNightGasStationPoseBankAA64;
+
+DryfieldNightGasStationPoseBankAA64 D_dryfield_night_gas_station_80188024 = { .poses = {
 #include "assets/dryfield_night_gas_station_animation_0AF98_bank1.inc"
 };
 

@@ -334,7 +334,13 @@ TaskDesc D_mine_mesa_80181990[2] = {
 
 TaskDesc D_mine_mesa_801819A8 = { 0, 192, func_mine_mesa_8017DFC4, { .model = NULL } };
 
-GpPackedPose D_mine_mesa_801819B4[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MineMesaPoseBank43F4;
+
+MineMesaPoseBank43F4 D_mine_mesa_801819B4 = { .poses = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
 };
 
@@ -356,7 +362,13 @@ GpAnimSet D_mine_mesa_80181C90 = {
     { NULL, D_mine_mesa_801819B4, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80181CB8[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineMesaPoseBank46F8;
+
+MineMesaPoseBank46F8 D_mine_mesa_80181CB8 = { .poses = {
 #include "assets/mine_mesa_animation_0494C_bank1.inc"
 };
 
@@ -378,7 +390,13 @@ GpAnimSet D_mine_mesa_80181F0C = {
     { NULL, D_mine_mesa_80181CB8, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80181F34[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineMesaPoseBank4974;
+
+MineMesaPoseBank4974 D_mine_mesa_80181F34 = { .poses = {
 #include "assets/mine_mesa_animation_04B54_bank1.inc"
 };
 
@@ -400,7 +418,13 @@ GpAnimSet D_mine_mesa_80182114 = {
     { NULL, D_mine_mesa_80181F34, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_8018213C[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} MineMesaPoseBank4B7C;
+
+MineMesaPoseBank4B7C D_mine_mesa_8018213C = { .poses = {
 #include "assets/mine_mesa_animation_04ED8_bank1.inc"
 };
 
@@ -422,7 +446,13 @@ GpAnimSet D_mine_mesa_80182498 = {
     { NULL, D_mine_mesa_8018213C, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_801824C0[3] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[3];
+    AnimationPackedRotation        words[9];
+} MineMesaPoseBank4F00;
+
+MineMesaPoseBank4F00 D_mine_mesa_801824C0 = { .poses = {
 #include "assets/mine_mesa_animation_0515C_bank1.inc"
 };
 
@@ -444,7 +474,13 @@ GpAnimSet D_mine_mesa_8018271C = {
     { NULL, D_mine_mesa_801824C0, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80182744[28] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[28];
+    AnimationPackedRotation        words[84];
+} MineMesaPoseBank5184;
+
+MineMesaPoseBank5184 D_mine_mesa_80182744 = { .poses = {
 #include "assets/mine_mesa_animation_06160_bank1.inc"
 };
 
@@ -466,7 +502,13 @@ GpAnimSet D_mine_mesa_80183720 = {
     { NULL, D_mine_mesa_80182744, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80183748[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineMesaPoseBank6188;
+
+MineMesaPoseBank6188 D_mine_mesa_80183748 = { .poses = {
 #include "assets/mine_mesa_animation_0645C_bank1.inc"
 };
 
@@ -488,7 +530,13 @@ GpAnimSet D_mine_mesa_80183A1C = {
     { NULL, D_mine_mesa_80183748, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80183A44[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineMesaPoseBank6484;
+
+MineMesaPoseBank6484 D_mine_mesa_80183A44 = { .poses = {
 #include "assets/mine_mesa_animation_065FC_bank1.inc"
 };
 
@@ -510,7 +558,13 @@ GpAnimSet D_mine_mesa_80183BBC = {
     { NULL, D_mine_mesa_80183A44, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80183BE4[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} MineMesaPoseBank6624;
+
+MineMesaPoseBank6624 D_mine_mesa_80183BE4 = { .poses = {
 #include "assets/mine_mesa_animation_068E4_bank1.inc"
 };
 
@@ -532,7 +586,13 @@ GpAnimSet D_mine_mesa_80183EA4 = {
     { NULL, D_mine_mesa_80183BE4, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
 };
 
-GpPackedPose D_mine_mesa_80183ECC[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} MineMesaPoseBank690C;
+
+MineMesaPoseBank690C D_mine_mesa_80183ECC = { .poses = {
 #include "assets/mine_mesa_animation_06B9C_bank1.inc"
 };
 

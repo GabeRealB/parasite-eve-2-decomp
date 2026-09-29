@@ -21,7 +21,7 @@ def components(data: bytes, load: int, offset: int) -> list[dict]:
     for kind, bank in sorted(aset["pose_banks"].items(), key=lambda pair: pair[1]["offset"]):
         if kind == 1 and bank["words"] % 3:
             raise ValueError(f"animation at 0x{offset:X}: partial translation/rotation pose")
-        result.append(dict(name=f"bank{kind}", type="GpPackedPose" if kind == 1 else "AnimationPackedRotation",
+        result.append(dict(name=f"bank{kind}", type="AnimationPackedPose" if kind == 1 else "AnimationPackedRotation",
                            offset=bank["offset"], size=bank["words"] * 4,
                            count=bank["words"] // (3 if kind == 1 else 1)))
     result.append(dict(name="records", type="GpAnimRec", offset=aset["records_offset"],
@@ -42,8 +42,8 @@ def initializer(data: bytes, part: dict) -> str:
 
         values = [(signed(word, 11), signed(word >> 11, 10), signed(word >> 21, 11))
                   for word, in struct.iter_unpack("<I", data[start:start + size])]
-    elif typ in ("GpPackedPose", "GpAnimRec"):
-        fmt = "<6h" if typ == "GpPackedPose" else "<HBB"
+    elif typ in ("AnimationPackedPose", "GpAnimRec"):
+        fmt = "<6h" if typ == "AnimationPackedPose" else "<HBB"
         values = struct.iter_unpack(fmt, data[start:start + size])
     else:
         words = struct.unpack_from(f"<{size // 2}H", data, start)

@@ -2152,7 +2152,13 @@ TmdSource D_acropolis_bridge_8019119C = {
     D_acropolis_bridge_80190E2C,
 };
 
-GpPackedPose D_acropolis_bridge_801911C0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisBridgePoseBank13C00;
+
+AcropolisBridgePoseBank13C00 D_acropolis_bridge_801911C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13CD8_bank1.inc"
 };
 
@@ -2174,7 +2180,13 @@ GpAnimSet D_acropolis_bridge_80191298 = {
     { NULL, D_acropolis_bridge_801911C0, NULL, NULL, D_acropolis_bridge_80191208, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_bridge_801912C0[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisBridgePoseBank13D00;
+
+AcropolisBridgePoseBank13D00 D_acropolis_bridge_801912C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13DD8_bank1.inc"
 };
 
@@ -2196,7 +2208,13 @@ GpAnimSet D_acropolis_bridge_80191398 = {
     { NULL, D_acropolis_bridge_801912C0, NULL, NULL, D_acropolis_bridge_80191308, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_bridge_801913C0[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisBridgePoseBank13E00;
+
+AcropolisBridgePoseBank13E00 D_acropolis_bridge_801913C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13E48_bank1.inc"
 };
 
@@ -2218,7 +2236,13 @@ GpAnimSet D_acropolis_bridge_80191408 = {
     { NULL, D_acropolis_bridge_801913C0, NULL, NULL, D_acropolis_bridge_801913D8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_bridge_80191430[6] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[6];
+    AnimationPackedRotation        words[18];
+} AcropolisBridgePoseBank13E70;
+
+AcropolisBridgePoseBank13E70 D_acropolis_bridge_80191430 = { .poses = {
 #include "assets/acropolis_bridge_animation_13F60_bank1.inc"
 };
 
@@ -2240,7 +2264,13 @@ GpAnimSet D_acropolis_bridge_80191520 = {
     { NULL, D_acropolis_bridge_80191430, NULL, NULL, D_acropolis_bridge_80191478, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_bridge_80191548[2] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[2];
+    AnimationPackedRotation        words[6];
+} AcropolisBridgePoseBank13F88;
+
+AcropolisBridgePoseBank13F88 D_acropolis_bridge_80191548 = { .poses = {
 #include "assets/acropolis_bridge_animation_13FE0_bank1.inc"
 };
 

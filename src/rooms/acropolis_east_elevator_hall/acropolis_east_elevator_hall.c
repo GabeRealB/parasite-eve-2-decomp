@@ -126,7 +126,13 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_acropolis_east_elevator_hall_8017FC90;
 }
 
-GpPackedPose D_acropolis_east_elevator_hall_8017FCA8[4] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[4];
+    AnimationPackedRotation        words[12];
+} AcropolisEastElevatorHallPoseBank26E8;
+
+AcropolisEastElevatorHallPoseBank26E8 D_acropolis_east_elevator_hall_8017FCA8 = { .poses = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_bank1.inc"
 };
 
@@ -148,7 +154,13 @@ GpAnimSet D_acropolis_east_elevator_hall_80180478 = {
     { NULL, D_acropolis_east_elevator_hall_8017FCA8, NULL, NULL, D_acropolis_east_elevator_hall_8017FCD8, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_east_elevator_hall_801804A0[156] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[156];
+    AnimationPackedRotation        words[468];
+} AcropolisEastElevatorHallPoseBank2EE0;
+
+AcropolisEastElevatorHallPoseBank2EE0 D_acropolis_east_elevator_hall_801804A0 = { .poses = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_bank1.inc"
 };
 
@@ -170,7 +182,13 @@ GpAnimSet D_acropolis_east_elevator_hall_80184DE4 = {
     { NULL, D_acropolis_east_elevator_hall_801804A0, NULL, NULL, D_acropolis_east_elevator_hall_80180BF0, NULL, NULL, NULL },
 };
 
-GpPackedPose D_acropolis_east_elevator_hall_80184E0C[21] = {
+// The player indexes this pose bank in words, then reads a full pose.
+typedef union {
+    AnimationPackedPose poses[21];
+    AnimationPackedRotation        words[63];
+} AcropolisEastElevatorHallPoseBank784C;
+
+AcropolisEastElevatorHallPoseBank784C D_acropolis_east_elevator_hall_80184E0C = { .poses = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_bank1.inc"
 };
 
