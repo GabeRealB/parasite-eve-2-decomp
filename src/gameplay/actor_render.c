@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actor_render.h"
+#include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
 #include "model_objects.h"
 
@@ -19,11 +20,6 @@
 extern GfxCoord* _gGpCurCoord;
 
 static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
-
-/// Brings every coordinate the draw passes use up to date for this frame: the
-/// 2D displays' single coordinates, then each model's part coordinates, and
-/// advances the frame stamp the next pass will compare against.
-static __inline__ void _gpRefreshAllCoords(void);
 
 GfxCoord* _gGpCurCoord = NULL;
 
@@ -188,22 +184,24 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
 /// advances the frame stamp the next pass will compare against.
 static __inline__ void _gpRefreshAllCoords(void)
 {
-    TmdObject* node;
-    GfxCoord*  coord;
-    s32        stamp;
-    s32        parity;
-    u32        i;
+    // The cursors have disjoint lifetimes and reuse one saved register.
+    register GpDisp2d*  display asm("s3");
+    register TmdObject* model asm("s3");
+    GfxCoord*            coord;
+    s32                 stamp;
+    s32                 parity;
+    u32                 partIndex;
 
     stamp  = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
     parity = D_80071210 & 1;
-    for (node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link); node != NULL;
-         node = PARENT_OF(node->link.next, TmdObject, link)) {
-        _gpRefreshCoord(node->coords, stamp, parity, NULL);
+    for (display = PARENT_OF(gTmdDisp2dList.next, GpDisp2d, link); display != NULL;
+         display = PARENT_OF(display->link.next, GpDisp2d, link)) {
+        _gpRefreshCoord(display->coords, stamp, parity, NULL);
     }
-    for (node = PARENT_OF(gTmdList.next, TmdObject, link); node != NULL;
-         node = PARENT_OF(node->link.next, TmdObject, link)) {
-        coord = node->coords;
-        for (i = 0; i < node->partCount; i++) {
+    for (model = PARENT_OF(gTmdList.next, TmdObject, link); model != NULL;
+         model = PARENT_OF(model->link.next, TmdObject, link)) {
+        coord = model->coords;
+        for (partIndex = 0; partIndex < model->partCount; partIndex++) {
             _gpRefreshCoord(coord, stamp, parity, NULL);
             coord++;
         }

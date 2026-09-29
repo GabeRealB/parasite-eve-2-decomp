@@ -8,6 +8,14 @@
 struct GpDisp2d;
 struct Task;
 
+/// Recognized body kinds in `Task::spawnType`, plus the teardown-complete marker.
+enum {
+    TASK_BODY_NONE     = 0,
+    TASK_BODY_TMD      = 1,
+    TASK_BODY_DISP2D   = 2,
+    TASK_BODY_RELEASED = 0xFF
+};
+
 /// The body a task owns, whose kind its `spawnType` names: a model for 1, a 2D
 /// display for 2, nothing for 0.
 typedef union TaskBody {

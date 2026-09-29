@@ -46,21 +46,23 @@ typedef struct {
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
-/// One node of one of the TMD lists: a list's head, or the link every element
-/// on it embeds as its first member, from which `PARENT_OF` recovers the
-/// element.
+/// Intrusive link for an attached model or 2D-display body, also used as a
+/// list's sentinel head.
 ///
-/// A head is a bare node belonging to no element. Its `next` is the first node
-/// and its `prev` the last, which is the head itself while the list is empty,
-/// so a walk stops on `next` alone and the head is reachable only through
-/// `prev`. Linking and unlinking are written against the pair rather than
-/// against whichever type the elements are, so an unlink body differs from the
-/// next one only in the head it names.
-typedef struct _TmdListHead {
-    struct _TmdListHead* next; // Following node, or NULL past the last
-    struct _TmdListHead* prev; // Preceding node, or the head at the front
-} TmdListHead;
-STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
+/// `TmdObject` and `GpDisp2d` embed this as their first member. The list being
+/// walked determines which container `PARENT_OF` recovers; a sentinel belongs
+/// to neither container. Elements must be unlinked before their owner frees
+/// them, and their link fields are not cleared by unlinking.
+///
+/// A sentinel's `next` points to the first element and its `prev` to the last.
+/// An empty list has `next == NULL` and `prev` pointing to the sentinel itself.
+/// The first element's `prev` points to the sentinel; the last's `next` is
+/// `NULL`, so forward walks never visit the sentinel.
+typedef struct TmdListNode {
+    struct TmdListNode* next; // Next element's link; first element at a head, NULL at the end
+    struct TmdListNode* prev; // Previous link; tail at a head, sentinel at the front
+} TmdListNode;
+STATIC_ASSERT_SIZEOF(TmdListNode, 0x8);
 
 /// An attached model body: an element of `gTmdList` and the object a
 /// spawnType-1 `Task` carries in `Task::extra`.
@@ -75,7 +77,7 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// pass reads the half it writes: `bufferIndex` selects the half in use and
 /// each pass flips it.
 typedef struct {
-    TmdListHead link;        // Its place on `gTmdList`
+    TmdListNode link;        // Its place on `gTmdList`
     GfxCoord*    coords;      // Per-part coordinate array, part of this object's own block
     u16         flags;       // State bits (0x2 semi-transparent primitives, 0x4 skip automatic buffer allocation, 0x8 selected by the flagged draw pass, 0x10 reverse face culling, 0x80 hidden)
     s8          otOffset;    // Ordering-table offset the model's primitives are linked at

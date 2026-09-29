@@ -85,7 +85,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
 
     flags = desc->flags;
     switch (flags & 0xFF) {
-        case 1:
+        case TASK_BODY_TMD:
             attachFlags = 0;
             if (flags & 0x100) {
                 attachFlags = 1;
@@ -95,17 +95,17 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
             }
             extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, attachFlags);
             break;
-        case 2:
+        case TASK_BODY_DISP2D:
             extra.disp2d = gpAttachDisp2d(task);
             break;
-        case 0:
+        case TASK_BODY_NONE:
         default:
             extra.tmd = NULL;
             break;
     }
 
     // A descriptor that asks for a body gets no task when the body cannot be attached.
-    if ((desc->flags & 0xFF) == 0 || extra.tmd != NULL) {
+    if ((desc->flags & 0xFF) == TASK_BODY_NONE || extra.tmd != NULL) {
         task->callback     = desc->callback;
         priority           = desc->priority;
         task->exitCallback = taskKill;
@@ -178,13 +178,13 @@ void taskKill(Task* task)
 
     if (gDisplayState.skipTeardown == 0) {
         type = task->spawnType;
-        if (type == 1) {
+        if (type == TASK_BODY_TMD) {
             goto case1;
         }
-        if (type < 2) {
+        if (type < TASK_BODY_DISP2D) {
             goto def_case;
         }
-        if (type == 2) {
+        if (type == TASK_BODY_DISP2D) {
             goto case2;
         }
         goto def_case;
@@ -198,7 +198,7 @@ void taskKill(Task* task)
         return;
 
     case2:
-        gpUnlinkDisp2d(&task->extra.disp2d->link);
+        modelObjectUnlinkDisp2d(&task->extra.disp2d->link);
         task->killCountdown = 1;
         task->callback      = textNoopCallback;
         task->exitCallback  = textNoopCallback;
@@ -206,7 +206,7 @@ void taskKill(Task* task)
         if (task->killCountdown != 0) {
             return;
         }
-        if (task->spawnType == 1) {
+        if (task->spawnType == TASK_BODY_TMD) {
             goto cu1;
         }
         if (task->spawnType != type) {
@@ -222,17 +222,17 @@ void taskKill(Task* task)
         if (task->killCountdown != 0) {
             return;
         }
-        if (task->spawnType == 1) {
+        if (task->spawnType == TASK_BODY_TMD) {
             goto cu1;
         }
-        if (task->spawnType == 2) {
+        if (task->spawnType == TASK_BODY_DISP2D) {
             goto cu2;
         }
         goto cu_def;
 
     cu1:
         model = task->extra.tmd;
-        gpUnlinkTmd(&model->link);
+        modelObjectUnlinkTmd(&model->link);
         gpFreeTmd(model);
         goto cu_def;
 
@@ -240,26 +240,26 @@ void taskKill(Task* task)
         gpFreeDisp2d(task->extra.disp2d);
 
     cu_def:
-        task->spawnType = 0xFF;
+        task->spawnType = TASK_BODY_RELEASED;
         return;
     }
 
     t = task->spawnType;
-    if (t == 1) {
+    if (t == TASK_BODY_TMD) {
         goto imm1;
     }
-    if (t == 2) {
+    if (t == TASK_BODY_DISP2D) {
         goto imm2;
     }
     goto imm_unlink;
 
 imm1:
-    gpUnlinkTmd(&task->extra.tmd->link);
+    modelObjectUnlinkTmd(&task->extra.tmd->link);
     gpFreeTmd(task->extra.tmd);
     goto imm_unlink;
 
 imm2:
-    gpUnlinkDisp2d(&task->extra.disp2d->link);
+    modelObjectUnlinkDisp2d(&task->extra.disp2d->link);
     gpFreeDisp2d(task->extra.disp2d);
 
 imm_unlink:
@@ -427,7 +427,7 @@ void Task_ExecList(TaskNode* node)
             tmp_ptr->stopTaskWalk = 0;
             return;
         }
-        if (curr->spawnType == 0xFF) {
+        if (curr->spawnType == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -549,7 +549,7 @@ void Task_ExecDefaultList(TaskNode* unused)
             tmp_ptr->stopTaskWalk = 0;
             return;
         }
-        if (curr->spawnType == 0xFF) {
+        if (curr->spawnType == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -586,7 +586,7 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
             tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
-        if (curr->spawnType == 0xFF) {
+        if (curr->spawnType == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -625,7 +625,7 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
             tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
-        if (curr->spawnType == 0xFF) {
+        if (curr->spawnType == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -652,18 +652,18 @@ void taskCountdownCallback(Task* task)
     }
 
     switch (task->spawnType) {
-        case 1:
+        case TASK_BODY_TMD:
             model = task->extra.tmd;
-            gpUnlinkTmd(&model->link);
+            modelObjectUnlinkTmd(&model->link);
             gpFreeTmd(model);
-            task->spawnType = 0xFF;
+            task->spawnType = TASK_BODY_RELEASED;
             break;
-        case 2:
+        case TASK_BODY_DISP2D:
             gpFreeDisp2d(task->extra.disp2d);
-            task->spawnType = 0xFF;
+            task->spawnType = TASK_BODY_RELEASED;
             break;
         default:
-            task->spawnType = 0xFF;
+            task->spawnType = TASK_BODY_RELEASED;
             break;
     }
 }

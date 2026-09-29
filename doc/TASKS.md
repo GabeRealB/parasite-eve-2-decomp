@@ -202,7 +202,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `17` | `2F` | `Gp_AllocSprtListsTask` | HUD sprite lists. Spawned next to the view task |
 | `18` | `C0` | `Stage_TaskExit` | Stage teardown |
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |
-| `1A` | `E0` | `Gp_DrawDisp2dOt` | 2D OT draw. Live pointer `Gp_TmdStashTask` |
+| `1A` | `E0` | `Gp_DrawDisp2dOt` | Refresh body coordinates and draw active models. Temporary task `_gModelObjectTemporaryDrawTask` |
 | `1B` | `D0` | `func_800AD5B8` | Sibling of type `10` |
 | `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
 | `1D` | `18` | `func_800A77B4` | 6-way dispatcher |

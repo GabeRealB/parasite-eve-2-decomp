@@ -11,7 +11,6 @@
 #include "types.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/display.h"
 #include "model_objects.h"
 
 #include "main/display.h"
@@ -20,23 +19,23 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-extern TmdListHead Gp_TmdListStash;
-
-extern TmdListHead Gp_TmdListAltStash;
-
-extern Task* Gp_TmdStashTask;
-
 extern const CVECTOR Gp_ColorOrange;
+
+// Bank-0 descriptor that refreshes coordinates and draws the active model list.
+enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
+
+/// Saved model-list endpoints; the first element still refers to the active sentinel.
+static TmdListNode _gModelObjectSavedModelList = { NULL, NULL };
+
+/// Saved 2D-display-list endpoints; restored to their original sentinel together.
+static TmdListNode _gModelObjectSavedDisp2dList = { NULL, NULL };
+
+/// Temporary draw task active while the previous body lists are stashed.
+static Task* _gModelObjectTemporaryDrawTask = NULL;
 
 static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2);
 
 static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
-
-static void Gp_StashTmdLists(void);
-
-static void Gp_RestoreTmdLists(void);
-
-static Task* Gp_FindTaskByCoord(GfxCoord* arg0);
 
 static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
 
@@ -94,10 +93,6 @@ static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2)
     }
     return arg2;
 }
-
-TmdListHead Gp_TmdListStash    = { NULL, NULL };
-TmdListHead Gp_TmdListAltStash = { NULL, NULL };
-Task*       Gp_TmdStashTask    = NULL;
 
 // "Item obtained!"
 // "Bonus item!!"
@@ -258,8 +253,8 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
 TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
 {
     TmdObject*   node;
-    TmdListHead* last;
-    TmdListHead* list;
+    TmdListNode* last;
+    TmdListNode* list;
 
     node = Tmd_Create(src, 0);
     if (node != NULL) {
@@ -270,7 +265,7 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
         node->link.prev = last;
         list->prev      = &node->link;
         task->extra.tmd = node;
-        task->spawnType = 1;
+        task->spawnType = TASK_BODY_TMD;
     }
     return node;
 }
@@ -278,9 +273,9 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
 GpDisp2d* gpAttachDisp2d(Task* task)
 {
     GpDisp2d*    node;
-    TmdListHead* last;
-    TmdListHead* list;
-    GfxCoord*    coord;
+    TmdListNode* last;
+    TmdListNode* list;
+    GfxCoord*     coord;
 
     node = memCalloc(sizeof(*node), 0);
     if (node != NULL) {
@@ -303,7 +298,7 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         node->link.prev     = last;
         list->prev          = &node->link;
         task->extra.disp2d  = node;
-        task->spawnType     = 2;
+        task->spawnType     = TASK_BODY_DISP2D;
     } else {
         printf("new_disp_2d ----> NULL\n");
     }
@@ -313,8 +308,8 @@ GpDisp2d* gpAttachDisp2d(Task* task)
 TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
 {
     TmdObject*   node;
-    TmdListHead* last;
-    TmdListHead* list;
+    TmdListNode* last;
+    TmdListNode* list;
 
     node = Tmd_Create(src, flags);
     if (node != NULL) {
@@ -325,25 +320,25 @@ TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
         node->link.prev = last;
         list->prev      = &node->link;
         task->extra.tmd = node;
-        task->spawnType = 1;
+        task->spawnType = TASK_BODY_TMD;
     }
     return node;
 }
 
-void gpUnlinkTmd(TmdListHead* node)
+void modelObjectUnlinkTmd(TmdListNode* node)
 {
-    TmdListHead*  next;
-    TmdListHead** pp;
-    TmdListHead*  prev;
+    TmdListNode*  next;
+    TmdListNode** prevSlot;
+    TmdListNode*  prev;
 
     next = node->next;
     if (next == NULL) {
-        pp = &gTmdList.prev;
+        prevSlot = &gTmdList.prev;
     } else {
-        pp = &next->prev;
+        prevSlot = &next->prev;
     }
     prev       = node->prev;
-    *pp        = prev;
+    *prevSlot  = prev;
     prev->next = node->next;
 }
 
@@ -356,20 +351,20 @@ void gpFreeTmd(TmdObject* obj)
     memFree(obj);
 }
 
-void gpUnlinkDisp2d(TmdListHead* node)
+void modelObjectUnlinkDisp2d(TmdListNode* node)
 {
-    TmdListHead*  next;
-    TmdListHead** pp;
-    TmdListHead*  prev;
+    TmdListNode*  next;
+    TmdListNode** prevSlot;
+    TmdListNode*  prev;
 
     next = node->next;
     if (next == NULL) {
-        pp = &gTmdDisp2dList.prev;
+        prevSlot = &gTmdDisp2dList.prev;
     } else {
-        pp = &next->prev;
+        prevSlot = &next->prev;
     }
     prev       = node->prev;
-    *pp        = prev;
+    *prevSlot  = prev;
     prev->next = node->next;
 }
 
@@ -378,22 +373,30 @@ void gpFreeDisp2d(GpDisp2d* node)
     memFree(node);
 }
 
-static void Gp_StashTmdLists(void)
+/// Saves the current lists and starts drawing from temporary empty lists.
+///
+/// Only one stash may be outstanding, and the saved elements must stay alive
+/// until the lists are restored to their original sentinels.
+static void _modelObjectStashLists(void)
 {
-    Gp_TmdListStash     = gTmdList;
-    Gp_TmdListAltStash  = gTmdDisp2dList;
-    gTmdList.next       = NULL;
-    gTmdList.prev       = &gTmdList;
-    gTmdDisp2dList.next = NULL;
-    gTmdDisp2dList.prev = &gTmdDisp2dList;
-    Gp_TmdStashTask     = Task_Spawn(0, 0x1A, 0, 0);
+    // Save endpoints, keeping the elements tied to their original sentinels.
+    _gModelObjectSavedModelList    = gTmdList;
+    _gModelObjectSavedDisp2dList   = gTmdDisp2dList;
+    gTmdList.next                  = NULL;
+    gTmdList.prev                  = &gTmdList;
+    gTmdDisp2dList.next            = NULL;
+    gTmdDisp2dList.prev            = &gTmdDisp2dList;
+    _gModelObjectTemporaryDrawTask = Task_Spawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
 }
 
-static void Gp_RestoreTmdLists(void)
+/// Stops the temporary draw task and restores the saved lists to their sentinels.
+///
+/// Requires a preceding stash whose saved elements are still alive.
+static void _modelObjectRestoreLists(void)
 {
-    Task_CallExit(Gp_TmdStashTask);
-    gTmdList       = Gp_TmdListStash;
-    gTmdDisp2dList = Gp_TmdListAltStash;
+    Task_CallExit(_gModelObjectTemporaryDrawTask);
+    gTmdList       = _gModelObjectSavedModelList;
+    gTmdDisp2dList = _gModelObjectSavedDisp2dList;
 }
 
 void _gpUpdateCoordTree(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
@@ -401,36 +404,36 @@ void _gpUpdateCoordTree(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
     _gpRefreshCoord(coord, stamp, parity, root);
 }
 
-static Task* Gp_FindTaskByCoord(GfxCoord* arg0)
+/// Returns the first task on the active list that owns `targetCoord`, or `NULL`.
+static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
 {
     Task*      task;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    u32        i;
+    TmdObject* model;
+    GfxCoord*   coord;
+    u32        partIndex;
     s32        found;
-    u32        count;
+    u32        partCount;
 
     task = Task_GetActiveList()->next;
     if (task != NULL) {
         do {
             found = 0;
             switch (task->spawnType) {
-                case 1:
-                    extra = task->extra.tmd;
-                    count = extra->partCount;
-                    coord = extra->coords;
-                    for (i = 0; i < count; i++) {
-                        if (coord == arg0) {
+                case TASK_BODY_TMD:
+                    model     = task->extra.tmd;
+                    partCount = model->partCount;
+                    coord     = model->coords;
+                    for (partIndex = 0; partIndex < partCount; partIndex++) {
+                        if (coord == targetCoord) {
                             found = 1;
                             break;
                         }
                         coord++;
                     }
                     break;
-                case 2:
-                    extra = task->extra.tmd;
-                    coord = extra->coords;
-                    if (coord == arg0) {
+                case TASK_BODY_DISP2D:
+                    coord = task->extra.disp2d->coords;
+                    if (coord == targetCoord) {
                         found = 1;
                     }
                     break;

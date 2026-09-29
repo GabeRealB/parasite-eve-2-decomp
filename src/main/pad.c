@@ -9,9 +9,9 @@
 #include "main/tmd_types.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-TmdListHead gTmdList;
+TmdListNode gTmdList;
 
-TmdListHead gTmdDisp2dList;
+TmdListNode gTmdDisp2dList;
 
 PadRawPort Pad_RawPorts[2];
 

@@ -11,7 +11,7 @@
 /// releases it, so the list is the model subsystem's whole view of what is
 /// currently loaded. The size, buffer, draw and free passes work from it
 /// instead of walking the task list.
-extern TmdListHead gTmdList;
+extern TmdListNode gTmdList;
 
 /// Head of the 2D-display list: the anchor for the coordinate nodes a task
 /// attaches in place of a model.
@@ -22,7 +22,7 @@ extern TmdListHead gTmdList;
 /// the list before it reaches the models and draws nothing from it; the task
 /// that attached the node reads the refreshed matrix. The two lists are saved,
 /// emptied and restored together.
-extern TmdListHead gTmdDisp2dList;
+extern TmdListNode gTmdDisp2dList;
 
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;

@@ -25,13 +25,12 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// Nothing is drawn from the body — the model passes compose its coordinate once
 /// a frame and walk on — so what it is for is the task that owns it, which
 /// places the coordinate and reads back the world matrix composed from it. Code
-/// outside this overlay reaches the body as a `TmdObject`, so the head is laid
-/// out like that type's and, as on a model body, `coords` is where the
-/// coordinate is found. A 2D-display body has a single one, so that field points
-/// at the node's own `coord` rather than at an array of them.
+/// identifies the body through `Task::extra.disp2d`; the display list's links
+/// belong to this type. `coords` points at the body's own `coord`, rather than
+/// at the per-part array carried by a `TmdObject`.
 typedef struct GpDisp2d {
-    TmdListHead link;    // Its place on `gTmdDisp2dList`
-    GfxCoord*   coords;  // The body's coordinate, i.e. `&coord`
+    TmdListNode link;    // Its place on `gTmdDisp2dList`
+    GfxCoord*    coords;  // The body's coordinate, i.e. `&coord`
     s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
     GfxCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;

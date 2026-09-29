@@ -24016,13 +24016,13 @@ addiu v0, v0, 4
 
 `if (next != NULL) { pp = &next->prev; } else { pp = &D_xxx; }` is the same
 logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
-and drops the `j`. `taskKill`'s inline unlink and `gpUnlinkDisp2d` both need
+and drops the `j`. `taskKill`'s inline unlink and `modelObjectUnlinkDisp2d` both need
 the `== NULL` form.
 
 The tail needs no symbol of its own: the field access is what the target emits.
 Where the function already holds the head's address the target reuses that
 register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `taskKill`'s
-inline unlink, `gpUnlinkTmd` and `gpUnlinkDisp2d` all match as `&<head>.prev`.
+inline unlink, `modelObjectUnlinkTmd` and `modelObjectUnlinkDisp2d` all match as `&<head>.prev`.
 An interior alias for the field (`D_800711C4`-style) is what the overlay import
 lists used to carry and no longer do, so a body that matches with the field
 access should keep it.
@@ -26783,20 +26783,20 @@ uses. That pins the load in `$v1` instead of overwriting `$v0`:
 
 ```c
 case 1:
-    extra = task->extra;
-    coord = extra->coords; /* lw v1, 8(v0) */
+    model = task->extra.tmd;
+    coord = model->coords; /* lw v1, 8(v0) */
     /* walk coord */
     break;
 case 2:
-    extra = task->extra;
-    coord = extra->coords; /* lw v1, 8(v0) — not lw v0 */
-    if (coord == arg0) {
+    coord = task->extra.disp2d->coords; /* lw v1, 8(v0) — not lw v0 */
+    if (coord == targetCoord) {
         found = 1;
     }
     break;
 ```
 
 `Gp_FindTaskByCoord` is the example. `if ((GfxCoord*)extra->coords == index)`
+`_modelObjectFindTaskByCoord` is the example. `if (task->extra.disp2d->coords == targetCoord)`
 stuck at 99.8% with only that load dest different.
 
 ## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
@@ -52304,16 +52304,14 @@ and the Euler `SVECTOR` over libgs's `param` / `super` bytes, is this node
 whatever it is called, and a new declaration for it is a duplicate to fold in
 rather than a type to name.
 
-`GpDisp2d` is the one that is not reached that way — it embeds the node and
-points `coords` at its own copy — and even it reads through `TmdObject` when the
-model subsystem walks the 2D-display list.
+`GpDisp2d` embeds the coordinate and points `coords` at its own copy. The model
+subsystem walks its list through `PARENT_OF(link, GpDisp2d, link)`, while the
+model list uses `PARENT_OF(link, TmdObject, link)`.
 
 Which body a task's `extra` is, the task says, not the access path: `spawnType`
-is 1 for a model body and 2 for a 2D-display one, and both are reached by the
-same expression, `((TmdObject*)task->extra)->coords`, because the display body's
-head is laid out like the model type's. So a site that reads a coordinate off a
-task cannot be classified by its spelling — a display body's `coords` points at
-a single coordinate embedded in the node, where a model body's points at the
+is 1 for a model body and 2 for a 2D-display one: `task->extra.tmd->coords` and
+`task->extra.disp2d->coords` select the matching body. A display body's `coords`
+points at a single coordinate embedded in the node, where a model body's points at the
 per-part array that follows it — and the task's own spawn type (or the
 descriptor that built it) is what decides which type is in hand.
 
@@ -132122,26 +132120,22 @@ load and the `ori` is gone. A constant extent is possible because the region is
 the RAM below the area the overlays are loaded into, so no overlay load ever
 covers it and the wrappers can name the same base for the life of the program.
 
-## A sentinel head can serve several lists, so its element field names one of them
+## A shared intrusive link can head lists of different container types
 
 An intrusive list whose elements carry the links themselves can be headed by a
-sentinel of the same shape as those links, and one such head type can serve more
-than one list as long as the element types agree on their leading fields.
-`TmdListHead` heads both the model list and the 2D-display list: its `next` is
-declared as the model type, and the display list's nodes — `GpDisp2d`, whose
-first two fields are the same `next` / `prev` — are reached through the model
-type everywhere only the links are wanted, with a cast at the few sites that
-reach a link through an element pointer.
+sentinel of the same shape as those links, and one such node type can serve more
+than one list. `TmdListNode` heads both the model list and the 2D-display list:
+its `next` and `prev` point to links, and both `TmdObject` and `GpDisp2d` embed
+one as their first member. The append and unlink work on those links; a walk
+recovers the container its particular list holds with `PARENT_OF`.
 
-So the element type in a head's `next` says which list the type was written for,
-not what every list it heads holds, and a head layout matching another type's is
-not by itself a duplicate: the task subsystem's `TaskNode` is embedded by name in
-the element it links, while these body lists make the links their element's own
-first fields, and the element type is what keeps the two apart. The append and
-the unlink are the two sites that write the links, and they are where every list
-a head serves becomes visible.
+A head layout matching another type's is not by itself a duplicate. The task
+subsystem's `TaskNode` is also embedded by name, but its `next` names a `Task`
+and its `prev` a task-list link; it serves a different list protocol. A body's
+`TmdListNode` has the same meaning in either body list, so it is shared by
+both containers without interpreting a display body as a model.
 
-The type cannot carry that distinction, so the name must: each head is named
+The link type cannot carry the container distinction, so each head is named
 for the list it anchors — the model list, the 2D-display list — and never for
 its element field. What tells the second list apart is what its elements are,
 and the walk says it rather than the head type: the display list's walk
