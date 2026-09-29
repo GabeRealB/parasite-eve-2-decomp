@@ -444,8 +444,8 @@ GpSprtCmd D_dryfield_warehouse_801815E8[2] = {
 };
 
 static void func_dryfield_warehouse_8017DBB0(Task* arg0);
-static void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1);
-static void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2);
+static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1);
+static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2);
 
 /// Message handler of the warehouse's cutscene task. Message 0 re-opens the
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
@@ -811,7 +811,7 @@ void func_dryfield_warehouse_8017E3F4(s16 arg0)
 /// then a cap over the lit ring. Each corner is rotated by `coord`'s `workm` and
 /// moved by its translation before projection through `GsWSMATRIX`. The lit
 /// corners share a grey of 0x18 plus a small pulse; the far corners are black.
-static void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
+static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -930,7 +930,7 @@ static void func_dryfield_warehouse_8017E414(GpCoord* coord, s16 arg1)
 /// turn, starting at a phase that advances with the frame counter. Each corner
 /// is placed in `coord`'s space through its `workm`, then projected through
 /// `GsWSMATRIX`; the lit edge glows at 0x14 plus a small pulse.
-static void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
+static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -1025,9 +1025,9 @@ static void func_dryfield_warehouse_8017ED34(GpCoord* coord, s16 arg1, s16 arg2)
 /// and 6.
 void func_dryfield_warehouse_8017F494(Task* arg0)
 {
-    s32      mask;
-    s32      poseMask;
-    GpCoord* coord;
+    s32       mask;
+    s32       poseMask;
+    GfxCoord* coord;
 
     mask     = 1 << gGameSession->at4.loc.view;
     poseMask = mask & 0x24C;

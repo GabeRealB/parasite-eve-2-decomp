@@ -1158,7 +1158,7 @@ static void func_dryfield_water_tank_8017DB48(void)
 /// counter; on its 0x3D-th tick it publishes the lowered record to the task
 /// itself as the 0x7D4 placement and returns 1, and until then snaps the
 /// model's X to that record's `pos.vx`. Every path that returns 0 clears
-/// `coord->flg`, so the coordinate is recomputed on the next update.
+/// `coord->composeStamp`, so the coordinate is recomputed on the next update.
 ///
 /// The body is the water tower's `func_dryfield_water_tower_8017E428`; as there,
 /// the Z test is written with the coordinate on the left, which is what loads it
@@ -1166,8 +1166,8 @@ static void func_dryfield_water_tank_8017DB48(void)
 static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 {
     DwtColorMtx* work  = (DwtColorMtx*)arg0->work;
-    GpCoord*     coord = arg0->extra.tmd->coords;
-    GpCoord*     effCoord;
+    GfxCoord*    coord = arg0->extra.tmd->coords;
+    GfxCoord*    effCoord;
     SVECTOR      pos;
 
     switch (work->field_4C) {
@@ -1204,7 +1204,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
             }
             break;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -1217,7 +1217,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 void func_dryfield_water_tank_8017DD20(Task* arg0)
 {
     TmdObject*   extra;
-    GpCoord*     coord;
+    GfxCoord*    coord;
     DwtColorMtx* mtx;
     TmdObject*   mdl;
     VECTOR       pos;
@@ -1232,9 +1232,9 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(mtx, 0, 0x58);
-                mtx->owner   = gameGetPtrSlot(3);
-                coord->sub   = &gGfxViewCoord;
-                extra->flags = 0x80;
+                mtx->owner    = gameGetPtrSlot(3);
+                coord->parent = &gGfxViewCoord;
+                extra->flags  = 0x80;
                 Tmd_AllocBuffers(extra);
                 extra->lightMtx = &mtx->light;
                 extra->colorMtx = &mtx->color;
@@ -1358,8 +1358,8 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// coordinate is marked dirty.
 void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -1369,7 +1369,7 @@ void func_dryfield_water_tank_8017E0E8(Task* task, s32 arg1, GpXformArg* placeme
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message 0x7DB handler of the model task: restarts its script, clearing the

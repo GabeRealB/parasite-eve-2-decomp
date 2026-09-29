@@ -48,8 +48,8 @@ extern s32     D_dryfield_r08_80180C24;
 extern GpRoomCoordSet D_dryfield_r08_801809C0;
 extern GpRoomCoordSet D_dryfield_r08_80180B58;
 
-static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -564,7 +564,7 @@ void func_dryfield_r08_8017D5F8(Task* task)
 void func_dryfield_r08_8017D8B4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -655,10 +655,10 @@ void func_dryfield_r08_8017D8B4(Task* task)
         case 1:
             func_dryfield_r08_8017DEFC(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -675,10 +675,10 @@ void func_dryfield_r08_8017D8B4(Task* task)
         case 2:
             func_dryfield_r08_8017E36C(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -700,7 +700,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
 /// five-column grid (u = `cell % 5 * 48`, v = `cell / 5 * 48 + 0x68`), and the
 /// top four bits select the clut - row `0x10E + sel` at column `cell & 0x3F`
 /// for 0 and 1, the fixed clut 0x428F otherwise.
-static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     GpEffFlareScratch* block;
     POLY_FT4*          prim;
@@ -775,7 +775,7 @@ static void func_dryfield_r08_8017DEFC(GpCoord* arg0, u16 arg1, s16 arg2, s16 ar
 /// its top four bits set selects clut 0x428F instead of 0x43D0. The quad's
 /// diagonals are `arg2 * 47 / otz` long, turned by `arg3` and
 /// `arg3 + 0x400`, so it shrinks with distance and spins with the angle.
-static void func_dryfield_r08_8017E36C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     GpEffFlareScratch* block;
     POLY_FT4*          prim;

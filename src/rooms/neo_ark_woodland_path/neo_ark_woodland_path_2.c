@@ -167,10 +167,10 @@ typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x26 */ s16  chance;
 } NeoArkWoodlandPathTrailObj;
 
-static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2);
-static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 arg2);
+static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 s32  func_neo_ark_woodland_path_80180B18(Task*, s32, GpCmdArg*, GpMessageArg);
 s32  func_neo_ark_woodland_path_80181474(Task*, s32, GpMessageArg, GpMessageArg);
@@ -317,9 +317,9 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 {
     NeoArkWoodlandPathTrailObj* obj;
     Task*                       owner;
-    GpCoord*                    root;
-    GpCoord*                    part;
-    GpCoord                     coord;
+    GfxCoord*                   root;
+    GfxCoord*                   part;
+    GfxCoord                    coord;
     s32                         i;
 
     obj   = task->spawnArg2.pointer;
@@ -339,14 +339,14 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
     Gp_State1C->roomEffectMode = (root->coord.t[1] < 0x11) * 2;
     if (Gp_State1C->eventState == 0 && root->coord.t[1] >= 0x12C) {
         for (i = 0; i < 2; i++) {
-            part             = &owner->extra.tmd->coords[i * 3 + 15];
-            obj->chance      = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;
-            coord.sub        = root->sub;
-            coord.coord      = root->coord;
-            coord.coord.t[0] = root->coord.t[0];
-            coord.coord.t[1] = 0xC8;
-            coord.coord.t[2] = root->coord.t[2];
-            coord.flg        = 0;
+            part               = &owner->extra.tmd->coords[i * 3 + 15];
+            obj->chance        = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;
+            coord.parent       = root->parent;
+            coord.coord        = root->coord;
+            coord.coord.t[0]   = root->coord.t[0];
+            coord.coord.t[1]   = 0xC8;
+            coord.coord.t[2]   = root->coord.t[2];
+            coord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&coord);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((s32)((Gp_LcgState >> 16) & 0x1FF) < obj->chance) {
@@ -376,7 +376,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 void func_neo_ark_woodland_path_8017ED00(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        vy;
     s32        vx;
     s32        vz;
@@ -406,7 +406,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
             coord->coord.t[2] += work->move.vz;
             Gfx_RotMatrixX(&coord->coord, work->period, 0);
             Gfx_RotMatrixZ(&coord->coord, work->step, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
             vy = work->move.vy;
             if (vy >= 0x1D) {
@@ -480,7 +480,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 /// 0x2B, clut 0x4390, an 8x8 texel tile at 0,0x28). `arg2` is the fade level:
 /// zero draws the raw texture, otherwise the quad is semi-transparent and
 /// modulated by the grey `(arg2, arg2, arg2)`.
-static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
     GpQuadScratch* block;
     s32            i;
@@ -555,7 +555,7 @@ static void func_neo_ark_woodland_path_8017F154(GpCoord* arg0, s32 arg1, s16 arg
 void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -572,8 +572,8 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
@@ -590,7 +590,7 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -676,7 +676,7 @@ static void func_neo_ark_woodland_path_8017F5F4(GpCoord* arg0, s32 arg1, s32 arg
 void func_neo_ark_woodland_path_8017F928(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -778,11 +778,11 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -799,7 +799,7 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -864,7 +864,7 @@ static void func_neo_ark_woodland_path_8017FDE4(GpCoord* arg0, s32 arg1, s32 arg
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-static void func_neo_ark_woodland_path_801801D0(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1060,10 +1060,10 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_woodland_path_8018498E += 0x5A;
                     Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].x;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].x;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                    D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].rotY, 1);
                 }
@@ -1249,18 +1249,18 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                     Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_woodland_path_80184A5C, 0);
                     switch ((s16)(D_neo_ark_woodland_path_80184992 - 1)) {
                         case 0:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[0].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[0].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_woodland_path_80184A14[0].rotY, 1);
                             break;
                         case 1:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[1].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[1].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_woodland_path_80184A14[1].rotY, 1);
                             break;
@@ -1270,7 +1270,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_woodland_path_80184A14[2].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
@@ -1278,7 +1278,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_woodland_path_80184A14[3].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
                         default:
@@ -1287,7 +1287,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_woodland_path_80184A14[4].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }
                 }

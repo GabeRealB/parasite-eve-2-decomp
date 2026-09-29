@@ -72,10 +72,10 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 
 static void func_mine_secret_passage_8017DC84(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size);
-static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1);
-static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_mine_secret_passage_8017EB34(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_mine_secret_passage_8017FAF4(GfxCoord* coord, s16 size);
+static void func_mine_secret_passage_80180020(GfxCoord* arg0, s32 arg1);
+static void func_mine_secret_passage_80180398(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_mine_secret_passage_801815E0[1];
 extern GpObj3A        D_mine_secret_passage_801831A8[2];
@@ -649,8 +649,8 @@ GpRoomParamRec* D_mine_secret_passage_80183420[8] = {
 
 RoomFadeStorage D_mine_secret_passage_80183440;
 
-static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_mine_secret_passage_8017EDF8(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_secret_passage_8017F21C(GfxCoord* arg0, s16 arg1, u8* rgb);
 
 /// Publishes this passage's four emitter ids on the task's first tick - the
 /// `D_8011573C` / `D_80115744` / `D_80115728` / `D_80115720` slots take
@@ -948,7 +948,7 @@ static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_mine_secret_passage_8017E868(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -987,8 +987,8 @@ void func_mine_secret_passage_8017E868(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -1005,8 +1005,8 @@ void func_mine_secret_passage_8017E868(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -1030,7 +1030,7 @@ void func_mine_secret_passage_8017E868(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-static void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_mine_secret_passage_8017EB34(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1098,7 +1098,7 @@ static void func_mine_secret_passage_8017EB34(GpCoord* arg0, u16 arg1, u16 arg2,
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
 /// second radius, and each wedge fades to black at the first.
-static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_secret_passage_8017EDF8(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1153,7 +1153,7 @@ static void func_mine_secret_passage_8017EDF8(GpCoord* arg0, s32 arg1, s32 arg2,
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// centre vertex so each wedge fades to black.
-static void func_mine_secret_passage_8017F21C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_secret_passage_8017F21C(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1214,7 +1214,7 @@ void func_mine_secret_passage_8017F5B0(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         shift;
@@ -1231,17 +1231,17 @@ void func_mine_secret_passage_8017F5B0(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[0] = mem->pos.vx;
-                coord->coord.t[1] = mem->pos.vy;
-                coord->coord.t[2] = mem->pos.vz;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[0]   = mem->pos.vx;
+                coord->coord.t[1]   = mem->pos.vy;
+                coord->coord.t[2]   = mem->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index            = shift;
@@ -1305,7 +1305,7 @@ void func_mine_secret_passage_8017F948(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -1358,9 +1358,9 @@ void func_mine_secret_passage_8017F948(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
+static void func_mine_secret_passage_8017FAF4(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1378,26 +1378,26 @@ static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1475,7 +1475,7 @@ static void func_mine_secret_passage_8017FAF4(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1)
+static void func_mine_secret_passage_80180020(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1560,7 +1560,7 @@ static void func_mine_secret_passage_80180020(GpCoord* arg0, s32 arg1)
 /// `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). Only the centre vertex is tinted, so each wedge fades to a black
 /// rim.
-static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_secret_passage_80180398(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1686,7 +1686,7 @@ static void func_mine_secret_passage_80180398(GpCoord* arg0, s16 arg1, u8* arg2)
 void func_mine_secret_passage_80180D58(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        ang;
 

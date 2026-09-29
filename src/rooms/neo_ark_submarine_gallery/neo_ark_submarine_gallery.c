@@ -943,7 +943,7 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
     s16      i;
     s16      y;
 
-    gGfxViewCoord.flg = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     y = 0x14B4;
     gte_SetRotMatrix(&gGfxViewCoord.workm);

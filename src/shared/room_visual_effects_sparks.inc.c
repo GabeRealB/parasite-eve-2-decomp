@@ -5,11 +5,11 @@
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-static void RoomFx_DrawTwinTrail(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -110,7 +110,7 @@ static void RoomFx_DrawTwinTrail(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg
 /// reaches 4.
 static inline void RoomFx_SparkBurstTask(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 

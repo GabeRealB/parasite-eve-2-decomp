@@ -160,15 +160,15 @@ static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E390(Task* arg0);
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
-static void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_main_corridor_8017F078(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_main_corridor_8017FEE8(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_main_corridor_80180BF0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_main_corridor_8018101C(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_b2_main_corridor_801818A0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b2_main_corridor_80181F20(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern TaskDesc D_80147E48;
 
@@ -185,13 +185,7 @@ void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
 ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, func_shelter_b2_main_corridor_8017D6BC, { .model = NULL } } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} ShelterB2MainCorridorPoseBank5330;
-
-ShelterB2MainCorridorPoseBank5330 D_shelter_b2_main_corridor_801828F0 = { .poses = {
+AnimationPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
 };
 
@@ -2100,10 +2094,10 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     } else {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    head              = SCRATCH_HEAD(u8);
-    gGfxViewCoord.flg = 0;
-    SCRATCH_HEAD(u8)  = head - 0xC;
-    w                 = (RoomWaterScratch*)(head - 0xC);
+    head                       = SCRATCH_HEAD(u8);
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_HEAD(u8)           = head - 0xC;
+    w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -2322,7 +2316,7 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 void func_shelter_b2_main_corridor_8017EF24(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -2339,8 +2333,8 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_shelter_b2_main_corridor_8017F078(coord, work->angle, work->scale);
@@ -2357,7 +2351,7 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_main_corridor_8017F078(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -2433,7 +2427,7 @@ static void func_shelter_b2_main_corridor_8017F078(GpCoord* arg0, s32 arg1, s32 
 void func_shelter_b2_main_corridor_8017F3AC(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -2534,11 +2528,11 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2554,7 +2548,7 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
 /// as a square rotated by angle `arg3` about the projected point, with
 /// on-screen half-diagonal `(s16)arg2 * 31 / otz`. `arg1` picks the 32-texel
 /// frame at u = `arg1 * 32`, v 0xE0 to 0xFF.
-static void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2618,7 +2612,7 @@ static void func_shelter_b2_main_corridor_8017F860(GpCoord* arg0, s32 arg1, s32 
 /// as an axis-aligned square of half-side `r = (s16)arg2 * 55 / otz`, raised
 /// so the projected point sits three quarters of the way down it. `arg1` picks
 /// one of eight 56-texel frames in a grid four wide, starting at v 0x70.
-static void func_shelter_b2_main_corridor_8017FC4C(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -2867,7 +2861,7 @@ static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 
 void func_shelter_b2_main_corridor_8018094C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -2931,7 +2925,7 @@ void func_shelter_b2_main_corridor_8018094C(Task* task)
 /// `POLY_G4` segments are queued between on-screen radii `(s16)arg1 * 64 /
 /// (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`, black at the first
 /// and coloured `rgb` at the second.
-static void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_main_corridor_80180BF0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2989,7 +2983,7 @@ static void func_shelter_b2_main_corridor_80180BF0(GpCoord* arg0, s32 arg1, s32 
 /// `POLY_G4` wedges of on-screen radius `arg1 * 64 / (otz + 1)` are
 /// queued around the projected point, coloured `rgb` at the centre and black
 /// at the rim.
-static void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b2_main_corridor_8018101C(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -3047,15 +3041,15 @@ static void func_shelter_b2_main_corridor_8018101C(GpCoord* arg0, s16 arg1, u8* 
 /// state 2 on the effect is frozen.
 void func_shelter_b2_main_corridor_801813B0(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -3063,36 +3057,36 @@ void func_shelter_b2_main_corridor_801813B0(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_b2_main_corridor_801830BC[0].vx;
-                objCoord->coord.t[1] = D_shelter_b2_main_corridor_801830BC[0].vy;
-                objCoord->coord.t[2] = D_shelter_b2_main_corridor_801830BC[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_b2_main_corridor_801830BC[0].vx;
+                objCoord->coord.t[1]   = D_shelter_b2_main_corridor_801830BC[0].vy;
+                objCoord->coord.t[2]   = D_shelter_b2_main_corridor_801830BC[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_b2_main_corridor_801830BC[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_b2_main_corridor_801830BC[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -3100,35 +3094,35 @@ void func_shelter_b2_main_corridor_801813B0(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_b2_main_corridor_801830BC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b2_main_corridor_801818A0(coords, &coords[8], work->age & 7, 0x123);
@@ -3147,11 +3141,11 @@ void func_shelter_b2_main_corridor_801813B0(Task* task)
 /// from intensity 0x40 at the newest slot by 9 per slot. `arg3` packs the
 /// colour: the red factor in bits 8 up and the green and blue factors in bits
 /// 4-5 and 0-1, each multiplying that intensity.
-static void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b2_main_corridor_801818A0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -3254,7 +3248,7 @@ static void func_shelter_b2_main_corridor_801818A0(GpCoord* arg0, GpCoord* arg1,
 /// advanced or drawn.
 void func_shelter_b2_main_corridor_80181C98(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -3327,7 +3321,7 @@ void func_shelter_b2_main_corridor_80181C98(Task* task)
 /// radius `r / 2` at the full colour, and four spikes reaching out to `2 * r`
 /// at half the colour. Every wedge fades from its colour at the centre to
 /// black.
-static void func_shelter_b2_main_corridor_80181F20(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_main_corridor_80181F20(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

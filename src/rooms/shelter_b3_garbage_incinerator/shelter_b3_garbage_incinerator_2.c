@@ -251,13 +251,7 @@ TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
 
 s32 D_shelter_b3_garbage_incinerator_80185BC4 = 256;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} ShelterB3GarbageIncineratorPoseBank8608;
-
-ShelterB3GarbageIncineratorPoseBank8608 D_shelter_b3_garbage_incinerator_80185BC8 = { .poses = {
+AnimationPackedPose D_shelter_b3_garbage_incinerator_80185BC8[6] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"
 };
 
@@ -279,13 +273,7 @@ GpAnimSet D_shelter_b3_garbage_incinerator_80185EA4 = {
     { NULL, D_shelter_b3_garbage_incinerator_80185BC8, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} ShelterB3GarbageIncineratorPoseBank890C;
-
-ShelterB3GarbageIncineratorPoseBank890C D_shelter_b3_garbage_incinerator_80185ECC = { .poses = {
+AnimationPackedPose D_shelter_b3_garbage_incinerator_80185ECC[16] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank1.inc"
 };
 
@@ -307,13 +295,7 @@ GpAnimSet D_shelter_b3_garbage_incinerator_801868E0 = {
     { NULL, D_shelter_b3_garbage_incinerator_80185ECC, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} ShelterB3GarbageIncineratorPoseBank9348;
-
-ShelterB3GarbageIncineratorPoseBank9348 D_shelter_b3_garbage_incinerator_80186908 = { .poses = {
+AnimationPackedPose D_shelter_b3_garbage_incinerator_80186908[14] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank1.inc"
 };
 
@@ -764,8 +746,8 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
     GpXformArg    msg;
     _DescentWork* work  = arg0->work;
-    GpCoord*      coord = arg0->extra.tmd->coords;
-    GpCoord*      ref   = work->target->extra.tmd->coords;
+    GfxCoord*     coord = arg0->extra.tmd->coords;
+    GfxCoord*     ref   = work->target->extra.tmd->coords;
 
     switch (work->state) {
         case 0:
@@ -776,8 +758,8 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
             work->state++;
             /* fallthrough */
         case 1:
-            coord->flg         = 0;
-            coord->coord.t[1] += 15;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]  += 15;
             if (D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy < coord->coord.t[1] || (gGameSession->at4.loc.view == 0x28 && (u8)gGameSession->skipEventIntro != 0)) {
                 SndEvt_EnqueueType7(0x5428000E, 1);
                 SndEvt_EnqueueType6(0x5428000F, 0, 0);
@@ -827,11 +809,11 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     s8            kind;
     u8            arg;
     TmdObject*    obj;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     _DescentWork* work;
     s16           landed;
     TmdObject*    tail;
-    GpCoord*      lift;
+    GfxCoord*     lift;
     _DescentWork* done_work;
     s32           want;
     s32           t;
@@ -849,7 +831,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 taskKill(task);
             } else {
                 Mem_Set(work, 0, 0x68);
-                coord->sub                                = &gGfxViewCoord;
+                coord->parent                             = &gGfxViewCoord;
                 obj->flags                                = 0;
                 obj->otOffset                             = 0x1F;
                 work->field_40                            = gameGetPtrSlot(3);
@@ -917,9 +899,9 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             break;
         case 2:
-            lift              = task->extra.tmd->coords;
-            lift->flg         = 0;
-            lift->coord.t[1] -= 3;
+            lift               = task->extra.tmd->coords;
+            lift->composeStamp = GRAPHICS_COORD_DIRTY;
+            lift->coord.t[1]  -= 3;
             if (lift->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
                 SndEvt_EnqueueType7(0x54280003, 1);
                 SndEvt_EnqueueType6(0x54280004, 0, 0);
@@ -999,11 +981,11 @@ void func_shelter_b3_garbage_incinerator_8017E690(Task* task, s32 arg1, s32 arg2
 /// shorts as yaw, pitch and roll.
 void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
-    coord->sub        = &gGfxViewCoord;
+    coord->parent     = &gGfxViewCoord;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;
@@ -1011,7 +993,7 @@ void func_shelter_b3_garbage_incinerator_8017E70C(Task* task, s32 arg1, GpXformA
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)

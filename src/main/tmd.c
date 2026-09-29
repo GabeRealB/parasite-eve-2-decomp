@@ -44,15 +44,6 @@ typedef union {
 } TmdStreamWord;
 STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
-/// Tmd_Create allocates the object and its partCount coordinates as one block.
-/// The coordinate tail has no fixed capacity; its extent comes from the source.
-typedef struct {
-    TmdObject object;
-    GpCoord   coords[0];
-} TmdAllocation;
-STATIC_ASSERT_SIZEOF(TmdAllocation, 0x34);
-STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == 0x34, tmd_allocation_coords_offset);
-
 static const TaskFuncTable3 Tmd_TaskStates;
 
 static void Tmd_InitSourceStream(TmdSource* src);
@@ -514,13 +505,13 @@ done:
 TmdObject* Tmd_Create(TmdSource* src, s32 flags)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdBone*   bone;
     u32        i;
     void*      mem = NULL;
 
     Tmd_InitSourceStream(src);
-    obj = memCalloc((src->partCount * sizeof(GpCoord)) + sizeof(TmdAllocation), 0);
+    obj = memCalloc((src->partCount * sizeof(GfxCoord)) + sizeof(TmdAllocation), 0);
     if (obj != NULL) {
         obj->flags       = 0x80;
         obj->partCount   = src->partCount;
@@ -537,11 +528,11 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags)
         for (i = 0; i < (u32)obj->partCount; i++) {
             coord->coord = bone->local;
             if (bone->parent != i) {
-                coord->sub = &obj->coords[bone->parent];
+                coord->parent = &obj->coords[bone->parent];
             } else {
-                coord->sub = &gGfxViewCoord;
+                coord->parent = &gGfxViewCoord;
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord++;
             bone++;
         }

@@ -20,9 +20,9 @@
 
 /* Interface for the including source. */
 
-static void ActorContact_TurnJoint(GpCoord* coord, s16 yaw);
+static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw);
 
-static s32 ActorContact_PushContact(GpCoord* coord, GpRec18* rec, s16 arg2);
+static s32 ActorContact_PushContact(GfxCoord* coord, GpRec18* rec, s16 arg2);
 
 /* View of the including overlay's contact scratch allocation. */
 static inline SVECTOR* ActorContact_GetScratchPosition(void);

@@ -55,7 +55,7 @@ extern GpRoomParamRec* D_shelter_b3_dumping_hole_8018F480[];
 
 void func_shelter_b3_dumping_hole_8017D9A8(Task* task);
 
-void func_shelter_b3_dumping_hole_8017FCF4(GpCoord* arg0, SVECTOR* arg1);
+void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1);
 
 void func_shelter_b3_dumping_hole_80183F84(Task* task);
 

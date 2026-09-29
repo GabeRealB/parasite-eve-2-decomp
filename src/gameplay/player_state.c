@@ -78,16 +78,14 @@ typedef struct _GpPushBackScratch {
 } GpPushBackScratch;
 STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
 
-/// Scratch-pad block `func_8010BE5C` aims with: a coordinate placed at an
-/// offset from one of the actor's parts, the zero rotation it is placed with,
-/// and the vector from it to the target that the heading is taken from.
-typedef struct _GpAimScratch {
-    /* 0x00 */ VECTOR3 vec;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ SVECTOR rot;
-    /* 0x18 */ GpCoord coord;
-} GpAimScratch;
-STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
+/// Temporary origin and target delta for adjusting an actor's aim yaw.
+typedef struct {
+    VECTOR3  vec;        // Target minus the aim origin, in game coordinates
+    byte     field_C[4]; // Unused by this helper; purpose unproven
+    SVECTOR  offset;     // Local position offset from model part 4; zero for this helper
+    GfxCoord coord;      // Aim origin, parented to the view node
+} _PlayerActorAimScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorAimScratch, 0x68);
 
 extern u16 D_80113F9C[70];
 
@@ -239,7 +237,7 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
     u8*                head;
     GpPushBackScratch* s;
     GameActor*         actor;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     GpHitRec*          rec;
     GpObj*             obj;
     VECTOR*            delta;
@@ -313,23 +311,23 @@ void func_80109BB4(Task* arg0, GpRec18* arg1)
     }
 
     if (best > 0) {
-        actor->field_986   = 1;
-        actor->field_30.vx = coord->workm.t[0];
-        actor->field_30.vy = coord->workm.t[1];
-        actor->field_30.vz = coord->workm.t[2];
-        s->pos.vx          = coord->coord.t[0];
-        s->pos.vz          = coord->coord.t[2];
-        coord->coord.t[0] += (best * s->local.vx) >> 12;
-        coord->coord.t[2] += (best * s->local.vz) >> 12;
-        coord->flg         = 0;
+        actor->field_986    = 1;
+        actor->field_30.vx  = coord->workm.t[0];
+        actor->field_30.vy  = coord->workm.t[1];
+        actor->field_30.vz  = coord->workm.t[2];
+        s->pos.vx           = coord->coord.t[0];
+        s->pos.vz           = coord->coord.t[2];
+        coord->coord.t[0]  += (best * s->local.vx) >> 12;
+        coord->coord.t[2]  += (best * s->local.vz) >> 12;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         actor->field_30.vx = coord->workm.t[0] - actor->field_30.vx;
         actor->field_30.vy = coord->workm.t[1] - actor->field_30.vy;
         actor->field_30.vz = coord->workm.t[2] - actor->field_30.vz;
         VectorNormal(&actor->field_30, &actor->field_30);
-        coord->coord.t[0] = s->pos.vx + ((best * s->local.vx) >> 14);
-        coord->coord.t[2] = s->pos.vz + ((best * s->local.vz) >> 14);
-        coord->flg        = 0;
+        coord->coord.t[0]   = s->pos.vx + ((best * s->local.vx) >> 14);
+        coord->coord.t[2]   = s->pos.vz + ((best * s->local.vz) >> 14);
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
     }
     SCRATCH_POP_BYTES(0x40);
@@ -670,7 +668,7 @@ s32 Gp_ApplyHpDamage(s16 arg0)
     s32           ret;
     PlayerStatus* p;
     Task*         slot;
-    GpCoord*      coords;
+    GfxCoord*     coords;
 
     amount = arg0;
     ret    = 0;
@@ -828,7 +826,7 @@ void func_8010AD64(Task* arg0)
     SVECTOR*   vec;
     GameActor* inner;
     GpEffArg*  params;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        val;
     s32        idx;
 
@@ -967,7 +965,7 @@ void Gp_PlayerStepSfx(Task* arg0)
 {
     GameActor* inner;
     GameActor* inner2;
-    GpCoord*   obj;
+    GfxCoord*  obj;
     s32        mode;
     s32        snd;
     s32        temp;
@@ -1104,7 +1102,7 @@ void func_8010B3F8(Task* arg0)
 {
     Task*     slot;
     GpEffArg* params;
-    GpCoord*  coords;
+    GfxCoord* coords;
     s32       argLo;
     s32       idx;
     u16       count;
@@ -1143,11 +1141,11 @@ void func_8010B3F8(Task* arg0)
 
 void func_8010B520(Task* arg0)
 {
-    GpCoord*   raw;
+    GfxCoord*  raw;
     Task*      slot;
     TmdObject* extra;
     GpEffArg*  params;
-    GpCoord*   coords;
+    GfxCoord*  coords;
 
     params             = &D_80113358;
     slot               = gameGetPtrSlot(3);
@@ -1164,12 +1162,12 @@ void func_8010B520(Task* arg0)
 static void func_8010B590(Task* arg0)
 {
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     extra = arg0->extra.tmd;
     coord = extra->coords;
     arg0->state++;
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (coord->param.clearFlags != 0) {
         extra->flags = 0;
     }
@@ -1180,10 +1178,10 @@ static void func_8010B5C0(Task* arg0)
     Task*      parent;
     TmdObject* extra;
 
-    parent             = arg0->parent;
-    extra              = arg0->extra.tmd;
-    extra->flags       = parent->extra.tmd->flags;
-    extra->coords->flg = 0;
+    parent                      = arg0->parent;
+    extra                       = arg0->extra.tmd;
+    extra->flags                = parent->extra.tmd->flags;
+    extra->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 static void func_8010B5E4(Task* arg0)
@@ -1352,7 +1350,7 @@ Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
     Task*      task;
     GameActor* actor;
     GpActorD4* block;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        type;
 
     if (arg1 == 1) {
@@ -1417,7 +1415,7 @@ void Gp_ResetActorMove(Task* arg0, s16 arg1)
     }
 }
 
-s32 func_8010BC70(GpCoord* arg0)
+s32 func_8010BC70(GfxCoord* arg0)
 {
     u8*        head;
     VECTOR3*   vec;
@@ -1436,7 +1434,7 @@ s32 func_8010BC70(GpCoord* arg0)
 
 s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
 {
-    GpCoord*   coords;
+    GfxCoord*  coords;
     VECTOR3*   vec;
     GameActor* actor;
     s16        ret;
@@ -1475,40 +1473,46 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     SCRATCH_POP_BYTES(0x14);
 }
 
-void func_8010BE5C(Task* arg0, VECTOR3* arg1)
+void func_8010BE5C(Task* task, VECTOR3* targetPoint)
 {
-    GpAimScratch* head;
-    GpAimScratch* block;
-    GpCoord*      coord;
-    SVECTOR*      rot;
-    TmdObject*    extra;
-    GameActor*    actor;
-    s32           val;
+    enum {
+        PLAYER_ACTOR_AIM_YAW_STEP  = 0x20,
+        PLAYER_ACTOR_AIM_YAW_LIMIT = 0x1A0
+    };
+    _PlayerActorAimScratch* head;
+    _PlayerActorAimScratch* block;
+    GfxCoord*               coord;
+    SVECTOR*                offset;
+    TmdObject*              extra;
+    register GfxCoord*      parts asm("v0");
+    GameActor*              actor;
+    s32                     yawStep;
 
-    head  = SCRATCH_HEAD(GpAimScratch);
-    extra = arg0->extra.tmd;
-    actor = arg0->work;
-    coord = &head[-1].coord;
-    rot   = &head[-1].rot;
-    /* The coord array replaces the object in the same register (v0). */
-    extra = (TmdObject*)extra->coords;
-    block = SCRATCH_HEAD(GpAimScratch) = head - 1;
-    block->rot.vx                      = 0;
-    block->rot.vy                      = 0;
-    block->rot.vz                      = 0;
-    Gp_PlaceCoordOffset((GpCoord*)extra + 4, coord, rot);
-    func_80103C74(coord, arg1, &block->vec);
-    val = ratan2(head[-1].vec.vx, block->vec.vz) - actor->field_52;
-    val = func_80103E7C(actor->field_6A, val);
-    if (val > 0x20) {
-        val = 0x20;
-    } else if (val < -0x20) {
-        val = -0x20;
+    head   = SCRATCH_HEAD(_PlayerActorAimScratch);
+    extra  = task->extra.tmd;
+    actor  = task->work;
+    coord  = &head[-1].coord;
+    offset = &head[-1].offset;
+    // Retain the array pointer's register without treating it as a model object.
+    parts = extra->coords;
+    block = SCRATCH_HEAD(_PlayerActorAimScratch) = head - 1;
+    block->offset.vx                             = 0;
+    block->offset.vy                             = 0;
+    block->offset.vz                             = 0;
+    Gp_PlaceCoordOffset(parts + 4, coord, offset);
+    func_80103C74(coord, targetPoint, &block->vec);
+    // Turn toward the target relative to body facing, preserving the strict aim limit.
+    yawStep = ratan2(head[-1].vec.vx, block->vec.vz) - actor->field_52;
+    yawStep = func_80103E7C(actor->field_6A, yawStep);
+    if (yawStep > PLAYER_ACTOR_AIM_YAW_STEP) {
+        yawStep = PLAYER_ACTOR_AIM_YAW_STEP;
+    } else if (yawStep < -PLAYER_ACTOR_AIM_YAW_STEP) {
+        yawStep = -PLAYER_ACTOR_AIM_YAW_STEP;
     }
-    if (ABS(actor->field_6A + val) < 0x1A0) {
-        actor->field_6A += val;
+    if (ABS(actor->field_6A + yawStep) < PLAYER_ACTOR_AIM_YAW_LIMIT) {
+        actor->field_6A += yawStep;
     }
-    SCRATCH_POP(GpAimScratch);
+    SCRATCH_POP(_PlayerActorAimScratch);
 }
 
 void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)
@@ -1596,7 +1600,7 @@ void func_8010C180(Task* arg0)
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 {
-    GpCoord*      src;
+    GfxCoord*     src;
     GpActorD4*    block;
     GpObj*        obj;
     GpActorD4Rec* rec;
@@ -1632,8 +1636,8 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 s32 func_8010C30C(Task* arg0)
 {
     TmdObject* extra;
-    GpCoord*   coord;
-    GpCoord*   next;
+    GfxCoord*  coord;
+    GfxCoord*  next;
     GameActor* actor;
     VECTOR     vec;
     void*      prev;

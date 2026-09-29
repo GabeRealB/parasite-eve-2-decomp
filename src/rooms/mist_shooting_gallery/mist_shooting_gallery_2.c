@@ -75,7 +75,7 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryRounds, 0x14);
 /// `D_mist_shooting_gallery_80186900`) with a 12-byte stride. `idLo` / `idHi`
 /// pack into the `Task_SpawnFromTable` arg2 the enemy is spawned with, and
 /// `x` / `y` / `z` are written to the spawned object's
-/// `GpCoord::coord.t[0..2]`.
+/// `GfxCoord::coord.t[0..2]`.
 typedef struct MistShootingGallerySpawn {
     /* 0x0 */ u16 field_00;
     /* 0x2 */ s16 idLo;
@@ -143,8 +143,8 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 extern void     func_8014A908(void);
 extern void     func_8014A9A0(void);
 extern void     func_8014B0D4(void);
-static void     func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3);
-static void     func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+static void     func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+static void     func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 static void     func_mist_shooting_gallery_80184A80(Task* arg0);
 static void     func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
 static u16      func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
@@ -2041,7 +2041,7 @@ static void func_mist_shooting_gallery_801847D4(u8 arg0);
 void func_mist_shooting_gallery_80182064(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
     u32        rand0;
     u32        rand1;
@@ -2063,12 +2063,12 @@ void func_mist_shooting_gallery_80182064(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            coord->sub        = work->parent;
-            coord->coord.t[0] = 0;
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = 0;
-            coord->flg        = 0;
-            task->state       = 1;
+            coord->parent       = work->parent;
+            coord->coord.t[0]   = 0;
+            coord->coord.t[1]   = 0;
+            coord->coord.t[2]   = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
 
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             rand0        = Gp_LcgState;
@@ -2105,7 +2105,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
 /// spins with the effect's angle. `arg1` picks one of six 40-pixel-wide
 /// frames out of the texture page, and the primitive is queued twice into the
 /// same OT slot. Nothing is drawn if the centre projects off-screen.
-static void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 arg2, s16 arg3)
+static void func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2173,7 +2173,7 @@ static void func_mist_shooting_gallery_80182294(GpCoord* coord, s16 arg1, s16 ar
 /// strip stays perpendicular to it. `arg2` selects the strip out of the
 /// texture page: bit 0 picks the left or right half and bit 1 the upper or
 /// lower row. Nothing is drawn if either endpoint projects off-screen.
-static void func_mist_shooting_gallery_801826C4(GpCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
+static void func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
 {
     void**                          scratch;
     u8*                             head;
@@ -3306,7 +3306,7 @@ void func_mist_shooting_gallery_801848B4(void)
 {
     GpEnemy*   enemy;
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
@@ -3449,7 +3449,7 @@ static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGall
     MistShootingGalleryWork* work;
     GpEnemy*                 enemy;
     TmdObject*               obj;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
 
     work  = (MistShootingGalleryWork*)arg0->work;
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, arg1->idLo | (arg1->idHi << 16), NULL);

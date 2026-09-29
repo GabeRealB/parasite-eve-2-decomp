@@ -143,7 +143,7 @@ static void func_neo_ark_observatory_8017F3FC(Task* task);
 #include "../../shared/planar_reflection.h"
 
 static s32  func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* arg1);
-static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset);
+static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset);
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -177,13 +177,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, func_neo_ark_observatory_8017F588, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} NeoArkObservatoryPoseBank3820;
-
-NeoArkObservatoryPoseBank3820 D_neo_ark_observatory_80180DE0 = { .poses = {
+AnimationPackedPose D_neo_ark_observatory_80180DE0[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
 };
 
@@ -1969,7 +1963,7 @@ void func_neo_ark_observatory_8017FDDC(Task* task)
 /// Rebuilds the working mesh from its source under `coord`: the first four
 /// vectors are rotated only, the eight after them rotated and translated and,
 /// when `offset` is non-NULL, shifted by it afterwards.
-static void func_neo_ark_observatory_8017FE34(GpCoord* coord, SVECTOR* offset)
+static void func_neo_ark_observatory_8017FE34(GfxCoord* coord, SVECTOR* offset)
 {
     MATRIX        m;
     long          flag;

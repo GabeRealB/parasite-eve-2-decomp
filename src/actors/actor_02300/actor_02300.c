@@ -272,13 +272,7 @@ TmdSource Actor02300_D096BC = {
     Actor02300_D09500,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} Actor02300PoseBank96E0;
-
-Actor02300PoseBank96E0 Actor02300_D096E0 = { .poses = {
+AnimationPackedPose Actor02300_D096E0[21] = {
 #include "assets/actor_102300_animation_0A2F0_bank1.inc"
 };
 
@@ -300,13 +294,7 @@ GpAnimSet Actor02300_D0A2F0 = {
     { NULL, Actor02300_D096E0, NULL, NULL, Actor02300_D097DC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor02300PoseBankA318;
-
-Actor02300PoseBankA318 Actor02300_D0A318 = { .poses = {
+AnimationPackedPose Actor02300_D0A318[16] = {
 #include "assets/actor_102300_animation_0AC58_bank1.inc"
 };
 
@@ -328,13 +316,7 @@ GpAnimSet Actor02300_D0AC58 = {
     { NULL, Actor02300_D0A318, NULL, NULL, Actor02300_D0A3D8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[12];
-    AnimationPackedRotation        words[36];
-} Actor02300PoseBankAC80;
-
-Actor02300PoseBankAC80 Actor02300_D0AC80 = { .poses = {
+AnimationPackedPose Actor02300_D0AC80[12] = {
 #include "assets/actor_102300_animation_0B280_bank1.inc"
 };
 
@@ -356,13 +338,7 @@ GpAnimSet Actor02300_D0B280 = {
     { NULL, Actor02300_D0AC80, NULL, NULL, Actor02300_D0AD10, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} Actor02300PoseBankB2A8;
-
-Actor02300PoseBankB2A8 Actor02300_D0B2A8 = { .poses = {
+AnimationPackedPose Actor02300_D0B2A8[14] = {
 #include "assets/actor_102300_animation_0BA80_bank1.inc"
 };
 
@@ -384,13 +360,7 @@ GpAnimSet Actor02300_D0BA80 = {
     { NULL, Actor02300_D0B2A8, NULL, NULL, Actor02300_D0B350, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[25];
-    AnimationPackedRotation        words[75];
-} Actor02300PoseBankBAA8;
-
-Actor02300PoseBankBAA8 Actor02300_D0BAA8 = { .poses = {
+AnimationPackedPose Actor02300_D0BAA8[25] = {
 #include "assets/actor_102300_animation_0C86C_bank1.inc"
 };
 
@@ -412,13 +382,7 @@ GpAnimSet Actor02300_D0C86C = {
     { NULL, Actor02300_D0BAA8, NULL, NULL, Actor02300_D0BBD4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} Actor02300PoseBankC894;
-
-Actor02300PoseBankC894 Actor02300_D0C894 = { .poses = {
+AnimationPackedPose Actor02300_D0C894[10] = {
 #include "assets/actor_102300_animation_0CDE0_bank1.inc"
 };
 
@@ -440,13 +404,7 @@ GpAnimSet Actor02300_D0CDE0 = {
     { NULL, Actor02300_D0C894, NULL, NULL, Actor02300_D0C90C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[27];
-    AnimationPackedRotation        words[81];
-} Actor02300PoseBankCE08;
-
-Actor02300PoseBankCE08 Actor02300_D0CE08 = { .poses = {
+AnimationPackedPose Actor02300_D0CE08[27] = {
 #include "assets/actor_102300_animation_0DCB0_bank1.inc"
 };
 
@@ -468,13 +426,7 @@ GpAnimSet Actor02300_D0DCB0 = {
     { NULL, Actor02300_D0CE08, NULL, NULL, Actor02300_D0CF4C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} Actor02300PoseBankDCD8;
-
-Actor02300PoseBankDCD8 Actor02300_D0DCD8 = { .poses = {
+AnimationPackedPose Actor02300_D0DCD8[21] = {
 #include "assets/actor_102300_animation_0E9E8_bank1.inc"
 };
 
@@ -496,13 +448,7 @@ GpAnimSet Actor02300_D0E9E8 = {
     { NULL, Actor02300_D0DCD8, NULL, NULL, Actor02300_D0DDD4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor02300PoseBankEA10;
-
-Actor02300PoseBankEA10 Actor02300_D0EA10 = { .poses = {
+AnimationPackedPose Actor02300_D0EA10[16] = {
 #include "assets/actor_102300_animation_0F120_bank1.inc"
 };
 
@@ -524,13 +470,7 @@ GpAnimSet Actor02300_D0F120 = {
     { NULL, Actor02300_D0EA10, NULL, NULL, Actor02300_D0EAD0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor02300PoseBankF148;
-
-Actor02300PoseBankF148 Actor02300_D0F148 = { .poses = {
+AnimationPackedPose Actor02300_D0F148[3] = {
 #include "assets/actor_102300_animation_0F328_bank1.inc"
 };
 
@@ -552,13 +492,7 @@ GpAnimSet Actor02300_D0F328 = {
     { NULL, Actor02300_D0F148, NULL, NULL, Actor02300_D0F16C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} Actor02300PoseBankF350;
-
-Actor02300PoseBankF350 Actor02300_D0F350 = { .poses = {
+AnimationPackedPose Actor02300_D0F350[9] = {
 #include "assets/actor_102300_animation_0F934_bank1.inc"
 };
 
@@ -580,13 +514,7 @@ GpAnimSet Actor02300_D0F934 = {
     { NULL, Actor02300_D0F350, NULL, NULL, Actor02300_D0F3BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} Actor02300PoseBankF95C;
-
-Actor02300PoseBankF95C Actor02300_D0F95C = { .poses = {
+AnimationPackedPose Actor02300_D0F95C[8] = {
 #include "assets/actor_102300_animation_0FE58_bank1.inc"
 };
 
@@ -608,13 +536,7 @@ GpAnimSet Actor02300_D0FE58 = {
     { NULL, Actor02300_D0F95C, NULL, NULL, Actor02300_D0F9BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[19];
-    AnimationPackedRotation        words[57];
-} Actor02300PoseBankFE80;
-
-Actor02300PoseBankFE80 Actor02300_D0FE80 = { .poses = {
+AnimationPackedPose Actor02300_D0FE80[19] = {
 #include "assets/actor_102300_animation_10868_bank1.inc"
 };
 
@@ -636,13 +558,7 @@ GpAnimSet Actor02300_D10868 = {
     { NULL, Actor02300_D0FE80, NULL, NULL, Actor02300_D0FF64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[18];
-    AnimationPackedRotation        words[54];
-} Actor02300PoseBank10890;
-
-Actor02300PoseBank10890 Actor02300_D10890 = { .poses = {
+AnimationPackedPose Actor02300_D10890[18] = {
 #include "assets/actor_102300_animation_11310_bank1.inc"
 };
 
@@ -664,13 +580,7 @@ GpAnimSet Actor02300_D11310 = {
     { NULL, Actor02300_D10890, NULL, NULL, Actor02300_D10968, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} Actor02300PoseBank11338;
-
-Actor02300PoseBank11338 Actor02300_D11338 = { .poses = {
+AnimationPackedPose Actor02300_D11338[8] = {
 #include "assets/actor_102300_animation_118F0_bank1.inc"
 };
 
@@ -692,13 +602,7 @@ GpAnimSet Actor02300_D118F0 = {
     { NULL, Actor02300_D11338, NULL, NULL, Actor02300_D11398, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[23];
-    AnimationPackedRotation        words[69];
-} Actor02300PoseBank11918;
-
-Actor02300PoseBank11918 Actor02300_D11918 = { .poses = {
+AnimationPackedPose Actor02300_D11918[23] = {
 #include "assets/actor_102300_animation_125E4_bank1.inc"
 };
 
@@ -720,13 +624,7 @@ GpAnimSet Actor02300_D125E4 = {
     { NULL, Actor02300_D11918, NULL, NULL, Actor02300_D11A2C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[31];
-    AnimationPackedRotation        words[93];
-} Actor02300PoseBank1260C;
-
-Actor02300PoseBank1260C Actor02300_D1260C = { .poses = {
+AnimationPackedPose Actor02300_D1260C[31] = {
 #include "assets/actor_102300_animation_1365C_bank1.inc"
 };
 
@@ -748,13 +646,7 @@ GpAnimSet Actor02300_D1365C = {
     { NULL, Actor02300_D1260C, NULL, NULL, Actor02300_D12780, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} Actor02300PoseBank13684;
-
-Actor02300PoseBank13684 Actor02300_D13684 = { .poses = {
+AnimationPackedPose Actor02300_D13684[9] = {
 #include "assets/actor_102300_animation_13B30_bank1.inc"
 };
 
@@ -776,13 +668,7 @@ GpAnimSet Actor02300_D13B30 = {
     { NULL, Actor02300_D13684, NULL, NULL, Actor02300_D136F0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor02300PoseBank13B58;
-
-Actor02300PoseBank13B58 Actor02300_D13B58 = { .poses = {
+AnimationPackedPose Actor02300_D13B58[5] = {
 #include "assets/actor_102300_animation_13E40_bank1.inc"
 };
 
@@ -804,13 +690,7 @@ GpAnimSet Actor02300_D13E40 = {
     { NULL, Actor02300_D13B58, NULL, NULL, Actor02300_D13B94, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor02300PoseBank13E68;
-
-Actor02300PoseBank13E68 Actor02300_D13E68 = { .poses = {
+AnimationPackedPose Actor02300_D13E68[2] = {
 #include "assets/actor_102300_animation_1401C_bank1.inc"
 };
 
@@ -832,13 +712,7 @@ GpAnimSet Actor02300_D1401C = {
     { NULL, Actor02300_D13E68, NULL, NULL, Actor02300_D13E80, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[28];
-    AnimationPackedRotation        words[84];
-} Actor02300PoseBank14044;
-
-Actor02300PoseBank14044 Actor02300_D14044 = { .poses = {
+AnimationPackedPose Actor02300_D14044[28] = {
 #include "assets/actor_102300_animation_14F64_bank1.inc"
 };
 
@@ -860,13 +734,7 @@ GpAnimSet Actor02300_D14F64 = {
     { NULL, Actor02300_D14044, NULL, NULL, Actor02300_D14194, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} Actor02300PoseBank14F8C;
-
-Actor02300PoseBank14F8C Actor02300_D14F8C = { .poses = {
+AnimationPackedPose Actor02300_D14F8C[9] = {
 #include "assets/actor_102300_animation_154F8_bank1.inc"
 };
 
@@ -888,13 +756,7 @@ GpAnimSet Actor02300_D154F8 = {
     { NULL, Actor02300_D14F8C, NULL, NULL, Actor02300_D14FF8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor02300PoseBank15520;
-
-Actor02300PoseBank15520 Actor02300_D15520 = { .poses = {
+AnimationPackedPose Actor02300_D15520[5] = {
 #include "assets/actor_102300_animation_157C0_bank1.inc"
 };
 
@@ -916,13 +778,7 @@ GpAnimSet Actor02300_D157C0 = {
     { NULL, Actor02300_D15520, NULL, NULL, Actor02300_D1555C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor02300PoseBank157E8;
-
-Actor02300PoseBank157E8 Actor02300_D157E8 = { .poses = {
+AnimationPackedPose Actor02300_D157E8[2] = {
 #include "assets/actor_102300_animation_1599C_bank1.inc"
 };
 
@@ -1368,7 +1224,7 @@ static void            Actor02300_Fn028AC(GpEnemy* enemy, Task* actor);
 static inline void     _actor02300ApplyReaction(Task* actor);
 static inline void     _actor02300StepRoot(Task* actor);
 static inline void     _actor02300TickAnim(Task* actor);
-static inline void     _actor02300Draw(Task* actor, GpCoord* coord);
+static inline void     _actor02300Draw(Task* actor, GfxCoord* coord);
 static void            Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor);
 
 /// Dust puff of the per-frame state: every third call spawns a spark effect at
@@ -1409,9 +1265,9 @@ static void Actor02300_Fn00084(Task* arg0)
     GpDeltaScratch*        head;
     Actor105600HitScratch* scratch;
     GpEnemy*               enemy;
-    GpCoord*               self;
-    GpCoord*               other;
-    GpCoord*               part;
+    GfxCoord*              self;
+    GfxCoord*              other;
+    GfxCoord*              part;
     s32                    i;
     s32                    x, y, z;
     s32                    damage;
@@ -1720,7 +1576,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 {
     GpEnemy*         spawn;
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     u8*              head;
     s16              state;
     s16              delta;
@@ -1799,7 +1655,7 @@ void Actor02300_Fn00AEC(Task* arg0)
 static void Actor02300_Fn00CD0(Task* arg0)
 {
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     s32              dx;
     s32              distance;
     s32              dz;
@@ -1865,7 +1721,7 @@ void Actor02300_Fn00E0C(Task* arg0)
     u32              random;
     u32              random2;
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
 
     work  = arg0->work;
     self  = arg0->extra.tmd->coords;
@@ -2031,7 +1887,7 @@ void Actor02300_Fn011E8(Task* arg0)
 void Actor02300_Fn012E0(Task* arg0)
 {
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     s32              snd;
     s16              state;
 
@@ -2113,7 +1969,7 @@ void Actor02300_Fn012E0(Task* arg0)
 static void Actor02300_Fn0150C(Task* arg0)
 {
     Actor105600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR*         rot;
     s32              ang;
     u16              want;
@@ -2197,7 +2053,7 @@ done:
 static void Actor02300_Fn01698(Task* arg0)
 {
     Actor105600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     MATRIX*          matrix;
     s32              angleX;
     s32              angleY;
@@ -2256,7 +2112,7 @@ static void Actor02300_Fn018A4(Task* arg0)
     s32              pan;
     s32              pan2;
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     GpAnimRec*       rec;
 
     work = arg0->work;
@@ -2293,9 +2149,9 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
 {
     Actor105600Work* work;
     Actor105600Work* animWork;
-    GpCoord*         coord;
-    GpCoord*         root;
-    GpCoord*         part;
+    GfxCoord*        coord;
+    GfxCoord*        root;
+    GfxCoord*        part;
     SVECTOR*         scratch;
     VECTOR3          pos;
     s16              anim;
@@ -2312,8 +2168,8 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
             arg0->node.state.b.flags = 0;
             break;
         case 1:
-            coord->flg                     = 0;
-            arg1->extra.tmd->coords[3].flg = 0;
+            coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+            arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             root   = arg1->extra.tmd->coords;
             pos.vx = root->workm.t[0];
@@ -2373,15 +2229,15 @@ static void Actor02300_Fn01A20(GpEnemy* arg0, Task* arg1)
         for (i = 1; i < 0x13; i++) {
             func_800B4114(&animWork->rig.anim, i, animWork->field_694, 0, duration);
         }
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         animWork->field_698++;
         for (i = 1; i < 0x13; i++) {
             Gp_AnimTickIndex(&animWork->rig.anim, i);
         }
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    arg1->extra.tmd->coords[3].flg = 0;
+    arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     root   = arg1->extra.tmd->coords;
     pos.vx = root->workm.t[0];
@@ -2428,7 +2284,7 @@ void Actor02300_Fn01DF0(Task* arg0)
     s32              pan;
     u8*              head;
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     VECTOR*          delta;
 
     head             = SCRATCH_HEAD(u8);
@@ -2563,7 +2419,7 @@ void Actor02300_Fn02290(Task* arg0)
     s32              pan;
     u8*              head;
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     VECTOR*          delta;
 
     head             = SCRATCH_HEAD(u8);
@@ -2625,7 +2481,7 @@ void Actor02300_Fn02290(Task* arg0)
 void Actor02300_Fn02518(Task* arg0)
 {
     Actor105600Work* work;
-    GpCoord*         self;
+    GfxCoord*        self;
     SVECTOR*         scratch;
     s32              sound;
     u32              random;
@@ -2721,12 +2577,12 @@ static void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
-    GpCoord*         coord;
-    GpCoord*         parts;
-    GpCoord*         partsA;
-    GpCoord*         partsB;
-    GpCoord*         partsC;
-    GpCoord*         effParts;
+    GfxCoord*        coord;
+    GfxCoord*        parts;
+    GfxCoord*        partsA;
+    GfxCoord*        partsB;
+    GfxCoord*        partsC;
+    GfxCoord*        effParts;
     GpEnemy*         eff;
     GpEnemy*         eff2;
     u16*             tbl;
@@ -2745,7 +2601,7 @@ static void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
     }
     actor->work                = work;
     obj->flags                 = 0;
-    coord->flg                 = 0;
+    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
     obj->lightMtx              = &work->field_45C;
     obj->colorMtx              = &work->field_43C;
     work->field_6CA            = 0x17;
@@ -2910,7 +2766,7 @@ static inline void _actor02300ApplyReaction(Task* actor)
 /// is below 2.
 static inline void _actor02300StepRoot(Task* actor)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor105600Work* work;
 
     coord              = actor->extra.tmd->coords;
@@ -2952,11 +2808,11 @@ static inline void _actor02300TickAnim(Task* actor)
 
 /// Updates the enemy's colour from `coord`'s world position and draws the
 /// ground quad under part 3.
-static inline void _actor02300Draw(Task* actor, GpCoord* coord)
+static inline void _actor02300Draw(Task* actor, GfxCoord* coord)
 {
-    VECTOR3  pos;
-    GpCoord* root;
-    GpCoord* part;
+    VECTOR3   pos;
+    GfxCoord* root;
+    GfxCoord* part;
 
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
@@ -2982,7 +2838,7 @@ static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
 {
     TmdObject*       model;
     Actor105600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
 
     work  = actor->work;
     model = actor->extra.tmd;
@@ -3015,8 +2871,8 @@ static void Actor02300_Fn02EA0(GpEnemy* ctx, Task* actor)
         Actor02300_Fn01698(actor);
     }
     Actor02300_Fn018A4(actor);
-    coord->flg                      = 0;
-    actor->extra.tmd->coords[3].flg = 0;
+    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+    actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     if (work->field_6C4 == 0) {
         Actor02300_SpawnDust(actor);
@@ -3056,7 +2912,7 @@ void Actor02300_Fn0327C(Task* actor)
     u8*              head;
     VECTOR*          delta;
     Actor105600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
 
     head             = SCRATCH_HEAD(u8);
     delta            = (VECTOR*)(head - 0x10);
@@ -3435,8 +3291,8 @@ static void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
     Task*            parent;
     TmdObject*       obj;
     Actor105600Work* work;
-    GpCoord*         coord;
-    GpCoord*         parentCoords;
+    GfxCoord*        coord;
+    GfxCoord*        parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
@@ -3444,13 +3300,13 @@ static void Actor02300_Fn03C04(GpEnemy* arg0, Task* task)
     coord        = obj->coords;
     work         = (Actor105600Work*)parent->work;
 
-    coord->flg      = 0;
-    coord->sub      = &parentCoords[7];
-    obj->lightMtx   = &work->field_45C;
-    obj->colorMtx   = &work->field_43C;
-    obj->flags      = 0;
-    task->state     = 1;
-    work->field_6D8 = 0xA;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = &parentCoords[7];
+    obj->lightMtx       = &work->field_45C;
+    obj->colorMtx       = &work->field_43C;
+    obj->flags          = 0;
+    task->state         = 1;
+    work->field_6D8     = 0xA;
 }
 
 /// Per-frame state of the child task `Actor02300_Fn03C04` sets up. It mirrors
@@ -3508,8 +3364,8 @@ static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
     Task*            parent;
     TmdObject*       obj;
     Actor105600Work* work;
-    GpCoord*         coord;
-    GpCoord*         parentCoords;
+    GfxCoord*        coord;
+    GfxCoord*        parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
@@ -3517,12 +3373,12 @@ static void Actor02300_Fn03D44(GpEnemy* arg0, Task* task)
     coord        = obj->coords;
     work         = (Actor105600Work*)parent->work;
 
-    coord->flg    = 0;
-    coord->sub    = &parentCoords[11];
-    obj->lightMtx = &work->field_45C;
-    obj->flags    = 0;
-    obj->colorMtx = &work->field_43C;
-    task->state   = 1;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = &parentCoords[11];
+    obj->lightMtx       = &work->field_45C;
+    obj->flags          = 0;
+    obj->colorMtx       = &work->field_43C;
+    task->state         = 1;
 }
 
 /// The enemy's own state handlers - spawn/setup, per-frame tick and
@@ -3545,7 +3401,7 @@ static void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1)
     TmdObject*       obj;
     TmdObject*       ownerObj;
     Actor105600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s16              state;
     s32              snd;
     s32              pan;
@@ -3560,7 +3416,7 @@ static void Actor02300_Fn03D88(GpEnemy* arg0, Task* arg1)
 
     switch (state) {
         case 0:
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
         case 1:
             Gp_SpawnEff(0x6005C, coord, 0x10002600, NULL);

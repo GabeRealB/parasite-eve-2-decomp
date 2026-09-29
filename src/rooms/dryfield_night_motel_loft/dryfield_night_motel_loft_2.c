@@ -67,7 +67,7 @@ extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 
 static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade);
+static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade);
 
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 
@@ -602,7 +602,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
     s16                           ev    = Gp_State1C->eventState;
-    GpCoord*                      coord = task->extra.tmd->coords;
+    GfxCoord*                     coord = task->extra.tmd->coords;
     SVECTOR                       step;
 
     if (ev < 4) {
@@ -621,14 +621,14 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     w->shade    = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x40;
                     VectorNormalSS(&w->vel, &w->vel);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vx  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vy  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vz  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    coord->flg  = 0;
-                    task->state = 1;
+                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                    w->spin.vx          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                    w->spin.vy          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                    w->spin.vz          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    task->state         = 1;
                     break;
                 case 1:
                     Gfx_RotMatrixXYZ(&coord->coord, &w->spin, 0);
@@ -637,10 +637,10 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     gte_ldsv(&w->vel);
                     gte_gpf12();
                     gte_stsv(&step);
-                    coord->coord.t[0] += step.vx;
-                    coord->coord.t[1] += step.vy;
-                    coord->coord.t[2] += step.vz;
-                    coord->flg         = 0;
+                    coord->coord.t[0]  += step.vx;
+                    coord->coord.t[1]  += step.vy;
+                    coord->coord.t[2]  += step.vz;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     func_dryfield_night_motel_loft_8017E540(coord, w->size, w->shade);
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= step.vx;
@@ -665,10 +665,10 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     gte_ldsv(&w->vel);
                     gte_gpf12();
                     gte_stsv(&step);
-                    coord->coord.t[0] += step.vx;
-                    coord->coord.t[1] += step.vy;
-                    coord->coord.t[2] += step.vz;
-                    coord->flg         = 0;
+                    coord->coord.t[0]  += step.vx;
+                    coord->coord.t[1]  += step.vy;
+                    coord->coord.t[2]  += step.vz;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     func_dryfield_night_motel_loft_8017E540(coord, w->size, w->shade);
                     if (coord->coord.t[1] > 0) {
                         coord->coord.t[0] -= step.vx;
@@ -694,7 +694,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 /// rotated by `coord`'s `workm` and moved by its translation before projection
 /// through `GsWSMATRIX`. A triangle the GTE flags as failed is dropped. The
 /// triangle is made semi-transparent with a blend mode drawn from the LCG.
-static void func_dryfield_night_motel_loft_8017E540(GpCoord* coord, s16 scale, s16 shade)
+static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade)
 {
     _DryfieldNightMotelLoftTriScratch* blk;
     SVECTOR*                           p;

@@ -88,13 +88,7 @@ TmdSource D_actor_110700_801377C8 = {
     D_actor_110700_80133A68,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor110700PoseBank59CC;
-
-Actor110700PoseBank59CC D_actor_110700_801377EC = { .poses = {
+AnimationPackedPose D_actor_110700_801377EC[6] = {
 #include "assets/actor_110700_animation_05D64_bank1.inc"
 };
 
@@ -116,13 +110,7 @@ GpAnimSet D_actor_110700_80137B84 = {
     { NULL, D_actor_110700_801377EC, NULL, NULL, D_actor_110700_80137834, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} Actor110700PoseBank5D8C;
-
-Actor110700PoseBank5D8C D_actor_110700_80137BAC = { .poses = {
+AnimationPackedPose D_actor_110700_80137BAC[14] = {
 #include "assets/actor_110700_animation_0667C_bank1.inc"
 };
 
@@ -144,13 +132,7 @@ GpAnimSet D_actor_110700_8013849C = {
     { NULL, D_actor_110700_80137BAC, NULL, NULL, D_actor_110700_80137C54, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[53];
-    AnimationPackedRotation        words[159];
-} Actor110700PoseBank66A4;
-
-Actor110700PoseBank66A4 D_actor_110700_801384C4 = { .poses = {
+AnimationPackedPose D_actor_110700_801384C4[53] = {
 #include "assets/actor_110700_animation_0820C_bank1.inc"
 };
 
@@ -172,13 +154,7 @@ GpAnimSet D_actor_110700_8013A02C = {
     { NULL, D_actor_110700_801384C4, NULL, NULL, D_actor_110700_80138740, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[11];
-    AnimationPackedRotation        words[33];
-} Actor110700PoseBank8234;
-
-Actor110700PoseBank8234 D_actor_110700_8013A054 = { .poses = {
+AnimationPackedPose D_actor_110700_8013A054[11] = {
 #include "assets/actor_110700_animation_08714_bank1.inc"
 };
 
@@ -200,13 +176,7 @@ GpAnimSet D_actor_110700_8013A534 = {
     { NULL, D_actor_110700_8013A054, NULL, NULL, D_actor_110700_8013A0D8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[51];
-    AnimationPackedRotation        words[153];
-} Actor110700PoseBank873C;
-
-Actor110700PoseBank873C D_actor_110700_8013A55C = { .poses = {
+AnimationPackedPose D_actor_110700_8013A55C[51] = {
 #include "assets/actor_110700_animation_0A14C_bank1.inc"
 };
 
@@ -284,7 +254,7 @@ void func_actor_110700_80131E24(Task* task)
 /// destroyed instead.
 static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
     Actor110700Work* work;
 
@@ -300,10 +270,10 @@ static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
     obj->colorMtx = &work->colorMtx;
     obj->flags    = 0;
     func_800B3F84(&work->rig.anim, D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
-    work->animId   = 0;
-    task->msgTable = D_actor_110700_8013BFA0;
-    coord->flg     = 0;
-    task->state    = 1;
+    work->animId        = 0;
+    task->msgTable      = D_actor_110700_8013BFA0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state         = 1;
 }
 
 /// State 1, run every frame: ticks animation slots 1..0x12 once an animation
@@ -312,7 +282,7 @@ static void func_actor_110700_80131E78(GpEnemy* enemy, Task* task)
 static void func_actor_110700_80131F44(GpEnemy* enemy, Task* task)
 {
     Actor110700Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR*          block;
     s32              i;
 
@@ -351,17 +321,17 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, GpAnimArg* args)
 
 /// Message 0x7D4 handler: places the actor. Builds the root coordinate's
 /// rotation from the message's Euler angles, writes its translation, and
-/// clears `flg` so the world matrix is recomputed from them.
+/// clears `composeStamp` so the world matrix is recomputed from them.
 s32 func_actor_110700_80132074(Task* task, s32 msgId, GpXformArg* args)
 {
     TmdObject* ext   = task->extra.tmd;
-    GpCoord*   coord = ext->coords;
+    GfxCoord*  coord = ext->coords;
 
     RotMatrix(&args->rot, &coord->coord);
-    coord->coord.t[0] = args->pos.vx;
-    coord->coord.t[1] = args->pos.vy;
-    coord->coord.t[2] = args->pos.vz;
-    coord->flg        = 0;
+    coord->coord.t[0]   = args->pos.vx;
+    coord->coord.t[1]   = args->pos.vy;
+    coord->coord.t[2]   = args->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

@@ -77,10 +77,10 @@ extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
 
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
 static void func_shelter_1f_bulwark_8017DC18(Task* task);
-static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_1f_bulwark_8017E630(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_1f_bulwark_8017EA5C(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_1f_bulwark_8017F2E0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_1f_bulwark_8017F960(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_shelter_1f_bulwark_80180648[1];
 extern GpObj3A        D_shelter_1f_bulwark_80180E08[2];
@@ -717,7 +717,7 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 void func_shelter_1f_bulwark_8017E38C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -780,7 +780,7 @@ void func_shelter_1f_bulwark_8017E38C(Task* task)
 /// position, skipped when the projection fails. The ring runs from radius
 /// `arg1`, black, out to `arg1 + arg2`, tinted with `rgb`; both radii shrink
 /// with depth.
-static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_1f_bulwark_8017E630(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -836,7 +836,7 @@ static void func_shelter_1f_bulwark_8017E630(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
 /// position, skipped when the projection fails. The centre is tinted with
 /// `rgb` and the rim is black; `arg1` is the radius before depth scaling.
-static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_1f_bulwark_8017EA5C(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -886,15 +886,15 @@ static void func_shelter_1f_bulwark_8017EA5C(GpCoord* arg0, s16 arg1, u8* rgb)
 
 void func_shelter_1f_bulwark_8017EDF0(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -902,36 +902,36 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_1f_bulwark_801803A0[0].vx;
-                objCoord->coord.t[1] = D_shelter_1f_bulwark_801803A0[0].vy;
-                objCoord->coord.t[2] = D_shelter_1f_bulwark_801803A0[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_1f_bulwark_801803A0[0].vx;
+                objCoord->coord.t[1]   = D_shelter_1f_bulwark_801803A0[0].vy;
+                objCoord->coord.t[2]   = D_shelter_1f_bulwark_801803A0[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_1f_bulwark_801803A0[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_1f_bulwark_801803A0[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -939,35 +939,35 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_1f_bulwark_801803A0[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_1f_bulwark_8017F2E0(coords, &coords[8], work->age & 7, 0x123);
@@ -984,11 +984,11 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
 /// of `arg0` to the same slots of `arg1`, and fades as it gets older. `arg3`
 /// packs the colour as channel weights (bits 8 up, 4-5 and 0-1). A quad whose
 /// projection fails is skipped.
-static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_1f_bulwark_8017F2E0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1083,7 +1083,7 @@ static void func_shelter_1f_bulwark_8017F2E0(GpCoord* arg0, GpCoord* arg1, s16 a
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1154,7 +1154,7 @@ void func_shelter_1f_bulwark_8017F6D8(Task* task)
 /// colour, a half-size disc in full colour, and four spikes, two of them twice
 /// as long. Every wedge fades from its tinted centre to a black rim, and all
 /// radii shrink with depth.
-static void func_shelter_1f_bulwark_8017F960(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_1f_bulwark_8017F960(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

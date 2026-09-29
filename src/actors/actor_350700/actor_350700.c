@@ -12,7 +12,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -197,13 +196,7 @@ TmdSource D_actor_350700_801686C8 = {
     D_actor_350700_801650AC,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor350700PoseBank68CC;
-
-Actor350700PoseBank68CC D_actor_350700_801686EC = { .poses = {
+AnimationPackedPose D_actor_350700_801686EC[2] = {
 #include "assets/actor_350700_animation_06AB8_bank1.inc"
 };
 
@@ -225,13 +218,7 @@ GpAnimSet D_actor_350700_801688D8 = {
     { NULL, D_actor_350700_801686EC, NULL, NULL, D_actor_350700_80168704, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[22];
-    AnimationPackedRotation        words[66];
-} Actor350700PoseBank6AE0;
-
-Actor350700PoseBank6AE0 D_actor_350700_80168900 = { .poses = {
+AnimationPackedPose D_actor_350700_80168900[22] = {
 #include "assets/actor_350700_animation_0769C_bank1.inc"
 };
 
@@ -253,13 +240,7 @@ GpAnimSet D_actor_350700_801694BC = {
     { NULL, D_actor_350700_80168900, NULL, NULL, D_actor_350700_80168A08, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor350700PoseBank76C4;
-
-Actor350700PoseBank76C4 D_actor_350700_801694E4 = { .poses = {
+AnimationPackedPose D_actor_350700_801694E4[5] = {
 #include "assets/actor_350700_animation_07AA4_bank1.inc"
 };
 
@@ -281,13 +262,7 @@ GpAnimSet D_actor_350700_801698C4 = {
     { NULL, D_actor_350700_801694E4, NULL, NULL, D_actor_350700_80169520, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor350700PoseBank7ACC;
-
-Actor350700PoseBank7ACC D_actor_350700_801698EC = { .poses = {
+AnimationPackedPose D_actor_350700_801698EC[5] = {
 #include "assets/actor_350700_animation_07EB0_bank1.inc"
 };
 
@@ -460,13 +435,7 @@ TmdSource D_actor_350700_8016F5F4 = {
     D_actor_350700_8016F36C,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor350700PoseBankD7F8;
-
-Actor350700PoseBankD7F8 D_actor_350700_8016F618 = { .poses = {
+AnimationPackedPose D_actor_350700_8016F618[2] = {
 #include "assets/actor_350700_animation_0DA4C_bank1.inc"
 };
 
@@ -488,13 +457,7 @@ GpAnimSet D_actor_350700_8016F86C = {
     { NULL, D_actor_350700_8016F618, NULL, NULL, D_actor_350700_8016F630, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor350700PoseBankDA74;
-
-Actor350700PoseBankDA74 D_actor_350700_8016F894 = { .poses = {
+AnimationPackedPose D_actor_350700_8016F894[3] = {
 #include "assets/actor_350700_animation_0DD04_bank1.inc"
 };
 
@@ -516,13 +479,7 @@ GpAnimSet D_actor_350700_8016FB24 = {
     { NULL, D_actor_350700_8016F894, NULL, NULL, D_actor_350700_8016F8B8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor350700PoseBankDD2C;
-
-Actor350700PoseBankDD2C D_actor_350700_8016FB4C = { .poses = {
+AnimationPackedPose D_actor_350700_8016FB4C[3] = {
 #include "assets/actor_350700_animation_0E08C_bank1.inc"
 };
 
@@ -544,13 +501,7 @@ GpAnimSet D_actor_350700_8016FEAC = {
     { NULL, D_actor_350700_8016FB4C, NULL, NULL, D_actor_350700_8016FB70, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor350700PoseBankE0B4;
-
-Actor350700PoseBankE0B4 D_actor_350700_8016FED4 = { .poses = {
+AnimationPackedPose D_actor_350700_8016FED4[2] = {
 #include "assets/actor_350700_animation_0E284_bank1.inc"
 };
 
@@ -572,13 +523,7 @@ GpAnimSet D_actor_350700_801700A4 = {
     { NULL, D_actor_350700_8016FED4, NULL, NULL, D_actor_350700_8016FEEC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[20];
-    AnimationPackedRotation        words[60];
-} Actor350700PoseBankE2AC;
-
-Actor350700PoseBankE2AC D_actor_350700_801700CC = { .poses = {
+AnimationPackedPose D_actor_350700_801700CC[20] = {
 #include "assets/actor_350700_animation_0EA78_bank1.inc"
 };
 
@@ -633,7 +578,7 @@ Actor350700MsgEntry D_actor_350700_8017090C[6] = {
 /// root coordinate's translation and truncates them back to 16 bits. Ticks the
 /// animation slots while `model.ticking` is set, and -- unless the display object's
 /// `flags` carry 0x80 -- draws the ground-shadow quad from the second
-/// part's world matrix, clears that part's `flg` and rebuilds its coordinate.
+/// part's world matrix, clears that part's `composeStamp` and rebuilds its coordinate.
 /// The `freeCountdown` countdown then runs while it is non-negative, freeing the
 /// model buffers on the frame it reaches zero; the init's -1 disables it.
 static void func_actor_350700_80161E88(Task* arg0)
@@ -642,7 +587,7 @@ static void func_actor_350700_80161E88(Task* arg0)
     Actor350500Work* work     = (Actor350500Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350700_801624D0, func_actor_350700_801624D8 };
     VECTOR3          pos;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              i;
 
     funcs[(s16)work->walk.motion](arg0);
@@ -653,7 +598,7 @@ static void func_actor_350700_80161E88(Task* arg0)
     coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
     coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
     coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
     work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
     work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
@@ -666,7 +611,7 @@ static void func_actor_350700_80161E88(Task* arg0)
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
-        arg0->extra.tmd->coords[1].flg = 0;
+        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -686,7 +631,7 @@ static void func_actor_350700_80161E88(Task* arg0)
 static void func_actor_350700_80162070(Task* arg0)
 {
     Actor350500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -874,12 +819,12 @@ static void func_actor_350700_801624D8(Task* arg0)
 /// toward `work->walk.target`, taking the yaw of the normalised offset from the
 /// part's own translation with `ratan2` -- turned half a revolution away while
 /// `field_4C4` is clear -- and rebuilding the local matrix from that yaw alone.
-/// Clearing `flg` makes the coordinate tree recompute the world matrix, and
+/// Clearing `composeStamp` makes the coordinate tree recompute the world matrix, and
 /// bumping `walk.motionStep` moves on to the next handler.
 static void func_actor_350700_80162540(Task* task)
 {
     Actor350500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
@@ -903,7 +848,7 @@ static void func_actor_350700_80162540(Task* task)
     coord->param.rot.vy = rot.vy;
     coord->param.rot.vz = rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.motionStep++;
 }
 
@@ -917,7 +862,7 @@ static void func_actor_350700_80162540(Task* task)
 static void func_actor_350700_8016261C(Task* arg0)
 {
     Actor350500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           vec;
 
     coord = arg0->extra.tmd->coords;
@@ -943,12 +888,12 @@ static void func_actor_350700_8016261C(Task* arg0)
 /// widening of the extracted yaw -- and otherwise snaps the yaw to the target
 /// and plays anim 0x7D3, clearing the two body counters. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, which
-/// `_gpUpdateCoordTree` picks up once `flg` is cleared.
+/// `_gpUpdateCoordTree` picks up once `composeStamp` is cleared.
 static void func_actor_350700_80162764(Task* arg0)
 {
     Actor350500Work* work;
     GpMtxWords*      words;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -985,7 +930,7 @@ static void func_actor_350700_80162764(Task* arg0)
     words->m20_m21 = 0;
     words->m22     = ONE;
     RotMatrix(&vec, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message-0x7D3 handler of the enemy actor, also called directly by the
@@ -1032,10 +977,10 @@ s32 func_actor_350700_80162860(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message-0x7D4 handler of the enemy actor: places the root part at
 /// `args`. The translation goes straight into the local matrix, the Euler
 /// angles into the coordinate's `rot` slot, from which `RotMatrix` rebuilds the
-/// rotation; clearing `flg` makes the world matrix be recomputed. Returns 0.
+/// rotation; clearing `composeStamp` makes the world matrix be recomputed. Returns 0.
 s32 func_actor_350700_80162998(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -1045,7 +990,7 @@ s32 func_actor_350700_80162998(Task* task, s32 msgId, GpXformArg* args)
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -1208,11 +1153,11 @@ static void func_actor_350700_80162B30(Task* arg0)
 /// table `walk.motion` indexes -- the empty `func_actor_350700_801633F8` or the
 /// step dispatcher `func_actor_350700_80163400` -- then integrates the
 /// per-frame deltas in `walk.step` into the 16.16 accumulators `walk.acc`,
-/// adds their high halves to the root coordinate's translation, clears `flg`
+/// adds their high halves to the root coordinate's translation, clears `composeStamp`
 /// and truncates the accumulators back to 16 bits. Ticks the animation slots
 /// while `model.ticking` is set; and, unless the display object's `flags` carry
 /// 0x80, draws the ground-shadow quad from the second part's world matrix.
-/// While `gGameSession->viewReady` is set it also clears that part's `flg`,
+/// While `gGameSession->viewReady` is set it also clears that part's `composeStamp`,
 /// rebuilds its coordinate and rebuilds the actor colour; the colour rebuild
 /// runs once more unconditionally. The `freeCountdown` countdown then runs while it
 /// is non-negative, freeing the model buffers on the frame it reaches zero; the
@@ -1223,7 +1168,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     Actor135600Work* work     = (Actor135600Work*)arg0->work;
     TaskFunc         funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
     VECTOR3          pos;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              i;
 
     funcs[work->walk.motion](arg0);
@@ -1234,7 +1179,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
     coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
     coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
     work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
     work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
@@ -1249,7 +1194,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
         }
     }
     if (gGameSession->viewReady != 0) {
-        arg0->extra.tmd->coords[1].flg = 0;
+        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -1269,7 +1214,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
 static void func_actor_350700_80162F7C(Task* arg0)
 {
     Actor135600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -1387,19 +1332,19 @@ static void func_actor_350700_801632CC(Task* task)
     s32        part;
     TmdObject* extra;
     TmdObject* parentExtra;
-    GpCoord*   coord;
-    GpCoord*   dest;
+    GfxCoord*  coord;
+    GfxCoord*  dest;
 
-    parent          = (Task*)task->spawnArg2.pointer;
-    part            = task->spawnArg1.value;
-    extra           = task->extra.tmd;
-    parentExtra     = parent->extra.tmd;
-    coord           = extra->coords;
-    dest            = &parentExtra->coords[part];
-    coord->flg      = 0;
-    coord->sub      = dest;
-    extra->lightMtx = parentExtra->lightMtx;
-    extra->colorMtx = parentExtra->colorMtx;
+    parent              = (Task*)task->spawnArg2.pointer;
+    part                = task->spawnArg1.value;
+    extra               = task->extra.tmd;
+    parentExtra         = parent->extra.tmd;
+    coord               = extra->coords;
+    dest                = &parentExtra->coords[part];
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = dest;
+    extra->lightMtx     = parentExtra->lightMtx;
+    extra->colorMtx     = parentExtra->colorMtx;
     Task_Reparent(parent, task);
     task->state += 1;
 }
@@ -1470,7 +1415,7 @@ static void func_actor_350700_80163400(Task* task)
 static void func_actor_350700_80163468(Task* task)
 {
     Actor135600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
@@ -1491,7 +1436,7 @@ static void func_actor_350700_80163468(Task* task)
     coord->param.rot.vy = rot.vy;
     coord->param.rot.vz = rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.motionStep++;
 }
 
@@ -1502,7 +1447,7 @@ static void func_actor_350700_80163468(Task* task)
 static void func_actor_350700_80163528(Task* task)
 {
     Actor135600Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           vec;
 
     coord = task->extra.tmd->coords;
@@ -1527,7 +1472,7 @@ static void func_actor_350700_801635A8(Task* arg0)
 {
     Actor135600Work* work;
     GpMtxWords*      words;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -1564,7 +1509,7 @@ static void func_actor_350700_801635A8(Task* arg0)
     words->m20_m21 = 0;
     words->m22     = ONE;
     RotMatrix(&vec, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message-0x7D3 handler of the parent, also called directly by the arrival
@@ -1609,7 +1554,7 @@ s32 func_actor_350700_801636A8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Returns 0.
 s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpXformArg* args)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -1619,7 +1564,7 @@ s32 func_actor_350700_801637C4(Task* task, s32 msgId, GpXformArg* args)
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

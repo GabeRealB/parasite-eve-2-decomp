@@ -57,10 +57,10 @@ typedef struct EnergyBallWork {
 } EnergyBallWork;
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
 
-static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_energyball_801307D4(GpCoord* arg0, s32 arg1);
-static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1);
+static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The energy ball's `SndEvt` ids. Only the first three are read, indexed by
 /// the cast's level: the cast starts its entry with `SndEvt_EnqueueType6` and
@@ -96,7 +96,7 @@ static s16 D_energyball_801311A0[16];
 void func_energyball_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        i;
     s32        level;
     s32        rng;
@@ -155,14 +155,14 @@ void func_energyball_8012EF48(Task* arg0)
 void func_energyball_8012F180(Task* arg0)
 {
     GpEffWork*      mem;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     EnergyBallWork* work;
     GpCoord64*      slot;
-    GpCoord*        sc;
+    GfxCoord*       sc;
     GpPointLight*   tail;
-    GpCoord         ground;
+    GfxCoord        ground;
     VECTOR          vec;
-    GpCoord*        player;
+    GfxCoord*       player;
     GpEffWork*      spawned;
     SVECTOR*        dir;
     u16             r;
@@ -171,8 +171,8 @@ void func_energyball_8012F180(Task* arg0)
     s32             cur;
 
     slot  = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
-    sc    = &slot->data.coord;
-    tail  = &slot->data.light;
+    sc    = &slot->light.head.u.coord;
+    tail  = &slot->light;
     coord = arg0->extra.tmd->coords;
     fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
@@ -223,11 +223,11 @@ void func_energyball_8012F180(Task* arg0)
             /* fallthrough */
         case 1:
             if (mem->angle < D_energyball_80131194[mem->index].field_0) {
-                mem->angle         = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
-                coord->coord.t[0] += mem->move.vx;
-                coord->coord.t[1] += mem->move.vy;
-                coord->coord.t[2] += mem->move.vz;
-                coord->flg         = 0;
+                mem->angle          = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
+                coord->coord.t[0]  += mem->move.vx;
+                coord->coord.t[1]  += mem->move.vy;
+                coord->coord.t[2]  += mem->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
             } else {
                 Gp_UpdateCoord(coord);
@@ -270,7 +270,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[0]   = coord->coord.t[0];
             sc->coord.t[1]   = coord->coord.t[1];
             sc->coord.t[2]   = coord->coord.t[2];
-            sc->flg          = 0;
+            sc->composeStamp = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if ((Gp_State1C->groundTrace != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
@@ -321,10 +321,10 @@ void func_energyball_8012F180(Task* arg0)
                 cur          = mem->move.vz;
                 mem->move.vz = (cur < mem->pos.vz) ? cur + 0x10 : cur - 0x10;
             }
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            coord->coord.t[2] += mem->move.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->coord.t[2]  += mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             slot->framesLeft = 2;
             tail->inner      = 0x100;
@@ -337,7 +337,7 @@ void func_energyball_8012F180(Task* arg0)
             sc->coord.t[0]   = coord->coord.t[0];
             sc->coord.t[1]   = coord->coord.t[1];
             sc->coord.t[2]   = coord->coord.t[2];
-            sc->flg          = 0;
+            sc->composeStamp = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (Gp_State1C->groundTrace != 0) {
@@ -456,7 +456,7 @@ release:
 /// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
 /// wedge fades from green at the centre to black at the rim. Each wedge gets
 /// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
-static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -508,7 +508,7 @@ static void func_energyball_8012FFD0(GpCoord* arg0, s16 arg1, s16 arg2)
 /// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
 /// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
 /// `arg3 + 0x400`, so the sprite shrinks with depth.
-static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -571,7 +571,7 @@ static void func_energyball_8013035C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
 /// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
 /// `(0x20, 0x30, 0x20)`.
-static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
+static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1)
 {
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
@@ -649,7 +649,7 @@ static void func_energyball_801307D4(GpCoord* arg0, s32 arg1)
 /// `D_energyball_801311A0` plus the frame counter, the quad is tinted
 /// `(arg2 >> 1, arg2, arg2 >> 1)`, and a negative `gte_stflg` drops the
 /// segment.
-static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpBandScratch* block;
     SVECTOR*       op;
@@ -727,7 +727,7 @@ static void func_energyball_80130B54(GpCoord* arg0, s16 arg1, s16 arg2)
 void func_energyball_8013107C(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     u8         rgb[3];
     s32        scale;
@@ -742,10 +742,10 @@ void func_energyball_8013107C(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
-        coord->flg  = 0;
-        mem->scale  = 0x80;
-        mem->angle  = 0x100;
-        arg0->state = 1;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->scale          = 0x80;
+        mem->angle          = 0x100;
+        arg0->state         = 1;
     }
 
     Gp_UpdateCoord(coord);

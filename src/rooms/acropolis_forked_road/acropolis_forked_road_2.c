@@ -93,11 +93,11 @@ extern u16 D_acropolis_forked_road_801821E8[14];
 /// `[0]` places the task's own frame and `[1]`, also reached by its own name,
 /// the second trail's.
 
-static void func_acropolis_forked_road_8017EC70(GpCoord* coord, s32 arg1, s16 arg2);
-static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_acropolis_forked_road_8017EC70(GfxCoord* coord, s32 arg1, s16 arg2);
+static void func_acropolis_forked_road_8017F224(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_acropolis_forked_road_8017F650(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_acropolis_forked_road_8017FED4(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void func_acropolis_forked_road_8017DA24(Task*);
 void func_acropolis_forked_road_8017DD60(Task*);
@@ -439,13 +439,7 @@ SVECTOR D_acropolis_forked_road_80180F80[300] = {
     { 6590, -2995, 1250, 0 },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisForkedRoadPoseBank4320;
-
-AcropolisForkedRoadPoseBank4320 D_acropolis_forked_road_801818E0 = { .poses = {
+AnimationPackedPose D_acropolis_forked_road_801818E0[6] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank1.inc"
 };
 
@@ -467,13 +461,7 @@ GpAnimSet D_acropolis_forked_road_80181BBC = {
     { NULL, D_acropolis_forked_road_801818E0, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} AcropolisForkedRoadPoseBank4624;
-
-AcropolisForkedRoadPoseBank4624 D_acropolis_forked_road_80181BE4 = { .poses = {
+AnimationPackedPose D_acropolis_forked_road_80181BE4[10] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank1.inc"
 };
 
@@ -1477,8 +1465,8 @@ void func_acropolis_forked_road_8017E288(void)
 /// room's three ambient sound events before marking itself done.
 void func_acropolis_forked_road_8017E298(Task* task)
 {
-    GpCoord* coord;
-    s32      i;
+    GfxCoord* coord;
+    s32       i;
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {
@@ -1522,7 +1510,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     void**            scratch;
     RoomShaftScratch* block;
     GpEffWork*        work;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     POLY_FT4*         prim;
     s32               rgb;
     s32               flicker;
@@ -1610,7 +1598,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 void func_acropolis_forked_road_8017E81C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        vy;
     s32        vx;
     s32        vz;
@@ -1640,7 +1628,7 @@ void func_acropolis_forked_road_8017E81C(Task* task)
             coord->coord.t[2] += work->move.vz;
             Gfx_RotMatrixX(&coord->coord, work->period, 0);
             Gfx_RotMatrixZ(&coord->coord, work->step, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
             vy = work->move.vy;
             if (vy >= 0x1D) {
@@ -1711,7 +1699,7 @@ void func_acropolis_forked_road_8017E81C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-static void func_acropolis_forked_road_8017EC70(GpCoord* coord, s32 arg1, s16 arg2)
+static void func_acropolis_forked_road_8017EC70(GfxCoord* coord, s32 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_FT4*        prim;
@@ -1773,7 +1761,7 @@ static void func_acropolis_forked_road_8017EC70(GpCoord* coord, s32 arg1, s16 ar
 void func_acropolis_forked_road_8017EF80(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1835,7 +1823,7 @@ void func_acropolis_forked_road_8017EF80(Task* task)
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_acropolis_forked_road_8017F224(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1891,7 +1879,7 @@ static void func_acropolis_forked_road_8017F224(GpCoord* arg0, s32 arg1, s32 arg
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_acropolis_forked_road_8017F650(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1948,15 +1936,15 @@ static void func_acropolis_forked_road_8017F650(GpCoord* arg0, s16 arg1, u8* rgb
 /// more.
 void func_acropolis_forked_road_8017F9E4(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1964,36 +1952,36 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_acropolis_forked_road_80182204[0].vx;
-                objCoord->coord.t[1] = D_acropolis_forked_road_80182204[0].vy;
-                objCoord->coord.t[2] = D_acropolis_forked_road_80182204[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_acropolis_forked_road_80182204[0].vx;
+                objCoord->coord.t[1]   = D_acropolis_forked_road_80182204[0].vy;
+                objCoord->coord.t[2]   = D_acropolis_forked_road_80182204[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_acropolis_forked_road_80182204[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_acropolis_forked_road_80182204[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -2001,35 +1989,35 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_acropolis_forked_road_80182204[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_acropolis_forked_road_8017FED4(coords, &coords[8], work->age & 7, 0x123);
@@ -2046,11 +2034,11 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_acropolis_forked_road_8017FED4(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2151,7 +2139,7 @@ static void func_acropolis_forked_road_8017FED4(GpCoord* arg0, GpCoord* arg1, s1
 /// reaches 4.
 void func_acropolis_forked_road_801802CC(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -2222,7 +2210,7 @@ void func_acropolis_forked_road_801802CC(Task* task)
 /// inner disc of half that radius at full `arg2`, and four thin rays at right
 /// angles, alternately reaching the radius and twice it, all fading to black
 /// at the rim. Nothing is drawn when the projection overflows.
-static void func_acropolis_forked_road_80180554(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

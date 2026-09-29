@@ -14,7 +14,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-struct GpCoord;
+struct GfxCoord;
 
 /// Argument for `func_801052B8`. `field_0` is copied onto
 /// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
@@ -41,13 +41,13 @@ extern GpAnimBlk* Gp_PlayerAnimBlkTbl[34];
 /// depth-attenuated by `Gp_GetObjPan` / `gpGetObjDepth`. A third argument of
 /// 1 raises the mid-action bit alongside it; the role of that argument at the
 /// call sites is not established.
-void Gp_PlayObjSfx(GpCoord* coord, s32 sfx, s32 arg2);
+void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2);
 
 void Gp_PulseState1C80(void);
 
-void func_800FDB18(s32 arg0, struct GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_800FDB18(s32 arg0, struct GfxCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
-s32 func_801011D0(struct GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3);
+s32 func_801011D0(struct GfxCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3);
 
 void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
 
@@ -62,7 +62,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 /// Message 1006; the fourth dispatch argument is unused.
 s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3);
 
-s32 Gp_PickNearestRec18(GpRec18* arg0, struct GpCoord* arg1, struct GpCoord* arg2);
+s32 Gp_PickNearestRec18(GpRec18* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
 
 s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -88,7 +88,7 @@ void Gp_TurnPlayer(Task* arg0);
 
 s32 func_801060E0(Task* arg0);
 
-void func_80103C74(GpCoord* arg0, VECTOR3* arg1, VECTOR3* arg2);
+void func_80103C74(GfxCoord* arg0, VECTOR3* arg1, VECTOR3* arg2);
 
 s32 func_80103D8C(s32 arg0, s32 arg1);
 
@@ -117,7 +117,7 @@ void Gp_PlayerWorkTask(Task* arg0);
 
 s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1);
 
-void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2);
+void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2);
 
 s32 func_80105ED4(Task* arg0);
 
@@ -135,7 +135,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2);
 s32 func_80105828(Task* arg0);
 s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2);
-s32 func_80105A60(Task* arg0, s32 arg1, GpCoord* arg2);
+s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2);
 s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2);
 
 #endif // GAMEPLAY_PLAYER_ACTOR_H

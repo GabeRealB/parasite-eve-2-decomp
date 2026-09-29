@@ -215,13 +215,7 @@ TmdSource D_actor_150400_80139A64 = {
     D_actor_150400_80135030,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} Actor150400PoseBank7C68;
-
-Actor150400PoseBank7C68 D_actor_150400_80139A88 = { .poses = {
+AnimationPackedPose D_actor_150400_80139A88[21] = {
 #include "assets/actor_150400_animation_08878_bank1.inc"
 };
 
@@ -243,13 +237,7 @@ GpAnimSet D_actor_150400_8013A698 = {
     { NULL, D_actor_150400_80139A88, NULL, NULL, D_actor_150400_80139B84, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[12];
-    AnimationPackedRotation        words[36];
-} Actor150400PoseBank88A0;
-
-Actor150400PoseBank88A0 D_actor_150400_8013A6C0 = { .poses = {
+AnimationPackedPose D_actor_150400_8013A6C0[12] = {
 #include "assets/actor_150400_animation_08FE0_bank1.inc"
 };
 
@@ -271,13 +259,7 @@ GpAnimSet D_actor_150400_8013AE00 = {
     { NULL, D_actor_150400_8013A6C0, NULL, NULL, D_actor_150400_8013A750, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[20];
-    AnimationPackedRotation        words[60];
-} Actor150400PoseBank9008;
-
-Actor150400PoseBank9008 D_actor_150400_8013AE28 = { .poses = {
+AnimationPackedPose D_actor_150400_8013AE28[20] = {
 #include "assets/actor_150400_animation_09BD0_bank1.inc"
 };
 
@@ -299,13 +281,7 @@ GpAnimSet D_actor_150400_8013B9F0 = {
     { NULL, D_actor_150400_8013AE28, NULL, NULL, D_actor_150400_8013AF18, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor150400PoseBank9BF8;
-
-Actor150400PoseBank9BF8 D_actor_150400_8013BA18 = { .poses = {
+AnimationPackedPose D_actor_150400_8013BA18[16] = {
 #include "assets/actor_150400_animation_0A538_bank1.inc"
 };
 
@@ -417,7 +393,7 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task);
 void func_actor_150400_80131E24(Task* task)
 {
     TmdObject* obj   = task->extra.tmd;
-    GpCoord*   coord = obj->coords;
+    GfxCoord*  coord = obj->coords;
 
     if (task->state == 0) {
         coord->coord.t[0] = 0x2DA;
@@ -427,7 +403,7 @@ void func_actor_150400_80131E24(Task* task)
         } else {
             coord->coord.t[2] = -0x1018;
         }
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         task->state++;
     }
     if (task->state == 2) {
@@ -435,7 +411,7 @@ void func_actor_150400_80131E24(Task* task)
         if (coord->coord.t[0] > 0x406) {
             coord->coord.t[0] = 0x406;
         }
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (Mc_SaveData[0].state.at4.loc.view != 5) {
         obj->flags = 0x84;
@@ -487,7 +463,7 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
     GpEnemy*         spawned;
 
@@ -499,7 +475,7 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback           = func_actor_150400_801324B8;
-    coord->sub                   = &gGfxViewCoord;
+    coord->parent                = &gGfxViewCoord;
     enemy->field_4               = &coord->coord;
     enemy->field_48              = 0;
     enemy->node.state.b.targeted = 0;
@@ -586,7 +562,7 @@ void func_actor_150400_801323E0(Task* task)
 static void func_actor_150400_80132434(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR     pos;
 
     obj   = task->extra.tmd;
@@ -614,7 +590,7 @@ static void func_actor_150400_801324B8(Task* task)
 static void func_actor_150400_801324E0(Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR3*   vec;
 
     obj   = task->extra.tmd;
@@ -731,7 +707,7 @@ s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
 /// translation into the matrix and marks it for recomputation.
 s32 func_actor_150400_80132774(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor150400Work* work;
     u16              yaw;
 
@@ -740,10 +716,10 @@ s32 func_actor_150400_80132774(Task* task, s32 arg1, GpXformArg* placement)
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->flg        = 0;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -758,7 +734,7 @@ s32 func_actor_150400_801327EC(void)
 /// `travel` to the distance divided by 17, the step body's per-frame stride.
 s32 func_actor_150400_801327F4(Task* task, s32 arg1, GpXformArg* target)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor150400Work* work;
     s32              dx;
     s32              dz;
@@ -785,20 +761,20 @@ void func_actor_150400_801328BC(Task* task)
     char             pad[0x10];
     Task*            parent = task->parent;
     TmdObject*       obj    = task->extra.tmd;
-    GpCoord*         coord  = obj->coords;
-    GpCoord*         sub    = &parent->extra.tmd->coords[7];
+    GfxCoord*        coord  = obj->coords;
+    GfxCoord*        sub    = &parent->extra.tmd->coords[7];
     Actor150400Work* work   = (Actor150400Work*)parent->work;
 
     switch (task->state) {
         case 0:
-            coord->flg    = 0;
-            obj->lightMtx = &work->light;
-            obj->colorMtx = &work->color;
-            coord->sub    = sub;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            obj->lightMtx       = &work->light;
+            obj->colorMtx       = &work->color;
+            coord->parent       = sub;
             task->state++;
             break;
         case 1:
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }

@@ -135,13 +135,7 @@ GpAnimSet D_dryfield_gas_station_80182030 = {
     { NULL, D_dryfield_gas_station_80181EA0, NULL, NULL, D_dryfield_gas_station_80181EB8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[13];
-    AnimationPackedRotation        words[39];
-} DryfieldGasStationPoseBank4A98;
-
-DryfieldGasStationPoseBank4A98 D_dryfield_gas_station_80182058 = { .poses = {
+AnimationPackedPose D_dryfield_gas_station_80182058[13] = {
 #include "assets/dryfield_gas_station_animation_05210_bank1.inc"
 };
 
@@ -163,13 +157,7 @@ GpAnimSet D_dryfield_gas_station_801827D0 = {
     { NULL, D_dryfield_gas_station_80182058, NULL, NULL, D_dryfield_gas_station_801820F4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldGasStationPoseBank5238;
-
-DryfieldGasStationPoseBank5238 D_dryfield_gas_station_801827F8 = { .poses = {
+AnimationPackedPose D_dryfield_gas_station_801827F8[7] = {
 #include "assets/dryfield_gas_station_animation_055A4_bank1.inc"
 };
 
@@ -191,13 +179,7 @@ GpAnimSet D_dryfield_gas_station_80182B64 = {
     { NULL, D_dryfield_gas_station_801827F8, NULL, NULL, D_dryfield_gas_station_8018284C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} DryfieldGasStationPoseBank55CC;
-
-DryfieldGasStationPoseBank55CC D_dryfield_gas_station_80182B8C = { .poses = {
+AnimationPackedPose D_dryfield_gas_station_80182B8C[2] = {
 #include "assets/dryfield_gas_station_animation_05848_bank1.inc"
 };
 
@@ -579,8 +561,8 @@ Task* D_dryfield_gas_station_80184BCC = NULL;
 RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 static void func_dryfield_gas_station_801803C0(Task* task);
-static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
+static void func_dryfield_gas_station_80180B4C(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 /// Carries out the script command in `DgsWork::field_4`, then clears it (the
 /// multi-frame commands return early until they finish). 1 places the owner at
@@ -876,7 +858,7 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 /// half-extent, so the on-screen half width is `(s16)arg3 * 32 / otz`; two
 /// gouraud `POLY_G4` wedges and two `LINE_G3` diagonals cross the projected
 /// centre, whose green and blue pulse as `rsin(animFrame * arg2) / 34 + 0x78`.
-static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_gas_station_80180B4C(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -967,7 +949,7 @@ static void func_dryfield_gas_station_80180B4C(GpCoord* arg0, SVECTOR* arg1, s32
 /// radius, then four quads reaching out from `rInner` towards `rOuter`.
 /// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
 /// halved on the outer wedges and on the four quads.
-static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
+static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -1114,8 +1096,8 @@ static void func_dryfield_gas_station_80181058(GpCoord* coord, SVECTOR* data, s3
 /// with 0x40.
 void func_dryfield_gas_station_80181A78(Task* arg0)
 {
-    s32      mask;
-    GpCoord* coord;
+    s32       mask;
+    GfxCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;

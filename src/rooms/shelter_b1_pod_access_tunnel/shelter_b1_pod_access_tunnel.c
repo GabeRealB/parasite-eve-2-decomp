@@ -128,10 +128,10 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task);
 static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task);
 static void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1);
 static void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* coord, s16 arg1, u8* rgb);
-static void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* coord, s16 arg1, u8* rgb);
+static void func_shelter_b1_pod_access_tunnel_8017F3DC(GfxCoord* coord, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b1_pod_access_tunnel_8017F808(GfxCoord* coord, s16 arg1, u8* rgb);
+static void func_shelter_b1_pod_access_tunnel_8018008C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* coord, s16 arg1, u8* rgb);
 
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task*);
 
@@ -198,13 +198,7 @@ GpEvsCmd D_shelter_b1_pod_access_tunnel_80181120[7] = {
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { 0, 192, func_shelter_b1_pod_access_tunnel_8017DF40, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} ShelterB1PodAccessTunnelPoseBank3C14;
-
-ShelterB1PodAccessTunnelPoseBank3C14 D_shelter_b1_pod_access_tunnel_801811D4 = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_801811D4[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
 };
 
@@ -226,13 +220,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_801814B0 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801811D4, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} ShelterB1PodAccessTunnelPoseBank3F18;
-
-ShelterB1PodAccessTunnelPoseBank3F18 D_shelter_b1_pod_access_tunnel_801814D8 = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_801814D8[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank1.inc"
 };
 
@@ -254,13 +242,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80181764 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801814D8, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} ShelterB1PodAccessTunnelPoseBank41CC;
-
-ShelterB1PodAccessTunnelPoseBank41CC D_shelter_b1_pod_access_tunnel_8018178C = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_8018178C[14] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank1.inc"
 };
 
@@ -282,13 +264,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80181E9C = {
     { NULL, D_shelter_b1_pod_access_tunnel_8018178C, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} ShelterB1PodAccessTunnelPoseBank4904;
-
-ShelterB1PodAccessTunnelPoseBank4904 D_shelter_b1_pod_access_tunnel_80181EC4 = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_80181EC4[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank1.inc"
 };
 
@@ -310,13 +286,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80182160 = {
     { NULL, D_shelter_b1_pod_access_tunnel_80181EC4, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} ShelterB1PodAccessTunnelPoseBank4BC8;
-
-ShelterB1PodAccessTunnelPoseBank4BC8 D_shelter_b1_pod_access_tunnel_80182188 = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_80182188[2] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank1.inc"
 };
 
@@ -338,13 +308,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_801823B4 = {
     { NULL, D_shelter_b1_pod_access_tunnel_80182188, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} ShelterB1PodAccessTunnelPoseBank4E1C;
-
-ShelterB1PodAccessTunnelPoseBank4E1C D_shelter_b1_pod_access_tunnel_801823DC = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_801823DC[10] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank1.inc"
 };
 
@@ -366,13 +330,7 @@ GpAnimSet D_shelter_b1_pod_access_tunnel_80182938 = {
     { NULL, D_shelter_b1_pod_access_tunnel_801823DC, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} ShelterB1PodAccessTunnelPoseBank53A0;
-
-ShelterB1PodAccessTunnelPoseBank53A0 D_shelter_b1_pod_access_tunnel_80182960 = { .poses = {
+AnimationPackedPose D_shelter_b1_pod_access_tunnel_80182960[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank1.inc"
 };
 
@@ -1750,7 +1708,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E8F4(SVECTOR* arg0, s32 arg1, 
 void func_shelter_b1_pod_access_tunnel_8017F138(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1812,7 +1770,7 @@ void func_shelter_b1_pod_access_tunnel_8017F138(Task* task)
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-static void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b1_pod_access_tunnel_8017F3DC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1868,7 +1826,7 @@ static void func_shelter_b1_pod_access_tunnel_8017F3DC(GpCoord* arg0, s32 arg1, 
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b1_pod_access_tunnel_8017F808(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1925,15 +1883,15 @@ static void func_shelter_b1_pod_access_tunnel_8017F808(GpCoord* arg0, s16 arg1, 
 /// more.
 void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1941,36 +1899,36 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_b1_pod_access_tunnel_80183A04[0].vx;
-                objCoord->coord.t[1] = D_shelter_b1_pod_access_tunnel_80183A04[0].vy;
-                objCoord->coord.t[2] = D_shelter_b1_pod_access_tunnel_80183A04[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_b1_pod_access_tunnel_80183A04[0].vx;
+                objCoord->coord.t[1]   = D_shelter_b1_pod_access_tunnel_80183A04[0].vy;
+                objCoord->coord.t[2]   = D_shelter_b1_pod_access_tunnel_80183A04[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_b1_pod_access_tunnel_80183A04[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_b1_pod_access_tunnel_80183A04[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1978,35 +1936,35 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_b1_pod_access_tunnel_80183A04[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b1_pod_access_tunnel_8018008C(coords, &coords[8], work->age & 7, 0x123);
@@ -2023,11 +1981,11 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-static void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_access_tunnel_8018008C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2128,7 +2086,7 @@ static void func_shelter_b1_pod_access_tunnel_8018008C(GpCoord* arg0, GpCoord* a
 /// reaches 4.
 void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -2199,7 +2157,7 @@ void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
 /// inner disc of half that radius at full `arg2`, and four thin rays at right
 /// angles, alternately reaching the radius and twice it, all fading to black
 /// at the rim. Nothing is drawn when the projection overflows.
-static void func_shelter_b1_pod_access_tunnel_8018070C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

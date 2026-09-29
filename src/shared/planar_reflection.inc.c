@@ -52,7 +52,7 @@ static void Reflection_InitPlayer(Task* task)
     Task*           owner;
     GameActor*      actor;
     TmdObject*      extra;
-    GpCoord*        parts;
+    GfxCoord*       parts;
     RoomMirrorWork* work;
     Task*           child;
     Task*           spawned;
@@ -83,12 +83,12 @@ static void Reflection_InitPlayer(Task* task)
     if (task->spawnArg1.value == 0) {
         gGameSession->field_4E = 1;
     }
-    parts->sub      = &work->coord;
+    parts->parent   = &work->coord;
     extra->lightMtx = &work->light;
     extra->colorMtx = &work->color;
     Task_Reparent(owner, task);
     task->state++;
-    work->viewFlg   = gGfxViewCoord.flg & 0x7FFFFFFF;
+    work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     work->field_4   = 1;
     work->configRev = -1;
     extra->flags   |= 0x80;
@@ -133,8 +133,8 @@ static void Reflection_UpdatePlayer(Task* task)
     Task*                    spawned;
     RoomMirrorPlaneScratch*  plane;
     RoomMirrorExtentScratch* extent;
-    GpCoord*                 parts;
-    GpCoord*                 refPart;
+    GfxCoord*                parts;
+    GfxCoord*                refPart;
     DR_AREA*                 drArea;
     DR_STP*                  drStp;
     DR_OFFSET*               drOffset;
@@ -178,19 +178,19 @@ static void Reflection_UpdatePlayer(Task* task)
         }
     }
     extra->flags |= 0x10;
-    viewFlg       = gGfxViewCoord.flg & 0x7FFFFFFF;
+    viewFlg       = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     if (work->viewFlg != viewFlg) {
-        GpCoord* sub;
+        GfxCoord* viewParent;
 
-        work->viewFlg     = viewFlg;
-        sub               = gGfxViewCoord.sub;
-        work->field_A0[0] = -0xA0;
-        work->field_A0[1] = 0xA0;
-        work->coord.flg   = 0;
-        work->field_A0[2] = -0x78;
-        work->field_A0[3] = 0x78;
-        plane             = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
-        work->coord.sub   = sub;
+        work->viewFlg            = viewFlg;
+        viewParent               = gGfxViewCoord.parent;
+        work->field_A0[0]        = -0xA0;
+        work->field_A0[1]        = 0xA0;
+        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
+        work->field_A0[2]        = -0x78;
+        work->field_A0[3]        = 0x78;
+        plane                    = (RoomMirrorPlaneScratch*)SCRATCH_PUSH_BYTES(0x70);
+        work->coord.parent       = viewParent;
         if (task->spawnArg1.value == 0) {
             work->field_4     = 1;
             work->coord.coord = gGfxViewCoord.coord;
@@ -508,18 +508,18 @@ static void Reflection_UpdatePlayer(Task* task)
         refPart = &parts[1];
         if (owner != NULL) {
             TmdObject* src       = owner->extra.tmd;
-            GpCoord*   srcCoords = src->coords;
+            GfxCoord*  srcCoords = src->coords;
 
-            parts->flg = 0;
-            j          = 0;
+            parts->composeStamp = GRAPHICS_COORD_DIRTY;
+            j                   = 0;
             if (src->partCount != 0) {
-                GpCoord* from = (GpCoord*)&srcCoords->coord;
-                GpCoord* to   = (GpCoord*)&parts->coord;
+                MATRIX* from = &srcCoords->coord;
+                MATRIX* to   = &parts->coord;
 
                 do {
-                    *(MATRIX*)to = *(MATRIX*)from;
-                    to++;
-                    from++;
+                    *to  = *from;
+                    to   = &PARENT_OF(to, GfxCoord, coord)[1].coord;
+                    from = &PARENT_OF(from, GfxCoord, coord)[1].coord;
                 } while (++j < src->partCount);
             }
         }
@@ -631,9 +631,9 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 
     {
-        GpCoord*   ownerParts;
+        GfxCoord*  ownerParts;
         TmdObject* ownerBody;
-        GpCoord*   ownParts;
+        GfxCoord*  ownParts;
         MATRIX     mtx;
 
         ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -660,11 +660,11 @@ static void Reflection_HeldObjectTask(Task* task)
     Task*           mirror;
     TmdObject*      mirrorExtra;
     RoomMirrorWork* work;
-    GpCoord*        mirrorPart;
+    GfxCoord*       mirrorPart;
     TmdObject*      src;
-    GpCoord*        srcParts;
+    GfxCoord*       srcParts;
     TmdObject*      extra;
-    GpCoord*        parts;
+    GfxCoord*       parts;
     VECTOR          scale;
     u16             flags;
 
@@ -689,17 +689,17 @@ static void Reflection_HeldObjectTask(Task* task)
         tmdProcessStream(extra);
         extra->flags    = 0x10;
         extra->otOffset = 0x1F;
-        parts->sub      = mirrorPart;
+        parts->parent   = mirrorPart;
         extra->lightMtx = &work->light;
         extra->colorMtx = &work->color;
         if (task->spawnArg1.value >= 2) {
             scale = Reflection_Data_8017D5C4;
             ScaleMatrix(&parts->coord, &scale);
         }
-        parts->coord.t[0] = -srcParts->coord.t[0];
-        parts->coord.t[1] = srcParts->coord.t[1];
-        parts->coord.t[2] = srcParts->coord.t[2];
-        parts->flg        = 0;
+        parts->coord.t[0]   = -srcParts->coord.t[0];
+        parts->coord.t[1]   = srcParts->coord.t[1];
+        parts->coord.t[2]   = srcParts->coord.t[2];
+        parts->composeStamp = GRAPHICS_COORD_DIRTY;
         task->state++;
     }
     extra        = task->extra.tmd;

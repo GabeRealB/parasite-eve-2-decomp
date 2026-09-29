@@ -27,30 +27,25 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Scratch block the room's spinning-sprite draw takes from `G_SCRATCH_HEAD`
-/// and zeroes before use. `vec` is the coordinate's translation, projected
-/// through `GsWSMATRIX` with one `RTPS`: `sx`/`sy` receive the screen
-/// position, `flag` the GTE flag and `otz` the ordering-table depth. `dx`/`dy`
-/// hold the current rotated half-extents added to and subtracted from `sx`/`sy`
-/// to build the quad's corners; only their low halves are read back.
-typedef struct ShelterB1PodServiceGantrySpinScratch {
-    s32     otz;
-    s32     flag;
-    s32     dx;
-    s32     dy;
-    SVECTOR vec;
-    u16     sx;
-    u16     sy;
-} ShelterB1PodServiceGantrySpinScratch;
-STATIC_ASSERT_SIZEOF(ShelterB1PodServiceGantrySpinScratch, 0x1C);
+/// Temporary projection and corner offsets for the room's spinning sprite.
+typedef struct {
+    s32     otz;  // Projected ordering-table depth (SZ3 / 4)
+    s32     flag; // GTE projection status; negative rejects the sprite
+    s32     dx;   // Rotated horizontal half-extent; the corner stores use its low half
+    s32     dy;   // Rotated vertical half-extent; the corner stores use its low half
+    SVECTOR vec;  // Low 16 bits of the coordinate's cached translation
+    u16     sx;   // Projected screen X, interpreted modulo 65536 by the corner arithmetic
+    u16     sy;   // Projected screen Y, interpreted modulo 65536 by the corner arithmetic
+} _ShelterB1PodServiceGantrySpinScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 
 extern s32 D_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
-static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2);
+static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
+static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1, s16 arg2);
 
 s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
     0x10000011,
@@ -107,7 +102,7 @@ s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -202,10 +197,10 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
         case 1:
             func_shelter_b1_pod_service_gantry_8017DF70(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -222,10 +217,10 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
         case 2:
             func_shelter_b1_pod_service_gantry_8017E400(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -251,7 +246,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 /// texture grid starting at v 0x70. The bits above them select the CLUT: 0 and
 /// 1 pick row 0x10E or 0x10F with the column taken from the cell index, and
 /// anything higher the fixed CLUT 0x428F.
-static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -326,7 +321,7 @@ static void func_shelter_b1_pod_service_gantry_8017DF70(GpCoord* arg0, u16 arg1,
 /// radii at angles `arg3` and `arg3 + 0x400`, of length `arg2 * 47` divided by
 /// the depth. The low 12 bits of `arg1` pick a 48x48 cell of a five-column
 /// texture grid, and any bit above them selects CLUT 0x428F instead of 0x43D0.
-static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -405,7 +400,7 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GpCoord* arg0, u16 arg1,
 void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -507,11 +502,11 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -521,70 +516,73 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
     }
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent raw-tex
-/// `POLY_FT4` (tpage 0x2C, clut 0x43D3) rotated about the projected centre.
-/// `arg1` selects a 32-texel UV column on the 0xE0..0xFF texture row. The
-/// on-screen radius is `arg2 * 31 / otz`, and `arg3` is the spin angle,
-/// applied at `arg3` and `arg3 + 0x400` through `rsin`/`rcos`. The scratch
-/// block is zeroed with `Mem_Set` before use.
-static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+/// Draws a spinning, semi-transparent raw-texture quad around the projected coordinate.
+///
+/// `coord->workm` must already be current in the space `GsWSMATRIX` projects.
+/// `textureColumn` selects a 32-texel column on texture row 0xE0..0xFF;
+/// UV stores retain only their low byte. The projected radius is
+/// `radiusScale * 31 / otz`, with a nonzero depth required. `spinAngle` uses
+/// 0x1000 units per turn. The scratch block lives only during this draw.
+static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
 {
-    void**                                scratch;
-    u8*                                   head;
-    ShelterB1PodServiceGantrySpinScratch* block;
-    POLY_FT4*                             prim;
-    s32                                   u0;
-    s32                                   u1;
-    s32                                   v;
-    s32                                   ang;
-    s32                                   ang2;
+    void**                                          scratch;
+    u8*                                             head;
+    _ShelterB1PodServiceGantrySpinScratch*          block;
+    register _ShelterB1PodServiceGantrySpinScratch* depthBlock asm("s0");
+    POLY_FT4*                                       prim;
+    s32                                             u0;
+    s32                                             u1;
+    s32                                             v;
+    s32                                             angle;
+    s32                                             quarterTurnAngle;
 
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
-    block    = (ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C);
+    block    = (_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block));
     *scratch = block;
-    Mem_Set(block, 0, 0x1C);
-    block->vec.vx = (u16)arg0->workm.t[0];
-    block->vec.vy = (u16)arg0->workm.t[1];
-    block->vec.vz = (u16)arg0->workm.t[2];
-    arg0          = (GpCoord*)block;
+    Mem_Set(block, 0, sizeof(*block));
+    block->vec.vx = (u16)coord->workm.t[0];
+    block->vec.vy = (u16)coord->workm.t[1];
+    block->vec.vz = (u16)coord->workm.t[2];
+    // Reuse the saved coordinate register after capturing the position.
+    depthBlock = block;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->vec);
+    gte_ldv0(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->vec);
     gte_rtps();
-    gte_stsxy(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->flag);
+    gte_stsxy(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->sx);
+    gte_stflg(&((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->flag);
     if (block->flag >= 0) {
-        gte_stszotz(&((ShelterB1PodServiceGantrySpinScratch*)arg0)->otz);
+        gte_stszotz(&depthBlock->otz);
         prim           = (POLY_FT4*)gGpuPrimCursor;
-        ang            = arg3;
+        angle          = spinAngle;
         gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
+        setPolyFT4(prim);
+        setShadeTex(prim, 1);
+        setSemiTrans(prim, 1);
         prim->tpage = 0x2C;
         prim->clut  = 0x43D3;
-        u0          = arg1 << 5;
+        u0          = textureColumn << 5;
         v           = 0xE0;
         u1          = u0 + 0x1F;
         setUV4(prim, u0, v, u1, v, u0, 0xFF, u1, 0xFF);
-        block->dx = (((arg2 * 31) / ((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 31) / ((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        ang2      = ang + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 31) / ((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 31) / ((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((ShelterB1PodServiceGantrySpinScratch*)(head - 0x1C))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
+        block->dx        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rsin(angle)) >> 12;
+        block->dy        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rcos(angle)) >> 12;
+        prim->x0         = block->sx + (u16)block->dx;
+        prim->x3         = block->sx - (u16)block->dx;
+        prim->y0         = block->sy - (u16)block->dy;
+        quarterTurnAngle = angle + 0x400;
+        prim->y3         = block->sy + (u16)block->dy;
+        block->dx        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rsin(quarterTurnAngle)) >> 12;
+        block->dy        = (((radiusScale * 31) / ((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz) * rcos(quarterTurnAngle)) >> 12;
+        prim->x1         = block->sx + (u16)block->dx;
+        prim->x2         = block->sx - (u16)block->dx;
+        prim->y1         = block->sy - (u16)block->dy;
+        prim->y2         = block->sy + (u16)block->dy;
+        addPrim(Gpu_OtEntryAtByteOffset(((((u32)((_ShelterB1PodServiceGantrySpinScratch*)(head - sizeof(*block)))->otz << gDisplayState.otDepthShift) >> 2) & 0xFFC)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(*block));
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` into a
@@ -592,7 +590,7 @@ static void func_shelter_b1_pod_service_gantry_8017ED3C(GpCoord* arg0, u16 arg1,
 /// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
 /// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
 /// `arg2 * 55 / otz`.
-static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1, s16 arg2)
+static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -660,7 +658,7 @@ static void func_shelter_b1_pod_service_gantry_8017F160(GpCoord* arg0, u16 arg1,
 /// flicker, taken from the global at 0x801752EC plus the per-slot byte
 /// `arg1 & 7` of this room's random table, is shifted left by `arg3`'s top
 /// nibble and added to every channel.
-void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
+void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;
@@ -749,7 +747,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 ar
 void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -776,8 +774,8 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
         }
         task->state = 1;
     }
-    coord->coord.t[1] += work->move.vy;
-    coord->flg         = 0;
+    coord->coord.t[1]  += work->move.vy;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(work->age & 3)) {
         work->index++;
     }

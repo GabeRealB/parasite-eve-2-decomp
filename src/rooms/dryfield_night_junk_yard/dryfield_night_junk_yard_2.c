@@ -46,10 +46,10 @@ extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
 static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_night_junk_yard_8017E86C(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_junk_yard_8017EC98(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_junk_yard_8017F51C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_dryfield_night_junk_yard_8017FB9C(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_dryfield_night_junk_yard_801811B8[1];
 extern GpObj3A        D_dryfield_night_junk_yard_80184318[1];
@@ -1096,7 +1096,7 @@ static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 
 void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1160,7 +1160,7 @@ void func_dryfield_night_junk_yard_8017E5C8(Task* task)
 /// between the radii `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The first edge is black and the
 /// second takes the `rgb` tint.
-static void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_junk_yard_8017E86C(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1217,7 +1217,7 @@ static void func_dryfield_night_junk_yard_8017E86C(GpCoord* arg0, s32 arg1, s32 
 /// GTE flag is non-negative, queues eight `POLY_G4` wedges fanned around the
 /// projected centre with radius `arg1 * 64 / (otz + 1)`. Only the centre
 /// vertex takes the `rgb` tint, so each wedge fades to black at the rim.
-static void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_junk_yard_8017EC98(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1274,15 +1274,15 @@ static void func_dryfield_night_junk_yard_8017EC98(GpCoord* arg0, s16 arg1, u8* 
 /// `eventState` is 2 or more.
 void func_dryfield_night_junk_yard_8017F02C(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1290,36 +1290,36 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_dryfield_night_junk_yard_80180774[0].vx;
-                objCoord->coord.t[1] = D_dryfield_night_junk_yard_80180774[0].vy;
-                objCoord->coord.t[2] = D_dryfield_night_junk_yard_80180774[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_dryfield_night_junk_yard_80180774[0].vx;
+                objCoord->coord.t[1]   = D_dryfield_night_junk_yard_80180774[0].vy;
+                objCoord->coord.t[2]   = D_dryfield_night_junk_yard_80180774[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_dryfield_night_junk_yard_80180774[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_dryfield_night_junk_yard_80180774[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1327,35 +1327,35 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_dryfield_night_junk_yard_80180774[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_dryfield_night_junk_yard_8017F51C(coords, &coords[8], work->age & 7, 0x123);
@@ -1372,11 +1372,11 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
 /// `arg0` and `arg1`, with brightness falling from `0x40 - 9 * i` at its
 /// leading edge by nine more at its trailing one. `arg3` is the colour, three
 /// 2-bit channel weights at bits 8, 4 and 0. A quad the GTE flags is dropped.
-static void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_dryfield_night_junk_yard_8017F51C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1477,7 +1477,7 @@ static void func_dryfield_night_junk_yard_8017F51C(GpCoord* arg0, GpCoord* arg1,
 /// expanding one in a fading orange tint. Either ends once its age reaches 7.
 void func_dryfield_night_junk_yard_8017F914(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1550,7 +1550,7 @@ void func_dryfield_night_junk_yard_8017F914(Task* task)
 /// followed by four spikes, two reaching `r` and two `2 * r`, whose bases sit on
 /// the radius `arg1 * 8 / (otz + 1)`. Only the centre vertex is tinted, so
 /// every wedge fades to black.
-static void func_dryfield_night_junk_yard_8017FB9C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_junk_yard_8017FB9C(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

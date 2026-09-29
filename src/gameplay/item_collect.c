@@ -339,7 +339,7 @@ static s32 Gp_GetBit2Flag(GpAreaKey* arg0, s32 arg1)
 
 void Gp_SavePlayerPos(void)
 {
-    GpCoord*      coord;
+    GfxCoord*     coord;
     PlayerPos*    p;
     s32           angle;
     s32           temp;
@@ -370,7 +370,7 @@ static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
     GpEnemy*   enemy;
     Task*      task;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     enemy = Gp_SpawnEnemyFromTable(&arg0->field_4, 0, arg0->field_0, NULL);
     if (enemy != NULL) {
@@ -387,7 +387,7 @@ static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
             if (coord->param.rot.vy != 0) {
                 Gfx_RotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
     return enemy;

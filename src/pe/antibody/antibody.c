@@ -82,10 +82,10 @@ static AntibodyStep D_antibody_80130BD4[] = {
 /// once when `func_antibody_8012EF34` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-static void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_antibody_801308D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
 /// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
@@ -111,7 +111,7 @@ static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 void func_antibody_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     s32         i;
     u8          rgb[3];
@@ -125,17 +125,17 @@ void func_antibody_8012EF34(Task* arg0)
             case 0: {
                 GpMtxWords* rot;
 
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[2] = 0;
-                coord->coord.t[1] = 0;
-                coord->coord.t[0] = 0;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[2]   = 0;
+                coord->coord.t[1]   = 0;
+                coord->coord.t[0]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_State1C->peFxFlags &= 0xFDFF;
                 state->field_6        |= 8;
@@ -173,13 +173,13 @@ void func_antibody_8012EF34(Task* arg0)
                 s16*          p;
                 s16           count;
 
-                table             = D_antibody_80130BD4;
-                mem->scale        = mem->scale + table[mem->index].field_4;
-                rgb[0]            = (u8)mem->scale;
-                rgb[1]            = (u8)mem->scale;
-                rgb[2]            = mem->scale >> 1;
-                coord->coord.t[1] = -0x400;
-                coord->flg        = 0;
+                table               = D_antibody_80130BD4;
+                mem->scale          = mem->scale + table[mem->index].field_4;
+                rgb[0]              = (u8)mem->scale;
+                rgb[1]              = (u8)mem->scale;
+                rgb[2]              = mem->scale >> 1;
+                coord->coord.t[1]   = -0x400;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
@@ -200,8 +200,8 @@ void func_antibody_8012EF34(Task* arg0)
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
-                coord->coord.t[1] = 0;
-                coord->flg        = 0;
+                coord->coord.t[1]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->age < 0x14) {
                     if ((mem->age % D_antibody_80130BD4[mem->index].field_C) == 1) {
@@ -240,12 +240,12 @@ void func_antibody_8012EF34(Task* arg0)
                 if (mem->scale < 0x11) {
                     goto release;
                 }
-                mem->scale        = mem->scale - 0x10;
-                rgb[0]            = (u8)mem->scale;
-                rgb[1]            = (u8)mem->scale;
-                rgb[2]            = mem->scale >> 1;
-                coord->coord.t[1] = -0x400;
-                coord->flg        = 0;
+                mem->scale          = mem->scale - 0x10;
+                rgb[0]              = (u8)mem->scale;
+                rgb[1]              = (u8)mem->scale;
+                rgb[2]              = mem->scale >> 1;
+                coord->coord.t[1]   = -0x400;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 table = D_antibody_80130BD4;
                 Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
@@ -270,8 +270,8 @@ void func_antibody_8012EF34(Task* arg0)
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
-                coord->coord.t[1] = 0;
-                coord->flg        = 0;
+                coord->coord.t[1]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 return;
             }
@@ -299,7 +299,7 @@ release:
 void func_antibody_8012F734(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s32         rng0;
     s32         rng1a;
@@ -314,19 +314,19 @@ void func_antibody_8012F734(Task* arg0)
     s32         rng3c;
     s16         idx;
 
-    mem        = arg0->spawnArg2.pointer;
-    coord      = arg0->extra.tmd->coords;
-    mem->age   = mem->age + 1;
-    coord->flg = 0;
+    mem                 = arg0->spawnArg2.pointer;
+    coord               = arg0->extra.tmd->coords;
+    mem->age            = mem->age + 1;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (arg0->state) {
         case 0:
-            rot          = (GpMtxWords*)&coord->coord;
-            coord->sub   = mem->parent;
-            rot->m00_m01 = 0x1000;
-            rot->m02_m10 = 0;
-            rot->m11_m12 = 0x1000;
-            rot->m20_m21 = 0;
-            rot->m22     = 0x1000;
+            rot           = (GpMtxWords*)&coord->coord;
+            coord->parent = mem->parent;
+            rot->m00_m01  = 0x1000;
+            rot->m02_m10  = 0;
+            rot->m11_m12  = 0x1000;
+            rot->m20_m21  = 0;
+            rot->m22      = 0x1000;
 
             coord->coord.t[0] = mem->pos.vx;
             coord->coord.t[1] = mem->pos.vy;
@@ -357,10 +357,10 @@ void func_antibody_8012F734(Task* arg0)
                 Gp_LcgState = rng1c;
                 mem->angle  = ((u32)rng1c >> 16) & 0xFFF;
             }
-            coord->coord.t[0] -= mem->move.vx;
-            coord->coord.t[1] -= mem->move.vy;
-            coord->coord.t[2] -= mem->move.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  -= mem->move.vx;
+            coord->coord.t[1]  -= mem->move.vy;
+            coord->coord.t[2]  -= mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
             if (mem->age >= 0x10) {
@@ -386,8 +386,8 @@ void func_antibody_8012F734(Task* arg0)
                 Gp_LcgState = rng2c;
                 mem->angle  = ((u32)rng2c >> 16) & 0xFFF;
             }
-            coord->coord.t[1] += mem->move.vy;
-            coord->flg         = 0;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
             goto check;
@@ -420,7 +420,7 @@ void func_antibody_8012F734(Task* arg0)
 /// radius and `arg3` the spin angle. The quad's corners are that radius
 /// rotated by `arg3` and by `arg3 + 0x400`; nothing is drawn if the centre
 /// projects off-screen.
-static void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -489,7 +489,7 @@ static void func_antibody_8012FBB0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// sprite sheet row at v = 0x38..0x5F. `arg2` is a signed half-extent, so the
 /// on-screen half-diagonal is `arg2 * 39 / otz`. Nothing is drawn if the
 /// projection sets a negative `gte_stflg`.
-static void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -558,13 +558,13 @@ static void func_antibody_8012FFEC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// `((arg1 & 3) >> 1) * 24 - 0x30`. `arg2` is a signed half-extent, so the
 /// on-screen half-width is `arg2 * 23 / otz`. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-static void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                 head;
     AntibodyArcScratch* block;
     POLY_FT4*           prim;
     SVECTOR*            vec;
-    GpCoord*            player;
+    GfxCoord*           player;
     s32                 u0;
     s32                 u1;
     s32                 va;
@@ -637,7 +637,7 @@ static void func_antibody_80130428(GpCoord* arg0, s16 arg1, s16 arg2)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-static void func_antibody_801308D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_antibody_801308D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;

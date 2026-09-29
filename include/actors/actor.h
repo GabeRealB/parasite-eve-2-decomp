@@ -420,16 +420,16 @@ STATIC_ASSERT_SIZEOF(ActorZone, 0xA);
 /// halfwords after them, the coordinate the effect hangs off, and two more
 /// words.
 typedef struct ActorEffectState {
-    s16     field_0[0x20];
-    s16     field_40[0x20];
-    s32     field_80;
-    s32     field_84;
-    s32     field_88;
-    s16     field_8C;
-    s16     field_8E;
-    GpCoord field_90;
-    s32     field_E0;
-    s32     field_E4;
+    s16      field_0[0x20];
+    s16      field_40[0x20];
+    s32      field_80;
+    s32      field_84;
+    s32      field_88;
+    s16      field_8C;
+    s16      field_8E;
+    GfxCoord field_90;
+    s32      field_E0;
+    s32      field_E4;
 } ActorEffectState;
 STATIC_ASSERT_SIZEOF(ActorEffectState, 0xE8);
 
@@ -1372,9 +1372,9 @@ STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 
 /// Scratch coordinate with word access to its identity rotation matrix.
 typedef union Actor403200DropCoord {
-    GpCoord c;
+    GfxCoord c;
     struct {
-        s32 flg;
+        u32 composeStamp;
         s32 m00_m01;
         s32 m02_m10;
         s32 m11_m12;
@@ -1454,7 +1454,7 @@ typedef struct Actor403200GrabWork {
     /// The work block's own coordinate, parented to the view coordinate and
     /// kept tracking the model's world position so the ground marker under it
     /// can be drawn from `coord.workm.t`.
-    GpCoord coord;
+    GfxCoord coord;
     /// The two display nodes, linked with `prio` 3 and 2.
     GpObj obj0;
     GpObj obj1;
@@ -1499,14 +1499,14 @@ STATIC_ASSERT_SIZEOF(Actor403200GrabWork, 0x1C0);
 /// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
 /// the step counter of the current state.
 typedef struct Actor403200DropWork {
-    VECTOR3 target;
-    byte    pad_C[0x4];
-    GpCoord coord;
-    byte    pad_60[0x50];
-    GpObj   obj;
-    byte    pad_D0[0x20];
-    GpRec18 rec;
-    byte    pad_108[0x88];
+    VECTOR3  target;
+    byte     pad_C[0x4];
+    GfxCoord coord;
+    byte     pad_60[0x50];
+    GpObj    obj;
+    byte     pad_D0[0x20];
+    GpRec18  rec;
+    byte     pad_108[0x88];
     /// The effect the spawn state starts, reparented onto the task so it dies
     /// with it; the landing state tells it to finish.
     GpEffWork* eff;
@@ -2049,7 +2049,7 @@ STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 /// into -0x800..0x800. The offset between the two world positions is written
 /// to `blk->delta` and rotated there through `blk->frame`, the transpose of
 /// `self`'s world matrix; the caller owns `blk` and may reuse it afterwards.
-static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GpCoord* self, GpCoord* other)
+static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GfxCoord* self, GfxCoord* other)
 {
     s32 angle;
 
@@ -2102,12 +2102,12 @@ static __inline__ void actorCalcPush(SVECTOR* pos, GpRec18* rec, SVECTOR* out)
 /// ancestor pre-multiplied in turn, renormalised after every step, up to but
 /// not including `stop`. Returns whether the walk reached `stop` rather than
 /// the end of the chain.
-static __inline__ s32 actorAccumulateRotation(GpCoord* joint, MATRIX* out, GpCoord* stop)
+static __inline__ s32 actorAccumulateRotation(GfxCoord* joint, MATRIX* out, GfxCoord* stop)
 {
-    MATRIX   matrix;
-    GpCoord* coord;
+    MATRIX    matrix;
+    GfxCoord* coord;
 
-    coord = joint->sub;
+    coord = joint->parent;
     *out  = joint->coord;
     while (1) {
         if (coord == NULL) {
@@ -2120,7 +2120,7 @@ static __inline__ s32 actorAccumulateRotation(GpCoord* joint, MATRIX* out, GpCoo
         MulRotMatrix(out);
         MatrixNormal(out, &matrix);
         *out  = matrix;
-        coord = coord->sub;
+        coord = coord->parent;
     }
 }
 
@@ -2128,20 +2128,20 @@ static __inline__ s32 actorAccumulateRotation(GpCoord* joint, MATRIX* out, GpCoo
 /// accumulates the chain above the parent up to the view coordinate,
 /// transposes it and pre-multiplies. Nothing happens when the parent is the
 /// view coordinate. Returns `joint`, which callers store through.
-static __inline__ GpCoord* actorLocalizeRotation(GpCoord* joint, MATRIX* rotation)
+static __inline__ GfxCoord* actorLocalizeRotation(GfxCoord* joint, MATRIX* rotation)
 {
-    MATRIX   matrix;
-    MATRIX   normal;
-    MATRIX   transposed;
-    GpCoord* coord;
-    GpCoord* view;
+    MATRIX    matrix;
+    MATRIX    normal;
+    MATRIX    transposed;
+    GfxCoord* coord;
+    GfxCoord* view;
 
-    coord = joint->sub;
+    coord = joint->parent;
     if (coord != &gGfxViewCoord) {
         view   = &gGfxViewCoord;
         matrix = coord->coord;
         while (1) {
-            coord = coord->sub;
+            coord = coord->parent;
             if (coord == NULL) {
                 break;
             }
@@ -2163,20 +2163,20 @@ static __inline__ GpCoord* actorLocalizeRotation(GpCoord* joint, MATRIX* rotatio
 /// Carries `out` from the frame of `p` up the parent chain to the view
 /// coordinate, leaving it in view space. `out` is written only when the walk
 /// reaches the view coordinate.
-static __inline__ void actorTransformToView(GpCoord* p, SVECTOR* out)
+static __inline__ void actorTransformToView(GfxCoord* p, SVECTOR* out)
 {
-    SVECTOR  sv;
-    VECTOR   vec;
-    s32      flag;
-    SVECTOR* svp   = &sv;
-    GpCoord* view  = &gGfxViewCoord;
-    VECTOR*  vecp  = &vec;
-    s32*     flagp = &flag;
-    sv.vx          = out->vx;
-    sv.vy          = out->vy;
-    sv.vz          = out->vz;
+    SVECTOR   sv;
+    VECTOR    vec;
+    s32       flag;
+    SVECTOR*  svp   = &sv;
+    GfxCoord* view  = &gGfxViewCoord;
+    VECTOR*   vecp  = &vec;
+    s32*      flagp = &flag;
+    sv.vx           = out->vx;
+    sv.vy           = out->vy;
+    sv.vz           = out->vz;
 loop:
-    if (p->sub != NULL) {
+    if (p->parent != NULL) {
         if (p != view) {
             gte_SetTransMatrix(&p->coord);
             gte_SetRotMatrix(&p->coord);
@@ -2187,7 +2187,7 @@ loop:
             sv.vx = vec.vx;
             sv.vy = vec.vy;
             sv.vz = vec.vz;
-            p     = p->sub;
+            p     = p->parent;
             goto loop;
         }
         out->vx = sv.vx;
@@ -2217,7 +2217,7 @@ static __inline__ s16 actorNormalizeYaw(s16 input)
 }
 
 /// The offset from `coord` to the translation of `config`'s coordinate.
-static __inline__ void actorConfigPositionDelta(PlayerStatus* config, GpCoord* coord, SVECTOR* pos)
+static __inline__ void actorConfigPositionDelta(PlayerStatus* config, GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
     pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
@@ -2228,8 +2228,8 @@ static __inline__ void actorConfigPositionDelta(PlayerStatus* config, GpCoord* c
 /// of the offset, written to `pos`, less the actor's own heading, wrapped.
 static __inline__ s16 actorPositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* config)
 {
-    GpCoord* coord;
-    s32      angle;
+    GfxCoord* coord;
+    s32       angle;
     actorConfigPositionDelta(config, actor->extra.tmd->coords, pos);
     coord = actor->extra.tmd->coords;
     angle = ratan2(pos->vx, pos->vz);
@@ -2238,7 +2238,7 @@ static __inline__ s16 actorPositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* 
 
 /// Rebuilds `coord`'s rotation as a turn about Y by its current heading,
 /// uniformly scaled by `scale`.
-static __inline__ void actorRescaleYaw(GpCoord* coord, s16 scale)
+static __inline__ void actorRescaleYaw(GfxCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -2269,13 +2269,13 @@ static __inline__ void actorRescaleYaw(GpCoord* coord, s16 scale)
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     m22                  = (u16)blk->m.m[2][2];
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
 }
 
 /// Steps `coord` `amount` units along its local Z axis unless movement is
 /// frozen, staging the direction on the scratch pad.
-static __inline__ void actorMoveForward(GpCoord* coord, s16 amount)
+static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -2290,17 +2290,17 @@ static __inline__ void actorMoveForward(GpCoord* coord, s16 amount)
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        coord->coord.t[0] += head[-1].vx;
-        coord->coord.t[1] += vec->vy;
-        coord->coord.t[2] += vec->vz;
-        coord->flg         = 0;
+        coord->coord.t[0]  += head[-1].vx;
+        coord->coord.t[1]  += vec->vy;
+        coord->coord.t[2]  += vec->vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         SCRATCH_POP(SVECTOR);
     }
 }
 
 /// `actorMoveForward` that also skips the step when `amount` is zero, though
 /// it still takes and releases its scratch vector.
-static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
+static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -2318,10 +2318,10 @@ static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
             gte_ldsv(gteVec);
             gte_gpf12();
             gte_stsv(gteVec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += head[-1].vx;
+            coord->coord.t[1]  += vec->vy;
+            coord->coord.t[2]  += vec->vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         SCRATCH_POP(SVECTOR);
     }
@@ -2330,9 +2330,9 @@ static __inline__ void actorMoveForwardNonzero(GpCoord* coord, s16 amount)
 /// `actorMoveForward` applied to the root coordinate of `task`'s model.
 static __inline__ void actorMoveModelForward(Task* task, s16 amount)
 {
-    GpCoord* coord;
-    SVECTOR* head;
-    SVECTOR* vec;
+    GfxCoord* coord;
+    SVECTOR*  head;
+    SVECTOR*  vec;
 
     coord = task->extra.tmd->coords;
     if (Mc_SaveData[0].state.field_5C1 != 1) {
@@ -2345,17 +2345,17 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        coord->coord.t[0] += head[-1].vx;
-        coord->coord.t[1] += vec->vy;
-        coord->coord.t[2] += vec->vz;
-        coord->flg         = 0;
+        coord->coord.t[0]  += head[-1].vx;
+        coord->coord.t[1]  += vec->vy;
+        coord->coord.t[2]  += vec->vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         SCRATCH_POP(SVECTOR);
     }
 }
 
 /// Rebuilds `coord`'s rotation as a turn about Y by its current heading at
 /// unit scale.
-static __inline__ void actorResetYaw(GpCoord* coord)
+static __inline__ void actorResetYaw(GfxCoord* coord)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -2384,12 +2384,12 @@ static __inline__ void actorResetYaw(GpCoord* coord)
     coord->coord.m[2][0] = (u16)blk->m.m[2][0];
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     coord->coord.m[2][2] = (u16)blk->m.m[2][2];
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
 }
 
 /// `actorRescaleYaw` with a separate scale on Y.
-static __inline__ void actorRescaleYawY(GpCoord* coord, s32 scale, s16 scaleY)
+static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -2420,13 +2420,13 @@ static __inline__ void actorRescaleYawY(GpCoord* coord, s32 scale, s16 scaleY)
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     m22                  = (u16)blk->m.m[2][2];
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
 }
 
 /// `actorMoveForwardNonzero` spelled with the GTE reading the scratch vector
 /// under a single name.
-static __inline__ void actorStepForward(GpCoord* coord, s16 amount)
+static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -2443,10 +2443,10 @@ static __inline__ void actorStepForward(GpCoord* coord, s16 amount)
             gte_ldsv(vec);
             gte_gpf12();
             gte_stsv(vec);
-            coord->coord.t[0] += head[-1].vx;
-            coord->coord.t[1] += vec->vy;
-            coord->coord.t[2] += vec->vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += head[-1].vx;
+            coord->coord.t[1]  += vec->vy;
+            coord->coord.t[2]  += vec->vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         SCRATCH_POP(SVECTOR);
     }
@@ -2548,7 +2548,7 @@ static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
 static __inline__ void actor402200UpdateTint(Task* task)
 {
     Actor402200Work* work;
-    GpCoord*         obj;
+    GfxCoord*        obj;
     VECTOR           vec;
     s16              r;
     s16              g;
@@ -2582,7 +2582,7 @@ static __inline__ void actor402200UpdateTint(Task* task)
 }
 
 /// The offset from `coord` to the translation of `m`.
-static __inline__ void actorMatrixPositionDelta(MATRIX* m, GpCoord* coord, SVECTOR* pos)
+static __inline__ void actorMatrixPositionDelta(MATRIX* m, GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = m->t[0] - coord->coord.t[0];
     pos->vy = m->t[1] - coord->coord.t[1];
@@ -2592,8 +2592,8 @@ static __inline__ void actorMatrixPositionDelta(MATRIX* m, GpCoord* coord, SVECT
 /// `actorPositionYaw` toward the translation of `m`.
 static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* m)
 {
-    GpCoord* coord;
-    s32      angle;
+    GfxCoord* coord;
+    s32       angle;
 
     actorMatrixPositionDelta(m, actor->extra.tmd->coords, pos);
     coord = actor->extra.tmd->coords;
@@ -2603,7 +2603,7 @@ static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* 
 
 /// The turn from `coord`'s heading to the bearing of the offset (`x`, `z`),
 /// wrapped.
-static __inline__ s16 actorYawTo(GpCoord* coord, s16 x, s16 z)
+static __inline__ s16 actorYawTo(GfxCoord* coord, s16 x, s16 z)
 {
     s32 angle;
 
@@ -2613,7 +2613,7 @@ static __inline__ s16 actorYawTo(GpCoord* coord, s16 x, s16 z)
 
 /// The turn from `coord`'s heading to the bearing of the offset `dir`,
 /// wrapped.
-static __inline__ s16 actorViewYaw(GpCoord* coord, SVECTOR* dir)
+static __inline__ s16 actorViewYaw(GfxCoord* coord, SVECTOR* dir)
 {
     s32 angle;
 
@@ -2671,7 +2671,7 @@ static __inline__ s32 actorPlayerContactMessage(GpEnemy* ctx, s32 mode)
 }
 
 /// Relights `enemy` for the world position of `coord`.
-static __inline__ void actorUpdateColor(GpEnemy* enemy, GpCoord* coord)
+static __inline__ void actorUpdateColor(GpEnemy* enemy, GfxCoord* coord)
 {
     VECTOR* block        = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
     block->vx            = coord->workm.t[0];
@@ -2686,10 +2686,10 @@ static __inline__ void actorUpdateColor(GpEnemy* enemy, GpCoord* coord)
 /// part.
 static __inline__ void actorUpdateModelColor(Task* arg0)
 {
-    GpCoord* coord;
-    void**   scratch;
-    u8*      head;
-    VECTOR*  block;
+    GfxCoord* coord;
+    void**    scratch;
+    u8*       head;
+    VECTOR*   block;
 
     coord                          = &arg0->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -2704,7 +2704,7 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
 }
 
 /// `actorTransformToView` spelled as a `for` loop with an early return.
-static __inline__ void actorLocalToView(GpCoord* coord, SVECTOR* out)
+static __inline__ void actorLocalToView(GfxCoord* coord, SVECTOR* out)
 {
     SVECTOR acc;
     VECTOR  v;
@@ -2715,7 +2715,7 @@ static __inline__ void actorLocalToView(GpCoord* coord, SVECTOR* out)
     acc.vz = out->vz;
 
     for (;;) {
-        if (coord->sub == NULL) {
+        if (coord->parent == NULL) {
             return;
         }
         if (coord != &gGfxViewCoord) {
@@ -2728,7 +2728,7 @@ static __inline__ void actorLocalToView(GpCoord* coord, SVECTOR* out)
             acc.vx = v.vx;
             acc.vy = v.vy;
             acc.vz = v.vz;
-            coord  = coord->sub;
+            coord  = coord->parent;
         } else {
             out->vx = acc.vx;
             out->vy = acc.vy;
@@ -2740,12 +2740,12 @@ static __inline__ void actorLocalToView(GpCoord* coord, SVECTOR* out)
 
 /// `actorAccumulateRotation` stopping at the view coordinate, without the
 /// result.
-static __inline__ void actorAccumulateToView(GpCoord* coord, MATRIX* mat)
+static __inline__ void actorAccumulateToView(GfxCoord* coord, MATRIX* mat)
 {
-    MATRIX   m;
-    GpCoord* cur;
+    MATRIX    m;
+    GfxCoord* cur;
 
-    cur  = coord->sub;
+    cur  = coord->parent;
     *mat = coord->coord;
     while (1) {
         if (cur == NULL) {
@@ -2758,13 +2758,13 @@ static __inline__ void actorAccumulateToView(GpCoord* coord, MATRIX* mat)
         MulRotMatrix(mat);
         MatrixNormal(mat, &m);
         *mat = m;
-        cur  = cur->sub;
+        cur  = cur->parent;
     }
 }
 
 /// Sets up a collision object on `coord` with its record table, position and
 /// radius, links it at priority `prio`, and initialises the table as `kind`.
-static __inline__ void actorLinkWorkObj(GpCoord* coord, GpObj* obj, GpRec18* rec,
+static __inline__ void actorLinkWorkObj(GfxCoord* coord, GpObj* obj, GpRec18* rec,
                                         SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
 {
     obj->coord    = coord;

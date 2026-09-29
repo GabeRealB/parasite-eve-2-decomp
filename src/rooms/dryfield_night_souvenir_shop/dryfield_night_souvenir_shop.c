@@ -395,7 +395,7 @@ GpRoomParamRec* D_dryfield_night_souvenir_shop_8017F6CC[8] = {
 
 static void func_dryfield_night_souvenir_shop_8017D610(Task* task);
 static void func_dryfield_night_souvenir_shop_8017D654(Task* task);
-static void func_dryfield_night_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1);
+static void func_dryfield_night_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_night_souvenir_shop_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
@@ -458,7 +458,7 @@ void func_dryfield_night_souvenir_shop_8017D65C(Task* task)
 /// `coord`'s `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
 /// quarters of its green and blue; the far corners are black.
-static void func_dryfield_night_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
+static void func_dryfield_night_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -583,7 +583,7 @@ static void func_dryfield_night_souvenir_shop_8017D6B4(GpCoord* coord, s16 arg1)
 /// then both of the room's prisms are drawn under that coordinate.
 void func_dryfield_night_souvenir_shop_8017DFF4(Task* task)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord = task->extra.tmd->coords;
     Gp_UpdateCoord(coord);

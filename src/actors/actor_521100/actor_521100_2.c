@@ -105,10 +105,10 @@ extern u16      D_actor_521100_8016A3D4;
 
 /// The task `func_actor_521100_80136604` runs, stored by its create state
 /// `func_actor_521100_80135DDC`.
-extern Task*   D_actor_521100_8016A3DC;
-extern Task*   D_actor_521100_8016A3E0;
-extern Task*   D_actor_521100_8016A3E4;
-extern GpCoord D_actor_521100_8016A3E8;
+extern Task*    D_actor_521100_8016A3DC;
+extern Task*    D_actor_521100_8016A3E0;
+extern Task*    D_actor_521100_8016A3E4;
+extern GfxCoord D_actor_521100_8016A3E8;
 
 static void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task);
 static void func_actor_521100_80135F2C(Task* task);
@@ -265,13 +265,7 @@ TmdSource D_actor_521100_80164EBC = {
     D_actor_521100_80161114,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[136];
-    AnimationPackedRotation        words[408];
-} Actor521100PoseBank330C0;
-
-Actor521100PoseBank330C0 D_actor_521100_80164EE0 = { .poses = {
+AnimationPackedPose D_actor_521100_80164EE0[136] = {
 #include "assets/actor_521100_animation_36E34_bank1.inc"
 };
 
@@ -293,13 +287,7 @@ GpAnimSet D_actor_521100_80168C54 = {
     { NULL, D_actor_521100_80164EE0, NULL, NULL, D_actor_521100_80165540, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} Actor521100PoseBank36E5C;
-
-Actor521100PoseBank36E5C D_actor_521100_80168C7C = { .poses = {
+AnimationPackedPose D_actor_521100_80168C7C[8] = {
 #include "assets/actor_521100_animation_372D8_bank1.inc"
 };
 
@@ -321,13 +309,7 @@ GpAnimSet D_actor_521100_801690F8 = {
     { NULL, D_actor_521100_80168C7C, NULL, NULL, D_actor_521100_80168CDC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor521100PoseBank37300;
-
-Actor521100PoseBank37300 D_actor_521100_80169120 = { .poses = {
+AnimationPackedPose D_actor_521100_80169120[6] = {
 #include "assets/actor_521100_animation_37730_bank1.inc"
 };
 
@@ -349,13 +331,7 @@ GpAnimSet D_actor_521100_80169550 = {
     { NULL, D_actor_521100_80169120, NULL, NULL, D_actor_521100_80169168, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} Actor521100PoseBank37758;
-
-Actor521100PoseBank37758 D_actor_521100_80169578 = { .poses = {
+AnimationPackedPose D_actor_521100_80169578[21] = {
 #include "assets/actor_521100_animation_38334_bank1.inc"
 };
 
@@ -377,13 +353,7 @@ GpAnimSet D_actor_521100_8016A154 = {
     { NULL, D_actor_521100_80169578, NULL, NULL, D_actor_521100_80169674, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor521100PoseBank3835C;
-
-Actor521100PoseBank3835C D_actor_521100_8016A17C = { .poses = {
+AnimationPackedPose D_actor_521100_8016A17C[2] = {
 #include "assets/actor_521100_animation_38510_bank1.inc"
 };
 
@@ -445,7 +415,7 @@ Task* D_actor_521100_8016A3E0;
 
 Task* D_actor_521100_8016A3E4;
 
-GpCoord D_actor_521100_8016A3E8;
+GfxCoord D_actor_521100_8016A3E8;
 
 s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
 {
@@ -502,7 +472,7 @@ static void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
     Actor521100Work4B4* mem;
     GpEnemy*            enemy;
     TmdObject*          obj;
-    GpCoord*            coord;
+    GfxCoord*           coord;
 
     enemy                   = spawnArg2;
     obj                     = task->extra.tmd;
@@ -515,7 +485,7 @@ static void func_actor_521100_80135DDC(GpEnemy* spawnArg2, Task* task)
         return;
     }
     task->exitCallback           = func_actor_521100_801366FC;
-    coord->sub                   = &gGfxViewCoord;
+    coord->parent                = &gGfxViewCoord;
     enemy->field_4               = &coord->coord;
     enemy->field_48              = 0;
     enemy->node.state.b.targeted = 0;
@@ -573,7 +543,7 @@ static void func_actor_521100_80135F2C(Task* task)
     }
 }
 /// State-2 body, the actor's last: it snapshots the attach coordinate onto a
-/// stack `GpCoord` - the copy the shrink's effect is placed off - and
+/// stack `GfxCoord` - the copy the shrink's effect is placed off - and
 /// runs the scale-in step `field_484`. Step 0 seeds the shrink (the step-1
 /// body `func_actor_521100_801368B0` scales by `field_488`, so the seed stores
 /// 0x1000 there and snapshots the coordinate's rotation into `field_48C`),
@@ -582,9 +552,9 @@ static void func_actor_521100_80135F2C(Task* task)
 /// to the slot tick and the colour step.
 static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 {
-    GpCoord             sp10;
+    GfxCoord            sp10;
     TmdObject*          obj;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     Actor521100Work4B4* work;
     s32                 i;
 
@@ -640,7 +610,7 @@ static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
 static void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
 {
     Actor521100Work4B4* work;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     void**              scratch;
     u8*                 head;
     VECTOR*             block;
@@ -702,7 +672,7 @@ void func_actor_521100_80136404(Task* task)
             D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
             D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
         }
-        D_actor_521100_8016A3E8.flg = 0;
+        D_actor_521100_8016A3E8.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&D_actor_521100_8016A3E8);
         D_actor_521100_8016A3CC.coord = &D_actor_521100_8016A3E8;
         func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
@@ -743,7 +713,7 @@ void func_actor_521100_80136604(Task* arg0)
 static void func_actor_521100_80136680(GpEnemy* arg0, Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR     vec;
 
     obj   = task->extra.tmd;
@@ -822,7 +792,7 @@ static void func_actor_521100_801368B0(Task* task)
     MATRIX*             head;
     ActorScaleScratch*  scratch;
     Actor521100Work4B4* work;
-    GpCoord*            coord;
+    GfxCoord*           coord;
 
     head    = SCRATCH_HEAD(MATRIX);
     work    = task->work;
@@ -844,7 +814,7 @@ static void func_actor_521100_801368B0(Task* task)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(0x30);
 }
 /// Animation-start handler: seeds the work block's `animId` with
@@ -893,19 +863,19 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 /// Message 0x7D4 handler in `D_actor_521100_8016A358`, placing the actor: only
 /// the yaw of the argument block's angles is used, cached in the work block's
 /// `field_48C.yaw` and applied with `Gfx_RotMatrixY`, then the position becomes
-/// the root coordinate's translation and `flg` is cleared.
+/// the root coordinate's translation and `composeStamp` is cleared.
 s32 func_actor_521100_80136A64(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    u16      yaw;
+    GfxCoord* coord;
+    u16       yaw;
 
     coord                                  = task->extra.tmd->coords;
     D_actor_521100_8016A3D8->field_48C.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    coord->coord.t[2] = placement->pos.vz;
-    coord->flg        = 0;
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -953,10 +923,10 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, GpCmdArg* msg)
 }
 s32 func_actor_521100_80136BE8(Task* task, s32 arg1, GpXformArg* target)
 {
-    GpCoord* coord;
-    s32      dx;
-    s32      dz;
-    u16      yaw;
+    GfxCoord* coord;
+    s32       dx;
+    s32       dz;
+    u16       yaw;
 
     coord                                  = task->extra.tmd->coords;
     dx                                     = target->pos.vx - coord->coord.t[0];

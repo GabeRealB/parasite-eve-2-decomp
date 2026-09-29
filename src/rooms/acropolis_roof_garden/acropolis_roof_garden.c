@@ -23,7 +23,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/geometry.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -94,7 +93,7 @@ extern SVECTOR D_acropolis_roof_garden_80186E98;
 
 static void func_acropolis_roof_garden_8017DB74(Task* arg0);
 static void func_acropolis_roof_garden_8017DBEC(Task* task);
-static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2);
+static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 arg2);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
@@ -142,13 +141,7 @@ void func_acropolis_roof_garden_8017D5D4(Task*);
 void func_acropolis_roof_garden_8017D970(Task*);
 void func_acropolis_roof_garden_8017DA48(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[38];
-    AnimationPackedRotation        words[114];
-} AcropolisRoofGardenPoseBank2C20;
-
-AcropolisRoofGardenPoseBank2C20 D_acropolis_roof_garden_801801E0 = { .poses = {
+AnimationPackedPose D_acropolis_roof_garden_801801E0[38] = {
 #include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
 };
 
@@ -170,13 +163,7 @@ GpAnimSet D_acropolis_roof_garden_80181724 = {
     { NULL, D_acropolis_roof_garden_801801E0, NULL, NULL, D_acropolis_roof_garden_801803A8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[40];
-    AnimationPackedRotation        words[120];
-} AcropolisRoofGardenPoseBank418C;
-
-AcropolisRoofGardenPoseBank418C D_acropolis_roof_garden_8018174C = { .poses = {
+AnimationPackedPose D_acropolis_roof_garden_8018174C[40] = {
 #include "assets/acropolis_roof_garden_animation_060FC_bank1.inc"
 };
 
@@ -198,13 +185,7 @@ GpAnimSet D_acropolis_roof_garden_801836BC = {
     { NULL, D_acropolis_roof_garden_8018174C, NULL, NULL, D_acropolis_roof_garden_8018192C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisRoofGardenPoseBank6124;
-
-AcropolisRoofGardenPoseBank6124 D_acropolis_roof_garden_801836E4 = { .poses = {
+AnimationPackedPose D_acropolis_roof_garden_801836E4[6] = {
 #include "assets/acropolis_roof_garden_animation_065F4_bank1.inc"
 };
 
@@ -351,13 +332,7 @@ GpEvsCmd D_acropolis_roof_garden_80184194[17] = {
 
 s32 D_acropolis_roof_garden_8018432C = 0;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisRoofGardenPoseBank6D70;
-
-AcropolisRoofGardenPoseBank6D70 D_acropolis_roof_garden_80184330 = { .poses = {
+AnimationPackedPose D_acropolis_roof_garden_80184330[6] = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
 };
 
@@ -379,13 +354,7 @@ GpAnimSet D_acropolis_roof_garden_8018460C = {
     { NULL, D_acropolis_roof_garden_80184330, NULL, NULL, D_acropolis_roof_garden_80184378, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} AcropolisRoofGardenPoseBank7074;
-
-AcropolisRoofGardenPoseBank7074 D_acropolis_roof_garden_80184634 = { .poses = {
+AnimationPackedPose D_acropolis_roof_garden_80184634[10] = {
 #include "assets/acropolis_roof_garden_animation_074BC_bank1.inc"
 };
 
@@ -920,8 +889,8 @@ s32 D_acropolis_roof_garden_80186E94 = 0;
 
 SVECTOR D_acropolis_roof_garden_80186E98;
 
-static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2);
-static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 /// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
 /// session's weather/time state: state 5 plays it at 0x1E, state 7 at full
@@ -1158,7 +1127,7 @@ void func_acropolis_roof_garden_8017DCCC(void)
 void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        i;
 
@@ -1211,7 +1180,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void**            scratch;
     u8*               head;
     RoomShaftScratch* blk;
@@ -1295,7 +1264,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
 /// Gouraud polygons and optional rays.
 void func_acropolis_roof_garden_8017E29C(Task* arg0)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     void*            mem;
     u8*              head;
     RoomGlowScratch* blk;
@@ -1497,7 +1466,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 void func_acropolis_roof_garden_8017F10C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        vy;
     s32        vx;
     s32        vz;
@@ -1527,7 +1496,7 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
             coord->coord.t[2] += work->move.vz;
             Gfx_RotMatrixX(&coord->coord, work->period, 0);
             Gfx_RotMatrixZ(&coord->coord, work->step, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
             vy = work->move.vy;
             if (vy >= 0x1D) {
@@ -1598,7 +1567,7 @@ void func_acropolis_roof_garden_8017F10C(Task* task)
 /// `GsWSMATRIX` into a textured quad. A mote nearer than `otz` 0x11 is not
 /// drawn. `arg2` is the fade level: zero draws the texture unshaded, anything
 /// else modulates it to that grey and draws it semi-transparent.
-static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_FT4*        prim;
@@ -1656,7 +1625,7 @@ static void func_acropolis_roof_garden_8017F560(GpCoord* arg0, s32 arg1, s16 arg
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_roof_garden_80186E98`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1703,7 +1672,7 @@ static s32 func_acropolis_roof_garden_8017F870(GpCoord* coord, GpRec18* rec, s16
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -1718,7 +1687,7 @@ static s32 func_acropolis_roof_garden_8017FA14(GpCoord* coord, GpRec18* recs, s1
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

@@ -61,12 +61,12 @@
 /// Only `coord.coord.t` is written - the world point Aya is asked to face,
 /// `(-0x1F40, 0, 0x384)` with the patio's own approach offset subtracted from
 /// Z - and it is the only part `func_800B0CF4` reads, so the rest of the
-/// block is left uninitialised. It is a `GpCoord` rather than a bare
+/// block is left uninitialised. It is a `GfxCoord` rather than a bare
 /// `VECTOR` because that is what puts the translation at +0x18, the same
-/// offset the callee reads the skeleton's own `GpCoord.coord.t` from.
+/// offset the callee reads the skeleton's own `GfxCoord.coord.t` from.
 typedef struct ApLookAtWork {
-    /* 0x00 */ GpCoord coord;
-    /* 0x50 */ byte    pad_50[0x28];
+    /* 0x00 */ GfxCoord coord;
+    /* 0x50 */ byte     pad_50[0x28];
 } ApLookAtWork;
 STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
 
@@ -201,13 +201,7 @@ void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPatioPoseBank172C;
-
-AcropolisPatioPoseBank172C D_acropolis_patio_8017ECEC = { .poses = {
+AnimationPackedPose D_acropolis_patio_8017ECEC[2] = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
 };
 
@@ -229,13 +223,7 @@ GpAnimSet D_acropolis_patio_8017EE60 = {
     { NULL, D_acropolis_patio_8017ECEC, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPatioPoseBank18C8;
-
-AcropolisPatioPoseBank18C8 D_acropolis_patio_8017EE88 = { .poses = {
+AnimationPackedPose D_acropolis_patio_8017EE88[2] = {
 #include "assets/acropolis_patio_animation_01B48_bank1.inc"
 };
 
@@ -257,13 +245,7 @@ GpAnimSet D_acropolis_patio_8017F108 = {
     { NULL, D_acropolis_patio_8017EE88, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPatioPoseBank1B70;
-
-AcropolisPatioPoseBank1B70 D_acropolis_patio_8017F130 = { .poses = {
+AnimationPackedPose D_acropolis_patio_8017F130[2] = {
 #include "assets/acropolis_patio_animation_01CE4_bank1.inc"
 };
 
@@ -285,13 +267,7 @@ GpAnimSet D_acropolis_patio_8017F2A4 = {
     { NULL, D_acropolis_patio_8017F130, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[12];
-    AnimationPackedRotation        words[36];
-} AcropolisPatioPoseBank1D0C;
-
-AcropolisPatioPoseBank1D0C D_acropolis_patio_8017F2CC = { .poses = {
+AnimationPackedPose D_acropolis_patio_8017F2CC[12] = {
 #include "assets/acropolis_patio_animation_022B8_bank1.inc"
 };
 
@@ -313,13 +289,7 @@ GpAnimSet D_acropolis_patio_8017F878 = {
     { NULL, D_acropolis_patio_8017F2CC, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[19];
-    AnimationPackedRotation        words[57];
-} AcropolisPatioPoseBank22E0;
-
-AcropolisPatioPoseBank22E0 D_acropolis_patio_8017F8A0 = { .poses = {
+AnimationPackedPose D_acropolis_patio_8017F8A0[19] = {
 #include "assets/acropolis_patio_animation_02AD0_bank1.inc"
 };
 
@@ -341,13 +311,7 @@ GpAnimSet D_acropolis_patio_80180090 = {
     { NULL, D_acropolis_patio_8017F8A0, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPatioPoseBank2AF8;
-
-AcropolisPatioPoseBank2AF8 D_acropolis_patio_801800B8 = { .poses = {
+AnimationPackedPose D_acropolis_patio_801800B8[2] = {
 #include "assets/acropolis_patio_animation_02CA4_bank1.inc"
 };
 
@@ -577,13 +541,7 @@ GpEvsCmd D_acropolis_patio_80180EDC[9] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisPatioPoseBank39F4;
-
-AcropolisPatioPoseBank39F4 D_acropolis_patio_80180FB4 = { .poses = {
+AnimationPackedPose D_acropolis_patio_80180FB4[6] = {
 #include "assets/acropolis_patio_animation_03CD0_bank1.inc"
 };
 
@@ -605,13 +563,7 @@ GpAnimSet D_acropolis_patio_80181290 = {
     { NULL, D_acropolis_patio_80180FB4, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[13];
-    AnimationPackedRotation        words[39];
-} AcropolisPatioPoseBank3CF8;
-
-AcropolisPatioPoseBank3CF8 D_acropolis_patio_801812B8 = { .poses = {
+AnimationPackedPose D_acropolis_patio_801812B8[13] = {
 #include "assets/acropolis_patio_animation_04470_bank1.inc"
 };
 
@@ -633,13 +585,7 @@ GpAnimSet D_acropolis_patio_80181A30 = {
     { NULL, D_acropolis_patio_801812B8, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} AcropolisPatioPoseBank4498;
-
-AcropolisPatioPoseBank4498 D_acropolis_patio_80181A58 = { .poses = {
+AnimationPackedPose D_acropolis_patio_80181A58[9] = {
 #include "assets/acropolis_patio_animation_0494C_bank1.inc"
 };
 
@@ -661,13 +607,7 @@ GpAnimSet D_acropolis_patio_80181F0C = {
     { NULL, D_acropolis_patio_80181A58, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[11];
-    AnimationPackedRotation        words[33];
-} AcropolisPatioPoseBank4974;
-
-AcropolisPatioPoseBank4974 D_acropolis_patio_80181F34 = { .poses = {
+AnimationPackedPose D_acropolis_patio_80181F34[11] = {
 #include "assets/acropolis_patio_animation_04FC8_bank1.inc"
 };
 
@@ -2001,7 +1941,7 @@ void func_acropolis_patio_8017E054(Task* task)
 /// all nine puffs share it.
 void func_acropolis_patio_8017E100(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     s32        i;
     s32        j;
@@ -2056,7 +1996,7 @@ void func_acropolis_patio_8017E324(Task* task)
     void**            scratch;
     RoomShaftScratch* block;
     GpEffWork*        work;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     POLY_FT4*         prim;
     u8                rgb;
     s16               xy;
@@ -2153,7 +2093,7 @@ void func_acropolis_patio_8017E324(Task* task)
 void func_acropolis_patio_8017E730(Task* task)
 {
     GpEffWork*       work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     RoomMoteScratch* sc;
     SVECTOR*         dir;
     SVECTOR*         anchors;
@@ -2214,13 +2154,13 @@ void func_acropolis_patio_8017E730(Task* task)
                 work->index = 1;
             }
         }
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        sc->vec.vx         = (u16)coord->workm.t[0];
-        sc->vec.vy         = (u16)coord->workm.t[1];
-        sc->vec.vz         = (u16)coord->workm.t[2];
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        sc->vec.vx          = (u16)coord->workm.t[0];
+        sc->vec.vy          = (u16)coord->workm.t[1];
+        sc->vec.vz          = (u16)coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&sc->vec);

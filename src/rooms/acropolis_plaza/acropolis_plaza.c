@@ -1791,13 +1791,7 @@ VECTOR3 D_acropolis_plaza_801907C4[400] = {
     { 1391, -1000, 0x35E1 },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[15];
-    AnimationPackedRotation        words[45];
-} AcropolisPlazaPoseBank144C4;
-
-AcropolisPlazaPoseBank144C4 D_acropolis_plaza_80191A84 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80191A84[15] = {
 #include "assets/acropolis_plaza_animation_148BC_bank1.inc"
 };
 
@@ -1819,13 +1813,7 @@ GpAnimSet D_acropolis_plaza_80191E7C = {
     { NULL, D_acropolis_plaza_80191A84, NULL, NULL, D_acropolis_plaza_80191B38, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[40];
-    AnimationPackedRotation        words[120];
-} AcropolisPlazaPoseBank148E4;
-
-AcropolisPlazaPoseBank148E4 D_acropolis_plaza_80191EA4 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80191EA4[40] = {
 #include "assets/acropolis_plaza_animation_156B4_bank1.inc"
 };
 
@@ -1847,13 +1835,7 @@ GpAnimSet D_acropolis_plaza_80192C74 = {
     { NULL, D_acropolis_plaza_80191EA4, NULL, NULL, D_acropolis_plaza_80192084, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank156DC;
-
-AcropolisPlazaPoseBank156DC D_acropolis_plaza_80192C9C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80192C9C[3] = {
 #include "assets/acropolis_plaza_animation_15864_bank1.inc"
 };
 
@@ -1875,13 +1857,7 @@ GpAnimSet D_acropolis_plaza_80192E24 = {
     { NULL, D_acropolis_plaza_80192C9C, NULL, NULL, D_acropolis_plaza_80192CC0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank1588C;
-
-AcropolisPlazaPoseBank1588C D_acropolis_plaza_80192E4C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80192E4C[3] = {
 #include "assets/acropolis_plaza_animation_15CC8_bank1.inc"
 };
 
@@ -1903,13 +1879,7 @@ GpAnimSet D_acropolis_plaza_80193288 = {
     { NULL, D_acropolis_plaza_80192E4C, NULL, NULL, D_acropolis_plaza_80192E70, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank15CF0;
-
-AcropolisPlazaPoseBank15CF0 D_acropolis_plaza_801932B0 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801932B0[3] = {
 #include "assets/acropolis_plaza_animation_15F78_bank1.inc"
 };
 
@@ -1931,13 +1901,7 @@ GpAnimSet D_acropolis_plaza_80193538 = {
     { NULL, D_acropolis_plaza_801932B0, NULL, NULL, D_acropolis_plaza_801932D4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} AcropolisPlazaPoseBank15FA0;
-
-AcropolisPlazaPoseBank15FA0 D_acropolis_plaza_80193560 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80193560[9] = {
 #include "assets/acropolis_plaza_animation_1622C_bank1.inc"
 };
 
@@ -1959,13 +1923,7 @@ GpAnimSet D_acropolis_plaza_801937EC = {
     { NULL, D_acropolis_plaza_80193560, NULL, NULL, D_acropolis_plaza_801935CC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank16254;
-
-AcropolisPlazaPoseBank16254 D_acropolis_plaza_80193814 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80193814[3] = {
 #include "assets/acropolis_plaza_animation_1643C_bank1.inc"
 };
 
@@ -1987,13 +1945,7 @@ GpAnimSet D_acropolis_plaza_801939FC = {
     { NULL, D_acropolis_plaza_80193814, NULL, NULL, D_acropolis_plaza_80193838, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank16464;
-
-AcropolisPlazaPoseBank16464 D_acropolis_plaza_80193A24 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80193A24[2] = {
 #include "assets/acropolis_plaza_animation_16610_bank1.inc"
 };
 
@@ -2015,13 +1967,7 @@ GpAnimSet D_acropolis_plaza_80193BD0 = {
     { NULL, D_acropolis_plaza_80193A24, NULL, NULL, D_acropolis_plaza_80193A3C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} AcropolisPlazaPoseBank16638;
-
-AcropolisPlazaPoseBank16638 D_acropolis_plaza_80193BF8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80193BF8[4] = {
 #include "assets/acropolis_plaza_animation_168FC_bank1.inc"
 };
 
@@ -2043,13 +1989,7 @@ GpAnimSet D_acropolis_plaza_80193EBC = {
     { NULL, D_acropolis_plaza_80193BF8, NULL, NULL, D_acropolis_plaza_80193C28, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisPlazaPoseBank16924;
-
-AcropolisPlazaPoseBank16924 D_acropolis_plaza_80193EE4 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80193EE4[6] = {
 #include "assets/acropolis_plaza_animation_16D00_bank1.inc"
 };
 
@@ -2071,13 +2011,7 @@ GpAnimSet D_acropolis_plaza_801942C0 = {
     { NULL, D_acropolis_plaza_80193EE4, NULL, NULL, D_acropolis_plaza_80193F2C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank16D28;
-
-AcropolisPlazaPoseBank16D28 D_acropolis_plaza_801942E8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801942E8[2] = {
 #include "assets/acropolis_plaza_animation_16EE4_bank1.inc"
 };
 
@@ -2099,13 +2033,7 @@ GpAnimSet D_acropolis_plaza_801944A4 = {
     { NULL, D_acropolis_plaza_801942E8, NULL, NULL, D_acropolis_plaza_80194300, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank16F0C;
-
-AcropolisPlazaPoseBank16F0C D_acropolis_plaza_801944CC = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801944CC[3] = {
 #include "assets/acropolis_plaza_animation_170C0_bank1.inc"
 };
 
@@ -2127,13 +2055,7 @@ GpAnimSet D_acropolis_plaza_80194680 = {
     { NULL, D_acropolis_plaza_801944CC, NULL, NULL, D_acropolis_plaza_801944F0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank170E8;
-
-AcropolisPlazaPoseBank170E8 D_acropolis_plaza_801946A8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801946A8[3] = {
 #include "assets/acropolis_plaza_animation_17298_bank1.inc"
 };
 
@@ -2155,13 +2077,7 @@ GpAnimSet D_acropolis_plaza_80194858 = {
     { NULL, D_acropolis_plaza_801946A8, NULL, NULL, D_acropolis_plaza_801946CC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} AcropolisPlazaPoseBank172C0;
-
-AcropolisPlazaPoseBank172C0 D_acropolis_plaza_80194880 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80194880[9] = {
 #include "assets/acropolis_plaza_animation_1754C_bank1.inc"
 };
 
@@ -2183,13 +2099,7 @@ GpAnimSet D_acropolis_plaza_80194B0C = {
     { NULL, D_acropolis_plaza_80194880, NULL, NULL, D_acropolis_plaza_801948EC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank17574;
-
-AcropolisPlazaPoseBank17574 D_acropolis_plaza_80194B34 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80194B34[2] = {
 #include "assets/acropolis_plaza_animation_17818_bank1.inc"
 };
 
@@ -2211,13 +2121,7 @@ GpAnimSet D_acropolis_plaza_80194DD8 = {
     { NULL, D_acropolis_plaza_80194B34, NULL, NULL, D_acropolis_plaza_80194B4C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank17840;
-
-AcropolisPlazaPoseBank17840 D_acropolis_plaza_80194E00 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80194E00[2] = {
 #include "assets/acropolis_plaza_animation_17A00_bank1.inc"
 };
 
@@ -2239,13 +2143,7 @@ GpAnimSet D_acropolis_plaza_80194FC0 = {
     { NULL, D_acropolis_plaza_80194E00, NULL, NULL, D_acropolis_plaza_80194E18, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} AcropolisPlazaPoseBank17A28;
-
-AcropolisPlazaPoseBank17A28 D_acropolis_plaza_80194FE8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80194FE8[4] = {
 #include "assets/acropolis_plaza_animation_17C68_bank1.inc"
 };
 
@@ -2267,13 +2165,7 @@ GpAnimSet D_acropolis_plaza_80195228 = {
     { NULL, D_acropolis_plaza_80194FE8, NULL, NULL, D_acropolis_plaza_80195018, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} AcropolisPlazaPoseBank17C90;
-
-AcropolisPlazaPoseBank17C90 D_acropolis_plaza_80195250 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80195250[3] = {
 #include "assets/acropolis_plaza_animation_17E54_bank1.inc"
 };
 
@@ -2295,13 +2187,7 @@ GpAnimSet D_acropolis_plaza_80195414 = {
     { NULL, D_acropolis_plaza_80195250, NULL, NULL, D_acropolis_plaza_80195274, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank17E7C;
-
-AcropolisPlazaPoseBank17E7C D_acropolis_plaza_8019543C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_8019543C[2] = {
 #include "assets/acropolis_plaza_animation_17FF4_bank1.inc"
 };
 
@@ -2323,13 +2209,7 @@ GpAnimSet D_acropolis_plaza_801955B4 = {
     { NULL, D_acropolis_plaza_8019543C, NULL, NULL, D_acropolis_plaza_80195454, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank1801C;
-
-AcropolisPlazaPoseBank1801C D_acropolis_plaza_801955DC = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801955DC[2] = {
 #include "assets/acropolis_plaza_animation_181CC_bank1.inc"
 };
 
@@ -2351,13 +2231,7 @@ GpAnimSet D_acropolis_plaza_8019578C = {
     { NULL, D_acropolis_plaza_801955DC, NULL, NULL, D_acropolis_plaza_801955F4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} AcropolisPlazaPoseBank181F4;
-
-AcropolisPlazaPoseBank181F4 D_acropolis_plaza_801957B4 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801957B4[4] = {
 #include "assets/acropolis_plaza_animation_183B8_bank1.inc"
 };
 
@@ -2379,13 +2253,7 @@ GpAnimSet D_acropolis_plaza_80195978 = {
     { NULL, D_acropolis_plaza_801957B4, NULL, NULL, D_acropolis_plaza_801957E4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} AcropolisPlazaPoseBank183E0;
-
-AcropolisPlazaPoseBank183E0 D_acropolis_plaza_801959A0 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801959A0[5] = {
 #include "assets/acropolis_plaza_animation_18614_bank1.inc"
 };
 
@@ -2407,13 +2275,7 @@ GpAnimSet D_acropolis_plaza_80195BD4 = {
     { NULL, D_acropolis_plaza_801959A0, NULL, NULL, D_acropolis_plaza_801959DC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank1863C;
-
-AcropolisPlazaPoseBank1863C D_acropolis_plaza_80195BFC = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80195BFC[2] = {
 #include "assets/acropolis_plaza_animation_18904_bank1.inc"
 };
 
@@ -2435,13 +2297,7 @@ GpAnimSet D_acropolis_plaza_80195EC4 = {
     { NULL, D_acropolis_plaza_80195BFC, NULL, NULL, D_acropolis_plaza_80195C14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} AcropolisPlazaPoseBank1892C;
-
-AcropolisPlazaPoseBank1892C D_acropolis_plaza_80195EEC = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80195EEC[9] = {
 #include "assets/acropolis_plaza_animation_18DE0_bank1.inc"
 };
 
@@ -2463,13 +2319,7 @@ GpAnimSet D_acropolis_plaza_801963A0 = {
     { NULL, D_acropolis_plaza_80195EEC, NULL, NULL, D_acropolis_plaza_80195F58, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank18E08;
-
-AcropolisPlazaPoseBank18E08 D_acropolis_plaza_801963C8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801963C8[2] = {
 #include "assets/acropolis_plaza_animation_18F98_bank1.inc"
 };
 
@@ -2491,13 +2341,7 @@ GpAnimSet D_acropolis_plaza_80196558 = {
     { NULL, D_acropolis_plaza_801963C8, NULL, NULL, D_acropolis_plaza_801963E0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} AcropolisPlazaPoseBank18FC0;
-
-AcropolisPlazaPoseBank18FC0 D_acropolis_plaza_80196580 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80196580[5] = {
 #include "assets/acropolis_plaza_animation_19610_bank1.inc"
 };
 
@@ -2519,13 +2363,7 @@ GpAnimSet D_acropolis_plaza_80196BD0 = {
     { NULL, D_acropolis_plaza_80196580, NULL, NULL, D_acropolis_plaza_801965BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} AcropolisPlazaPoseBank19638;
-
-AcropolisPlazaPoseBank19638 D_acropolis_plaza_80196BF8 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80196BF8[7] = {
 #include "assets/acropolis_plaza_animation_19AD8_bank1.inc"
 };
 
@@ -2547,13 +2385,7 @@ GpAnimSet D_acropolis_plaza_80197098 = {
     { NULL, D_acropolis_plaza_80196BF8, NULL, NULL, D_acropolis_plaza_80196C4C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisPlazaPoseBank19B00;
-
-AcropolisPlazaPoseBank19B00 D_acropolis_plaza_801970C0 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801970C0[6] = {
 #include "assets/acropolis_plaza_animation_19D64_bank1.inc"
 };
 
@@ -2575,13 +2407,7 @@ GpAnimSet D_acropolis_plaza_80197324 = {
     { NULL, D_acropolis_plaza_801970C0, NULL, NULL, D_acropolis_plaza_80197108, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank19D8C;
-
-AcropolisPlazaPoseBank19D8C D_acropolis_plaza_8019734C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_8019734C[2] = {
 #include "assets/acropolis_plaza_animation_19F7C_bank1.inc"
 };
 
@@ -2603,13 +2429,7 @@ GpAnimSet D_acropolis_plaza_8019753C = {
     { NULL, D_acropolis_plaza_8019734C, NULL, NULL, D_acropolis_plaza_80197364, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} AcropolisPlazaPoseBank19FA4;
-
-AcropolisPlazaPoseBank19FA4 D_acropolis_plaza_80197564 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80197564[5] = {
 #include "assets/acropolis_plaza_animation_1A4F8_bank1.inc"
 };
 
@@ -2631,13 +2451,7 @@ GpAnimSet D_acropolis_plaza_80197AB8 = {
     { NULL, D_acropolis_plaza_80197564, NULL, NULL, D_acropolis_plaza_801975A0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} AcropolisPlazaPoseBank1A520;
-
-AcropolisPlazaPoseBank1A520 D_acropolis_plaza_80197AE0 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80197AE0[7] = {
 #include "assets/acropolis_plaza_animation_1A784_bank1.inc"
 };
 
@@ -2659,13 +2473,7 @@ GpAnimSet D_acropolis_plaza_80197D44 = {
     { NULL, D_acropolis_plaza_80197AE0, NULL, NULL, D_acropolis_plaza_80197B34, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank1A7AC;
-
-AcropolisPlazaPoseBank1A7AC D_acropolis_plaza_80197D6C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80197D6C[2] = {
 #include "assets/acropolis_plaza_animation_1AAAC_bank1.inc"
 };
 
@@ -2687,13 +2495,7 @@ GpAnimSet D_acropolis_plaza_8019806C = {
     { NULL, D_acropolis_plaza_80197D6C, NULL, NULL, D_acropolis_plaza_80197D84, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank1AAD4;
-
-AcropolisPlazaPoseBank1AAD4 D_acropolis_plaza_80198094 = { .poses = {
+AnimationPackedPose D_acropolis_plaza_80198094[2] = {
 #include "assets/acropolis_plaza_animation_1AE04_bank1.inc"
 };
 
@@ -2715,13 +2517,7 @@ GpAnimSet D_acropolis_plaza_801983C4 = {
     { NULL, D_acropolis_plaza_80198094, NULL, NULL, D_acropolis_plaza_801980AC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisPlazaPoseBank1AE2C;
-
-AcropolisPlazaPoseBank1AE2C D_acropolis_plaza_801983EC = { .poses = {
+AnimationPackedPose D_acropolis_plaza_801983EC[2] = {
 #include "assets/acropolis_plaza_animation_1AFA4_bank1.inc"
 };
 
@@ -2743,13 +2539,7 @@ GpAnimSet D_acropolis_plaza_80198564 = {
     { NULL, D_acropolis_plaza_801983EC, NULL, NULL, D_acropolis_plaza_80198404, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} AcropolisPlazaPoseBank1AFCC;
-
-AcropolisPlazaPoseBank1AFCC D_acropolis_plaza_8019858C = { .poses = {
+AnimationPackedPose D_acropolis_plaza_8019858C[5] = {
 #include "assets/acropolis_plaza_animation_1B1F8_bank1.inc"
 };
 
@@ -3737,7 +3527,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     CdCmdQueue*             q    = &CdCmd_Queue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
-    GpCoord*                coord;
+    GfxCoord*               coord;
     s32                     weaponId;
     s32                     id;
 
@@ -4564,8 +4354,8 @@ void func_acropolis_plaza_801802C0(Task* task)
 {
     GpCoord64*                 entry;
     GpPointLight*              light;
-    GpCoord*                   coord;
-    GpCoord*                   lightCoord;
+    GfxCoord*                  coord;
+    GfxCoord*                  lightCoord;
     AcropolisPlazaBeamWork*    work;
     AcropolisPlazaBeamScratch* blk;
     SVECTOR*                   point;
@@ -4581,7 +4371,7 @@ void func_acropolis_plaza_801802C0(Task* task)
 
     slot       = task->spawnArg1.value;
     entry      = &Gp_RoomCoords[slot & 7];
-    light      = &entry->data.light;
+    light      = &entry->light;
     coord      = task->extra.tmd->coords;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.u.coord;
@@ -4590,7 +4380,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         task->state = task->state + 1;
     }
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     blk            = SCRATCH_PUSH(AcropolisPlazaBeamScratch);
     blk->vec[0].vx = coord->workm.t[0];
@@ -4618,37 +4408,37 @@ void func_acropolis_plaza_801802C0(Task* task)
                 green       = red >> 1;
                 blue        = red >> 1;
             }
-            depthVal               = work->depth;
-            spread                 = depthVal != 0x800 ? 0 : (yaw = work->yaw, work->yaw - 0x800 >= 0 ? (yaw - 0x800) * 4 : (depthVal - yaw) * 4);
-            work->spread           = spread;
-            lightCoord->coord.t[0] = coord->coord.t[0];
-            lightCoord->coord.t[1] = coord->coord.t[1];
-            lightCoord->coord.t[2] = coord->coord.t[2];
-            lightCoord->flg        = 0;
-            entry->framesLeft      = 2;
-            light->inner           = 0x600;
-            light->outer           = work->spread + 0x600;
-            light->head.r          = red << 4;
-            light->head.g          = green << 4;
-            light->head.b          = blue << 4;
-            blk->vec[1].vx         = -0x200;
-            blk->vec[1].vy         = 0;
-            blk->vec[1].vz         = work->depth;
-            blk->vec[2].vx         = 0x200;
-            blk->vec[2].vy         = 0;
-            blk->vec[2].vz         = work->depth;
-            blk->vec[3].vx         = -0x400;
-            blk->vec[3].vy         = 0;
-            blk->vec[3].vz         = 0x400;
-            blk->vec[4].vx         = 0x400;
-            blk->vec[4].vy         = 0;
-            blk->vec[4].vz         = 0x400;
-            blk->vec[5].vx         = -0x200;
-            blk->vec[5].vy         = 0;
-            blk->vec[5].vz         = 0x100;
-            blk->vec[6].vx         = 0x200;
-            blk->vec[6].vy         = 0;
-            blk->vec[6].vz         = 0x100;
+            depthVal                 = work->depth;
+            spread                   = depthVal != 0x800 ? 0 : (yaw = work->yaw, work->yaw - 0x800 >= 0 ? (yaw - 0x800) * 4 : (depthVal - yaw) * 4);
+            work->spread             = spread;
+            lightCoord->coord.t[0]   = coord->coord.t[0];
+            lightCoord->coord.t[1]   = coord->coord.t[1];
+            lightCoord->coord.t[2]   = coord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            entry->framesLeft        = 2;
+            light->inner             = 0x600;
+            light->outer             = work->spread + 0x600;
+            light->head.r            = red << 4;
+            light->head.g            = green << 4;
+            light->head.b            = blue << 4;
+            blk->vec[1].vx           = -0x200;
+            blk->vec[1].vy           = 0;
+            blk->vec[1].vz           = work->depth;
+            blk->vec[2].vx           = 0x200;
+            blk->vec[2].vy           = 0;
+            blk->vec[2].vz           = work->depth;
+            blk->vec[3].vx           = -0x400;
+            blk->vec[3].vy           = 0;
+            blk->vec[3].vz           = 0x400;
+            blk->vec[4].vx           = 0x400;
+            blk->vec[4].vy           = 0;
+            blk->vec[4].vz           = 0x400;
+            blk->vec[5].vx           = -0x200;
+            blk->vec[5].vy           = 0;
+            blk->vec[5].vz           = 0x100;
+            blk->vec[6].vx           = 0x200;
+            blk->vec[6].vy           = 0;
+            blk->vec[6].vz           = 0x100;
             for (i = 1; i < 7; i++) {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&blk->vec[i]);
@@ -4791,7 +4581,7 @@ void func_acropolis_plaza_801802C0(Task* task)
 
 void func_acropolis_plaza_801811D0(Task* task)
 {
-    GpCoord*                    coord;
+    GfxCoord*                   coord;
     AcropolisPlazaBeamWork*     work;
     AcropolisPlazaFlareScratch* blk;
     POLY_G4*                    prim;
@@ -4810,7 +4600,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         task->state = task->state + 1;
     }
     Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     SCRATCH_PUSH(AcropolisPlazaFlareScratch);
     blk         = SCRATCH_HEAD(AcropolisPlazaFlareScratch);
@@ -4967,7 +4757,7 @@ void func_acropolis_plaza_801811D0(Task* task)
 
 void func_acropolis_plaza_80182054(Task* task)
 {
-    GpCoord*                   coord;
+    GfxCoord*                  coord;
     AcropolisPlazaGlowScratch* blk;
     POLY_G4*                   prim;
     s32                        i, pulse;
@@ -5042,8 +4832,8 @@ void func_acropolis_plaza_80182054(Task* task)
 /// `D_acropolis_plaza_80198820`. Every later frame is a no-op.
 void func_acropolis_plaza_8018251C(Task* task)
 {
-    GpCoord* coord;
-    s32      i;
+    GfxCoord* coord;
+    s32       i;
 
     coord = task->extra.tmd->coords;
     if (task->state == 0) {

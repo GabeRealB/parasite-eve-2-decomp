@@ -332,7 +332,7 @@ static void func_actor_342400_801621D8(Task* arg0)
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  enemy;
     Task*                     task;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     GpCmdArg                  msg;
 
     if (work->enemy0 != NULL) {
@@ -407,9 +407,9 @@ static void func_actor_342400_80162324(Task* arg0)
 
 static s16 func_actor_342400_801624A4(void)
 {
-    GpCoord* coord = (*Gp_ActorSlots)->extra.tmd->coords;
-    s16      x     = coord->coord.t[0];
-    s16      z     = coord->coord.t[2];
+    GfxCoord* coord = (*Gp_ActorSlots)->extra.tmd->coords;
+    s16       x     = coord->coord.t[0];
+    s16       z     = coord->coord.t[2];
 
     if (x <= 5000) {
         return D_actor_342400_8016C054[0][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
@@ -656,7 +656,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
     Task*                       task;
-    GpCoord*                    coord;
+    GfxCoord*                   coord;
     GpCmdArg                    msg;
 
     enemy = work->enemy;
@@ -735,7 +735,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
     GpEnemy*                    enemy;
     Task*                       task;
-    GpCoord*                    coord;
+    GfxCoord*                   coord;
     GpCmdArg                    msg;
 
     enemy = work->enemy;

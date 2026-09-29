@@ -49,9 +49,9 @@ typedef struct PyroWork {
 } PyroWork;
 STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 
-static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1);
-static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_pyrokinesis_80130130(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
+static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// The `SndEvt_EnqueueType6` id of the ignition roar, three per PE level,
 /// indexed by `GpEffWork.index * 3 + Task::spawnArg1` (level by cast variant).
@@ -67,15 +67,15 @@ static s32 D_pyrokinesis_80131DD8[] = {
     0xE0110004,
 };
 
-static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
-static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
+static void func_pyrokinesis_80130DC0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_pyrokinesis_801312B4(GfxCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
+static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
 
 /// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
 /// when the cast starts.
 static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 
-static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_pyrokinesis_8012FC34(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Runs one frame of the pyrokinesis cast: a five-state machine driven by
 /// `Task::state`. State 0 copies the player rotation onto the effect
@@ -94,17 +94,17 @@ static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2);
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     PyroWork*     work;
     TmdObject*    tmdo;
-    GpCoord*      player;
+    GfxCoord*     player;
     GpCoord64*    base;
-    GpCoord*      slotc;
+    GfxCoord*     slotc;
     GpPointLight* slot;
     GpMtxWords*   dstm;
     GpMtxWords*   srcm;
     GpEffWork*    spawned;
-    GpCoord       ground;
+    GfxCoord      ground;
     u8            rgb[3];
     s32           i;
     s32           pan;
@@ -120,8 +120,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     coord    = tmdo->coords;
     mem->age = mem->age + 1;
     base     = Gp_RoomCoords;
-    slotc    = &base->data.coord;
-    slot     = &base->data.light;
+    slotc    = &base->light.head.u.coord;
+    slot     = &base->light;
     switch (arg0->state) {
         case 0:
             if ((Gp_StateC08.field_3 == -2) || ((fade = Gp_State1C->fadeState), fade >= 4)) {
@@ -137,15 +137,15 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            player        = (gameGetPtrSlot(3))->extra.tmd->coords;
-            dstm          = (GpMtxWords*)&coord->coord;
-            srcm          = (GpMtxWords*)&player->coord;
-            dstm->m00_m01 = srcm->m00_m01;
-            dstm->m02_m10 = srcm->m02_m10;
-            dstm->m11_m12 = srcm->m11_m12;
-            dstm->m20_m21 = srcm->m20_m21;
-            dstm->m22     = srcm->m22;
-            coord->flg    = 0;
+            player              = (gameGetPtrSlot(3))->extra.tmd->coords;
+            dstm                = (GpMtxWords*)&coord->coord;
+            srcm                = (GpMtxWords*)&player->coord;
+            dstm->m00_m01       = srcm->m00_m01;
+            dstm->m02_m10       = srcm->m02_m10;
+            dstm->m11_m12       = srcm->m11_m12;
+            dstm->m20_m21       = srcm->m20_m21;
+            dstm->m22           = srcm->m22;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->move.vx = 0;
             mem->move.vy = 0;
@@ -233,13 +233,13 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->age = mem->age - 1;
                 return;
             }
-            radius             = (mem->index << 9) + 0x380;
-            mem->angle         = radius;
-            work->obj.radius   = radius;
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            coord->coord.t[2] += mem->move.vz;
-            coord->flg         = 0;
+            radius              = (mem->index << 9) + 0x380;
+            mem->angle          = radius;
+            work->obj.radius    = radius;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->coord.t[2]  += mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
             func_pyrokinesis_80130130(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
@@ -258,18 +258,18 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }
-            base->framesLeft  = 4;
-            slot->inner       = (mem->index << 9) + 0x200;
-            slot->outer       = slot->inner * 16;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            amp               = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->head.r      = amp;
-            slot->head.g      = (u16)slot->head.r >> 1;
-            slot->head.b      = slot->head.r >> 2;
-            slotc->coord.t[0] = coord->coord.t[0];
-            slotc->coord.t[1] = coord->coord.t[1];
-            slotc->coord.t[2] = coord->coord.t[2];
-            slotc->flg        = 0;
+            base->framesLeft    = 4;
+            slot->inner         = (mem->index << 9) + 0x200;
+            slot->outer         = slot->inner * 16;
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            amp                 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->head.r        = amp;
+            slot->head.g        = (u16)slot->head.r >> 1;
+            slot->head.b        = slot->head.r >> 2;
+            slotc->coord.t[0]   = coord->coord.t[0];
+            slotc->coord.t[1]   = coord->coord.t[1];
+            slotc->coord.t[2]   = coord->coord.t[2];
+            slotc->composeStamp = GRAPHICS_COORD_DIRTY;
             if (Gp_CountRec18Hi(work->obj.ctx.recs, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {
@@ -402,7 +402,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
 void func_pyrokinesis_8012FAC8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        scene;
     s16        flag;
     s32        state;
@@ -466,7 +466,7 @@ L_release:
 /// through `GsWSMATRIX` as one `POLY_G4`. The inner edge carries the `arg2`
 /// ramp `(arg2, arg2 >> 1, arg2 >> 2)` and the outer edge fades to black; a
 /// negative `gte_stflg` drops the segment.
-static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pyrokinesis_8012FC34(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpBandScratch* block;
     SVECTOR*       op;
@@ -557,7 +557,7 @@ static void func_pyrokinesis_8012FC34(GpCoord* arg0, s16 arg1, s16 arg2)
 /// colour, the rest of the blade fading to black, and that colour is the
 /// `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)` - a red-biased fire tint. A
 /// negative `gte_stflg` drops the whole ring.
-static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pyrokinesis_80130130(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -609,7 +609,7 @@ static void func_pyrokinesis_80130130(GpCoord* arg0, s16 arg1, s16 arg2)
 /// `POLY_FT4` (tpage 0x28, clut 0x428C) tinted `(0x30, 0x20, 0x20)`; the frame
 /// counter's low bit picks between two 0x1F-wide UV columns at v = 0x38..0x57.
 /// Same 0x38 scratch block and body as `Gp_DrawEffSprite7C`.
-static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
+static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
 {
     GpQuadScratch* block;
     s32            i;
@@ -681,7 +681,7 @@ static void func_pyrokinesis_801304C4(GpCoord* arg0, s32 arg1)
 /// half-extents `(arg2 * 55 / otz) * rsin|rcos` at `arg3` and `arg3 + 0x400`.
 /// `arg1`'s low bit picks between two 0x37-wide UV columns at v = 0xC8..0xFF.
 /// A negative `gte_stflg` drops the quad.
-static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -748,7 +748,7 @@ static void func_pyrokinesis_80130848(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg
 void func_pyrokinesis_80130C54(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        temp_a1;
     s32        y;
@@ -769,9 +769,9 @@ void func_pyrokinesis_80130C54(Task* arg0)
                 mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
                 arg0->state  = 1;
             }
-            y                 = coord->coord.t[1] + mem->move.vy;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            y                   = coord->coord.t[1] + mem->move.vy;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -797,7 +797,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
 /// so the sprite shrinks with depth. Same shape as the gameplay
 /// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
-static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_pyrokinesis_80130DC0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -857,7 +857,7 @@ static void func_pyrokinesis_80130DC0(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg
 void func_pyrokinesis_801311B8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        scale;
     s32        angle;
@@ -872,10 +872,10 @@ void func_pyrokinesis_801311B8(Task* arg0)
             }
             if (arg0->state == 0) {
                 Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value, 0);
-                coord->flg  = 0;
-                mem->scale  = 0x80;
-                mem->angle  = 0x100;
-                arg0->state = 1;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                mem->scale          = 0x80;
+                mem->angle          = 0x100;
+                arg0->state         = 1;
             }
             Gp_UpdateCoord(coord);
             func_pyrokinesis_801312B4(coord, mem->angle, 0x100, mem->scale);
@@ -899,7 +899,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
 /// segments is projected through `GsWSMATRIX` as one `POLY_G4`. The inner
 /// edge carries the `arg3` ramp `(arg3, arg3 >> 1, arg3 >> 2)` and the outer
 /// edge fades to black; a negative `gte_stflg` drops the segment.
-static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
+static void func_pyrokinesis_801312B4(GfxCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
 {
     GpBandScratch* block;
     SVECTOR*       op;
@@ -982,7 +982,7 @@ static void func_pyrokinesis_801312B4(GpCoord* arg0, s16 arg1, s32 arg2, s16 arg
 /// `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell is one of
 /// six 0x28-wide frames picked per vertex by `D_pyrokinesis_80131DFC[i]` plus
 /// `arg1`, and a negative `gte_stflg` drops the segment.
-static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
+static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
 {
     GpBandScratch* block;
     SVECTOR*       op;
@@ -1077,7 +1077,7 @@ static void func_pyrokinesis_80131784(GpCoord* arg0, s16 arg1, s32 arg2, s32 arg
 void func_pyrokinesis_80131CE4(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        scale;
     s32        angle;

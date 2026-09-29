@@ -41,7 +41,7 @@ extern GpViewRec D_acropolis_helicopter_landing_pad_80187968[];
 
 extern GpRoomParamRec* D_acropolis_helicopter_landing_pad_80187DC8[];
 
-void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord);
+void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord);
 
 void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0);
 

@@ -240,13 +240,7 @@ TmdSource D_actor_303600_801690A4 = {
     D_actor_303600_80164BF0,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor303600PoseBank72A8;
-
-Actor303600PoseBank72A8 D_actor_303600_801690C8 = { .poses = {
+AnimationPackedPose D_actor_303600_801690C8[5] = {
 #include "assets/actor_303600_animation_075A0_bank1.inc"
 };
 
@@ -268,13 +262,7 @@ GpAnimSet D_actor_303600_801693C0 = {
     { NULL, D_actor_303600_801690C8, NULL, NULL, D_actor_303600_80169104, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor303600PoseBank75C8;
-
-Actor303600PoseBank75C8 D_actor_303600_801693E8 = { .poses = {
+AnimationPackedPose D_actor_303600_801693E8[3] = {
 #include "assets/actor_303600_animation_077F0_bank1.inc"
 };
 
@@ -296,13 +284,7 @@ GpAnimSet D_actor_303600_80169610 = {
     { NULL, D_actor_303600_801693E8, NULL, NULL, D_actor_303600_8016940C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor303600PoseBank7818;
-
-Actor303600PoseBank7818 D_actor_303600_80169638 = { .poses = {
+AnimationPackedPose D_actor_303600_80169638[6] = {
 #include "assets/actor_303600_animation_07C30_bank1.inc"
 };
 
@@ -324,13 +306,7 @@ GpAnimSet D_actor_303600_80169A50 = {
     { NULL, D_actor_303600_80169638, NULL, NULL, D_actor_303600_80169680, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor303600PoseBank7C58;
-
-Actor303600PoseBank7C58 D_actor_303600_80169A78 = { .poses = {
+AnimationPackedPose D_actor_303600_80169A78[2] = {
 #include "assets/actor_303600_animation_07E5C_bank1.inc"
 };
 
@@ -17224,8 +17200,8 @@ void func_actor_303600_80162698(void)
 static void func_actor_303600_801626C0(Task* task)
 {
     Actor303600RigWork* work;
-    GpCoord*            coord;
-    GpCoord*            childCoord;
+    GfxCoord*           coord;
+    GfxCoord*           childCoord;
     Task*               child;
     s32                 i;
 
@@ -17265,7 +17241,7 @@ static void func_actor_303600_801626C0(Task* task)
 static void func_actor_303600_801627B8(Task* task)
 {
     Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
-    GpCoord*            coord = task->extra.tmd->coords;
+    GfxCoord*           coord = task->extra.tmd->coords;
     s32                 speed;
     s32                 angle;
     s32                 var;
@@ -17287,8 +17263,8 @@ static void func_actor_303600_801627B8(Task* task)
     } else if (angle < -0x0FA00000) {
         work->field_18.w = angle + 0x1F400000;
     }
-    coord->coord.t[1] = work->field_18.h.hi;
-    coord->flg        = 0;
+    coord->coord.t[1]   = work->field_18.h.hi;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Exit callback the rig controller installs at `Task::exitCallback`, and the
@@ -17363,9 +17339,9 @@ static void func_actor_303600_80162950(Task* task)
 {
     Task*                 parent      = task->spawnArg2.pointer;
     TmdObject*            obj         = task->extra.tmd;
-    GpCoord*              coord       = obj->coords;
+    GfxCoord*             coord       = obj->coords;
     TmdObject*            parentObj   = parent->extra.tmd;
-    GpCoord*              parentCoord = parentObj->coords;
+    GfxCoord*             parentCoord = parentObj->coords;
     Actor303600LightMats* mats;
 
     mats = memCalloc(0x44, 0);
@@ -17374,9 +17350,9 @@ static void func_actor_303600_80162950(Task* task)
         return;
     }
 
-    task->work = (TaskIdMap*)mats;
-    coord->sub = parentCoord;
-    coord->flg = 0;
+    task->work          = (TaskIdMap*)mats;
+    coord->parent       = parentCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_303600_80162A0C(task);
     Task_Reparent(parent, task);
     obj->flags  &= 0xFF7F;

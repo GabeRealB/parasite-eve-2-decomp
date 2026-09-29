@@ -29,7 +29,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/geometry.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -125,7 +124,7 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
 /// 0x1C-byte scratch block the bridge's debris billboard
 /// (`func_acropolis_bridge_80182F8C`) takes from `G_SCRATCH_HEAD`. `vec` is the
-/// piece's world position copied out of its `GpCoord` (`workm.t`) and
+/// piece's world position copied out of its `GfxCoord` (`workm.t`) and
 /// projected with a single `RTPS` through `GsWSMATRIX`: `sx` / `sy` are the
 /// projected centre, `flag` the `gte_stflg` result the draw is gated on and
 /// `otz` the `gte_stszotz` depth, biased by 1 so it can be divided by. `dx` /
@@ -256,9 +255,9 @@ static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
 static void func_acropolis_bridge_8017F808(Task* task);
-static void func_acropolis_bridge_801827EC(GpCoord* coord, s32 arg1, s16 arg2);
-static void func_acropolis_bridge_80182F8C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_acropolis_bridge_801833A0(GpCoord* arg0, u16 arg1, s16 arg2);
+static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
+static void func_acropolis_bridge_80182F8C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_acropolis_bridge_801833A0(GfxCoord* arg0, u16 arg1, s16 arg2);
 static void func_acropolis_bridge_80183654(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_acropolis_bridge_8018581C(Task* task);
 static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
@@ -2152,13 +2151,7 @@ TmdSource D_acropolis_bridge_8019119C = {
     D_acropolis_bridge_80190E2C,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisBridgePoseBank13C00;
-
-AcropolisBridgePoseBank13C00 D_acropolis_bridge_801911C0 = { .poses = {
+AnimationPackedPose D_acropolis_bridge_801911C0[6] = {
 #include "assets/acropolis_bridge_animation_13CD8_bank1.inc"
 };
 
@@ -2180,13 +2173,7 @@ GpAnimSet D_acropolis_bridge_80191298 = {
     { NULL, D_acropolis_bridge_801911C0, NULL, NULL, D_acropolis_bridge_80191208, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisBridgePoseBank13D00;
-
-AcropolisBridgePoseBank13D00 D_acropolis_bridge_801912C0 = { .poses = {
+AnimationPackedPose D_acropolis_bridge_801912C0[6] = {
 #include "assets/acropolis_bridge_animation_13DD8_bank1.inc"
 };
 
@@ -2208,13 +2195,7 @@ GpAnimSet D_acropolis_bridge_80191398 = {
     { NULL, D_acropolis_bridge_801912C0, NULL, NULL, D_acropolis_bridge_80191308, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisBridgePoseBank13E00;
-
-AcropolisBridgePoseBank13E00 D_acropolis_bridge_801913C0 = { .poses = {
+AnimationPackedPose D_acropolis_bridge_801913C0[2] = {
 #include "assets/acropolis_bridge_animation_13E48_bank1.inc"
 };
 
@@ -2236,13 +2217,7 @@ GpAnimSet D_acropolis_bridge_80191408 = {
     { NULL, D_acropolis_bridge_801913C0, NULL, NULL, D_acropolis_bridge_801913D8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} AcropolisBridgePoseBank13E70;
-
-AcropolisBridgePoseBank13E70 D_acropolis_bridge_80191430 = { .poses = {
+AnimationPackedPose D_acropolis_bridge_80191430[6] = {
 #include "assets/acropolis_bridge_animation_13F60_bank1.inc"
 };
 
@@ -2264,13 +2239,7 @@ GpAnimSet D_acropolis_bridge_80191520 = {
     { NULL, D_acropolis_bridge_80191430, NULL, NULL, D_acropolis_bridge_80191478, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} AcropolisBridgePoseBank13F88;
-
-AcropolisBridgePoseBank13F88 D_acropolis_bridge_80191548 = { .poses = {
+AnimationPackedPose D_acropolis_bridge_80191548[2] = {
 #include "assets/acropolis_bridge_animation_13FE0_bank1.inc"
 };
 
@@ -2517,7 +2486,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block);
 static __inline__ void bridge_set_obj_pos(GpObj* obj, SVECTOR3* pos);
 static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker);
-static __inline__ void _acropolisBridgeLightModel(Task* task, GpCoord* coord);
+static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
 static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* work);
 static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* work);
 static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work);
@@ -2667,7 +2636,7 @@ void func_acropolis_bridge_8017DA0C(Task* task)
 static void func_acropolis_bridge_8017DA64(Task* task)
 {
     TmdObject*                 extra;
-    GpCoord*                   coord;
+    GfxCoord*                  coord;
     _AcropolisBridgeModelWork* work;
 
     extra = task->extra.tmd;
@@ -2677,24 +2646,24 @@ static void func_acropolis_bridge_8017DA64(Task* task)
         taskKill(task);
         return;
     }
-    task->work        = (TaskIdMap*)work;
-    work->field_0     = 0;
-    extra->flags      = 0;
-    coord->sub        = &gGfxViewCoord;
-    coord->coord.t[0] = -0x23F0;
-    coord->coord.t[1] = 0x12C;
-    coord->coord.t[2] = -0xAF0;
-    coord->flg        = 0;
+    task->work          = (TaskIdMap*)work;
+    work->field_0       = 0;
+    extra->flags        = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->coord.t[0]   = -0x23F0;
+    coord->coord.t[1]   = 0x12C;
+    coord->coord.t[2]   = -0xAF0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state++;
 }
 
 /// Per-frame state of the bridge model task: raises bit 0x80 of the object's
 /// flags on camera views 8..10 and clears them elsewhere, then clears the root
-/// coordinate's `flg` so its world matrix is rebuilt this frame.
+/// coordinate's `composeStamp` so its world matrix is rebuilt this frame.
 static void func_acropolis_bridge_8017DB08(Task* task)
 {
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     extra = task->extra.tmd;
     coord = extra->coords;
@@ -2703,7 +2672,7 @@ static void func_acropolis_bridge_8017DB08(Task* task)
     } else {
         extra->flags = 0;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 static void func_acropolis_bridge_8017DB60(Task* arg0)
@@ -3715,8 +3684,8 @@ static void func_acropolis_bridge_8017F808(Task* task)
 void func_acropolis_bridge_8017F868(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   part;
+    GfxCoord*  coord;
+    GfxCoord*  part;
     Task*      owner;
     SVECTOR    pos;
     u8         view;
@@ -4314,7 +4283,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// one frame.
 void func_acropolis_bridge_801812F4(Task* task)
 {
-    GpCoord*              coord;
+    GfxCoord*             coord;
     GpEffWork*            work;
     void**                scratch;
     u8*                   head;
@@ -4422,7 +4391,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     AcropolisBridgeQuadScratch* block;
     AcropolisBridgeQuadCorner*  tbl;
     POLY_FT4*                   prim;
-    GpCoord*                    coord;
+    GfxCoord*                   coord;
     GpEffWork*                  work;
     MATRIX*                     m;
     SVECTOR*                    v;
@@ -4500,7 +4469,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 /// released once the quad is queued, so the task lives for one frame.
 void func_acropolis_bridge_80181D28(Task* task)
 {
-    GpCoord*               coord;
+    GfxCoord*              coord;
     GpEffWork*             work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
@@ -4561,9 +4530,9 @@ void func_acropolis_bridge_80181D28(Task* task)
 
 s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
-    GpCoord* coord;
-    SVECTOR  pos;
-    s32      i;
+    GfxCoord* coord;
+    SVECTOR   pos;
+    s32       i;
 
     coord = task->extra.tmd->coords;
 
@@ -4619,7 +4588,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomMoteScratch* block;
     RoomMoteScratch* depth;
     TILE_1*          prim;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpEffWork*       work;
 
     scratch  = (void**)G_SCRATCH_HEAD;
@@ -4641,13 +4610,13 @@ void func_acropolis_bridge_80182394(Task* task)
         work->scale   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x30;
     }
 
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
-    block->vec.vx      = (u16)coord->workm.t[0];
-    block->vec.vy      = (u16)coord->workm.t[1];
-    block->vec.vz      = (u16)coord->workm.t[2];
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    block->vec.vx       = (u16)coord->workm.t[0];
+    block->vec.vy       = (u16)coord->workm.t[1];
+    block->vec.vz       = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -4675,7 +4644,7 @@ void func_acropolis_bridge_80182394(Task* task)
 void func_acropolis_bridge_80182694(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -4692,8 +4661,8 @@ void func_acropolis_bridge_80182694(Task* task)
                 work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-                coord->flg  = 0;
-                task->state = 1;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                task->state         = 1;
                 /* fallthrough */
             case 1:
                 work->angle += 0x20;
@@ -4710,13 +4679,13 @@ void func_acropolis_bridge_80182694(Task* task)
 
 /// Draws the flash the bridge collapse throws off as a screen-facing quad: the
 /// unit quad `D_80111E38` scaled to `arg1` half-size, rotated by the task's own
-/// `GpCoord` (`workm`) and then projected through `GsWSMATRIX` into a
+/// `GfxCoord` (`workm`) and then projected through `GsWSMATRIX` into a
 /// 0x28-byte `G_SCRATCH_HEAD` block. The first corner goes through `rtps` and
 /// the other three through `rtpt`; a GTE error (`gte_stflg` sign bit) drops the
 /// quad rather than drawing it. The `POLY_FT4` is the 0x38x0x38 cell at
 /// `(0, 0x38)` of tpage 0x2B, modulated by the grey `arg2` and drawn
 /// semi-transparent, and links into the OT at the projected depth.
-static void func_acropolis_bridge_801827EC(GpCoord* coord, s32 arg1, s16 arg2)
+static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
 {
     OverlayFlaggedQuadScratch* blk;
     POLY_FT4*                  prim;
@@ -4795,7 +4764,7 @@ static void func_acropolis_bridge_801827EC(GpCoord* coord, s32 arg1, s16 arg2)
 void func_acropolis_bridge_80182AF8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -4891,11 +4860,11 @@ void func_acropolis_bridge_80182AF8(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -4915,7 +4884,7 @@ void func_acropolis_bridge_80182AF8(Task* task)
 /// 0x1F-wide column starting at `frame * 0x20` on rows 0xE0..0xFF of tpage
 /// 0x2B. The primitive is semi-transparent with texture blending off
 /// (`code |= 3`) and links into the OT at the projected depth.
-static void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, s16 angle)
+static void func_acropolis_bridge_80182F8C(GfxCoord* coord, u16 frame, s16 size, s16 angle)
 {
     void**                        scratch;
     u8*                           head;
@@ -4991,7 +4960,7 @@ static void func_acropolis_bridge_80182F8C(GpCoord* coord, u16 frame, s16 size, 
 /// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
 /// semi-transparent with texture blending off (`code |= 3`) and links into the
 /// OT at the projected depth.
-static void func_acropolis_bridge_801833A0(GpCoord* coord, u16 frame, s16 size)
+static void func_acropolis_bridge_801833A0(GfxCoord* coord, u16 frame, s16 size)
 {
     void**                        scratch;
     u8*                           head;
@@ -5612,7 +5581,7 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
 static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 {
     OverlayWalkerTurnScratch* s;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     u8*                       head;
     s16                       diff, t;
     s32                       angle;
@@ -5688,7 +5657,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     SVECTOR*      sv;
     SVECTOR*      gsv;
     SVECTOR*      step;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     s16           sdiff;
     s32           diff;
     s16           speed;
@@ -5766,11 +5735,11 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             gte_ldsv(gsv);
             gte_gpf12();
             gte_stsv(gsv);
-            coord->coord.t[0] += ((SVECTOR*)(head2 - 8))->vx;
-            coord->coord.t[1] += sv->vy;
-            coord->coord.t[2] += sv->vz;
-            walker->moveStep   = *(SVECTOR*)(head2 - 8);
-            coord->flg         = 0;
+            coord->coord.t[0]  += ((SVECTOR*)(head2 - 8))->vx;
+            coord->coord.t[1]  += sv->vy;
+            coord->coord.t[2]  += sv->vz;
+            walker->moveStep    = *(SVECTOR*)(head2 - 8);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         SCRATCH_POP_BYTES(8);
     }
@@ -5791,7 +5760,7 @@ static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
     SCRATCH_HEAD(u8) = head - 0x28;
     block            = SCRATCH_HEAD(OverlayWalkerTickScratch);
     walkerStep(walker, head, block);
-    walker->coord->flg = 0;
+    walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(0x28);
 }
 
@@ -5961,7 +5930,7 @@ static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker)
 /// Recomputes `coord`'s world matrix and hands the model's root translation to
 /// `func_800D7A9C`, staged in the scratch `VECTOR` on top of the stack, which
 /// it then releases.
-static __inline__ void _acropolisBridgeLightModel(Task* task, GpCoord* coord)
+static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 {
     VECTOR* vec;
 
@@ -5991,8 +5960,8 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 {
     TmdObject*                obj;
     TmdObject*                obj2;
-    GpCoord*                  coord;
-    GpCoord*                  coord2;
+    GfxCoord*                 coord;
+    GfxCoord*                 coord2;
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
     GpObj*                    link;
@@ -6051,7 +6020,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     Gp_LinkObj(3, link2);
     Gp_InitRec18Table(link2->ctx.recs, 1, 0);
     work->hit.key   = Gp_PackObjPair(enemy, 0);
-    coord->sub      = &gGfxViewCoord;
+    coord->parent   = &gGfxViewCoord;
     work->yaw       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->field_100 = 2;
     work->field_104 = 2;
@@ -6096,7 +6065,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.field_6E         = Mc_SaveData[0].state.characterId;
 
     _acropolisBridgeInitWalkerScale(walker);
-    task->extra.tmd->coords->flg = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _acropolisBridgeLightModel(task, task->extra.tmd->coords);
     axisY = 1;
     if (Gp_StateF0.field_6 < 3) {
@@ -6255,7 +6224,7 @@ void func_acropolis_bridge_80185F28(Task* task)
         work->field_1F8 += 0x2D;
         task->extra.tmd->coords->coord.t[1] =
             work->field_1FA + work->field_1F8;
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->walker.scale >= 0x801) {
         work->walker.scale -= 0x33;
@@ -6361,7 +6330,7 @@ void func_acropolis_bridge_801861A0(Task* task)
         work->field_1F8 -= 0x3C;
         task->extra.tmd->coords->coord.t[1] =
             work->field_1FA + work->field_1F8;
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->walker.scale < 0x1000) {
         bridge_scale_up(work);
@@ -6414,7 +6383,7 @@ void func_acropolis_bridge_801863A8(Task* task)
         work->field_1F8 += 0x2D;
         task->extra.tmd->coords->coord.t[1] =
             work->field_1FA + work->field_1F8;
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->walker.scale >= 0x500) {
         work->walker.scale -= 0x46;
@@ -6529,8 +6498,8 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     task->extra.tmd->coords->coord.t[1] =
         func_acropolis_bridge_8017E024() - 0xC8;
-    task->extra.tmd->coords->flg = 0;
-    height                       = task->extra.tmd->coords->coord.t[1];
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    height                                = task->extra.tmd->coords->coord.t[1];
     if (height < 0x1F4) {
         amount   = 0x1000;
         scale.vx = scale.vy = scale.vz = amount;
@@ -6621,8 +6590,8 @@ void func_acropolis_bridge_80186BBC(Task* task)
         Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
         work->yaw                 = (u32)Gp_LcgState >> 16;
     }
-    task->extra.tmd->coords->flg = 0;
-    height                       = task->extra.tmd->coords->coord.t[1];
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    height                                = task->extra.tmd->coords->coord.t[1];
     if (height < 0x1F4) {
         amount   = 0x1000;
         scale.vx = scale.vy = scale.vz = amount;
@@ -6691,7 +6660,7 @@ void func_acropolis_bridge_80187078(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     GpEnemy*                  enemy;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     SVECTOR                   dir;
     SVECTOR*                  d;
 
@@ -6706,7 +6675,7 @@ void func_acropolis_bridge_80187078(Task* task)
         work->field_108           = 0x10;
         Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_1F8 > 0) {
         work->field_1F8 -= 3;
@@ -6729,7 +6698,7 @@ void func_acropolis_bridge_80187078(Task* task)
         task->extra.tmd->coords->coord.t[0] += dir.vx;
         task->extra.tmd->coords->coord.t[2] += dir.vz;
     }
-    task->extra.tmd->coords->flg = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_acropolis_bridge_8018581C(task);
 }
 
@@ -6757,7 +6726,7 @@ void func_acropolis_bridge_80187310(Task* task)
         work->field_108           = 0x10;
         Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
@@ -6928,8 +6897,8 @@ static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
     u16                        state;
     s16                        i;
 
-    work                         = (AcropolisBridgeEnemyWork*)task->work;
-    task->extra.tmd->coords->flg = 0;
+    work                                  = (AcropolisBridgeEnemyWork*)task->work;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(task->extra.tmd->coords);
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
@@ -7080,7 +7049,7 @@ static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
     pos      = (VECTOR*)(head - 0x10);
     *scratch = pos;
     if (arg1 == 1) {
-        task->extra.tmd->coords->flg = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(task->extra.tmd->coords);
     }
     ((VECTOR*)(head - 0x10))->vx = task->extra.tmd->coords->workm.t[0];

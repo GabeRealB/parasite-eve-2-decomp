@@ -5,7 +5,7 @@
 /// both scaled by depth. Nothing is drawn when the projection overflows. The
 /// same drawing as `RoomFx_DrawHaloRing`, with
 /// its scratch block laid out differently.
-static void RoomFx_DrawFlashRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -61,7 +61,7 @@ static void RoomFx_DrawFlashRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawFlashDisc(GpCoord* arg0, s16 arg1, u8* rgb)
+static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;

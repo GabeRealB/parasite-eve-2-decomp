@@ -12,15 +12,15 @@
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
 
-GpCoord    coord;
-GpCoord*   coords;
-GpCoord*   objCoord;
-GpCoord*   dst;
+GfxCoord   coord;
+GfxCoord*  coords;
+GfxCoord*  objCoord;
+GfxCoord*  dst;
 GpEffWork* work;
 SVECTOR*   vec;
 s32        i;
 
-coords   = (GpCoord*)task->work;
+coords   = task->work;
 work     = (GpEffWork*)task->spawnArg2.pointer;
 objCoord = task->extra.tmd->coords;
 
@@ -28,36 +28,36 @@ if (Gp_State1C->eventState < 2) {
     work->age++;
     switch (task->state) {
         case 0:
-            coords = (GpCoord*)memCalloc(0x500, 0);
+            coords = memCalloc(sizeof(GfxCoord[16]), 0);
             if (coords == NULL) {
                 work->age = 0;
                 return;
             }
-            task->work           = (TaskIdMap*)coords;
-            objCoord->sub        = work->parent;
-            objCoord->coord.t[0] = RoomFx_TrailOffsets[0].vx;
-            objCoord->coord.t[1] = RoomFx_TrailOffsets[0].vy;
-            objCoord->coord.t[2] = RoomFx_TrailOffsets[0].vz;
-            objCoord->flg        = 0;
+            task->work             = coords;
+            objCoord->parent       = work->parent;
+            objCoord->coord.t[0]   = RoomFx_TrailOffsets[0].vx;
+            objCoord->coord.t[1]   = RoomFx_TrailOffsets[0].vy;
+            objCoord->coord.t[2]   = RoomFx_TrailOffsets[0].vz;
+            objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(objCoord);
-            task->state      = 1;
-            coord.sub        = work->parent;
-            vec              = &RoomFx_TrailOffsets[1];
-            coord.coord.t[0] = vec->vx;
-            coord.coord.t[1] = vec->vy;
-            coord.coord.t[2] = vec->vz;
-            coord.flg        = 0;
+            task->state        = 1;
+            coord.parent       = work->parent;
+            vec                = &RoomFx_TrailOffsets[1];
+            coord.coord.t[0]   = vec->vx;
+            coord.coord.t[1]   = vec->vy;
+            coord.coord.t[2]   = vec->vz;
+            coord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&coord);
             for (i = 0; i < 8; i++) {
-                dst        = &coords[i];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[i];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[i + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[i + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -65,35 +65,35 @@ if (Gp_State1C->eventState < 2) {
             break;
 
         case 1:
-            objCoord->flg = 0;
+            objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(objCoord);
-            coord.sub = work->parent;
+            coord.parent = work->parent;
             {
                 SVECTOR* edge    = &RoomFx_TrailOffsets[1];
                 coord.coord.t[0] = edge->vx;
                 coord.coord.t[1] = edge->vy;
                 coord.coord.t[2] = edge->vz;
             }
-            coord.flg = 0;
+            coord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&coord);
-            dst        = &coords[work->age & 7];
-            dst->sub   = &gGfxViewCoord;
-            dst->workm = objCoord->workm;
+            dst         = &coords[work->age & 7];
+            dst->parent = &gGfxViewCoord;
+            dst->workm  = objCoord->workm;
             gte_SetRotMatrix(&objCoord->workm);
             gte_SetTransMatrix(&objCoord->workm);
             Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-            dst        = &coords[(work->age & 7) + 8];
-            dst->sub   = &gGfxViewCoord;
-            dst->workm = coord.workm;
+            dst         = &coords[(work->age & 7) + 8];
+            dst->parent = &gGfxViewCoord;
+            dst->workm  = coord.workm;
             gte_SetRotMatrix(&coord.workm);
             gte_SetTransMatrix(&coord.workm);
             Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
             for (i = 0; i < 8; i++) {
-                dst      = &coords[i];
-                dst->flg = 0;
+                dst               = &coords[i];
+                dst->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(dst);
-                dst      = &coords[i + 8];
-                dst->flg = 0;
+                dst               = &coords[i + 8];
+                dst->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(dst);
             }
             RoomFx_DrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);

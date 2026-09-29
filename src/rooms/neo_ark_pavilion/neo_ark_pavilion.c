@@ -97,18 +97,18 @@ extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 /// Set by the message handler when its last message latched an event and
 /// spawned the room's event task; every such message clears it first.
 
-static void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size);
-static void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1);
+static void func_neo_ark_pavilion_8017ED98(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_pavilion_8017F588(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_pavilion_8017F974(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_pavilion_8017FF54(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_pavilion_80180380(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_80180C04(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_pavilion_80181284(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_801823C0(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_pavilion_80182644(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_pavilion_80182A68(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_pavilion_80182FA8(GfxCoord* coord, s16 size);
+static void func_neo_ark_pavilion_801834D4(GfxCoord* arg0, s32 arg1);
 
 void func_neo_ark_pavilion_8017E854(Task*);
 s32  func_neo_ark_pavilion_8017E9EC(Task*, s32, GpMessageArg, GpMessageArg);
@@ -1963,7 +1963,7 @@ void func_neo_ark_pavilion_8017EBF4(Task* task)
 void func_neo_ark_pavilion_8017EC4C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1979,8 +1979,8 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_neo_ark_pavilion_8017ED98(coord, work->angle, work->scale);
@@ -1997,7 +1997,7 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_pavilion_8017ED98(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -2082,7 +2082,7 @@ static void func_neo_ark_pavilion_8017ED98(GpCoord* arg0, s32 arg1, s32 arg2)
 void func_neo_ark_pavilion_8017F0CC(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -2182,11 +2182,11 @@ void func_neo_ark_pavilion_8017F0CC(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2203,7 +2203,7 @@ void func_neo_ark_pavilion_8017F0CC(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-static void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_pavilion_8017F588(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2269,7 +2269,7 @@ static void func_neo_ark_pavilion_8017F588(GpCoord* arg0, s32 arg1, s32 arg2, s3
 /// on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned and
 /// 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-static void func_neo_ark_pavilion_8017F974(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_pavilion_8017F974(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -2343,7 +2343,7 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
 void func_neo_ark_pavilion_8017FCB0(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -2406,7 +2406,7 @@ void func_neo_ark_pavilion_8017FCB0(Task* task)
 /// position, when it projects. The ring runs from radius
 /// `(s16)arg1 * 64 / (otz + 1)`, which is black, to
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`, which takes the colour `rgb`.
-static void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_pavilion_8017FF54(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2464,7 +2464,7 @@ static void func_neo_ark_pavilion_8017FF54(GpCoord* arg0, s32 arg1, s32 arg2, u8
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-static void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_pavilion_80180380(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2522,15 +2522,15 @@ static void func_neo_ark_pavilion_80180380(GpCoord* arg0, s16 arg1, u8* rgb)
 /// event state reaches 2.
 void func_neo_ark_pavilion_80180714(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -2538,36 +2538,36 @@ void func_neo_ark_pavilion_80180714(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_neo_ark_pavilion_80183898[0].vx;
-                objCoord->coord.t[1] = D_neo_ark_pavilion_80183898[0].vy;
-                objCoord->coord.t[2] = D_neo_ark_pavilion_80183898[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_neo_ark_pavilion_80183898[0].vx;
+                objCoord->coord.t[1]   = D_neo_ark_pavilion_80183898[0].vy;
+                objCoord->coord.t[2]   = D_neo_ark_pavilion_80183898[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_neo_ark_pavilion_80183898[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_neo_ark_pavilion_80183898[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -2575,35 +2575,35 @@ void func_neo_ark_pavilion_80180714(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_neo_ark_pavilion_80183898[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_neo_ark_pavilion_80180C04(coords, &coords[8], work->age & 7, 0x123);
@@ -2622,11 +2622,11 @@ void func_neo_ark_pavilion_80180714(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-static void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_pavilion_80180C04(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2728,7 +2728,7 @@ static void func_neo_ark_pavilion_80180C04(GpCoord* arg0, GpCoord* arg1, s16 arg
 /// release.
 void func_neo_ark_pavilion_80180FFC(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -2802,7 +2802,7 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-static void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_pavilion_80181284(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -2931,7 +2931,7 @@ static void func_neo_ark_pavilion_80181284(GpCoord* arg0, s16 arg1, u8* arg2)
 void func_neo_ark_pavilion_80181C44(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* spawned;
     MATRIX*    mtx;
     u8         col[4];
@@ -2948,7 +2948,7 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            coord->sub                       = mem->parent;
+            coord->parent                    = mem->parent;
             mtx                              = &coord->coord;
             MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
             MATRIX_PAIR(mtx, 0, 2)           = 0;
@@ -2958,7 +2958,7 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
             coord->coord.t[0]                = mem->pos.vx;
             coord->coord.t[1]                = mem->pos.vy;
             coord->coord.t[2]                = mem->pos.vz;
-            coord->flg                       = 0;
+            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             break;
@@ -3047,8 +3047,8 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
 void func_neo_ark_pavilion_8018219C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   target;
+    GfxCoord*  coord;
+    GfxCoord*  target;
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
@@ -3076,10 +3076,10 @@ void func_neo_ark_pavilion_8018219C(Task* task)
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += work->pos.vx;
-                coord->coord.t[1] += work->pos.vy;
-                coord->coord.t[2] += work->pos.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->pos.vx;
+                coord->coord.t[1]  += work->pos.vy;
+                coord->coord.t[2]  += work->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     func_neo_ark_pavilion_801823C0(coord, ++work->index, 0x200, 0x80);
@@ -3098,7 +3098,7 @@ void func_neo_ark_pavilion_8018219C(Task* task)
 /// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
 /// the animation frame from a row of four 24-texel frames and `arg3` is the
 /// grey level. Nothing is drawn when the projection overflows.
-static void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_pavilion_801823C0(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -3167,7 +3167,7 @@ static void func_neo_ark_pavilion_801823C0(GpCoord* arg0, s32 arg1, s32 arg2, s3
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-static void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_pavilion_80182644(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -3222,7 +3222,7 @@ static void func_neo_ark_pavilion_80182644(GpCoord* arg0, s32 arg1, s32 arg2, u8
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-static void func_neo_ark_pavilion_80182A68(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_pavilion_80182A68(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -3277,7 +3277,7 @@ void func_neo_ark_pavilion_80182DFC(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -3330,9 +3330,9 @@ void func_neo_ark_pavilion_80182DFC(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
+static void func_neo_ark_pavilion_80182FA8(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -3350,26 +3350,26 @@ static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -3447,7 +3447,7 @@ static void func_neo_ark_pavilion_80182FA8(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_neo_ark_pavilion_801834D4(GpCoord* arg0, s32 arg1)
+static void func_neo_ark_pavilion_801834D4(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

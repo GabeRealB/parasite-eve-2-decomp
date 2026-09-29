@@ -6,27 +6,38 @@
 
 #include "common.h"
 
-/// A coordinate node: one frame of the game's transform hierarchy. A model
-/// body carries an array of them, one per part, and a 2D-display body a single
-/// one; the view and every other attachment point are nodes too.
+/// Values used to invalidate and inspect a coordinate's composition cache.
+enum {
+    GRAPHICS_COORD_DIRTY          = 0,
+    GRAPHICS_COORD_SUPPLIED_CACHE = 1, // Nonzero stamp preserving a caller-supplied cache on a parentless node
+    GRAPHICS_COORD_STAMP_MASK     = 0x7FFFFFFF,
+    GRAPHICS_COORD_PARITY_BIT     = 0x80000000
+};
+
+/// A graphics transform node with a local matrix and a cached composition through its ancestors.
 ///
-/// The layout starts like libgs's `GsCOORDINATE2`, and the game composes nodes
-/// with its own pass rather than libgs's: `flg` stamps the pass that last
-/// composed the node, `coord` is its local matrix and `workm` the world matrix
-/// composed from that and the parent's. Where libgs keeps a parameter pointer
-/// and a `super` link, the game keeps the Euler angles `coord` is rebuilt from,
-/// or, on the player's attached weapon models, a flag that makes the node's
-/// first update clear the model's display flags. The parent link is `sub`.
-typedef struct GpCoord {
-    u32    flg;             // Frame stamp: low 31 bits the frame the node was composed in, bit 31 that frame's parity
-    MATRIX coord;           // Local matrix: where the body sits, in the parent's space
-    MATRIX workm;           // World matrix, composed from `coord` and the parent's `workm`
+/// `coord` maps into the parent's space. `workm` maps into the space at which
+/// composition stops: normally view space for models beneath `gGfxViewCoord`,
+/// or the space of an explicitly excluded ancestor. Rebuilding a parentless
+/// node copies its local matrix; a supplied nonzero-stamped cache is kept.
+/// Changing the local matrix or parent requires clearing
+/// `composeStamp`; `param.rot` is optional stored state, not automatically
+/// applied by the composition pass.
+///
+/// Models own one node per part in their allocation; displays, lights and
+/// scratch calculations also carry nodes. Parent links are borrowed, must
+/// remain live during composition, and must form an acyclic chain. This is
+/// the game's layout, not a libgs `GsCOORDINATE2`.
+typedef struct GfxCoord {
+    u32    composeStamp;     // Low 31 bits: last rebuild stamp (0 requests rebuilding); bit 31: last visiting pass's parity
+    MATRIX coord;            // Local-to-parent transform; m is 12-fractional-bit fixed point, t is signed game coordinates
+    MATRIX workm;            // Cached local-to-composition-root transform; includes the view for ordinary model nodes
     union {
-        SVECTOR rot;        // Euler angles `coord` is rebuilt from
-        s16     clearFlags; // Attached weapon models: clear the model's display flags on the first update
-    } param;
-    struct GpCoord* sub;    // Parent coordinate, or NULL at the root
-} GpCoord;
-STATIC_ASSERT_SIZEOF(GpCoord, 0x50);
+        SVECTOR rot;         // Optional local Euler angles, 0x1000 units per turn; rotation order belongs to the caller
+        s16     clearFlags;  // Attached model's first update: 0 preserves display flags, 1 clears them (any nonzero is tested)
+    } param;                 // Alternative owner-managed state; lights give these bytes their own interpretation
+    struct GfxCoord* parent; // Borrowed parent transform, or NULL at the top of the chain
+} GfxCoord;
+STATIC_ASSERT_SIZEOF(GfxCoord, 0x50);
 
 #endif // MAIN_COORD_H

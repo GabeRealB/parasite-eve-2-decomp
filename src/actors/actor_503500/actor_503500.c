@@ -875,7 +875,7 @@ static void func_actor_503500_8013223C(Task* arg0)
     TmdObject*           ext;
     Actor503500ColorMtx* work;
     GpEnemy*             enemy;
-    GpCoord*             coord;
+    GfxCoord*            coord;
     DVECTOR_XZ*          p;
     VECTOR               pos;
 
@@ -920,7 +920,7 @@ static void func_actor_503500_8013223C(Task* arg0)
         work->field_40--;
     }
     if (!(ext->flags & 0x80)) {
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         // Filled and never read: the original passes the matrix's own
         // translation instead, but the stores are still emitted.
@@ -980,11 +980,11 @@ static void func_actor_503500_801324EC(Task* arg0)
 /// Message-0x7D4 handler of the main task's table (`D_actor_503500_80146888`):
 /// places the actor at `args` - the translation goes straight into the root
 /// coordinate's local matrix, the Euler angles into the coordinate's `rot`
-/// slot, from which the rotation is rebuilt. Clearing `flg` has the world
+/// slot, from which the rotation is rebuilt. Clearing `composeStamp` has the world
 /// matrix recomputed. Returns 0.
 s32 func_actor_503500_80132508(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -994,7 +994,7 @@ s32 func_actor_503500_80132508(Task* task, s32 arg1, GpXformArg* args)
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

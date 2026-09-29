@@ -131,13 +131,7 @@ extern GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1];
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} NeoArkForestZonePoseBank3FC0;
-
-NeoArkForestZonePoseBank3FC0 D_neo_ark_forest_zone_80181580 = { .poses = {
+AnimationPackedPose D_neo_ark_forest_zone_80181580[6] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank1.inc"
 };
 
@@ -159,13 +153,7 @@ GpAnimSet D_neo_ark_forest_zone_80181924 = {
     { NULL, D_neo_ark_forest_zone_80181580, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} NeoArkForestZonePoseBank438C;
-
-NeoArkForestZonePoseBank438C D_neo_ark_forest_zone_8018194C = { .poses = {
+AnimationPackedPose D_neo_ark_forest_zone_8018194C[10] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank1.inc"
 };
 
@@ -766,10 +754,10 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
                     Gp_IncStateF0Ref(0);
                     D_neo_ark_forest_zone_80182D62 += 0x5A;
                     Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_forest_zone_80182E44, 0);
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].x;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].z;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].x;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].z;
+                    Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                    D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].rotY, 1);
                 }
@@ -945,18 +933,18 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                     Gp_DispatchMsgPtr(Gp_LookupSlot4(i), 0x7DB, &D_neo_ark_forest_zone_80182E44, 0);
                     switch ((s16)(D_neo_ark_forest_zone_80182D66 - 1)) {
                         case 0:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[0].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[0].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[0].z;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_forest_zone_80182DE8[0].rotY, 1);
                             break;
                         case 1:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[1].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[1].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg        = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[1].x;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[1].z;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_forest_zone_80182DE8[1].rotY, 1);
                             break;
@@ -966,7 +954,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[2].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_forest_zone_80182DE8[2].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[3].x;
@@ -974,7 +962,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[3].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_forest_zone_80182DE8[3].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
                         default:
@@ -983,7 +971,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[4].z;
                             Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
                                            D_neo_ark_forest_zone_80182DE8[4].rotY, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->flg = 0;
+                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }
                 }

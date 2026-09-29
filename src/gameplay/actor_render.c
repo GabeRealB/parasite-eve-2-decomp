@@ -16,20 +16,16 @@
 #include "main/gfx.h"
 #include "main/tmd.h"
 
-extern GpCoord* _gGpCurCoord;
+extern GfxCoord* _gGpCurCoord;
 
-/// Brings one coordinate up to date for the current pass, as
-/// `_gpUpdateCoordTree` describes: the body that function and the draw passes
-/// share, inlined into each. The high-precision translation is composed with
-/// `gte_RotTransLV`.
-static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root);
+static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 /// Brings every coordinate the draw passes use up to date for this frame: the
 /// 2D displays' single coordinates, then each model's part coordinates, and
 /// advances the frame stamp the next pass will compare against.
 static __inline__ void _gpRefreshAllCoords(void);
 
-GpCoord* _gGpCurCoord = NULL;
+GfxCoord* _gGpCurCoord = NULL;
 
 // "Item obtained!"
 // "Bonus item!!"
@@ -144,35 +140,36 @@ GpCoord* _gGpCurCoord = NULL;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Brings one coordinate up to date for the current pass, as
-/// `_gpUpdateCoordTree` describes: the body that function and the draw passes
-/// share, inlined into each. The high-precision translation is composed with
-/// `gte_RotTransLV`.
-static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root)
+/// Visits a coordinate after its ancestors and refreshes its composed matrix when stale.
+///
+/// The supplied root is excluded. `gte_RotTransLV` preserves the full signed
+/// translation range while the rotation is composed with the GTE.
+static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
-    GpCoord* parent;
+    GfxCoord* parent;
 
-    parent     = coord->sub;
-    coord->flg = (coord->flg << 1) >> 1;
+    // Visit ancestors before composing; the parity bit records visits, not rebuilds.
+    parent              = coord->parent;
+    coord->composeStamp = (coord->composeStamp << 1) >> 1;
     if (parent == root) {
-        if (coord->flg == 0) {
-            coord->workm = coord->coord;
-            coord->flg   = stamp;
+        if (coord->composeStamp == GRAPHICS_COORD_DIRTY) {
+            coord->workm        = coord->coord;
+            coord->composeStamp = stamp;
         }
     } else {
-        if ((parent->flg == 0) || ((parent->flg >> 31) != parity)) {
+        if ((parent->composeStamp == GRAPHICS_COORD_DIRTY) || ((parent->composeStamp >> 31) != parity)) {
             _gpUpdateCoordTree(parent, stamp, parity, root);
         }
-        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
+        if (coord->composeStamp < (parent->composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
             gte_CompMatrix(&parent->workm, &coord->coord, &coord->workm);
-            coord->flg = stamp;
+            coord->composeStamp = stamp;
             gte_SetRotMatrix(&parent->workm);
             gte_ldclmv(&coord->coord.m[0][0]);
             gte_rtir();
             gte_stclmv(&coord->workm.m[0][0]);
             gte_ldclmv(&coord->coord.m[0][1]);
             gte_rtir();
-            coord->flg = stamp;
+            coord->composeStamp = stamp;
             gte_stclmv(&coord->workm.m[0][1]);
             gte_ldclmv(&coord->coord.m[0][2]);
             gte_rtir();
@@ -182,7 +179,7 @@ static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, Gp
         }
     }
     if (parity != 0) {
-        coord->flg |= 0x80000000;
+        coord->composeStamp |= GRAPHICS_COORD_PARITY_BIT;
     }
 }
 
@@ -192,12 +189,12 @@ static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, Gp
 static __inline__ void _gpRefreshAllCoords(void)
 {
     TmdObject* node;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        stamp;
     s32        parity;
     u32        i;
 
-    stamp  = D_80071210 & 0x7FFFFFFF;
+    stamp  = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
     parity = D_80071210 & 1;
     for (node = PARENT_OF(gTmdDisp2dList.next, TmdObject, link); node != NULL;
          node = PARENT_OF(node->link.next, TmdObject, link)) {
@@ -229,19 +226,19 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
     Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
-void Gp_UpdateCoord(GpCoord* arg0)
+void Gp_UpdateCoord(GfxCoord* coord)
 {
-    _gGpCurCoord = arg0;
-    _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+    _gGpCurCoord = coord;
+    _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
 }
 
-void Gp_UpdateCoordEx(GpCoord* arg0, GpCoord* arg1)
+void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root)
 {
-    if (arg0->sub == NULL) {
-        _gGpCurCoord = arg0;
-        _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->workm, &arg0->coord);
+    if (coord->parent == NULL) {
+        _gGpCurCoord = coord;
+        _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
-        _gpUpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
+        _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, root);
     }
 }

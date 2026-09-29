@@ -190,13 +190,7 @@ TmdSource D_shelter_b3_dumping_hole_80187D74 = {
     D_shelter_b3_dumping_hole_80187BAC,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} ShelterB3DumpingHolePoseBankA7D8;
-
-ShelterB3DumpingHolePoseBankA7D8 D_shelter_b3_dumping_hole_80187D98 = { .poses = {
+AnimationPackedPose D_shelter_b3_dumping_hole_80187D98[6] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank1.inc"
 };
 

@@ -77,10 +77,10 @@ extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[];
 static void func_neo_ark_power_plant_2_8017D6F4(Task* task);
 static void func_neo_ark_power_plant_2_8017D758(Task* task);
 static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_power_plant_2_8017E098(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_power_plant_2_8017ED48(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_neo_ark_power_plant_2_8017F3C8(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_neo_ark_power_plant_2_8017E098(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_power_plant_2_8017E4C4(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_power_plant_2_8017ED48(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, watch for the room's event trigger, then kill
@@ -105,13 +105,7 @@ s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, GpMessageArg, GpMessageArg)
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} NeoArkPowerPlant2PoseBank2830;
-
-NeoArkPowerPlant2PoseBank2830 D_neo_ark_power_plant_2_8017FDF0 = { .poses = {
+AnimationPackedPose D_neo_ark_power_plant_2_8017FDF0[3] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
 };
 
@@ -133,13 +127,7 @@ GpAnimSet D_neo_ark_power_plant_2_8018000C = {
     { NULL, D_neo_ark_power_plant_2_8017FDF0, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} NeoArkPowerPlant2PoseBank2A74;
-
-NeoArkPowerPlant2PoseBank2A74 D_neo_ark_power_plant_2_80180034 = { .poses = {
+AnimationPackedPose D_neo_ark_power_plant_2_80180034[2] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank1.inc"
 };
 
@@ -926,21 +914,21 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
             }
             break;
         case 8:
-            light                      = &Gp_RoomCoords[4];
-            light->framesLeft          = 4;
-            work                       = &light->data.light;
-            work->inner                = 0x400;
-            work->outer                = 0x4000;
-            light->data.coord.flg      = 0;
-            rnd                        = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState                = rnd;
-            intensity                  = ((rnd >> 16) & 0x700) + 0x800;
-            work->head.b               = intensity;
-            work->head.r               = intensity >> 1;
-            work->head.g               = intensity >> 1;
-            work->head.u.at.local.t[0] = D_neo_ark_power_plant_2_80180668.vx;
-            work->head.u.at.local.t[1] = D_neo_ark_power_plant_2_80180668.vy;
-            work->head.u.at.local.t[2] = D_neo_ark_power_plant_2_80180668.vz;
+            light                                  = &Gp_RoomCoords[4];
+            light->framesLeft                      = 4;
+            work                                   = &light->light;
+            work->inner                            = 0x400;
+            work->outer                            = 0x4000;
+            light->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            rnd                                    = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState                            = rnd;
+            intensity                              = ((rnd >> 16) & 0x700) + 0x800;
+            work->head.b                           = intensity;
+            work->head.r                           = intensity >> 1;
+            work->head.g                           = intensity >> 1;
+            work->head.u.at.local.t[0]             = D_neo_ark_power_plant_2_80180668.vx;
+            work->head.u.at.local.t[1]             = D_neo_ark_power_plant_2_80180668.vy;
+            work->head.u.at.local.t[2]             = D_neo_ark_power_plant_2_80180668.vz;
             break;
     }
 }
@@ -1023,7 +1011,7 @@ static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg
 void func_neo_ark_power_plant_2_8017DDF4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1087,7 +1075,7 @@ void func_neo_ark_power_plant_2_8017DDF4(Task* task)
 /// form a ring between the radii `arg1` and `arg1 + arg2`, in world units
 /// scaled by depth. The edge at `arg1` is black and the edge at `arg1 + arg2`
 /// takes the colour `rgb`.
-static void func_neo_ark_power_plant_2_8017E098(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_power_plant_2_8017E098(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1141,7 +1129,7 @@ static void func_neo_ark_power_plant_2_8017E098(GpCoord* arg0, s32 arg1, s32 arg
 /// the GTE flags the projection, queues eight gouraud `POLY_G4` wedges filling
 /// a disc around the projected point, `rgb` at the centre and black at the rim.
 /// `arg1` is the radius in world units, scaled by depth.
-static void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_power_plant_2_8017E4C4(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1189,7 +1177,7 @@ static void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s16 arg1, u8* rgb
     SCRATCH_POP_BYTES(0x18);
 }
 
-/// Twin smoke trail. State 0 allocates sixteen `GpCoord`s, eight per
+/// Twin smoke trail. State 0 allocates sixteen `GfxCoord`s, eight per
 /// trail, and seeds them all from the two spawn offsets so each trail starts
 /// collapsed on its origin. State 1 advances one slot of each trail per frame,
 /// re-derives all sixteen against the view and draws them. The task frees
@@ -1197,15 +1185,15 @@ static void func_neo_ark_power_plant_2_8017E4C4(GpCoord* arg0, s16 arg1, u8* rgb
 /// event state is 2 or more.
 void func_neo_ark_power_plant_2_8017E858(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1213,36 +1201,36 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_neo_ark_power_plant_2_80180680[0].vx;
-                objCoord->coord.t[1] = D_neo_ark_power_plant_2_80180680[0].vy;
-                objCoord->coord.t[2] = D_neo_ark_power_plant_2_80180680[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_neo_ark_power_plant_2_80180680[0].vx;
+                objCoord->coord.t[1]   = D_neo_ark_power_plant_2_80180680[0].vy;
+                objCoord->coord.t[2]   = D_neo_ark_power_plant_2_80180680[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_neo_ark_power_plant_2_80180680[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_neo_ark_power_plant_2_80180680[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1250,35 +1238,35 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_neo_ark_power_plant_2_80180680[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_neo_ark_power_plant_2_8017ED48(coords, &coords[8], work->age & 7, 0x123);
@@ -1296,11 +1284,11 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
 /// `0x40 - 9 * i` and the trailing edge by nine less. `arg3` is the beam
 /// colour, three 2-bit channels at bits 8, 4 and 0 that each multiply that
 /// fade. Dropped when `gte_stflg` is negative.
-static void func_neo_ark_power_plant_2_8017ED48(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_power_plant_2_8017ED48(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1401,7 +1389,7 @@ static void func_neo_ark_power_plant_2_8017ED48(GpCoord* arg0, GpCoord* arg1, s1
 /// work block, or earlier once the room's event state reaches 4.
 void func_neo_ark_power_plant_2_8017F140(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1473,7 +1461,7 @@ void func_neo_ark_power_plant_2_8017F140(Task* task)
 /// intensity and half radius at full intensity, then four spikes a quarter
 /// turn apart, two reaching the full radius and two twice it. `arg1` sizes it
 /// in world units scaled by depth; every wedge fades to black at its rim.
-static void func_neo_ark_power_plant_2_8017F3C8(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

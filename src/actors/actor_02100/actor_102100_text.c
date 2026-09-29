@@ -440,7 +440,7 @@ static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
     s16                       variant;
     s16                       scale;
     TmdObject*                extra;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     Actor02100Work*           work;
     s16*                      column1;
     s16*                      column2;
@@ -462,7 +462,7 @@ static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
         return;
     }
     extra->flags          = 0;
-    coord->flg            = 0;
+    coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     head                  = SCRATCH_HEAD(Actor02100Fn00048Scratch);
     extra->lightMtx       = &work->field_20;
     extra->colorMtx       = &work->field_0;
@@ -573,8 +573,8 @@ static void Actor02100_Fn004C4(Task* arg0)
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
     GpEnemy*                  enemy;
-    GpCoord*                  coord;
-    GpCoord*                  src;
+    GfxCoord*                 coord;
+    GfxCoord*                 src;
     GpRoomParamRec*           param;
     u8*                       head;
     s32                       damage;
@@ -738,7 +738,7 @@ static void Actor02100_Fn004C4(Task* arg0)
 static void Actor02100_Fn00ADC(Task* arg0)
 {
     Actor02100Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             negX;
     s32             negY;
     s32             negZ;
@@ -853,8 +853,8 @@ static void Actor02100_Fn00DCC(Task* arg0)
 {
     Actor02100Work*  work;
     Actor02100Sight* blk;
-    GpCoord*         self;
-    GpCoord*         target;
+    GfxCoord*        self;
+    GfxCoord*        target;
     u8*              head;
     u32              dist;
     s32              mode;
@@ -870,10 +870,10 @@ static void Actor02100_Fn00DCC(Task* arg0)
         return;
     }
 
-    work->field_140 = NULL;
-    work->field_164 = 0;
-    work->field_180 = 0;
-    self->flg       = 0;
+    work->field_140    = NULL;
+    work->field_164    = 0;
+    work->field_180    = 0;
+    self->composeStamp = GRAPHICS_COORD_DIRTY;
 
     head             = SCRATCH_HEAD(u8);
     SCRATCH_HEAD(u8) = head - 0x20;
@@ -884,7 +884,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
     } else {
         target = &gameGetPtrSlot(3)->extra.tmd->coords[3];
     }
-    target->flg = 0;
+    target->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(target);
 
     if (work->field_17E == 0) {
@@ -966,7 +966,7 @@ static void Actor02100_Fn011C4(Task* arg0)
     Task*                     current;
     GpEnemy*                  enemy;
     Actor02100Work*           work;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     u32                       index;
     u32                       dist;
 
@@ -1032,8 +1032,8 @@ static s32 Actor02100_Fn014E4(Task* arg0)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
-    GpCoord*                  coord;
-    GpCoord*                  targetCoord;
+    GfxCoord*                 coord;
+    GfxCoord*                 targetCoord;
     VECTOR*                   vec;
     GpLinkNode*               lock;
     u8*                       head;
@@ -1119,7 +1119,7 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     Actor02100Work*           work;
     Actor02100Work*           nextWork;
     Actor02100Work*           nextWork2;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     SVECTOR*                  shortVec;
     u8*                       head0;
     u8*                       head1;
@@ -1274,7 +1274,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, Actor02100Work* curre
 static void Actor02100_Fn016EC(Task* arg0)
 {
     Actor02100Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             sound;
     s32             soundId;
     s32             packed;
@@ -1413,7 +1413,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
 {
     Actor02100Fn01FF0Scratch* scratch;
     Actor02100Work*           work;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     u8*                       head;
 
     coord            = arg0->extra.tmd->coords;
@@ -1487,7 +1487,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
 {
     Actor02100Fn01FF0Block* root;
     Actor02100Work*         work;
-    GpCoord*                coord;
+    GfxCoord*               coord;
     s32                     pan0;
     s32                     pan2;
     s32                     sound2;
@@ -1807,7 +1807,7 @@ static void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor02100Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             mode;
     s32             one;
 
@@ -1844,10 +1844,10 @@ case2:
     return;
 body:
     Actor02100_Fn004C4(arg1);
-    coord->coord.t[0] += work->field_118;
-    coord->coord.t[1] += work->field_11A;
-    coord->coord.t[2] += work->field_11C;
-    coord->flg         = 0;
+    coord->coord.t[0]  += work->field_118;
+    coord->coord.t[1]  += work->field_11A;
+    coord->coord.t[2]  += work->field_11C;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     Actor02100_Fn032E4(arg1);
     Actor02100_Fn03488(arg1);
@@ -1909,8 +1909,8 @@ static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
 
 static void Actor02100_Fn03488(Task* arg0)
 {
-    GpCoord* coord;
-    VECTOR   vec;
+    GfxCoord* coord;
+    VECTOR    vec;
 
     coord  = arg0->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1924,7 +1924,7 @@ static void Actor02100_Fn03488(Task* arg0)
 static void Actor02100_Fn034E0(Task* arg0)
 {
     Actor02100Screen* scratch;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     Actor02100Work*   work;
     s32               i;
     u8*               head;

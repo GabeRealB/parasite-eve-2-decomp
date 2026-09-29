@@ -271,13 +271,7 @@ TmdSource D_mist_r18_8017F25C = {
     D_mist_r18_8017F120,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} MistR18PoseBank1CC0;
-
-MistR18PoseBank1CC0 D_mist_r18_8017F280 = { .poses = {
+AnimationPackedPose D_mist_r18_8017F280[7] = {
 #include "assets/mist_r18_animation_02274_bank1.inc"
 };
 
@@ -299,13 +293,7 @@ GpAnimSet D_mist_r18_8017F834 = {
     { NULL, D_mist_r18_8017F280, NULL, NULL, D_mist_r18_8017F2D4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} MistR18PoseBank229C;
-
-MistR18PoseBank229C D_mist_r18_8017F85C = { .poses = {
+AnimationPackedPose D_mist_r18_8017F85C[5] = {
 #include "assets/mist_r18_animation_030E8_bank1.inc"
 };
 
@@ -327,13 +315,7 @@ GpAnimSet D_mist_r18_801806A8 = {
     { NULL, D_mist_r18_8017F85C, NULL, NULL, D_mist_r18_8017F898, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} MistR18PoseBank3110;
-
-MistR18PoseBank3110 D_mist_r18_801806D0 = { .poses = {
+AnimationPackedPose D_mist_r18_801806D0[7] = {
 #include "assets/mist_r18_animation_0375C_bank1.inc"
 };
 
@@ -355,13 +337,7 @@ GpAnimSet D_mist_r18_80180D1C = {
     { NULL, D_mist_r18_801806D0, NULL, NULL, D_mist_r18_80180724, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MistR18PoseBank3784;
-
-MistR18PoseBank3784 D_mist_r18_80180D44 = { .poses = {
+AnimationPackedPose D_mist_r18_80180D44[2] = {
 #include "assets/mist_r18_animation_03C90_bank1.inc"
 };
 
@@ -383,13 +359,7 @@ GpAnimSet D_mist_r18_80181250 = {
     { NULL, D_mist_r18_80180D44, NULL, NULL, D_mist_r18_80180D5C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} MistR18PoseBank3CB8;
-
-MistR18PoseBank3CB8 D_mist_r18_80181278 = { .poses = {
+AnimationPackedPose D_mist_r18_80181278[16] = {
 #include "assets/mist_r18_animation_0478C_bank1.inc"
 };
 
@@ -411,13 +381,7 @@ GpAnimSet D_mist_r18_80181D4C = {
     { NULL, D_mist_r18_80181278, NULL, NULL, D_mist_r18_80181338, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[18];
-    AnimationPackedRotation        words[54];
-} MistR18PoseBank47B4;
-
-MistR18PoseBank47B4 D_mist_r18_80181D74 = { .poses = {
+AnimationPackedPose D_mist_r18_80181D74[18] = {
 #include "assets/mist_r18_animation_04DD4_bank1.inc"
 };
 
@@ -439,13 +403,7 @@ GpAnimSet D_mist_r18_80182394 = {
     { NULL, D_mist_r18_80181D74, NULL, NULL, D_mist_r18_80181E4C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[18];
-    AnimationPackedRotation        words[54];
-} MistR18PoseBank4DFC;
-
-MistR18PoseBank4DFC D_mist_r18_801823BC = { .poses = {
+AnimationPackedPose D_mist_r18_801823BC[18] = {
 #include "assets/mist_r18_animation_05AA4_bank1.inc"
 };
 
@@ -467,13 +425,7 @@ GpAnimSet D_mist_r18_80183064 = {
     { NULL, D_mist_r18_801823BC, NULL, NULL, D_mist_r18_80182494, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MistR18PoseBank5ACC;
-
-MistR18PoseBank5ACC D_mist_r18_8018308C = { .poses = {
+AnimationPackedPose D_mist_r18_8018308C[2] = {
 #include "assets/mist_r18_animation_07230_bank1.inc"
 };
 
@@ -495,13 +447,7 @@ GpAnimSet D_mist_r18_801847F0 = {
     { NULL, D_mist_r18_8018308C, NULL, NULL, D_mist_r18_801830A4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} MistR18PoseBank7258;
-
-MistR18PoseBank7258 D_mist_r18_80184818 = { .poses = {
+AnimationPackedPose D_mist_r18_80184818[3] = {
 #include "assets/mist_r18_animation_075CC_bank1.inc"
 };
 
@@ -523,13 +469,7 @@ GpAnimSet D_mist_r18_80184B8C = {
     { NULL, D_mist_r18_80184818, NULL, NULL, D_mist_r18_8018483C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MistR18PoseBank75F4;
-
-MistR18PoseBank75F4 D_mist_r18_80184BB4 = { .poses = {
+AnimationPackedPose D_mist_r18_80184BB4[6] = {
 #include "assets/mist_r18_animation_078C0_bank1.inc"
 };
 
@@ -1577,19 +1517,19 @@ static void func_mist_r18_8017E320(Task* task)
     s32        part;
     TmdObject* extra;
     TmdObject* parentExtra;
-    GpCoord*   coord;
-    GpCoord*   dest;
+    GfxCoord*  coord;
+    GfxCoord*  dest;
 
-    parent          = (Task*)task->spawnArg2.pointer;
-    part            = task->spawnArg1.value;
-    extra           = task->extra.tmd;
-    parentExtra     = parent->extra.tmd;
-    coord           = extra->coords;
-    dest            = &parentExtra->coords[part];
-    coord->flg      = 0;
-    coord->sub      = dest;
-    extra->lightMtx = parentExtra->lightMtx;
-    extra->colorMtx = parentExtra->colorMtx;
+    parent              = (Task*)task->spawnArg2.pointer;
+    part                = task->spawnArg1.value;
+    extra               = task->extra.tmd;
+    parentExtra         = parent->extra.tmd;
+    coord               = extra->coords;
+    dest                = &parentExtra->coords[part];
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = dest;
+    extra->lightMtx     = parentExtra->lightMtx;
+    extra->colorMtx     = parentExtra->colorMtx;
     Task_Reparent(parent, task);
     task->state += 1;
 }
@@ -1823,7 +1763,7 @@ void func_mist_r18_8017EA60(void)
 
 void func_mist_r18_8017EA98(Task* task)
 {
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdObject* obj;
 
     if (task->state == 0) {
@@ -1835,10 +1775,10 @@ void func_mist_r18_8017EA98(Task* task)
         coord->param.rot.vy = -0xF8E;
         coord->param.rot.vz = -0x333;
         RotMatrixZYX(&coord->param.rot, &coord->coord);
-        coord->flg    = 0;
-        obj           = task->extra.tmd;
-        obj->otOffset = -8;
-        obj->flags   &= 0xFF7F;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        obj                 = task->extra.tmd;
+        obj->otOffset       = -8;
+        obj->flags         &= 0xFF7F;
         task->state++;
     }
 }

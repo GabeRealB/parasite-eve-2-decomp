@@ -4,7 +4,7 @@
 /// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
 /// the animation frame from a row of four 24-texel frames and `arg3` is the
 /// grey level. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawFlyingSpark(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -73,7 +73,7 @@ static void RoomFx_DrawFlyingSpark(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// both scaled by depth. Nothing is drawn when the projection overflows. The
 /// same drawing as `RoomFx_DrawHaloRing`, with
 /// its scratch block laid out differently.
-static void RoomFx_DrawFlyingRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -126,7 +126,7 @@ static void RoomFx_DrawFlyingRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawFlyingDisc(GpCoord* arg0, s32 arg1, u8* rgb)
+static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -181,7 +181,7 @@ static inline void RoomFx_OrangeBurst2Task(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 

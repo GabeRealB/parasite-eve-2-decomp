@@ -146,13 +146,7 @@ TmdSource D_actor_311500_80168BF8 = {
     D_actor_311500_80164D0C,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor311500PoseBank6DFC;
-
-Actor311500PoseBank6DFC D_actor_311500_80168C1C = { .poses = {
+AnimationPackedPose D_actor_311500_80168C1C[6] = {
 #include "assets/actor_311500_animation_07188_bank1.inc"
 };
 
@@ -174,13 +168,7 @@ GpAnimSet D_actor_311500_80168FA8 = {
     { NULL, D_actor_311500_80168C1C, NULL, NULL, D_actor_311500_80168C64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor311500PoseBank71B0;
-
-Actor311500PoseBank71B0 D_actor_311500_80168FD0 = { .poses = {
+AnimationPackedPose D_actor_311500_80168FD0[5] = {
 #include "assets/actor_311500_animation_07470_bank1.inc"
 };
 
@@ -263,9 +251,9 @@ Actor311500MessageEntry D_actor_311500_80169330[1] = {
 
 TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 
-static s32         func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count);
-static s32         func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static void        func_actor_311500_801626CC(GpCoord* coord, s16 yaw);
+static s32         func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32         func_actor_311500_80162180(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static void        func_actor_311500_801626CC(GfxCoord* coord, s16 yaw);
 static void        func_actor_311500_801629D8(Task* arg0);
 static inline void _actor311500ResetAnim(Task* task, u8 rate);
 static inline u16  _actor311500TickAnim(Task* task);
@@ -280,7 +268,7 @@ static s32         func_actor_311500_801630A4(Task* arg0);
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_311500_80161E38(GfxCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -290,7 +278,7 @@ static s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                      = 0;
+    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
     head                            = SCRATCH_HEAD(ActorRepelScratch);
     blk                             = head - 1;
     SCRATCH_HEAD(ActorRepelScratch) = blk;
@@ -326,7 +314,7 @@ static s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
@@ -339,7 +327,7 @@ static s32 func_actor_311500_80161E38(GpCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_311500_80162180(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -431,10 +419,10 @@ static s32 func_actor_311500_80162180(GpCoord* coord, GpRec18* recs, s16 count, 
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-static void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
+static void func_actor_311500_801626CC(GfxCoord* coord, s16 yaw)
 {
-    MATRIX*  rotation;
-    GpCoord* out;
+    MATRIX*   rotation;
+    GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -442,7 +430,7 @@ static void func_actor_311500_801626CC(GpCoord* coord, s16 yaw)
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->flg = 0;
+    out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
 }
@@ -453,7 +441,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     Actor311500Work* work2;
     Actor311500Work* work3;
     GpEnemy*         enemy;
-    GpCoord*         coords;
+    GfxCoord*        coords;
     TmdObject*       tmd;
     GpAreaPlace*     place;
     s32              i;
@@ -471,7 +459,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     (Gp_IncStateF0Ref)(0);
     work2 = (Actor311500Work*)arg0->work;
     Mem_Set(work2, 0, 0x4D8);
-    coords->sub = &gGfxViewCoord;
+    coords->parent = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work2->light;
     tmd->colorMtx = &work2->color;
@@ -700,7 +688,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
 {
     Actor311500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     MATRIX           mtx;
     VECTOR           scale;
     u16              m22;
@@ -780,7 +768,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                 m22                  = (u16)mtx.m[2][1];
                 coord->coord.m[2][1] = m22;
                 m22                  = (u16)mtx.m[2][2];
-                coord->flg           = 0;
+                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
                 coord->coord.m[2][2] = m22;
             }
 
@@ -907,7 +895,7 @@ tail:
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    actor->extra.tmd->coords->flg = 0;
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)

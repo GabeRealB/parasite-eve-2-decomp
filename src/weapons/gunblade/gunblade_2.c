@@ -33,9 +33,9 @@
 /// per-axis camera shake added to the muzzle coordinate while the slash's
 /// recoil timer runs.
 typedef struct _GunbladeScratch {
-    /* 0x00 */ GpCoord coord;
-    /* 0x50 */ VECTOR  step;
-    /* 0x60 */ SVECTOR dir;
+    /* 0x00 */ GfxCoord coord;
+    /* 0x50 */ VECTOR   step;
+    /* 0x60 */ SVECTOR  dir;
 } GunbladeScratch;
 STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
 
@@ -72,7 +72,7 @@ static void func_gunblade_8011E040(Task* arg0);
 static void func_gunblade_8011E040(Task* arg0)
 {
     GameActor*       actor;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GunbladeScratch* blk;
     GpActorD4Rec*    rec;
     GpEffWork*       eff;

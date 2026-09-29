@@ -39,8 +39,8 @@ static void func_m4a1_hammer_8011E710(Task* arg0);
 static void func_m4a1_hammer_8011E710(Task* arg0)
 {
     GameActor*    actor;
-    GpCoord*      coord;
-    GpCoord*      spot;
+    GfxCoord*     coord;
+    GfxCoord*     spot;
     GpActorD4Rec* rec;
     Task*         hammer;
     s32           anim;
@@ -51,7 +51,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
     coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GpCoord);
+    spot = SCRATCH_HEAD(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

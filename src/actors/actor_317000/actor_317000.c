@@ -9,7 +9,6 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
-#include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
@@ -145,13 +144,7 @@ TmdSource D_actor_317000_801683A4 = {
     D_actor_317000_80164554,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} Actor317000PoseBank65A8;
-
-Actor317000PoseBank65A8 D_actor_317000_801683C8 = { .poses = {
+AnimationPackedPose D_actor_317000_801683C8[4] = {
 #include "assets/actor_317000_animation_0699C_bank1.inc"
 };
 
@@ -173,13 +166,7 @@ GpAnimSet D_actor_317000_801687BC = {
     { NULL, D_actor_317000_801683C8, NULL, NULL, D_actor_317000_801683F8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[28];
-    AnimationPackedRotation        words[84];
-} Actor317000PoseBank69C4;
-
-Actor317000PoseBank69C4 D_actor_317000_801687E4 = { .poses = {
+AnimationPackedPose D_actor_317000_801687E4[28] = {
 #include "assets/actor_317000_animation_074C0_bank1.inc"
 };
 
@@ -201,13 +188,7 @@ GpAnimSet D_actor_317000_801692E0 = {
     { NULL, D_actor_317000_801687E4, NULL, NULL, D_actor_317000_80168934, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[32];
-    AnimationPackedRotation        words[96];
-} Actor317000PoseBank74E8;
-
-Actor317000PoseBank74E8 D_actor_317000_80169308 = { .poses = {
+AnimationPackedPose D_actor_317000_80169308[32] = {
 #include "assets/actor_317000_animation_07F44_bank1.inc"
 };
 
@@ -229,13 +210,7 @@ GpAnimSet D_actor_317000_80169D64 = {
     { NULL, D_actor_317000_80169308, NULL, NULL, D_actor_317000_80169488, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[29];
-    AnimationPackedRotation        words[87];
-} Actor317000PoseBank7F6C;
-
-Actor317000PoseBank7F6C D_actor_317000_80169D8C = { .poses = {
+AnimationPackedPose D_actor_317000_80169D8C[29] = {
 #include "assets/actor_317000_animation_08F08_bank1.inc"
 };
 
@@ -257,13 +232,7 @@ GpAnimSet D_actor_317000_8016AD28 = {
     { NULL, D_actor_317000_80169D8C, NULL, NULL, D_actor_317000_80169EE8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[27];
-    AnimationPackedRotation        words[81];
-} Actor317000PoseBank8F30;
-
-Actor317000PoseBank8F30 D_actor_317000_8016AD50 = { .poses = {
+AnimationPackedPose D_actor_317000_8016AD50[27] = {
 #include "assets/actor_317000_animation_09F30_bank1.inc"
 };
 
@@ -285,13 +254,7 @@ GpAnimSet D_actor_317000_8016BD50 = {
     { NULL, D_actor_317000_8016AD50, NULL, NULL, D_actor_317000_8016AE94, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor317000PoseBank9F58;
-
-Actor317000PoseBank9F58 D_actor_317000_8016BD78 = { .poses = {
+AnimationPackedPose D_actor_317000_8016BD78[6] = {
 #include "assets/actor_317000_animation_0A338_bank1.inc"
 };
 
@@ -313,13 +276,7 @@ GpAnimSet D_actor_317000_8016C158 = {
     { NULL, D_actor_317000_8016BD78, NULL, NULL, D_actor_317000_8016BDC0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[18];
-    AnimationPackedRotation        words[54];
-} Actor317000PoseBankA360;
-
-Actor317000PoseBankA360 D_actor_317000_8016C180 = { .poses = {
+AnimationPackedPose D_actor_317000_8016C180[18] = {
 #include "assets/actor_317000_animation_0A98C_bank1.inc"
 };
 
@@ -341,13 +298,7 @@ GpAnimSet D_actor_317000_8016C7AC = {
     { NULL, D_actor_317000_8016C180, NULL, NULL, D_actor_317000_8016C258, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[13];
-    AnimationPackedRotation        words[39];
-} Actor317000PoseBankA9B4;
-
-Actor317000PoseBankA9B4 D_actor_317000_8016C7D4 = { .poses = {
+AnimationPackedPose D_actor_317000_8016C7D4[13] = {
 #include "assets/actor_317000_animation_0B0D4_bank1.inc"
 };
 
@@ -407,7 +358,7 @@ static void func_actor_317000_80161E68(Task* task)
     TmdObject*       ext                 = task->extra.tmd;
     Actor317000Work* work                = (Actor317000Work*)task->work;
     void             (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              i;
 
     states[(s16)work->walk.motion](task);
@@ -422,7 +373,7 @@ static void func_actor_317000_80161E68(Task* task)
     coord->coord.t[0]  += work->walk.acc[0].h.hi;
     coord->coord.t[1]  += work->walk.acc[1].h.hi;
     coord->coord.t[2]  += work->walk.acc[2].h.hi;
-    coord->flg          = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.acc[0].w = work->walk.acc[0].h.lo;
     work->walk.acc[1].w = work->walk.acc[1].h.lo;
     work->walk.acc[2].w = work->walk.acc[2].h.lo;
@@ -432,7 +383,7 @@ static void func_actor_317000_80161E68(Task* task)
         }
     }
     if (gGameSession->viewReady != 0) {
-        task->extra.tmd->coords[1].flg = 0;
+        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)&task->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -459,7 +410,7 @@ static void func_actor_317000_80161E68(Task* task)
 /// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
-/// `{ 0, yaw, 0 }` at `GpCoord::param.rot`. The same yaw is then compared
+/// `{ 0, yaw, 0 }` at `GfxCoord::param.rot`. The same yaw is then compared
 /// against the yaw `Gp_ExtractEuler` reads back out of the node's own matrix:
 /// when the two are within 0x40 (64 of 4096 units) the actor is facing its
 /// target already, which clears the work's dispatch index and its companion
@@ -468,8 +419,8 @@ static void func_actor_317000_80161E68(Task* task)
 static void func_actor_317000_801620BC(Task* task)
 {
     Actor317000Work* work;
-    GpCoord*         coord;
-    GpCoord*         target;
+    GfxCoord*        coord;
+    GfxCoord*        target;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
@@ -510,7 +461,7 @@ static void func_actor_317000_801620BC(Task* task)
         work->walk.motionStep = 0;
     }
     RotMatrix(&ang, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Aim body the per-frame tick `func_actor_317000_80161E68` calls with
@@ -533,10 +484,10 @@ static void func_actor_317000_801620BC(Task* task)
 /// calls and puts `&target[4]` in its own register.
 static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
-    GpCoord*    coord;
-    GpCoord*    target;
-    GpCoord*    head;
-    GpCoord*    aim;
+    GfxCoord*   coord;
+    GfxCoord*   target;
+    GfxCoord*   head;
+    GfxCoord*   aim;
     MATRIX*     arm;
     GpMtxWords* words;
     VECTOR      delta;
@@ -760,7 +711,7 @@ static void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work* work;
     GpMtxWords*      words;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -797,7 +748,7 @@ static void func_actor_317000_801627D0(Task* arg0)
     words->m20_m21 = 0;
     words->m22     = ONE;
     RotMatrix(&vec, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Step handler at index 1 of `D_actor_317000_80161E30`, reached by the
@@ -807,7 +758,7 @@ static void func_actor_317000_801627D0(Task* arg0)
 static void func_actor_317000_801628D8(Task* task)
 {
     Actor317000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           vec;
 
     coord = task->extra.tmd->coords;
@@ -829,7 +780,7 @@ static void func_actor_317000_801628D8(Task* task)
 /// flag the previous body raised is cleared and the dispatcher advances again.
 static void func_actor_317000_80162950(Task* arg0)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor317000Work* work;
     GpAnimArg        preset;
     s32              pan;
@@ -899,11 +850,11 @@ s32 func_actor_317000_80162A10(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 
 /// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
 /// position into the root coordinate's translation and its Euler angles into
-/// `GpCoord::param.rot`, rebuilds the rotation from them with `RotMatrix`
-/// and clears `flg` so the world matrix is recomputed. Returns 0.
+/// `GfxCoord::param.rot`, rebuilds the rotation from them with `RotMatrix`
+/// and clears `composeStamp` so the world matrix is recomputed. Returns 0.
 s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -913,7 +864,7 @@ s32 func_actor_317000_80162B48(Task* task, s32 arg1, GpXformArg* args)
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -974,7 +925,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 s32 func_actor_317000_80162CA0(Task* task, s32 arg1, GpCmdArg* msg)
 {
     Actor317000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          rot;
     s32              mode;
 

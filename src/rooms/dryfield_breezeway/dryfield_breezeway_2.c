@@ -236,8 +236,8 @@ static void func_dryfield_breezeway_8017FD9C(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
 static void func_dryfield_breezeway_8017FE90(Task* arg0);
 static void func_dryfield_breezeway_8017FF1C(Task* task);
-static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
-static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3);
+static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
+static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80181938(Task* task, u8* color);
 
 /// State handlers of the room's key-item event task, indexed by its state
@@ -701,7 +701,7 @@ void func_dryfield_breezeway_8017E390(void)
 static void func_dryfield_breezeway_8017E464(Task* arg0)
 {
     TmdObject*      ext;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     DbwEventWork*   work;
     OverlayHotspot* hs;
 
@@ -739,7 +739,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     ext->colorMtx = &work->color;
     ext->flags    = 0;
     ext->lightMtx = &work->light;
-    coord->sub    = NULL;
+    coord->parent = NULL;
 
     gGameSession->eventState   = 1;
     gGameSession->cutsceneHold = 1;
@@ -826,7 +826,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     DbwEventWork*     work;
     OverlayHotspot*   hs;
     RoomActionPrompt* prompt;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     MATRIX*           m;
 
     coord  = task->extra.tmd->coords;
@@ -848,7 +848,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     MATRIX_PAIR(m, 2, 0) = 0;
 
     RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_dryfield_breezeway_8017EB8C(task, 0, 0x20);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -896,7 +896,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 static void func_dryfield_breezeway_8017E81C(Task* task)
 {
     RoomActionPrompt* prompt = D_80114D28;
-    GpCoord*          coord  = task->extra.tmd->coords;
+    GfxCoord*         coord  = task->extra.tmd->coords;
     DbwEventWork*     work   = (DbwEventWork*)task->work;
     OverlayHotspot*   hs     = D_dryfield_breezeway_80182DDC;
     MATRIX*           m;
@@ -1493,16 +1493,16 @@ static s16 func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos)
 /// Parks the room task's display object on the hotspot cursor: the position the
 /// scan `func_dryfield_breezeway_8017EB8C` advanced to is carried into the
 /// object's coordinate scaled by the depth it is placed at (`0x5DC` over 680),
-/// and `flg` is cleared so the next coord-tree update rebuilds the world matrix
+/// and `composeStamp` is cleared so the next coord-tree update rebuilds the world matrix
 /// from the new translation. The scan calls this once, as it leaves its loop.
 static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 {
-    GpCoord* coord = task->extra.tmd->coords;
+    GfxCoord* coord = task->extra.tmd->coords;
 
-    coord->coord.t[2] = 0x5DC;
-    coord->flg        = 0;
-    coord->coord.t[0] = (arg1 * 0x5DC) / 680;
-    coord->coord.t[1] = (arg2 * 0x5DC) / 680;
+    coord->coord.t[2]   = 0x5DC;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[0]   = (arg1 * 0x5DC) / 680;
+    coord->coord.t[1]   = (arg2 * 0x5DC) / 680;
 }
 
 /// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
@@ -1679,8 +1679,8 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 {
     s32        mask;
     GpEffWork* eff;
-    GpCoord*   coord;
-    GpCoord*   player;
+    GfxCoord*  coord;
+    GfxCoord*  player;
     s32        limit;
     s32        pan;
 
@@ -1755,7 +1755,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
-static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
+static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1839,7 +1839,7 @@ static void func_dryfield_breezeway_8018034C(GpCoord* coord, u8* data, s32 arg2,
     SCRATCH_POP_BYTES(0x14);
 }
 
-static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2, s32 arg3)
+static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -1991,7 +1991,7 @@ static void func_dryfield_breezeway_80180858(GpCoord* coord, u8* data, s32 arg2,
 void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GpCoord*   coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.tmd->coords;
     MATRIX*    m;
     SVECTOR    delta;
     SVECTOR    dir;
@@ -2039,8 +2039,8 @@ void func_dryfield_breezeway_80181264(Task* task)
                 gte_stsv(&work->move);
             }
             VectorNormalSS(&work->move, &work->move);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
             break;
         case 1:
             if (Gp_State1C->eventState != 0) {
@@ -2054,10 +2054,10 @@ void func_dryfield_breezeway_80181264(Task* task)
                 gte_ldsv(&work->move);
                 gte_gpf12();
                 gte_stsv(&delta);
-                coord->coord.t[0] += delta.vx;
-                coord->coord.t[1] += delta.vy;
-                coord->coord.t[2] += delta.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += delta.vx;
+                coord->coord.t[1]  += delta.vy;
+                coord->coord.t[2]  += delta.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&delta);
                 gte_rtv0();
@@ -2134,7 +2134,7 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color)
     TmdObject*       extra = task->extra.tmd;
     GpEffWork*       work  = task->spawnArg2.pointer;
     void**           scratch;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
 

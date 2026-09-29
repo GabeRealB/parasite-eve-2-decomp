@@ -44,8 +44,8 @@
 
 static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
-static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3);
-static void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3);
+static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 extern TaskDesc D_80135E78;
 
@@ -644,7 +644,7 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 void func_shelter_b6_growth_room_8017E564(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GpCoord*   coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.tmd->coords;
     s32        vz;
     s32        t;
     s16        f2a;
@@ -698,10 +698,10 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
 
     func_shelter_b6_growth_room_8017E7F0(coord, work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -711,7 +711,7 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
     }
 }
 
-static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 arg2, u16 arg3)
+static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -780,7 +780,7 @@ static void func_shelter_b6_growth_room_8017E7F0(GpCoord* coord, u16 arg1, s16 a
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GpCoord*   coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
     u32        rng2;
@@ -826,11 +826,11 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
 
     func_shelter_b6_growth_room_8017ED28(coord, work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
-    work->move.vy     += 2;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->move.vy      += 2;
 
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -840,7 +840,7 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
     }
 }
 
-static void func_shelter_b6_growth_room_8017ED28(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

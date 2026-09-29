@@ -12,9 +12,9 @@
 
 extern u8 D_shelter_b6_training_room_80185C60[3][16];
 
-extern GpCoord* D_shelter_b6_training_room_80185C90;
+extern GfxCoord* D_shelter_b6_training_room_80185C90;
 
-extern GpCoord* D_shelter_b6_training_room_80185C94;
+extern GfxCoord* D_shelter_b6_training_room_80185C94;
 
 extern u16 D_shelter_b6_training_room_80185C98;
 

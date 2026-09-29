@@ -1460,7 +1460,7 @@ static void Gp_TickState1C(Task* unused)
     }
 }
 
-s32 Gp_TraceGroundCoord(GpCoord* arg0, GpCoord* arg1)
+s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
 {
     u8*           head;
     GpRayScratch* block;
@@ -1494,8 +1494,8 @@ s32 Gp_TraceGroundCoord(GpCoord* arg0, GpCoord* arg1)
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
         Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
-        arg1->sub = PARENT_OF(world, GpCoord, workm);
-        arg1->flg = 0;
+        arg1->parent       = PARENT_OF(world, GfxCoord, workm);
+        arg1->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1);
     }
     SCRATCH_POP_BYTES(0x10);
@@ -1584,8 +1584,8 @@ static void Gp_InitRoomCoords(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        p->data.coord.sub = &gGfxViewCoord;
-        p->framesLeft     = 0;
+        p->light.head.u.coord.parent = &gGfxViewCoord;
+        p->framesLeft                = 0;
         p++;
     }
 }
@@ -1598,7 +1598,7 @@ void func_800EA420(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3)
+GpEffWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3)
 {
     Task*      task;
     GpEffWork* mem;
@@ -1624,8 +1624,8 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3
     Gp_State1C->effectCount++;
 
     if (arg1 != NULL) {
-        GpCoord* coord;
-        SVECTOR  vec;
+        GfxCoord* coord;
+        SVECTOR   vec;
 
         coord = task->extra.tmd->coords;
         memset(&vec, 0, sizeof(vec));
@@ -1636,7 +1636,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3
         mem->pos.vx = arg3->vx;
         mem->pos.vy = arg3->vy;
         mem->pos.vz = arg3->vz;
-        if (arg1->sub == &gGfxViewCoord) {
+        if (arg1->parent == &gGfxViewCoord) {
             coord->coord = arg1->coord;
             gte_SetRotMatrix(&arg1->coord);
             gte_SetTransMatrix(&arg1->coord);
@@ -1653,13 +1653,13 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3
             gte_stlvnl(coord->workm.t);
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
         }
-        coord->sub = &gGfxViewCoord;
-        coord->flg = 0;
+        coord->parent       = &gGfxViewCoord;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         mem->parent = arg1;
     } else {
-        GpCoord* coord;
-        SVECTOR  vec;
+        GfxCoord* coord;
+        SVECTOR   vec;
 
         coord = task->extra.tmd->coords;
         memset(&vec, 0, sizeof(vec));
@@ -1675,8 +1675,8 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GpCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3
         gte_ldv0(arg3);
         gte_rtv0tr();
         gte_stlvnl(coord->coord.t);
-        coord->sub = &gGfxViewCoord;
-        coord->flg = 0;
+        coord->parent       = &gGfxViewCoord;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         mem->parent = &gGfxViewCoord;
     }
@@ -1733,7 +1733,7 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     addPrim(Gpu_OtEntryAtByteOffset(((((u32)0x10 << gDisplayState.otDepthShift) >> 2) & 0xFFC)), dr);
 }
 
-void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -1786,7 +1786,7 @@ void Gp_DrawArc(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     SCRATCH_POP(GpArcScratch);
 }
 
-void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
+void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -1838,7 +1838,7 @@ void Gp_DrawRing(GpCoord* arg0, s32 arg1, u8* rgb)
     SCRATCH_POP(GpRingScratch);
 }
 
-void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
+void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -1891,7 +1891,7 @@ void Gp_DrawFxQuad(GpCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
     SCRATCH_POP(GpFxQuadScratch);
 }
 
-void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1938,7 +1938,7 @@ void func_800EB6E8(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
     SCRATCH_POP(GpRingScratch);
 }
 
-void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
+void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     GpBandScratch* block;
     SVECTOR*       op;
@@ -2021,7 +2021,7 @@ void Gp_DrawBand(GpCoord* arg0, s16 arg1, u8* rgb)
     SCRATCH_POP(GpBandScratch);
 }
 
-void Gp_DrawBandEx(GpCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
+void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
 {
     GpBandScratch* block;
     SVECTOR*       op;

@@ -32,21 +32,21 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 
-static void RoomFx_DrawMote(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void RoomFx_DrawHaloRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawHaloDisc(GpCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawBurstGlow(GpCoord* coord, s16 size);
-static void RoomFx_DrawGroundQuad(GpCoord* arg0, s32 arg1);
-static void RoomFx_DrawFlashStar(GpCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlashRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlashDisc(GpCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawTwinTrail(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void RoomFx_DrawBurstStar(GpCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlyingSpark(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void RoomFx_DrawFlyingRing(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlyingDisc(GpCoord* arg0, s32 arg1, u8* rgb);
-static void RoomFx_DrawBurst2Glow(GpCoord* coord, s16 size);
-static void RoomFx_DrawGround2Quad(GpCoord* arg0, s32 arg1);
+static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size);
+static void RoomFx_DrawGroundQuad(GfxCoord* arg0, s32 arg1);
+static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb);
+static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size);
+static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1);
 
 /// A drifting mote. The first tick unpacks the spawn argument: a mote with
 /// either low bit set starts at full brightness and moves at its given
@@ -59,7 +59,7 @@ static void RoomFx_DrawGround2Quad(GpCoord* arg0, s32 arg1);
 static inline void RoomFx_MoteTask(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -98,8 +98,8 @@ static inline void RoomFx_MoteTask(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -116,8 +116,8 @@ static inline void RoomFx_MoteTask(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;

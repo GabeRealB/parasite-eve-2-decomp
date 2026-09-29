@@ -127,8 +127,8 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     SVECTOR*           vec;
     MATRIX*            mtx;
     TmdObject*         extra;
-    GpCoord*           coord;
-    GpCoord*           muzzle;
+    GfxCoord*          coord;
+    GfxCoord*          muzzle;
     WeaponGrenadeWork* work;
     s32                idx;
     s32                flags;
@@ -140,7 +140,7 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     extra                 = arg0->extra.tmd;
     idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
     coord                 = extra->coords;
-    muzzle                = coord->sub;
+    muzzle                = coord->parent;
     work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec                   = blk;
     if (work == NULL) {
@@ -152,10 +152,10 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     arg0->exitCallback = func_grenade_pistol_8011DB8C;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
-    blk->vx     = D_grenade_pistol_8012B420[idx].vx;
-    blk->vy     = D_grenade_pistol_8012B420[idx].vy;
-    blk->vz     = D_grenade_pistol_8012B420[idx].vz;
-    muzzle->flg = 0;
+    blk->vx              = D_grenade_pistol_8012B420[idx].vx;
+    blk->vy              = D_grenade_pistol_8012B420[idx].vy;
+    blk->vz              = D_grenade_pistol_8012B420[idx].vz;
+    muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(muzzle);
     coord->workm = muzzle->workm;
     gte_SetRotMatrix(&muzzle->workm);
@@ -165,9 +165,9 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
-    coord->sub   = &gGfxViewCoord;
-    coord->flg   = 0;
-    extra->flags = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = 0;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
@@ -228,7 +228,7 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
 {
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     GpRec18*              rec;
     GpRoomParamRec*       param;
     u8*                   head;
@@ -245,9 +245,9 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`
        handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
-    SCRATCH_HEAD(u8) = head - sizeof(WeaponGrenadeScratch);
-    blk              = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
-    coord->flg       = 0;
+    SCRATCH_HEAD(u8)    = head - sizeof(WeaponGrenadeScratch);
+    blk                 = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1.value & 0xFF00;

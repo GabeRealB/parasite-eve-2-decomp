@@ -23,7 +23,7 @@ extern GpQuadCorner D_80111E38[4];
 /// reaches 2.
 void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade);
 
-void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2);
+void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2);
 
 extern TaskDesc D_80114B34[6];
 

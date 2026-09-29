@@ -432,13 +432,7 @@ TmdSource D_actor_121300_8013A67C = {
     D_actor_121300_8013A588,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor121300PoseBank8880;
-
-Actor121300PoseBank8880 D_actor_121300_8013A6A0 = { .poses = {
+AnimationPackedPose D_actor_121300_8013A6A0[2] = {
 #include "assets/actor_121300_animation_089E8_bank1.inc"
 };
 
@@ -460,13 +454,7 @@ GpAnimSet D_actor_121300_8013A808 = {
     { NULL, D_actor_121300_8013A6A0, NULL, NULL, D_actor_121300_8013A6B8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor121300PoseBank8A10;
-
-Actor121300PoseBank8A10 D_actor_121300_8013A830 = { .poses = {
+AnimationPackedPose D_actor_121300_8013A830[2] = {
 #include "assets/actor_121300_animation_08C8C_bank1.inc"
 };
 
@@ -488,13 +476,7 @@ GpAnimSet D_actor_121300_8013AAAC = {
     { NULL, D_actor_121300_8013A830, NULL, NULL, D_actor_121300_8013A848, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[29];
-    AnimationPackedRotation        words[87];
-} Actor121300PoseBank8CB4;
-
-Actor121300PoseBank8CB4 D_actor_121300_8013AAD4 = { .poses = {
+AnimationPackedPose D_actor_121300_8013AAD4[29] = {
 #include "assets/actor_121300_animation_09D84_bank1.inc"
 };
 
@@ -1993,7 +1975,7 @@ void func_actor_121300_8013293C(Task* arg0)
 {
     Actor121300DebrisWork* work;
     TmdObject*             obj;
-    GpCoord*               coord;
+    GfxCoord*              coord;
     VECTOR                 pos;
     Actor121300DebrisWork* alloc;
     s16                    r;
@@ -2016,7 +1998,7 @@ void func_actor_121300_8013293C(Task* arg0)
             }
             work = alloc;
             Mem_Set(work, 0, 0x5C);
-            coord->sub        = &gGfxViewCoord;
+            coord->parent     = &gGfxViewCoord;
             coord->coord.t[0] = D_actor_121300_8013CC20[arg0->spawnArg1.value].x;
             coord->coord.t[1] = D_actor_121300_8013CC20[arg0->spawnArg1.value].y;
             coord->coord.t[2] = D_actor_121300_8013CC20[arg0->spawnArg1.value].z;
@@ -2149,7 +2131,7 @@ void func_actor_121300_8013293C(Task* arg0)
             Gfx_RotMatrixY(&coord->coord, work->rotY, 1);
             Gfx_RotMatrixX(&coord->coord, work->rotX, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rotZ, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (coord->coord.t[1] >= -499) {
                 taskKill(arg0);
             }
@@ -2568,7 +2550,7 @@ static void func_actor_121300_80133BFC(Task* arg0)
     Actor121300Work* slotsWork;
     TaskIdMap*       map;
     TmdObject*       tmd;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpAreaPlace*     place;
     s32              i;
     u8               id;
@@ -2585,7 +2567,7 @@ static void func_actor_121300_80133BFC(Task* arg0)
     Mem_Set(work, 0, 0x4B0);
     work->field_488         = gameGetPtrSlot(3);
     D_actor_121300_8013D418 = arg0;
-    coord->sub              = &gGfxViewCoord;
+    coord->parent           = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_45C;
@@ -2735,8 +2717,8 @@ void func_actor_121300_801340F0(Task* task)
 /// are applied Y, then X, then Z, and the coordinate is marked dirty.
 void func_actor_121300_8013411C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -2746,7 +2728,7 @@ void func_actor_121300_8013411C(Task* task, s32 arg1, GpXformArg* placement)
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Scene-script handler that sets the draw bits of the task's `TmdObject`:

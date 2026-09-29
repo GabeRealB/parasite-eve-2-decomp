@@ -12,7 +12,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
-#include "gameplay/geometry.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -157,8 +156,8 @@ static void func_actor_141000_80132E24(Task* arg0);
 static void func_actor_141000_80132EB0(Task* arg0);
 static void func_actor_141000_80132EF4(Task* arg0);
 static void func_actor_141000_80132FC8(Task* arg0);
-static s32  func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1);
-static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1);
+static s32  func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1);
+static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1);
 static void func_actor_141000_80133204(Task* task);
 static void func_actor_141000_80133260(Task* arg0);
 static void func_actor_141000_801332A0(Task* task);
@@ -573,13 +572,7 @@ TmdSource D_actor_141000_8013A0B0 = {
     D_actor_141000_80136364,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBank82B4;
-
-Actor141000PoseBank82B4 D_actor_141000_8013A0D4 = { .poses = {
+AnimationPackedPose D_actor_141000_8013A0D4[2] = {
 #include "assets/actor_141000_animation_084A0_bank1.inc"
 };
 
@@ -601,13 +594,7 @@ GpAnimSet D_actor_141000_8013A2C0 = {
     { NULL, D_actor_141000_8013A0D4, NULL, NULL, D_actor_141000_8013A0EC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} Actor141000PoseBank84C8;
-
-Actor141000PoseBank84C8 D_actor_141000_8013A2E8 = { .poses = {
+AnimationPackedPose D_actor_141000_8013A2E8[7] = {
 #include "assets/actor_141000_animation_08898_bank1.inc"
 };
 
@@ -629,13 +616,7 @@ GpAnimSet D_actor_141000_8013A6B8 = {
     { NULL, D_actor_141000_8013A2E8, NULL, NULL, D_actor_141000_8013A33C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[22];
-    AnimationPackedRotation        words[66];
-} Actor141000PoseBank88C0;
-
-Actor141000PoseBank88C0 D_actor_141000_8013A6E0 = { .poses = {
+AnimationPackedPose D_actor_141000_8013A6E0[22] = {
 #include "assets/actor_141000_animation_0947C_bank1.inc"
 };
 
@@ -657,13 +638,7 @@ GpAnimSet D_actor_141000_8013B29C = {
     { NULL, D_actor_141000_8013A6E0, NULL, NULL, D_actor_141000_8013A7E8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBank94A4;
-
-Actor141000PoseBank94A4 D_actor_141000_8013B2C4 = { .poses = {
+AnimationPackedPose D_actor_141000_8013B2C4[2] = {
 #include "assets/actor_141000_animation_09638_bank1.inc"
 };
 
@@ -685,13 +660,7 @@ GpAnimSet D_actor_141000_8013B458 = {
     { NULL, D_actor_141000_8013B2C4, NULL, NULL, D_actor_141000_8013B2DC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBank9660;
-
-Actor141000PoseBank9660 D_actor_141000_8013B480 = { .poses = {
+AnimationPackedPose D_actor_141000_8013B480[2] = {
 #include "assets/actor_141000_animation_09800_bank1.inc"
 };
 
@@ -713,13 +682,7 @@ GpAnimSet D_actor_141000_8013B620 = {
     { NULL, D_actor_141000_8013B480, NULL, NULL, D_actor_141000_8013B498, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor141000PoseBank9828;
-
-Actor141000PoseBank9828 D_actor_141000_8013B648 = { .poses = {
+AnimationPackedPose D_actor_141000_8013B648[5] = {
 #include "assets/actor_141000_animation_09A88_bank1.inc"
 };
 
@@ -741,13 +704,7 @@ GpAnimSet D_actor_141000_8013B8A8 = {
     { NULL, D_actor_141000_8013B648, NULL, NULL, D_actor_141000_8013B684, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} Actor141000PoseBank9AB0;
-
-Actor141000PoseBank9AB0 D_actor_141000_8013B8D0 = { .poses = {
+AnimationPackedPose D_actor_141000_8013B8D0[14] = {
 #include "assets/actor_141000_animation_0A210_bank1.inc"
 };
 
@@ -769,13 +726,7 @@ GpAnimSet D_actor_141000_8013C030 = {
     { NULL, D_actor_141000_8013B8D0, NULL, NULL, D_actor_141000_8013B978, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBankA238;
-
-Actor141000PoseBankA238 D_actor_141000_8013C058 = { .poses = {
+AnimationPackedPose D_actor_141000_8013C058[2] = {
 #include "assets/actor_141000_animation_0A448_bank1.inc"
 };
 
@@ -797,13 +748,7 @@ GpAnimSet D_actor_141000_8013C268 = {
     { NULL, D_actor_141000_8013C058, NULL, NULL, D_actor_141000_8013C070, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBankA470;
-
-Actor141000PoseBankA470 D_actor_141000_8013C290 = { .poses = {
+AnimationPackedPose D_actor_141000_8013C290[2] = {
 #include "assets/actor_141000_animation_0A5FC_bank1.inc"
 };
 
@@ -825,13 +770,7 @@ GpAnimSet D_actor_141000_8013C41C = {
     { NULL, D_actor_141000_8013C290, NULL, NULL, D_actor_141000_8013C2A8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor141000PoseBankA624;
-
-Actor141000PoseBankA624 D_actor_141000_8013C444 = { .poses = {
+AnimationPackedPose D_actor_141000_8013C444[2] = {
 #include "assets/actor_141000_animation_0A84C_bank1.inc"
 };
 
@@ -2195,7 +2134,7 @@ static void func_actor_141000_80132C7C(Task* task)
 {
     Actor141000CtrlWork* work;
     TmdObject*           obj;
-    GpCoord*             coord;
+    GfxCoord*            coord;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -2287,8 +2226,8 @@ static void func_actor_141000_80132EF4(Task* arg0)
     Actor141000CtrlWork* work;
     TmdObject*           obj;
     Task*                spawned;
-    GpCoord*             src;
-    GpCoord*             dst;
+    GfxCoord*            src;
+    GfxCoord*            dst;
     u16                  frames;
 
     work         = (Actor141000CtrlWork*)arg0->work;
@@ -2321,10 +2260,10 @@ static void func_actor_141000_80132FC8(Task* arg0)
 /// 0x80134228 and its position table at 0x801344F8 hold: splat an identity
 /// matrix, let `RotMatrix` replace it with the frame's triple -- entry 0x59
 /// once `arg1` runs past the table's 0x5A entries -- copy that entry's
-/// position into the root's translation, drop X by 40 and clear `flg`.
+/// position into the root's translation, drop X by 40 and clear `composeStamp`.
 /// Returns non-zero on the frame that ran past the table, which is what the
 /// state-2 handler at 0x80132EF4 advances `state` on.
-static s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
+static s32 func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1)
 {
     GpMtxWords* words;
     SVECTOR*    pos;
@@ -2345,16 +2284,16 @@ static s32 func_actor_141000_80132FD0(GpCoord* arg0, s32 arg1)
     words->m20_m21 = 0;
     words->m22     = 0x1000;
     RotMatrix(&D_actor_141000_80134228[idx], &arg0->coord);
-    pos               = &D_actor_141000_801344F8[idx];
-    arg0->coord.t[0]  = pos->vx;
-    arg0->coord.t[1]  = pos->vy;
-    arg0->coord.t[2]  = pos->vz;
-    arg0->coord.t[0] -= 0x28;
-    arg0->flg         = 0;
+    pos                = &D_actor_141000_801344F8[idx];
+    arg0->coord.t[0]   = pos->vx;
+    arg0->coord.t[1]   = pos->vy;
+    arg0->coord.t[2]   = pos->vz;
+    arg0->coord.t[0]  -= 0x28;
+    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }
 
-static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
+static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1)
 {
     VECTOR scale;
 
@@ -2367,7 +2306,7 @@ static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
 /// Callback of the model actor the controller's state 2 spawns every eighth
 /// frame -- index 2 of `D_actor_141000_801348D8`, pointed at the controller's
 /// own position. The first frame splats an identity matrix over the task's root
-/// coordinate and clears its `flg`: the rotation part only, so the translation
+/// coordinate and clears its `composeStamp`: the rotation part only, so the translation
 /// the spawner copied in survives. Every frame then runs the 5-frame countdown
 /// in `killCountdown`, spawning effect 0x60070 from that same coordinate
 /// (spawn arg 0x14200, no offset vector) each time it completes. The countdown
@@ -2375,20 +2314,20 @@ static void func_actor_141000_8013308C(GpCoord* arg0, s32 arg1)
 /// taking over kills the task outright.
 void func_actor_141000_801330C0(Task* arg0)
 {
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* words;
     u16         count;
 
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
-        words          = (GpMtxWords*)&coord->coord;
-        words->m00_m01 = 0x1000;
-        words->m02_m10 = 0;
-        words->m11_m12 = 0x1000;
-        words->m20_m21 = 0;
-        words->m22     = 0x1000;
-        coord->flg     = 0;
-        arg0->state   += 1;
+        words               = (GpMtxWords*)&coord->coord;
+        words->m00_m01      = 0x1000;
+        words->m02_m10      = 0;
+        words->m11_m12      = 0x1000;
+        words->m20_m21      = 0;
+        words->m22          = 0x1000;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        arg0->state        += 1;
     }
     if (Gp_StateF0.field_4 == 0) {
         count               = arg0->killCountdown + 1;
@@ -2416,7 +2355,7 @@ void func_actor_141000_801331AC(Task* task)
 /// 0x7FF and advances the state.
 static void func_actor_141000_80133204(Task* task)
 {
-    task->extra.tmd->coords->sub = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+    task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
     Task_Reparent((Task*)task->spawnArg2.pointer, task);
     task->killCountdown = 0x7FF;
     task->state        += 1;
@@ -2442,7 +2381,7 @@ static void func_actor_141000_801332A0(Task* task)
     Actor141000Work* work     = (Actor141000Work*)task->work;
     TaskFunc         funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
     VECTOR3          pos;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              i;
 
     funcs[(s16)work->walk.motion](task);
@@ -2453,7 +2392,7 @@ static void func_actor_141000_801332A0(Task* task)
     coord->coord.t[0]   += (s16)(work->walk.acc[0].w >> 16);
     coord->coord.t[1]   += (s16)(work->walk.acc[1].w >> 16);
     coord->coord.t[2]   += (s16)(work->walk.acc[2].w >> 16);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
     work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
     work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
@@ -2466,7 +2405,7 @@ static void func_actor_141000_801332A0(Task* task)
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
-        task->extra.tmd->coords[1].flg = 0;
+        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -2487,7 +2426,7 @@ static void func_actor_141000_801332A0(Task* task)
 static void func_actor_141000_80133490(Task* arg0)
 {
     Actor141000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          d;
     s32              dx;
     s32              dz;
@@ -2718,11 +2657,11 @@ static void func_actor_141000_80133A00(Task* arg0)
 /// part to face `work->walk.target`, the position the placement handler stored.
 /// Normalises the offset from the part's own translation, takes its yaw with
 /// `ratan2` and rebuilds the local matrix from that yaw alone, then clears
-/// `flg` so the world matrix is recomputed and advances the state.
+/// `composeStamp` so the world matrix is recomputed and advances the state.
 static void func_actor_141000_80133A68(Task* task)
 {
     Actor141000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           delta;
     SVECTOR          dir;
     SVECTOR          rot;
@@ -2743,7 +2682,7 @@ static void func_actor_141000_80133A68(Task* task)
     coord->param.rot.vy = rot.vy;
     coord->param.rot.vz = rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.motionStep++;
 }
 
@@ -2757,7 +2696,7 @@ static void func_actor_141000_80133A68(Task* task)
 static void func_actor_141000_80133B28(Task* arg0)
 {
     Actor141000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           vec;
 
     coord = arg0->extra.tmd->coords;
@@ -2788,7 +2727,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
 {
     Actor141000Work* work;
     GpMtxWords*      words;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     GpAnimArg        preset;
     s32              vy;
@@ -2825,7 +2764,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
     words->m20_m21 = 0;
     words->m22     = ONE;
     RotMatrix(&vec, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message-0x7D3 handler, also called directly by the turn-to-face and
@@ -2871,10 +2810,10 @@ s32 func_actor_141000_80133CD8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message-0x7D4 handler: places the model at once. Writes the payload's
 /// translation into the root coordinate, keeps its Euler angles in the
 /// coordinate's `rot` slot and rebuilds the rotation from them, then clears
-/// `flg` so the world matrix is recomputed.
+/// `composeStamp` so the world matrix is recomputed.
 s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpXformArg* args)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -2884,7 +2823,7 @@ s32 func_actor_141000_80133E10(Task* task, s32 arg1, GpXformArg* args)
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

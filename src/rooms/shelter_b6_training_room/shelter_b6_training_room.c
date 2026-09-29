@@ -346,9 +346,9 @@ GpRoomParamRec* D_shelter_b6_training_room_80185C38[8] = {
 
 u8 D_shelter_b6_training_room_80185C60[3][16];
 
-GpCoord* D_shelter_b6_training_room_80185C90;
+GfxCoord* D_shelter_b6_training_room_80185C90;
 
-GpCoord* D_shelter_b6_training_room_80185C94;
+GfxCoord* D_shelter_b6_training_room_80185C94;
 
 u16 D_shelter_b6_training_room_80185C98;
 

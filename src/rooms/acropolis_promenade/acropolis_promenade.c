@@ -1707,7 +1707,7 @@ void func_acropolis_promenade_8017DA4C(Task* task)
 static void func_acropolis_promenade_8017DAA4(Task* task)
 {
     TmdObject*   extra;
-    GpCoord*     coord;
+    GfxCoord*    coord;
     ApmPropWork* work;
 
     extra = task->extra.tmd;
@@ -1717,21 +1717,21 @@ static void func_acropolis_promenade_8017DAA4(Task* task)
         taskKill(task);
         return;
     }
-    task->work        = (TaskIdMap*)work;
-    work->field_0     = 0;
-    extra->flags      = 0;
-    coord->sub        = &gGfxViewCoord;
-    coord->coord.t[0] = -0x23F0;
-    coord->coord.t[1] = 0x12C;
-    coord->coord.t[2] = -0xAF0;
-    coord->flg        = 0;
+    task->work          = (TaskIdMap*)work;
+    work->field_0       = 0;
+    extra->flags        = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->coord.t[0]   = -0x23F0;
+    coord->coord.t[1]   = 0x12C;
+    coord->coord.t[2]   = -0xAF0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state++;
 }
 
 static void func_acropolis_promenade_8017DB48(Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1740,7 +1740,7 @@ static void func_acropolis_promenade_8017DB48(Task* task)
     } else {
         obj->flags = 0;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// The promenade's streamed-scene task. State 0 allocates the `RoomStreamWork`
@@ -1890,7 +1890,7 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// frame. View 7 spawns nothing.
 void func_acropolis_promenade_8017E03C(Task* task)
 {
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* work;
     u8         view;
     s32        i;
@@ -2030,7 +2030,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// every frame it wants the star.
 void func_acropolis_promenade_8017E634(Task* task)
 {
-    GpCoord*              coord;
+    GfxCoord*             coord;
     GpEffWork*            work;
     void**                scratch;
     u8*                   head;
@@ -2142,7 +2142,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 /// been queued, so the room respawns it each frame it wants the glow.
 void func_acropolis_promenade_8017ED44(Task* task)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpEffWork*       work;
     void**           scratch;
     u8*              head;
@@ -2230,7 +2230,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 /// each spawn draws a single frame.
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
-    GpCoord*               coord;
+    GfxCoord*              coord;
     GpEffWork*             work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;

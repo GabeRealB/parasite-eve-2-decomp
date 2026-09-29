@@ -124,9 +124,9 @@ static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
 static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
 static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
-static void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_shelter_b4_upper_sewer_8017EA0C(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b4_upper_sewer_8017F1FC(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_shelter_b4_upper_sewer_8017F5E8(GfxCoord* arg0, s16 arg1, s16 arg2);
 static void func_shelter_b4_upper_sewer_8017F8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
 #include "../../shared/room_visual_effects.h"
 
@@ -1046,10 +1046,10 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
     s32               otz;
     s32               i;
 
-    gGfxViewCoord.flg = 0;
-    head              = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)  = head - 0xC;
-    w                 = (RoomWaterScratch*)(head - 0xC);
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    head                       = SCRATCH_HEAD(u8);
+    SCRATCH_HEAD(u8)           = head - 0xC;
+    w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1270,7 +1270,7 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
 void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1287,8 +1287,8 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_shelter_b4_upper_sewer_8017EA0C(coord, work->angle, work->scale);
@@ -1305,7 +1305,7 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b4_upper_sewer_8017EA0C(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1391,7 +1391,7 @@ static void func_shelter_b4_upper_sewer_8017EA0C(GpCoord* arg0, s32 arg1, s32 ar
 void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -1493,11 +1493,11 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -1513,7 +1513,7 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 /// 32-texel-wide frame at U `arg1 * 32` in the strip at V 0xE0..0xFF, `arg2` is
 /// the size (a screen half-extent of `arg2 * 31 / otz`) and `arg3` the angle
 /// the corners are turned by.
-static void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_shelter_b4_upper_sewer_8017F1FC(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1577,7 +1577,7 @@ static void func_shelter_b4_upper_sewer_8017F1FC(GpCoord* arg0, s32 arg1, s32 ar
 /// half-extent of `arg2 * 55 / otz`; the quad is that wide on each side and
 /// stands on the point, reaching one and a half extents above it and half an
 /// extent below.
-static void func_shelter_b4_upper_sewer_8017F5E8(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_shelter_b4_upper_sewer_8017F5E8(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;

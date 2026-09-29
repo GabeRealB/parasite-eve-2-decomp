@@ -88,10 +88,10 @@ static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
 static void func_shelter_1f_parking_garage_8017DF04(Task* task);
 static void func_shelter_1f_parking_garage_8017E080(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_1f_parking_garage_8017EEB0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_1f_parking_garage_8017F2DC(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_1f_parking_garage_8017FB60(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_shelter_1f_parking_garage_80180FE8[1];
 extern GpObj4C        D_shelter_1f_parking_garage_801815F8[4];
@@ -1006,7 +1006,7 @@ static void func_shelter_1f_parking_garage_8017E868(SVECTOR* arg0, s32 arg1, s32
 void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1070,7 +1070,7 @@ void func_shelter_1f_parking_garage_8017EC0C(Task* task)
 /// error. The ring runs from half-extent `arg1`, where it is black, to
 /// `arg1 + arg2`, where it takes the colour `rgb`; each is scaled on screen
 /// as `(s16)extent * 64 / (otz + 1)`.
-static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_1f_parking_garage_8017EEB0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1128,7 +1128,7 @@ static void func_shelter_1f_parking_garage_8017EEB0(GpCoord* arg0, s32 arg1, s32
 /// error. `arg1` is the half-extent (the on-screen radius is
 /// `(s16)arg1 * 64 / (otz + 1)`); the centre takes the colour `rgb` and the
 /// rim is black.
-static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_1f_parking_garage_8017F2DC(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1177,7 +1177,7 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
 }
 
 /// Task drawing a pair of trails behind two points of its object. State 0
-/// allocates sixteen `GpCoord`s, eight per trail, and seeds them all
+/// allocates sixteen `GfxCoord`s, eight per trail, and seeds them all
 /// with the two heads' positions so each trail starts collapsed. State 1
 /// overwrites one slot of each trail a frame, cycling through the eight,
 /// and draws the band between the trails; the task releases its
@@ -1185,15 +1185,15 @@ static void func_shelter_1f_parking_garage_8017F2DC(GpCoord* arg0, s16 arg1, u8*
 /// `Gp_State1C->eventState` is 2 or more.
 void func_shelter_1f_parking_garage_8017F670(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1201,36 +1201,36 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_1f_parking_garage_80180C54[0].vx;
-                objCoord->coord.t[1] = D_shelter_1f_parking_garage_80180C54[0].vy;
-                objCoord->coord.t[2] = D_shelter_1f_parking_garage_80180C54[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_1f_parking_garage_80180C54[0].vx;
+                objCoord->coord.t[1]   = D_shelter_1f_parking_garage_80180C54[0].vy;
+                objCoord->coord.t[2]   = D_shelter_1f_parking_garage_80180C54[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_1f_parking_garage_80180C54[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_1f_parking_garage_80180C54[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1238,35 +1238,35 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_1f_parking_garage_80180C54[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_1f_parking_garage_8017FB60(coords, &coords[8], work->age & 7, 0x123);
@@ -1285,11 +1285,11 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
 /// its length. `arg3` is the colour, a multiplier at bits 8 and up and
 /// two-bit ones at bits 4 and 0. A quad is dropped when the GTE flags an
 /// error.
-static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_1f_parking_garage_8017FB60(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1391,7 +1391,7 @@ static void func_shelter_1f_parking_garage_8017FB60(GpCoord* arg0, GpCoord* arg1
 /// state is non-zero it does nothing else.
 void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1463,7 +1463,7 @@ void func_shelter_1f_parking_garage_8017FF58(Task* task)
 /// half the colour `arg2`, one at half that radius in the full colour - sit
 /// under four spikes reaching out to one and two times the radius. Every
 /// wedge is lit at the centre and black at its tips.
-static void func_shelter_1f_parking_garage_801801E0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

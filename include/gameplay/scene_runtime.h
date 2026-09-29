@@ -34,12 +34,12 @@ void Gp_DestroyEnemy(GpEnemy* enemy, Task* task);
 void Gp_EnemyTaskExit(Task* task);
 
 /// Copies `arg1`'s matrix onto the coordinate at `Task::extra->field_8`,
-/// adding `arg2` in that space. If `arg1->sub` is world (`gGfxViewCoord`),
+/// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with
-/// `Gp_WorldToLocal`. Always parents the dest to world and clears `flg`.
+/// `Gp_WorldToLocal`. Always parents the dest to world and clears `composeStamp`.
 /// Returns `arg0` (or NULL).
-Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2);
+Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);
 
 void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1);
 
@@ -54,29 +54,32 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1);
 /// reconstructs the missing row.
 void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
 
-/// Walks `arg0->sub` up to world (`gGfxViewCoord`), composing each node's
+/// Walks `arg0->parent` up to world (`gGfxViewCoord`), composing each node's
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and
 /// `arg2` to zero.
-void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2);
+void Gp_ComposeParentWorld(GfxCoord* arg0, MATRIX* arg1, SVECTOR* arg2);
 
 void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
-/// Fills `arg0` from the model body `arg2` animates and the animation tables
-/// `arg1` names. The context borrows the model's per-part coordinate array and
-/// part count, and takes the caller's pose buffer; the slots are filled in
-/// separately by `Gp_AnimInitSlot`.
-void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3);
+/// Binds an animation context to a model allocation's coordinate tail and caller-owned playback data.
+///
+/// `model` must be the object returned by `Tmd_Create`; the context borrows its
+/// `partCount` coordinates and the caller's set table and pose buffer. All stay
+/// live while the context is used. Playback slots are bound separately.
+void Gp_AnimInitCtx(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses);
 
 void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 
 void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
 
-/// `Gp_AnimInitCtx` with the model's playback slots handed in as well, for a
-/// caller whose slot array is part of a block of its own.
-void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4);
+/// Binds the model, set table, pose buffer and playback slots to an animation context.
+///
+/// The model allocation and borrowed-data lifetime requirements are those of
+/// `Gp_AnimInitCtx`; `slots` supplies one playback slot per model part.
+void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, GpAnimSlot* slots);
 
 /// Forwards to `Gp_AnimInitCtxSlots`, which most callers reach by this name
 /// rather than its own.
@@ -119,7 +122,7 @@ void Gp_SyncAreaKeyIndex(GpAreaKey* arg0);
 /// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
 /// `NULL`), transformed by `arg0->workm` and linked into `gGpuCurrentOt`
 /// at the largest corner `otz`.
-void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2);
+void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2);
 
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
@@ -132,15 +135,15 @@ void Gp_SetStreamBuf(void* arg0);
 void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// Turns the slot-3 skeleton's head toward the world point in `arg1`'s
-/// translation (`coord.t`). Sums the first five `GpCoord` transforms of
+/// translation (`coord.t`). Sums the first five `GfxCoord` transforms of
 /// `arg0->extra` to get the head's own position and orientation, takes the
 /// offset to the target through `ratan2` as a yaw/pitch pair, steps toward it
 /// by `arg4 / 0x1000` of the remaining angle and clamps the result to `arg2`
 /// yaw and `arg3` pitch before writing the rotation with `RotMatrix`.
-void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4);
 
 /// `func_800B0928` with the limits and step taken from `arg2` and the target
-/// being `arg1`'s head: composes the first five `GpCoord` transforms of
+/// being `arg1`'s head: composes the first five `GfxCoord` transforms of
 /// both tasks (plus the `D_80093A28` head offset) to get each head's world
 /// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps
 /// the pitch against `arg2->lastPitch` when it jumps by more than 0x800, steps

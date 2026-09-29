@@ -56,7 +56,7 @@ static HealingScale D_healing_8012FC1C[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
 static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
-static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Healing PE ring. Cancel (`Gp_StateC08.field_3 == -2` or
 /// `Gp_State1C->fadeState >= 4`) releases the work block, and if the effect has
@@ -69,7 +69,7 @@ static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 void func_healing_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     GpMtxWords* rot;
     GpEffWork*  spawned;
@@ -94,17 +94,17 @@ void func_healing_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot               = (GpMtxWords*)&coord->coord;
-            coord->sub        = (gameGetPtrSlot(3))->extra.tmd->coords;
-            rot->m00_m01      = 0x1000;
-            rot->m02_m10      = 0;
-            rot->m11_m12      = 0x1000;
-            rot->m20_m21      = 0;
-            rot->m22          = 0x1000;
-            coord->coord.t[0] = 0;
-            coord->coord.t[1] = -0x400;
-            coord->coord.t[2] = 0;
-            coord->flg        = 0;
+            rot                 = (GpMtxWords*)&coord->coord;
+            coord->parent       = (gameGetPtrSlot(3))->extra.tmd->coords;
+            rot->m00_m01        = 0x1000;
+            rot->m02_m10        = 0;
+            rot->m11_m12        = 0x1000;
+            rot->m20_m21        = 0;
+            rot->m22            = 0x1000;
+            coord->coord.t[0]   = 0;
+            coord->coord.t[1]   = -0x400;
+            coord->coord.t[2]   = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state     = 1;
             mem->index      = (Gp_StateC08.field_0 % 10) - 1;
@@ -122,7 +122,7 @@ void func_healing_8012EF34(Task* arg0)
             mem->scale = bright;
             mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             rng          = Gp_LcgState * 5 + 0x71357911;
             ang          = ((u32)rng >> 16) & 0xFFF;
@@ -145,7 +145,7 @@ void func_healing_8012EF34(Task* arg0)
             goto draw;
         case 2:
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->scale = mem->scale - 0x10;
             mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
@@ -174,7 +174,7 @@ void func_healing_8012EF34(Task* arg0)
             return;
         case 3:
             Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->period = mem->period + 1;
             if (mem->period < 0x1F) {
@@ -194,7 +194,7 @@ void func_healing_8012EF34(Task* arg0)
 void func_healing_8012F494(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        y;
     s32        state;
     s16        step;
@@ -217,10 +217,10 @@ void func_healing_8012F494(Task* arg0)
             mem->angle   = spawn & 0xFFF;
             return;
         case 1:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -242,7 +242,7 @@ void func_healing_8012F494(Task* arg0)
 void func_healing_8012F5E4(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        y;
     s16        step;
     s16        kind;
@@ -252,11 +252,11 @@ void func_healing_8012F5E4(Task* arg0)
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        coord->sub        = mem->parent;
-        coord->coord.t[0] = mem->pos.vx;
-        coord->coord.t[1] = mem->pos.vy;
-        coord->coord.t[2] = mem->pos.vz;
-        coord->flg        = 0;
+        coord->parent       = mem->parent;
+        coord->coord.t[0]   = mem->pos.vx;
+        coord->coord.t[1]   = mem->pos.vy;
+        coord->coord.t[2]   = mem->pos.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         mem->move.vy = 4;
         mem->move.vx = 0;
@@ -267,10 +267,10 @@ void func_healing_8012F5E4(Task* arg0)
         mem->scale   = D_healing_8012FC1C[kind].field_2;
         mem->angle   = (u16)arg0->spawnArg1.value & 0xFFF;
     }
-    step              = mem->move.vy;
-    y                 = coord->coord.t[1] + step;
-    coord->flg        = 0;
-    coord->coord.t[1] = y;
+    step                = mem->move.vy;
+    y                   = coord->coord.t[1] + step;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = y;
     Gp_UpdateCoord(coord);
     if (mem->age < 0x1E) {
         if (mem->age & 1) {
@@ -306,7 +306,7 @@ void func_healing_8012F5E4(Task* arg0)
 /// `(arg2 / 2) * 55 / otz` out. Both are axis-aligned and linked into
 /// `gGpuCurrentOt` at the shared `otz`. Same 0x18-byte scratch as gameplay
 /// `Gp_EffSprTask8D`.
-static void func_healing_8012F7FC(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;

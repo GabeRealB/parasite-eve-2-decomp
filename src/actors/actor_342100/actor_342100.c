@@ -204,13 +204,7 @@ void func_actor_342100_801630A4(Task*);
 
 void func_actor_342100_80161E70(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor342100PoseBank1714;
-
-Actor342100PoseBank1714 D_actor_342100_80163534 = { .poses = {
+AnimationPackedPose D_actor_342100_80163534[6] = {
 #include "assets/actor_342100_animation_019F0_bank1.inc"
 };
 
@@ -232,13 +226,7 @@ GpAnimSet D_actor_342100_80163810 = {
     { NULL, D_actor_342100_80163534, NULL, NULL, D_actor_342100_8016357C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor342100PoseBank1A18;
-
-Actor342100PoseBank1A18 D_actor_342100_80163838 = { .poses = {
+AnimationPackedPose D_actor_342100_80163838[16] = {
 #include "assets/actor_342100_animation_0242C_bank1.inc"
 };
 
@@ -260,13 +248,7 @@ GpAnimSet D_actor_342100_8016424C = {
     { NULL, D_actor_342100_80163838, NULL, NULL, D_actor_342100_801638F8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} Actor342100PoseBank2454;
-
-Actor342100PoseBank2454 D_actor_342100_80164274 = { .poses = {
+AnimationPackedPose D_actor_342100_80164274[14] = {
 #include "assets/actor_342100_animation_02A94_bank1.inc"
 };
 
@@ -758,7 +740,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
 void func_actor_342100_80162AB0(Task* arg0)
 {
     GpEffArg* eff;
-    GpCoord*  coord;
+    GfxCoord* coord;
     SVECTOR   vec;
     s32       rng;
     s32       rng2;
@@ -792,7 +774,7 @@ void func_actor_342100_80162AB0(Task* arg0)
             if (gDisplayState.animFrame & 0xF) {
                 return;
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             rng         = Gp_LcgState * 5 + 0x71357911;
             vx          = ((u32)rng >> 16) & 0x3F;
@@ -836,7 +818,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     SVECTOR*    pos;
     Task*       task;

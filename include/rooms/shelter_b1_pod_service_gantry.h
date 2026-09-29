@@ -34,7 +34,7 @@ extern GpRoomParamRec* D_shelter_b1_pod_service_gantry_80182520[];
 
 void func_shelter_b1_pod_service_gantry_8017D89C(Task* task);
 
-void func_shelter_b1_pod_service_gantry_8017F450(GpCoord* arg0, s32 arg1, s32 arg2, s16 arg3);
+void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3);
 
 void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0);
 

@@ -116,11 +116,11 @@ static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 static void func_hypervelocity_8011F11C(Task* task);
 static void func_hypervelocity_8011F6A0(Task* task);
 
-static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side);
-static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang);
-static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin);
+static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 side);
+static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 ang);
+static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin);
 
-static void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb);
+static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb);
 static void func_hypervelocity_8011F374(Task* arg0);
 static void func_hypervelocity_8011F570(Task* arg0);
 static void func_hypervelocity_8011F694(Task* arg0);
@@ -157,9 +157,9 @@ static void func_hypervelocity_8011F724(Task* arg0);
 void func_hypervelocity_8011D1E8(Task* task)
 {
     u8            rgb[3];
-    GpCoord*      coord;
-    GpCoord*      light;
-    GpCoord*      player;
+    GfxCoord*     coord;
+    GfxCoord*     light;
+    GfxCoord*     player;
     GpEffWork*    work;
     GpEffWork*    eff;
     GpCoord64*    base;
@@ -169,8 +169,8 @@ void func_hypervelocity_8011D1E8(Task* task)
 
     work  = task->spawnArg2.pointer;
     base  = &Gp_RoomCoords[1];
-    light = &base->data.coord;
-    slot  = &base->data.light;
+    light = &base->light.head.u.coord;
+    slot  = &base->light;
     coord = task->extra.tmd->coords;
 
     if (Gp_State1C->eventState != 0) {
@@ -183,18 +183,18 @@ void func_hypervelocity_8011D1E8(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            dstm              = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->parent;
-            dstm->m00_m01     = 0x1000;
-            dstm->m02_m10     = 0;
-            dstm->m11_m12     = 0x1000;
-            dstm->m20_m21     = 0;
-            dstm->m22         = 0x1000;
-            coord->coord.t[0] = D_hypervelocity_8011FB74.vx;
-            coord->coord.t[1] = D_hypervelocity_8011FB74.vy;
-            coord->coord.t[2] = D_hypervelocity_8011FB74.vz;
-            coord->flg        = 0;
-            task->state       = 1;
+            dstm                = (GpMtxWords*)&coord->coord;
+            coord->parent       = work->parent;
+            dstm->m00_m01       = 0x1000;
+            dstm->m02_m10       = 0;
+            dstm->m11_m12       = 0x1000;
+            dstm->m20_m21       = 0;
+            dstm->m22           = 0x1000;
+            coord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
+            coord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
+            coord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
             /* fallthrough */
         case 1:
             if (task->spawnArg1.value == 1) {
@@ -216,7 +216,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.r     = (u16)slot->head.b >> 1;
             slot->head.g     = (s16)(u16)slot->head.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->flg = 0;
+            light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
                 task->spawnArg1.value = 0;
                 task->state           = 1;
@@ -245,8 +245,8 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.r     = (u16)slot->head.b >> 1;
             slot->head.g     = (s16)(u16)slot->head.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->flg   = 0;
-            work->scale += work->step;
+            light->composeStamp = GRAPHICS_COORD_DIRTY;
+            work->scale        += work->step;
             if (work->scale >= 0x100) {
                 work->scale = 0xFF;
             }
@@ -335,13 +335,13 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   per frame until the ring falls under 0x80.
 void func_hypervelocity_8011D830(Task* task)
 {
-    GpCoord       ground;
+    GfxCoord      ground;
     SVECTOR       after;
     SVECTOR       before;
     u8            rgb[3];
-    GpCoord*      coord;
-    GpCoord*      player;
-    GpCoord*      light;
+    GfxCoord*     coord;
+    GfxCoord*     player;
+    GfxCoord*     light;
     GpCoord64*    base;
     GpPointLight* slot;
     GpEffWork*    work;
@@ -356,8 +356,8 @@ void func_hypervelocity_8011D830(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
-    light = &base->data.coord;
-    slot  = &base->data.light;
+    light = &base->light.head.u.coord;
+    slot  = &base->light;
 
     if (Gp_State1C->eventState != 0) {
         work->age = work->age - 1;
@@ -378,17 +378,17 @@ void func_hypervelocity_8011D830(Task* task)
                 work->age = 0;
                 return;
             }
-            task->exitCallback = func_hypervelocity_8011F11C;
-            player             = (gameGetPtrSlot(3))->extra.tmd->coords;
-            dstm               = (GpMtxWords*)&coord->coord;
-            srcm               = (GpMtxWords*)&player->coord;
-            dstm->m00_m01      = srcm->m00_m01;
-            dstm->m02_m10      = srcm->m02_m10;
-            dstm->m11_m12      = srcm->m11_m12;
-            dstm->m20_m21      = srcm->m20_m21;
-            dstm->m22          = srcm->m22;
-            coord->flg         = 0;
-            gGfxViewCoord.flg  = 0;
+            task->exitCallback         = func_hypervelocity_8011F11C;
+            player                     = (gameGetPtrSlot(3))->extra.tmd->coords;
+            dstm                       = (GpMtxWords*)&coord->coord;
+            srcm                       = (GpMtxWords*)&player->coord;
+            dstm->m00_m01              = srcm->m00_m01;
+            dstm->m02_m10              = srcm->m02_m10;
+            dstm->m11_m12              = srcm->m11_m12;
+            dstm->m20_m21              = srcm->m20_m21;
+            dstm->m22                  = srcm->m22;
+            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+            gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             work->move.vx = 0;
             work->move.vy = 0;
@@ -418,35 +418,35 @@ void func_hypervelocity_8011D830(Task* task)
             if (eff != NULL) {
                 Task_Reparent(task, eff->task);
             }
-            task->state       = 1;
-            base->framesLeft  = 4;
-            slot->inner       = (work->index << 9) + 0x200;
-            slot->outer       = slot->inner * 16;
-            ang               = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b      = ((ang >> 16) & 0x700) + 0x800;
-            slot->head.r      = (u16)slot->head.b >> 1;
-            slot->head.g      = (s16)(u16)slot->head.b >> 1;
-            light->coord.t[0] = coord->coord.t[0];
-            light->coord.t[1] = coord->coord.t[1];
-            light->coord.t[2] = coord->coord.t[2];
-            light->flg        = 0;
-            rgb[0]            = work->scale >> 2;
-            rgb[1]            = work->scale >> 2;
-            rgb[2]            = work->scale >> 1;
-            Gp_LcgState       = ang;
+            task->state         = 1;
+            base->framesLeft    = 4;
+            slot->inner         = (work->index << 9) + 0x200;
+            slot->outer         = slot->inner * 16;
+            ang                 = Gp_LcgState * 5 + 0x71357911;
+            slot->head.b        = ((ang >> 16) & 0x700) + 0x800;
+            slot->head.r        = (u16)slot->head.b >> 1;
+            slot->head.g        = (s16)(u16)slot->head.b >> 1;
+            light->coord.t[0]   = coord->coord.t[0];
+            light->coord.t[1]   = coord->coord.t[1];
+            light->coord.t[2]   = coord->coord.t[2];
+            light->composeStamp = GRAPHICS_COORD_DIRTY;
+            rgb[0]              = work->scale >> 2;
+            rgb[1]              = work->scale >> 2;
+            rgb[2]              = work->scale >> 1;
+            Gp_LcgState         = ang;
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             return;
         case 1:
             Gp_UpdateCoord(coord);
-            before.vx          = coord->workm.t[0];
-            before.vy          = coord->workm.t[1];
-            before.vz          = coord->workm.t[2];
-            coord->coord.t[0] += work->move.vx;
-            coord->coord.t[1] += work->move.vy;
-            coord->coord.t[2] += work->move.vz;
-            coord->flg         = 0;
-            gGfxViewCoord.flg  = 0;
+            before.vx                  = coord->workm.t[0];
+            before.vy                  = coord->workm.t[1];
+            before.vz                  = coord->workm.t[2];
+            coord->coord.t[0]         += work->move.vx;
+            coord->coord.t[1]         += work->move.vy;
+            coord->coord.t[2]         += work->move.vz;
+            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+            gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
@@ -468,15 +468,15 @@ void func_hypervelocity_8011D830(Task* task)
                     Task_Reparent(task, eff->task);
                 }
             }
-            light->coord.t[0] = coord->coord.t[0];
-            light->coord.t[1] = coord->coord.t[1];
-            light->coord.t[2] = coord->coord.t[2];
-            light->flg        = 0;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b      = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->head.r      = (u16)slot->head.b >> 1;
-            base->framesLeft  = 4;
-            slot->head.g      = (s16)(u16)slot->head.b >> 1;
+            light->coord.t[0]   = coord->coord.t[0];
+            light->coord.t[1]   = coord->coord.t[1];
+            light->coord.t[2]   = coord->coord.t[2];
+            light->composeStamp = GRAPHICS_COORD_DIRTY;
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            slot->head.b        = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->head.r        = (u16)slot->head.b >> 1;
+            base->framesLeft    = 4;
+            slot->head.g        = (s16)(u16)slot->head.b >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);
                 task->state = 2;
@@ -517,7 +517,7 @@ void func_hypervelocity_8011D830(Task* task)
 /// `D_hypervelocity_8012EF0C[i]` plus `age`, and is linked into the OT bucket
 /// its own projected depth names. Segments the GTE flags as behind the eye are
 /// dropped.
-static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 side)
+static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 side)
 {
     HyperTrailScratch* sc;
     POLY_FT4*          prim;
@@ -616,7 +616,7 @@ static void func_hypervelocity_8011DF34(GpCoord* coord, s16 age, s16 spin, s32 s
 /// constant screen size) and `ang` is the roll: the corner pairs sit at `ang`
 /// and `ang + 0x400`, a quarter turn apart, so the quad stays square as it
 /// spins.
-static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 ang)
+static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 ang)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -688,7 +688,7 @@ static void func_hypervelocity_8011E494(GpCoord* coord, s16 age, s16 spin, s16 a
 /// byte straight from the expression lets GCC fold the store's truncation back
 /// into the `gDisplayState.animFrame` load and the `+ 0xC0` / `+ 0xDF`, which the
 /// ROM does not do.
-static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
+static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin)
 {
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
@@ -768,7 +768,7 @@ static void func_hypervelocity_8011E8A0(GpCoord* ground, s32 spin)
 /// trail uses, picked by the stored jitter `D_hypervelocity_8012EF0C[i]` plus
 /// `age`, tinted by `rgb` and linked into the OT bucket its own projected
 /// depth names. Walls the GTE flags as behind the eye are dropped.
-static void func_hypervelocity_8011EC1C(GpCoord* coord, s16 age, s32 radius, u8* rgb)
+static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb)
 {
     HyperConeScratch* sc;
     POLY_FT4*         prim;
@@ -880,7 +880,7 @@ static void func_hypervelocity_8011F11C(Task* task)
 void func_hypervelocity_8011F168(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        val;
     u8         rgb[3];
@@ -918,7 +918,7 @@ void func_hypervelocity_8011F168(Task* arg0)
 void func_hypervelocity_8011F270(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        val;
     u8         rgb[3];
@@ -958,7 +958,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
     Task*       parent;
     TmdObject*  extra;
     TmdObject*  playerExtra;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     Task*       work;
     GpMtxWords* mat;
     s16         count;
@@ -969,10 +969,10 @@ static void func_hypervelocity_8011F374(Task* arg0)
     playerExtra = work->extra.tmd;
     coord       = extra->coords;
 
-    coord->flg      = 0;
-    extra->flags    = playerExtra->flags;
-    extra->colorMtx = playerExtra->colorMtx;
-    extra->lightMtx = playerExtra->lightMtx;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = playerExtra->flags;
+    extra->colorMtx     = playerExtra->colorMtx;
+    extra->lightMtx     = playerExtra->lightMtx;
 
     SCRATCH_PUSH_BYTES(0x10);
     switch (arg0->spawnArg1.value & 0xF) {
@@ -1026,30 +1026,30 @@ static void func_hypervelocity_8011F570(Task* arg0)
     Task*      child;
     TmdObject* childExtra;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     extra               = arg0->extra.tmd;
     coord               = extra->coords;
     arg0->state        += 1;
     arg0->exitCallback  = func_hypervelocity_8011F6A0;
     arg0->killCountdown = 0;
-    coord->flg          = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
     if (!(arg0->spawnArg1.value & 0xF)) {
         child = Task_Spawn(7, 0x70, 1, 0);
         if (child != NULL) {
-            child->extra.tmd->coords->sub = coord;
-            childExtra                    = child->extra.tmd;
-            childExtra->colorMtx          = extra->colorMtx;
-            childExtra->lightMtx          = extra->lightMtx;
+            child->extra.tmd->coords->parent = coord;
+            childExtra                       = child->extra.tmd;
+            childExtra->colorMtx             = extra->colorMtx;
+            childExtra->lightMtx             = extra->lightMtx;
             Task_Reparent(arg0, child);
         }
         child = Task_Spawn(7, 0x74, 2, 0);
         if (child != NULL) {
-            child->extra.tmd->coords->sub = coord;
-            childExtra                    = child->extra.tmd;
-            childExtra->colorMtx          = extra->colorMtx;
-            childExtra->lightMtx          = extra->lightMtx;
+            child->extra.tmd->coords->parent = coord;
+            childExtra                       = child->extra.tmd;
+            childExtra->colorMtx             = extra->colorMtx;
+            childExtra->lightMtx             = extra->lightMtx;
             Task_Reparent(arg0, child);
             coord->coord.t[0] = -6;
             coord->coord.t[1] = -0x3C;
@@ -1099,7 +1099,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
     u8*          head;
     HyperRecoil* rec;
     GameActor*   actor;
-    GpCoord*     coord;
+    GfxCoord*    coord;
     Task*        eff;
     s32          div;
     s32          count;

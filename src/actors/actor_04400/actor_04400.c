@@ -466,13 +466,7 @@ GpU16Pair Actor04400_D0D314[1] = {
 
 GpPairSrcE Actor04400_D0D318 = { Actor04400_D0D314, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor04400PoseBankD328;
-
-Actor04400PoseBankD328 Actor04400_D0D328 = { .poses = {
+AnimationPackedPose Actor04400_D0D328[6] = {
 #include "assets/actor_104400_animation_0D554_bank1.inc"
 };
 
@@ -494,13 +488,7 @@ GpAnimSet Actor04400_D0D554 = {
     { NULL, Actor04400_D0D328, NULL, NULL, Actor04400_D0D370, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor04400PoseBankD57C;
-
-Actor04400PoseBankD57C Actor04400_D0D57C = { .poses = {
+AnimationPackedPose Actor04400_D0D57C[3] = {
 #include "assets/actor_104400_animation_0D6F8_bank1.inc"
 };
 
@@ -522,13 +510,7 @@ GpAnimSet Actor04400_D0D6F8 = {
     { NULL, Actor04400_D0D57C, NULL, NULL, Actor04400_D0D5A0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[20];
-    AnimationPackedRotation        words[60];
-} Actor04400PoseBankD720;
-
-Actor04400PoseBankD720 Actor04400_D0D720 = { .poses = {
+AnimationPackedPose Actor04400_D0D720[20] = {
 #include "assets/actor_104400_animation_0DBCC_bank1.inc"
 };
 
@@ -550,13 +532,7 @@ GpAnimSet Actor04400_D0DBCC = {
     { NULL, Actor04400_D0D720, NULL, NULL, Actor04400_D0D810, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[25];
-    AnimationPackedRotation        words[75];
-} Actor04400PoseBankDBF4;
-
-Actor04400PoseBankDBF4 Actor04400_D0DBF4 = { .poses = {
+AnimationPackedPose Actor04400_D0DBF4[25] = {
 #include "assets/actor_104400_animation_0E150_bank1.inc"
 };
 
@@ -578,13 +554,7 @@ GpAnimSet Actor04400_D0E150 = {
     { NULL, Actor04400_D0DBF4, NULL, NULL, Actor04400_D0DD20, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor04400PoseBankE178;
-
-Actor04400PoseBankE178 Actor04400_D0E178 = { .poses = {
+AnimationPackedPose Actor04400_D0E178[2] = {
 #include "assets/actor_104400_animation_0E250_bank1.inc"
 };
 
@@ -606,13 +576,7 @@ GpAnimSet Actor04400_D0E250 = {
     { NULL, Actor04400_D0E178, NULL, NULL, Actor04400_D0E190, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor04400PoseBankE278;
-
-Actor04400PoseBankE278 Actor04400_D0E278 = { .poses = {
+AnimationPackedPose Actor04400_D0E278[2] = {
 #include "assets/actor_104400_animation_0E350_bank1.inc"
 };
 
@@ -634,13 +598,7 @@ GpAnimSet Actor04400_D0E350 = {
     { NULL, Actor04400_D0E278, NULL, NULL, Actor04400_D0E290, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[24];
-    AnimationPackedRotation        words[72];
-} Actor04400PoseBankE378;
-
-Actor04400PoseBankE378 Actor04400_D0E378 = { .poses = {
+AnimationPackedPose Actor04400_D0E378[24] = {
 #include "assets/actor_104400_animation_0E780_bank1.inc"
 };
 
@@ -662,13 +620,7 @@ GpAnimSet Actor04400_D0E780 = {
     { NULL, Actor04400_D0E378, NULL, NULL, Actor04400_D0E498, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[22];
-    AnimationPackedRotation        words[66];
-} Actor04400PoseBankE7A8;
-
-Actor04400PoseBankE7A8 Actor04400_D0E7A8 = { .poses = {
+AnimationPackedPose Actor04400_D0E7A8[22] = {
 #include "assets/actor_104400_animation_0EC24_bank1.inc"
 };
 
@@ -690,13 +642,7 @@ GpAnimSet Actor04400_D0EC24 = {
     { NULL, Actor04400_D0E7A8, NULL, NULL, Actor04400_D0E8B0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} Actor04400PoseBankEC4C;
-
-Actor04400PoseBankEC4C Actor04400_D0EC4C = { .poses = {
+AnimationPackedPose Actor04400_D0EC4C[14] = {
 #include "assets/actor_104400_animation_0F17C_bank1.inc"
 };
 
@@ -718,13 +664,7 @@ GpAnimSet Actor04400_D0F17C = {
     { NULL, Actor04400_D0EC4C, NULL, NULL, Actor04400_D0ECF4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} Actor04400PoseBankF1A4;
-
-Actor04400PoseBankF1A4 Actor04400_D0F1A4 = { .poses = {
+AnimationPackedPose Actor04400_D0F1A4[8] = {
 #include "assets/actor_104400_animation_0F430_bank1.inc"
 };
 
@@ -746,13 +686,7 @@ GpAnimSet Actor04400_D0F430 = {
     { NULL, Actor04400_D0F1A4, NULL, NULL, Actor04400_D0F204, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} Actor04400PoseBankF458;
-
-Actor04400PoseBankF458 Actor04400_D0F458 = { .poses = {
+AnimationPackedPose Actor04400_D0F458[7] = {
 #include "assets/actor_104400_animation_0F6C4_bank1.inc"
 };
 
@@ -774,13 +708,7 @@ GpAnimSet Actor04400_D0F6C4 = {
     { NULL, Actor04400_D0F458, NULL, NULL, Actor04400_D0F4AC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} Actor04400PoseBankF6EC;
-
-Actor04400PoseBankF6EC Actor04400_D0F6EC = { .poses = {
+AnimationPackedPose Actor04400_D0F6EC[7] = {
 #include "assets/actor_104400_animation_0F974_bank1.inc"
 };
 
@@ -802,13 +730,7 @@ GpAnimSet Actor04400_D0F974 = {
     { NULL, Actor04400_D0F6EC, NULL, NULL, Actor04400_D0F740, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor04400PoseBankF99C;
-
-Actor04400PoseBankF99C Actor04400_D0F99C = { .poses = {
+AnimationPackedPose Actor04400_D0F99C[6] = {
 #include "assets/actor_104400_animation_0FB88_bank1.inc"
 };
 
@@ -830,13 +752,7 @@ GpAnimSet Actor04400_D0FB88 = {
     { NULL, Actor04400_D0F99C, NULL, NULL, Actor04400_D0F9E4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor04400PoseBankFBB0;
-
-Actor04400PoseBankFBB0 Actor04400_D0FBB0 = { .poses = {
+AnimationPackedPose Actor04400_D0FBB0[2] = {
 #include "assets/actor_104400_animation_0FCA8_bank1.inc"
 };
 
@@ -858,13 +774,7 @@ GpAnimSet Actor04400_D0FCA8 = {
     { NULL, Actor04400_D0FBB0, NULL, NULL, Actor04400_D0FBC8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} Actor04400PoseBankFCD0;
-
-Actor04400PoseBankFCD0 Actor04400_D0FCD0 = { .poses = {
+AnimationPackedPose Actor04400_D0FCD0[4] = {
 #include "assets/actor_104400_animation_0FDE4_bank1.inc"
 };
 
@@ -886,13 +796,7 @@ GpAnimSet Actor04400_D0FDE4 = {
     { NULL, Actor04400_D0FCD0, NULL, NULL, Actor04400_D0FD00, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} Actor04400PoseBankFE0C;
-
-Actor04400PoseBankFE0C Actor04400_D0FE0C = { .poses = {
+AnimationPackedPose Actor04400_D0FE0C[10] = {
 #include "assets/actor_104400_animation_0FFE0_bank1.inc"
 };
 
@@ -914,13 +818,7 @@ GpAnimSet Actor04400_D0FFE0 = {
     { NULL, Actor04400_D0FE0C, NULL, NULL, Actor04400_D0FE84, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor04400PoseBank10008;
-
-Actor04400PoseBank10008 Actor04400_D10008 = { .poses = {
+AnimationPackedPose Actor04400_D10008[16] = {
 #include "assets/actor_104400_animation_1041C_bank1.inc"
 };
 
@@ -942,13 +840,7 @@ GpAnimSet Actor04400_D1041C = {
     { NULL, Actor04400_D10008, NULL, NULL, Actor04400_D100C8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor04400PoseBank10444;
-
-Actor04400PoseBank10444 Actor04400_D10444 = { .poses = {
+AnimationPackedPose Actor04400_D10444[5] = {
 #include "assets/actor_104400_animation_105A8_bank1.inc"
 };
 
@@ -970,13 +862,7 @@ GpAnimSet Actor04400_D105A8 = {
     { NULL, Actor04400_D10444, NULL, NULL, Actor04400_D10480, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor04400PoseBank105D0;
-
-Actor04400PoseBank105D0 Actor04400_D105D0 = { .poses = {
+AnimationPackedPose Actor04400_D105D0[5] = {
 #include "assets/actor_104400_animation_10750_bank1.inc"
 };
 
@@ -1063,14 +949,14 @@ u8 Actor04400_D10828[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6, 5, 
 
 static __inline__ void Actor04400_SetTaskState(Task* task, s32 state);
 static __inline__ void Actor04400_SetWorkState(Task* task, s16 state);
-static __inline__ void Actor04400_UpdateColor(void* enemy, GpCoord* coord);
+static __inline__ void Actor04400_UpdateColor(void* enemy, GfxCoord* coord);
 static __inline__ s16  Actor04400_TakeHit(Task* arg0);
 static __inline__ s16  Actor04400_TakeHit3(Task* arg0);
 static __inline__ s32  Actor04400_TakeRequest(Task* arg0);
 static __inline__ s32  Actor04400_IsHit(Task* arg0);
 static __inline__ void Actor04400_UpdateRotation(Task* arg0);
 static __inline__ s16  Actor04400_PickStep(s16 step, s16 push);
-static __inline__ void Actor04400_CalcPush(Task* arg0, GpCoord* coord, GpRec18* rec, SVECTOR* out);
+static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out);
 static void            Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
 static void            Actor04400_Fn006A8(Task* arg0);
 static void            Actor04400_Fn00874(Task* arg0);
@@ -1098,7 +984,7 @@ static __inline__ void Actor04400_SetWorkState(Task* task, s16 state)
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
 /// taken off `G_SCRATCH_HEAD`.
-static __inline__ void Actor04400_UpdateColor(void* enemy, GpCoord* coord)
+static __inline__ void Actor04400_UpdateColor(void* enemy, GfxCoord* coord)
 {
     VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
 
@@ -1212,7 +1098,7 @@ static __inline__ void Actor04400_UpdateRotation(Task* arg0)
 {
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
     MATRIX*          m     = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
-    GpCoord*         coord = arg0->extra.tmd->coords;
+    GfxCoord*        coord = arg0->extra.tmd->coords;
     MATRIX*          dst;
 
     work->field_78      &= 0xFFF;
@@ -1269,14 +1155,14 @@ static __inline__ s16 Actor04400_PickStep(s16 step, s16 push)
 ///
 /// `rec` must stay an inline argument: `integrate.c` expands it with
 /// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void Actor04400_CalcPush(Task* arg0, GpCoord* coord, GpRec18* rec, SVECTOR* out)
+static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, GpRec18* rec, SVECTOR* out)
 {
-    SVECTOR  pos;
-    VECTOR   d;
-    VECTOR   n;
-    GpCoord* c2;
-    s32      t;
-    s32      pen;
+    SVECTOR   pos;
+    VECTOR    d;
+    VECTOR    n;
+    GfxCoord* c2;
+    s32       t;
+    s32       pen;
 
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
@@ -1391,13 +1277,13 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
 {
     ActorsShared80163354Scratch* s;
     s16                          angle;
-    GpCoord*                     secondCoord;
-    GpCoord*                     firstCoord;
+    GfxCoord*                    secondCoord;
+    GfxCoord*                    firstCoord;
     s32                          offset0;
     s32                          offset1;
     s32                          offset2;
     s32                          offset3;
-    GpCoord*                     coords;
+    GfxCoord*                    coords;
     POLY_FT4*                    poly;
 
     coords      = task->extra.tmd->coords;
@@ -1409,32 +1295,32 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vy       = (s16)height;
-        s->second.vy      = (s16)height;
-        s->first.vx       = s->firstMatrix.t[0];
-        s->first.vz       = s->firstMatrix.t[2];
-        s->second.vx      = s->secondMatrix.t[0];
-        s->second.vz      = s->secondMatrix.t[2];
-        angle             = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
-        s->halfX          = (s->first.vx - s->second.vx) / 2;
-        s->halfZ          = (s->first.vz - s->second.vz) / 2;
-        offset0           = rcos(angle) * width;
-        s->corner0.vy     = (s16)height;
-        s->corner0.vx     = s->halfX + (s->first.vx - (offset0 >> 0xC));
-        s->corner0.vz     = s->halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1           = rcos(angle) * width;
-        s->corner1.vy     = (s16)height;
-        s->corner1.vx     = s->halfX + (s->first.vx + (offset1 >> 0xC));
-        s->corner1.vz     = s->halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2           = rcos(angle) * width;
-        s->corner2.vy     = (s16)height;
-        s->corner2.vx     = (s->second.vx - (offset2 >> 0xC)) - s->halfX;
-        s->corner2.vz     = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        offset3           = rcos(angle) * width;
-        s->corner3.vy     = (s16)height;
-        s->corner3.vx     = (s->second.vx + (offset3 >> 0xC)) - s->halfX;
-        s->corner3.vz     = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        gGfxViewCoord.flg = 0;
+        s->first.vy                = (s16)height;
+        s->second.vy               = (s16)height;
+        s->first.vx                = s->firstMatrix.t[0];
+        s->first.vz                = s->firstMatrix.t[2];
+        s->second.vx               = s->secondMatrix.t[0];
+        s->second.vz               = s->secondMatrix.t[2];
+        angle                      = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
+        s->halfX                   = (s->first.vx - s->second.vx) / 2;
+        s->halfZ                   = (s->first.vz - s->second.vz) / 2;
+        offset0                    = rcos(angle) * width;
+        s->corner0.vy              = (s16)height;
+        s->corner0.vx              = s->halfX + (s->first.vx - (offset0 >> 0xC));
+        s->corner0.vz              = s->halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
+        offset1                    = rcos(angle) * width;
+        s->corner1.vy              = (s16)height;
+        s->corner1.vx              = s->halfX + (s->first.vx + (offset1 >> 0xC));
+        s->corner1.vz              = s->halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
+        offset2                    = rcos(angle) * width;
+        s->corner2.vy              = (s16)height;
+        s->corner2.vx              = (s->second.vx - (offset2 >> 0xC)) - s->halfX;
+        s->corner2.vz              = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
+        offset3                    = rcos(angle) * width;
+        s->corner3.vy              = (s16)height;
+        s->corner3.vx              = (s->second.vx + (offset3 >> 0xC)) - s->halfX;
+        s->corner3.vz              = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
+        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1512,7 +1398,7 @@ static void Actor04400_Fn00874(Task* arg0)
     OverlayMat       mtx;
     GpMtxWords*      ident;
     Actor104400Work* work;
-    GpCoord*         coords;
+    GfxCoord*        coords;
     MATRIX*          m5;
     MATRIX*          m4;
     MATRIX*          m3;
@@ -1530,16 +1416,16 @@ static void Actor04400_Fn00874(Task* arg0)
     Gp_MtxToEuler(m5, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
-    m5->m[0][0]   = (u16)mtx.mat.m[0][0];
-    m5->m[0][1]   = (u16)mtx.mat.m[0][1];
-    m5->m[0][2]   = (u16)mtx.mat.m[0][2];
-    m5->m[1][0]   = (u16)mtx.mat.m[1][0];
-    m5->m[1][1]   = (u16)mtx.mat.m[1][1];
-    m5->m[1][2]   = (u16)mtx.mat.m[1][2];
-    m5->m[2][0]   = (u16)mtx.mat.m[2][0];
-    m5->m[2][1]   = (u16)mtx.mat.m[2][1];
-    m5->m[2][2]   = (u16)mtx.mat.m[2][2];
-    coords[5].flg = 0;
+    m5->m[0][0]            = (u16)mtx.mat.m[0][0];
+    m5->m[0][1]            = (u16)mtx.mat.m[0][1];
+    m5->m[0][2]            = (u16)mtx.mat.m[0][2];
+    m5->m[1][0]            = (u16)mtx.mat.m[1][0];
+    m5->m[1][1]            = (u16)mtx.mat.m[1][1];
+    m5->m[1][2]            = (u16)mtx.mat.m[1][2];
+    m5->m[2][0]            = (u16)mtx.mat.m[2][0];
+    m5->m[2][1]            = (u16)mtx.mat.m[2][1];
+    m5->m[2][2]            = (u16)mtx.mat.m[2][2];
+    coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
 
     mtx.ident.m00_m01 = 0x1000;
     mtx.ident.m02_m10 = 0;
@@ -1550,16 +1436,16 @@ static void Actor04400_Fn00874(Task* arg0)
     Gp_MtxToEuler(m4, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
-    m4->m[0][0]   = (u16)mtx.mat.m[0][0];
-    m4->m[0][1]   = (u16)mtx.mat.m[0][1];
-    m4->m[0][2]   = (u16)mtx.mat.m[0][2];
-    m4->m[1][0]   = (u16)mtx.mat.m[1][0];
-    m4->m[1][1]   = (u16)mtx.mat.m[1][1];
-    m4->m[1][2]   = (u16)mtx.mat.m[1][2];
-    m4->m[2][0]   = (u16)mtx.mat.m[2][0];
-    m4->m[2][1]   = (u16)mtx.mat.m[2][1];
-    m4->m[2][2]   = (u16)mtx.mat.m[2][2];
-    coords[4].flg = 0;
+    m4->m[0][0]            = (u16)mtx.mat.m[0][0];
+    m4->m[0][1]            = (u16)mtx.mat.m[0][1];
+    m4->m[0][2]            = (u16)mtx.mat.m[0][2];
+    m4->m[1][0]            = (u16)mtx.mat.m[1][0];
+    m4->m[1][1]            = (u16)mtx.mat.m[1][1];
+    m4->m[1][2]            = (u16)mtx.mat.m[1][2];
+    m4->m[2][0]            = (u16)mtx.mat.m[2][0];
+    m4->m[2][1]            = (u16)mtx.mat.m[2][1];
+    m4->m[2][2]            = (u16)mtx.mat.m[2][2];
+    coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 
     mtx.ident.m00_m01 = 0x1000;
     mtx.ident.m02_m10 = 0;
@@ -1570,16 +1456,16 @@ static void Actor04400_Fn00874(Task* arg0)
     Gp_MtxToEuler(m3, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
-    m3->m[0][0]   = (u16)mtx.mat.m[0][0];
-    m3->m[0][1]   = (u16)mtx.mat.m[0][1];
-    m3->m[0][2]   = (u16)mtx.mat.m[0][2];
-    m3->m[1][0]   = (u16)mtx.mat.m[1][0];
-    m3->m[1][1]   = (u16)mtx.mat.m[1][1];
-    m3->m[1][2]   = (u16)mtx.mat.m[1][2];
-    m3->m[2][0]   = (u16)mtx.mat.m[2][0];
-    m3->m[2][1]   = (u16)mtx.mat.m[2][1];
-    m3->m[2][2]   = (u16)mtx.mat.m[2][2];
-    coords[3].flg = 0;
+    m3->m[0][0]            = (u16)mtx.mat.m[0][0];
+    m3->m[0][1]            = (u16)mtx.mat.m[0][1];
+    m3->m[0][2]            = (u16)mtx.mat.m[0][2];
+    m3->m[1][0]            = (u16)mtx.mat.m[1][0];
+    m3->m[1][1]            = (u16)mtx.mat.m[1][1];
+    m3->m[1][2]            = (u16)mtx.mat.m[1][2];
+    m3->m[2][0]            = (u16)mtx.mat.m[2][0];
+    m3->m[2][1]            = (u16)mtx.mat.m[2][1];
+    m3->m[2][2]            = (u16)mtx.mat.m[2][2];
+    coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Main enemy init. Allocates the 0x454-byte `Actor104400Work`, points the
@@ -1594,12 +1480,12 @@ static void Actor04400_Fn00874(Task* arg0)
 static void Actor04400_Fn00B24(Task* arg0)
 {
     GpEnemy*         enemy;
-    GpCoord*         root;
+    GfxCoord*        root;
     Actor104400Work* work;
     TmdObject*       obj;
     Actor104400Work* w;
     GpEnemy*         e;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* w2;
     Actor104400Work* w3;
     Actor104400Work* w4;
@@ -1633,7 +1519,7 @@ static void Actor04400_Fn00B24(Task* arg0)
     w2->field_418 = 7;
     w2->field_414 = 2;
     Actor04400_Fn02B8C(arg0);
-    coord->sub = &gGfxViewCoord;
+    coord->parent = &gGfxViewCoord;
     Actor04400_Fn02D18(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = arg0->spawnArg2.pointer;
@@ -1676,12 +1562,12 @@ static void Actor04400_Fn00D3C(Task* arg0)
 {
     TmdObject*       model;
     GpEnemy*         enemy;
-    GpCoord*         root;
+    GfxCoord*        root;
     Actor104400Work* work;
     TmdObject*       obj;
     Actor104400Work* w;
     GpEnemy*         e;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* w2;
     Actor104400Work* w3;
     GpEnemy*         e2;
@@ -1728,7 +1614,7 @@ static void Actor04400_Fn00D3C(Task* arg0)
     w2->field_418 = 7;
     w2->field_414 = two;
     Actor04400_Fn02B8C(arg0);
-    coord->sub = &gGfxViewCoord;
+    coord->parent = &gGfxViewCoord;
     Actor04400_Fn02D18(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     (Gp_IncStateF0Ref)(0);
@@ -1764,7 +1650,7 @@ static void Actor04400_Fn00F7C(Task* arg0)
     GpEnemy*         enemy = arg0->spawnArg2.pointer;
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable11  sp    = Actor04400_D00044;
     s32              cur;
 
@@ -1800,7 +1686,7 @@ static void Actor04400_Fn00F7C(Task* arg0)
             } else if (work->field_44C == 5 && work->field_438 == 0) {
                 Actor04400_SetTaskState(arg0, 9);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -1893,11 +1779,11 @@ static void Actor04400_Fn01584(Task* arg0)
         work->field_436 = step;
     }
     Actor04400_Fn067A0(arg0, work->field_436);
-    speed                                = Actor04400_Fn065F4(arg0, -0x10);
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
+    speed                                 = Actor04400_Fn065F4(arg0, -0x10);
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
         soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0001;
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
@@ -1923,7 +1809,7 @@ static void Actor04400_Fn01584(Task* arg0)
 static void Actor04400_Fn017B0(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
-    GpCoord*         root = arg0->extra.tmd->coords;
+    GfxCoord*        root = arg0->extra.tmd->coords;
     MATRIX           local;
     s16              angle;
     s32              soundId;
@@ -1939,19 +1825,19 @@ static void Actor04400_Fn017B0(Task* arg0)
         work->field_438 = 1;
     }
     if ((s16)work->field_412 == 43) {
-        GpCoord* coords = arg0->extra.tmd->coords;
-        SVECTOR* v;
+        GfxCoord* coords = arg0->extra.tmd->coords;
+        SVECTOR*  v;
 
-        gGfxViewCoord.flg = 0;
+        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
-        coords[6].flg = 0;
+        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&coords[6]);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
-        v             = &work->field_98;
-        v->vx         = local.t[0];
-        v->vy         = local.t[1];
-        v->vz         = local.t[2];
-        coords[6].flg = 0;
+        v                      = &work->field_98;
+        v->vx                  = local.t[0];
+        v->vy                  = local.t[1];
+        v->vz                  = local.t[2];
+        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_412 >= 43 && work->field_412 <= 46) {
         work->field_432 = 1;
@@ -1974,12 +1860,12 @@ static void Actor04400_Fn017B0(Task* arg0)
         }
     }
     if (work->field_412 >= 45 && work->field_412 <= 53) {
-        angle                                = work->field_40C;
-        speed                                = -250;
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->flg         = 0;
-        work->obj_3AC.flags                 |= 0x8000;
+        angle                                 = work->field_40C;
+        speed                                 = -250;
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->obj_3AC.flags                  |= 0x8000;
     } else {
         work->obj_3AC.flags &= 0x7FFF;
     }
@@ -2057,23 +1943,23 @@ static void Actor04400_Fn01CA0(Task* arg0)
 {
     Actor104400Work* work;
     s16              angle;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* anim;
     s32              speed;
     s32              dx;
 
-    work                                 = (Actor104400Work*)arg0->work;
-    angle                                = work->field_40C;
-    coord                                = arg0->extra.tmd->coords;
-    dx                                   = rsin(angle) << 4;
-    speed                                = 0xC8;
-    arg0->extra.tmd->coords->coord.t[0] += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->flg         = 0;
-    coord->coord.t[1]                   += work->field_42A;
-    work->obj_2CC.pos.vy                += work->field_42A;
-    work->field_428                     += 0xE;
-    work->field_42A                     += work->field_428;
+    work                                  = (Actor104400Work*)arg0->work;
+    angle                                 = work->field_40C;
+    coord                                 = arg0->extra.tmd->coords;
+    dx                                    = rsin(angle) << 4;
+    speed                                 = 0xC8;
+    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]                    += work->field_42A;
+    work->obj_2CC.pos.vy                 += work->field_42A;
+    work->field_428                      += 0xE;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] >= (s16)work->field_92) {
         anim                 = (Actor104400Work*)arg0->work;
         anim->field_426      = 2;
@@ -2098,7 +1984,7 @@ static void Actor04400_Fn01E08(Task* arg0)
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
     GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFunc         sp[1] = { Actor04400_Fn07360 };
 
     switch (Gp_StateF0.field_4) {
@@ -2120,7 +2006,7 @@ static void Actor04400_Fn01E08(Task* arg0)
             if (work->field_432 == 1) {
                 Actor04400_Fn06520(arg0, 6, (SVECTOR3*)&work->field_80);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -2140,7 +2026,7 @@ static void Actor04400_Fn01E08(Task* arg0)
 static void Actor04400_Fn02008(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     OverlayMat       rot;
     OverlayMat*      src;
     MATRIX*          dst;
@@ -2240,7 +2126,7 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
     u8               blocked;
     Actor104400Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s16              amount;
     s32              dmg;
     s32              tmp;
@@ -2381,10 +2267,10 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
             }
             break;
         case 2:
-            coord->coord.t[0] = work->field_60.vx;
-            coord->coord.t[2] = work->field_60.vz;
-            coord->flg        = 0;
-            blocked           = 1;
+            coord->coord.t[0]   = work->field_60.vx;
+            coord->coord.t[2]   = work->field_60.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            blocked             = 1;
             break;
     }
 
@@ -2396,11 +2282,11 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
         work->field_40E--;
     }
     if (blocked == 0) {
-        work->field_80    += Actor04400_PickStep(stepX, maxX >> 3);
-        work->field_84    += Actor04400_PickStep(stepZ, maxZ >> 3);
-        coord->coord.t[0] += Actor04400_PickStep(stepX, maxX >> 3);
-        coord->coord.t[2] += Actor04400_PickStep(stepZ, maxZ >> 3);
-        coord->flg         = 0;
+        work->field_80     += Actor04400_PickStep(stepX, maxX >> 3);
+        work->field_84     += Actor04400_PickStep(stepZ, maxZ >> 3);
+        coord->coord.t[0]  += Actor04400_PickStep(stepX, maxX >> 3);
+        coord->coord.t[2]  += Actor04400_PickStep(stepZ, maxZ >> 3);
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_POP_BYTES(8);
 }
@@ -2517,7 +2403,7 @@ static void Actor04400_Fn02E8C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable9   sp    = Actor04400_D000EC;
 
     switch (Gp_StateF0.field_4) {
@@ -2527,7 +2413,7 @@ static void Actor04400_Fn02E8C(Task* arg0)
         case 0:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
@@ -2547,7 +2433,7 @@ static void Actor04400_Fn0304C(Task* arg0)
 {
     Actor104400Work* work;
     TmdObject*       obj;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           scale;
     OverlayMat       m;
     GpMtxWords*      ident;
@@ -2592,8 +2478,8 @@ static void Actor04400_Fn0304C(Task* arg0)
 static void Actor04400_Fn031B8(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coord;
-    GpCoord*         other;
+    GfxCoord*        coord;
+    GfxCoord*        other;
     Task*            player;
     SVECTOR          d0;
     SVECTOR          d1;
@@ -2684,7 +2570,7 @@ static void Actor04400_Fn03538(Task* arg0)
     TmdObject*       obj   = arg0->extra.tmd;
     GpEnemy*         enemy = arg0->spawnArg2.pointer;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D00128;
 
     switch (Gp_StateF0.field_4) {
@@ -2711,7 +2597,7 @@ static void Actor04400_Fn03538(Task* arg0)
                 work->field_438 = 0;
                 Actor04400_SetTaskState(arg0, 3);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -2858,12 +2744,12 @@ static void Actor04400_Fn03B34(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                = 0x1E;
-        angle                                = work->field_7A + 0x400;
-        speed                                = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->flg         = 0;
+        scale                                 = 0x1E;
+        angle                                 = work->field_7A + 0x400;
+        speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work2 = (Actor104400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
@@ -2894,12 +2780,12 @@ static void Actor04400_Fn03CA0(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                = 0x1E;
-        angle                                = work->field_7A + 0x400;
-        speed                                = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->flg         = 0;
+        scale                                 = 0x1E;
+        angle                                 = work->field_7A + 0x400;
+        speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work2 = (Actor104400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
@@ -2937,12 +2823,12 @@ static void Actor04400_Fn03E20(Task* arg0)
     work = (Actor104400Work*)arg0->work;
     if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
         if ((u16)(work->field_412++ - 0x17) < 0xD) {
-            scale                                = -0x1E;
-            angle                                = work->field_7A + 0x400;
-            speed                                = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-            arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->flg         = 0;
+            scale                                 = -0x1E;
+            angle                                 = work->field_7A + 0x400;
+            speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+            arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+            arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         work2 = (Actor104400Work*)arg0->work;
         if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
@@ -2973,7 +2859,7 @@ static void Actor04400_Fn03F8C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable10  sp    = Actor04400_D00184;
 
     switch (Gp_StateF0.field_4) {
@@ -2988,7 +2874,7 @@ static void Actor04400_Fn03F8C(Task* arg0)
             Actor04400_Fn02B8C(arg0);
             Actor04400_UpdateRotation(arg0);
             Actor04400_Fn022A8(arg0, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
@@ -3009,7 +2895,7 @@ static void Actor04400_Fn042C4(Task* arg0)
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
     TmdObject*       obj   = arg0->extra.tmd;
     GpEnemy*         enemy = arg0->spawnArg2.pointer;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     Actor104400Work* w2;
     s32              id;
     s32              pan;
@@ -3061,7 +2947,7 @@ static void Actor04400_Fn042C4(Task* arg0)
                 Actor04400_SetWorkState(arg0, 7);
                 break;
         }
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_44C = 0;
     }
@@ -3076,23 +2962,23 @@ static void Actor04400_Fn045A0(Task* arg0)
 {
     Actor104400Work* work;
     s16              angle;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* anim;
     s32              speed;
     s32              dx;
 
-    work                                 = (Actor104400Work*)arg0->work;
-    angle                                = work->field_7A;
-    coord                                = arg0->extra.tmd->coords;
-    dx                                   = rsin(angle) << 4;
-    speed                                = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0] += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->flg         = 0;
-    work->field_78                      += (0x800 - work->field_78) >> 3;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 2;
-    work->field_42A                     += work->field_428;
+    work                                  = (Actor104400Work*)arg0->work;
+    angle                                 = work->field_7A;
+    coord                                 = arg0->extra.tmd->coords;
+    dx                                    = rsin(angle) << 4;
+    speed                                 = -0x8C;
+    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->field_78                       += (0x800 - work->field_78) >> 3;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 2;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         work->field_451   = 0;
         work->field_412   = 0;
@@ -3120,7 +3006,7 @@ static void Actor04400_Fn045A0(Task* arg0)
 static void Actor04400_Fn04718(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              soundId;
     s32              pan;
     s16              angle;
@@ -3133,14 +3019,14 @@ static void Actor04400_Fn04718(Task* arg0)
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = 0x50;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 4;
-    work->field_42A                     += work->field_428;
+    speed                                 = 0x50;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 4;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         coord->coord.t[1] = -0x3C;
         work->field_412   = 0;
@@ -3172,12 +3058,12 @@ static void Actor04400_Fn048A0(Task* arg0)
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = 0x14;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    work2                                = (Actor104400Work*)arg0->work;
+    speed                                 = 0x14;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work2                                 = (Actor104400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -3205,23 +3091,23 @@ static void Actor04400_Fn04A3C(Task* arg0)
 {
     Actor104400Work* work;
     s16              angle;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* anim;
     s32              speed;
     s32              dx;
 
-    work                                 = (Actor104400Work*)arg0->work;
-    angle                                = work->field_7A;
-    coord                                = arg0->extra.tmd->coords;
-    dx                                   = rsin(angle) << 4;
-    speed                                = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0] += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->flg         = 0;
-    work->field_78                      += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 2;
-    work->field_42A                     += work->field_428;
+    work                                  = (Actor104400Work*)arg0->work;
+    angle                                 = work->field_7A;
+    coord                                 = arg0->extra.tmd->coords;
+    dx                                    = rsin(angle) << 4;
+    speed                                 = -0x8C;
+    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->field_78                       += (0x200 - work->field_78) >> 5;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 2;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         work->field_451   = 0;
         work->field_412   = 0;
@@ -3247,7 +3133,7 @@ static void Actor04400_Fn04A3C(Task* arg0)
 static void Actor04400_Fn04BA8(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              soundId;
     s32              pan;
     s16              angle;
@@ -3262,14 +3148,14 @@ static void Actor04400_Fn04BA8(Task* arg0)
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = -0x50;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 4;
-    work->field_42A                     += work->field_428;
+    speed                                 = -0x50;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 4;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         coord->coord.t[1] = -0x3C;
         work->field_412   = 0;
@@ -3301,12 +3187,12 @@ static void Actor04400_Fn04D44(Task* arg0)
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = -0x14;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    work2                                = (Actor104400Work*)arg0->work;
+    speed                                 = -0x14;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work2                                 = (Actor104400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -3333,23 +3219,23 @@ static void Actor04400_Fn04EDC(Task* arg0)
 {
     Actor104400Work* work;
     s16              angle;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Actor104400Work* anim;
     s32              speed;
     s32              dx;
 
-    work                                 = (Actor104400Work*)arg0->work;
-    angle                                = work->field_7A;
-    coord                                = arg0->extra.tmd->coords;
-    dx                                   = rsin(angle) << 4;
-    speed                                = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0] += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->flg         = 0;
-    work->field_78                      += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 2;
-    work->field_42A                     += work->field_428;
+    work                                  = (Actor104400Work*)arg0->work;
+    angle                                 = work->field_7A;
+    coord                                 = arg0->extra.tmd->coords;
+    dx                                    = rsin(angle) << 4;
+    speed                                 = -0x8C;
+    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->field_78                       += (0x200 - work->field_78) >> 5;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 2;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         work->field_451   = 0;
         work->field_412   = 0;
@@ -3375,7 +3261,7 @@ static void Actor04400_Fn05040(Task* arg0)
 {
     Actor104400Work* work;
     Actor104400Work* anim;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              soundId;
     s32              pan;
     s32              soundId2;
@@ -3395,14 +3281,14 @@ static void Actor04400_Fn05040(Task* arg0)
         pan2     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId2, pan2, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = -0x5A;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    coord->coord.t[1]                   += work->field_42A;
-    work->field_428                     += 4;
-    work->field_42A                     += work->field_428;
+    speed                                 = -0x5A;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]                    += work->field_42A;
+    work->field_428                      += 4;
+    work->field_42A                      += work->field_428;
     if (coord->coord.t[1] > 0) {
         coord->coord.t[1] = -0x3C;
         work->field_78    = 0;
@@ -3444,12 +3330,12 @@ static void Actor04400_Fn05260(Task* arg0)
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    speed                                = 0x14;
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
-    work2                                = (Actor104400Work*)arg0->work;
+    speed                                 = 0x14;
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work2                                 = (Actor104400Work*)arg0->work;
     if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
         cond = 1;
     } else {
@@ -3480,8 +3366,8 @@ static void Actor04400_Fn053FC(Task* arg0)
     TmdObject*       obj;
     Actor104400Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         c;
+    GfxCoord*        coord;
+    GfxCoord*        c;
     VECTOR           d;
     SVECTOR          dir;
     VECTOR           sq;
@@ -3521,12 +3407,12 @@ static void Actor04400_Fn053FC(Task* arg0)
         } else if (diff < -0x100) {
             w->field_7A += 0x18;
         }
-        angle                                = work->field_7A;
-        k                                    = -0x10;
-        step                                 = ((((Actor104400Work*)arg0->work)->field_41C * k) << 12) >> 16;
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->flg         = 0;
+        angle                                 = work->field_7A;
+        k                                     = -0x10;
+        step                                  = ((((Actor104400Work*)arg0->work)->field_41C * k) << 12) >> 16;
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work->field_428++;
     work->field_42A += work->field_428;
@@ -3538,10 +3424,10 @@ static void Actor04400_Fn053FC(Task* arg0)
         dir.vy = 0;
         dir.vz = work->field_70.vz - c->coord.t[2];
         VectorNormalSS(&dir, &dir);
-        angle                                = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->flg         = 0;
+        angle                                 = ratan2(dir.vx, dir.vz);
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     d.vx = coord->coord.t[0] - work->field_70.vx;
     d.vy = coord->coord.t[1] - work->field_70.vy;
@@ -3664,8 +3550,8 @@ static void Actor04400_Fn05A40(Task* arg0)
     TmdObject*       obj;
     Actor104400Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         c;
+    GfxCoord*        coord;
+    GfxCoord*        c;
     VECTOR           d;
     SVECTOR          dir;
     VECTOR           sq;
@@ -3688,10 +3574,10 @@ static void Actor04400_Fn05A40(Task* arg0)
         dir.vy = 0;
         dir.vz = work->field_70.vz - c->coord.t[2];
         VectorNormalSS(&dir, &dir);
-        angle                                = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->flg         = 0;
+        angle                                 = ratan2(dir.vx, dir.vz);
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         s32 step;
 
@@ -3702,11 +3588,11 @@ static void Actor04400_Fn05A40(Task* arg0)
         dir.vy          = 0;
         dir.vz          = work->field_70.vz - c->coord.t[2];
         VectorNormalSS(&dir, &dir);
-        angle                                = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->flg         = 0;
-        coord->coord.t[1]                   += (work->field_70.vy - coord->coord.t[1]) >> 4;
+        angle                                 = ratan2(dir.vx, dir.vz);
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[1]                    += (work->field_70.vy - coord->coord.t[1]) >> 4;
     }
     d.vx = coord->coord.t[0] - work->field_70.vx;
     d.vy = coord->coord.t[1] - work->field_70.vy;
@@ -3766,7 +3652,7 @@ static void Actor04400_Fn05DE0(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D001C4;
 
     switch (Gp_StateF0.field_4) {
@@ -3779,7 +3665,7 @@ static void Actor04400_Fn05DE0(Task* arg0)
             if (!(work->field_442 & 0x1F)) {
                 func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
@@ -3800,7 +3686,7 @@ static void Actor04400_Fn05FC8(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = obj->coords;
+    GfxCoord*        coord = obj->coords;
     TaskFuncTable7   sp    = Actor04400_D001D8;
 
     switch (Gp_StateF0.field_4) {
@@ -3813,7 +3699,7 @@ static void Actor04400_Fn05FC8(Task* arg0)
             if (!(work->field_442 & 0x1F)) {
                 func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
             Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
@@ -3990,13 +3876,13 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, GpCmdArg* arg2)
 
 void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = pos->vx;
-    coord->coord.t[1] = pos->vy;
-    coord->coord.t[2] = pos->vz;
-    coord->flg        = 0;
+    coord               = task->extra.tmd->coords;
+    coord->coord.t[0]   = pos->vx;
+    coord->coord.t[1]   = pos->vy;
+    coord->coord.t[2]   = pos->vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Moves the model so that part `part` lands on `pos`: sets the root
@@ -4004,20 +3890,20 @@ void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
 /// marks the part's coordinate dirty.
 static void Actor04400_Fn06520(Task* arg0, s16 part, SVECTOR3* pos)
 {
-    MATRIX   local;
-    MATRIX   world;
-    GpCoord* coord;
-    GpCoord* coords;
+    MATRIX    local;
+    MATRIX    world;
+    GfxCoord* coord;
+    GfxCoord* coords;
 
     coords = arg0->extra.tmd->coords;
     coord  = &coords[part];
     Gp_UpdateCoord(coord);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coords->workm, &local);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &world);
-    coords->coord.t[0] = pos->vx - (world.t[0] - local.t[0]);
-    coords->coord.t[1] = pos->vy - (world.t[1] - local.t[1]);
-    coords->coord.t[2] = pos->vz - (world.t[2] - local.t[2]);
-    coord->flg         = 0;
+    coords->coord.t[0]  = pos->vx - (world.t[0] - local.t[0]);
+    coords->coord.t[1]  = pos->vy - (world.t[1] - local.t[1]);
+    coords->coord.t[2]  = pos->vz - (world.t[2] - local.t[2]);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Scales `value` by the animation speed `field_41C`, in 1/16 units.
@@ -4331,11 +4217,11 @@ static void Actor04400_Fn06DFC(Task* arg0)
     s16              speed;
 
     Actor04400_Fn067A0(arg0, 0x10);
-    speed                                = Actor04400_Fn065F4(arg0, -0x10);
-    angle                                = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->flg         = 0;
+    speed                                 = Actor04400_Fn065F4(arg0, -0x10);
+    angle                                 = work->field_7A;
+    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
         Actor104400Work* next = (Actor104400Work*)arg0->work;
 
@@ -4492,11 +4378,11 @@ static void Actor04400_Fn0723C(Task* arg0)
     ticks           = work->field_412;
     work->field_412 = ticks + 1;
     if ((u32)((ticks - 0x1D) & 0xFFFF) < 0xDU) {
-        speed                                = Actor04400_Fn065F4(arg0, 0x1E);
-        angle                                = work->field_7A + 0x400;
-        arg0->extra.tmd->coords->coord.t[0] += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2] += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->flg         = 0;
+        speed                                 = Actor04400_Fn065F4(arg0, 0x1E);
+        angle                                 = work->field_7A + 0x400;
+        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
         work->field_438  = 0;
@@ -4546,7 +4432,7 @@ static void Actor04400_Fn073C8(Task* arg0)
 static void Actor04400_Fn07404(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     OverlayMat       rot;
     OverlayMat*      src;
     MATRIX*          dst;
@@ -4670,7 +4556,7 @@ static void Actor04400_Fn076D0(Task* arg0)
 
 static void Actor04400_Fn07750(Task* arg0)
 {
-    GpCoord*         coord = arg0->extra.tmd->coords;
+    GfxCoord*        coord = arg0->extra.tmd->coords;
     GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
     Actor104400Work* objWork;
@@ -5177,7 +5063,7 @@ static void Actor04400_Fn083CC(Task* arg0)
 }
 
 /// Resets the actor's slide state, then re-derives `field_70` as the view-space
-/// position of slot 4 entry 0's `coords[3]`: zeroes it and walks up the `sub`
+/// position of slot 4 entry 0's `coords[3]`: zeroes it and walks up the `parent`
 /// chain from that joint towards `&gGfxViewCoord`, transforming the point
 /// through each coord's rotation and translation with the GTE and writing the
 /// result into `field_70` on arrival. Snapshots the root coord's translation
@@ -5187,8 +5073,8 @@ static void Actor04400_Fn083CC(Task* arg0)
 static void Actor04400_Fn0847C(Task* arg0)
 {
     Actor104400Work* work;
-    GpCoord*         coords;
-    GpCoord*         current;
+    GfxCoord*        coords;
+    GfxCoord*        current;
     SVECTOR*         pos;
     SVECTOR          local;
     VECTOR           result;
@@ -5211,7 +5097,7 @@ static void Actor04400_Fn0847C(Task* arg0)
     local.vy                    = pos->vy;
     local.vz                    = pos->vz;
     while (1) {
-        if (current->sub == NULL) {
+        if (current->parent == NULL) {
             return;
         }
         if (current == &gGfxViewCoord) {
@@ -5229,7 +5115,7 @@ static void Actor04400_Fn0847C(Task* arg0)
         local.vx = result.vx;
         local.vy = result.vy;
         local.vz = result.vz;
-        current  = current->sub;
+        current  = current->parent;
     }
 }
 
@@ -5426,7 +5312,7 @@ static void Actor04400_Fn08B3C(Task* arg0)
 {
     GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GpCoord*         coord = arg0->extra.tmd->coords;
+    GfxCoord*        coord = arg0->extra.tmd->coords;
     Actor104400Work* objWork;
 
     enemy->recs = 0;
@@ -5473,7 +5359,7 @@ static void Actor04400_Fn08C64(Task* arg0)
 {
     Actor104400Work* work;
     TmdObject*       obj;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     VECTOR           scale;
     OverlayMat       m;
     GpMtxWords*      ident;

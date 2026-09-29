@@ -72,7 +72,7 @@ typedef struct ApobiosisStep {
 STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
 
 static void func_apobiosis_8012F808(s16 bright);
-static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
 /// weakest first.
@@ -86,8 +86,8 @@ static ApobiosisStep D_apobiosis_80130B5C[] = {
 /// row, so the sound follows the cast's level like the burst does.
 static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
-static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_apobiosis_80130630(GpCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3);
+static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3);
 
 /// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
 /// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
@@ -117,7 +117,7 @@ static Task* D_apobiosis_80130BA0;
 void func_apobiosis_8012EF4C(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s32         i;
     s32         n;
@@ -132,7 +132,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
             case 0:
                 D_apobiosis_80130BA0 = arg0;
                 rot                  = (GpMtxWords*)&coord->coord;
-                coord->sub           = mem->parent;
+                coord->parent        = mem->parent;
                 rot->m00_m01         = 0x1000;
                 rot->m02_m10         = 0;
                 rot->m11_m12         = 0x1000;
@@ -141,7 +141,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->coord.t[0]    = 0;
                 coord->coord.t[1]    = 0;
                 coord->coord.t[2]    = 0;
-                coord->flg           = 0;
+                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 pan = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
@@ -312,7 +312,7 @@ static void func_apobiosis_8012F808(s16 bright)
 /// bucket its own depth names and then handed to `Gp_AddTpageShift`. Same
 /// shape as `func_plasma_8012FB10`, which grows its ring from `otz + 1`
 /// instead.
-static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -379,7 +379,7 @@ static void func_apobiosis_8012F9D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 void func_apobiosis_8012FE10(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -389,11 +389,11 @@ void func_apobiosis_8012FE10(Task* arg0)
             case 0:
                 Task_Reparent(D_apobiosis_80130BA0, arg0);
                 if (arg0->spawnArg1.value != 0) {
-                    coord->sub        = mem->parent;
-                    coord->coord.t[0] = 0;
-                    coord->coord.t[1] = 0;
-                    coord->coord.t[2] = 0;
-                    coord->flg        = 0;
+                    coord->parent       = mem->parent;
+                    coord->coord.t[0]   = 0;
+                    coord->coord.t[1]   = 0;
+                    coord->coord.t[2]   = 0;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(coord);
                     arg0->state = 1;
                 } else {
@@ -429,10 +429,10 @@ void func_apobiosis_8012FE10(Task* arg0)
                 }
                 break;
             case 2:
-                coord->coord.t[0] += mem->move.vx;
-                coord->coord.t[1] += mem->move.vy;
-                coord->coord.t[2] += mem->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += mem->move.vx;
+                coord->coord.t[1]  += mem->move.vy;
+                coord->coord.t[2]  += mem->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
@@ -465,7 +465,7 @@ void func_apobiosis_8012FE10(Task* arg0)
 /// brighter 0x42C9 palette. Same shape as Combustion's and Pyrokinesis's flame
 /// quad (`func_combustion_8012FB14`), which uses a fixed CLUT and 0x20-wide
 /// frames.
-static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -539,7 +539,7 @@ static void func_apobiosis_8013017C(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 /// on-screen half-width is `arg3 * 23 / otz`. Clut is 0x4287, or 0x42C8 on
 /// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
-static void func_apobiosis_80130630(GpCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3)
+static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3)
 {
     ApobiosisShardScratch* block;
     POLY_FT4*              prim;

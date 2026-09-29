@@ -161,8 +161,8 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*            slot;
-    GpCoord*         coord;
-    GpCoord*         other;
+    GfxCoord*        coord;
+    GfxCoord*        other;
     GpCircleScratch* sc;
     s32              base;
     s32              limit;

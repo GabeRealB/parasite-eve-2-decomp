@@ -43,7 +43,7 @@
 
 #include "overlay.h"
 
-/// Low halves of a `VECTOR3` (typically `GpCoord.workm.t`).
+/// Low halves of a `VECTOR3` (typically `GfxCoord.workm.t`).
 typedef struct M4a1JavelinVecLo {
     /* 0x0 */ u16  vx;
     /* 0x2 */ byte pad_2[2];
@@ -117,10 +117,10 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
     GpEffWork*    work;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GameActor*    actor;
     GpCoord64*    base;
-    GpCoord*      light;
+    GfxCoord*     light;
     GpPointLight* slot;
     GpMtxWords*   dstm;
     SVECTOR       pa;
@@ -134,8 +134,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 
     actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];
-    slot  = &base->data.light;
-    light = &base->data.coord;
+    slot  = &base->light;
+    light = &base->light.head.u.coord;
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
 
@@ -149,17 +149,17 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            dstm              = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->parent;
-            dstm->m00_m01     = 0x1000;
-            dstm->m02_m10     = 0;
-            dstm->m11_m12     = 0x1000;
-            dstm->m20_m21     = 0;
-            dstm->m22         = 0x1000;
-            coord->coord.t[0] = D_m4a1_javelin_8011FA90.vx;
-            coord->coord.t[1] = D_m4a1_javelin_8011FA90.vy;
-            coord->coord.t[2] = D_m4a1_javelin_8011FA90.vz;
-            coord->flg        = 0;
+            dstm                = (GpMtxWords*)&coord->coord;
+            coord->parent       = work->parent;
+            dstm->m00_m01       = 0x1000;
+            dstm->m02_m10       = 0;
+            dstm->m11_m12       = 0x1000;
+            dstm->m20_m21       = 0;
+            dstm->m22           = 0x1000;
+            coord->coord.t[0]   = D_m4a1_javelin_8011FA90.vx;
+            coord->coord.t[1]   = D_m4a1_javelin_8011FA90.vy;
+            coord->coord.t[2]   = D_m4a1_javelin_8011FA90.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             task->state                = 1;
             work->move.vy              = 0x1F40;
@@ -185,7 +185,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->flg = 0;
+            light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->scale == 0xC0) {
                 task->state = 2;
             } else {
@@ -222,7 +222,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->head.g     = rnd >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
-            light->flg              = 0;
+            light->composeStamp     = GRAPHICS_COORD_DIRTY;
             D_m4a1_javelin_8012EB66 = 0;
             if (D_m4a1_javelin_8012EB70 != 0) {
                 pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
@@ -746,7 +746,7 @@ static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 void func_m4a1_javelin_8011F4E8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
 
     mem   = arg0->spawnArg2.pointer;
@@ -796,8 +796,8 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 static void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
-    GpCoord*   spot;
+    GfxCoord*  coord;
+    GfxCoord*  spot;
     GpEffWork* eff;
     s32        anim;
     s32        delay;
@@ -805,10 +805,10 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
     u16        count;
 
     SCRATCH_PUSH_BYTES(0x58);
-    coord     = arg0->extra.tmd->coords;
-    actor     = arg0->work;
-    spot      = SCRATCH_HEAD(GpCoord);
-    spot->sub = NULL;
+    coord        = arg0->extra.tmd->coords;
+    actor        = arg0->work;
+    spot         = SCRATCH_HEAD(GfxCoord);
+    spot->parent = NULL;
 
     switch (actor->field_95E) {
         case 0:

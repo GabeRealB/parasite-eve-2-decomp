@@ -301,7 +301,7 @@ static Task* Display_SpawnFromMode(void)
     u32        mode;
     Task*      slot;
     GameActor* obj;
-    GpCoord*   ptr;
+    GfxCoord*  ptr;
     GpAreaKey* ed;
     s32        flag;
 
@@ -332,7 +332,7 @@ static Task* Display_SpawnFromMode(void)
             func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
         }
         Gp_ClearRec18Occupied(&obj->field_17C);
-        ptr->flg = 0;
+        ptr->composeStamp = GRAPHICS_COORD_DIRTY;
     block_case13:
         Stage_Ctx->field_15 = 1;
         if (Stage_Ctx->field_C == 3) {
@@ -365,7 +365,7 @@ block_default:
         func_801011D0(ptr, obj->field_88[0].field_8, 6, &obj->field_930);
     }
     Gp_ClearRec18Occupied(&obj->field_17C);
-    ptr->flg = 0;
+    ptr->composeStamp = GRAPHICS_COORD_DIRTY;
 
 block_end:
     return ret;

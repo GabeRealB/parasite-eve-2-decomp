@@ -160,9 +160,9 @@ static void func_dryfield_night_water_hole_8017DE20(Task* task);
 static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
 static void func_dryfield_night_water_hole_8017E690(Task* arg0);
 static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1);
-static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_water_hole_8017F3A8(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_night_water_hole_8017FB98(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_night_water_hole_8017FF84(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 void func_dryfield_night_water_hole_8017E630(Task*);
 
@@ -190,13 +190,7 @@ s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_night_water_hole_8017D7E8(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightWaterHolePoseBank2C60;
-
-DryfieldNightWaterHolePoseBank2C60 D_dryfield_night_water_hole_80180220 = { .poses = {
+AnimationPackedPose D_dryfield_night_water_hole_80180220[6] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
 };
 
@@ -1473,8 +1467,8 @@ static void func_dryfield_night_water_hole_8017DF28(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         D_dryfield_night_water_hole_8018362C[0]++;
     }
-    phase             = -(D_dryfield_night_water_hole_8018362C[0] * 16);
-    gGfxViewCoord.flg = 0;
+    phase                      = -(D_dryfield_night_water_hole_8018362C[0] * 16);
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1616,10 +1610,10 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     Task*                          ctl;
     s32                            mask;
     _DryfieldNightWaterHoleSplash* splash;
-    GpCoord*                       ctlCoords;
-    GpCoord*                       part;
-    GpCoord*                       view;
-    GpCoord                        surface;
+    GfxCoord*                      ctlCoords;
+    GfxCoord*                      part;
+    GfxCoord*                      view;
+    GfxCoord                       surface;
     s32                            i;
     u32                            rnd;
 
@@ -1652,9 +1646,9 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                                        ABS(D_dryfield_night_water_hole_801809F4[i].vy - part->workm.t[1]) +
                                        ABS(D_dryfield_night_water_hole_801809F4[i].vz - part->workm.t[2]) + 0x20;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
-                    surface.sub        = view;
-                    surface.coord.t[1] = gGameSession->waterY;
-                    surface.flg        = 0;
+                    surface.parent       = view;
+                    surface.coord.t[1]   = gGameSession->waterY;
+                    surface.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&surface);
                     rnd = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
@@ -1826,7 +1820,7 @@ static void func_dryfield_night_water_hole_8017EA6C(SVECTOR* arg0, s32 arg1)
 void func_dryfield_night_water_hole_8017F254(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1843,8 +1837,8 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_dryfield_night_water_hole_8017F3A8(coord, work->angle, work->scale);
@@ -1861,7 +1855,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_water_hole_8017F3A8(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1949,7 +1943,7 @@ static void func_dryfield_night_water_hole_8017F3A8(GpCoord* arg0, s32 arg1, s32
 void func_dryfield_night_water_hole_8017F6DC(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -2051,11 +2045,11 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2071,7 +2065,7 @@ void func_dryfield_night_water_hole_8017F6DC(Task* task)
 /// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
 /// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
 /// `arg3`. The work block lives on the scratchpad stack.
-static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_night_water_hole_8017FB98(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2136,7 +2130,7 @@ static void func_dryfield_night_water_hole_8017FB98(GpCoord* arg0, s32 arg1, s32
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-static void func_dryfield_night_water_hole_8017FF84(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_night_water_hole_8017FF84(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;

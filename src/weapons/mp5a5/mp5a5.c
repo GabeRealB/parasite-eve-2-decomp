@@ -42,8 +42,8 @@
 
 #include "weapons/weapons_shared_8011d864.h"
 
-static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_mp5a5_8011D468(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_mp5a5_8011D864(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The weapon's index: 0x1E for the MP5A5, 0x1F and 0x20 for its two upgrades.
 /// The three packages are this source built once each, and each declares its
@@ -69,7 +69,7 @@ static void func_mp5a5_8011DDA4(Task* arg0);
 void func_mp5a5_8011D1E0(Task* task)
 {
     GpEffWork*    work;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     u8            rgb[3];
@@ -78,7 +78,7 @@ void func_mp5a5_8011D1E0(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
-    slot  = &base->data.light;
+    slot  = &base->light;
 
     if (Gp_State1C->eventState >= 2) {
         return;
@@ -87,22 +87,22 @@ void func_mp5a5_8011D1E0(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-            slot->head.u.coord.coord.t[2] = coord->coord.t[2];
-            base->data.coord.flg          = 0;
-            slot->head.r                  = 0x1000;
-            slot->head.g                  = 0x1000;
-            slot->head.b                  = 0x1000;
-            slot->inner                   = 0xFA0;
-            slot->outer                   = 0x12C0;
-            base->framesLeft              = 4;
+            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+            slot->head.u.coord.coord.t[2]         = coord->coord.t[2];
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.r                          = 0x1000;
+            slot->head.g                          = 0x1000;
+            slot->head.b                          = 0x1000;
+            slot->inner                           = 0xFA0;
+            slot->outer                           = 0x12C0;
+            base->framesLeft                      = 4;
 
-            coord->sub        = work->parent;
-            coord->coord.t[0] = D_mp5a5_8011E128.vx;
-            coord->coord.t[1] = D_mp5a5_8011E128.vy;
-            coord->coord.t[2] = D_mp5a5_8011E128.vz;
-            coord->flg        = 0;
+            coord->parent       = work->parent;
+            coord->coord.t[0]   = D_mp5a5_8011E128.vx;
+            coord->coord.t[1]   = D_mp5a5_8011E128.vy;
+            coord->coord.t[2]   = D_mp5a5_8011E128.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
 
             work->period = 0xC0;
@@ -157,7 +157,7 @@ void func_mp5a5_8011D1E0(Task* task)
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
 
-static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_mp5a5_8011D468(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -214,7 +214,7 @@ static void func_mp5a5_8011D468(GpCoord* arg0, s16 arg1, s16 arg2)
 /// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
 /// the flash brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_mp5a5_8011D864(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     WeaponQuadScratch* blk;
@@ -325,14 +325,14 @@ static void func_mp5a5_8011D864(GpCoord* arg0, s16 arg1, s16 arg2)
 static void func_mp5a5_8011DDA4(Task* arg0)
 {
     GameActor*    actor;
-    GpCoord*      coord;
-    GpCoord*      spot;
+    GfxCoord*     coord;
+    GfxCoord*     spot;
     GpActorD4Rec* rec;
     GpEffWork*    eff;
     s32           anim;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GpCoord);
+    spot  = SCRATCH_HEAD(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

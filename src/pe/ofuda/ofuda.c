@@ -35,7 +35,7 @@
 void ofudaEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     s32         pan;
     u8          rgb[3];

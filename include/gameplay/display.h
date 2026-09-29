@@ -31,9 +31,9 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// at the node's own `coord` rather than at an array of them.
 typedef struct GpDisp2d {
     TmdListHead link;    // Its place on `gTmdDisp2dList`
-    GpCoord*    coords;  // The body's coordinate, i.e. `&coord`
+    GfxCoord*   coords;  // The body's coordinate, i.e. `&coord`
     s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
-    GpCoord     coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
+    GfxCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 

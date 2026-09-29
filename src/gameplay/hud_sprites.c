@@ -193,19 +193,19 @@ static s32 func_800A7F2C(s32 arg0);
 /// Updates both coordinate frames and writes the transform from `arg0` to
 /// `root` into `result->coord`, using the transposed root rotation to rotate
 /// the orientation and translation delta.
-static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, GpCoord* result);
+static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* result);
 
 /// Points the active view at `arg0`: the transposed rotation goes to
 /// `gGfxViewRotCoord.coord` and the negated translation to `gGfxViewCoord.coord.t`, with
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
-static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1);
+static void Gp_SetViewFromCoord(GfxCoord* arg0, VECTOR* arg1);
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
-static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1);
+static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1);
 
 static void Gp_ResetView(void);
 
@@ -590,7 +590,7 @@ void Gp_UpdateLinkXforms(void)
 {
     GpLinkNode*     node;
     Task*           slot;
-    GpCoord*        player;
+    GfxCoord*       player;
     GpXformScratch* block;
 
     node = Gp_LinkList;
@@ -1115,7 +1115,7 @@ s32 Gp_SpendMp(s32 arg0)
 /// Updates both coordinate frames and writes the transform from `arg0` to
 /// `root` into `result->coord`, using the transposed root rotation to rotate
 /// the orientation and translation delta.
-static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, GpCoord* result)
+static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* result)
 {
     _GpRelMatScratch* tmp;
     MATRIX*           rootm;
@@ -1149,11 +1149,11 @@ static __inline__ void coordToRoot(GpCoord* arg0, GpCoord* root, GpCoord* result
 /// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
-static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
+static void Gp_SetViewFromCoord(GfxCoord* arg0, VECTOR* arg1)
 {
-    GpCoord* root;
-    GpCoord* parent;
-    GpCoord  rel;
+    GfxCoord* root;
+    GfxCoord* parent;
+    GfxCoord  rel;
 
     if (arg1 != NULL) {
         Gfx_ViewOffsetCoord.coord.t[0] = arg1->vx;
@@ -1165,7 +1165,7 @@ static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
         Gfx_ViewOffsetCoord.coord.t[2] = 0;
     }
 
-    parent = arg0->sub;
+    parent = arg0->parent;
     root   = &gGfxViewCoord;
     if (parent == root) {
         gte_TransposeMatrix(&arg0->coord, &gGfxViewRotCoord.coord);
@@ -1179,24 +1179,24 @@ static void Gp_SetViewFromCoord(GpCoord* arg0, VECTOR* arg1)
         root->coord.t[1] = -rel.coord.t[1];
         root->coord.t[2] = -rel.coord.t[2];
     }
-    arg0->flg = 0;
+    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_ViewOffsetCoord.flg = 0;
-    gGfxViewRotCoord.flg    = 0;
-    gGfxViewCoord.flg       = 0;
+    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
+    gGfxViewCoord.composeStamp       = GRAPHICS_COORD_DIRTY;
 }
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
-static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
+static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
 {
-    GpCoord* coord;
-    Task*    task;
-    VECTOR*  pos;
-    GpCoord* root;
-    GpCoord* parent;
-    GpCoord  rel;
+    GfxCoord* coord;
+    Task*     task;
+    VECTOR*   pos;
+    GfxCoord* root;
+    GfxCoord* parent;
+    GfxCoord  rel;
 
     task = Task_Spawn(0, 0xE, 0, 0);
     if (task == NULL) {
@@ -1219,7 +1219,7 @@ static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
         pos->vz = 0;
     }
 
-    parent = arg0->sub;
+    parent = arg0->parent;
     root   = &gGfxViewCoord;
     if (parent == root) {
         gte_TransposeMatrix(&arg0->coord, &coord->coord);
@@ -1239,10 +1239,10 @@ static s32 Gp_SpawnViewCoordTask(GpCoord* arg0, VECTOR* arg1)
 void func_800A8654(Task* task)
 {
     VECTOR*    vec;
-    GpCoord*   src;
-    GpCoord*   c1;
-    GpCoord*   c2;
-    GpCoord*   c3;
+    GfxCoord*  src;
+    GfxCoord*  c1;
+    GfxCoord*  c2;
+    GfxCoord*  c3;
     TmdObject* extra;
     s32        i;
     s32        j;
@@ -1268,9 +1268,9 @@ void func_800A8654(Task* task)
     c3->coord.t[1] = src->coord.t[1];
     c3->coord.t[2] = src->coord.t[2];
 
-    Gfx_ViewOffsetCoord.flg = 0;
-    gGfxViewRotCoord.flg    = 0;
-    gGfxViewCoord.flg       = 0;
+    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    gGfxViewRotCoord.composeStamp    = GRAPHICS_COORD_DIRTY;
+    gGfxViewCoord.composeStamp       = GRAPHICS_COORD_DIRTY;
     taskKill(task);
 }
 
@@ -1280,7 +1280,7 @@ void Gp_LoadStageView(void)
     GpViewTbl* tbl;
     GpViewRec* recs;
     GpViewRec* rec;
-    GpCoord*   c1;
+    GfxCoord*  c1;
     MATRIX*    rot;
     VECTOR3*   trans;
     u8         idx;
@@ -1308,9 +1308,9 @@ void Gp_LoadStageView(void)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                 = 0;
-    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
-    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
+    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
@@ -1339,9 +1339,9 @@ s32 Gp_TrySpawnViewTask(GpViewRec* arg0)
 
 void Gp_ApplyView(GpViewRec* arg0)
 {
-    GpCoord* c1;
-    MATRIX*  rot;
-    VECTOR3* trans;
+    GfxCoord* c1;
+    MATRIX*   rot;
+    VECTOR3*  trans;
 
     rot   = &gGfxViewRotCoord.coord;
     trans = MATRIX_TRANS(&gGfxViewCoord.coord);
@@ -1358,18 +1358,18 @@ void Gp_ApplyView(GpViewRec* arg0)
     gte_SetGeomScreen(arg0->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                 = 0;
-    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
-    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
+    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 static void Gp_ResetView(void)
 {
-    MATRIX*           m;
-    volatile GpCoord* c1;
-    GpCoord*          c2;
-    GpCoord*          c3;
-    s32               one;
+    MATRIX*            m;
+    volatile GfxCoord* c1;
+    GfxCoord*          c2;
+    GfxCoord*          c3;
+    s32                one;
 
     c1             = &Gfx_ViewOffsetCoord;
     one            = ONE;
@@ -1379,7 +1379,7 @@ static void Gp_ResetView(void)
 
     *(volatile s32*)&gGfxViewRotCoord.coord = one;
     m                                       = &gGfxViewRotCoord.coord;
-    c2                                      = PARENT_OF(m, GpCoord, coord);
+    c2                                      = PARENT_OF(m, GfxCoord, coord);
     MATRIX_PAIR(m, 1, 1)                    = one;
     m->m[2][2]                              = one;
 
@@ -1389,9 +1389,9 @@ static void Gp_ResetView(void)
     c3->coord.t[0]       = 0;
     c3->coord.t[1]       = 0;
     c3->coord.t[2]       = 0;
-    c1->flg              = 0;
-    c2->flg              = 0;
-    c3->flg              = 0;
+    c1->composeStamp     = GRAPHICS_COORD_DIRTY;
+    c2->composeStamp     = GRAPHICS_COORD_DIRTY;
+    c3->composeStamp     = GRAPHICS_COORD_DIRTY;
 }
 
 void Gp_SpawnViewTasks(void)
@@ -1425,7 +1425,7 @@ GpViewRec* Gp_GetStageView(GpAreaKey* arg0)
 
 void Gp_ApplyViewTask(Task* task)
 {
-    GpCoord*   c1;
+    GfxCoord*  c1;
     MATRIX*    rot;
     VECTOR3*   trans;
     GpViewRec* rec;
@@ -1446,25 +1446,25 @@ void Gp_ApplyViewTask(Task* task)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    Gfx_ViewOffsetCoord.flg                 = 0;
-    PARENT_OF(rot, GpCoord, coord)->flg     = 0;
-    PARENT_OF(trans, GpCoord, coord.t)->flg = 0;
+    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
     taskKill(task);
 }
 
 static void func_800A8D5C(void)
 {
-    VECTOR  vec;
-    GpCoord coord;
-    s32     one;
-    MATRIX* m;
+    VECTOR   vec;
+    GfxCoord coord;
+    s32      one;
+    MATRIX*  m;
 
     vec.vx                          = 0;
     vec.vy                          = 0;
     vec.vz                          = ONE;
     one                             = ONE;
     m                               = &coord.coord;
-    coord.sub                       = &gGfxViewCoord;
+    coord.parent                    = &gGfxViewCoord;
     *(s32*)&coord.coord             = one;
     MATRIX_PAIR(&coord.coord, 0, 2) = 0;
     MATRIX_PAIR(m, 1, 1)            = one;

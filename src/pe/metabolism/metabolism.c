@@ -62,7 +62,7 @@ static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 /// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
 static s16 D_metabolism_8012FB78[16];
 
-static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `Gp_State1C->fadeState >= 4`) releases the work block. State 0 parents the
@@ -80,7 +80,7 @@ static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 void func_metabolism_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     GpEffWork*  spawned;
     s32         pan;
@@ -99,17 +99,17 @@ void func_metabolism_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot               = (GpMtxWords*)&coord->coord;
-            coord->sub        = (gameGetPtrSlot(3))->extra.tmd->coords;
-            rot->m00_m01      = 0x1000;
-            rot->m02_m10      = 0;
-            rot->m11_m12      = 0x1000;
-            rot->m20_m21      = 0;
-            rot->m22          = 0x1000;
-            coord->coord.t[0] = 0;
-            coord->coord.t[1] = -0x400;
-            coord->coord.t[2] = 0;
-            coord->flg        = 0;
+            rot                 = (GpMtxWords*)&coord->coord;
+            coord->parent       = (gameGetPtrSlot(3))->extra.tmd->coords;
+            rot->m00_m01        = 0x1000;
+            rot->m02_m10        = 0;
+            rot->m11_m12        = 0x1000;
+            rot->m20_m21        = 0;
+            rot->m22            = 0x1000;
+            coord->coord.t[0]   = 0;
+            coord->coord.t[1]   = -0x400;
+            coord->coord.t[2]   = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.field_0 % 10) - 1;
@@ -218,7 +218,7 @@ void func_metabolism_8012EF34(Task* arg0)
 void func_metabolism_8012F5A0(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        y;
     s16        step;
     u16        kind;
@@ -248,10 +248,10 @@ void func_metabolism_8012F5A0(Task* arg0)
             }
             return;
         case 1:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -268,10 +268,10 @@ void func_metabolism_8012F5A0(Task* arg0)
             }
             break;
         case 2:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -297,7 +297,7 @@ void func_metabolism_8012F5A0(Task* arg0)
 /// is a single channel: red is halved, green is `arg3`, blue is shifted by
 /// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
 /// negative `gte_stflg` drops the wedge.
-static void func_metabolism_8012F840(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*            head;
     GpRingScratch* block;

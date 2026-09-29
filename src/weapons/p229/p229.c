@@ -40,8 +40,8 @@
 
 #include "weapons/weapons_shared_8011d864.h"
 
-static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 static SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
@@ -60,7 +60,7 @@ static void func_p229_8011DDA0(Task* arg0);
 void func_p229_8011D1DC(Task* task)
 {
     GpEffWork*    work;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     u8            rgb[3];
@@ -69,7 +69,7 @@ void func_p229_8011D1DC(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[0];
-    slot  = &base->data.light;
+    slot  = &base->light;
 
     if (Gp_State1C->eventState >= 2) {
         return;
@@ -78,22 +78,22 @@ void func_p229_8011D1DC(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-            slot->head.u.coord.coord.t[2] = coord->coord.t[2];
-            base->data.coord.flg          = 0;
-            slot->head.r                  = 0x1000;
-            slot->head.g                  = 0x1000;
-            slot->head.b                  = 0x1000;
-            slot->inner                   = 0xFA0;
-            slot->outer                   = 0x12C0;
-            base->framesLeft              = 4;
+            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+            slot->head.u.coord.coord.t[2]         = coord->coord.t[2];
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.r                          = 0x1000;
+            slot->head.g                          = 0x1000;
+            slot->head.b                          = 0x1000;
+            slot->inner                           = 0xFA0;
+            slot->outer                           = 0x12C0;
+            base->framesLeft                      = 4;
 
-            coord->sub        = work->parent;
-            coord->coord.t[0] = D_p229_8011E0F0.vx;
-            coord->coord.t[1] = D_p229_8011E0F0.vy;
-            coord->coord.t[2] = D_p229_8011E0F0.vz;
-            coord->flg        = 0;
+            coord->parent       = work->parent;
+            coord->coord.t[0]   = D_p229_8011E0F0.vx;
+            coord->coord.t[1]   = D_p229_8011E0F0.vy;
+            coord->coord.t[2]   = D_p229_8011E0F0.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
 
             work->period = 0xC0;
@@ -148,7 +148,7 @@ void func_p229_8011D1DC(Task* task)
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
 
-static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -205,7 +205,7 @@ static void func_p229_8011D464(GpCoord* arg0, s16 arg1, s16 arg2)
 /// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
 /// the flash brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     WeaponQuadScratch* blk;
@@ -316,8 +316,8 @@ static void func_p229_8011D860(GpCoord* arg0, s16 arg1, s16 arg2)
 static void func_p229_8011DDA0(Task* arg0)
 {
     GameActor*    actor;
-    GpCoord*      coord;
-    GpCoord*      spot;
+    GfxCoord*     coord;
+    GfxCoord*     spot;
     GpActorD4Rec* rec;
     GpEffWork*    eff;
     s32           anim;
@@ -330,7 +330,7 @@ static void func_p229_8011DDA0(Task* arg0)
        of the scratch-head address wins the ready list and reschedules the
        entry. */
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GpCoord);
+    spot = SCRATCH_HEAD(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;

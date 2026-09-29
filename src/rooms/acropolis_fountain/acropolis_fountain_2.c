@@ -1375,7 +1375,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     u8*               head;
     RoomShaftScratch* blk;
     s32*              otzp;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     POLY_FT4*         prim;
     s16               x;
     s16               y;
@@ -1446,7 +1446,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
 void func_acropolis_fountain_8017E014(Task* task)
 {
     AcropolisFountainSplash* splash;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
     s32                      view;
     s32                      one;
     s32                      mask;

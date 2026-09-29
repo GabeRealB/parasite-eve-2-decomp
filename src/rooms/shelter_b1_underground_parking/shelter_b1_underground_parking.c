@@ -1949,7 +1949,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
 {
     Task*      task;
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        z;
     s32        facing;
 

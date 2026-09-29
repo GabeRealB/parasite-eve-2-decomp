@@ -320,7 +320,7 @@ extern Actor503500WorkF4 D_actor_503500_80177A6C;
 extern Actor503500Work776A0 D_actor_503500_801776A0;
 
 static void func_actor_503500_80141A44(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, long* out);
-static void func_actor_503500_80142220(SVECTOR* angles, GpCoord* nodes);
+static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes);
 
 extern Actor503500Work774C0 D_actor_503500_8017797C;
 
@@ -445,7 +445,7 @@ static void func_actor_503500_801448E8(Task* arg0);
 static void func_actor_503500_80144D50(Task* arg0);
 
 static void func_actor_503500_8013BD0C(Task* arg0);
-static void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords);
+static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords);
 
 /// `Task::state` handlers `func_actor_503500_8013BE8C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131FF0 = {
@@ -484,7 +484,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
 {
     GpEnemy*              enemy;
     Task*                 parent;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     MATRIX*               mtx;
     GpRec18*              rec;
     Actor503500Work774C0* work;
@@ -499,7 +499,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
     arg0->work     = (Actor503500Work*)work;
     work->field_EC = idx;
 
-    coord->sub                       = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
+    coord->parent                    = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
     mtx                              = &coord->coord;
     MATRIX_PAIR(mtx, 0, 2)           = 0;
@@ -552,8 +552,8 @@ static void func_actor_503500_8013AF60(Task* arg0, Actor503500Work* arg1, GpRec1
     SVECTOR          pos;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         src;
+    GfxCoord*        coord;
+    GfxCoord*        src;
     s16              stun;
     u32              id;
     s32              dmg;
@@ -694,18 +694,18 @@ static void func_actor_503500_8013B460(Task* arg0)
 /// an `s32` so the sign extension of the `u16` component survives.
 static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
 {
-    SVECTOR  pos;
-    SVECTOR  ofs;
-    MATRIX   m;
-    GpCoord* src;
-    GpCoord* coord;
-    Task*    task;
-    s32*     dst;
-    s32*     p;
-    s32      i;
-    s32      t;
-    u16      vx;
-    u16      vy;
+    SVECTOR   pos;
+    SVECTOR   ofs;
+    MATRIX    m;
+    GfxCoord* src;
+    GfxCoord* coord;
+    Task*     task;
+    s32*      dst;
+    s32*      p;
+    s32       i;
+    s32       t;
+    u16       vx;
+    u16       vy;
 
     src  = arg0->extra.tmd->coords;
     task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 1, 0, 0xA00000);
@@ -761,7 +761,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor503500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     s32              pan;
     s32              side;
@@ -829,8 +829,8 @@ static void func_actor_503500_8013B8D0(Task* arg0)
 
 static void func_actor_503500_8013BBCC(Task* arg0)
 {
-    GpEnemy* enemy;
-    GpCoord* coord;
+    GpEnemy*  enemy;
+    GfxCoord* coord;
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -841,7 +841,7 @@ static void func_actor_503500_8013BBCC(Task* arg0)
         enemy->node.state.b.flags |= 1;
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
         func_actor_503500_8013BCB4(arg0);
     }
@@ -853,8 +853,8 @@ static void func_actor_503500_8013BC54(Task* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                        = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    enemy                           = arg0->spawnArg2.pointer;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
@@ -960,12 +960,12 @@ static const TaskFuncTable3 D_actor_503500_80132028 = {
 /// block in sub-state 0.
 static void func_actor_503500_8013BEE4(Task* arg0)
 {
-    GpEnemy* enemy;
-    Task*    parent;
-    GpCoord* coord;
-    GpCoord* parts;
-    MATRIX*  mtx;
-    GpRec18* rec;
+    GpEnemy*  enemy;
+    Task*     parent;
+    GfxCoord* coord;
+    GfxCoord* parts;
+    MATRIX*   mtx;
+    GpRec18*  rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -975,7 +975,7 @@ static void func_actor_503500_8013BEE4(Task* arg0)
 
     parts                            = parent->extra.tmd->coords;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->sub                       = &parts[16];
+    coord->parent                    = &parts[16];
     mtx                              = &coord->coord;
     MATRIX_PAIR(mtx, 0, 2)           = 0;
     MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
@@ -1027,8 +1027,8 @@ static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec1
     MATRIX           rot;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         src;
+    GfxCoord*        coord;
+    GfxCoord*        src;
     s16              stun;
     u32              id;
     s32              dmg;
@@ -1127,7 +1127,7 @@ static void func_actor_503500_8013C088(Task* arg0, Actor503500Work* arg1, GpRec1
 static void func_actor_503500_8013C558(Task* arg0)
 {
     Actor503500Work776A0* work;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     SVECTOR               vec;
     s32                   pan;
 
@@ -1188,8 +1188,8 @@ static void func_actor_503500_8013C558(Task* arg0)
 /// coordinate flag and runs the normal chain.
 static void func_actor_503500_8013C878(Task* arg0)
 {
-    GpEnemy* enemy;
-    GpCoord* coord;
+    GpEnemy*  enemy;
+    GfxCoord* coord;
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -1200,7 +1200,7 @@ static void func_actor_503500_8013C878(Task* arg0)
         enemy->node.state.b.flags |= 1;
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
         func_actor_503500_8013C9DC(arg0);
     }
@@ -1212,8 +1212,8 @@ static void func_actor_503500_8013C900(Task* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                        = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    enemy                           = arg0->spawnArg2.pointer;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
@@ -1299,9 +1299,9 @@ static void func_actor_503500_8013CAE4(Task* arg0)
 {
     GpEnemy*              enemy;
     Task*                 parent;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     MATRIX*               mtx;
-    GpCoord*              parts;
+    GfxCoord*             parts;
     GpRec18*              rec;
     Actor503500Work770E8* work;
     SVECTOR*              pos;
@@ -1318,7 +1318,7 @@ static void func_actor_503500_8013CAE4(Task* arg0)
 
     parts                            = parent->extra.tmd->coords;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->sub                       = &parts[1];
+    coord->parent                    = &parts[1];
     mtx                              = &coord->coord;
     MATRIX_PAIR(mtx, 0, 2)           = 0;
     MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
@@ -1369,8 +1369,8 @@ static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec1
     MATRIX           rot;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         src;
+    GfxCoord*        coord;
+    GfxCoord*        src;
     s16              stun;
     u32              id;
     s32              dmg;
@@ -1482,8 +1482,8 @@ static void func_actor_503500_8013D1CC(Task* arg0)
     SVECTOR               ofs;
     MATRIX                m;
     Actor503500Work770E8* work;
-    GpCoord*              coord;
-    GpCoord*              dst;
+    GfxCoord*             coord;
+    GfxCoord*             dst;
     Task*                 task;
     s32*                  src;
     s32*                  out;
@@ -1566,7 +1566,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
 static void func_actor_503500_8013D558(Task* arg0)
 {
     Actor503500Work770E8* work;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     SVECTOR*              vec;
     s32                   pan;
 
@@ -1622,8 +1622,8 @@ static void func_actor_503500_8013D558(Task* arg0)
 /// coordinate flag and runs the normal chain.
 static void func_actor_503500_8013D7D4(Task* arg0)
 {
-    GpEnemy* enemy;
-    GpCoord* coord;
+    GpEnemy*  enemy;
+    GfxCoord* coord;
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -1634,7 +1634,7 @@ static void func_actor_503500_8013D7D4(Task* arg0)
         enemy->node.state.b.flags |= 1;
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
         func_actor_503500_8013D8BC(arg0);
     }
@@ -1646,8 +1646,8 @@ static void func_actor_503500_8013D85C(Task* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                        = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    enemy                           = arg0->spawnArg2.pointer;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
@@ -1832,12 +1832,12 @@ static const TaskFuncTable3 D_actor_503500_80132098 = {
 /// block in sub-state 0.
 static void func_actor_503500_8013DD10(Task* arg0)
 {
-    GpEnemy* enemy;
-    Task*    parent;
-    GpCoord* coord;
-    GpCoord* parts;
-    MATRIX*  mtx;
-    GpRec18* rec;
+    GpEnemy*  enemy;
+    Task*     parent;
+    GfxCoord* coord;
+    GfxCoord* parts;
+    MATRIX*   mtx;
+    GpRec18*  rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -1847,7 +1847,7 @@ static void func_actor_503500_8013DD10(Task* arg0)
 
     parts                            = parent->extra.tmd->coords;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->sub                       = &parts[1];
+    coord->parent                    = &parts[1];
     mtx                              = &coord->coord;
     MATRIX_PAIR(mtx, 0, 2)           = 0;
     MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
@@ -1898,8 +1898,8 @@ static void func_actor_503500_8013DEB4(Task* arg0, Actor503500Work* arg1, GpRec1
     MATRIX           rot;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         src;
+    GfxCoord*        coord;
+    GfxCoord*        src;
     s16              stun;
     u32              id;
     s32              dmg;
@@ -2001,8 +2001,8 @@ static void func_actor_503500_8013E384(Task* arg0)
     SVECTOR          ofs;
     MATRIX           m;
     Actor503500Work* work;
-    GpCoord*         coord;
-    GpCoord*         dst;
+    GfxCoord*        coord;
+    GfxCoord*        dst;
     Task*            task;
     s32*             src;
     s32*             out;
@@ -2081,7 +2081,7 @@ static void func_actor_503500_8013E740(Task* arg0)
 {
     GpEnemy*         enemy;
     Actor503500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              pan;
 
     enemy = arg0->spawnArg2.pointer;
@@ -2133,8 +2133,8 @@ static void func_actor_503500_8013E740(Task* arg0)
 /// coordinate flag and runs the normal chain.
 static void func_actor_503500_8013E9A4(Task* arg0)
 {
-    GpEnemy* enemy;
-    GpCoord* coord;
+    GpEnemy*  enemy;
+    GfxCoord* coord;
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -2145,7 +2145,7 @@ static void func_actor_503500_8013E9A4(Task* arg0)
         enemy->node.state.b.flags |= 1;
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
         func_actor_503500_8013EA8C(arg0);
     }
@@ -2157,8 +2157,8 @@ static void func_actor_503500_8013EA2C(Task* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                        = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    enemy                           = arg0->spawnArg2.pointer;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
@@ -2264,12 +2264,12 @@ static const TaskFuncTable3 D_actor_503500_801320D0 = {
 /// display node, and hands the block to sub-state 3.
 static void func_actor_503500_8013ECBC(Task* arg0)
 {
-    GpEnemy* enemy;
-    Task*    parent;
-    GpCoord* coord;
-    GpCoord* parts;
-    MATRIX*  mtx;
-    GpRec18* rec;
+    GpEnemy*  enemy;
+    Task*     parent;
+    GfxCoord* coord;
+    GfxCoord* parts;
+    MATRIX*   mtx;
+    GpRec18*  rec;
 
     coord  = arg0->extra.tmd->coords;
     enemy  = arg0->spawnArg2.pointer;
@@ -2279,7 +2279,7 @@ static void func_actor_503500_8013ECBC(Task* arg0)
 
     parts                            = parent->extra.tmd->coords;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->sub                       = &parts[8];
+    coord->parent                    = &parts[8];
     mtx                              = &coord->coord;
     MATRIX_PAIR(mtx, 0, 2)           = 0;
     MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
@@ -2331,8 +2331,8 @@ static void func_actor_503500_8013EE5C(Task* arg0, Actor503500Work* arg1, GpRec1
     MATRIX           rot;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         src;
+    GfxCoord*        coord;
+    GfxCoord*        src;
     s16              stun;
     u32              id;
     s32              dmg;
@@ -2431,7 +2431,7 @@ static void func_actor_503500_8013F328(Task* arg0)
 {
     Actor503500WorkF4* work = (Actor503500WorkF4*)arg0->work;
     Task*              task;
-    GpCoord*           coord;
+    GfxCoord*          coord;
 
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
         func_actor_503500_8013F9D4(arg0, 0);
@@ -2452,7 +2452,7 @@ static void func_actor_503500_8013F328(Task* arg0)
                 task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 3, 0, 0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
-                    coord->sub        = arg0->extra.tmd->coords;
+                    coord->parent     = arg0->extra.tmd->coords;
                     coord->coord.t[0] = 0;
                     coord->coord.t[1] = 0;
                     coord->coord.t[2] = 0;
@@ -2481,7 +2481,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
 {
     GpEnemy*           enemy;
     Actor503500WorkF4* work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     s32                pan;
 
     enemy = arg0->spawnArg2.pointer;
@@ -2532,8 +2532,8 @@ static void func_actor_503500_8013F4A4(Task* arg0)
 /// coordinate flag and runs the normal chain.
 static void func_actor_503500_8013F6F0(Task* arg0)
 {
-    GpEnemy* enemy;
-    GpCoord* coord;
+    GpEnemy*  enemy;
+    GfxCoord* coord;
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
@@ -2544,7 +2544,7 @@ static void func_actor_503500_8013F6F0(Task* arg0)
         enemy->node.state.b.flags |= 1;
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
         func_actor_503500_8013F7D8(arg0);
     }
@@ -2556,8 +2556,8 @@ static void func_actor_503500_8013F778(Task* arg0)
 {
     GpEnemy* enemy;
 
-    enemy                        = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    enemy                           = arg0->spawnArg2.pointer;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj);
     enemy->recs = 0;
     arg0->work  = NULL;
@@ -2677,8 +2677,8 @@ static void func_actor_503500_8013FA74(Task* arg0)
 {
     GpEnemy*            enemy;
     TmdObject*          tmd;
-    GpCoord*            coord;
-    GpCoord*            part;
+    GfxCoord*           coord;
+    GfxCoord*           part;
     Actor503500Work3D8* work;
     GpRec18*            rec;
     GpRec18*            rec2;
@@ -2695,7 +2695,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     Mem_Set(work, 0, 0x3D8);
     arg0->work = (Actor503500Work*)work;
 
-    coord->sub        = &arg0->parent->extra.tmd->coords[1];
+    coord->parent     = &arg0->parent->extra.tmd->coords[1];
     coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
@@ -2707,11 +2707,11 @@ static void func_actor_503500_8013FA74(Task* arg0)
     ident->m22        = 0x1000;
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
-    coord->flg      = 0;
-    work->field_3D7 = -1;
-    tmd->lightMtx   = &work->light;
-    tmd->colorMtx   = &work->color;
-    tmd->otOffset   = 0x12;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->field_3D7     = -1;
+    tmd->lightMtx       = &work->light;
+    tmd->colorMtx       = &work->color;
+    tmd->otOffset       = 0x12;
 
     enemy->field_4            = &coord->coord;
     part                      = &coord[8];
@@ -2857,7 +2857,7 @@ static void func_actor_503500_801400A4(Task* arg0)
     MATRIX           mtx;
     MATRIX           rot;
     Actor503500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              keep;
     s32              dist;
 
@@ -2873,7 +2873,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             work->field_370.vx = Player_Status.coordMtx->t[0];
             work->field_370.vy = Player_Status.coordMtx->t[1];
             work->field_370.vz = Player_Status.coordMtx->t[2];
-            Gp_ComposeParentWorld(coord->sub, &mtx, &pos);
+            Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
             v.vx = work->field_370.vx - pos.vx;
             v.vy = work->field_370.vy - pos.vy - 5000;
             v.vz = work->field_370.vz - pos.vz;
@@ -2891,7 +2891,7 @@ static void func_actor_503500_801400A4(Task* arg0)
                 work->field_3CC = 0x2000;
             }
             if (work->field_3D4 != 0 && work->field_3C8 > 2000) {
-                Gp_ComposeParentWorld(coord->sub, &mtx, &pos);
+                Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
                 v.vx = work->field_370.vx - pos.vx;
                 v.vy = work->field_370.vy - pos.vy + 500;
                 v.vz = work->field_370.vz - pos.vz;
@@ -3004,8 +3004,8 @@ static void func_actor_503500_80140654(Task* arg0)
     SVECTOR          rot;
     Actor503500Work* work;
     GpEnemy*         enemy;
-    GpCoord*         coord;
-    GpCoord*         part;
+    GfxCoord*        coord;
+    GfxCoord*        part;
     s16*             p;
     s32              phase;
     s32              i;
@@ -3032,13 +3032,13 @@ static void func_actor_503500_80140654(Task* arg0)
         case 1:
             if (work->field_3D4 != 0) {
                 Gp_ComposeParentWorld(coord, &m, &rot);
-                coord->coord      = m;
-                coord->coord.t[0] = rot.vx;
-                coord->coord.t[1] = rot.vy;
-                coord->coord.t[2] = rot.vz;
-                coord->sub        = &gGfxViewCoord;
-                coord->flg        = 0;
-                work->field_3D6   = phase;
+                coord->coord        = m;
+                coord->coord.t[0]   = rot.vx;
+                coord->coord.t[1]   = rot.vy;
+                coord->coord.t[2]   = rot.vz;
+                coord->parent       = &gGfxViewCoord;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->field_3D6     = phase;
                 Gp_UpdateCoord(coord);
                 SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan(coord),
                                     (s8)(gpGetObjDepth(coord) / 2));
@@ -3067,10 +3067,10 @@ static void func_actor_503500_80140654(Task* arg0)
                 } while (j++ < 3);
                 func_actor_503500_SetRotIdentity(&coord[i].coord);
                 RotMatrix(&rot, &part->coord);
-                part->flg = 0;
+                part->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            coord->flg         = 0;
-            coord->coord.t[1] += 10;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]  += 10;
             if (coord->coord.t[1] > 1000) {
                 work->field_378 = coord->coord;
                 work->field_3AC = 0x1000;
@@ -3086,7 +3086,7 @@ static void func_actor_503500_80140654(Task* arg0)
             scale.vy     = work->field_3AC;
             scale.vz     = 0x1000;
             ScaleMatrixL(&coord->coord, &scale);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             switch (work->field_3AE) {
                 case 10:
                     arg0->extra.tmd->flags |= 2;
@@ -3180,8 +3180,8 @@ static void func_actor_503500_80140D38(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     VECTOR              d;
     Actor503500Work3D8* work;
     GpEnemy*            enemy;
-    GpCoord*            coord;
-    GpCoord*            src;
+    GfxCoord*           coord;
+    GfxCoord*           src;
     s16                 stun;
     u32                 id;
     s32                 dmg;
@@ -3352,7 +3352,7 @@ static void func_actor_503500_80141448(Task* arg0)
     SVECTOR                  tmp;
     VECTOR                   out[9];
     MATRIX                   m;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
     Actor503500Work3D8Chain* work;
     s32                      i;
     s32                      v;
@@ -3379,7 +3379,7 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[1].vx += ctrl[0].vx;
     ctrl[1].vy += ctrl[0].vy;
     ctrl[1].vz += ctrl[0].vz;
-    Gp_ComposeParentWorld(coord->sub, &m, &tmp);
+    Gp_ComposeParentWorld(coord->parent, &m, &tmp);
     gte_SetRotMatrix(&m);
     gte_ldv0(&work->field_358);
     gte_rtv0();
@@ -3415,7 +3415,7 @@ static void func_actor_503500_80141448(Task* arg0)
 /// frame, and the resulting direction becomes the next link's basis
 /// (`Gfx_OrthonormalBasis`, up hint +Y) with the local segment as its
 /// translation. Works in an `Actor503500ChainScratch` on the scratchpad stack.
-static void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords)
+static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
 {
     Actor503500ChainScratch* s;
     MATRIX*                  inv;
@@ -3427,7 +3427,7 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GpCoord* coords)
     s->up.vx = 0;
     s->up.vy = 0x1000;
     s->up.vz = 0;
-    Gp_ComposeParentWorld(coords->sub, &s->world, &s->rot);
+    Gp_ComposeParentWorld(coords->parent, &s->world, &s->rot);
     for (i = 0, j = 1; i < 8; i++, j++) {
         s->diff.vx = pts[j].vx - pts[i].vx;
         s->diff.vy = pts[j].vy - pts[i].vy;
@@ -3493,7 +3493,7 @@ static void func_actor_503500_80141B94(Task* arg0)
     MATRIX           m;
     VECTOR           d;
     Actor503500Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     MATRIX*          mat;
     s32*             src;
     s32*             dst;
@@ -3532,7 +3532,7 @@ static void func_actor_503500_80141D04(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj160);
     Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->obj240);
     enemy->recs = 0;
@@ -3708,7 +3708,7 @@ static void func_actor_503500_801421A8(Task* arg0)
 /// and the matrix rebuilt from the result. The identity splat before
 /// `RotMatrixZYX` clears the node's rotation with five aligned stores, the same
 /// idiom `func_800B0928` uses.
-static void func_actor_503500_80142220(SVECTOR* angles, GpCoord* nodes)
+static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
 {
     SVECTOR ang;
     MATRIX* m;
@@ -3784,12 +3784,12 @@ static void func_actor_503500_801423C8(Task* arg0)
     Task*               parent;
     s32                 slot;
     Actor503500Work224* work;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     TmdObject*          parentTmd;
     SVECTOR*            ofs;
     GpRec18*            rec;
-    GpCoord*            parts;
-    GpCoord*            parts2;
+    GfxCoord*           parts;
+    GfxCoord*           parts2;
 
     enemy     = arg0->spawnArg2.pointer;
     tmd       = arg0->extra.tmd;
@@ -3801,16 +3801,16 @@ static void func_actor_503500_801423C8(Task* arg0)
     Mem_Set(work, 0, 0x224);
     arg0->work = (Actor503500Work*)work;
 
-    coord->sub        = &parent->extra.tmd->coords[D_actor_503500_80171464[slot]];
-    coord->coord.t[0] = D_actor_503500_80171478.vx;
-    coord->coord.t[1] = D_actor_503500_80171478.vy;
-    coord->coord.t[2] = D_actor_503500_80171478.vz;
-    work->field_220   = arg0->spawnArg1.value - 0xA;
-    tmd->lightMtx     = parentTmd->lightMtx;
-    tmd->colorMtx     = parentTmd->colorMtx;
-    tmd->otOffset     = 0x13;
-    tmd->flags       |= 0x84;
-    coord->flg        = 0;
+    coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[slot]];
+    coord->coord.t[0]   = D_actor_503500_80171478.vx;
+    coord->coord.t[1]   = D_actor_503500_80171478.vy;
+    coord->coord.t[2]   = D_actor_503500_80171478.vz;
+    work->field_220     = arg0->spawnArg1.value - 0xA;
+    tmd->lightMtx       = parentTmd->lightMtx;
+    tmd->colorMtx       = parentTmd->colorMtx;
+    tmd->otOffset       = 0x13;
+    tmd->flags         |= 0x84;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4            = &coord->coord;
     ofs                       = &D_actor_503500_80171480[slot];
@@ -3887,8 +3887,8 @@ static void func_actor_503500_801423C8(Task* arg0)
 static void func_actor_503500_8014271C(Task* arg0)
 {
     Actor503500Work224* work;
-    GpCoord*            coords;
-    GpCoord*            coord;
+    GfxCoord*           coords;
+    GfxCoord*           coord;
     s32                 side;
     s32                 anim;
     s16                 frame;
@@ -3984,8 +3984,8 @@ static void func_actor_503500_80142980(Task* arg0)
     GpMtxWords*         ident;
     Actor503500Work224* work;
     GpEnemy*            enemy;
-    GpCoord*            coord;
-    GpCoord*            src;
+    GfxCoord*           coord;
+    GfxCoord*           src;
     TmdObject*          tmd;
     s32*                in;
     s32*                out;
@@ -4029,7 +4029,7 @@ static void func_actor_503500_80142980(Task* arg0)
                 rot.vx = side != 0 ? -300 : 300;
                 rot.vy = (u32)(rcos((s16)work->field_21A << 7) * 375) >> 10;
                 rot.vz = (u32)(rsin((s16)work->field_21A << 7) * 375) >> 10;
-                Gp_SpawnEff(0x60055, coord->sub->sub, 0x01101600, &rot);
+                Gp_SpawnEff(0x60055, coord->parent->parent, 0x01101600, &rot);
             }
             if ((s16)++work->field_21A >= 0x1F) {
                 param1[3] = 4;
@@ -4089,7 +4089,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     work->vel.vz.w = 0;
                 }
                 ApplyMatrixLV(&coord->coord, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
-                coord->sub = &gGfxViewCoord;
+                coord->parent = &gGfxViewCoord;
                 Gp_UpdateCoord(coord);
                 work->field_21A = 0;
                 work->field_222++;
@@ -4160,16 +4160,16 @@ static void func_actor_503500_80142980(Task* arg0)
     gte_ldclmv((char*)&m.mat + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
-    work->pos.vx.w    += work->vel.vx.w;
-    work->pos.vy.w    += work->vel.vy.w;
-    work->pos.vz.w    += work->vel.vz.w;
-    coord->coord.t[0] += work->pos.vx.h.hi;
-    coord->coord.t[1] += work->pos.vy.h.hi;
-    coord->coord.t[2] += work->pos.vz.h.hi;
-    work->pos.vx.w     = (u16)work->pos.vx.w;
-    work->pos.vy.w     = (u16)work->pos.vy.w;
-    work->pos.vz.w     = (u16)work->pos.vz.w;
-    coord->flg         = 0;
+    work->pos.vx.w     += work->vel.vx.w;
+    work->pos.vy.w     += work->vel.vy.w;
+    work->pos.vz.w     += work->vel.vz.w;
+    coord->coord.t[0]  += work->pos.vx.h.hi;
+    coord->coord.t[1]  += work->pos.vy.h.hi;
+    coord->coord.t[2]  += work->pos.vz.h.hi;
+    work->pos.vx.w      = (u16)work->pos.vx.w;
+    work->pos.vy.w      = (u16)work->pos.vy.w;
+    work->pos.vz.w      = (u16)work->pos.vz.w;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         if (!(gDisplayState.animFrame & 3)) {
             for (i = 0, j = 0; i < 2; i++) {
@@ -4203,8 +4203,8 @@ static void func_actor_503500_801431EC(Task* arg0, GpObj* arg1, GpRec18* arg2, s
     MATRIX              rot;
     Actor503500Work224* work;
     GpEnemy*            enemy;
-    GpCoord*            coord;
-    GpCoord*            src;
+    GfxCoord*           coord;
+    GfxCoord*           src;
     s16                 stun;
     s16                 hp;
     u32                 id;
@@ -4330,9 +4330,9 @@ static void func_actor_503500_801437D0(Task* arg0, GpRec18* rec, s32 count)
     MATRIX              rot;
     GpEnemy*            enemy;
     Actor503500Work224* work;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     Task*               player;
-    GpCoord*            pcoord;
+    GfxCoord*           pcoord;
     s32*                src;
     s32*                dst;
     s32                 i;
@@ -4395,7 +4395,7 @@ void func_actor_503500_80143AC0(Task* arg0)
     GpMoveArg          msg;
     Actor503500Work38* work;
     Task*              player;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     s32*               src;
     s32*               dst;
     s32                i;
@@ -4540,7 +4540,7 @@ static void func_actor_503500_80143F78(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     work  = (Actor503500Work224*)arg0->work;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     Gp_UnlinkObj(&work->obj0);
     Gp_UnlinkObj(&work->obj1);
     Gp_UnlinkObj(&work->obj2);
@@ -4666,7 +4666,7 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
 static void func_actor_503500_80144300(Task* arg0)
 {
     Actor503500WorkC0* work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     GpRec18*           rec;
     GpEffWork*         eff;
     Task*              child;
@@ -4735,7 +4735,7 @@ static void func_actor_503500_80144300(Task* arg0)
 static void func_actor_503500_80144520(Task* arg0)
 {
     Actor503500WorkC0* work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
 
     work  = (Actor503500WorkC0*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -4785,8 +4785,8 @@ static void func_actor_503500_80144520(Task* arg0)
 
 static void func_actor_503500_801446E4(Task* arg0)
 {
-    GpCoord* coord;
-    s32      state;
+    GfxCoord* coord;
+    s32       state;
 
     coord = arg0->extra.tmd->coords;
     state = Gp_StateF0.field_4;
@@ -4795,7 +4795,7 @@ static void func_actor_503500_801446E4(Task* arg0)
             return;
         }
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_503500_80144778(arg0);
     func_actor_503500_80144520(arg0);
 }
@@ -4863,7 +4863,7 @@ static const TaskFuncTable3 D_actor_503500_801321E8 = {
 static void func_actor_503500_801448E8(Task* arg0)
 {
     Actor503500WorkB4* work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     GpRec18*           rec;
     GpEffWork*         eff;
     Task*              child;
@@ -4936,7 +4936,7 @@ static void func_actor_503500_801448E8(Task* arg0)
 static void func_actor_503500_80144B40(Task* arg0)
 {
     Actor503500WorkB4* work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     VECTOR             v;
 
     work  = (Actor503500WorkB4*)arg0->work;
@@ -4988,8 +4988,8 @@ static void func_actor_503500_80144B40(Task* arg0)
 
 static void func_actor_503500_80144D50(Task* arg0)
 {
-    GpCoord* coord;
-    s32      state;
+    GfxCoord* coord;
+    s32       state;
 
     coord = arg0->extra.tmd->coords;
     state = Gp_StateF0.field_4;
@@ -4998,7 +4998,7 @@ static void func_actor_503500_80144D50(Task* arg0)
             return;
         }
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_503500_80144E10(arg0);
     func_actor_503500_80144B40(arg0);
 }

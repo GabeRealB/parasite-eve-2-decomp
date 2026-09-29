@@ -965,7 +965,7 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1024,7 +1024,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 void func_acropolis_fire_escape_80180154(Task* task)
 {
     GpEffWork*                      work;
-    GpCoord*                        coord;
+    GfxCoord*                       coord;
     AcropolisFireEscapeGlowScratch* block;
     POLY_G4*                        prim;
     s32                             play;
@@ -1158,7 +1158,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     AcropolisFireEscapeGlowScratch* blk;
     POLY_G4*                        prim;
     LINE_G3*                        line;
-    GpCoord*                        coord;
+    GfxCoord*                       coord;
     void*                           mem;
     s32                             i;
     s32                             pulse;

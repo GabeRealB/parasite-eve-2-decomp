@@ -779,8 +779,8 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —
   but the per-part block that `Tmd_SetupGteMatrices` consumes is a
-  `GpCoord` (0x50 bytes, `workm` at `+0x24`) whose parent links
-  (`.sub`) are built at runtime, and how the animation fills its local
+  `GfxCoord` (0x50 bytes, `workm` at `+0x24`) whose parent links
+  (`.parent`) are built at runtime, and how the animation fills its local
   `coord` is not yet traced. `0xC8` turned out
   to be a vertex transform pass rather than bone data
   ([`TMD_FORMAT.md` §3.0](TMD_FORMAT.md#35-the-transform-pre-pass--0xc0--0xc4--0xc8)), so the count has

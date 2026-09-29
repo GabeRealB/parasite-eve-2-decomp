@@ -199,8 +199,8 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 {
     GpLockScanScratch* block;
     GameActor*         actor;
-    GpCoord*           coord;
-    GpCoord*           nodeCoord;
+    GfxCoord*          coord;
+    GfxCoord*          nodeCoord;
     GpLinkNode*        node;
     GpLinkNode*        best;
     s32                bestAngle;
@@ -666,10 +666,10 @@ static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
 
 void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
 {
-    GpCoord* world;
-    GpCoord* coord;
-    u8*      head;
-    MATRIX*  mat;
+    GfxCoord* world;
+    GfxCoord* coord;
+    u8*       head;
+    MATRIX*   mat;
 
     if (arg0 == NULL) {
         printf(Gp_StrGetLockPosNull);

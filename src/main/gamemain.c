@@ -51,15 +51,15 @@ u_long Gpu_OtTags[2 * GPU_OT_ENTRIES];
 
 volatile u8 D_80070E38;
 
-GpCoord gGfxViewRotCoord;
+GfxCoord gGfxViewRotCoord;
 
-GpCoord Gfx_ViewOffsetCoord;
+GfxCoord Gfx_ViewOffsetCoord;
 
 u8* Gpu_SysPrimCursor;
 
 GpuOtBuf Gpu_OtBuffers[2];
 
-GpCoord gGfxViewCoord;
+GfxCoord gGfxViewCoord;
 
 u32 Gp_LcgState;
 
@@ -473,25 +473,25 @@ static void GameMain_Loop(void)
 void Gfx_InitCoordinateTrees(void)
 {
     gfxSetRotIdentity(&Gfx_ViewOffsetCoord.coord);
-    Gfx_ViewOffsetCoord.sub        = NULL;
-    Gfx_ViewOffsetCoord.coord.t[0] = 0;
-    Gfx_ViewOffsetCoord.coord.t[1] = 0;
-    Gfx_ViewOffsetCoord.coord.t[2] = 0x8000;
-    Gfx_ViewOffsetCoord.flg        = 0;
+    Gfx_ViewOffsetCoord.parent       = NULL;
+    Gfx_ViewOffsetCoord.coord.t[0]   = 0;
+    Gfx_ViewOffsetCoord.coord.t[1]   = 0;
+    Gfx_ViewOffsetCoord.coord.t[2]   = 0x8000;
+    Gfx_ViewOffsetCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 
     gfxSetRotIdentity(&gGfxViewRotCoord.coord);
-    gGfxViewRotCoord.sub        = &Gfx_ViewOffsetCoord;
-    gGfxViewRotCoord.coord.t[0] = 0;
-    gGfxViewRotCoord.coord.t[1] = 0;
-    gGfxViewRotCoord.coord.t[2] = 0;
-    gGfxViewRotCoord.flg        = 0;
+    gGfxViewRotCoord.parent       = &Gfx_ViewOffsetCoord;
+    gGfxViewRotCoord.coord.t[0]   = 0;
+    gGfxViewRotCoord.coord.t[1]   = 0;
+    gGfxViewRotCoord.coord.t[2]   = 0;
+    gGfxViewRotCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 
     gfxSetRotIdentity(&gGfxViewCoord.coord);
-    gGfxViewCoord.sub        = &gGfxViewRotCoord;
-    gGfxViewCoord.coord.t[0] = 0;
-    gGfxViewCoord.coord.t[1] = 0;
-    gGfxViewCoord.coord.t[2] = 0;
-    gGfxViewCoord.flg        = 0;
+    gGfxViewCoord.parent       = &gGfxViewRotCoord;
+    gGfxViewCoord.coord.t[0]   = 0;
+    gGfxViewCoord.coord.t[1]   = 0;
+    gGfxViewCoord.coord.t[2]   = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
 
     gte_SetGeomScreen(0x400);
 

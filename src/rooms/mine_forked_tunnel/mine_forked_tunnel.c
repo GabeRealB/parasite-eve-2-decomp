@@ -852,13 +852,7 @@ GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MineForkedTunnelPoseBank46E8;
-
-MineForkedTunnelPoseBank46E8 D_mine_forked_tunnel_80181CA8 = { .poses = {
+AnimationPackedPose D_mine_forked_tunnel_80181CA8[6] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank1.inc"
 };
 
@@ -880,13 +874,7 @@ GpAnimSet D_mine_forked_tunnel_80181F84 = {
     { NULL, D_mine_forked_tunnel_80181CA8, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineForkedTunnelPoseBank49EC;
-
-MineForkedTunnelPoseBank49EC D_mine_forked_tunnel_80181FAC = { .poses = {
+AnimationPackedPose D_mine_forked_tunnel_80181FAC[2] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank1.inc"
 };
 
@@ -908,13 +896,7 @@ GpAnimSet D_mine_forked_tunnel_80182210 = {
     { NULL, D_mine_forked_tunnel_80181FAC, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[33];
-    AnimationPackedRotation        words[99];
-} MineForkedTunnelPoseBank4C78;
-
-MineForkedTunnelPoseBank4C78 D_mine_forked_tunnel_80182238 = { .poses = {
+AnimationPackedPose D_mine_forked_tunnel_80182238[33] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank1.inc"
 };
 
@@ -1579,7 +1561,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
     GpXformArg            placement;
     GpXformArg*           place;
     GpXformArg*           src;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     MineForkedTunnelWork* work;
 
     switch (msg->command) {
@@ -1607,7 +1589,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
             coord->param.rot.vy = place->rot.vy;
             coord->param.rot.vz = place->rot.vz;
             RotMatrixZYX(&coord->param.rot, &coord->coord);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 1:
             work = task->work;
@@ -1629,7 +1611,7 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
                     coord->param.rot.vy = src->rot.vy;
                     coord->param.rot.vz = src->rot.vz;
                     RotMatrixZYX(&coord->param.rot, &coord->coord);
-                    coord->flg = 0;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
                     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(0x75));
                     task->spawnArg1.value = 0;
@@ -1643,7 +1625,7 @@ static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 {
     GpXformArg  placement;
     GpXformArg* place;
-    GpCoord*    coord;
+    GfxCoord*   coord;
 
     if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x36) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
@@ -1662,7 +1644,7 @@ static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
         coord->param.rot.vy = place->rot.vy;
         coord->param.rot.vz = place->rot.vz;
         RotMatrixZYX(&coord->param.rot, &coord->coord);
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
         arg0->killCountdown++;
     }
@@ -1703,7 +1685,7 @@ static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// calls it directly with id 0x7D4 in `arg1`, which it does not read.
 static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
@@ -1713,7 +1695,7 @@ static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, GpXformArg* pl
     coord->param.rot.vy = placement->rot.vy;
     coord->param.rot.vz = placement->rot.vz;
     RotMatrixZYX(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -1782,9 +1764,9 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     Task*      parent;
     TmdObject* ext;
     TmdObject* parentExt;
-    GpCoord*   parentCoord;
-    GpCoord*   coord;
-    GpCoord*   dst;
+    GfxCoord*  parentCoord;
+    GfxCoord*  coord;
+    GfxCoord*  dst;
 
     parent      = task->spawnArg2.pointer;
     ext         = task->extra.tmd;
@@ -1792,11 +1774,11 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     coord       = ext->coords;
     parentCoord = parentExt->coords;
 
-    coord->flg    = 0;
-    coord->sub    = parentCoord;
-    ext->lightMtx = parentExt->lightMtx;
-    ext->colorMtx = parentExt->colorMtx;
-    ext->otOffset = -1;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = parentCoord;
+    ext->lightMtx       = parentExt->lightMtx;
+    ext->colorMtx       = parentExt->colorMtx;
+    ext->otOffset       = -1;
     Task_Reparent(parent, task);
     ext->flags = ext->flags & 0xFF7F;
 
@@ -1808,8 +1790,8 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     dst->param.rot.vy = D_mine_forked_tunnel_80181BA4.rot.vy;
     dst->param.rot.vz = D_mine_forked_tunnel_80181BA4.rot.vz;
     RotMatrixZYX(&dst->param.rot, &dst->coord);
-    dst->flg    = 0;
-    task->state = task->state + 1;
+    dst->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state       = task->state + 1;
 }
 
 /// Restores the room's layout lists from their template, then offsets the eight

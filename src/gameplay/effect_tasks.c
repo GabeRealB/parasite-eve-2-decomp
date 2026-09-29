@@ -153,9 +153,9 @@ extern SVECTOR D_8011280C[34];
 
 static void Gp_DrawEffSprite6C();
 
-static void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
-static void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
+static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3);
 
 GpQuadCorner D_80111E38[4] = {
     { 0xFFFF, 1 },
@@ -207,7 +207,7 @@ u16 Gp_FadeQuadColors[8] = {
 void Gp_EffCtlTask2B(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     s32           temp;
@@ -219,29 +219,29 @@ void Gp_EffCtlTask2B(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index                    = temp;
-                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
-                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-                t2                            = coord->coord.t[2];
-                base->data.coord.flg          = 0;
-                slot->head.r                  = 0xC00;
-                slot->head.g                  = 0xC00;
-                slot->head.b                  = 0xC00;
-                slot->inner                   = 0xFA0;
-                slot->outer                   = 0x12C0;
-                slot->head.u.coord.coord.t[2] = t2;
-                coord->sub                    = mem->parent;
-                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->flg                    = 0;
+                temp                                  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index                            = temp;
+                arg0->spawnArg1.value                 = (u8)arg0->spawnArg1.value;
+                slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+                t2                                    = coord->coord.t[2];
+                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.r                          = 0xC00;
+                slot->head.g                          = 0xC00;
+                slot->head.b                          = 0xC00;
+                slot->inner                           = 0xFA0;
+                slot->outer                           = 0x12C0;
+                slot->head.u.coord.coord.t[2]         = t2;
+                coord->parent                         = mem->parent;
+                coord->coord.t[0]                     = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                     = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                     = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -321,7 +321,7 @@ void Gp_EffCtlTask2B(Task* arg0)
 void Gp_EffCtlTask6A(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     s32           t2;
@@ -329,27 +329,27 @@ void Gp_EffCtlTask6A(Task* arg0)
     base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-                t2                            = coord->coord.t[2];
-                base->data.coord.flg          = 0;
-                slot->head.b                  = 0xC00;
-                slot->head.g                  = 0xC00;
-                slot->head.r                  = 0xC00;
-                slot->inner                   = 0xFA0;
-                slot->outer                   = 0x12C0;
-                Gp_RoomCoords->framesLeft     = 4;
-                slot->head.u.coord.coord.t[2] = t2;
-                coord->sub                    = mem->parent;
-                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->flg                    = 0;
+                slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+                t2                                    = coord->coord.t[2];
+                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.b                          = 0xC00;
+                slot->head.g                          = 0xC00;
+                slot->head.r                          = 0xC00;
+                slot->inner                           = 0xFA0;
+                slot->outer                           = 0x12C0;
+                Gp_RoomCoords->framesLeft             = 4;
+                slot->head.u.coord.coord.t[2]         = t2;
+                coord->parent                         = mem->parent;
+                coord->coord.t[0]                     = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                     = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                     = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                 mem->scale   = (Gp_LcgState >> 16) & 0x1FF;
@@ -385,7 +385,7 @@ void Gp_EffCtlTask6A(Task* arg0)
 void Gp_EffCtlTask6B(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     GpState1C*    st;
@@ -395,31 +395,31 @@ void Gp_EffCtlTask6B(Task* arg0)
     s32           count;
 
     base  = Gp_RoomCoords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     st    = Gp_State1C;
     if (st->eventState < 2) {
         mem->age++;
         if (arg0->state == 0) {
-            temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->index                    = temp;
-            arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
-            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-            t2                            = coord->coord.t[2];
-            base->data.coord.flg          = 0;
-            slot->head.r                  = 0xC00;
-            slot->head.g                  = 0xC00;
-            slot->head.b                  = 0xC00;
-            slot->inner                   = 0xFA0;
-            slot->outer                   = 0x12C0;
-            slot->head.u.coord.coord.t[2] = t2;
-            coord->sub                    = mem->parent;
-            coord->coord.t[0]             = D_801124DC[arg0->spawnArg1.value].vx;
-            coord->coord.t[1]             = D_801124DC[arg0->spawnArg1.value].vy;
-            coord->coord.t[2]             = D_801124DC[arg0->spawnArg1.value].vz;
-            coord->flg                    = 0;
+            temp                                  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            mem->index                            = temp;
+            arg0->spawnArg1.value                 = (u8)arg0->spawnArg1.value;
+            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+            t2                                    = coord->coord.t[2];
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.r                          = 0xC00;
+            slot->head.g                          = 0xC00;
+            slot->head.b                          = 0xC00;
+            slot->inner                           = 0xFA0;
+            slot->outer                           = 0x12C0;
+            slot->head.u.coord.coord.t[2]         = t2;
+            coord->parent                         = mem->parent;
+            coord->coord.t[0]                     = D_801124DC[arg0->spawnArg1.value].vx;
+            coord->coord.t[1]                     = D_801124DC[arg0->spawnArg1.value].vy;
+            coord->coord.t[2]                     = D_801124DC[arg0->spawnArg1.value].vz;
+            coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->scale   = ((u32)Gp_LcgState >> 16) & 0x1FF;
@@ -456,7 +456,7 @@ void Gp_EffCtlTask6B(Task* arg0)
 void func_800ED42C(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     SVECTOR*      vec;
@@ -468,29 +468,29 @@ void func_800ED42C(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index                    = temp;
-                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
-                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-                t2                            = coord->coord.t[2];
-                base->data.coord.flg          = 0;
-                slot->head.r                  = 0xE00;
-                slot->head.g                  = 0xA00;
-                slot->head.b                  = 0xA00;
-                slot->inner                   = 0xFA0;
-                slot->outer                   = 0x12C0;
-                slot->head.u.coord.coord.t[2] = t2;
-                coord->sub                    = mem->parent;
-                coord->coord.t[0]             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->flg                    = 0;
+                temp                                  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index                            = temp;
+                arg0->spawnArg1.value                 = (u8)arg0->spawnArg1.value;
+                slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+                t2                                    = coord->coord.t[2];
+                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.r                          = 0xE00;
+                slot->head.g                          = 0xA00;
+                slot->head.b                          = 0xA00;
+                slot->inner                           = 0xFA0;
+                slot->outer                           = 0x12C0;
+                slot->head.u.coord.coord.t[2]         = t2;
+                coord->parent                         = mem->parent;
+                coord->coord.t[0]                     = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                     = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                     = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -584,7 +584,7 @@ void func_800ED42C(Task* arg0)
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x200, vec);
                             i = 0;
                             Gfx_RotMatrixX(&coord->coord, 0x400, i);
-                            coord->flg = 0;
+                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
                             for (; i < 0xC; i++) {
                                 Gp_SpawnEff(0x600A4, coord, 0, 0);
                             }
@@ -610,7 +610,7 @@ void func_800ED42C(Task* arg0)
                                                    ((u32)Gp_LcgState >> 16) & 0xFFF);
                             }
                             Gfx_RotMatrixX(&coord->coord, 0x400, 0);
-                            coord->flg = 0;
+                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
                         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                         Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x20300, 0);
@@ -645,7 +645,7 @@ void func_800ED42C(Task* arg0)
 void Gp_EffCtlTask6C(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     s32           temp;
@@ -659,29 +659,29 @@ void Gp_EffCtlTask6C(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     base  = Gp_RoomCoords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     if (Gp_State1C->eventState < 2) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index                    = temp;
-                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
-                slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-                slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-                t2                            = coord->coord.t[2];
-                base->data.coord.flg          = 0;
-                slot->head.r                  = 0xC00;
-                slot->head.g                  = 0xC00;
-                slot->head.b                  = 0xC00;
-                slot->inner                   = 0xFA0;
-                slot->outer                   = 0x12C0;
-                slot->head.u.coord.coord.t[2] = t2;
-                coord->sub                    = mem->parent;
-                coord->coord.t[0]             = D_801126FC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]             = D_801126FC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]             = D_801126FC[arg0->spawnArg1.value].vz;
-                coord->flg                    = 0;
+                temp                                  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index                            = temp;
+                arg0->spawnArg1.value                 = (u8)arg0->spawnArg1.value;
+                slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+                slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+                t2                                    = coord->coord.t[2];
+                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.r                          = 0xC00;
+                slot->head.g                          = 0xC00;
+                slot->head.b                          = 0xC00;
+                slot->inner                           = 0xFA0;
+                slot->outer                           = 0x12C0;
+                slot->head.u.coord.coord.t[2]         = t2;
+                coord->parent                         = mem->parent;
+                coord->coord.t[0]                     = D_801126FC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                     = D_801126FC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                     = D_801126FC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 idx         = ((u32)rng >> 16) & 0x1FF;
@@ -747,7 +747,7 @@ void Gp_EffCtlTask6C(Task* arg0)
 void Gp_EffSprTask34(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -830,7 +830,7 @@ void Gp_EffSprTask34(Task* arg0)
 void Gp_EffSprTask72(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -914,7 +914,7 @@ void Gp_EffSprTask72(Task* arg0)
 void Gp_EffLineTaskA3(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     u8*               head;
     GpEffLineScratch* block;
     GpEffLineScratch* vecp;
@@ -1010,7 +1010,7 @@ void Gp_EffLineTaskA3(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-static void Gp_DrawEffSprite6C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1064,7 +1064,7 @@ static void Gp_DrawEffSprite6C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 void Gp_EffSprTask35(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -1159,11 +1159,11 @@ void Gp_EffSprTask35(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        t2                 = coord->coord.t[2] + mem->move.vz;
-        coord->flg         = 0;
-        coord->coord.t[2]  = t2;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        t2                  = coord->coord.t[2] + mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = t2;
         mem->age++;
         if (mem->age <= mem->period * 4 - 1) {
             return;
@@ -1175,7 +1175,7 @@ void Gp_EffSprTask35(Task* arg0)
 void Gp_EffSprTask6F(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -1265,11 +1265,11 @@ void Gp_EffSprTask6F(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        t2                 = coord->coord.t[2] + mem->move.vz;
-        coord->flg         = 0;
-        coord->coord.t[2]  = t2;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        t2                  = coord->coord.t[2] + mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = t2;
         mem->age++;
         if (mem->age <= mem->period * 8 - 1) {
             return;
@@ -1287,7 +1287,7 @@ void Gp_EffModelTask(Task* arg0)
     VECTOR     tmp;
     TmdObject* extra;
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vel;
     s16        flag;
 
@@ -1508,14 +1508,14 @@ void Gp_EffModelTask(Task* arg0)
                 break;
         }
         VectorNormalSS(&mem->move, &mem->move);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-        coord->flg  = 0;
-        arg0->state = 1;
+        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vx         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vy         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+        mem->pos.vz         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        arg0->state         = 1;
         Gfx_RotMatrixX(&coord->coord, 0x800, 0);
         return;
     }
@@ -1526,10 +1526,10 @@ void Gp_EffModelTask(Task* arg0)
     gte_ldsv(vel);
     gte_gpf12();
     gte_stsv(&delta);
-    coord->coord.t[0] += delta.vx;
-    coord->coord.t[1] += delta.vy;
-    coord->coord.t[2] += delta.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += delta.vx;
+    coord->coord.t[1]  += delta.vy;
+    coord->coord.t[2]  += delta.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&delta);
     gte_rtv0();
@@ -1574,7 +1574,7 @@ release:
 void Gp_EffCtlTask6E(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        rng;
 
     coord = arg0->extra.tmd->coords;
@@ -1586,14 +1586,14 @@ void Gp_EffCtlTask6E(Task* arg0)
             mem->scale = 0xC;
         }
         arg0->spawnArg1.value = (u16)arg0->spawnArg1.value;
-        coord->sub            = mem->parent;
+        coord->parent         = mem->parent;
         coord->coord.t[0]     = D_801125EC[arg0->spawnArg1.value].vx;
         coord->coord.t[1]     = D_801125EC[arg0->spawnArg1.value].vy;
         coord->coord.t[2]     = D_801125EC[arg0->spawnArg1.value].vz;
         coord->coord.t[0]    += mem->pos.vx;
         coord->coord.t[1]    += mem->pos.vy;
         coord->coord.t[2]    += mem->pos.vz;
-        coord->flg            = 0;
+        coord->composeStamp   = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
         rng         = Gp_LcgState * 5 + 0x71357911;
@@ -1615,11 +1615,11 @@ void Gp_EffCtlTask6E(Task* arg0)
 
 void Gp_EffCtlTask6D(Task* arg0)
 {
-    GpCoord* coord;
-    MATRIX*  m;
-    void*    mem;
-    s32      i;
-    s32      one;
+    GfxCoord* coord;
+    MATRIX*   m;
+    void*     mem;
+    s32       i;
+    s32       one;
 
     i                    = 0;
     one                  = ONE;
@@ -1631,7 +1631,7 @@ void Gp_EffCtlTask6D(Task* arg0)
     MATRIX_PAIR(m, 1, 1) = one;
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = one;
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     for (; i < 6; i++) {
@@ -1644,7 +1644,7 @@ void Gp_EffCtlTask6D(Task* arg0)
 void Gp_EffTileTaskA4(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     GpEffTileScratch* block;
     TILE*             prim;
     s16               c;
@@ -1682,13 +1682,13 @@ void Gp_EffTileTaskA4(Task* arg0)
         }
         arg0->state = 1;
     }
-    coord->coord.t[0] += mem->move.vx;
-    coord->coord.t[1] += mem->move.vy;
-    coord->coord.t[2] += mem->move.vz;
-    coord->flg         = 0;
-    block->vec.vx      = (u16)coord->workm.t[0];
-    block->vec.vy      = (u16)coord->workm.t[1];
-    block->vec.vz      = (u16)coord->workm.t[2];
+    coord->coord.t[0]  += mem->move.vx;
+    coord->coord.t[1]  += mem->move.vy;
+    coord->coord.t[2]  += mem->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    block->vec.vx       = (u16)coord->workm.t[0];
+    block->vec.vy       = (u16)coord->workm.t[1];
+    block->vec.vz       = (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1724,7 +1724,7 @@ void Gp_EffTileTaskA4(Task* arg0)
 void Gp_EffCtlTask3B(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        i;
     s32        rng;
@@ -1762,7 +1762,7 @@ void Gp_EffCtlTask3B(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-static void Gp_DrawEffSprite3B(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -1828,7 +1828,7 @@ void Gp_EffSprTask5C(Task* arg0)
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpEffWork*       mem;
     POLY_FT4*        prim;
     GpEffUv8*        rec;
@@ -1960,12 +1960,12 @@ void Gp_EffSprTask5C(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        t2                 = coord->coord.t[2] + mem->move.vz;
-        coord->flg         = 0;
-        coord->coord.t[2]  = t2;
-        mem->scale        += mem->step;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        t2                  = coord->coord.t[2] + mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = t2;
+        mem->scale         += mem->step;
         mem->age++;
         if (mem->age <= mem->period * 12 - 1) {
             return;
@@ -1978,7 +1978,7 @@ void func_800F289C(Task* arg0)
 {
     GpFxQuadScratch* block;
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     POLY_FT4*        prim;
     s16              flag;
     s16              scale;
@@ -2145,10 +2145,10 @@ void func_800F289C(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        coord->flg         = 0;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        coord->coord.t[2]  += mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         mem->age++;
         if (mem->age <= mem->period * 8 - 1) {
             return;
@@ -2160,7 +2160,7 @@ void func_800F289C(Task* arg0)
 void Gp_EffSprTask76(Task* arg0)
 {
     GpFxQuadScratch* block;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpEffWork*       mem;
     POLY_FT4*        prim;
     u16              size;
@@ -2235,9 +2235,9 @@ void Gp_EffSprTask76(Task* arg0)
 
 void Gp_EffSprTask7C(Task* arg0)
 {
-    GpCoord          hit;
+    GfxCoord         hit;
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* vecp;
     GpFxQuadScratch* block;
@@ -2348,10 +2348,10 @@ void Gp_EffSprTask7C(Task* arg0)
     if (Gp_State1C->eventState != 0) {
         return;
     }
-    coord->coord.t[0] += mem->move.vx;
-    coord->coord.t[1] += mem->move.vy;
-    coord->coord.t[2] += mem->move.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += mem->move.vx;
+    coord->coord.t[1]  += mem->move.vy;
+    coord->coord.t[2]  += mem->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     mem->move.vy += 5;
     mem->angle   += mem->step;
@@ -2376,8 +2376,8 @@ void func_800F4308(Task* arg0)
 {
     u8            rgb[3];
     GpEffWork*    mem;
-    GpCoord*      coord;
-    GpCoord*      roomCoord;
+    GfxCoord*     coord;
+    GfxCoord*     roomCoord;
     GpCoord64*    room;
     GpPointLight* slot;
     TmdObject*    extra;
@@ -2396,7 +2396,7 @@ void func_800F4308(Task* arg0)
     s32           tmp;
 
     room      = &Gp_RoomCoords[1];
-    slot      = &room->data.light;
+    slot      = &room->light;
     roomCoord = &slot->head.u.coord;
     extra     = arg0->extra.tmd;
     mem       = arg0->spawnArg2.pointer;
@@ -2455,19 +2455,19 @@ void func_800F4308(Task* arg0)
                     }
                     break;
             }
-            room->framesLeft      = 0x10;
-            count                 = mem->age;
-            slot->outer           = 0x2580;
-            slot->head.r          = 0x1000;
-            slot->head.g          = 0xC00;
-            slot->head.b          = 0x800;
-            slot->inner           = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0] = coord->coord.t[0];
-            roomCoord->coord.t[1] = coord->coord.t[1];
-            t2_10                 = coord->coord.t[2];
-            roomCoord->flg        = 0;
-            roomCoord->coord.t[2] = t2_10;
-            cond                  = mem->age < 0x15;
+            room->framesLeft        = 0x10;
+            count                   = mem->age;
+            slot->outer             = 0x2580;
+            slot->head.r            = 0x1000;
+            slot->head.g            = 0xC00;
+            slot->head.b            = 0x800;
+            slot->inner             = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0]   = coord->coord.t[0];
+            roomCoord->coord.t[1]   = coord->coord.t[1];
+            t2_10                   = coord->coord.t[2];
+            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            roomCoord->coord.t[2]   = t2_10;
+            cond                    = mem->age < 0x15;
             goto release;
         case 11:
             switch (arg0->state) {
@@ -2534,19 +2534,19 @@ void func_800F4308(Task* arg0)
                     i += 1;
                 } while (i < 3);
             }
-            room->framesLeft      = 0x10;
-            count                 = mem->age;
-            slot->outer           = 0x2580;
-            slot->head.r          = 0xC00;
-            slot->head.g          = 0xC00;
-            slot->head.b          = 0x800;
-            slot->inner           = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0] = coord->coord.t[0];
-            roomCoord->coord.t[1] = coord->coord.t[1];
-            t2_11                 = coord->coord.t[2];
-            roomCoord->flg        = 0;
-            roomCoord->coord.t[2] = t2_11;
-            cond                  = mem->age < 0x15;
+            room->framesLeft        = 0x10;
+            count                   = mem->age;
+            slot->outer             = 0x2580;
+            slot->head.r            = 0xC00;
+            slot->head.g            = 0xC00;
+            slot->head.b            = 0x800;
+            slot->inner             = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0]   = coord->coord.t[0];
+            roomCoord->coord.t[1]   = coord->coord.t[1];
+            t2_11                   = coord->coord.t[2];
+            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            roomCoord->coord.t[2]   = t2_11;
+            cond                    = mem->age < 0x15;
             goto release;
         case 12:
             if (arg0->state != 0) {
@@ -2597,19 +2597,19 @@ void func_800F4308(Task* arg0)
                     Gp_DrawFadeQuad(rgb, 1);
                 }
             }
-            room->framesLeft      = 0x10;
-            count                 = mem->age;
-            slot->outer           = 0x2580;
-            slot->head.r          = 0x800;
-            slot->head.g          = 0xC00;
-            slot->head.b          = 0x1000;
-            slot->inner           = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0] = coord->coord.t[0];
-            roomCoord->coord.t[1] = coord->coord.t[1];
-            t2_12                 = coord->coord.t[2];
-            roomCoord->flg        = 0;
-            roomCoord->coord.t[2] = t2_12;
-            cond                  = mem->age < 0x15;
+            room->framesLeft        = 0x10;
+            count                   = mem->age;
+            slot->outer             = 0x2580;
+            slot->head.r            = 0x800;
+            slot->head.g            = 0xC00;
+            slot->head.b            = 0x1000;
+            slot->inner             = (0x898 - (count * 0x64)) * 4;
+            roomCoord->coord.t[0]   = coord->coord.t[0];
+            roomCoord->coord.t[1]   = coord->coord.t[1];
+            t2_12                   = coord->coord.t[2];
+            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            roomCoord->coord.t[2]   = t2_12;
+            cond                    = mem->age < 0x15;
             goto release;
         default:
             return;
@@ -2624,7 +2624,7 @@ void Gp_EffLineTask92(Task* arg0)
 {
     GpEffLineScratch* block;
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     MATRIX*           m;
     LINE_F2*          prim;
     s16               step;
@@ -2664,16 +2664,16 @@ void Gp_EffLineTask92(Task* arg0)
         mem->pos.vz          = (u16)coord->workm.t[2];
         Gp_LcgState          = rng;
     }
-    coord->coord.t[0] += mem->move.vx;
-    coord->coord.t[1] += mem->move.vy;
-    coord->coord.t[2] += mem->move.vz;
-    coord->flg         = 0;
-    block->vec0.vx     = (u16)coord->workm.t[0];
-    block->vec0.vy     = (u16)coord->workm.t[1];
-    block->vec0.vz     = (u16)coord->workm.t[2];
-    block->vec1.vx     = (u16)mem->pos.vx;
-    block->vec1.vy     = (u16)mem->pos.vy;
-    block->vec1.vz     = (u16)mem->pos.vz;
+    coord->coord.t[0]  += mem->move.vx;
+    coord->coord.t[1]  += mem->move.vy;
+    coord->coord.t[2]  += mem->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    block->vec0.vx      = (u16)coord->workm.t[0];
+    block->vec0.vy      = (u16)coord->workm.t[1];
+    block->vec0.vz      = (u16)coord->workm.t[2];
+    block->vec1.vx      = (u16)mem->pos.vx;
+    block->vec1.vy      = (u16)mem->pos.vy;
+    block->vec1.vz      = (u16)mem->pos.vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec0);
@@ -2724,7 +2724,7 @@ void Gp_EffLineTask92(Task* arg0)
 void Gp_EffPolyTask9C(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
 
     mem   = arg0->spawnArg2.pointer;
@@ -2754,7 +2754,7 @@ void Gp_EffPolyTask9C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-static void Gp_DrawEffShard(GpCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
+static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_G4*         quad;
@@ -2862,7 +2862,7 @@ void Gp_EffSprTask9E(Task* arg0)
     GpQuadScratch* block;
     s32            i;
     GpEffWork*     mem;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     POLY_FT4*      prim;
     s32            scale;
     s32            shade;
@@ -2873,7 +2873,7 @@ void Gp_EffSprTask9E(Task* arg0)
     if (arg0->state == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->spawnArg1.value & 0xFFF) {
             scale = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
         } else {
@@ -2957,7 +2957,7 @@ void Gp_EffSprTask54(Task* arg0)
     s16              step;
     u16              vz;
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     POLY_FT4*        prim;
 
     mem   = arg0->spawnArg2.pointer;
@@ -3049,19 +3049,19 @@ void Gp_EffSprTask54(Task* arg0)
     }
     SCRATCH_POP_BYTES(0x1C);
     if (Gp_State1C->eventState == 0) {
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        coord->flg         = 0;
-        step               = mem->age + 1;
-        mem->age           = step;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        coord->coord.t[2]  += mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        step                = mem->age + 1;
+        mem->age            = step;
         if (step > (mem->period * 8) - 1) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
     }
 }
 
-void Gp_DrawEffSprite7C(GpCoord* arg0, s32 arg1, u32 arg2)
+void Gp_DrawEffSprite7C(GfxCoord* arg0, s32 arg1, u32 arg2)
 {
     GpQuadScratch* block;
     s32            i;
@@ -3196,18 +3196,18 @@ void Gp_DrawEffGroundQuad(VECTOR3* pos, s32 size, s16 shade)
 
 void Gp_EffSprTask53(Task* arg0)
 {
-    VECTOR3  vec;
-    Task*    slot;
-    GpCoord* coord;
-    GpCoord* parent;
+    VECTOR3   vec;
+    Task*     slot;
+    GfxCoord* coord;
+    GfxCoord* parent;
 
     slot  = gameGetPtrSlot(3);
     coord = arg0->extra.tmd->coords;
     if (slot != NULL) {
         if (arg0->state == 0) {
-            parent     = slot->extra.tmd->coords;
-            coord->flg = 0;
-            coord->sub = parent + 1;
+            parent              = slot->extra.tmd->coords;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->parent       = parent + 1;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
         } else if (Gp_State1C->groundShade >= 0) {

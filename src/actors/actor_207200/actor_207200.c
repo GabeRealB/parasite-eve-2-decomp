@@ -14,7 +14,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/pairsrc.h"
@@ -139,13 +138,7 @@ TmdSource D_actor_207200_8014E4C8 = {
     D_actor_207200_8014DEE4,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor207200PoseBank46CC;
-
-Actor207200PoseBank46CC D_actor_207200_8014E4EC = { .poses = {
+AnimationPackedPose D_actor_207200_8014E4EC[2] = {
 #include "assets/actor_207200_animation_04708_bank1.inc"
 };
 
@@ -167,13 +160,7 @@ GpAnimSet D_actor_207200_8014E528 = {
     { NULL, D_actor_207200_8014E4EC, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[24];
-    AnimationPackedRotation        words[72];
-} Actor207200PoseBank4730;
-
-Actor207200PoseBank4730 D_actor_207200_8014E550 = { .poses = {
+AnimationPackedPose D_actor_207200_8014E550[24] = {
 #include "assets/actor_207200_animation_0495C_bank1.inc"
 };
 
@@ -227,8 +214,8 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 {
     ActorShared8014df20Work* work;
     TmdObject*               obj;
-    GpCoord*                 coord;
-    GpCoord*                 part;
+    GfxCoord*                coord;
+    GfxCoord*                part;
     u32                      seed;
     GpRec18*                 records1;
     GpRec18*                 records2;
@@ -243,13 +230,13 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work     = (TaskIdMap*)work;
-    obj->flags     = 0;
-    coord->flg     = 0;
-    obj->lightMtx  = &work->field_DC;
-    obj->colorMtx  = &work->field_BC;
-    arg0->field_4  = &coord[1].coord;
-    arg0->field_48 = 0;
+    arg1->work          = (TaskIdMap*)work;
+    obj->flags          = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    obj->lightMtx       = &work->field_DC;
+    obj->colorMtx       = &work->field_BC;
+    arg0->field_4       = &coord[1].coord;
+    arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
     arg0->coord              = part;
     arg0->node.state.b.flags = 0;
@@ -342,7 +329,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
 static void func_actor_207200_8014A1C4(Task* arg0)
 {
     ActorShared8014df20Work* work;
-    GpCoord*                 obj;
+    GfxCoord*                obj;
     s32                      snd;
     s16                      mode;
     s32                      id;
@@ -450,7 +437,7 @@ static void func_actor_207200_8014A588(Task* arg0)
     ActorDeltaFrame38*       sc;
     ActorDeltaFrame38*       head;
     TmdObject*               obj;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
     GpEnemy*                 enemy;
     s32                      i;
     s32                      sndHit;
@@ -590,7 +577,7 @@ static void func_actor_207200_8014AA74(GpEnemy* arg0, Task* arg1)
 {
     Actor207200Work* work;
     TmdObject*       obj;
-    GpCoord*         coord;
+    GfxCoord*        coord;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
@@ -689,8 +676,8 @@ default_body:
     func_actor_207200_8014AE08(arg1);
     func_actor_207200_8014A588(arg1);
     func_actor_207200_8014AF2C(arg1);
-    arg1->extra.tmd->coords[0].flg = 0;
-    arg1->extra.tmd->coords[1].flg = 0;
+    arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
 case1:
     func_actor_207200_8014AFDC(arg0, arg1);
@@ -772,10 +759,10 @@ static void func_actor_207200_8014AF2C(Task* arg0)
 /// parameters. `arg0` is the colour target, passed straight through.
 static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task)
 {
-    GpCoord* coord;
-    void**   scratch;
-    u8*      head;
-    VECTOR*  block;
+    GfxCoord* coord;
+    void**    scratch;
+    u8*       head;
+    VECTOR*   block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -837,11 +824,11 @@ static void func_actor_207200_8014B04C(Task* task)
 /// Rebuilds the model's root coordinate from the matrix saved in
 /// `field_264`, scaled along Y by `field_2A0`, which decays by 0x50 a frame
 /// while above 0x200. The scaling matrix and its vector are staged in 0x30
-/// bytes of the scratch stack; the node's `flg` is cleared so the next
+/// bytes of the scratch stack; the node's `composeStamp` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
 static void func_actor_207200_8014B128(Task* arg0)
 {
-    GpCoord*           coord;
+    GfxCoord*          coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
@@ -865,7 +852,7 @@ static void func_actor_207200_8014B128(Task* arg0)
     scratch->mat.ident.m22     = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(ActorScaleScratch);
 }
 

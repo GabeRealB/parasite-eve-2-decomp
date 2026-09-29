@@ -46,11 +46,11 @@ typedef struct CombustionStep {
 } CombustionStep;
 STATIC_ASSERT_SIZEOF(CombustionStep, 0x8);
 
-static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2);
-static void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_combustion_8012FB14(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2);
+static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Per-level tuning for the combustion flame, one row per PE level 1-3,
 /// weakest first.
@@ -77,7 +77,7 @@ static s32 D_combustion_801309A4 = 0;
 void func_combustion_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     GpEffWork*  spawned;
     s32         pan;
@@ -93,7 +93,7 @@ void func_combustion_8012EF34(Task* arg0)
             }
             D_combustion_801309A4 = coord->workm.t[1];
             rot                   = (GpMtxWords*)&coord->coord;
-            coord->sub            = (gameGetPtrSlot(3))->extra.tmd->coords;
+            coord->parent         = (gameGetPtrSlot(3))->extra.tmd->coords;
             rot->m00_m01          = 0x1000;
             rot->m11_m12          = 0x1000;
             rot->m22              = 0x1000;
@@ -103,7 +103,7 @@ void func_combustion_8012EF34(Task* arg0)
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
             Gfx_RotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->move.vz = 0x200;
             pan          = (s8)Gp_GetObjPan(coord);
@@ -143,7 +143,7 @@ void func_combustion_8012EF34(Task* arg0)
                 return;
             }
             Gfx_RotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
@@ -163,7 +163,7 @@ void func_combustion_8012EF34(Task* arg0)
 void func_combustion_8012F2BC(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     GpEffWork*  spawned;
     s32         rng;
@@ -178,18 +178,18 @@ void func_combustion_8012F2BC(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot          = (GpMtxWords*)&coord->coord;
-            coord->sub   = mem->parent;
-            rot->m00_m01 = 0x1000;
-            rot->m02_m10 = 0;
-            rot->m11_m12 = 0x1000;
-            rot->m20_m21 = 0;
-            rot->m22     = 0x1000;
+            rot           = (GpMtxWords*)&coord->coord;
+            coord->parent = mem->parent;
+            rot->m00_m01  = 0x1000;
+            rot->m02_m10  = 0;
+            rot->m11_m12  = 0x1000;
+            rot->m20_m21  = 0;
+            rot->m22      = 0x1000;
 
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->flg        = 0;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
 
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -257,7 +257,7 @@ void func_combustion_8012F2BC(Task* arg0)
 /// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
 /// sizes it: the corners sit `arg2 * 31 / otz` from the projected centre.
 /// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
-static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -335,7 +335,7 @@ static void func_combustion_8012F5EC(GpCoord* arg0, s16 arg1, s16 arg2)
 void func_combustion_8012F888(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        rng;
     s32        rng2;
     s32        y;
@@ -374,10 +374,10 @@ void func_combustion_8012F888(Task* arg0)
             }
             /* fallthrough */
         case 1:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -394,10 +394,10 @@ void func_combustion_8012F888(Task* arg0)
             }
             break;
         case 2:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             frame      = mem->index + 1;
             mem->index = frame;
@@ -408,10 +408,10 @@ void func_combustion_8012F888(Task* arg0)
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         case 3:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             frame      = mem->index + 1;
             mem->index = frame;
@@ -433,7 +433,7 @@ void func_combustion_8012F888(Task* arg0)
 /// so the sprite shrinks with depth. Same shape as the gameplay
 /// `Gp_DrawFxQuad`, with the CLUT fixed at 0x42C2 instead of picked from
 /// `Gp_QuadClutX`.
-static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_combustion_8012FB14(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -497,7 +497,7 @@ static void func_combustion_8012FB14(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// sizes it: the corners sit `arg2 * 23 / otz` from the projected centre, so
 /// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
 /// quad as gameplay `Gp_EffSprTask8D`.
-static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
+static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -561,7 +561,7 @@ static void func_combustion_8012FF0C(GpCoord* arg0, s32 arg1, s16 arg2)
 /// semi-transparent core at `0x428B` / u 0x70..0xA7, even the additive outer
 /// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `gGpuCurrentOt` at
 /// its own `otz` twice, once per diagonal pair.
-static void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -624,7 +624,7 @@ static void func_combustion_80130184(GpCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
 /// `arg2 * 39 / otz` from the projected centre, so the sprite shrinks with
 /// depth.
-static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -696,7 +696,7 @@ static void func_combustion_801305F8(GpCoord* arg0, s16 arg1, s16 arg2)
 
 void func_combustion_801308E0(Task* arg0)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     if (arg0->state != 0) {
         Gp_ReleaseState1CMem(arg0->spawnArg2.pointer, arg0);

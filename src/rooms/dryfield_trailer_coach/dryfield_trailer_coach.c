@@ -269,13 +269,7 @@ TmdSource D_dryfield_trailer_coach_80184554 = {
 
 #include "../../shared/telephone_data.inc.c"
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldTrailerCoachPoseBank72D8;
-
-DryfieldTrailerCoachPoseBank72D8 D_dryfield_trailer_coach_80184898 = { .poses = {
+AnimationPackedPose D_dryfield_trailer_coach_80184898[3] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank1.inc"
 };
 
@@ -297,13 +291,7 @@ GpAnimSet D_dryfield_trailer_coach_80184C28 = {
     { NULL, D_dryfield_trailer_coach_80184898, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldTrailerCoachPoseBank7690;
-
-DryfieldTrailerCoachPoseBank7690 D_dryfield_trailer_coach_80184C50 = { .poses = {
+AnimationPackedPose D_dryfield_trailer_coach_80184C50[7] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank1.inc"
 };
 
@@ -1577,8 +1565,8 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 static void func_dryfield_trailer_coach_801826A0(Task* task);
 static void func_dryfield_trailer_coach_80182794(Task* task);
-static void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
-static void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
+static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 #include "../../shared/shop.inc.c"
 
@@ -2062,7 +2050,7 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 /// drawn when `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses cyan as `rsin(animFrame * arg2) / 34 + 0x78`.
-static void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_trailer_coach_801829A8(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -2158,7 +2146,7 @@ static void func_dryfield_trailer_coach_801829A8(GpCoord* arg0, SVECTOR* arg1, s
 /// `work` carries the intensity and later the scratch-head address. Sharing
 /// one variable is what keeps the halving shift reading the intensity's own
 /// register rather than `color`'s.
-static void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
+static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
     u8*              head;
     RoomGlowScratch* block;
@@ -2308,8 +2296,8 @@ static void func_dryfield_trailer_coach_80182EB4(GpCoord* coord, SVECTOR* data, 
 /// coordinate both draws share.
 void func_dryfield_trailer_coach_801838DC(Task* arg0)
 {
-    s32      mask;
-    GpCoord* coord;
+    s32       mask;
+    GfxCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
     coord = arg0->extra.tmd->coords;

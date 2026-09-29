@@ -25,7 +25,7 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 
 
 void Gp_ApplyAreaTmdFlags(void);
 
-void Gp_ReparentCoord(GpCoord* arg0, GpCoord* arg1);
+void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1);
 
 void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1);
 

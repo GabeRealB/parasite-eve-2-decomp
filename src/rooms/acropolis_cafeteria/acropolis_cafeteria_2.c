@@ -17,7 +17,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/effects.h"
-#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
@@ -95,10 +94,10 @@ extern MATRIX  D_acropolis_cafeteria_8018D660;
 extern MATRIX  D_acropolis_cafeteria_8018D680;
 extern SVECTOR D_acropolis_cafeteria_8018D6AC;
 
-static void func_acropolis_cafeteria_8017FBEC(GpCoord* coord, s32 arg1, s32 arg2, u8* rgb);
-static void func_acropolis_cafeteria_80180018(GpCoord* coord, s16 arg1, u8* rgb);
-static void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_acropolis_cafeteria_80180F1C(GpCoord* coord, s16 arg1, u8* rgb);
+static void func_acropolis_cafeteria_8017FBEC(GfxCoord* coord, s32 arg1, s32 arg2, u8* rgb);
+static void func_acropolis_cafeteria_80180018(GfxCoord* coord, s16 arg1, u8* rgb);
+static void func_acropolis_cafeteria_8018089C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_acropolis_cafeteria_80180F1C(GfxCoord* coord, s16 arg1, u8* rgb);
 static void func_acropolis_cafeteria_80181E3C(Task* arg0);
 
 extern u32     D_acropolis_cafeteria_8018D278[1];
@@ -882,8 +881,8 @@ SVECTOR D_acropolis_cafeteria_8018D6AC = { 0 };
 static void func_acropolis_cafeteria_801818DC(Task* task);
 static void func_acropolis_cafeteria_80181A3C(Task* task);
 static void func_acropolis_cafeteria_80181E30(Task* arg0);
-static s32  func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_cafeteria_80181ED4(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_cafeteria_80182078(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 static void func_acropolis_cafeteria_80182954(Task* task);
 static void func_acropolis_cafeteria_80182A08(Task* task);
 
@@ -995,7 +994,7 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 void func_acropolis_cafeteria_8017E708(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
@@ -1037,7 +1036,7 @@ void func_acropolis_cafeteria_8017E708(Task* task)
 void func_acropolis_cafeteria_8017E89C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        i;
     u16        count;
     s32        flags;
@@ -1090,7 +1089,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
 void func_acropolis_cafeteria_8017EA90(Task* task)
 {
     GpEffWork*            work;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     OverlaySpriteScratch* head;
     OverlaySpriteScratch* block;
     POLY_FT4*             prim;
@@ -1181,7 +1180,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             } else {
                 coord->coord.t[1] += work->move.vy;
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->age++;
             if (work->age <= work->step * 10 - 1) {
                 return;
@@ -1195,7 +1194,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
 {
     TmdObject*  obj;
     GpEffWork*  work;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         state;
     s32         v;
@@ -1318,13 +1317,13 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     rot->m22     = 0x1000;
     Gfx_RotMatrixY(&coord->coord, work->scale, 0);
     gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
-    work->move.vx      = (work->move.vx * work->angle) >> 16;
-    work->move.vy      = (work->move.vy * work->angle) >> 16;
-    work->move.vz      = (work->move.vz * work->angle) >> 16;
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
+    work->move.vx       = (work->move.vx * work->angle) >> 16;
+    work->move.vy       = (work->move.vy * work->angle) >> 16;
+    work->move.vz       = (work->move.vz * work->angle) >> 16;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->period < coord->coord.t[0]) {
         Gp_ReleaseState1CMem(work, task);
     }
@@ -1332,7 +1331,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
 
 s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord                          = task->extra.tmd->coords;
     D_acropolis_cafeteria_80184CFC = arg2;
@@ -1350,7 +1349,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 void func_acropolis_cafeteria_8017F948(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -1414,7 +1413,7 @@ void func_acropolis_cafeteria_8017F948(Task* task)
 /// around the projected point. `arg1` is the ring's inner radius and
 /// `arg1 + arg2` its outer one, both in world units scaled by depth. The inner
 /// edge takes `rgb` and the outer edge is black.
-static void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_acropolis_cafeteria_8017FBEC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1471,7 +1470,7 @@ static void func_acropolis_cafeteria_8017FBEC(GpCoord* arg0, s32 arg1, s32 arg2,
 /// the GTE flags an error, queues eight gouraud `POLY_G4` wedges that fill a
 /// disc around the projected point. `arg1` is the radius in world units scaled
 /// by depth; each wedge is `rgb` at the centre and black at the rim.
-static void func_acropolis_cafeteria_80180018(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_acropolis_cafeteria_80180018(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1521,15 +1520,15 @@ static void func_acropolis_cafeteria_80180018(GpCoord* arg0, s16 arg1, u8* rgb)
 
 void func_acropolis_cafeteria_801803AC(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1537,36 +1536,36 @@ void func_acropolis_cafeteria_801803AC(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_acropolis_cafeteria_80184E80[0].vx;
-                objCoord->coord.t[1] = D_acropolis_cafeteria_80184E80[0].vy;
-                objCoord->coord.t[2] = D_acropolis_cafeteria_80184E80[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_acropolis_cafeteria_80184E80[0].vx;
+                objCoord->coord.t[1]   = D_acropolis_cafeteria_80184E80[0].vy;
+                objCoord->coord.t[2]   = D_acropolis_cafeteria_80184E80[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_acropolis_cafeteria_80184E80[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_acropolis_cafeteria_80184E80[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1574,35 +1573,35 @@ void func_acropolis_cafeteria_801803AC(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_acropolis_cafeteria_80184E80[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_acropolis_cafeteria_8018089C(coords, &coords[8], work->age & 7, 0x123);
@@ -1620,11 +1619,11 @@ void func_acropolis_cafeteria_801803AC(Task* task)
 /// `0x40 - 9 * i` and the older one by nine less. `arg3` packs the beam colour
 /// as 2-bit multipliers for red, green and blue at bits 8, 4 and 0. A quad the
 /// GTE flags as invalid is skipped.
-static void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_acropolis_cafeteria_8018089C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1719,7 +1718,7 @@ static void func_acropolis_cafeteria_8018089C(GpCoord* arg0, GpCoord* arg1, s16 
 
 void func_acropolis_cafeteria_80180C94(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1792,7 +1791,7 @@ void func_acropolis_cafeteria_80180C94(Task* task)
 /// `rgb`, then four spikes a quarter turn apart, two reaching the full radius
 /// and two twice it. `arg1` sizes it in world units scaled by depth; every
 /// wedge fades to black at its rim.
-static void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1913,9 +1912,9 @@ static void func_acropolis_cafeteria_80180F1C(GpCoord* arg0, s16 arg1, u8* arg2)
 static void func_acropolis_cafeteria_801818DC(Task* task)
 {
     TmdObject*                obj;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     AcropolisCafeteriaDebris* work;
-    GpCoord*                  player;
+    GfxCoord*                 player;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
@@ -1928,9 +1927,9 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
     Mem_Set(work, 0, 0xD8);
-    coord->sub = &gGfxViewCoord;
-    coord->flg = 0;
-    obj->flags = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    obj->flags          = 0;
     RotMatrix(&work->field_C4, &coord->coord);
     work->field_B0     = (rand() & 0xFFF) + 0x3000;
     player             = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -1954,7 +1953,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
 {
     MATRIX*                   head;
     AcropolisCafeteriaDebris* work;
-    GpCoord*                  coord;
+    GfxCoord*                 coord;
     SVECTOR*                  direction;
     s32                       speed;
 
@@ -1963,8 +1962,8 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     work                 = (AcropolisCafeteriaDebris*)task->work;
     coord                = task->extra.tmd->coords;
     work->field_B0--;
-    coord->flg         = 0;
-    coord->coord.t[1] += 0x80;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]  += 0x80;
     Gp_UpdateCoord(coord);
     switch (work->field_D4) {
         case 0:
@@ -2063,7 +2062,7 @@ void func_acropolis_cafeteria_80181E70(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_cafeteria_8018D6AC`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -2110,7 +2109,7 @@ static s32 func_acropolis_cafeteria_80181ED4(GpCoord* coord, GpRec18* rec, s16 a
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -2125,7 +2124,7 @@ static s32 func_acropolis_cafeteria_80182078(GpCoord* coord, GpRec18* recs, s16 
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

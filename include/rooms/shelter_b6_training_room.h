@@ -46,7 +46,7 @@ void func_shelter_b6_training_room_8018294C(Task* task);
 
 void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1);
 
-void func_shelter_b6_training_room_8017FC40(GpCoord* coord, s16 size, u16 color);
+void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color);
 
 void func_shelter_b6_training_room_8017EE70(Task* arg0);
 

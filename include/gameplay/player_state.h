@@ -44,13 +44,17 @@ void func_8010B610(Task* arg0);
 
 void func_8010ABD4(Task* arg0);
 
-s32 func_8010BC70(GpCoord* arg0);
+s32 func_8010BC70(GfxCoord* arg0);
 
 s32 func_8010BCF4(Task* arg0, VECTOR3* arg1);
 
 void func_8010BD88(Task* arg0, VECTOR3* arg1);
 
-void func_8010BE5C(Task* arg0, VECTOR3* arg1);
+/// Turns the actor's aim yaw toward a point in game coordinates beneath the view node.
+///
+/// Uses model part 4 as the origin. Each call changes the yaw offset by at most
+/// 0x20 angle units and keeps its magnitude strictly below 0x1A0 (0x1000 per turn).
+void func_8010BE5C(Task* task, VECTOR3* targetPoint);
 
 void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5);
 

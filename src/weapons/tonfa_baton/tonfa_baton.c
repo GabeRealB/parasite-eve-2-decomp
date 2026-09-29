@@ -72,16 +72,16 @@ static SVECTOR D_tonfa_baton_8011E0F8 = { 0, -0x0200, 0, 0 };
 
 static void func_tonfa_baton_8011DB78(Task* task);
 
-static void func_tonfa_baton_8011DA48(Task* arg0);
+static void func_tonfa_baton_8011DA48(Task* task);
 static void func_tonfa_baton_8011DA74(Task* arg0);
 static void func_tonfa_baton_8011DB6C(Task* arg0);
 static void func_tonfa_baton_8011DBFC(Task* arg0);
 
 void func_tonfa_baton_8011D1EC(Task* task)
 {
-    GpCoord    local;
-    GpCoord*   coord;
-    GpCoord*   dst;
+    GfxCoord   local;
+    GfxCoord*  coord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
@@ -97,30 +97,30 @@ void func_tonfa_baton_8011D1EC(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coord->sub        = work->parent;
-                coord->coord.t[0] = D_tonfa_baton_8011E0F0[0].vx;
-                coord->coord.t[1] = D_tonfa_baton_8011E0F0[0].vy;
-                coord->coord.t[2] = D_tonfa_baton_8011E0F0[0].vz;
-                coord->flg        = 0;
+                coord->parent       = work->parent;
+                coord->coord.t[0]   = D_tonfa_baton_8011E0F0[0].vx;
+                coord->coord.t[1]   = D_tonfa_baton_8011E0F0[0].vy;
+                coord->coord.t[2]   = D_tonfa_baton_8011E0F0[0].vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                task->state      = 1;
-                vec              = &D_tonfa_baton_8011E0F0[1];
-                local.sub        = coord;
-                local.coord.t[0] = vec->vx;
-                local.coord.t[1] = vec->vy;
-                local.coord.t[2] = vec->vz;
-                local.flg        = 0;
+                task->state        = 1;
+                vec                = &D_tonfa_baton_8011E0F0[1];
+                local.parent       = coord;
+                local.coord.t[0]   = vec->vx;
+                local.coord.t[1]   = vec->vy;
+                local.coord.t[2]   = vec->vz;
+                local.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&local);
                 for (i = 0; i < 8; i++) {
-                    dst        = &D_tonfa_baton_8012BBEC[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord->workm;
+                    dst         = &D_tonfa_baton_8012BBEC[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &D_tonfa_baton_8012BE6C[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = local.workm;
+                    dst         = &D_tonfa_baton_8012BE6C[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = local.workm;
                     gte_SetRotMatrix(&local.workm);
                     gte_SetTransMatrix(&local.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -132,32 +132,32 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 D_tonfa_baton_8012C0EC = flags;
                 break;
             case 1:
-                coord->flg = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                local.sub        = work->parent;
-                local.coord.t[0] = D_tonfa_baton_8011E0F8.vx;
-                local.coord.t[1] = D_tonfa_baton_8011E0F8.vy;
-                local.coord.t[2] = D_tonfa_baton_8011E0F8.vz;
-                local.flg        = 0;
+                local.parent       = work->parent;
+                local.coord.t[0]   = D_tonfa_baton_8011E0F8.vx;
+                local.coord.t[1]   = D_tonfa_baton_8011E0F8.vy;
+                local.coord.t[2]   = D_tonfa_baton_8011E0F8.vz;
+                local.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&local);
-                dst        = &D_tonfa_baton_8012BBEC[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord->workm;
+                dst         = &D_tonfa_baton_8012BBEC[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &D_tonfa_baton_8012BE6C[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = local.workm;
+                dst         = &D_tonfa_baton_8012BE6C[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = local.workm;
                 gte_SetRotMatrix(&local.workm);
                 gte_SetTransMatrix(&local.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &D_tonfa_baton_8012BBEC[i];
-                    dst->flg = 0;
+                    dst               = &D_tonfa_baton_8012BBEC[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &D_tonfa_baton_8012BE6C[i];
-                    dst->flg = 0;
+                    dst               = &D_tonfa_baton_8012BE6C[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_tonfa_baton_8011D6B0(work->age & 7, D_tonfa_baton_8012C0EC);
@@ -178,8 +178,8 @@ void func_tonfa_baton_8011D1EC(Task* task)
 static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
 {
     TonfaBeamScratch* blk;
-    GpCoord*          a;
-    GpCoord*          b;
+    GfxCoord*         a;
+    GfxCoord*         b;
     POLY_G4*          prim;
     s32               i;
     s32               j;
@@ -240,31 +240,31 @@ static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
     SCRATCH_POP_BYTES(sizeof(TonfaBeamScratch));
 }
 
-static void func_tonfa_baton_8011DA48(Task* arg0)
+static void func_tonfa_baton_8011DA48(Task* task)
 {
     TmdObject* extra;
-    s32*       ptr;
+    GfxCoord*  coord;
 
-    extra              = arg0->extra.tmd;
-    ptr                = extra->coords;
-    arg0->state        = arg0->state + 1;
-    arg0->exitCallback = func_tonfa_baton_8011DB78;
-    *ptr               = 0;
-    extra->flags       = 0;
+    extra               = task->extra.tmd;
+    coord               = extra->coords;
+    task->state         = task->state + 1;
+    task->exitCallback  = func_tonfa_baton_8011DB78;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = 0;
 }
 
 static void func_tonfa_baton_8011DA74(Task* arg0)
 {
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GameActor* actor;
     s32        mode;
 
-    extra        = arg0->extra.tmd;
-    coord        = extra->coords;
-    actor        = gameGetPtrSlot(3)->work;
-    coord->flg   = 0;
-    extra->flags = (gameGetPtrSlot(3))->extra.tmd->flags;
+    extra               = arg0->extra.tmd;
+    coord               = extra->coords;
+    actor               = gameGetPtrSlot(3)->work;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = (gameGetPtrSlot(3))->extra.tmd->flags;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;
@@ -331,7 +331,7 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 static void func_tonfa_baton_8011DBFC(Task* arg0)
 {
     GameActor*  actor;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     TonfaSwing* swing;
     GpEffWork*  eff;
     s32         delay;

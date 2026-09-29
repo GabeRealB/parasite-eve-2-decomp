@@ -80,13 +80,7 @@ void             func_actor_202900_8014A088(Task*);
 s32 func_actor_202900_8014A3E0(Task*, s32, GpAnimArg*);
 s32 func_actor_202900_8014A440(Task*, s32, s32);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[158];
-    AnimationPackedRotation        words[474];
-} Actor202900PoseBank68C;
-
-Actor202900PoseBank68C D_actor_202900_8014A4AC = { .poses = {
+AnimationPackedPose D_actor_202900_8014A4AC[158] = {
 #include "assets/actor_202900_animation_06098_bank1.inc"
 };
 
@@ -172,13 +166,7 @@ TmdSource D_actor_202900_80155B48 = {
     D_actor_202900_80155A64,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[25];
-    AnimationPackedRotation        words[75];
-} Actor202900PoseBankBD4C;
-
-Actor202900PoseBankBD4C D_actor_202900_80155B6C = { .poses = {
+AnimationPackedPose D_actor_202900_80155B6C[25] = {
 #include "assets/actor_202900_animation_0CDB4_bank1.inc"
 };
 
@@ -200,13 +188,7 @@ GpAnimSet D_actor_202900_80156BD4 = {
     { NULL, D_actor_202900_80155B6C, NULL, NULL, D_actor_202900_80155C98, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} Actor202900PoseBankCDDC;
-
-Actor202900PoseBankCDDC D_actor_202900_80156BFC = { .poses = {
+AnimationPackedPose D_actor_202900_80156BFC[2] = {
 #include "assets/actor_202900_animation_0CFC4_bank1.inc"
 };
 
@@ -281,7 +263,7 @@ static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
 static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 {
     VECTOR     vec;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdObject* obj;
 
     obj        = task->extra.tmd;
@@ -292,7 +274,7 @@ static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback           = func_actor_202900_8014A158;
-    coord->sub                   = &gGfxViewCoord;
+    coord->parent                = &gGfxViewCoord;
     enemy->field_4               = &coord->coord;
     enemy->field_48              = 0;
     enemy->node.state.b.targeted = 0;
@@ -339,16 +321,16 @@ void func_actor_202900_8014A02C(Task* task)
 /// actor's model, marks the coordinate for recomputation and shows the model.
 void func_actor_202900_8014A088(Task* arg0)
 {
-    GpCoord*   parent;
-    GpCoord*   coord;
+    GfxCoord*  parent;
+    GfxCoord*  coord;
     TmdObject* extra;
 
-    extra        = arg0->extra.tmd;
-    parent       = D_actor_202900_80156E58->extra.tmd->coords;
-    coord        = extra->coords;
-    coord->flg   = 0;
-    extra->flags = 0;
-    coord->sub   = parent + 4;
+    extra               = arg0->extra.tmd;
+    parent              = D_actor_202900_80156E58->extra.tmd->coords;
+    coord               = extra->coords;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = 0;
+    coord->parent       = parent + 4;
 }
 
 /// Per-frame handler, state 1 of the actor's update: passes the model and a
@@ -358,7 +340,7 @@ void func_actor_202900_8014A088(Task* arg0)
 static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR     pos;
 
     obj    = task->extra.tmd;

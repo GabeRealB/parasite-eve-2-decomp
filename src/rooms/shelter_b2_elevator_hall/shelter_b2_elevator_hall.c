@@ -106,14 +106,14 @@ static void func_shelter_b2_elevator_hall_8017DCBC(Task* task);
 static void func_shelter_b2_elevator_hall_8017DD00(Task* task);
 static void func_shelter_b2_elevator_hall_8017DFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_elevator_hall_8017F4A4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size);
-static void func_shelter_b2_elevator_hall_80180990(GpCoord* arg0, s32 arg1);
-static void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* arg2);
-static void func_shelter_b2_elevator_hall_80181AA0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* arg2);
-static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_elevator_hall_8017F4A4(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b2_elevator_hall_80180464(GfxCoord* coord, s16 size);
+static void func_shelter_b2_elevator_hall_80180990(GfxCoord* arg0, s32 arg1);
+static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_elevator_hall_80181AA0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_elevator_hall_80181ECC(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_elevator_hall_80182750(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void func_shelter_b2_elevator_hall_8017D8E4(Task*);
 s32  func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -500,8 +500,8 @@ u8 D_shelter_b2_elevator_hall_80184D84[4] = {
 RoomEventReq D_shelter_b2_elevator_hall_80184D88;
 
 static s32  func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMsg* msg);
-static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_elevator_hall_8017F768(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_elevator_hall_8017FB8C(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 /// Gates an event on a game-flag nibble and a collected item: returns 1 when
 /// the nibble already shows the event done, 0 (running the request's refusal
@@ -1148,7 +1148,7 @@ static void func_shelter_b2_elevator_hall_8017E7FC(SVECTOR* arg0, s32 arg1, s32 
 void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -1187,8 +1187,8 @@ void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -1205,8 +1205,8 @@ void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -1230,7 +1230,7 @@ void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-static void func_shelter_b2_elevator_hall_8017F4A4(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b2_elevator_hall_8017F4A4(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1297,7 +1297,7 @@ static void func_shelter_b2_elevator_hall_8017F4A4(GpCoord* arg0, u16 arg1, u16 
 /// `(s16)arg1 * 64 / (otz + 1)` and `(s16)(arg1 + arg2) * 64 / (otz + 1)`,
 /// black on the first and `rgb` on the second. Callers truncate `arg1` to 16
 /// bits themselves.
-static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_elevator_hall_8017F768(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1351,7 +1351,7 @@ static void func_shelter_b2_elevator_hall_8017F768(GpCoord* arg0, s32 arg1, s32 
 /// the GTE flags the projection, queues a fan of eight gouraud `POLY_G4`
 /// wedges around it, of radius `arg1 * 64 / (otz + 1)`: black at the rim and
 /// coloured `arg2` at the centre.
-static void func_shelter_b2_elevator_hall_8017FB8C(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_elevator_hall_8017FB8C(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1403,7 +1403,7 @@ void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         shift;
@@ -1420,17 +1420,17 @@ void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[0] = mem->pos.vx;
-                coord->coord.t[1] = mem->pos.vy;
-                coord->coord.t[2] = mem->pos.vz;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[0]   = mem->pos.vx;
+                coord->coord.t[1]   = mem->pos.vy;
+                coord->coord.t[2]   = mem->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index            = shift;
@@ -1486,7 +1486,7 @@ void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -1539,9 +1539,9 @@ void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size)
+static void func_shelter_b2_elevator_hall_80180464(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1559,26 +1559,26 @@ static void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1656,7 +1656,7 @@ static void func_shelter_b2_elevator_hall_80180464(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_shelter_b2_elevator_hall_80180990(GpCoord* arg0, s32 arg1)
+static void func_shelter_b2_elevator_hall_80180990(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1738,7 +1738,7 @@ static void func_shelter_b2_elevator_hall_80180990(GpCoord* arg0, s32 arg1)
 /// `arg1 * 64 / (otz + 1)` at half the colour `arg2`, the same disc at half
 /// size and full colour, and a four-pointed cross at half colour, all fading
 /// to black at the rim.
-static void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1859,7 +1859,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GpCoord* arg0, s16 arg1, u8* 
 void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        ang;
 
@@ -1896,7 +1896,7 @@ void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
@@ -1958,7 +1958,7 @@ void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
 /// The same ring as `func_shelter_b2_elevator_hall_8017F768`, built in a
 /// scratch block with its fields in a different order. Callers truncate `arg1`
 /// to 16 bits themselves.
-static void func_shelter_b2_elevator_hall_80181AA0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_elevator_hall_80181AA0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2013,7 +2013,7 @@ static void func_shelter_b2_elevator_hall_80181AA0(GpCoord* arg0, s32 arg1, s32 
 
 /// A second, instruction-for-instruction copy of
 /// `func_shelter_b2_elevator_hall_8017FB8C`.
-static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_elevator_hall_80181ECC(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2063,15 +2063,15 @@ static void func_shelter_b2_elevator_hall_80181ECC(GpCoord* arg0, s16 arg1, u8* 
 
 void func_shelter_b2_elevator_hall_80182260(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -2079,36 +2079,36 @@ void func_shelter_b2_elevator_hall_80182260(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_b2_elevator_hall_801838CC[0].vx;
-                objCoord->coord.t[1] = D_shelter_b2_elevator_hall_801838CC[0].vy;
-                objCoord->coord.t[2] = D_shelter_b2_elevator_hall_801838CC[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_b2_elevator_hall_801838CC[0].vx;
+                objCoord->coord.t[1]   = D_shelter_b2_elevator_hall_801838CC[0].vy;
+                objCoord->coord.t[2]   = D_shelter_b2_elevator_hall_801838CC[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_b2_elevator_hall_801838CC[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_b2_elevator_hall_801838CC[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -2116,35 +2116,35 @@ void func_shelter_b2_elevator_hall_80182260(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_b2_elevator_hall_801838CC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b2_elevator_hall_80182750(coords, &coords[8], work->age & 7, 0x123);
@@ -2159,11 +2159,11 @@ void func_shelter_b2_elevator_hall_80182260(Task* task)
 /// Draws a trail of seven gouraud quads between two eight-slot rings of
 /// coordinates, walking back from slot `arg2` and fading with age. `arg3`
 /// packs the colour as 2-bit channel multipliers at bits 8, 4 and 0.
-static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b2_elevator_hall_80182750(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2258,7 +2258,7 @@ static void func_shelter_b2_elevator_hall_80182750(GpCoord* arg0, GpCoord* arg1,
 
 void func_shelter_b2_elevator_hall_80182B48(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -2326,7 +2326,7 @@ void func_shelter_b2_elevator_hall_80182B48(Task* task)
 
 /// A second, instruction-for-instruction copy of
 /// `func_shelter_b2_elevator_hall_80180D08`.
-static void func_shelter_b2_elevator_hall_80182DD0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

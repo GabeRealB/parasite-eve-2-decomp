@@ -126,13 +126,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_acropolis_east_elevator_hall_8017FC90;
 }
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} AcropolisEastElevatorHallPoseBank26E8;
-
-AcropolisEastElevatorHallPoseBank26E8 D_acropolis_east_elevator_hall_8017FCA8 = { .poses = {
+AnimationPackedPose D_acropolis_east_elevator_hall_8017FCA8[4] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_bank1.inc"
 };
 
@@ -154,13 +148,7 @@ GpAnimSet D_acropolis_east_elevator_hall_80180478 = {
     { NULL, D_acropolis_east_elevator_hall_8017FCA8, NULL, NULL, D_acropolis_east_elevator_hall_8017FCD8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[156];
-    AnimationPackedRotation        words[468];
-} AcropolisEastElevatorHallPoseBank2EE0;
-
-AcropolisEastElevatorHallPoseBank2EE0 D_acropolis_east_elevator_hall_801804A0 = { .poses = {
+AnimationPackedPose D_acropolis_east_elevator_hall_801804A0[156] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_bank1.inc"
 };
 
@@ -182,13 +170,7 @@ GpAnimSet D_acropolis_east_elevator_hall_80184DE4 = {
     { NULL, D_acropolis_east_elevator_hall_801804A0, NULL, NULL, D_acropolis_east_elevator_hall_80180BF0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} AcropolisEastElevatorHallPoseBank784C;
-
-AcropolisEastElevatorHallPoseBank784C D_acropolis_east_elevator_hall_80184E0C = { .poses = {
+AnimationPackedPose D_acropolis_east_elevator_hall_80184E0C[21] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_bank1.inc"
 };
 
@@ -758,7 +740,7 @@ static const SVECTOR D_acropolis_east_elevator_hall_8017D5E8 = { 0x1600, -0x964,
 
 void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord = task->extra.tmd->coords;
     switch (task->state) {
@@ -809,7 +791,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     u8*               head;
     RoomShaftScratch* block;
     POLY_G4*          prim;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void*             mem;
     s32               i;
     s32               red;
@@ -870,7 +852,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
     RoomMoteScratch* block;
     RoomMoteScratch* depth;
     TILE_1*          prim;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     void*            mem;
 
     scratch = (void**)G_SCRATCH_HEAD;

@@ -50,8 +50,8 @@ static EnergyShotScale D_energyshot_801300E4[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
 static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
-static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
-static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
+static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Sixteen per-vertex texture-frame offsets, refilled once per cast by
 /// `func_energyshot_8012EF34` and consumed by the GTE pass in
@@ -76,7 +76,7 @@ static s16 D_energyshot_80130128[16];
 void func_energyshot_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     s32         i;
     u8          rgb[3];
@@ -93,17 +93,17 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16         count;
                 u16         level;
 
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[2] = 0;
-                coord->coord.t[1] = 0;
-                coord->coord.t[0] = 0;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[2]   = 0;
+                coord->coord.t[1]   = 0;
+                coord->coord.t[0]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 state->field_6    |= 8;
                 st1c               = Gp_State1C;
@@ -165,13 +165,13 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16*             p;
                 s16              count;
 
-                table             = D_energyshot_801300E4;
-                mem->scale        = mem->scale + table[mem->index].field_4;
-                rgb[0]            = (u8)mem->scale;
-                rgb[1]            = mem->scale >> 1;
-                rgb[2]            = (u8)mem->scale;
-                coord->coord.t[1] = -table[mem->index].field_6;
-                coord->flg        = 0;
+                table               = D_energyshot_801300E4;
+                mem->scale          = mem->scale + table[mem->index].field_4;
+                rgb[0]              = (u8)mem->scale;
+                rgb[1]              = mem->scale >> 1;
+                rgb[2]              = (u8)mem->scale;
+                coord->coord.t[1]   = -table[mem->index].field_6;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
@@ -186,8 +186,8 @@ void func_energyshot_8012EF34(Task* arg0)
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
-                coord->coord.t[1] = 0;
-                coord->flg        = 0;
+                coord->coord.t[1]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
@@ -227,13 +227,13 @@ void func_energyshot_8012EF34(Task* arg0)
                     Gp_ReleaseState1CMem(mem, arg0);
                     return;
                 }
-                mem->scale        = mem->scale - 0x10;
-                rgb[0]            = (u8)mem->scale;
-                rgb[1]            = mem->scale >> 1;
-                rgb[2]            = (u8)mem->scale;
-                table             = D_energyshot_801300E4;
-                coord->coord.t[1] = -table[mem->index].field_6;
-                coord->flg        = 0;
+                mem->scale          = mem->scale - 0x10;
+                rgb[0]              = (u8)mem->scale;
+                rgb[1]              = mem->scale >> 1;
+                rgb[2]              = (u8)mem->scale;
+                table               = D_energyshot_801300E4;
+                coord->coord.t[1]   = -table[mem->index].field_6;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
                 Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 8), rgb);
@@ -248,8 +248,8 @@ void func_energyshot_8012EF34(Task* arg0)
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
-                coord->coord.t[1] = 0;
-                coord->flg        = 0;
+                coord->coord.t[1]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
@@ -280,7 +280,7 @@ void func_energyshot_8012EF34(Task* arg0)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;
@@ -338,7 +338,7 @@ static void func_energyshot_8012F750(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// is one of six 0x28-wide frames picked per vertex by `D_energyshot_80130108`
 /// plus the frame counter, the quad is tinted by the three bytes at `arg3`,
 /// and a negative `gte_stflg` drops the segment.
-static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
+static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
 {
     u8*            head;
     GpBandScratch* block;
@@ -423,7 +423,7 @@ static void func_energyshot_8012FA50(GpCoord* arg0, s16 arg1, s16 arg2, u8* arg3
 void func_energyshot_8012FFB8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        y;
 
     mem      = arg0->spawnArg2.pointer;
@@ -439,9 +439,9 @@ void func_energyshot_8012FFB8(Task* arg0)
         arg0->state  = 1;
     }
 
-    y                 = coord->coord.t[1] + mem->move.vy;
-    coord->flg        = 0;
-    coord->coord.t[1] = y;
+    y                   = coord->coord.t[1] + mem->move.vy;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = y;
     Gp_UpdateCoord(coord);
     if ((mem->age & 3) == 0) {
         mem->index = mem->index + 1;

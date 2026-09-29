@@ -8,7 +8,7 @@
 
 #include "main/coord.h"
 
-struct GpCoord;
+struct GfxCoord;
 
 /// One 4-byte entry of the tables that name a collision body: the two halves
 /// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `GpObj.key`, taking
@@ -43,7 +43,7 @@ STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C*  next;
     /* 0x04 */ struct _GpObj4C** prev;
-    /* 0x08 */ GpCoord*          field_8;
+    /* 0x08 */ GfxCoord*         field_8;
     /* 0x0C */ SVECTOR           field_C;
     /* 0x14 */ SVECTOR           field_14[4];
     /* 0x34 */ SVECTOR           field_34;
@@ -111,17 +111,17 @@ STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
 /// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
 /// -1, indexed as `field_10[x * field_1E + z]`. `field_22` is the face count.
 typedef struct _GpGridParams {
-    /* 0x00 */ struct GpCoord* field_0;
-    /* 0x04 */ SVECTOR*        field_4;
-    /* 0x08 */ SVECTOR*        field_8;
-    /* 0x0C */ GpGridFace*     field_C;
-    /* 0x10 */ s16**           field_10;
-    /* 0x14 */ s32             field_14;
-    /* 0x18 */ s32             field_18;
-    /* 0x1C */ u16             field_1C;
-    /* 0x1E */ u16             field_1E;
-    /* 0x20 */ u16             field_20;
-    /* 0x22 */ u16             field_22;
+    /* 0x00 */ struct GfxCoord* field_0;
+    /* 0x04 */ SVECTOR*         field_4;
+    /* 0x08 */ SVECTOR*         field_8;
+    /* 0x0C */ GpGridFace*      field_C;
+    /* 0x10 */ s16**            field_10;
+    /* 0x14 */ s32              field_14;
+    /* 0x18 */ s32              field_18;
+    /* 0x1C */ u16              field_1C;
+    /* 0x1E */ u16              field_1E;
+    /* 0x20 */ u16              field_20;
+    /* 0x22 */ u16              field_22;
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 

@@ -1793,7 +1793,7 @@ static void       func_dryfield_water_tower_8017FBE8(Task* task);
 static void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GpCoord*                 coord = arg0->extra.tmd->coords;
+    GfxCoord*                coord = arg0->extra.tmd->coords;
     GpCmdArg                 msg;
 
     if (arg0->spawnArg1.value == 0) {
@@ -1825,9 +1825,9 @@ static void func_dryfield_water_tower_8017DE30(Task* arg0)
         state->field_58++;
     }
 
-    state->field_6A   += 4;
-    coord->coord.t[1] += (s16)state->field_6A;
-    coord->flg         = 0;
+    state->field_6A    += 4;
+    coord->coord.t[1]  += (s16)state->field_6A;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// The cap-arrival test the raise prop `func_dryfield_water_tower_8017E1DC` runs
@@ -1858,14 +1858,14 @@ static void func_dryfield_water_tower_8017DE30(Task* arg0)
 static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 {
     DryfieldWaterTowerState* state;
-    GpCoord*                 coord;
-    GpCoord*                 effCoord;
+    GfxCoord*                coord;
+    GfxCoord*                effCoord;
     SVECTOR                  pos;
     s32                      i;
 
-    state      = (DryfieldWaterTowerState*)arg0->work;
-    coord      = arg0->extra.tmd->coords;
-    coord->flg = 0;
+    state               = (DryfieldWaterTowerState*)arg0->work;
+    coord               = arg0->extra.tmd->coords;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (state->field_58) {
         case 0:
             state->field_70 = 1;
@@ -1959,7 +1959,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     DryfieldWaterTowerState* state;
     TmdObject*               obj;
     TmdObject*               model;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
     OverlayVecSlot           pos;
     MATRIX*                  mem;
 
@@ -1976,7 +1976,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
         switch (arg0->state) {
             case 0: {
                 TmdObject* model;
-                GpCoord*   modelCoord;
+                GfxCoord*  modelCoord;
 
                 model      = arg0->extra.tmd;
                 modelCoord = model->coords;
@@ -1987,7 +1987,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 } else {
                     Mem_Set(mem, 0, 0x7C);
                     ((DryfieldWaterTowerState*)mem)->field_40 = gameGetPtrSlot(3);
-                    modelCoord->sub                           = &gGfxViewCoord;
+                    modelCoord->parent                        = &gGfxViewCoord;
                     model->flags                              = 0;
                     Tmd_AllocBuffers(model);
                     model->colorMtx = mem;
@@ -2044,7 +2044,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// `D_..._80181C60[killCountdown]`, and wraps that 0..9 counter. State 1 counts
 /// `field_5A`; on its 0x3D-th tick it publishes the 0x7D4 record at 0x80181A58
 /// and returns 1, and until then mirrors that record's `pos.vx` into the cap's
-/// X, nudged by the same flag. Every path clears `coord->flg`, leaving the
+/// X, nudged by the same flag. Every path clears `coord->composeStamp`, leaving the
 /// coordinate dirty for the next `Gp_UpdateCoord` pass.
 ///
 /// Where the sibling `func_dryfield_water_tower_8017E5B0` drives the run's head
@@ -2061,8 +2061,8 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GpCoord*                 coord = arg0->extra.tmd->coords;
-    GpCoord*                 effCoord;
+    GfxCoord*                coord = arg0->extra.tmd->coords;
+    GfxCoord*                effCoord;
     SVECTOR                  pos;
 
     switch (state->field_58) {
@@ -2099,7 +2099,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
             }
             break;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -2119,7 +2119,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// counter. State 1 counts `field_5A`; on its 0x3D-th tick it publishes the
 /// 0x7D4 record at 0x80181A40 and returns 1, and until then mirrors that
 /// record's `pos.vx` into the cap's X, nudged by the same flag. Every path
-/// clears `coord->flg`, leaving the coordinate dirty for the next
+/// clears `coord->composeStamp`, leaving the coordinate dirty for the next
 /// `Gp_UpdateCoord` pass.
 ///
 /// Two shapes here are the original's rather than stylistic, and folding either
@@ -2131,8 +2131,8 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GpCoord*                 coord = arg0->extra.tmd->coords;
-    GpCoord*                 effCoord;
+    GfxCoord*                coord = arg0->extra.tmd->coords;
+    GfxCoord*                effCoord;
     SVECTOR                  pos;
 
     switch (state->field_58) {
@@ -2171,7 +2171,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             }
             break;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -2201,7 +2201,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
     TmdObject*               obj;
     TmdObject*               tmp;
     TmdObject*               model;
-    GpCoord*                 coord;
+    GfxCoord*                coord;
     VECTOR                   vec;
 
     obj = arg0->extra.tmd;
@@ -2224,7 +2224,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
             } else {
                 Mem_Set(state, 0, 0x7C);
                 state->field_40 = gameGetPtrSlot(3);
-                coord->sub      = &gGfxViewCoord;
+                coord->parent   = &gGfxViewCoord;
                 tmp->flags      = 0;
                 Tmd_AllocBuffers(tmp);
                 tmp->colorMtx  = &state->colorMtx;
@@ -2774,8 +2774,8 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// and marks the coordinate dirty.
 void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -2785,7 +2785,7 @@ void func_dryfield_water_tower_8017F77C(Task* task, s32 arg1, GpXformArg* placem
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message 0x7DB handler, the room script table `D_dryfield_water_tower_80181B00`

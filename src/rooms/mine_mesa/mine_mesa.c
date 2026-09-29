@@ -183,13 +183,13 @@ extern GpEnemy*            D_mine_mesa_80189B74[2];
 
 static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
-static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
+static void func_mine_mesa_80180184(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
 static void func_mine_mesa_801817BC(void);
 
 static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_mine_mesa_8017F4D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_mesa_8017F900(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_mine_mesa_80180804(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void func_mine_mesa_8017E074(Task*);
 
@@ -334,13 +334,7 @@ TaskDesc D_mine_mesa_80181990[2] = {
 
 TaskDesc D_mine_mesa_801819A8 = { 0, 192, func_mine_mesa_8017DFC4, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MineMesaPoseBank43F4;
-
-MineMesaPoseBank43F4 D_mine_mesa_801819B4 = { .poses = {
+AnimationPackedPose D_mine_mesa_801819B4[6] = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
 };
 
@@ -362,13 +356,7 @@ GpAnimSet D_mine_mesa_80181C90 = {
     { NULL, D_mine_mesa_801819B4, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineMesaPoseBank46F8;
-
-MineMesaPoseBank46F8 D_mine_mesa_80181CB8 = { .poses = {
+AnimationPackedPose D_mine_mesa_80181CB8[2] = {
 #include "assets/mine_mesa_animation_0494C_bank1.inc"
 };
 
@@ -390,13 +378,7 @@ GpAnimSet D_mine_mesa_80181F0C = {
     { NULL, D_mine_mesa_80181CB8, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineMesaPoseBank4974;
-
-MineMesaPoseBank4974 D_mine_mesa_80181F34 = { .poses = {
+AnimationPackedPose D_mine_mesa_80181F34[4] = {
 #include "assets/mine_mesa_animation_04B54_bank1.inc"
 };
 
@@ -418,13 +400,7 @@ GpAnimSet D_mine_mesa_80182114 = {
     { NULL, D_mine_mesa_80181F34, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MineMesaPoseBank4B7C;
-
-MineMesaPoseBank4B7C D_mine_mesa_8018213C = { .poses = {
+AnimationPackedPose D_mine_mesa_8018213C[6] = {
 #include "assets/mine_mesa_animation_04ED8_bank1.inc"
 };
 
@@ -446,13 +422,7 @@ GpAnimSet D_mine_mesa_80182498 = {
     { NULL, D_mine_mesa_8018213C, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} MineMesaPoseBank4F00;
-
-MineMesaPoseBank4F00 D_mine_mesa_801824C0 = { .poses = {
+AnimationPackedPose D_mine_mesa_801824C0[3] = {
 #include "assets/mine_mesa_animation_0515C_bank1.inc"
 };
 
@@ -474,13 +444,7 @@ GpAnimSet D_mine_mesa_8018271C = {
     { NULL, D_mine_mesa_801824C0, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[28];
-    AnimationPackedRotation        words[84];
-} MineMesaPoseBank5184;
-
-MineMesaPoseBank5184 D_mine_mesa_80182744 = { .poses = {
+AnimationPackedPose D_mine_mesa_80182744[28] = {
 #include "assets/mine_mesa_animation_06160_bank1.inc"
 };
 
@@ -502,13 +466,7 @@ GpAnimSet D_mine_mesa_80183720 = {
     { NULL, D_mine_mesa_80182744, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineMesaPoseBank6188;
-
-MineMesaPoseBank6188 D_mine_mesa_80183748 = { .poses = {
+AnimationPackedPose D_mine_mesa_80183748[4] = {
 #include "assets/mine_mesa_animation_0645C_bank1.inc"
 };
 
@@ -530,13 +488,7 @@ GpAnimSet D_mine_mesa_80183A1C = {
     { NULL, D_mine_mesa_80183748, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineMesaPoseBank6484;
-
-MineMesaPoseBank6484 D_mine_mesa_80183A44 = { .poses = {
+AnimationPackedPose D_mine_mesa_80183A44[2] = {
 #include "assets/mine_mesa_animation_065FC_bank1.inc"
 };
 
@@ -558,13 +510,7 @@ GpAnimSet D_mine_mesa_80183BBC = {
     { NULL, D_mine_mesa_80183A44, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineMesaPoseBank6624;
-
-MineMesaPoseBank6624 D_mine_mesa_80183BE4 = { .poses = {
+AnimationPackedPose D_mine_mesa_80183BE4[4] = {
 #include "assets/mine_mesa_animation_068E4_bank1.inc"
 };
 
@@ -586,13 +532,7 @@ GpAnimSet D_mine_mesa_80183EA4 = {
     { NULL, D_mine_mesa_80183BE4, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineMesaPoseBank690C;
-
-MineMesaPoseBank690C D_mine_mesa_80183ECC = { .poses = {
+AnimationPackedPose D_mine_mesa_80183ECC[2] = {
 #include "assets/mine_mesa_animation_06B9C_bank1.inc"
 };
 
@@ -3560,7 +3500,7 @@ static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_mine_mesa_8017F230(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -3625,7 +3565,7 @@ void func_mine_mesa_8017F230(Task* task)
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the edge at the
 /// second radius, and each wedge fades to black at the first.
-static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_mesa_8017F4D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -3683,7 +3623,7 @@ static void func_mine_mesa_8017F4D4(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_mesa_8017F900(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -3739,15 +3679,15 @@ static void func_mine_mesa_8017F900(GpCoord* arg0, s16 arg1, u8* rgb)
 /// more.
 void func_mine_mesa_8017FC94(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -3755,36 +3695,36 @@ void func_mine_mesa_8017FC94(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_mine_mesa_80186528[0].vx;
-                objCoord->coord.t[1] = D_mine_mesa_80186528[0].vy;
-                objCoord->coord.t[2] = D_mine_mesa_80186528[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_mine_mesa_80186528[0].vx;
+                objCoord->coord.t[1]   = D_mine_mesa_80186528[0].vy;
+                objCoord->coord.t[2]   = D_mine_mesa_80186528[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_mine_mesa_80186528[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_mine_mesa_80186528[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -3792,35 +3732,35 @@ void func_mine_mesa_8017FC94(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_mine_mesa_80186528[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_mine_mesa_80180184(coords, &coords[8], work->age & 7, 0x123);
@@ -3839,11 +3779,11 @@ void func_mine_mesa_8017FC94(Task* task)
 /// colour whose channels multiply that fade: red is `arg3 >> 8`, green and
 /// blue the 2-bit fields at bits 4 and 0. A quad is dropped when `gte_stflg`
 /// is negative.
-static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_mine_mesa_80180184(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -3938,7 +3878,7 @@ static void func_mine_mesa_80180184(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 
 
 void func_mine_mesa_8018057C(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -4012,7 +3952,7 @@ void func_mine_mesa_8018057C(Task* task)
 /// `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). Only the centre vertex is tinted, so each wedge fades to a black
 /// rim.
-static void func_mine_mesa_80180804(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_mesa_80180804(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -4189,7 +4129,7 @@ static void func_mine_mesa_80181358(Task* arg0)
     TmdObject*           tmd;
     GpAreaKey*           loc;
     GpAreaPlace*         place;
-    GpCoord*             coords;
+    GfxCoord*            coords;
     GpEnemy*             enemy;
 
     for (i = 0; i < 2; i++) {
@@ -4262,9 +4202,9 @@ static void func_mine_mesa_80181358(Task* arg0)
         }
         Gfx_RotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
                        pt->yaw, 1);
-        coords           = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
-        MineMesaCooldown = 0x50;
-        coords->flg      = 0;
+        coords               = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
+        MineMesaCooldown     = 0x50;
+        coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (MineMesaRemaining > 0) {
         return;

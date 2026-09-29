@@ -264,9 +264,9 @@ typedef struct _GameActor {
     /* 0x004 */ s32                field_4;  // per-frame Y velocity
     /* 0x008 */ s32                field_8;  // per-frame Z velocity
     /* 0x00C */ byte               pad_C[4];
-    /* 0x010 */ s32                field_10; // copy of GpCoord.coord.t[0]
-    /* 0x014 */ s32                field_14; // copy of GpCoord.coord.t[1]
-    /* 0x018 */ s32                field_18; // copy of GpCoord.coord.t[2]
+    /* 0x010 */ s32                field_10; // copy of GfxCoord.coord.t[0]
+    /* 0x014 */ s32                field_14; // copy of GfxCoord.coord.t[1]
+    /* 0x018 */ s32                field_18; // copy of GfxCoord.coord.t[2]
     /* 0x01C */ byte               pad_1C[4];
     /* 0x020 */ s32                field_20; // copied from Gp_SetActorDest arg2
     /* 0x024 */ s32                field_24;
@@ -313,7 +313,7 @@ typedef struct _GameActor {
     /* 0x17C */ GpRec18            field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
     /* 0x32C */ GpRec18            field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
     /* 0x3BC */ byte               pad_3BC[0x18];
-    /* 0x3D4 */ GpCoord            field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
+    /* 0x3D4 */ GfxCoord           field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
     /* 0x424 */ byte               field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
     /* 0x438 */ GpAnimSlot         field_438[19];   // the actor's animation slots, the array its `GpAnimCtx` walks
     /* 0x730 */ byte               pad_730[0x10];

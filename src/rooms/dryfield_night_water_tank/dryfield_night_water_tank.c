@@ -808,7 +808,7 @@ static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 /// the way to that step. Every frame then sets the model's flags to 0x80 while
 /// the view is 7 (0 otherwise), publishes the coordinate's `workm` translation
 /// as a `VECTOR` to `func_800D7A9C`, rebuilds the coordinate's yaw matrix from
-/// the accumulated angle, and clears `flg` so the world matrix is recomputed.
+/// the accumulated angle, and clears `composeStamp` so the world matrix is recomputed.
 ///
 /// The coordinate's load is written through the cast expression, before the
 /// object pointer is assigned: the pointer assignment has to stay a separate
@@ -816,7 +816,7 @@ static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR     vec;
 
     coord = arg0->extra.tmd->coords;
@@ -824,7 +824,7 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
     switch (arg0->state) {
         case 0:
             obj->flags        = 0;
-            coord->sub        = &gGfxViewCoord;
+            coord->parent     = &gGfxViewCoord;
             coord->coord.t[0] = 0xBB8;
             coord->coord.t[1] = -0x34A8;
             coord->coord.t[2] = -0x4D8;
@@ -859,7 +859,7 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     Gfx_RotMatrixY(&coord->coord, D_dryfield_night_water_tank_8017EE40 >> 8, 1);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_dryfield_night_water_tank_8017DD8C(Task* unused)

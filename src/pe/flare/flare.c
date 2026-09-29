@@ -31,7 +31,7 @@
 
 /// This overlay's id, the `u16` every package opens with.
 
-static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void flareDrawSparkQuad(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 /// PROVISIONAL: written before `Task` was processed, so the statements
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
@@ -46,7 +46,7 @@ static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 void flareEffectTask(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     s32         pan;
     s16         tick;
@@ -97,8 +97,8 @@ void flareEffectTask(Task* arg0)
 void flareSparkTask(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
-    GpCoord*    player;
+    GfxCoord*   coord;
+    GfxCoord*   player;
     GpMtxWords* dstm;
     GpMtxWords* srcm;
     u32         rng;
@@ -108,15 +108,15 @@ void flareSparkTask(Task* arg0)
     coord    = arg0->extra.tmd->coords;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        player        = (gameGetPtrSlot(3))->extra.tmd->coords;
-        dstm          = (GpMtxWords*)&coord->coord;
-        srcm          = (GpMtxWords*)&player->coord;
-        dstm->m00_m01 = srcm->m00_m01;
-        dstm->m02_m10 = srcm->m02_m10;
-        dstm->m11_m12 = srcm->m11_m12;
-        dstm->m20_m21 = srcm->m20_m21;
-        dstm->m22     = srcm->m22;
-        coord->flg    = 0;
+        player              = (gameGetPtrSlot(3))->extra.tmd->coords;
+        dstm                = (GpMtxWords*)&coord->coord;
+        srcm                = (GpMtxWords*)&player->coord;
+        dstm->m00_m01       = srcm->m00_m01;
+        dstm->m02_m10       = srcm->m02_m10;
+        dstm->m11_m12       = srcm->m11_m12;
+        dstm->m20_m21       = srcm->m20_m21;
+        dstm->m22           = srcm->m22;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         rng          = Gp_LcgState * 5 + 0x71357911;
         mem->period  = arg0->spawnArg1.value & 0xFFF;
@@ -133,10 +133,10 @@ void flareSparkTask(Task* arg0)
         gte_stsv(&mem->move);
         arg0->state = 1;
     }
-    coord->coord.t[0] += mem->move.vx;
-    coord->coord.t[1] += mem->move.vy;
-    coord->coord.t[2] += mem->move.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += mem->move.vx;
+    coord->coord.t[1]  += mem->move.vy;
+    coord->coord.t[2]  += mem->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     if (!(mem->age & 1)) {
         mem->index = mem->index + 1;
@@ -154,7 +154,7 @@ void flareSparkTask(Task* arg0)
 /// behind the camera. `arg1` picks one of the eight texture frames, `arg3`
 /// spins the quad and `arg2` sizes it, with the size divided by depth so the
 /// sprite shrinks into the distance.
-static void flareDrawSparkQuad(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void flareDrawSparkQuad(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;

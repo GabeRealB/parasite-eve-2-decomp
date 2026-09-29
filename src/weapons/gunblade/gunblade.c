@@ -55,9 +55,9 @@ static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
 void func_gunblade_8011D1E4(Task* task)
 {
-    GpCoord    local;
-    GpCoord*   coord;
-    GpCoord*   dst;
+    GfxCoord   local;
+    GfxCoord*  coord;
+    GfxCoord*  dst;
     GpEffWork* work;
     GpEffWork* eff;
     s32        keep;
@@ -72,64 +72,64 @@ void func_gunblade_8011D1E4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coord->sub          = work->parent;
+                coord->parent       = work->parent;
                 coord->coord.t[0]   = D_gunblade_8011E704[0].vx;
                 D_gunblade_8012E244 = task;
                 coord->coord.t[1]   = D_gunblade_8011E704[0].vy;
                 D_gunblade_8012E248 = work;
                 coord->coord.t[2]   = D_gunblade_8011E704[0].vz;
-                coord->flg          = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                task->state      = 1;
-                vec              = &D_gunblade_8011E704[1];
-                local.sub        = work->parent;
-                local.coord.t[0] = vec->vx;
-                local.coord.t[1] = vec->vy;
-                local.coord.t[2] = vec->vz;
-                local.flg        = 0;
+                task->state        = 1;
+                vec                = &D_gunblade_8011E704[1];
+                local.parent       = work->parent;
+                local.coord.t[0]   = vec->vx;
+                local.coord.t[1]   = vec->vy;
+                local.coord.t[2]   = vec->vz;
+                local.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&local);
                 for (i = 0; i < 8; i++) {
-                    dst        = &D_gunblade_8012E254[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord->workm;
+                    dst         = &D_gunblade_8012E254[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &D_gunblade_8012E4D4[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = local.workm;
+                    dst         = &D_gunblade_8012E4D4[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = local.workm;
                     gte_SetRotMatrix(&local.workm);
                     gte_SetTransMatrix(&local.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
             case 1:
-                coord->flg = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                local.sub        = work->parent;
-                local.coord.t[0] = D_gunblade_8011E70C.vx;
-                local.coord.t[1] = D_gunblade_8011E70C.vy;
-                local.coord.t[2] = D_gunblade_8011E70C.vz;
-                local.flg        = 0;
+                local.parent       = work->parent;
+                local.coord.t[0]   = D_gunblade_8011E70C.vx;
+                local.coord.t[1]   = D_gunblade_8011E70C.vy;
+                local.coord.t[2]   = D_gunblade_8011E70C.vz;
+                local.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&local);
-                dst        = &D_gunblade_8012E254[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord->workm;
+                dst         = &D_gunblade_8012E254[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &D_gunblade_8012E4D4[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = local.workm;
+                dst         = &D_gunblade_8012E4D4[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = local.workm;
                 gte_SetRotMatrix(&local.workm);
                 gte_SetTransMatrix(&local.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &D_gunblade_8012E254[i];
-                    dst->flg = 0;
+                    dst               = &D_gunblade_8012E254[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &D_gunblade_8012E4D4[i];
-                    dst->flg = 0;
+                    dst               = &D_gunblade_8012E4D4[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 if (work->age < 9) {
@@ -165,8 +165,8 @@ void func_gunblade_8011D1E4(Task* task)
 static void func_gunblade_8011D70C(s16 slot, s16 flags)
 {
     GunbladeBeamScratch* blk;
-    GpCoord*             a;
-    GpCoord*             b;
+    GfxCoord*            a;
+    GfxCoord*            b;
     POLY_G4*             prim;
     s32                  i;
     s32                  j;
@@ -240,7 +240,7 @@ static void func_gunblade_8011D70C(s16 slot, s16 flags)
 void func_gunblade_8011DAA4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
     s32        i;
 

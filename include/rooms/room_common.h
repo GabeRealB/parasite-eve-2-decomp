@@ -93,22 +93,22 @@ STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 /// own TMD source and draws it through `coord`, which is `gGfxViewCoord` with
 /// one GTE rotation column negated.
 ///
-/// `viewFlg` caches `gGfxViewCoord.flg & 0x7FFFFFFF` so the mirror only rebuilds
+/// `viewFlg` caches `gGfxViewCoord.composeStamp & 0x7FFFFFFF` so the mirror only rebuilds
 /// its matrices when the view moves, and `field_4` marks the block as live;
 /// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
 /// first frame always rebuilds. `light` and `color` are the matrices hung off
 /// the clone's `TmdObject`, `field_A0` is the screen-space clip rectangle
 /// (-160, 160, -120, 120) and `configRev` caches `Player_Status.weapon`.
 typedef struct RoomMirrorWork {
-    /* 0x00 */ s32     viewFlg;
-    /* 0x04 */ s32     field_4;
-    /* 0x08 */ s32     field_8;
-    /* 0x0C */ s32     field_C;
-    /* 0x10 */ GpCoord coord;
-    /* 0x60 */ MATRIX  light;
-    /* 0x80 */ MATRIX  color;
-    /* 0xA0 */ s16     field_A0[4];
-    /* 0xA8 */ s32     configRev;
+    /* 0x00 */ s32      viewFlg;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ s32      field_8;
+    /* 0x0C */ s32      field_C;
+    /* 0x10 */ GfxCoord coord;
+    /* 0x60 */ MATRIX   light;
+    /* 0x80 */ MATRIX   color;
+    /* 0xA0 */ s16      field_A0[4];
+    /* 0xA8 */ s32      configRev;
 } RoomMirrorWork;
 STATIC_ASSERT_SIZEOF(RoomMirrorWork, 0xAC);
 

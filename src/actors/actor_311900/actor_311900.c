@@ -74,7 +74,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
 static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
 static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
 static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
-static s32  func_actor_311900_80162658(GpCoord* arg0, s16 arg1);
+static s32  func_actor_311900_80162658(GfxCoord* arg0, s16 arg1);
 static void func_actor_311900_8016278C(Task* task);
 static void func_actor_311900_8016281C(Task* task);
 
@@ -147,13 +147,7 @@ TmdSource D_actor_311900_8016DF4C = {
     D_actor_311900_8016A138,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[11];
-    AnimationPackedRotation        words[33];
-} Actor311900PoseBankC150;
-
-Actor311900PoseBankC150 D_actor_311900_8016DF70 = { .poses = {
+AnimationPackedPose D_actor_311900_8016DF70[11] = {
 #include "assets/actor_311900_animation_0C9A8_bank1.inc"
 };
 
@@ -175,13 +169,7 @@ GpAnimSet D_actor_311900_8016E7C8 = {
     { NULL, D_actor_311900_8016DF70, NULL, NULL, D_actor_311900_8016DFF4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor311900PoseBankC9D0;
-
-Actor311900PoseBankC9D0 D_actor_311900_8016E7F0 = { .poses = {
+AnimationPackedPose D_actor_311900_8016E7F0[6] = {
 #include "assets/actor_311900_animation_0CDA0_bank1.inc"
 };
 
@@ -429,7 +417,7 @@ void func_actor_311900_8016222C(Task* task)
 static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -445,7 +433,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     obj->flags      = 0;
     func_800B3F84(&work->rig.anim, D_actor_311900_8016EBE8, obj, work->rig.poses,
                   work->rig.slots);
-    coord->sub      = &gGfxViewCoord;
+    coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
     work->field_4C4 = 0;
@@ -467,7 +455,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -515,7 +503,7 @@ void func_actor_311900_8016249C(Task* task)
 ///
 /// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
 /// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
-/// matrix, the root's `sub` is re-parented to `gGfxViewCoord`, the animation
+/// matrix, the root's `parent` is re-parented to `gGfxViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
 /// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
 /// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
@@ -523,7 +511,7 @@ void func_actor_311900_8016249C(Task* task)
 static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
 {
     Actor311900Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
 
     obj   = task->extra.tmd;
@@ -539,7 +527,7 @@ static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     obj->flags      = 0;
     func_800B3F84(&work->rig.anim, D_actor_311900_8016EBF4, obj, work->rig.poses,
                   work->rig.slots);
-    coord->sub      = &gGfxViewCoord;
+    coord->parent   = &gGfxViewCoord;
     work->field_474 = 2;
     work->field_478 = 1;
     func_actor_311900_80162100(task);
@@ -563,16 +551,16 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
 /// Takes `arg1` as a signed 16-bit step, builds a direction vector from
 /// `arg0->coord`'s rotation with `Gfx_MatrixCol2`, normalizes it with
 /// `VectorNormalSS`, scales it by the step on the GTE, adds it to
-/// `arg0->coord.t` and clears `arg0->flg`. Returns the step, or 0 having
+/// `arg0->coord.t` and clears `arg0->composeStamp`. Returns the step, or 0 having
 /// touched nothing while the game is paused (`Mc_SaveData[0].state.field_5C1 == 1`) or when the
-/// step is zero. `arg0` is the per-part `GpCoord` the caller takes from
+/// step is zero. `arg0` is the per-part `GfxCoord` the caller takes from
 /// `TmdObject::coords`.
 ///
 /// The scratch-pad vector is carved out under two names: `vec`, which the
 /// frame update stores and the calls normalize, and `gte`, which the GTE round
 /// trip reads and writes back. The object keeps them apart, and that is what
 /// the copy ahead of the `if` is.
-static s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
+static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
 {
     SVECTOR* head;
     SVECTOR* vec;
@@ -592,10 +580,10 @@ static s32 func_actor_311900_80162658(GpCoord* arg0, s16 arg1)
         gte_ldsv(gte);
         gte_gpf12();
         gte_stsv(gte);
-        arg0->coord.t[0] += head[-1].vx;
-        arg0->coord.t[1] += vec->vy;
-        arg0->coord.t[2] += vec->vz;
-        arg0->flg         = 0;
+        arg0->coord.t[0]  += head[-1].vx;
+        arg0->coord.t[1]  += vec->vy;
+        arg0->coord.t[2]  += vec->vz;
+        arg0->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_POP(SVECTOR);
     return arg1;

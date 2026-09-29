@@ -188,16 +188,16 @@ static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
     AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    GpCoord*       coord = task->extra.tmd->coords;
+    GfxCoord*      coord = task->extra.tmd->coords;
     TmdObject*     obj   = task->extra.tmd;
     s16            n;
 
     n = --work->field_50;
     if (n >= 0) {
-        coord->coord.t[0] += work->field_0;
-        coord->coord.t[1] += work->field_4;
-        coord->coord.t[2] += work->field_8;
-        coord->flg         = 0;
+        coord->coord.t[0]  += work->field_0;
+        coord->coord.t[1]  += work->field_4;
+        coord->coord.t[2]  += work->field_8;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         work->field_50 = 0;
     }
@@ -263,7 +263,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, GpAnim
 /// matrix and marks the coordinate dirty.
 s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXformArg* placement, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
@@ -273,7 +273,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, GpXfor
     coord->param.rot.vy = placement->rot.vy;
     coord->param.rot.vz = placement->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

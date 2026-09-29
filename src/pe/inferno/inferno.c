@@ -80,8 +80,8 @@ static InfernoFanParam D_inferno_801304E4[] = {
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 static void func_inferno_8012F3EC(s16 arg0);
-static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
-static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -96,7 +96,7 @@ static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, Infe
 void func_inferno_8012EF88(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        i;
     s32        pan;
 
@@ -105,7 +105,7 @@ void func_inferno_8012EF88(Task* arg0)
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     mem->age = mem->age + 1;
     switch (arg0->state) {
@@ -243,7 +243,7 @@ static void func_inferno_8012F3EC(s16 arg0)
 void func_inferno_8012F530(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     InfernoIdMap* map;
     u8*           p;
     s32           i;
@@ -256,7 +256,7 @@ void func_inferno_8012F530(Task* arg0)
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState >= 4)) {
         goto release;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     mem->age = mem->age + 1;
     switch (arg0->state) {
@@ -315,11 +315,11 @@ void func_inferno_8012F530(Task* arg0)
             }
             break;
         case 3:
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            tz                 = coord->coord.t[2] + mem->move.vz;
-            coord->flg         = 0;
-            coord->coord.t[2]  = tz;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            tz                  = coord->coord.t[2] + mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[2]   = tz;
             if (mem->scale >= 9) {
                 mem->scale  = mem->scale - 8;
                 mem->angle  = mem->angle + 0x20;
@@ -375,7 +375,7 @@ release:
 /// inner rim is lifted `GpEffWork::period + field_2` along local Y instead
 /// of `field_2` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
-static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;
@@ -474,7 +474,7 @@ static void func_inferno_8012F978(GpEffWork* mem, GpCoord* coord, s32 kind, Infe
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
 /// `POLY_FT4`; `map` and `GpEffWork::age` pick which of the six 0x28-wide
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
-static void func_inferno_8012FF34(GpEffWork* mem, GpCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;

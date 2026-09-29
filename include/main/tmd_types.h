@@ -78,7 +78,7 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 /// each pass flips it.
 typedef struct {
     TmdListHead link;        // Its place on `gTmdList`
-    GpCoord*    coords;      // Per-part coordinate array, part of this object's own block
+    GfxCoord*   coords;      // Per-part coordinate array, part of this object's own block
     u16         flags;       // State bits (0x2 drawn semi-transparent, 0x4 buffer allocated by whoever created it, 0x8 drawn by the flagged pass, 0x10 drawn as a reflection, its faces winding the other way, 0x80 hidden)
     s8          otOffset;    // Ordering-table offset the model's primitives are linked at
     byte        unknown_F;
@@ -97,6 +97,15 @@ typedef struct {
     s32         partCount;   // Parts the model is divided into, cached from the source
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
+
+/// Tmd_Create allocates the object and its partCount coordinates as one block.
+/// The coordinate tail has no fixed capacity; its extent comes from the source.
+typedef struct {
+    TmdObject object;
+    GfxCoord  coords[0];
+} TmdAllocation;
+STATIC_ASSERT_SIZEOF(TmdAllocation, 0x34);
+STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == 0x34, tmd_allocation_coords_offset);
 
 /// One frame of the scratch a model's packet stream is walked in: what
 /// `tmdProcessStream` pushes on `G_SCRATCH_HEAD` and passes to every stream

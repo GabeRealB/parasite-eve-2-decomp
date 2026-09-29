@@ -11,7 +11,6 @@
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/player_actor.h"
@@ -51,8 +50,8 @@ static void func_kyle_800102_80167A84(Task* arg0)
     SVECTOR*           vec;
     MATRIX*            mtx;
     TmdObject*         extra;
-    GpCoord*           coord;
-    GpCoord*           muzzle;
+    GfxCoord*          coord;
+    GfxCoord*          muzzle;
     WeaponGrenadeWork* work;
     s32                idx;
     s32                flags;
@@ -64,7 +63,7 @@ static void func_kyle_800102_80167A84(Task* arg0)
     extra                 = arg0->extra.tmd;
     idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
     coord                 = extra->coords;
-    muzzle                = coord->sub;
+    muzzle                = coord->parent;
     work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec                   = blk;
     if (work == NULL) {
@@ -76,10 +75,10 @@ static void func_kyle_800102_80167A84(Task* arg0)
     arg0->exitCallback = func_kyle_800102_80168270;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
-    blk->vx     = D_kyle_800102_80177424[idx].vx;
-    blk->vy     = D_kyle_800102_80177424[idx].vy;
-    blk->vz     = D_kyle_800102_80177424[idx].vz;
-    muzzle->flg = 0;
+    blk->vx              = D_kyle_800102_80177424[idx].vx;
+    blk->vy              = D_kyle_800102_80177424[idx].vy;
+    blk->vz              = D_kyle_800102_80177424[idx].vz;
+    muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(muzzle);
     coord->workm = muzzle->workm;
     gte_SetRotMatrix(&muzzle->workm);
@@ -89,9 +88,9 @@ static void func_kyle_800102_80167A84(Task* arg0)
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
-    coord->sub   = &gGfxViewCoord;
-    coord->flg   = 0;
-    extra->flags = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = 0;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
@@ -152,7 +151,7 @@ static void func_kyle_800102_80167DE0(Task* arg0)
 {
     WeaponGrenadeScratch* blk;
     WeaponGrenadeWork*    work;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     GpRoomParamRec*       param;
     s32                   idx;
     s32                   clip;
@@ -160,10 +159,10 @@ static void func_kyle_800102_80167DE0(Task* arg0)
     s32                   sfxarg;
     s32                   sfxbase;
 
-    work       = (WeaponGrenadeWork*)arg0->work;
-    coord      = arg0->extra.tmd->coords;
-    blk        = SCRATCH_PUSH(WeaponGrenadeScratch);
-    coord->flg = 0;
+    work                = (WeaponGrenadeWork*)arg0->work;
+    coord               = arg0->extra.tmd->coords;
+    blk                 = SCRATCH_PUSH(WeaponGrenadeScratch);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1.value & 0xFF00;

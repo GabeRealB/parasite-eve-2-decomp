@@ -41,9 +41,9 @@ STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
-static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2);
+static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2);
 
-static void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the
@@ -77,7 +77,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 void func_plasma_8012EF34(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpStateC08* state;
     s32         pan;
     s32         i;
@@ -94,7 +94,7 @@ void func_plasma_8012EF34(Task* arg0)
         goto release;
     }
 
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     prev     = mem->age;
     next     = prev + 1;
@@ -213,7 +213,7 @@ release:
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
 /// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
 /// Works out of a `GpBandScratch` taken from `G_SCRATCH_HEAD`.
-static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
+static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2)
 {
     u8*              head;
     GpBandScratch*   block;
@@ -309,7 +309,7 @@ static void func_plasma_8012F568(GpEffWork* arg0, GpCoord* arg1, s32 arg2)
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim. Byte-identical to the rooms
 /// family's `Room_Draw07` (src/lib/room_draw07.c).
-static void func_plasma_8012FB10(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;

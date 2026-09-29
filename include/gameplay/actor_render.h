@@ -4,7 +4,11 @@
 #include "main/coord.h"
 #include "main/display_types.h"
 
-void Gp_UpdateCoord(GpCoord* arg0);
+/// Composes a node and its ancestors through the top of their chain.
+///
+/// Clear `composeStamp` before changing a node's local matrix or parent.
+/// Model nodes beneath `gGfxViewCoord` produce a local-to-view `workm`.
+void Gp_UpdateCoord(GfxCoord* coord);
 
 /// Refreshes every coordinate for this frame, then draws the models the
 /// flagged pass draws.

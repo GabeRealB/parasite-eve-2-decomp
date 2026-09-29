@@ -27,7 +27,7 @@ struct _GpObjDirRec;
 typedef struct _GpObj {
     struct _GpObj*  next;           // next on the list
     struct _GpObj** prev;           // address of the preceding next link
-    GpCoord*        coord;          // transform `pos` is an offset under
+    GfxCoord*       coord;          // transform `pos` is an offset under
     union {
         GpRec18*             recs;  // kind 1: the body's own contact table
         struct _GpObj*       node;  // kind 2: the node whose table is used
@@ -61,7 +61,7 @@ STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 /// the middle of, and the last three walk it along its route.
 typedef struct GpActorD4 {
     /* 0x00 */ byte         pad_0[0x18];
-    /* 0x18 */ GpCoord      coord;         // the body's transform, a copy of the actor's model coordinate
+    /* 0x18 */ GfxCoord     coord;         // the body's transform, a copy of the actor's model coordinate
     /* 0x68 */ GpObj        obj;           // the body: a kind-3 node whose `ctx.d4rec` is `shape`
     /* 0x88 */ GpActorD4Rec shape;         // the capsule the body's collisions are tested with
     /* 0xA0 */ GpRec18      contact;       // the one-entry table `shape` records its contacts in
@@ -82,7 +82,7 @@ STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to
 /// `GameActor.field_52`. `vec` is the target-minus-current offset
-/// (`GameActor.field_20/24/28` minus `GpCoord.coord.t`).
+/// (`GameActor.field_20/24/28` minus `GfxCoord.coord.t`).
 typedef struct _GpApproachScratch {
     /* 0x00 */ s32     field_0;
     /* 0x04 */ VECTOR3 vec;
@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
 /// jitter added to that position.
 typedef struct _GpPickScratch {
     GpDeltaScratch delta;
-    GpCoord        coord;
+    GfxCoord       coord;
     SVECTOR        offset;
 } GpPickScratch;
 STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);

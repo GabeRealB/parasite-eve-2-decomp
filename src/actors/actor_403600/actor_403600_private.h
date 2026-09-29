@@ -29,7 +29,7 @@ typedef struct Actor403600Work {
     /* 0x474 */ MATRIX          field_474;
     /* 0x494 */ MATRIX          field_494;
     /* 0x4B4 */ struct GpEnemy* field_4B4;
-    /* 0x4B8 */ GpCoord         field_4B8;
+    /* 0x4B8 */ GfxCoord        field_4B8;
     /* 0x508 */ GpObj           field_508;
     /* 0x528 */ GpRec18         field_528[4];
     /* 0x588 */ GpObj           field_588;
@@ -40,7 +40,7 @@ typedef struct Actor403600Work {
     /* 0x658 */ GpEffArg        field_658;
     /* 0x660 */ byte            pad_660[0x50];
     /* 0x6B0 */ VECTOR          field_6B0;
-    /* 0x6C0 */ GpCoord*        field_6C0;
+    /* 0x6C0 */ GfxCoord*       field_6C0;
     /* 0x6C4 */ s16             field_6C4;
     /* 0x6C6 */ s16             field_6C6;
     /* 0x6C8 */ byte            pad_6C8[0x20];
@@ -223,7 +223,7 @@ extern TaskDesc D_actor_403600_801421A0[4];
 
 extern s32 D_actor_403600_80160698;
 
-extern GpCoord* D_actor_403600_801606A0;
+extern GfxCoord* D_actor_403600_801606A0;
 
 void func_actor_403600_801320F8(s32 otz);
 

@@ -97,10 +97,10 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
     GpEffWork*    work;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
-    GpCoord*      light;
+    GfxCoord*     light;
     GpMtxWords*   rot;
     GpEffWork*    eff;
     u32           ang;
@@ -108,8 +108,8 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
     base  = &Gp_RoomCoords[1];
-    light = &base->data.coord;
-    slot  = &base->data.light;
+    light = &base->light.head.u.coord;
+    slot  = &base->light;
     if ((gameGetPtrSlot(3)->extra.tmd->flags & 0x80) != 0) {
         return;
     }
@@ -119,17 +119,17 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            rot               = (GpMtxWords*)&coord->coord;
-            coord->sub        = work->parent;
-            rot->m00_m01      = 0x1000;
-            rot->m02_m10      = 0;
-            rot->m11_m12      = 0x1000;
-            rot->m20_m21      = 0;
-            rot->m22          = 0x1000;
-            coord->coord.t[0] = D_m4a1_pyke_8011E90C.vx;
-            coord->coord.t[1] = D_m4a1_pyke_8011E90C.vy;
-            coord->coord.t[2] = D_m4a1_pyke_8011E90C.vz;
-            coord->flg        = 0;
+            rot                 = (GpMtxWords*)&coord->coord;
+            coord->parent       = work->parent;
+            rot->m00_m01        = 0x1000;
+            rot->m02_m10        = 0;
+            rot->m11_m12        = 0x1000;
+            rot->m20_m21        = 0;
+            rot->m22            = 0x1000;
+            coord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
+            coord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
+            coord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             task->state = 1;
             break;
@@ -159,8 +159,8 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.g = (u16)slot->head.r >> 1;
                     slot->head.b = slot->head.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->flg  = 0;
-                    work->scale = 0x40;
+                    light->composeStamp = GRAPHICS_COORD_DIRTY;
+                    work->scale         = 0x40;
                     break;
                 case 2:
                     if (Gp_State1C->eventState != 0) {
@@ -184,7 +184,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.g     = (u16)slot->head.r >> 1;
                     slot->head.b     = slot->head.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->flg = 0;
+                    light->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 case 3:
                     task->spawnArg1.value = 1;
@@ -294,10 +294,10 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 ///   is 0x15 frames old.
 void func_m4a1_pyke_8011D7D4(Task* task)
 {
-    GpCoord       ground;
+    GfxCoord      ground;
     SVECTOR       after;
     SVECTOR       before;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpEffWork*    work;
     M4a1PykeBeam* beam;
     s32           fade;
@@ -359,15 +359,15 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             beam->obj.flags   |= 0x8000;
             /* fallthrough */
         case 1:
-            work->scale        = work->scale + 0x10;
-            work->move.vy      = work->move.vy + 8;
-            before.vx          = coord->workm.t[0];
-            before.vy          = coord->workm.t[1];
-            before.vz          = coord->workm.t[2];
-            coord->coord.t[0] += work->move.vx;
-            coord->coord.t[1] += work->move.vy;
-            coord->coord.t[2] += work->move.vz;
-            coord->flg         = 0;
+            work->scale         = work->scale + 0x10;
+            work->move.vy       = work->move.vy + 8;
+            before.vx           = coord->workm.t[0];
+            before.vy           = coord->workm.t[1];
+            before.vz           = coord->workm.t[2];
+            coord->coord.t[0]  += work->move.vx;
+            coord->coord.t[1]  += work->move.vy;
+            coord->coord.t[2]  += work->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
@@ -405,11 +405,11 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             Gp_ClearRec18Occupied(beam->rec);
             return;
         case 2:
-            work->scale        = work->scale + 0x40;
-            coord->coord.t[0] += work->move.vx;
-            coord->coord.t[1] += work->move.vy;
-            coord->coord.t[2] += work->move.vz;
-            coord->flg         = 0;
+            work->scale         = work->scale + 0x40;
+            coord->coord.t[0]  += work->move.vx;
+            coord->coord.t[1]  += work->move.vy;
+            coord->coord.t[2]  += work->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             func_m4a1_pyke_8011DCEC(MATRIX_TRANS(&coord->workm),
                                     (work->age >> 1) + 1, work->scale,
@@ -598,8 +598,8 @@ static void func_m4a1_pyke_8011E4AC(Task* task)
 static void func_m4a1_pyke_8011E4F8(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
-    GpCoord*   spot;
+    GfxCoord*  coord;
+    GfxCoord*  spot;
     Task*      beam;
     s32        anim;
     s32        delay;
@@ -608,7 +608,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GpCoord);
+    spot = SCRATCH_HEAD(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

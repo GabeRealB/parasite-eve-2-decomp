@@ -722,7 +722,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 static void func_neo_ark_altar_8017DF0C(Task* task)
 {
     NeoArkAltarWork* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     Task*            actor;
     s32              prev;
     s16              cur;
@@ -1043,7 +1043,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     base = D_neo_ark_altar_8017F014;
     y0   = -0x1086;
 
-    gGfxViewCoord.flg = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);

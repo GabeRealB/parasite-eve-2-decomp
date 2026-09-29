@@ -5,7 +5,7 @@
 /// scaled by depth, at half brightness, with a full-brightness disc of half the
 /// radius over it, plus four half-brightness spikes, two of them reaching twice
 /// the disc's radius. Nothing is drawn when the projection overflows.
-static void RoomFx_DrawBurstStar(GpCoord* arg0, s16 arg1, u8* arg2)
+static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -134,7 +134,7 @@ static void RoomFx_DrawBurstStar(GpCoord* arg0, s16 arg1, u8* arg2)
 static inline void RoomFx_GlowDiscTask(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* spawned;
     MATRIX*    mtx;
     u8         col[4];
@@ -151,7 +151,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            coord->sub                       = mem->parent;
+            coord->parent                    = mem->parent;
             mtx                              = &coord->coord;
             MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
             MATRIX_PAIR(mtx, 0, 2)           = 0;
@@ -161,7 +161,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             coord->coord.t[0]                = mem->pos.vx;
             coord->coord.t[1]                = mem->pos.vy;
             coord->coord.t[2]                = mem->pos.vz;
-            coord->flg                       = 0;
+            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             break;
@@ -251,8 +251,8 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
 static inline void RoomFx_FlyingSparkTask(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   target;
+    GfxCoord*  coord;
+    GfxCoord*  target;
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
@@ -280,10 +280,10 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += work->pos.vx;
-                coord->coord.t[1] += work->pos.vy;
-                coord->coord.t[2] += work->pos.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->pos.vx;
+                coord->coord.t[1]  += work->pos.vy;
+                coord->coord.t[2]  += work->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     RoomFx_DrawFlyingSpark(coord, ++work->index, 0x200, 0x80);

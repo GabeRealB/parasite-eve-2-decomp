@@ -73,13 +73,7 @@ s32  func_dryfield_underpass_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_underpass_8017D5D0(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} DryfieldUnderpassPoseBank920;
-
-DryfieldUnderpassPoseBank920 D_dryfield_underpass_8017DEE0 = { .poses = {
+AnimationPackedPose D_dryfield_underpass_8017DEE0[10] = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
 };
 
@@ -101,13 +95,7 @@ GpAnimSet D_dryfield_underpass_8017E424 = {
     { NULL, D_dryfield_underpass_8017DEE0, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldUnderpassPoseBankE8C;
-
-DryfieldUnderpassPoseBankE8C D_dryfield_underpass_8017E44C = { .poses = {
+AnimationPackedPose D_dryfield_underpass_8017E44C[6] = {
 #include "assets/dryfield_underpass_animation_01230_bank1.inc"
 };
 
@@ -807,7 +795,7 @@ GpRoomParamRec* D_dryfield_underpass_80181164[8] = {
 
 static void func_dryfield_underpass_8017D970(Task* arg0);
 static void func_dryfield_underpass_8017DA00(Task* task);
-static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 /// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
 /// waits for it to finish, and once its event key reaches 0xA toggles game
@@ -1046,7 +1034,7 @@ void func_dryfield_underpass_8017DAC8(Task* task)
 /// `(arg2 & 0x3F) | 0x4380`, and `arg3` is a signed half-extent, so the quad
 /// reaches `(s16)arg3 * 39 / otz` from the projected centre. The grey level
 /// alternates between 0x20 and 0x30 with `animFrame`.
-static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1133,11 +1121,11 @@ static void func_dryfield_underpass_8017DB20(GpCoord* arg0, SVECTOR* arg1, s32 a
 /// The whole effect is skipped unless nibble 0x53 is clear.
 void func_dryfield_underpass_8017DE30(Task* task)
 {
-    GpCoord* coord;
-    s32      mask;
-    s32      i;
-    SVECTOR* vec;
-    s16*     flags;
+    GfxCoord* coord;
+    s32       mask;
+    s32       i;
+    SVECTOR*  vec;
+    s16*      flags;
 
     coord = task->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;

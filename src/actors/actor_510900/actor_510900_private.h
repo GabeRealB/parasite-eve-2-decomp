@@ -182,6 +182,6 @@ void func_actor_510900_8013B524(Task* arg0);
 
 void func_actor_510900_8013B608(Task* arg0);
 
-void func_actor_510900_8013BC38(Task* arg0, GpCoord* arg1);
+void func_actor_510900_8013BC38(Task* arg0, GfxCoord* arg1);
 
 #endif // SRC_ACTORS_ACTOR_510900_ACTOR_510900_PRIVATE_H

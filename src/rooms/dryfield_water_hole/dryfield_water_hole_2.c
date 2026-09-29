@@ -22,8 +22,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_water_hole_8017F5D4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_water_hole_8017F9C0(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 /// Per-frame driver of a particle effect, drawn as the spinning sprite of
 /// `func_dryfield_water_hole_8017F5D4` (state 1) or, when the spawn
@@ -40,7 +40,7 @@ static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
 void func_dryfield_water_hole_8017F118(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -142,11 +142,11 @@ void func_dryfield_water_hole_8017F118(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -162,7 +162,7 @@ void func_dryfield_water_hole_8017F118(Task* task)
 /// column `arg1` of the strip at v 0xE0..0xFF. Its corners sit at
 /// `(s16)arg2 * 31 / otz` from the projected point, rotated by the angle
 /// `arg3`. The work block lives on the scratchpad stack.
-static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_water_hole_8017F5D4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -227,7 +227,7 @@ static void func_dryfield_water_hole_8017F5D4(GpCoord* arg0, s32 arg1, s32 arg2,
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-static void func_dryfield_water_hole_8017F9C0(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_water_hole_8017F9C0(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;

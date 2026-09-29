@@ -85,7 +85,7 @@
 ///
 /// `coord` is the block's own display coordinate. `func_mine_cavern_80183AD4`
 /// resets it - identity rotation, parked at (0, -0x320, 0) - and hangs the
-/// model's own coordinate (`TmdObject::coords`) under it as `sub`, which is
+/// model's own coordinate (`TmdObject::coords`) under it as `parent`, which is
 /// what leaves the model's positions relative to that spot.
 ///
 /// `recs` and `recE0` are contact tables the collision tests fill:
@@ -97,15 +97,15 @@
 /// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
 /// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
 typedef struct MineCavernWork {
-    /* 0x000 */ MATRIX  light;
-    /* 0x020 */ MATRIX  color;
-    /* 0x040 */ GpObj   obj40;
-    /* 0x060 */ GpRec18 recs[4];
-    /* 0x0C0 */ GpObj   objC0;
-    /* 0x0E0 */ GpRec18 recE0;
-    /* 0x0F8 */ GpCoord coord;
-    /* 0x148 */ u16     field_148;
-    /* 0x14A */ byte    pad_14A[2];
+    /* 0x000 */ MATRIX   light;
+    /* 0x020 */ MATRIX   color;
+    /* 0x040 */ GpObj    obj40;
+    /* 0x060 */ GpRec18  recs[4];
+    /* 0x0C0 */ GpObj    objC0;
+    /* 0x0E0 */ GpRec18  recE0;
+    /* 0x0F8 */ GfxCoord coord;
+    /* 0x148 */ u16      field_148;
+    /* 0x14A */ byte     pad_14A[2];
 } MineCavernWork;
 STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
 
@@ -150,8 +150,8 @@ extern SVECTOR D_mine_cavern_80188FB4[];
 extern SVECTOR D_mine_cavern_80188FBC;
 extern SVECTOR D_mine_cavern_80188FC4[];
 
-static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_mine_cavern_801804CC(GpCoord* coord, s16 size);
+static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size);
 static void func_mine_cavern_80181864(void);
 static void func_mine_cavern_80182184(void);
 static void func_mine_cavern_80182454(void);
@@ -199,8 +199,8 @@ typedef struct _MineCavernHitScratch {
 
 static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1);
-static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_mine_cavern_801809F8(GfxCoord* arg0, s32 arg1);
+static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_mine_cavern_8018981C[1];
 extern GpObj3A        D_mine_cavern_8018E078[2];
@@ -267,13 +267,7 @@ TaskDesc D_mine_cavern_80183CA4[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MineCavernPoseBank66FC;
-
-MineCavernPoseBank66FC D_mine_cavern_80183CBC = { .poses = {
+AnimationPackedPose D_mine_cavern_80183CBC[6] = {
 #include "assets/mine_cavern_animation_069D8_bank1.inc"
 };
 
@@ -295,13 +289,7 @@ GpAnimSet D_mine_cavern_80183F98 = {
     { NULL, D_mine_cavern_80183CBC, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[13];
-    AnimationPackedRotation        words[39];
-} MineCavernPoseBank6A00;
-
-MineCavernPoseBank6A00 D_mine_cavern_80183FC0 = { .poses = {
+AnimationPackedPose D_mine_cavern_80183FC0[13] = {
 #include "assets/mine_cavern_animation_07178_bank1.inc"
 };
 
@@ -323,13 +311,7 @@ GpAnimSet D_mine_cavern_80184738 = {
     { NULL, D_mine_cavern_80183FC0, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MineCavernPoseBank71A0;
-
-MineCavernPoseBank71A0 D_mine_cavern_80184760 = { .poses = {
+AnimationPackedPose D_mine_cavern_80184760[6] = {
 #include "assets/mine_cavern_animation_07544_bank1.inc"
 };
 
@@ -351,13 +333,7 @@ GpAnimSet D_mine_cavern_80184B04 = {
     { NULL, D_mine_cavern_80184760, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineCavernPoseBank756C;
-
-MineCavernPoseBank756C D_mine_cavern_80184B2C = { .poses = {
+AnimationPackedPose D_mine_cavern_80184B2C[4] = {
 #include "assets/mine_cavern_animation_07784_bank1.inc"
 };
 
@@ -379,13 +355,7 @@ GpAnimSet D_mine_cavern_80184D44 = {
     { NULL, D_mine_cavern_80184B2C, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} MineCavernPoseBank77AC;
-
-MineCavernPoseBank77AC D_mine_cavern_80184D6C = { .poses = {
+AnimationPackedPose D_mine_cavern_80184D6C[3] = {
 #include "assets/mine_cavern_animation_07958_bank1.inc"
 };
 
@@ -407,13 +377,7 @@ GpAnimSet D_mine_cavern_80184F18 = {
     { NULL, D_mine_cavern_80184D6C, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} MineCavernPoseBank7980;
-
-MineCavernPoseBank7980 D_mine_cavern_80184F40 = { .poses = {
+AnimationPackedPose D_mine_cavern_80184F40[3] = {
 #include "assets/mine_cavern_animation_07BA4_bank1.inc"
 };
 
@@ -435,13 +399,7 @@ GpAnimSet D_mine_cavern_80185164 = {
     { NULL, D_mine_cavern_80184F40, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} MineCavernPoseBank7BCC;
-
-MineCavernPoseBank7BCC D_mine_cavern_8018518C = { .poses = {
+AnimationPackedPose D_mine_cavern_8018518C[8] = {
 #include "assets/mine_cavern_animation_08178_bank1.inc"
 };
 
@@ -463,13 +421,7 @@ GpAnimSet D_mine_cavern_80185738 = {
     { NULL, D_mine_cavern_8018518C, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineCavernPoseBank81A0;
-
-MineCavernPoseBank81A0 D_mine_cavern_80185760 = { .poses = {
+AnimationPackedPose D_mine_cavern_80185760[4] = {
 #include "assets/mine_cavern_animation_08420_bank1.inc"
 };
 
@@ -491,13 +443,7 @@ GpAnimSet D_mine_cavern_801859E0 = {
     { NULL, D_mine_cavern_80185760, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[12];
-    AnimationPackedRotation        words[36];
-} MineCavernPoseBank8448;
-
-MineCavernPoseBank8448 D_mine_cavern_80185A08 = { .poses = {
+AnimationPackedPose D_mine_cavern_80185A08[12] = {
 #include "assets/mine_cavern_animation_08AC0_bank1.inc"
 };
 
@@ -519,13 +465,7 @@ GpAnimSet D_mine_cavern_80186080 = {
     { NULL, D_mine_cavern_80185A08, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineCavernPoseBank8AE8;
-
-MineCavernPoseBank8AE8 D_mine_cavern_801860A8 = { .poses = {
+AnimationPackedPose D_mine_cavern_801860A8[2] = {
 #include "assets/mine_cavern_animation_08CB4_bank1.inc"
 };
 
@@ -547,13 +487,7 @@ GpAnimSet D_mine_cavern_80186274 = {
     { NULL, D_mine_cavern_801860A8, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[11];
-    AnimationPackedRotation        words[33];
-} MineCavernPoseBank8CDC;
-
-MineCavernPoseBank8CDC D_mine_cavern_8018629C = { .poses = {
+AnimationPackedPose D_mine_cavern_8018629C[11] = {
 #include "assets/mine_cavern_animation_092C4_bank1.inc"
 };
 
@@ -575,13 +509,7 @@ GpAnimSet D_mine_cavern_80186884 = {
     { NULL, D_mine_cavern_8018629C, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} MineCavernPoseBank92EC;
-
-MineCavernPoseBank92EC D_mine_cavern_801868AC = { .poses = {
+AnimationPackedPose D_mine_cavern_801868AC[8] = {
 #include "assets/mine_cavern_animation_096E4_bank1.inc"
 };
 
@@ -603,13 +531,7 @@ GpAnimSet D_mine_cavern_80186CA4 = {
     { NULL, D_mine_cavern_801868AC, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} MineCavernPoseBank970C;
-
-MineCavernPoseBank970C D_mine_cavern_80186CCC = { .poses = {
+AnimationPackedPose D_mine_cavern_80186CCC[5] = {
 #include "assets/mine_cavern_animation_099C8_bank1.inc"
 };
 
@@ -631,13 +553,7 @@ GpAnimSet D_mine_cavern_80186F88 = {
     { NULL, D_mine_cavern_80186CCC, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[2];
-    AnimationPackedRotation        words[6];
-} MineCavernPoseBank99F0;
-
-MineCavernPoseBank99F0 D_mine_cavern_80186FB0 = { .poses = {
+AnimationPackedPose D_mine_cavern_80186FB0[2] = {
 #include "assets/mine_cavern_animation_09C2C_bank1.inc"
 };
 
@@ -659,13 +575,7 @@ GpAnimSet D_mine_cavern_801871EC = {
     { NULL, D_mine_cavern_80186FB0, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} MineCavernPoseBank9C54;
-
-MineCavernPoseBank9C54 D_mine_cavern_80187214 = { .poses = {
+AnimationPackedPose D_mine_cavern_80187214[4] = {
 #include "assets/mine_cavern_animation_09F1C_bank1.inc"
 };
 
@@ -687,13 +597,7 @@ GpAnimSet D_mine_cavern_801874DC = {
     { NULL, D_mine_cavern_80187214, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} MineCavernPoseBank9F44;
-
-MineCavernPoseBank9F44 D_mine_cavern_80187504 = { .poses = {
+AnimationPackedPose D_mine_cavern_80187504[10] = {
 #include "assets/mine_cavern_animation_0A38C_bank1.inc"
 };
 
@@ -2261,8 +2165,8 @@ MineCavernGlowPalette D_mine_cavern_8018E350 = { { 48, 32, 0 }, { 0, 0, 0 }, 112
 
 MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 1960 };
 
-static void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_mine_cavern_8017FBF4(GfxCoord* arg0, s16 arg1, u8* rgb);
 static void func_mine_cavern_80181CAC(s16 point);
 static void func_mine_cavern_80181D80(s16 point);
 static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1);
@@ -2619,7 +2523,7 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
 void func_mine_cavern_8017F240(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -2658,8 +2562,8 @@ void func_mine_cavern_8017F240(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -2676,8 +2580,8 @@ void func_mine_cavern_8017F240(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -2701,7 +2605,7 @@ void func_mine_cavern_8017F240(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -2769,7 +2673,7 @@ static void func_mine_cavern_8017F50C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg
 /// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
 /// so each wedge fades to a black outer rim.
-static void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -2824,7 +2728,7 @@ static void func_mine_cavern_8017F7D0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
 /// inner vertex so each wedge fades to black.
-static void func_mine_cavern_8017FBF4(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_mine_cavern_8017FBF4(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2883,7 +2787,7 @@ void func_mine_cavern_8017FF88(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         shift;
@@ -2900,17 +2804,17 @@ void func_mine_cavern_8017FF88(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[0] = mem->pos.vx;
-                coord->coord.t[1] = mem->pos.vy;
-                coord->coord.t[2] = mem->pos.vz;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[0]   = mem->pos.vx;
+                coord->coord.t[1]   = mem->pos.vy;
+                coord->coord.t[2]   = mem->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index            = shift;
@@ -2976,7 +2880,7 @@ kill:
 void func_mine_cavern_80180320(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         sp10[3];
     u16        temp;
 
@@ -3029,9 +2933,9 @@ void func_mine_cavern_80180320(Task* task)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
+static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -3049,26 +2953,26 @@ static void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -3146,7 +3050,7 @@ static void func_mine_cavern_801804CC(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
+static void func_mine_cavern_801809F8(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -3229,7 +3133,7 @@ static void func_mine_cavern_801809F8(GpCoord* arg0, s32 arg1)
 /// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
 /// (inner). The RGB triple tints the inner vertex of the inner ring at full
 /// brightness and the outer ring at half, so each wedge fades to a black rim.
-static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -3355,7 +3259,7 @@ static void func_mine_cavern_80180D70(GpCoord* arg0, s16 arg1, u8* arg2)
 void func_mine_cavern_80181730(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        ang;
 
@@ -3435,7 +3339,7 @@ static void func_mine_cavern_80181864(void)
             base = 0x80;
             break;
     }
-    gGfxViewCoord.flg = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -3496,18 +3400,18 @@ static void func_mine_cavern_80181864(void)
 static void func_mine_cavern_80181CAC(s16 point)
 {
     GpCoord64*    light = &Gp_RoomCoords[4 + point];
-    GpPointLight* work  = &light->data.light;
+    GpPointLight* work  = &light->light;
 
-    light->framesLeft          = 2;
-    work->inner                = D_mine_cavern_8018E366;
-    work->outer                = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
-    work->head.r               = D_mine_cavern_8018E360;
-    work->head.g               = D_mine_cavern_8018E362;
-    work->head.b               = D_mine_cavern_8018E364;
-    work->head.u.at.local.t[0] = D_mine_cavern_8018E39C[point].vx;
-    work->head.u.at.local.t[1] = D_mine_cavern_8018E39C[point].vy;
-    work->head.u.at.local.t[2] = D_mine_cavern_8018E39C[point].vz;
-    light->data.coord.flg      = 0;
+    light->framesLeft                      = 2;
+    work->inner                            = D_mine_cavern_8018E366;
+    work->outer                            = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
+    work->head.r                           = D_mine_cavern_8018E360;
+    work->head.g                           = D_mine_cavern_8018E362;
+    work->head.b                           = D_mine_cavern_8018E364;
+    work->head.u.at.local.t[0]             = D_mine_cavern_8018E39C[point].vx;
+    work->head.u.at.local.t[1]             = D_mine_cavern_8018E39C[point].vy;
+    work->head.u.at.local.t[2]             = D_mine_cavern_8018E39C[point].vz;
+    light->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of
@@ -3555,7 +3459,7 @@ static void func_mine_cavern_80181D80(s16 point)
             base = 0x200;
             break;
     }
-    gGfxViewCoord.flg = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -3612,7 +3516,7 @@ static void func_mine_cavern_80181D80(s16 point)
 static void func_mine_cavern_80182184(void)
 {
     VECTOR   unused;
-    GpCoord  coord;
+    GfxCoord coord;
     MATRIX*  m;
     SVECTOR* pos;
     s32      view;
@@ -3649,12 +3553,12 @@ static void func_mine_cavern_80182184(void)
             MATRIX_PAIR(m, 1, 1)            = 0x1000;
             MATRIX_PAIR(&coord.coord, 2, 0) = 0;
             m->m[2][2]                      = 0x1000;
-            coord.sub                       = &gGfxViewCoord;
+            coord.parent                    = &gGfxViewCoord;
             pos                             = &D_mine_cavern_8018E39C[i];
             coord.coord.t[0]                = pos->vx + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
             coord.coord.t[1]                = pos->vy + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
             coord.coord.t[2]                = pos->vz + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.flg                       = 0;
+            coord.composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
         }
     }
@@ -3723,15 +3627,15 @@ static const TaskFuncTable3 D_mine_cavern_8017D65C = {
 
 static void func_mine_cavern_801825C8(s16 arg0)
 {
-    GpCoord coord;
-    s32     view;
+    GfxCoord coord;
+    s32      view;
 
-    view             = Gp_GetViewIndex() & 0xFF;
-    coord.sub        = &gGfxViewCoord;
-    coord.coord.t[0] = D_mine_cavern_8018E39C[arg0].vx;
-    coord.coord.t[1] = D_mine_cavern_8018E39C[arg0].vy;
-    coord.coord.t[2] = D_mine_cavern_8018E39C[arg0].vz;
-    coord.flg        = 0;
+    view               = Gp_GetViewIndex() & 0xFF;
+    coord.parent       = &gGfxViewCoord;
+    coord.coord.t[0]   = D_mine_cavern_8018E39C[arg0].vx;
+    coord.coord.t[1]   = D_mine_cavern_8018E39C[arg0].vy;
+    coord.coord.t[2]   = D_mine_cavern_8018E39C[arg0].vz;
+    coord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&coord);
 
     switch (arg0) {
@@ -3998,24 +3902,24 @@ static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->exitCallback                  = func_mine_cavern_80183860;
-    arg1->extra.tmd->coords->sub        = &gGfxViewCoord;
-    arg1->extra.tmd->flags              = 0;
-    arg1->extra.tmd->lightMtx           = &work->light;
-    arg1->extra.tmd->colorMtx           = &work->color;
-    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
-    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
-    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
-    arg1->extra.tmd->coords->flg        = 0;
-    obj40                               = &work->obj40;
-    obj40->coord                        = arg1->extra.tmd->coords;
-    obj40->ctx.recs                     = work->recs;
-    obj40->pos.vx                       = 0;
-    obj40->pos.vy                       = -0x320;
-    obj40->pos.vz                       = 0;
-    obj40->key                          = 0x50000;
-    obj40->radius                       = 0x100;
-    obj40->flags                        = 1;
+    arg1->exitCallback                    = func_mine_cavern_80183860;
+    arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
+    arg1->extra.tmd->flags                = 0;
+    arg1->extra.tmd->lightMtx             = &work->light;
+    arg1->extra.tmd->colorMtx             = &work->color;
+    arg1->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
+    arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
+    arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
+    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    obj40                                 = &work->obj40;
+    obj40->coord                          = arg1->extra.tmd->coords;
+    obj40->ctx.recs                       = work->recs;
+    obj40->pos.vx                         = 0;
+    obj40->pos.vy                         = -0x320;
+    obj40->pos.vz                         = 0;
+    obj40->key                            = 0x50000;
+    obj40->radius                         = 0x100;
+    obj40->flags                          = 1;
     Gp_LinkObj(2, obj40);
     obj40->flags |= 0x8000;
     Gp_InitRec18Table(obj40->ctx.recs, 4, 0);
@@ -4064,7 +3968,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     Task*                  player;
     u8*                    head;
     _MineCavernHitScratch* blk;
-    GpCoord*               coords;
+    GfxCoord*              coords;
     GpRec18*               recs;
     SVECTOR*               d;
     SVECTOR*               dst;
@@ -4103,7 +4007,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
         arg0->node.state.b.flags = 0;
     }
 
-    arg1->extra.tmd->coords->flg = 0;
+    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
     blk->pos.vx = arg1->extra.tmd->coords->workm.t[0];
     blk->pos.vy = arg1->extra.tmd->coords->workm.t[1];
@@ -4204,14 +4108,14 @@ static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->extra.tmd->coords->sub        = &gGfxViewCoord;
-    arg1->extra.tmd->flags              = 0;
-    arg1->extra.tmd->lightMtx           = &work->light;
-    arg1->extra.tmd->colorMtx           = &work->color;
-    arg1->extra.tmd->coords->coord.t[0] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
-    arg1->extra.tmd->coords->coord.t[1] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
-    arg1->extra.tmd->coords->coord.t[2] = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
-    arg1->extra.tmd->coords->flg        = 0;
+    arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
+    arg1->extra.tmd->flags                = 0;
+    arg1->extra.tmd->lightMtx             = &work->light;
+    arg1->extra.tmd->colorMtx             = &work->color;
+    arg1->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
+    arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
+    arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
+    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
     vec.vy = arg1->extra.tmd->coords->workm.t[1];
@@ -4286,8 +4190,8 @@ static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
     switch ((s16)state) {
         case 0:
             printf(D_mine_cavern_8017D7E8);
-            arg1->extra.tmd->coords->coord.t[1] = -0x258;
-            arg1->extra.tmd->coords->flg        = 0;
+            arg1->extra.tmd->coords->coord.t[1]   = -0x258;
+            arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg1->extra.tmd->coords);
             Gp_SpawnEff(0x6005C, arg1->extra.tmd->coords, 0x01001200, NULL);
             return;
@@ -4353,7 +4257,7 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
 
     work = (MineCavernWork*)task->work;
 
-    task->extra.tmd->coords->flg = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(task->extra.tmd->coords);
     vec.vx = task->extra.tmd->coords->workm.t[0];
     vec.vy = task->extra.tmd->coords->workm.t[1];
@@ -4369,11 +4273,11 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
         MATRIX_PAIR(m, 1, 1)      = 0x1000;
         MATRIX_PAIR(m, 2, 0)      = 0;
         m->m[2][2]                = 0x1000;
-        work->coord.sub           = task->extra.tmd->coords;
+        work->coord.parent        = task->extra.tmd->coords;
         work->coord.coord.t[2]    = 0;
         work->coord.coord.t[0]    = 0;
         work->coord.coord.t[1]    = -0x320;
-        work->coord.flg           = 0;
+        work->coord.composeStamp  = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&work->coord);
         work->field_148++;
         task->extra.tmd->flags = 0;

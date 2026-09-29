@@ -47,8 +47,8 @@ typedef struct LifeDrainScale {
 } LifeDrainScale;
 STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
-static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the life drain: rows are PE levels 1-3.
 static LifeDrainScale D_lifedrain_80130AB4[] = {
@@ -102,7 +102,7 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 void func_lifedrain_8012EF48(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        i;
     u8         rgb[3];
 
@@ -126,7 +126,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
             D_lifedrain_80130B0C = arg0;
             rot                  = (GpMtxWords*)&coord->coord;
-            coord->sub           = mem->parent;
+            coord->parent        = mem->parent;
             rot->m00_m01         = 0x1000;
             rot->m02_m10         = 0;
             rot->m11_m12         = 0x1000;
@@ -135,7 +135,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             coord->coord.t[0]    = 0;
             coord->coord.t[1]    = 0;
             coord->coord.t[2]    = 0;
-            coord->flg           = 0;
+            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.field_0 % 10) - 1;
@@ -335,7 +335,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 void func_lifedrain_8012F9A8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        y;
     s32        state;
     s16        step;
@@ -358,10 +358,10 @@ void func_lifedrain_8012F9A8(Task* arg0)
             mem->angle   = spawn & 0xFFF;
             return;
         case 1:
-            step              = mem->move.vy;
-            y                 = coord->coord.t[1] + step;
-            coord->flg        = 0;
-            coord->coord.t[1] = y;
+            step                = mem->move.vy;
+            y                   = coord->coord.t[1] + step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]   = y;
             Gp_UpdateCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
@@ -402,8 +402,8 @@ void func_lifedrain_8012F9A8(Task* arg0)
 void func_lifedrain_8012FAF8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   player;
+    GfxCoord*  coord;
+    GfxCoord*  player;
     GpEffWork* spawned;
     s16        val;
     s32        cur;
@@ -430,10 +430,10 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 mem->period                            = val - 0x100;
                 /* fallthrough */
             case 1:
-                coord->coord.t[0] += mem->move.vx;
-                coord->coord.t[1] += mem->move.vy;
-                coord->coord.t[2] += mem->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += mem->move.vx;
+                coord->coord.t[1]  += mem->move.vy;
+                coord->coord.t[2]  += mem->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
@@ -474,10 +474,10 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 cur          = mem->move.vz;
                 mem->move.vz = (cur < mem->pos.vz) ? cur + 0x10 : cur - 0x10;
 
-                coord->coord.t[0] += mem->move.vx;
-                coord->coord.t[1] += mem->move.vy;
-                coord->coord.t[2] += mem->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += mem->move.vx;
+                coord->coord.t[1]  += mem->move.vy;
+                coord->coord.t[2]  += mem->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->age >= 0x1E) {
                     break;
@@ -524,7 +524,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
 /// `arg2 * 23 / otz`. The outer sprite is the 0x38-wide cell on tpage 0x29 whose
 /// CLUT is `0x4310 + (arg1 & 1)`, sized `((arg2 * 2) / 3) * 55 / otz`. Same
 /// 0x18-byte scratch and axis-aligned corners as gameplay `Gp_EffSprTask8D`.
-static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*            head;
     GpRingScratch* block;
@@ -622,7 +622,7 @@ static void func_lifedrain_801301AC(GpCoord* arg0, s16 arg1, s16 arg2)
 /// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
 /// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
 /// fading to black. A negative `gte_stflg` drops the wedge.
-static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     u8*            head;
     GpRingScratch* block;
@@ -675,7 +675,7 @@ static void func_lifedrain_801305C0(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 void func_lifedrain_801308C0(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        kind;
     u16        val;
@@ -694,14 +694,14 @@ void func_lifedrain_801308C0(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
-        coord->flg  = 0;
-        kind        = (Gp_StateC08.field_0 % 10U) - 1;
-        mem->index  = kind;
-        val         = D_lifedrain_80130AB4[kind].field_2;
-        mem->angle  = 0x80;
-        mem->scale  = val;
-        mem->period = D_lifedrain_80130AB4[mem->index].field_4;
-        arg0->state = 1;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        kind                = (Gp_StateC08.field_0 % 10U) - 1;
+        mem->index          = kind;
+        val                 = D_lifedrain_80130AB4[kind].field_2;
+        mem->angle          = 0x80;
+        mem->scale          = val;
+        mem->period         = D_lifedrain_80130AB4[mem->index].field_4;
+        arg0->state         = 1;
     }
 
     Gp_UpdateCoord(coord);

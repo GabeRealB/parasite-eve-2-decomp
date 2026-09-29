@@ -181,11 +181,11 @@ static void func_dryfield_night_main_street_8017E0B8(Task* task);
 static void func_dryfield_night_main_street_8017E118(void);
 static void func_dryfield_night_main_street_8017E940(SVECTOR* arg0, s32 arg1);
 static void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size);
-static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1);
-static void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_dryfield_night_main_street_8017F608(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_dryfield_night_main_street_8017FD34(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_dryfield_night_main_street_80180CF4(GfxCoord* coord, s16 size);
+static void func_dryfield_night_main_street_80181220(GfxCoord* arg0, s32 arg1);
+static void func_dryfield_night_main_street_80181598(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 s32  func_dryfield_night_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_main_street_8017DEF0(Task*, s32, s32, s32);
@@ -1635,8 +1635,8 @@ DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8;
 RoomEventReq D_dryfield_night_main_street_80188BD8;
 
 static s32  func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg);
-static void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_dryfield_night_main_street_8017FFF8(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_dryfield_night_main_street_8018041C(GfxCoord* arg0, s16 arg1, u8* rgb);
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when
@@ -2290,7 +2290,7 @@ static void func_dryfield_night_main_street_8017F128(SVECTOR* arg0, s32 arg1, s3
 void func_dryfield_night_main_street_8017F3B0(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GpCoord*   coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
     u32        rng2;
@@ -2336,10 +2336,10 @@ void func_dryfield_night_main_street_8017F3B0(Task* task)
 
     func_dryfield_night_main_street_8017F608(coord, (u16)work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2357,7 +2357,7 @@ void func_dryfield_night_main_street_8017F3B0(Task* task)
 /// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
 /// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
 /// `rsin`/`rcos`.
-static void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_dryfield_night_main_street_8017F608(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**             scratch;
     GpEffFlareScratch* head;
@@ -2441,7 +2441,7 @@ static void func_dryfield_night_main_street_8017F608(GpCoord* arg0, s32 arg1, s3
 void func_dryfield_night_main_street_8017FA68(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -2480,8 +2480,8 @@ void func_dryfield_night_main_street_8017FA68(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -2498,8 +2498,8 @@ void func_dryfield_night_main_street_8017FA68(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -2523,7 +2523,7 @@ void func_dryfield_night_main_street_8017FA68(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_dryfield_night_main_street_8017FD34(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -2589,7 +2589,7 @@ static void func_dryfield_night_main_street_8017FD34(GpCoord* arg0, u16 arg1, u1
 /// position, between the radii `arg1` and `arg1 + arg2` (each scaled by 64
 /// over the OTZ). The `arg1` edge is black and the other edge takes `rgb`, so
 /// the ring fades across its width.
-static void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_dryfield_night_main_street_8017FFF8(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -2645,7 +2645,7 @@ static void func_dryfield_night_main_street_8017FFF8(GpCoord* arg0, s32 arg1, s3
 /// Draws a glow at the coordinate's projected position: eight gouraud quads
 /// fanned around it, of radius `arg1` scaled by 64 over the OTZ. The centre
 /// takes `rgb` and the rim is black.
-static void func_dryfield_night_main_street_8018041C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_dryfield_night_main_street_8018041C(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2703,7 +2703,7 @@ void func_dryfield_night_main_street_801807B0(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         shift;
@@ -2720,17 +2720,17 @@ void func_dryfield_night_main_street_801807B0(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[0] = mem->pos.vx;
-                coord->coord.t[1] = mem->pos.vy;
-                coord->coord.t[2] = mem->pos.vz;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[0]   = mem->pos.vx;
+                coord->coord.t[1]   = mem->pos.vy;
+                coord->coord.t[2]   = mem->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index            = shift;
@@ -2791,7 +2791,7 @@ void func_dryfield_night_main_street_80180B48(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -2844,9 +2844,9 @@ void func_dryfield_night_main_street_80180B48(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
+static void func_dryfield_night_main_street_80180CF4(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -2864,26 +2864,26 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -2961,7 +2961,7 @@ static void func_dryfield_night_main_street_80180CF4(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
+static void func_dryfield_night_main_street_80181220(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -3042,7 +3042,7 @@ static void func_dryfield_night_main_street_80181220(GpCoord* arg0, s32 arg1)
 /// half-bright fan of radius `arg1` (scaled by 64 over the OTZ), a full-bright
 /// fan of half that radius over it, and four half-bright spikes. Every quad
 /// takes `arg2` at the centre and is black at its rim.
-static void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_dryfield_night_main_street_80181598(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -3167,7 +3167,7 @@ static void func_dryfield_night_main_street_80181598(GpCoord* arg0, s16 arg1, u8
 void func_dryfield_night_main_street_80181F58(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        ang;
 

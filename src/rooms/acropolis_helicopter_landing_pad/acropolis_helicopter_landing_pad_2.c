@@ -1022,12 +1022,12 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 /// the constant stores survive in the binary.
 void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
 {
-    GpCoord* coord;
-    SVECTOR  unusedA;
-    VECTOR   unusedB;
-    VECTOR   dir;
-    MATRIX   unusedM;
-    SVECTOR  unusedC;
+    GfxCoord* coord;
+    SVECTOR   unusedA;
+    VECTOR    unusedB;
+    VECTOR    dir;
+    MATRIX    unusedM;
+    SVECTOR   unusedC;
 
     coord  = &gameGetPtrSlot(3)->extra.tmd->coords[4];
     dir.vx = -0x249;
@@ -1040,7 +1040,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
             break;
         case 1:
             Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C += 0x190;
             if (D_acropolis_helicopter_landing_pad_80187F7C > 0x1000) {
@@ -1050,7 +1050,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
             break;
         case 2:
             Gfx_RotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C -= 0x190;
             if (D_acropolis_helicopter_landing_pad_80187F7C < 0) {

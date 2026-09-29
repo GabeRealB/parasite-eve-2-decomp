@@ -737,7 +737,7 @@ GpRoomParamRec* D_dryfield_cellar_80180B40[8] = {
 
 static void func_dryfield_cellar_8017D730(Task* task);
 static void func_dryfield_cellar_8017D77C(Task* task);
-static void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+static void func_dryfield_cellar_8017D7DC(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 /// Message-table handler for message 0x13F0. On event 0xD it runs a CAP
 /// command: 0xD while event nibble 0x11B is below 2, otherwise 4 or 0xE
@@ -850,7 +850,7 @@ void func_dryfield_cellar_8017D784(Task* task)
 /// the clut `(arg2 & 0x3F) | 0x4380`, `(s16)arg3` is the half-extent scaled by
 /// 39 / OTZ, and the grey level flickers between 0x20 and 0x30 with bit 0 of
 /// the display's animation frame. Works in a 0x14-byte scratchpad block.
-static void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
+static void func_dryfield_cellar_8017D7DC(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -937,7 +937,7 @@ static void func_dryfield_cellar_8017D7DC(GpCoord* arg0, SVECTOR* arg1, s32 arg2
 /// space. Every other view draws nothing.
 void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord = arg0->extra.tmd->coords;
     if (GameFlag_GetNibble(0x52) == 1) {

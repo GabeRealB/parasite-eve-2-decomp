@@ -19,7 +19,6 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -150,7 +149,7 @@ extern s16      Actor02400_D045DC[];
 extern s16      Actor02400_D0463C[];
 extern TaskDesc Actor02400_D0465C[];
 
-static void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1);
+static void Actor02400_Fn005BC(GfxCoord* arg0, s32 arg1);
 static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task);
 static void Actor02400_Fn024F8(GpEnemy* enemy, Task* task);
 static void Actor02400_Fn02790(GpEnemy* enemy, Task* task);
@@ -297,7 +296,7 @@ TaskDesc Actor02400_D0465C[2] = {
     { 2, 96, Actor02400_Fn03358, { .model = NULL } },
 };
 
-static void Actor02400_Fn00064(GpCoord* coord, s16 size);
+static void Actor02400_Fn00064(GfxCoord* coord, s16 size);
 static void Actor02400_Fn00C08(Task* task);
 static void Actor02400_Fn01420(Task* task);
 static void Actor02400_Fn01590(Task* task);
@@ -307,16 +306,16 @@ static void Actor02400_Fn01F74(Task* task);
 static void Actor02400_Fn0208C(Task* task);
 static void Actor02400_Fn02264(Task* task);
 static void Actor02400_Fn023B4(Task* task);
-static void Actor02400_Fn02CA4(GpCoord* arg0, s32 arg1);
+static void Actor02400_Fn02CA4(GfxCoord* arg0, s32 arg1);
 
 /// Draws the glow around `coord`: lights `Gp_RoomCoords[2]` there
 /// with a randomly flickering intensity, then projects `coord` and queues two
 /// `POLY_FT4` billboards around it, the outer one half again as large as
 /// `size`. With `Gp_State1C->groundTrace` set it traces the ground below and
 /// draws the ground quad there at twice the outer size.
-static void Actor02400_Fn00064(GpCoord* coord, s16 size)
+static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            intensity;
     s16            outerLeft;
@@ -333,21 +332,21 @@ static void Actor02400_Fn00064(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* sc;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState                 = random;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    light->head.g               = intensity >> 1;
-    light->head.b               = intensity >> 2;
-    light->head.u.at.local.t[0] = (s32)coord->coord.t[0];
-    light->head.u.at.local.t[1] = (s32)coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    Gp_LcgState                           = random;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    light->head.g                         = intensity >> 1;
+    light->head.b                         = intensity >> 2;
+    light->head.u.at.local.t[0]           = (s32)coord->coord.t[0];
+    light->head.u.at.local.t[1]           = (s32)coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_PUSH(GpRingScratch);
     sc         = SCRATCH_HEAD(GpRingScratch);
     sc->vec.vx = coord->workm.t[0];
@@ -435,7 +434,7 @@ static void Actor02400_Fn00064(GpCoord* coord, s16 size)
 /// all four project, a semi-transparent `POLY_FT4` is queued one step behind
 /// their depth, its texture alternating between two frames with the display's
 /// animation frame.
-static void Actor02400_Fn005BC(GpCoord* arg0, s32 arg1)
+static void Actor02400_Fn005BC(GfxCoord* arg0, s32 arg1)
 {
     OverlayGroundScratch* sc;
     POLY_FT4*             prim;
@@ -523,7 +522,7 @@ static const GpEnemyTaskFuncTable3 Actor02400_D00004 = {
 static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 {
     TmdObject*      obj;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     Actor02400Work* work;
 
     obj   = task->extra.tmd;
@@ -533,12 +532,12 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work    = work;
-    obj->flags    = 0;
-    coord->flg    = 0;
-    obj->lightMtx = &work->light;
-    obj->colorMtx = &work->color;
-    work->variant = enemy->place->mode & 1;
+    task->work          = work;
+    obj->flags          = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    obj->lightMtx       = &work->light;
+    obj->colorMtx       = &work->color;
+    work->variant       = enemy->place->mode & 1;
     if (work->variant != 0) {
         obj->clut += 1;
         tmdProcessStream(obj);
@@ -606,8 +605,8 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
 static void Actor02400_Fn00C08(Task* task)
 {
     ActorPushFrame* scratch;
-    GpCoord*        coord;
-    GpCoord*        src;
+    GfxCoord*       coord;
+    GfxCoord*       src;
     Actor02400Work* work;
     GpEnemy*        enemy;
     s32             push;
@@ -822,7 +821,7 @@ static const GpEnemyTaskFuncTable3 Actor02400_D0003C = {
 static void Actor02400_Fn01420(Task* task)
 {
     Actor02400Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             flag;
     s32             dx;
     s32             dz;
@@ -877,7 +876,7 @@ static void Actor02400_Fn01420(Task* task)
 static void Actor02400_Fn01590(Task* task)
 {
     Actor02400Work*   work;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     s16               limit;
     s32               diff;
     s32               step;
@@ -1067,7 +1066,7 @@ static void Actor02400_Fn01A10(Task* task)
 static void Actor02400_Fn01B90(Task* task)
 {
     Actor02400Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             flags;
     s32             sound;
     s32             pan;
@@ -1209,7 +1208,7 @@ static void Actor02400_Fn01F74(Task* task)
 /// first body's height and the second body's reach follow the Y and Z scale.
 static void Actor02400_Fn0208C(Task* task)
 {
-    GpCoord*                coord;
+    GfxCoord*               coord;
     Actor02400Work*         work;
     Actor02400ScaleScratch* scratch;
     Actor02400ScaleScratch* head;
@@ -1239,8 +1238,8 @@ static void Actor02400_Fn0208C(Task* task)
     coord->coord.t[0] = scratch->t.vx;
     coord->coord.t[1] = scratch->t.vy;
     SCRATCH_POP(Actor02400ScaleScratch);
-    coord->coord.t[2] = scratch->t.vz;
-    coord->flg        = 0;
+    coord->coord.t[2]   = scratch->t.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Turns the body towards `field_146` by at most `field_13A` per frame and
@@ -1250,7 +1249,7 @@ static void Actor02400_Fn0208C(Task* task)
 static void Actor02400_Fn02264(Task* task)
 {
     Actor02400Work*   work;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     ActorFaceScratch* sc;
     s32               ang;
     u16               want;
@@ -1320,7 +1319,7 @@ done:
 /// root coordinate and made louder the taller the body has grown.
 static void Actor02400_Fn023B4(Task* task)
 {
-    GpCoord*        object;
+    GfxCoord*       object;
     s16             scale;
     s16             ramp;
     s32             soundId;
@@ -1362,8 +1361,8 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
     VECTOR          pos;
     Actor02400Work* work;
     TmdObject*      obj;
-    GpCoord*        coord;
-    GpCoord*        cur;
+    GfxCoord*       coord;
+    GfxCoord*       cur;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
@@ -1443,12 +1442,12 @@ static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     Actor02400ChildWork* work;
     ActorOffsetScratch*  scratch;
     ActorOffsetScratch*  head;
-    GpCoord*             objCoord;
-    GpCoord*             objCoord2;
-    GpCoord*             objCoord3;
+    GfxCoord*            objCoord;
+    GfxCoord*            objCoord2;
+    GfxCoord*            objCoord3;
     SVECTOR*             offset;
-    GpCoord*             coord;
-    GpCoord*             parentCoord;
+    GfxCoord*            coord;
+    GfxCoord*            parentCoord;
 
     head                             = SCRATCH_HEAD(ActorOffsetScratch);
     scratch                          = head - 1;
@@ -1471,15 +1470,15 @@ static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     gte_ldv0(offset);
     gte_rtv0();
     gte_stlvnl(&scratch->result);
-    coord->sub        = &gGfxViewCoord;
-    coord->coord      = parentCoord->coord;
-    coord->coord.t[0] = parentCoord->coord.t[0] + scratch->result.vx;
-    coord->coord.t[1] = parentCoord->coord.t[1] + scratch->result.vy;
-    coord->coord.t[2] = parentCoord->coord.t[2] + scratch->result.vz;
-    coord->flg        = 0;
-    work->field_A8    = parentCoord->coord.m[0][2];
-    work->field_AA    = parentCoord->coord.m[1][2];
-    work->field_AC    = parentCoord->coord.m[2][2];
+    coord->parent       = &gGfxViewCoord;
+    coord->coord        = parentCoord->coord;
+    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->result.vx;
+    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;
+    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->result.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->field_A8      = parentCoord->coord.m[0][2];
+    work->field_AA      = parentCoord->coord.m[1][2];
+    work->field_AC      = parentCoord->coord.m[2][2];
 
     objCoord             = arg1->extra.tmd->coords;
     work->obj_0.ctx.recs = &work->rec_40;
@@ -1543,7 +1542,7 @@ static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
 static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
 {
     Actor02400ChildWork* work;
-    GpCoord*             coord;
+    GfxCoord*            coord;
     GpRoomParamRec*      param;
     s32                  rec;
     s32                  spawn;
@@ -1560,9 +1559,9 @@ static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
             return;
         case 0:
         default:
-            coord->coord.t[0] += (work->field_A8 * 0x19) >> 9;
-            coord->coord.t[2] += (work->field_AC * 0x19) >> 9;
-            coord->flg         = 0;
+            coord->coord.t[0]  += (work->field_A8 * 0x19) >> 9;
+            coord->coord.t[2]  += (work->field_AC * 0x19) >> 9;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             Actor02400_Fn00064(coord, 0x100);
             rec = work->field_90.key;
@@ -1587,7 +1586,7 @@ static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
 /// While no event is running, one frame in four on average spawns the
 /// `D_80115728` effect at `arg0` with the flags in `arg1`, drifting outward at
 /// a random angle on the ground plane. Nothing in the package calls it.
-static void Actor02400_Fn02CA4(GpCoord* arg0, s32 arg1)
+static void Actor02400_Fn02CA4(GfxCoord* arg0, s32 arg1)
 {
     SVECTOR sp10;
     SVECTOR sp18;
@@ -1623,7 +1622,7 @@ void Actor02400_Fn02DB0(Task* arg0)
 /// the two front parts, rescales the model and updates its coordinate first.
 static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
 {
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdObject* obj;
 
     obj   = task->extra.tmd;
@@ -1646,7 +1645,7 @@ static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
     Actor02400_Fn03140(task);
     Actor02400_Fn03098(task);
     Actor02400_Fn0208C(task);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 case1:
     Actor02400_Fn031D0(task);
@@ -1732,9 +1731,9 @@ static void Actor02400_Fn02F94(Task* task)
 static void Actor02400_Fn03098(Task* task)
 {
     Actor02400Work* work;
-    GpCoord*        coord;
-    GpCoord*        c2;
-    GpCoord*        c3;
+    GfxCoord*       coord;
+    GfxCoord*       c2;
+    GfxCoord*       c3;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
@@ -1751,9 +1750,9 @@ static void Actor02400_Fn03098(Task* task)
             c2->coord.t[2] = 0;
         }
     }
-    c2->flg        = 0;
-    c3->coord.t[0] = 0;
-    c3->coord.t[1] = 0;
+    c2->composeStamp = GRAPHICS_COORD_DIRTY;
+    c3->coord.t[0]   = 0;
+    c3->coord.t[1]   = 0;
     if (work->field_134 != 0) {
         c3->coord.t[2] += 0x50;
     } else {
@@ -1762,7 +1761,7 @@ static void Actor02400_Fn03098(Task* task)
             c3->coord.t[2] = 0x1E;
         }
     }
-    c3->flg = 0;
+    c3->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Saves the root coordinate's position into `field_120..field_124`, then
@@ -1771,7 +1770,7 @@ static void Actor02400_Fn03098(Task* task)
 static void Actor02400_Fn03140(Task* task)
 {
     Actor02400Work* work;
-    GpCoord*        coord;
+    GfxCoord*       coord;
 
     coord = task->extra.tmd->coords;
     work  = task->work;
@@ -1787,8 +1786,8 @@ static void Actor02400_Fn03140(Task* task)
 /// Refreshes the body's colour from where its root coordinate stands.
 static void Actor02400_Fn031D0(Task* task)
 {
-    GpCoord* coord;
-    VECTOR   vec;
+    GfxCoord* coord;
+    VECTOR    vec;
 
     coord  = task->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1800,8 +1799,8 @@ static void Actor02400_Fn031D0(Task* task)
 /// Draws the body's ground mark at its root coordinate's world position.
 static void Actor02400_Fn03228(Task* task)
 {
-    GpCoord* coord;
-    VECTOR3  vec;
+    GfxCoord* coord;
+    VECTOR3   vec;
 
     coord  = task->extra.tmd->coords;
     vec.vx = coord->workm.t[0];
@@ -1818,7 +1817,7 @@ static void Actor02400_Fn03278(Task* task)
     ActorScaleScratch* head;
     ActorScaleScratch* blk;
     Actor02400Work*    work;
-    GpCoord*           coord;
+    GfxCoord*          coord;
 
     scratch                                     = SCRATCH_HEAD_ADDR;
     head                                        = SCRATCH_HEAD_AT(scratch, ActorScaleScratch);
@@ -1838,7 +1837,7 @@ static void Actor02400_Fn03278(Task* task)
     blk->mat.ident.m22     = 0x1000;
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }
 

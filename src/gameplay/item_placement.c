@@ -41,7 +41,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     GpEnemy*   enemy;
     Task*      task;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u16        id;
 
     id = desc->field_0;
@@ -62,7 +62,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                     if (coord->param.rot.vy != 0) {
                         Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
-                    coord->flg = 0;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
             }
             return;
@@ -251,7 +251,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
     GpEnemy*     enemy;
     Task*        task;
     TmdObject*   extra;
-    GpCoord*     coord;
+    GfxCoord*    coord;
     u16          term;
     u16          id;
 
@@ -288,7 +288,7 @@ void Gp_SpawnPlaces(GpAreaKey* arg0)
                             if (coord->param.rot.vy != 0) {
                                 Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
                             }
-                            coord->flg = 0;
+                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
                     }
                     break;

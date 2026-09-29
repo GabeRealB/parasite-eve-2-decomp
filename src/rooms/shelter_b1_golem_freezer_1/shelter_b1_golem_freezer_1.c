@@ -56,9 +56,9 @@ extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
 
 static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
-static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* arg0, s16* arg1);
+static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
 static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
 s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -440,7 +440,7 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
-static void func_shelter_b1_golem_freezer_1_8017D7CC(GpCoord* coord, s16* arg1)
+static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* coord, s16* arg1)
 {
     MATRIX        m;
     long          flag;
@@ -596,7 +596,7 @@ static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s3
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GpCoord*   coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.tmd->coords;
     s32        vz;
     s16        f2a;
     u32        rng2;
@@ -642,10 +642,10 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 
     func_shelter_b1_golem_freezer_1_8017E254(coord, work->index, work->scale, work->angle);
 
-    coord->coord.t[0] += work->move.vx;
-    coord->coord.t[1] += work->move.vy;
-    coord->coord.t[2] += work->move.vz;
-    coord->flg         = 0;
+    coord->coord.t[0]  += work->move.vx;
+    coord->coord.t[1]  += work->move.vy;
+    coord->coord.t[2]  += work->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -655,7 +655,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     }
 }
 
-static void func_shelter_b1_golem_freezer_1_8017E254(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

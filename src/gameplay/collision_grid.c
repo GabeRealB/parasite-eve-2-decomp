@@ -327,7 +327,7 @@ static void func_800DE150(GpObj* arg0)
     u8*            head;
     GpEdgeScratch* block;
     SVECTOR*       src;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     MATRIX*        mat;
 
     coord              = arg0->coord;
@@ -675,8 +675,8 @@ void func_800DEF80(GpObj* node, GpObj4C* other)
 
     kind = other->field_4A & 7;
     if (kind == 2) {
-        GpCoord* c;
-        s32      m0, m1, m2, a;
+        GfxCoord* c;
+        s32       m0, m1, m2, a;
 
         c    = node->coord;
         a    = other->field_3C.vx;
@@ -709,8 +709,8 @@ void func_800DEF80(GpObj* node, GpObj4C* other)
         block->delta.vz = block->nodePos.vz - (block->delta.vz + other->field_8->workm.t[2]);
         VectorNormal(&block->delta, &block->delta);
         {
-            GpCoord* c;
-            s32      n0, n1, n2;
+            GfxCoord* c;
+            s32       n0, n1, n2;
 
             c    = node->coord;
             n0   = block->delta.vx * c->workm.m[0][2];

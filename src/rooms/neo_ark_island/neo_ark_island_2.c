@@ -35,13 +35,13 @@
 
 #include "rooms/room_common.h"
 
-static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_island_8018026C(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_island_8017ECB4(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_island_8017F4A4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_island_8017F890(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_island_8017FE40(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_island_8018026C(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_island_80180AF0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_neo_ark_island_80181170(GfxCoord* arg0, s16 arg1, u8* rgb);
 
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_island_80180600` records.
@@ -99,7 +99,7 @@ GpWarpRec D_neo_ark_island_80181BB4[2] = {
 void func_neo_ark_island_8017EB68(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -115,8 +115,8 @@ void func_neo_ark_island_8017EB68(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_neo_ark_island_8017ECB4(coord, work->angle, work->scale);
@@ -133,7 +133,7 @@ void func_neo_ark_island_8017EB68(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_island_8017ECB4(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -218,7 +218,7 @@ static void func_neo_ark_island_8017ECB4(GpCoord* arg0, s32 arg1, s32 arg2)
 void func_neo_ark_island_8017EFE8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -318,11 +318,11 @@ void func_neo_ark_island_8017EFE8(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -339,7 +339,7 @@ void func_neo_ark_island_8017EFE8(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_island_8017F4A4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -405,7 +405,7 @@ static void func_neo_ark_island_8017F4A4(GpCoord* arg0, s32 arg1, s32 arg2, s32 
 /// on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned and
 /// 2*radius on a side, shifted up so the projected point sits at
 /// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-static void func_neo_ark_island_8017F890(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_island_8017F890(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -476,7 +476,7 @@ void func_neo_ark_island_8017FB2C(Task* arg0)
 void func_neo_ark_island_8017FB9C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -540,7 +540,7 @@ void func_neo_ark_island_8017FB9C(Task* task)
 /// segments forming a ring. The edge at `arg1` is black and the edge at
 /// `arg1 + arg2` takes the colour `rgb`, both signed half-extents scaled to
 /// the screen as `r * 64 / (otz + 1)`.
-static void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_island_8017FE40(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -598,7 +598,7 @@ static void func_neo_ark_island_8017FE40(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / (otz + 1)`. Only the centre vertex takes the colour
 /// `rgb`, so each wedge fades to black at the rim.
-static void func_neo_ark_island_8018026C(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_island_8018026C(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -656,15 +656,15 @@ static void func_neo_ark_island_8018026C(GpCoord* arg0, s16 arg1, u8* rgb)
 /// event state reaches 2.
 void func_neo_ark_island_80180600(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -672,36 +672,36 @@ void func_neo_ark_island_80180600(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_neo_ark_island_80181B84[0].vx;
-                objCoord->coord.t[1] = D_neo_ark_island_80181B84[0].vy;
-                objCoord->coord.t[2] = D_neo_ark_island_80181B84[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_neo_ark_island_80181B84[0].vx;
+                objCoord->coord.t[1]   = D_neo_ark_island_80181B84[0].vy;
+                objCoord->coord.t[2]   = D_neo_ark_island_80181B84[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_neo_ark_island_80181B84[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_neo_ark_island_80181B84[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -709,35 +709,35 @@ void func_neo_ark_island_80180600(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_neo_ark_island_80181B84[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_neo_ark_island_80180AF0(coords, &coords[8], work->age & 7, 0x123);
@@ -756,11 +756,11 @@ void func_neo_ark_island_80180600(Task* task)
 /// along its length. `arg3` holds the colour as per-channel multipliers of that
 /// weight: red from bits 8 up, green from bits 4-5, blue from bits 0-1. A quad
 /// the GTE flags as bad is skipped.
-static void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_neo_ark_island_80180AF0(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                i0;
@@ -858,7 +858,7 @@ static void func_neo_ark_island_80180AF0(GpCoord* arg0, GpCoord* arg1, s16 arg2,
 /// release.
 void func_neo_ark_island_80180EE8(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -932,7 +932,7 @@ void func_neo_ark_island_80180EE8(Task* task)
 /// wedges span the outer radius in half the colour `arg2`, eight more span
 /// half of it at full colour, and four long spikes reach twice the outer
 /// radius between points on the inner one.
-static void func_neo_ark_island_80181170(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_neo_ark_island_80181170(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

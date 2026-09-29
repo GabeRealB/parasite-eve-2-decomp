@@ -135,13 +135,7 @@ TmdSource D_actor_110300_80137EF8 = {
     D_actor_110300_80137C8C,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor110300PoseBank60FC;
-
-Actor110300PoseBank60FC D_actor_110300_80137F1C = { .poses = {
+AnimationPackedPose D_actor_110300_80137F1C[5] = {
 #include "assets/actor_110300_animation_0639C_bank1.inc"
 };
 
@@ -163,13 +157,7 @@ GpAnimSet D_actor_110300_801381BC = {
     { NULL, D_actor_110300_80137F1C, NULL, NULL, D_actor_110300_80137F58, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[22];
-    AnimationPackedRotation        words[66];
-} Actor110300PoseBank63C4;
-
-Actor110300PoseBank63C4 D_actor_110300_801381E4 = { .poses = {
+AnimationPackedPose D_actor_110300_801381E4[22] = {
 #include "assets/actor_110300_animation_078F8_bank1.inc"
 };
 
@@ -191,13 +179,7 @@ GpAnimSet D_actor_110300_80139718 = {
     { NULL, D_actor_110300_801381E4, NULL, NULL, D_actor_110300_801382EC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} Actor110300PoseBank7920;
-
-Actor110300PoseBank7920 D_actor_110300_80139740 = { .poses = {
+AnimationPackedPose D_actor_110300_80139740[7] = {
 #include "assets/actor_110300_animation_07D58_bank1.inc"
 };
 
@@ -219,13 +201,7 @@ GpAnimSet D_actor_110300_80139B78 = {
     { NULL, D_actor_110300_80139740, NULL, NULL, D_actor_110300_80139794, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} Actor110300PoseBank7D80;
-
-Actor110300PoseBank7D80 D_actor_110300_80139BA0 = { .poses = {
+AnimationPackedPose D_actor_110300_80139BA0[4] = {
 #include "assets/actor_110300_animation_07FE4_bank1.inc"
 };
 
@@ -247,13 +223,7 @@ GpAnimSet D_actor_110300_80139E04 = {
     { NULL, D_actor_110300_80139BA0, NULL, NULL, D_actor_110300_80139BD0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor110300PoseBank800C;
-
-Actor110300PoseBank800C D_actor_110300_80139E2C = { .poses = {
+AnimationPackedPose D_actor_110300_80139E2C[3] = {
 #include "assets/actor_110300_animation_0820C_bank1.inc"
 };
 
@@ -337,7 +307,7 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
     VECTOR     vec;
     void*      work;
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
@@ -349,13 +319,13 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
         return;
     }
     task->exitCallback           = func_actor_110300_80132088;
-    coord->sub                   = &gGfxViewCoord;
+    coord->parent                = &gGfxViewCoord;
     enemy->field_4               = &coord->coord;
     enemy->node.state.b.flags    = 1;
     enemy->field_48              = 0;
     enemy->node.state.b.targeted = 0;
     obj->otOffset                = 0;
-    coord->flg                   = 0;
+    coord->composeStamp          = GRAPHICS_COORD_DIRTY;
     D_actor_110300_8013A0A4      = task;
     D_actor_110300_8013A0A8      = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
     func_800B3F84(&D_actor_110300_8013A0A0->rig.anim, D_actor_110300_8013A084, obj,
@@ -391,13 +361,13 @@ void func_actor_110300_80131F9C(Task* task)
 /// the actor's model.
 void func_actor_110300_80131FF8(Task* arg0)
 {
-    GpCoord* parent;
-    GpCoord* coord;
+    GfxCoord* parent;
+    GfxCoord* coord;
 
-    parent     = D_actor_110300_8013A0A4->extra.tmd->coords;
-    coord      = arg0->extra.tmd->coords;
-    coord->flg = 0;
-    coord->sub = parent + 8;
+    parent              = D_actor_110300_8013A0A4->extra.tmd->coords;
+    coord               = arg0->extra.tmd->coords;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = parent + 8;
 }
 
 /// Step 1 of the `func_actor_110300_80131F9C` dispatcher: run the body the
@@ -412,7 +382,7 @@ void func_actor_110300_80131FF8(Task* arg0)
 static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 {
     TmdObject* obj;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     VECTOR     vec;
 
     obj   = task->extra.tmd;

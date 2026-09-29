@@ -268,12 +268,12 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
 
 static void func_800B28E0(Task* task);
 
-static void _animationBlendRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot,
+static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot,
                                     _AnimationBlendScratch* scratch);
 
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot);
+static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot);
 
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot);
+static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot);
 
 static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
 
@@ -880,11 +880,11 @@ void Gp_EnemyTaskExit(Task* task)
     taskKill(task);
 }
 
-Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2)
+Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
 {
     TmdObject* extra;
-    GpCoord*   dest;
-    GpCoord*   world;
+    GfxCoord*  dest;
+    GfxCoord*  world;
 
     if (arg0 == NULL) {
         return NULL;
@@ -894,7 +894,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2)
     world = &gGfxViewCoord;
     extra = arg0->extra.tmd;
     dest  = extra->coords;
-    if (arg1->sub == world) {
+    if (arg1->parent == world) {
         dest->coord = arg1->coord;
         gte_SetRotMatrix(&arg1->coord);
         gte_SetTransMatrix(&arg1->coord);
@@ -911,8 +911,8 @@ Task* Gp_CopyCoordOffset(Task* arg0, GpCoord* arg1, SVECTOR* arg2)
         gte_stlvnl(dest->workm.t);
         Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
     }
-    dest->sub = &gGfxViewCoord;
-    dest->flg = 0;
+    dest->parent       = &gGfxViewCoord;
+    dest->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(8);
     return arg0;
 }
@@ -1078,26 +1078,26 @@ static void Gp_StageLoadState2(Task* task)
 
 void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    VECTOR   tmp;
-    VECTOR   acc0;
-    VECTOR   acc1;
-    SVECTOR  delta;
-    SVECTOR  ang;
-    SVECTOR  euler;
-    MATRIX   mtx0;
-    MATRIX   mtx1;
-    MATRIX   tmtx;
-    s32      i;
-    GpCoord* rec;
-    GpCoord* rec1;
-    s32      pitchLimit;
-    s32      yawLimit;
-    s32      pitchMagnitude;
-    s32      yawMagnitude;
-    MATRIX*  m0;
-    MATRIX*  m1;
-    GpCoord* base;
-    MATRIX*  m;
+    VECTOR    tmp;
+    VECTOR    acc0;
+    VECTOR    acc1;
+    SVECTOR   delta;
+    SVECTOR   ang;
+    SVECTOR   euler;
+    MATRIX    mtx0;
+    MATRIX    mtx1;
+    MATRIX    tmtx;
+    s32       i;
+    GfxCoord* rec;
+    GfxCoord* rec1;
+    s32       pitchLimit;
+    s32       yawLimit;
+    s32       pitchMagnitude;
+    s32       yawMagnitude;
+    MATRIX*   m0;
+    MATRIX*   m1;
+    GfxCoord* base;
+    MATRIX*   m;
 
     i                        = 0;
     m0                       = &mtx0;
@@ -1181,27 +1181,27 @@ void func_800B0928(Task* arg0, Task* arg1, s32 arg2, s32 arg3, s32 arg4)
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = ONE;
     RotMatrix(&ang, m);
-    rec->flg = 0;
+    rec->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_800B0CF4(Task* arg0, GpCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
+void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    VECTOR   transformed;
-    VECTOR   position;
-    VECTOR   target;
-    SVECTOR  offset;
-    SVECTOR  angles;
-    SVECTOR  current;
-    MATRIX   world;
-    MATRIX   inverse;
-    MATRIX*  mtx;
-    MATRIX*  outMtx;
-    GpCoord* part;
-    s32      i;
-    s32      pitchMagnitude;
-    s32      yawMagnitude;
-    s32      pitchLimit;
-    s32      yawLimit;
+    VECTOR    transformed;
+    VECTOR    position;
+    VECTOR    target;
+    SVECTOR   offset;
+    SVECTOR   angles;
+    SVECTOR   current;
+    MATRIX    world;
+    MATRIX    inverse;
+    MATRIX*   mtx;
+    MATRIX*   outMtx;
+    GfxCoord* part;
+    s32       i;
+    s32       pitchMagnitude;
+    s32       yawMagnitude;
+    s32       pitchLimit;
+    s32       yawLimit;
 
     mtx                       = &world;
     MATRIX_PAIR(&world, 0, 0) = 0x1000;
@@ -1415,31 +1415,31 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
 void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
 {
-    VECTOR   tmp;
-    VECTOR   acc0;
-    VECTOR   acc1;
-    SVECTOR  delta;
-    SVECTOR  ang;
-    SVECTOR  euler;
-    MATRIX   mtx0;
-    MATRIX   mtx1;
-    MATRIX   tmtx;
-    VECTOR   probe;
-    s32      rate;
-    s32      inited;
-    s32      i;
-    GpCoord* rec;
-    GpCoord* rec1;
-    s32      pitchLimit;
-    s32      yawLimit;
-    s32      curPitch;
-    s32      curYaw;
-    s32      newPitch;
-    s32      newYaw;
-    MATRIX*  m0;
-    MATRIX*  m1;
-    GpCoord* base;
-    MATRIX*  m;
+    VECTOR    tmp;
+    VECTOR    acc0;
+    VECTOR    acc1;
+    SVECTOR   delta;
+    SVECTOR   ang;
+    SVECTOR   euler;
+    MATRIX    mtx0;
+    MATRIX    mtx1;
+    MATRIX    tmtx;
+    VECTOR    probe;
+    s32       rate;
+    s32       inited;
+    s32       i;
+    GfxCoord* rec;
+    GfxCoord* rec1;
+    s32       pitchLimit;
+    s32       yawLimit;
+    s32       curPitch;
+    s32       curYaw;
+    s32       newPitch;
+    s32       newYaw;
+    MATRIX*   m0;
+    MATRIX*   m1;
+    GfxCoord* base;
+    MATRIX*   m;
 
     i          = 0;
     m0         = &mtx0;
@@ -1555,17 +1555,17 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = ONE;
     RotMatrix(&ang, m);
-    rec->flg = 0;
+    rec->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void Gp_ComposeParentWorld(GpCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
+void Gp_ComposeParentWorld(GfxCoord* arg0, MATRIX* arg1, SVECTOR* arg2)
 {
     SVECTOR tmp;
     MATRIX* m;
     s32     one;
 
-    if (arg0->sub != &gGfxViewCoord) {
-        Gp_ComposeParentWorld(arg0->sub, arg1, arg2);
+    if (arg0->parent != &gGfxViewCoord) {
+        Gp_ComposeParentWorld(arg0->parent, arg1, arg2);
     } else {
         one                  = ONE;
         m                    = arg1;
@@ -1893,7 +1893,7 @@ Task* func_800B2968(void)
 }
 
 /// Blends decoded angles into the model coordinate or an unpacked pose.
-static void _animationBlendRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot,
+static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot,
                                     _AnimationBlendScratch* scratch)
 {
     if (slot->bufPose != 0) {
@@ -1915,7 +1915,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GpCoord* co
             if (request->encodedDestination != NULL) {
                 Gfx_MatrixToEuler(&coord->coord, &scratch->nextRotation);
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
             gte_MulMatrix0(&scratch->deltaMatrix, &scratch->currentMatrix, &scratch->deltaMatrix);
             Gfx_MatrixToEuler(&scratch->deltaMatrix, &scratch->nextRotation);
@@ -1932,7 +1932,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GpCoord* co
         gte_stsv(&scratch->nextRotation);
         if (request->unpackedDestination == NULL) {
             RotMatrix_gte(&scratch->nextRotation, &coord->coord);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
             request->unpackedDestination->rot = scratch->nextRotation;
         }
@@ -1940,7 +1940,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GpCoord* co
 }
 
 /// Blends encoding 1, writing a local transform and optionally a compact pose.
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot)
+static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot)
 {
     _AnimationBlendScratch* scratch;
     AnimationPackedPose*    pose;
@@ -1970,7 +1970,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
             coord->coord.t[0] = scratch->translation.vx;
             coord->coord.t[1] = scratch->translation.vy;
             coord->coord.t[2] = scratch->translation.vz;
-            coord->flg        = 0;
+            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
         } else {
             request->unpackedDestination->trans.vx = scratch->translation.vx;
             request->unpackedDestination->trans.vy = scratch->translation.vy;
@@ -2000,7 +2000,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
 }
 
 /// Blends encoding 4 without changing the part's local translation.
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GpCoord* coord, GpAnimSlot* slot)
+static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot)
 {
     _AnimationBlendScratch* scratch;
     const AnimationPackedRotation*     sourcePose;
@@ -2091,7 +2091,7 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
 {
     _AnimationTickScratch* scratch;
     GpAnimSlot*            slot;
-    GpCoord*               coord;
+    GfxCoord*               coord;
     GpAnimSet*             set;
     GpAnimRec*             records;
     GpAnimRec*             record;
@@ -2357,12 +2357,12 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     }
 }
 
-void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3)
+void Gp_AnimInitCtx(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses)
 {
-    arg0->sets      = arg1;
-    arg0->coords    = (GpCoord*)(arg2 + 1);
-    arg0->poses     = arg3;
-    arg0->partCount = arg2->partCount;
+    ctx->sets      = sets;
+    ctx->coords    = PARENT_OF(model, TmdAllocation, object)->coords;
+    ctx->poses     = poses;
+    ctx->partCount = model->partCount;
 }
 
 void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
@@ -2445,13 +2445,13 @@ static void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3,
     arg1->timeLeft = val;
 }
 
-void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
+void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, GpAnimSlot* slots)
 {
-    arg0->sets      = arg1;
-    arg0->coords    = (GpCoord*)(arg2 + 1);
-    arg0->poses     = arg3;
-    arg0->partCount = arg2->partCount;
-    arg0->slots     = arg4;
+    ctx->sets      = sets;
+    ctx->coords    = PARENT_OF(model, TmdAllocation, object)->coords;
+    ctx->poses     = poses;
+    ctx->partCount = model->partCount;
+    ctx->slots     = slots;
 }
 
 void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
@@ -2523,7 +2523,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     void**      scratch;
     GpAnimPose* head;
     GpAnimSlot* slot;
-    GpCoord*    dest;
+    GfxCoord*   dest;
     SVECTOR*    trans;
     SVECTOR*    rot;
     s32         idx;
@@ -2556,7 +2556,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     rot = &head[-1].rot;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
-    dest->flg = 0;
+    dest->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(GpAnimPose);
 }
 
@@ -2566,7 +2566,7 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     void**      scratch;
     GpAnimPose* head;
     GpAnimSlot* slot;
-    GpCoord*    dest;
+    GfxCoord*   dest;
     SVECTOR*    rot;
     s32         idx;
 
@@ -2590,7 +2590,7 @@ void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPos
     rot = &head[-1].rot;
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
-    dest->flg = 0;
+    dest->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(GpAnimPose);
 }
 
@@ -2742,7 +2742,7 @@ void Gp_SaveEnemyPose(GpEnemy* arg0)
     McPosRec*  rec;
     GpAreaKey* loc;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   euler;
     u16        id;
     s32        i;
@@ -2807,7 +2807,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     GpEnemy*       enemy;
     Task*          task;
     TmdObject*     extra;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     u16            id;
     s8             placeNo;
     s32            i;
@@ -2919,7 +2919,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     } while (place->entryId != 0xFF);
 }
 
-void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2)
+void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
 {
     GpFloorQuadScratch* block;
     POLY_FT4*           prim;
@@ -3192,17 +3192,17 @@ void Gp_ApplyAreaTmdFlags(void)
     }
 }
 
-void Gp_ReparentCoord(GpCoord* arg0, GpCoord* arg1)
+void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
 {
-    GpCoord* dest;
+    GfxCoord* dest;
 
     dest = arg1;
-    if (dest->sub != arg0) {
+    if (dest->parent != arg0) {
         Gp_UpdateCoord(arg0);
         Gp_UpdateCoord(dest);
-        dest->sub = arg0;
+        dest->parent = arg0;
         Gp_WorldToLocal(&arg0->workm, &dest->workm, &dest->coord);
-        dest->flg = 0;
+        dest->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
 
@@ -3580,7 +3580,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
     GpDirScratch* s;
     SVECTOR*      vec;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     s32           scale;
 
     s       = SCRATCH_PUSH(GpDirScratch);
@@ -3647,7 +3647,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     GpEnemy*   enemy;
     Task*      task;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u16        id;
 
     id = desc->field_0;
@@ -3668,7 +3668,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                     if (coord->param.rot.vy != 0) {
                         Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
-                    coord->flg = 0;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
             }
             return;

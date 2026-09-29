@@ -19,8 +19,8 @@
 /// chosen impact point into its `workm.t`, and that same coordinate is then
 /// handed to `Gp_PlayObjSfx` as the sound source.
 typedef struct _M249Scratch {
-    /* 0x00 */ byte    pad_0[0x18];
-    /* 0x18 */ GpCoord coord;
+    /* 0x00 */ byte     pad_0[0x18];
+    /* 0x18 */ GfxCoord coord;
 } M249Scratch;
 STATIC_ASSERT_SIZEOF(M249Scratch, 0x68);
 
@@ -29,8 +29,8 @@ static void func_m249_8011D1DC(Task* arg0);
 static void func_m249_8011D1DC(Task* arg0)
 {
     GameActor*   actor;
-    GpCoord*     coord;
-    GpCoord*     spot;
+    GfxCoord*    coord;
+    GfxCoord*    spot;
     M249Scratch* scratch;
     s32          anim;
 

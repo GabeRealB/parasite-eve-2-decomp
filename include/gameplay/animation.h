@@ -13,7 +13,7 @@ struct GpAnimSet;
 
 /// Pose pair used by `Gp_AnimWritePoseBlend` / `Gp_AnimWritePoseCopy`. Translation is
 /// GPF/GPL-blended (`Gp_AnimWritePoseBlend`) or copied (`Gp_AnimWritePoseCopy`) into
-/// `GpCoord.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
+/// `GfxCoord.coord.t` when `GpAnimSlot.poseKind == 1`; rotation is
 /// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
 typedef struct _GpAnimPose {
     /* 0x00 */ SVECTOR trans;
@@ -107,7 +107,7 @@ STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
 /// keyframe supplies.
 typedef struct {
     GpAnimSet** sets;      // Set table the slots index by animation id
-    GpCoord*    coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
+    GfxCoord*    coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
     u8*         poses;     // Borrowed writable buffer: 16 bytes per slot, holding that slot's packed encoding
     GpAnimSlot* slots;     // Playback state, one slot per model part
     s32         partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`

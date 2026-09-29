@@ -21,10 +21,10 @@
 
 /// The view rotation: the coordinate `gGfxViewCoord` hangs off, whose `coord`
 /// holds the view's rotation, parented in turn to `Gfx_ViewOffsetCoord`.
-extern GpCoord gGfxViewRotCoord;
+extern GfxCoord gGfxViewRotCoord;
 
 /// The root of the view chain, whose `coord` offsets the view along z.
-extern GpCoord Gfx_ViewOffsetCoord;
+extern GfxCoord Gfx_ViewOffsetCoord;
 
 /// The view coordinate: every world-space object is parented to it, so a
 /// coordinate composed against it comes out in view space.
@@ -33,7 +33,7 @@ extern GpCoord Gfx_ViewOffsetCoord;
 /// world is drawn and projected through. The view rotation and the view offset
 /// are the two coordinates above it in the chain, which is why its own matrix
 /// holds a translation alone.
-extern GpCoord gGfxViewCoord;
+extern GfxCoord gGfxViewCoord;
 
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
 
@@ -55,6 +55,11 @@ void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector);
 
 void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector);
 
+/// Normalizes a light direction from a readable VECTOR-sized span.
+///
+/// The input's first three signed words are the direction. All 16 bytes must
+/// be readable, including the unused fourth word; translation views must also
+/// provide the following word. `out` receives the normalized short vector.
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
 
 void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2);

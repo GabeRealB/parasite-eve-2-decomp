@@ -13,7 +13,6 @@
 #include "direction.h"
 #include "gameplay/direction_input.h"
 #include "direction_input.h"
-#include "gameplay/geometry.h"
 #include "geometry.h"
 #include "gameplay/loading.h"
 #include "loading.h"
@@ -517,13 +516,13 @@ static void Gp_DirTaskState1(Task* task)
 
 s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1)
 {
-    SVECTOR     vec;
-    GpCoordPos* coord;
+    SVECTOR   vec;
+    GfxCoord* coord;
 
-    coord  = (GpCoordPos*)arg0->extra.tmd->coords;
-    vec.vx = arg1->vx - coord->x;
+    coord  = arg0->extra.tmd->coords;
+    vec.vx = arg1->vx - (u16)coord->coord.t[0];
     vec.vy = 0;
-    vec.vz = arg1->vz - coord->z;
+    vec.vz = arg1->vz - (u16)coord->coord.t[2];
     VectorNormalSS(&vec, &vec);
     return ratan2(vec.vx, vec.vz) & 0xFFF;
 }

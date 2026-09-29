@@ -28,8 +28,8 @@ static void func_m4a1_8011D1C4(Task* arg0);
 static void func_m4a1_8011D1C4(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
-    GpCoord*   spot;
+    GfxCoord*  coord;
+    GfxCoord*  spot;
     s32        anim;
     s32        delay;
     /* Narrower than the field it feeds on purpose: an `s32 shots = 1` would join
@@ -38,7 +38,7 @@ static void func_m4a1_8011D1C4(Task* arg0)
     s16 shots;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GpCoord);
+    spot  = SCRATCH_HEAD(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

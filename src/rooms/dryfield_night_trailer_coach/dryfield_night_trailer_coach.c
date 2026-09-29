@@ -220,13 +220,7 @@ TaskDesc D_dryfield_night_trailer_coach_80184FE4[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightTrailerCoachPoseBank7A48;
-
-DryfieldNightTrailerCoachPoseBank7A48 D_dryfield_night_trailer_coach_80185008 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80185008[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_bank1.inc"
 };
 
@@ -248,13 +242,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80185398 = {
     { NULL, D_dryfield_night_trailer_coach_80185008, NULL, NULL, D_dryfield_night_trailer_coach_8018502C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightTrailerCoachPoseBank7E00;
-
-DryfieldNightTrailerCoachPoseBank7E00 D_dryfield_night_trailer_coach_801853C0 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_801853C0[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_bank1.inc"
 };
 
@@ -276,13 +264,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80185590 = {
     { NULL, D_dryfield_night_trailer_coach_801853C0, NULL, NULL, D_dryfield_night_trailer_coach_801853E4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightTrailerCoachPoseBank7FF8;
-
-DryfieldNightTrailerCoachPoseBank7FF8 D_dryfield_night_trailer_coach_801855B8 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_801855B8[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_bank1.inc"
 };
 
@@ -304,13 +286,7 @@ GpAnimSet D_dryfield_night_trailer_coach_801858E4 = {
     { NULL, D_dryfield_night_trailer_coach_801855B8, NULL, NULL, D_dryfield_night_trailer_coach_801855F4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightTrailerCoachPoseBank834C;
-
-DryfieldNightTrailerCoachPoseBank834C D_dryfield_night_trailer_coach_8018590C = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_8018590C[3] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_bank1.inc"
 };
 
@@ -332,13 +308,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80185ADC = {
     { NULL, D_dryfield_night_trailer_coach_8018590C, NULL, NULL, D_dryfield_night_trailer_coach_80185930, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightTrailerCoachPoseBank8544;
-
-DryfieldNightTrailerCoachPoseBank8544 D_dryfield_night_trailer_coach_80185B04 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80185B04[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_bank1.inc"
 };
 
@@ -360,13 +330,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80185DE0 = {
     { NULL, D_dryfield_night_trailer_coach_80185B04, NULL, NULL, D_dryfield_night_trailer_coach_80185B40, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightTrailerCoachPoseBank8848;
-
-DryfieldNightTrailerCoachPoseBank8848 D_dryfield_night_trailer_coach_80185E08 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80185E08[5] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_bank1.inc"
 };
 
@@ -388,13 +352,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80186208 = {
     { NULL, D_dryfield_night_trailer_coach_80185E08, NULL, NULL, D_dryfield_night_trailer_coach_80185E44, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[14];
-    AnimationPackedRotation        words[42];
-} DryfieldNightTrailerCoachPoseBank8C70;
-
-DryfieldNightTrailerCoachPoseBank8C70 D_dryfield_night_trailer_coach_80186230 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80186230[14] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_bank1.inc"
 };
 
@@ -416,13 +374,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80186844 = {
     { NULL, D_dryfield_night_trailer_coach_80186230, NULL, NULL, D_dryfield_night_trailer_coach_801862D8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightTrailerCoachPoseBank92AC;
-
-DryfieldNightTrailerCoachPoseBank92AC D_dryfield_night_trailer_coach_8018686C = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_8018686C[7] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_bank1.inc"
 };
 
@@ -444,13 +396,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80186B5C = {
     { NULL, D_dryfield_night_trailer_coach_8018686C, NULL, NULL, D_dryfield_night_trailer_coach_801868C0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightTrailerCoachPoseBank95C4;
-
-DryfieldNightTrailerCoachPoseBank95C4 D_dryfield_night_trailer_coach_80186B84 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80186B84[7] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_bank1.inc"
 };
 
@@ -472,13 +418,7 @@ GpAnimSet D_dryfield_night_trailer_coach_80186E88 = {
     { NULL, D_dryfield_night_trailer_coach_80186B84, NULL, NULL, D_dryfield_night_trailer_coach_80186BD8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} DryfieldNightTrailerCoachPoseBank98F0;
-
-DryfieldNightTrailerCoachPoseBank98F0 D_dryfield_night_trailer_coach_80186EB0 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_80186EB0[8] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_bank1.inc"
 };
 
@@ -500,13 +440,7 @@ GpAnimSet D_dryfield_night_trailer_coach_801873D0 = {
     { NULL, D_dryfield_night_trailer_coach_80186EB0, NULL, NULL, D_dryfield_night_trailer_coach_80186F10, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} DryfieldNightTrailerCoachPoseBank9E38;
-
-DryfieldNightTrailerCoachPoseBank9E38 D_dryfield_night_trailer_coach_801873F8 = { .poses = {
+AnimationPackedPose D_dryfield_night_trailer_coach_801873F8[9] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_bank1.inc"
 };
 

@@ -30,17 +30,13 @@ extern const CVECTOR Gp_ColorOrange;
 
 static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2);
 
-/// Brings one coordinate up to date for the current pass, as
-/// `_gpUpdateCoordTree` describes: the body that function and the draw passes
-/// share, inlined into each. The high-precision translation is composed with
-/// `gte_RotTransLV`.
-static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root);
+static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 static void Gp_StashTmdLists(void);
 
 static void Gp_RestoreTmdLists(void);
 
-static Task* Gp_FindTaskByCoord(GpCoord* arg0);
+static Task* Gp_FindTaskByCoord(GfxCoord* arg0);
 
 static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
 
@@ -216,35 +212,36 @@ Task*       Gp_TmdStashTask    = NULL;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Brings one coordinate up to date for the current pass, as
-/// `_gpUpdateCoordTree` describes: the body that function and the draw passes
-/// share, inlined into each. The high-precision translation is composed with
-/// `gte_RotTransLV`.
-static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root)
+/// Visits a coordinate after its ancestors and refreshes its composed matrix when stale.
+///
+/// The supplied root is excluded. `gte_RotTransLV` preserves the full signed
+/// translation range while the rotation is composed with the GTE.
+static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
-    GpCoord* parent;
+    GfxCoord* parent;
 
-    parent     = coord->sub;
-    coord->flg = (coord->flg << 1) >> 1;
+    // Visit ancestors before composing; the parity bit records visits, not rebuilds.
+    parent              = coord->parent;
+    coord->composeStamp = (coord->composeStamp << 1) >> 1;
     if (parent == root) {
-        if (coord->flg == 0) {
-            coord->workm = coord->coord;
-            coord->flg   = stamp;
+        if (coord->composeStamp == GRAPHICS_COORD_DIRTY) {
+            coord->workm        = coord->coord;
+            coord->composeStamp = stamp;
         }
     } else {
-        if ((parent->flg == 0) || ((parent->flg >> 31) != parity)) {
+        if ((parent->composeStamp == GRAPHICS_COORD_DIRTY) || ((parent->composeStamp >> 31) != parity)) {
             _gpUpdateCoordTree(parent, stamp, parity, root);
         }
-        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
+        if (coord->composeStamp < (parent->composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
             gte_CompMatrix(&parent->workm, &coord->coord, &coord->workm);
-            coord->flg = stamp;
+            coord->composeStamp = stamp;
             gte_SetRotMatrix(&parent->workm);
             gte_ldclmv(&coord->coord.m[0][0]);
             gte_rtir();
             gte_stclmv(&coord->workm.m[0][0]);
             gte_ldclmv(&coord->coord.m[0][1]);
             gte_rtir();
-            coord->flg = stamp;
+            coord->composeStamp = stamp;
             gte_stclmv(&coord->workm.m[0][1]);
             gte_ldclmv(&coord->coord.m[0][2]);
             gte_rtir();
@@ -254,7 +251,7 @@ static __inline__ void _gpRefreshCoord(GpCoord* coord, s32 stamp, s32 parity, Gp
         }
     }
     if (parity != 0) {
-        coord->flg |= 0x80000000;
+        coord->composeStamp |= GRAPHICS_COORD_PARITY_BIT;
     }
 }
 
@@ -283,14 +280,14 @@ GpDisp2d* gpAttachDisp2d(Task* task)
     GpDisp2d*    node;
     TmdListHead* last;
     TmdListHead* list;
-    GpCoord*     coord;
+    GfxCoord*    coord;
 
-    node = memCalloc(0x60, 0);
+    node = memCalloc(sizeof(*node), 0);
     if (node != NULL) {
         coord         = &node->coord;
         node->coords  = coord;
         node->field_C = 1;
-        coord->sub    = &gGfxViewCoord;
+        coord->parent = &gGfxViewCoord;
         gfxSetRotIdentity(&coord->coord);
         coord->coord.t[2]   = 0;
         coord->coord.t[1]   = 0;
@@ -298,7 +295,7 @@ GpDisp2d* gpAttachDisp2d(Task* task)
         coord->param.rot.vz = 0;
         coord->param.rot.vy = 0;
         coord->param.rot.vx = 0;
-        coord->flg          = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         list                = &gTmdDisp2dList;
         last                = list->prev;
         node->link.next     = last->next;
@@ -399,32 +396,16 @@ static void Gp_RestoreTmdLists(void)
     gTmdDisp2dList = Gp_TmdListAltStash;
 }
 
-/// Brings a coordinate's world matrix up to date, and its ancestors' with it.
-///
-/// The chain of `sub` links is walked to `root` and composed on the way back
-/// down, so a coordinate's world matrix is its parent's world matrix multiplied
-/// by its own local one. Each coordinate records in `flg` the stamp of the pass
-/// that last rebuilt it, and is rebuilt when that stamp is older than its
-/// parent's — which is what clearing `flg` asks for. A coordinate whose `flg` is
-/// clear at the walk's end has never been composed and takes its local matrix
-/// as its world matrix.
-///
-/// `parity` is the value written to the top bit of `flg`; it differs from one
-/// pass to the next, which is what tells the walk an ancestor has already been
-/// reached in this one. `root` ends the walk: the composed matrices are left
-/// relative to it, and its own world matrix is neither updated nor folded in,
-/// because the caller that passes one applies that transformation itself.
-/// `NULL` stops at the top of the chain.
-void _gpUpdateCoordTree(GpCoord* coord, s32 stamp, s32 parity, GpCoord* root)
+void _gpUpdateCoordTree(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
     _gpRefreshCoord(coord, stamp, parity, root);
 }
 
-static Task* Gp_FindTaskByCoord(GpCoord* arg0)
+static Task* Gp_FindTaskByCoord(GfxCoord* arg0)
 {
     Task*      task;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u32        i;
     s32        found;
     u32        count;

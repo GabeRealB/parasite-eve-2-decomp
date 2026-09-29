@@ -181,12 +181,12 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
     s32              otz;
     s32              i;
 
-    e                 = D_shelter_b4_lower_sewer_80181E7C;
-    gGfxViewCoord.flg = 0;
-    head              = SCRATCH_HEAD(u8);
-    phase             = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)  = head - 0xC;
-    s                 = (_SurfaceScratch*)(head - 0xC);
+    e                          = D_shelter_b4_lower_sewer_80181E7C;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    head                       = SCRATCH_HEAD(u8);
+    phase                      = -(gDisplayState.animFrame * 16);
+    SCRATCH_HEAD(u8)           = head - 0xC;
+    s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -315,12 +315,12 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
     s32              otz;
     s32              i;
 
-    e                 = D_shelter_b4_lower_sewer_80181E90;
-    gGfxViewCoord.flg = 0;
-    head              = SCRATCH_HEAD(u8);
-    phase             = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)  = head - 0xC;
-    s                 = (_SurfaceScratch*)(head - 0xC);
+    e                          = D_shelter_b4_lower_sewer_80181E90;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    head                       = SCRATCH_HEAD(u8);
+    phase                      = -(gDisplayState.animFrame * 16);
+    SCRATCH_HEAD(u8)           = head - 0xC;
+    s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);

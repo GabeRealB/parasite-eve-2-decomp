@@ -307,7 +307,7 @@ static void Gp_LinkRoomObjects(Task* task)
             }
         }
     }
-    gGfxViewCoord.flg = 0;
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
 }
 
@@ -464,7 +464,7 @@ void* Gp_GetViewSprtExtra(void)
 void Gp_RoomObjState1(Task* task)
 {
     if (task->spawnArg1.value != (u8)gGameSession->at4.loc.view) {
-        gGfxViewCoord.flg = 0;
+        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
         task->spawnArg1.value = (u8)gGameSession->at4.loc.view;
     }

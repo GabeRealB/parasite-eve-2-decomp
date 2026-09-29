@@ -251,7 +251,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task);
 static void func_dryfield_night_factory_8017D6F8(Task* task)
 {
     NightFactoryWork* work;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     TmdObject*        obj;
 
     obj   = task->extra.tmd;
@@ -300,7 +300,7 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
 static void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32 useAltTemplate)
 {
     long          flag;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     MATRIX*       m;
     GpGridParams* geom;
     GpGridParams* src;
@@ -366,7 +366,7 @@ static void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32
 static s32 func_dryfield_night_factory_8017DA54(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -437,7 +437,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixY(work->field_10.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
@@ -446,7 +446,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
 static s32 func_dryfield_night_factory_8017DDD4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -517,7 +517,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixY(work->field_10.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
@@ -526,7 +526,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
 static s32 func_dryfield_night_factory_8017E13C(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
 
     switch (work->field_17) {
@@ -588,8 +588,8 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
         work->field_C.value = -0x23A0000;
         work->field_17      = 4;
     }
-    coord->coord.t[1] = work->field_C.part.whole;
-    coord->flg        = 0;
+    coord->coord.t[1]   = work->field_C.part.whole;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
@@ -598,7 +598,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
 static s32 func_dryfield_night_factory_8017E480(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
 
     switch (work->field_17) {
@@ -660,15 +660,15 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
         work->field_C.value = 0;
         work->field_17      = 4;
     }
-    coord->coord.t[1] = work->field_C.part.whole;
-    coord->flg        = 0;
+    coord->coord.t[1]   = work->field_C.part.whole;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
 static s32 func_dryfield_night_factory_8017E7A4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -750,7 +750,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixY(work->field_10.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
@@ -759,7 +759,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
 static s32 func_dryfield_night_factory_8017EBD4(Task* task)
 {
     NightFactoryWork* work  = (NightFactoryWork*)task->work;
-    GpCoord*          coord = task->extra.tmd->coords;
+    GfxCoord*         coord = task->extra.tmd->coords;
     s32               done  = 0;
     OverlayMat*       mat;
 
@@ -841,7 +841,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixY(work->field_10.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
 
@@ -851,7 +851,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
 static s32 func_dryfield_night_factory_8017F00C(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
-    GpCoord*                  coord = task->extra.tmd->coords;
+    GfxCoord*                 coord = task->extra.tmd->coords;
     OverlayMat*               mat;
     s32                       ret = 0;
 
@@ -900,7 +900,7 @@ static s32 func_dryfield_night_factory_8017F00C(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixX(work->field_4.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }
 
@@ -909,7 +909,7 @@ static s32 func_dryfield_night_factory_8017F00C(Task* task)
 static s32 func_dryfield_night_factory_8017F1DC(Task* task)
 {
     NightFactoryCutsceneWork* work  = (NightFactoryCutsceneWork*)task->work;
-    GpCoord*                  coord = task->extra.tmd->coords;
+    GfxCoord*                 coord = task->extra.tmd->coords;
     OverlayMat*               mat;
     s32                       ret = 0;
 
@@ -947,7 +947,7 @@ static s32 func_dryfield_night_factory_8017F1DC(Task* task)
     mat->ident.m20_m21 = 0;
     mat->ident.m22     = 0x1000;
     RotMatrixX(work->field_4.part.whole, &mat->mat);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }
 
@@ -1155,7 +1155,7 @@ void func_dryfield_night_factory_8017F734(Task* task)
 /// is rebuilt and handed to `func_800D7A9C` together with its translation.
 static void func_dryfield_night_factory_8017FA08(Task* task)
 {
-    GpCoord*          coord;
+    GfxCoord*         coord;
     NightFactoryWork* work;
     TmdObject*        obj;
     s32               flag;
@@ -1209,16 +1209,16 @@ static void func_dryfield_night_factory_8017FB48(Task* task)
 /// and rebuilds its lighting.
 static void func_dryfield_night_factory_8017FB68(Task* task)
 {
-    GpCoord*          coord;
+    GfxCoord*         coord;
     NightFactoryWork* work;
     TmdObject*        extra;
 
-    work            = (NightFactoryWork*)task->work;
-    extra           = task->extra.tmd;
-    coord           = extra->coords;
-    extra->lightMtx = &work->light;
-    extra->colorMtx = &work->color;
-    coord->flg      = 0;
+    work                = (NightFactoryWork*)task->work;
+    extra               = task->extra.tmd;
+    coord               = extra->coords;
+    extra->lightMtx     = &work->light;
+    extra->colorMtx     = &work->color;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 }
@@ -1245,8 +1245,8 @@ static void func_dryfield_night_factory_8017FBF4(Task* task)
     Task*                     cap      = task->spawnArg2.pointer;
     TmdObject*                model    = task->extra.tmd;
     TmdObject*                capModel = cap->extra.tmd;
-    GpCoord*                  coord    = model->coords;
-    GpCoord*                  capCoord = capModel->coords;
+    GfxCoord*                 coord    = model->coords;
+    GfxCoord*                 capCoord = capModel->coords;
     NightFactoryCutsceneWork* work     = memCalloc(0xC, 0);
     u16                       flags;
 
@@ -1268,16 +1268,16 @@ static void func_dryfield_night_factory_8017FBF4(Task* task)
     }
     model->otOffset   = -1;
     coord->coord.t[1] = -0x316;
-    coord->sub        = capCoord;
+    coord->parent     = capCoord;
     coord->coord.t[0] = 0;
     coord->coord.t[2] = -0x5FA;
     if (GameFlag_GetNibble(0x4E) == 1) {
         work->state = 0xFF;
         RotMatrixX(-0x300, &coord->coord);
     }
-    coord->flg      = 0;
-    model->lightMtx = capModel->lightMtx;
-    model->colorMtx = capModel->colorMtx;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx     = capModel->lightMtx;
+    model->colorMtx     = capModel->colorMtx;
     Task_Reparent(cap, task);
     task->state += 1;
 }

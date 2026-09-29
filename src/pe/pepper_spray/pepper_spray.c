@@ -28,8 +28,8 @@
 
 #include "overlay.h"
 
-static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2);
-static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2);
+static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The six spray-cone yaws, refilled once per cast by
 /// `func_pepper_spray_8012EF34` from `Gp_LcgState`: entry `i` is a 0x400-wide
@@ -49,7 +49,7 @@ static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 void func_pepper_spray_8012EF34(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     s32           i;
@@ -61,7 +61,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     u8            rgb[3];
 
     base  = Gp_RoomCoords;
-    slot  = &base->data.light;
+    slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState != 0)) {
@@ -73,25 +73,25 @@ void func_pepper_spray_8012EF34(Task* arg0)
     mem->age = age;
     switch (arg0->state) {
         case 0:
-            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-            yaw                           = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
-            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-            spread                        = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            tz                            = coord->coord.t[2];
-            base->data.coord.flg          = 0;
-            slot->head.r                  = 0x1000;
-            slot->head.g                  = 0x1000;
-            slot->head.b                  = 0x1000;
-            slot->inner                   = 0xFA0;
-            slot->outer                   = 0x12C0;
-            base->framesLeft              = 6;
-            slot->head.u.coord.coord.t[2] = tz;
-            mem->period                   = 0xE0;
-            mem->scale                    = yaw;
-            mem->angle                    = spread;
-            arg0->state                   = 1;
+            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+            Gp_LcgState                           = Gp_LcgState * 5 + 0x71357911;
+            yaw                                   = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+            Gp_LcgState                           = Gp_LcgState * 5 + 0x71357911;
+            spread                                = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            tz                                    = coord->coord.t[2];
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.r                          = 0x1000;
+            slot->head.g                          = 0x1000;
+            slot->head.b                          = 0x1000;
+            slot->inner                           = 0xFA0;
+            slot->outer                           = 0x12C0;
+            base->framesLeft                      = 6;
+            slot->head.u.coord.coord.t[2]         = tz;
+            mem->period                           = 0xE0;
+            mem->scale                            = yaw;
+            mem->angle                            = spread;
+            arg0->state                           = 1;
             for (i = 0; i < 6; i++) {
                 Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
                 D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
@@ -126,7 +126,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
 /// along `arg2` and `arg2 + 0x400`, so the nozzle shrinks with depth. The
 /// texture is the fixed 0x37 x 0x37 patch at (0x70, 0xC8) on tpage 0x29, drawn
 /// semi-transparent and unshaded.
-static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                head;
     GpEffFlareScratch* blk;
@@ -185,7 +185,7 @@ static void func_pepper_spray_8012F21C(GpCoord* arg0, s16 arg1, s16 arg2)
 /// out and 0x200 towards the camera, all in `arg0`'s `workm` frame. `arg2` is
 /// the spray brightness; only the corner along `arg1` is lit, with half of
 /// `arg2` in red and green and all of it in blue.
-static void func_pepper_spray_8012F634(GpCoord* arg0, s16 arg1, s16 arg2)
+static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     u8*                        head;
     OverlayFlaggedQuadScratch* blk;

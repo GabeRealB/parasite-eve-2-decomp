@@ -39,8 +39,8 @@
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
 static void func_dryfield_night_warehouse_8017D654(Task* task);
-static void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1);
-static void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2);
+static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1);
+static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2);
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, closed by a 0x7FFFFFFF entry.
@@ -426,7 +426,7 @@ void func_dryfield_night_warehouse_8017D65C(Task* task)
 /// `coord`'s `workm` and moved by its translation before projection through
 /// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
 /// quarters of its green and blue; the far corners are black.
-static void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1)
+static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -552,7 +552,7 @@ static void func_dryfield_night_warehouse_8017D6B4(GpCoord* coord, s16 arg1)
 /// moved by its translation before projection through `GsWSMATRIX`. The corners
 /// on ring `arg1` share a pulsing colour whose red is three quarters of its
 /// green and blue; the corners on ring `arg1 + 1` are black.
-static void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16 arg2)
+static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2)
 {
     RoomQuadScratch* blk;
     POLY_G4*         prim;
@@ -656,8 +656,8 @@ static void func_dryfield_night_warehouse_8017DFF4(GpCoord* coord, s16 arg1, s16
 /// bit being one of a fixed set of visits.
 void func_dryfield_night_warehouse_8017E778(Task* arg0)
 {
-    GpCoord* coord;
-    s32      mask;
+    GfxCoord* coord;
+    s32       mask;
 
     coord = arg0->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;

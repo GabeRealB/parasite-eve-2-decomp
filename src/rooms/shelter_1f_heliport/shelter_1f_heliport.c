@@ -211,7 +211,7 @@ extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;
 static void func_shelter_1f_heliport_80180658(Task* task);
 static void func_shelter_1f_heliport_80180748(Task* task);
 static void func_shelter_1f_heliport_801807C0(void);
-static void func_shelter_1f_heliport_8018085C(GpCoord* coord, SVECTOR* offset);
+static void func_shelter_1f_heliport_8018085C(GfxCoord* coord, SVECTOR* offset);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0" \
                                 "2"
@@ -898,7 +898,7 @@ static void func_shelter_1f_heliport_801807C0(void)
 /// Rebuilds the working mesh from its source under `coord`: the first four
 /// vectors are rotated only, the eight after them rotated and translated and,
 /// when `offset` is non-NULL, shifted by it afterwards.
-static void func_shelter_1f_heliport_8018085C(GpCoord* coord, SVECTOR* offset)
+static void func_shelter_1f_heliport_8018085C(GfxCoord* coord, SVECTOR* offset)
 {
     MATRIX        m;
     long          flag;

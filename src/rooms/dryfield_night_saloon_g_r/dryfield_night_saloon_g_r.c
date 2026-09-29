@@ -150,8 +150,8 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
 static void func_dryfield_night_saloon_g_r_8017E040(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord);
-static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord);
+static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
 void func_dryfield_night_saloon_g_r_8017E28C(Task*);
@@ -254,13 +254,7 @@ TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {
     { 0, 192, func_dryfield_night_saloon_g_r_8017DB74, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightSaloonGRPoseBank238C;
-
-DryfieldNightSaloonGRPoseBank238C D_dryfield_night_saloon_g_r_8017F94C = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_8017F94C[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank1.inc"
 };
 
@@ -282,13 +276,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_8017FC28 = {
     { NULL, D_dryfield_night_saloon_g_r_8017F94C, NULL, NULL, D_dryfield_night_saloon_g_r_8017F994, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} DryfieldNightSaloonGRPoseBank2690;
-
-DryfieldNightSaloonGRPoseBank2690 D_dryfield_night_saloon_g_r_8017FC50 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_8017FC50[8] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank1.inc"
 };
 
@@ -310,13 +298,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_8017FFFC = {
     { NULL, D_dryfield_night_saloon_g_r_8017FC50, NULL, NULL, D_dryfield_night_saloon_g_r_8017FCB0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightSaloonGRPoseBank2A64;
-
-DryfieldNightSaloonGRPoseBank2A64 D_dryfield_night_saloon_g_r_80180024 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80180024[7] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank1.inc"
 };
 
@@ -338,13 +320,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_801803EC = {
     { NULL, D_dryfield_night_saloon_g_r_80180024, NULL, NULL, D_dryfield_night_saloon_g_r_80180078, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightSaloonGRPoseBank2E54;
-
-DryfieldNightSaloonGRPoseBank2E54 D_dryfield_night_saloon_g_r_80180414 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80180414[7] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank1.inc"
 };
 
@@ -366,13 +342,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80180758 = {
     { NULL, D_dryfield_night_saloon_g_r_80180414, NULL, NULL, D_dryfield_night_saloon_g_r_80180468, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} DryfieldNightSaloonGRPoseBank31C0;
-
-DryfieldNightSaloonGRPoseBank31C0 D_dryfield_night_saloon_g_r_80180780 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80180780[10] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank1.inc"
 };
 
@@ -394,13 +364,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80180C78 = {
     { NULL, D_dryfield_night_saloon_g_r_80180780, NULL, NULL, D_dryfield_night_saloon_g_r_801807F8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightSaloonGRPoseBank36E0;
-
-DryfieldNightSaloonGRPoseBank36E0 D_dryfield_night_saloon_g_r_80180CA0 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80180CA0[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank1.inc"
 };
 
@@ -422,13 +386,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80180F58 = {
     { NULL, D_dryfield_night_saloon_g_r_80180CA0, NULL, NULL, D_dryfield_night_saloon_g_r_80180CDC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightSaloonGRPoseBank39C0;
-
-DryfieldNightSaloonGRPoseBank39C0 D_dryfield_night_saloon_g_r_80180F80 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80180F80[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank1.inc"
 };
 
@@ -450,13 +408,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80181440 = {
     { NULL, D_dryfield_night_saloon_g_r_80180F80, NULL, NULL, D_dryfield_night_saloon_g_r_80180FC8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightSaloonGRPoseBank3EA8;
-
-DryfieldNightSaloonGRPoseBank3EA8 D_dryfield_night_saloon_g_r_80181468 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80181468[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank1.inc"
 };
 
@@ -478,13 +430,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_801817F8 = {
     { NULL, D_dryfield_night_saloon_g_r_80181468, NULL, NULL, D_dryfield_night_saloon_g_r_8018148C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightSaloonGRPoseBank4260;
-
-DryfieldNightSaloonGRPoseBank4260 D_dryfield_night_saloon_g_r_80181820 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80181820[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank1.inc"
 };
 
@@ -506,13 +452,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_801819F0 = {
     { NULL, D_dryfield_night_saloon_g_r_80181820, NULL, NULL, D_dryfield_night_saloon_g_r_80181844, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightSaloonGRPoseBank4458;
-
-DryfieldNightSaloonGRPoseBank4458 D_dryfield_night_saloon_g_r_80181A18 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80181A18[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank1.inc"
 };
 
@@ -534,13 +474,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80181D44 = {
     { NULL, D_dryfield_night_saloon_g_r_80181A18, NULL, NULL, D_dryfield_night_saloon_g_r_80181A54, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} DryfieldNightSaloonGRPoseBank47AC;
-
-DryfieldNightSaloonGRPoseBank47AC D_dryfield_night_saloon_g_r_80181D6C = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80181D6C[3] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank1.inc"
 };
 
@@ -562,13 +496,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80181F3C = {
     { NULL, D_dryfield_night_saloon_g_r_80181D6C, NULL, NULL, D_dryfield_night_saloon_g_r_80181D90, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} DryfieldNightSaloonGRPoseBank49A4;
-
-DryfieldNightSaloonGRPoseBank49A4 D_dryfield_night_saloon_g_r_80181F64 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80181F64[4] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank1.inc"
 };
 
@@ -590,13 +518,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_801821E4 = {
     { NULL, D_dryfield_night_saloon_g_r_80181F64, NULL, NULL, D_dryfield_night_saloon_g_r_80181F94, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightSaloonGRPoseBank4C4C;
-
-DryfieldNightSaloonGRPoseBank4C4C D_dryfield_night_saloon_g_r_8018220C = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_8018220C[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank1.inc"
 };
 
@@ -618,13 +540,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80182518 = {
     { NULL, D_dryfield_night_saloon_g_r_8018220C, NULL, NULL, D_dryfield_night_saloon_g_r_80182254, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} DryfieldNightSaloonGRPoseBank4F80;
-
-DryfieldNightSaloonGRPoseBank4F80 D_dryfield_night_saloon_g_r_80182540 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80182540[10] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank1.inc"
 };
 
@@ -646,13 +562,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80182980 = {
     { NULL, D_dryfield_night_saloon_g_r_80182540, NULL, NULL, D_dryfield_night_saloon_g_r_801825B8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightSaloonGRPoseBank53E8;
-
-DryfieldNightSaloonGRPoseBank53E8 D_dryfield_night_saloon_g_r_801829A8 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_801829A8[6] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank1.inc"
 };
 
@@ -674,13 +584,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_80182CCC = {
     { NULL, D_dryfield_night_saloon_g_r_801829A8, NULL, NULL, D_dryfield_night_saloon_g_r_801829F0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} DryfieldNightSaloonGRPoseBank5734;
-
-DryfieldNightSaloonGRPoseBank5734 D_dryfield_night_saloon_g_r_80182CF4 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80182CF4[5] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank1.inc"
 };
 
@@ -702,13 +606,7 @@ GpAnimSet D_dryfield_night_saloon_g_r_8018313C = {
     { NULL, D_dryfield_night_saloon_g_r_80182CF4, NULL, NULL, D_dryfield_night_saloon_g_r_80182D30, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[13];
-    AnimationPackedRotation        words[39];
-} DryfieldNightSaloonGRPoseBank5BA4;
-
-DryfieldNightSaloonGRPoseBank5BA4 D_dryfield_night_saloon_g_r_80183164 = { .poses = {
+AnimationPackedPose D_dryfield_night_saloon_g_r_80183164[13] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank1.inc"
 };
 
@@ -2517,9 +2415,9 @@ static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 /// with column 0 and 0x300; the two helpers in between take the model's coord.
 void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 {
-    GpCoord* coord;
-    s32      mask;
-    s32      i;
+    GfxCoord* coord;
+    s32       mask;
+    s32       i;
 
     coord = arg0->extra.tmd->coords;
     mask  = 1 << gGameSession->at4.loc.view;
@@ -2607,7 +2505,7 @@ static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32
 /// parity of `gDisplayState.animFrame` and the tips are black, so the shaft
 /// fades outward. The quad is sorted by `tipB`'s `otz` and skipped when that
 /// is below 0x11.
-static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
+static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord)
 {
     u8*                    head;
     RoomLightShaftScratch* block;
@@ -2717,7 +2615,7 @@ static void func_dryfield_night_saloon_g_r_8017EB38(GpCoord* coord)
 /// take a grey of 0x20 or 0x30 depending on the parity of
 /// `gDisplayState.animFrame`, the rim vertices are black. Each primitive goes
 /// into the OT bucket of its own end's `otz` with a `Gp_AddTpageShift` tpage.
-static void func_dryfield_night_saloon_g_r_8017F0A4(GpCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;

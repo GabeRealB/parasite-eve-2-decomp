@@ -12,7 +12,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/enemy.h"
-#include "gameplay/geometry.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
@@ -185,13 +184,7 @@ TmdSource D_actor_312200_80168148 = {
     D_actor_312200_80164E18,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[21];
-    AnimationPackedRotation        words[63];
-} Actor312200PoseBank634C;
-
-Actor312200PoseBank634C D_actor_312200_8016816C = { .poses = {
+AnimationPackedPose D_actor_312200_8016816C[21] = {
 #include "assets/actor_312200_animation_07368_bank1.inc"
 };
 
@@ -213,13 +206,7 @@ GpAnimSet D_actor_312200_80169188 = {
     { NULL, D_actor_312200_8016816C, NULL, NULL, D_actor_312200_80168268, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor312200PoseBank7390;
-
-Actor312200PoseBank7390 D_actor_312200_801691B0 = { .poses = {
+AnimationPackedPose D_actor_312200_801691B0[3] = {
 #include "assets/actor_312200_animation_0773C_bank1.inc"
 };
 
@@ -241,13 +228,7 @@ GpAnimSet D_actor_312200_8016955C = {
     { NULL, D_actor_312200_801691B0, NULL, NULL, D_actor_312200_801691D4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} Actor312200PoseBank7764;
-
-Actor312200PoseBank7764 D_actor_312200_80169584 = { .poses = {
+AnimationPackedPose D_actor_312200_80169584[4] = {
 #include "assets/actor_312200_animation_07D78_bank1.inc"
 };
 
@@ -269,13 +250,7 @@ GpAnimSet D_actor_312200_80169B98 = {
     { NULL, D_actor_312200_80169584, NULL, NULL, D_actor_312200_801695B4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[3];
-    AnimationPackedRotation        words[9];
-} Actor312200PoseBank7DA0;
-
-Actor312200PoseBank7DA0 D_actor_312200_80169BC0 = { .poses = {
+AnimationPackedPose D_actor_312200_80169BC0[3] = {
 #include "assets/actor_312200_animation_080E0_bank1.inc"
 };
 
@@ -337,10 +312,10 @@ TaskDesc D_actor_312200_80169F7C = { 257, 96, func_actor_312200_80163854, { .mod
 
 SVECTOR D_actor_312200_80169F88;
 
-static s32  func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count);
-static s32  func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static s32  func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2);
-static s32  func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32  func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32  func_actor_312200_801626C4(GfxCoord* coord, GpRec18* movement, s16 arg2);
+static s32  func_actor_312200_80162868(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 static void func_actor_312200_80162FB4(Task* task);
 static void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
 static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
@@ -350,7 +325,7 @@ static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 func_actor_312200_80161E30(GfxCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -360,7 +335,7 @@ static s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                      = 0;
+    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
     head                            = SCRATCH_HEAD(ActorRepelScratch);
     blk                             = head - 1;
     SCRATCH_HEAD(ActorRepelScratch) = blk;
@@ -396,7 +371,7 @@ static s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
@@ -409,7 +384,7 @@ static s32 func_actor_312200_80161E30(GpCoord* coord, GpRec18* recs, s16 count)
 /// `*pos` accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 func_actor_312200_80162178(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -502,7 +477,7 @@ static s32 func_actor_312200_80162178(GpCoord* coord, GpRec18* recs, s16 count, 
 /// `D_actor_312200_80169F88`. Returns 1 when the X or Z step is nonzero; a
 /// step with a fractional part moves the coordinate and the kept step one
 /// unit further from zero.
-static s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg2)
+static s32 func_actor_312200_801626C4(GfxCoord* coord, GpRec18* movement, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -549,7 +524,7 @@ static s32 func_actor_312200_801626C4(GpCoord* coord, GpRec18* movement, s16 arg
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-static s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_actor_312200_80162868(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -564,7 +539,7 @@ static s32 func_actor_312200_80162868(GpCoord* coord, GpRec18* recs, s16 count, 
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;
@@ -715,7 +690,7 @@ static void func_actor_312200_80162FB4(Task* task)
 static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       obj;
     TmdObject*       tmd;
     Actor312200Work* mem;
@@ -762,11 +737,11 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     Gp_LinkObj(2, node);
     node->flags |= 0x8000;
     Gp_InitRec18Table(node->ctx.recs, 3, 0);
-    task->msgTable  = D_actor_312200_80169F5C;
-    work->field_8AC = 0;
-    work->field_8AD = 1;
-    coord->sub      = &gGfxViewCoord;
-    coord->flg      = 0;
+    task->msgTable      = D_actor_312200_80169F5C;
+    work->field_8AC     = 0;
+    work->field_8AD     = 1;
+    coord->parent       = &gGfxViewCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
@@ -784,9 +759,9 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 /// before it is re-latched into `field_2`. The tail clears the display node's
 /// `GpRec18` record while occupied, re-propagates the root coordinate's
 /// translation over the model's three part coordinates while `field_8AD` is
-/// set, and then refreshes `field_8AD` from that coordinate's `flg` - so the
+/// set, and then refreshes `field_8AD` from that coordinate's `composeStamp` - so the
 /// propagation runs on the frame after the coordinate is dirtied. That same
-/// coordinate is rebuilt (`flg` dropped) and the 0x51030008 loop queued while
+/// coordinate is rebuilt (`composeStamp` dropped) and the 0x51030008 loop queued while
 /// the room is live, from view 0x10 with the 0x7DB action `field_8B8` at 1.
 ///
 /// The trailing `vec` is the original's own - three dead stores, but the frame
@@ -818,14 +793,14 @@ static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
             func_800D7A9C(obj, (VECTOR*)obj->coords->workm.t, 0, 3);
         }
         if (gGameSession->viewReady != 0) {
-            task->extra.tmd->coords->flg = 0;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
                 pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
                 SndEvt_EnqueueType6(0x51030008, pan,
                                     (s8)gpGetObjDepth(task->extra.tmd->coords));
             }
         }
-        if (task->extra.tmd->coords->flg == 0) {
+        if (task->extra.tmd->coords->composeStamp == GRAPHICS_COORD_DIRTY) {
             work->field_8AD = 1;
         } else {
             work->field_8AD = 0;
@@ -877,7 +852,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
 /// `ratan2` and cached in `Actor312200Work::yaw`.
 s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     s32              mx;
     s32              mz;
     Actor312200Work* work;
@@ -889,11 +864,11 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, GpXformArg* placement)
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
     Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->flg = 0;
-    coord                        = task->extra.tmd->coords;
-    mx                           = coord->coord.m[2][0];
-    mz                           = coord->coord.m[2][2];
-    work->yaw                    = ratan2(-mx, mz);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord                                 = task->extra.tmd->coords;
+    mx                                    = coord->coord.m[2][0];
+    mz                                    = coord->coord.m[2][2];
+    work->yaw                             = ratan2(-mx, mz);
     return 1;
 }
 

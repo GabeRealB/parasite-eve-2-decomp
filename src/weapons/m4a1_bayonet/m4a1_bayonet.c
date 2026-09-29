@@ -63,9 +63,9 @@ static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 void func_m4a1_bayonet_8011D1E4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   slot;
-    GpCoord    hilt;
+    GfxCoord*  coord;
+    GfxCoord*  slot;
+    GfxCoord   hilt;
     s32        phase;
     SVECTOR*   vec;
     s32        vx;
@@ -81,72 +81,72 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coord->sub        = work->parent;
-                coord->coord.t[0] = D_m4a1_bayonet_8011DEC8[0].vx;
-                coord->coord.t[1] = D_m4a1_bayonet_8011DEC8[0].vy;
-                coord->coord.t[2] = D_m4a1_bayonet_8011DEC8[0].vz;
-                coord->flg        = 0;
+                coord->parent       = work->parent;
+                coord->coord.t[0]   = D_m4a1_bayonet_8011DEC8[0].vx;
+                coord->coord.t[1]   = D_m4a1_bayonet_8011DEC8[0].vy;
+                coord->coord.t[2]   = D_m4a1_bayonet_8011DEC8[0].vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 task->state = 1;
 
-                vx              = D_m4a1_bayonet_8011DEC8[1].vx;
-                vec             = &D_m4a1_bayonet_8011DEC8[1];
-                vy              = vec->vy;
-                vz              = vec->vz;
-                hilt.sub        = coord;
-                hilt.flg        = 0;
-                hilt.coord.t[0] = vx;
-                hilt.coord.t[1] = vy;
-                hilt.coord.t[2] = vz;
+                vx                = D_m4a1_bayonet_8011DEC8[1].vx;
+                vec               = &D_m4a1_bayonet_8011DEC8[1];
+                vy                = vec->vy;
+                vz                = vec->vz;
+                hilt.parent       = coord;
+                hilt.composeStamp = GRAPHICS_COORD_DIRTY;
+                hilt.coord.t[0]   = vx;
+                hilt.coord.t[1]   = vy;
+                hilt.coord.t[2]   = vz;
                 Gp_UpdateCoord(&hilt);
 
                 for (i = 0; i < 8; i++) {
-                    slot        = &D_m4a1_bayonet_8012D398[i];
-                    slot->sub   = &gGfxViewCoord;
-                    slot->workm = coord->workm;
+                    slot         = &D_m4a1_bayonet_8012D398[i];
+                    slot->parent = &gGfxViewCoord;
+                    slot->workm  = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
-                    slot        = &D_m4a1_bayonet_8012D618[i];
-                    slot->sub   = &gGfxViewCoord;
-                    slot->workm = hilt.workm;
+                    slot         = &D_m4a1_bayonet_8012D618[i];
+                    slot->parent = &gGfxViewCoord;
+                    slot->workm  = hilt.workm;
                     gte_SetRotMatrix(&hilt.workm);
                     gte_SetTransMatrix(&hilt.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
                 }
                 break;
             case 1:
-                coord->flg = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
 
-                hilt.sub        = work->parent;
-                hilt.flg        = 0;
-                hilt.coord.t[0] = D_m4a1_bayonet_8011DED0.vx;
-                hilt.coord.t[1] = D_m4a1_bayonet_8011DED0.vy;
-                hilt.coord.t[2] = D_m4a1_bayonet_8011DED0.vz;
+                hilt.parent       = work->parent;
+                hilt.composeStamp = GRAPHICS_COORD_DIRTY;
+                hilt.coord.t[0]   = D_m4a1_bayonet_8011DED0.vx;
+                hilt.coord.t[1]   = D_m4a1_bayonet_8011DED0.vy;
+                hilt.coord.t[2]   = D_m4a1_bayonet_8011DED0.vz;
                 Gp_UpdateCoord(&hilt);
 
-                slot        = &D_m4a1_bayonet_8012D398[work->age & 7];
-                slot->sub   = &gGfxViewCoord;
-                slot->workm = coord->workm;
+                slot         = &D_m4a1_bayonet_8012D398[work->age & 7];
+                slot->parent = &gGfxViewCoord;
+                slot->workm  = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
-                slot        = &D_m4a1_bayonet_8012D618[work->age & 7];
-                slot->sub   = &gGfxViewCoord;
-                slot->workm = hilt.workm;
+                slot         = &D_m4a1_bayonet_8012D618[work->age & 7];
+                slot->parent = &gGfxViewCoord;
+                slot->workm  = hilt.workm;
                 gte_SetRotMatrix(&hilt.workm);
                 gte_SetTransMatrix(&hilt.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                 for (i = 0; i < 8; i++) {
-                    slot      = &D_m4a1_bayonet_8012D398[i];
-                    slot->flg = 0;
+                    slot               = &D_m4a1_bayonet_8012D398[i];
+                    slot->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(slot);
-                    slot      = &D_m4a1_bayonet_8012D618[i];
-                    slot->flg = 0;
+                    slot               = &D_m4a1_bayonet_8012D618[i];
+                    slot->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(slot);
                 }
                 func_m4a1_bayonet_8011D69C(work->age & 7, 0x112);
@@ -170,8 +170,8 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
 static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
 {
     M4a1BayonetBeamScratch* blk;
-    GpCoord*                a;
-    GpCoord*                b;
+    GfxCoord*               a;
+    GfxCoord*               b;
     POLY_G4*                prim;
     s32                     i;
     s32                     j;

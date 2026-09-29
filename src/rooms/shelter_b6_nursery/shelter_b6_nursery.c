@@ -201,7 +201,7 @@ STATIC_ASSERT_SIZEOF(ShelterB6NurseryStorage7980, 32);
 extern ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
 
 /// Position the ambient sound is panned and attenuated from.
-extern GpCoord D_shelter_b6_nursery_801879A0;
+extern GfxCoord D_shelter_b6_nursery_801879A0;
 
 extern ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 
@@ -212,13 +212,13 @@ static void func_shelter_b6_nursery_8017FEC4(Task* task);
 static void func_shelter_b6_nursery_8017FF8C(Task* task);
 static void func_shelter_b6_nursery_80180518(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b6_nursery_8018098C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade);
-static void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 shade);
+static void func_shelter_b6_nursery_80182FCC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b6_nursery_801833F8(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_shelter_b6_nursery_80183C7C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b6_nursery_801842FC(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void func_shelter_b6_nursery_8017F4E8(Task*);
 
@@ -887,7 +887,7 @@ s32 D_shelter_b6_nursery_8018797C;
 
 ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
 
-GpCoord D_shelter_b6_nursery_801879A0;
+GfxCoord D_shelter_b6_nursery_801879A0;
 
 ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
 
@@ -1154,11 +1154,11 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
     s32 depth;
     s32 viewDepth;
 
-    D_shelter_b6_nursery_801879A0.coord.t[0] = 0x1770;
-    D_shelter_b6_nursery_801879A0.coord.t[1] = 0;
-    D_shelter_b6_nursery_801879A0.coord.t[2] = -0x33E;
-    D_shelter_b6_nursery_801879A0.sub        = &gGfxViewCoord;
-    D_shelter_b6_nursery_801879A0.flg        = 0;
+    D_shelter_b6_nursery_801879A0.coord.t[0]   = 0x1770;
+    D_shelter_b6_nursery_801879A0.coord.t[1]   = 0;
+    D_shelter_b6_nursery_801879A0.coord.t[2]   = -0x33E;
+    D_shelter_b6_nursery_801879A0.parent       = &gGfxViewCoord;
+    D_shelter_b6_nursery_801879A0.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&D_shelter_b6_nursery_801879A0);
     pan   = Gp_GetObjPan(&D_shelter_b6_nursery_801879A0);
     depth = gpGetObjDepth(&D_shelter_b6_nursery_801879A0);
@@ -1632,7 +1632,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
     SVECTOR    base;
     TmdObject* obj;
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        eventState;
 
     obj   = task->extra.tmd;
@@ -1660,12 +1660,12 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->scale   = ((Gp_LcgState >> 16) & 0x3F) + 0x40;
                 VectorNormalSS(&work->move, &work->move);
-                work->pos.vy = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vx = -((Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vz = 0x40 - ((Gp_LcgState >> 16) & 0x7F);
-                coord->flg   = 0;
+                work->pos.vy        = 0;
+                Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                work->pos.vx        = -((Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+                work->pos.vz        = 0x40 - ((Gp_LcgState >> 16) & 0x7F);
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 task->state++;
                 return;
             }
@@ -1675,10 +1675,10 @@ void func_shelter_b6_nursery_80181314(Task* task)
             gte_ldsv(&work->move);
             gte_gpf12();
             gte_stsv(&step);
-            coord->coord.t[0] += step.vx;
-            coord->coord.t[1] += step.vy;
-            coord->coord.t[2] += step.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += step.vx;
+            coord->coord.t[1]  += step.vy;
+            coord->coord.t[2]  += step.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&step);
             gte_rtv0();
@@ -1725,7 +1725,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
 void func_shelter_b6_nursery_80181820(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -1819,10 +1819,10 @@ void func_shelter_b6_nursery_80181820(Task* task)
         case 1:
             func_shelter_b6_nursery_80181EDC(coord, work->index, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -1839,10 +1839,10 @@ void func_shelter_b6_nursery_80181820(Task* task)
         case 2:
             func_shelter_b6_nursery_80182330(coord, work->index, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -1859,7 +1859,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
     }
 }
 
-static void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1925,7 +1925,7 @@ static void func_shelter_b6_nursery_80181EDC(GpCoord* coord, u16 arg1, s16 arg2,
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_shelter_b6_nursery_80182330(GpCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1990,7 +1990,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 {
     SVECTOR    step;
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        eventState;
 
     work       = task->spawnArg2.pointer;
@@ -2014,13 +2014,13 @@ void func_shelter_b6_nursery_80182730(Task* task)
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
             work->period  = ((Gp_LcgState >> 16) & 0x7F) + 0x40;
             VectorNormalSS(&work->move, &work->move);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vx = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
-            coord->flg   = 0;
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vx        = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vy        = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            work->pos.vz        = 0x100 - ((Gp_LcgState >> 16) & 0x1FF);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             return;
         }
@@ -2030,10 +2030,10 @@ void func_shelter_b6_nursery_80182730(Task* task)
         gte_ldsv(&work->move);
         gte_gpf12();
         gte_stsv(&step);
-        coord->coord.t[0] += step.vx;
-        coord->coord.t[1] += step.vy;
-        coord->coord.t[2] += step.vz;
-        coord->flg         = 0;
+        coord->coord.t[0]  += step.vx;
+        coord->coord.t[1]  += step.vy;
+        coord->coord.t[2]  += step.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         func_shelter_b6_nursery_801829E4(coord, work->angle, work->period);
         if (coord->coord.t[1] > 0) {
             Gp_ReleaseState1CMem(work, task);
@@ -2047,7 +2047,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 /// on a circle of radius `scale` in the coordinate's YZ plane, transformed by
 /// its world matrix, projected with `GsWSMATRIX` and linked into the ordering
 /// table at the triangle's depth with shade `shade`.
-static void func_shelter_b6_nursery_801829E4(GpCoord* coord, s16 scale, s16 shade)
+static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 shade)
 {
     _ShelterB6NurseryTriScratch* blk;
     SVECTOR*                     p;
@@ -2108,7 +2108,7 @@ void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
 void func_shelter_b6_nursery_80182D28(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -2171,7 +2171,7 @@ void func_shelter_b6_nursery_80182D28(Task* task)
 /// coordinate's world translation, unless the projection flags an error. The
 /// vertices at radius `(s16)arg1 * 64` over the depth are black and those at
 /// `(s16)(arg1 + arg2) * 64` over the depth take `rgb`.
-static void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b6_nursery_80182FCC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -2228,7 +2228,7 @@ static void func_shelter_b6_nursery_80182FCC(GpCoord* arg0, s32 arg1, s32 arg2, 
 /// coordinate's world translation, unless the projection flags an error: the
 /// centre takes `rgb` and the rim, at radius `arg1 * 64` over the depth,
 /// is black.
-static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_shelter_b6_nursery_801833F8(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -2283,15 +2283,15 @@ static void func_shelter_b6_nursery_801833F8(GpCoord* arg0, s16 arg1, u8* rgb)
 /// while the room's event state is 2 or more.
 void func_shelter_b6_nursery_8018378C(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -2299,36 +2299,36 @@ void func_shelter_b6_nursery_8018378C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_b6_nursery_801852F4[0].vx;
-                objCoord->coord.t[1] = D_shelter_b6_nursery_801852F4[0].vy;
-                objCoord->coord.t[2] = D_shelter_b6_nursery_801852F4[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_b6_nursery_801852F4[0].vx;
+                objCoord->coord.t[1]   = D_shelter_b6_nursery_801852F4[0].vy;
+                objCoord->coord.t[2]   = D_shelter_b6_nursery_801852F4[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_b6_nursery_801852F4[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_b6_nursery_801852F4[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -2336,35 +2336,35 @@ void func_shelter_b6_nursery_8018378C(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_b6_nursery_801852F4[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b6_nursery_80183C7C(coords, &coords[8], work->age & 7, 0x123);
@@ -2381,11 +2381,11 @@ void func_shelter_b6_nursery_8018378C(Task* task)
 /// of `arg0` and `arg1`. Brightness falls by 9 per quad from 0x40, and `arg3`
 /// scales it per channel: red by `arg3 >> 8`, green by bits 4-5 and blue by
 /// bits 0-1. A quad whose projection flags an error is skipped.
-static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b6_nursery_80183C7C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -2486,7 +2486,7 @@ static void func_shelter_b6_nursery_80183C7C(GpCoord* arg0, GpCoord* arg1, s16 a
 /// event state is non-zero.
 void func_shelter_b6_nursery_80184074(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -2557,7 +2557,7 @@ void func_shelter_b6_nursery_80184074(Task* task)
 /// wedges at radius `arg1 * 64` over the depth in half of `arg2`'s colour, a
 /// second at half that radius in the full colour, and four cross wedges from
 /// an inner radius of `arg1 * 8` over the depth. Every rim is black.
-static void func_shelter_b6_nursery_801842FC(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b6_nursery_801842FC(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

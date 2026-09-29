@@ -20,7 +20,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
-#include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
@@ -102,7 +101,7 @@ extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level);
-static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord);
+static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task*);
 void func_acropolis_helicopter_landing_pad_8017ED00(Task*);
@@ -621,8 +620,8 @@ GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16] = {
 static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
-static s32  func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
 {
@@ -822,7 +821,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 
     lvl   = level;
     light = &Gp_RoomCoords[6 + (index & 1)];
-    work  = &light->data.light;
+    work  = &light->light;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             light->framesLeft = 0;
@@ -844,18 +843,18 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
         gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
-            light->framesLeft          = 2;
-            work->inner                = 0x640;
-            work->outer                = 0x3200;
-            work->head.r               = level * 16;
-            work->head.g               = 0;
-            work->head.b               = 0;
-            work->head.u.at.local.t[0] = pos->vx;
-            work->head.u.at.local.t[1] = pos->vy;
-            work->head.u.at.local.t[2] = pos->vz;
-            light->data.coord.flg      = 0;
-            blk->rOuter                = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-            blk->rInner                = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            light->framesLeft                      = 2;
+            work->inner                            = 0x640;
+            work->outer                            = 0x3200;
+            work->head.r                           = level * 16;
+            work->head.g                           = 0;
+            work->head.b                           = 0;
+            work->head.u.at.local.t[0]             = pos->vx;
+            work->head.u.at.local.t[1]             = pos->vy;
+            work->head.u.at.local.t[2]             = pos->vz;
+            light->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            blk->rOuter                            = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            blk->rInner                            = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
                 prim           = (POLY_G4*)gGpuPrimCursor;
@@ -970,7 +969,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void**            scratch;
     u8*               head;
     AhlpFlareScratch* blk;
@@ -1082,13 +1081,13 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         }
         SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            coord->coord.t[2] += mem->move.vz;
-            coord->flg         = 0;
-            mem->scale        += mem->period;
-            n                  = mem->age + 1;
-            mem->age           = n;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->coord.t[2]  += mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            mem->scale         += mem->period;
+            n                   = mem->age + 1;
+            mem->age            = n;
             if (n > mem->step * 6 - 1) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
@@ -1110,7 +1109,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
     GpEffWork*    eff;
@@ -1127,11 +1126,11 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
         return;
     }
     if (mem->index == 0) {
-        coord->sub        = mem->parent;
-        coord->coord.t[0] = mem->pos.vx;
-        coord->coord.t[1] = mem->pos.vy;
-        coord->coord.t[2] = mem->pos.vz;
-        coord->flg        = 0;
+        coord->parent       = mem->parent;
+        coord->coord.t[0]   = mem->pos.vx;
+        coord->coord.t[1]   = mem->pos.vy;
+        coord->coord.t[2]   = mem->pos.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         mem->scale = 1;
         mem->index++;
@@ -1151,7 +1150,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 }
             }
             base             = &Gp_RoomCoords[4];
-            slot             = &base->data.light;
+            slot             = &base->light;
             base->framesLeft = 4;
             slot->inner      = 0x15E0;
             slot->outer      = 0x1900;
@@ -1159,8 +1158,8 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             slot->head.g     = 0x800;
             Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
             slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->data.coord.coord);
-            base->data.coord.flg = 0;
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.u.coord.coord);
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         case 1:
             if ((gDisplayState.animFrame & 7) == 0) {
@@ -1184,15 +1183,15 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                     }
                 }
                 base             = &Gp_RoomCoords[5];
-                slot             = &base->data.light;
+                slot             = &base->light;
                 base->framesLeft = 4;
                 slot->inner      = 0xFA0;
                 slot->outer      = 0x12C0;
                 slot->head.r     = 0xC00;
                 slot->head.g     = 0xC00;
                 slot->head.b     = 0x600;
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->data.coord.coord);
-                base->data.coord.flg = 0;
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.u.coord.coord);
+                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             }
             break;
         case 2:
@@ -1208,7 +1207,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 /// the coord's `workm`, offset by its translation and projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
+static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -1282,7 +1281,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GpCoord* coord)
 /// the coord's `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
-void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
+void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 {
     void**            scratch;
     u8*               head;
@@ -1360,12 +1359,12 @@ void func_acropolis_helicopter_landing_pad_80180A64(GpCoord* coord)
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
     GpEffWork*    mem;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpCoord64*    base;
     GpPointLight* slot;
 
     base  = &Gp_RoomCoords[4];
-    slot  = &base->data.light;
+    slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 3) {
@@ -1380,17 +1379,17 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
         case 0:
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
-            base->framesLeft              = 4;
-            slot->inner                   = 0x1900;
-            slot->outer                   = 0x1C20;
-            slot->head.r                  = 0x800;
-            slot->head.g                  = 0x800;
-            Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            slot->head.u.coord.coord.t[0] = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1] = coord->coord.t[1];
-            slot->head.u.coord.coord.t[2] = coord->coord.t[2];
-            base->data.coord.flg          = 0;
+            base->framesLeft                      = 4;
+            slot->inner                           = 0x1900;
+            slot->outer                           = 0x1C20;
+            slot->head.r                          = 0x800;
+            slot->head.g                          = 0x800;
+            Gp_LcgState                           = Gp_LcgState * 5 + 0x71357911;
+            slot->head.b                          = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
+            slot->head.u.coord.coord.t[2]         = coord->coord.t[2];
+            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 1:
             Gp_SpawnEff(0x6005E, coord, 0, NULL);
@@ -1428,7 +1427,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void**            scratch;
     u8*               head;
     AhlpFlareScratch* blk;
@@ -1535,10 +1534,10 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
         }
         SCRATCH_POP_BYTES(0x1C);
         if (Gp_State1C->eventState == 0) {
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            coord->coord.t[2] += mem->move.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->coord.t[2]  += mem->move.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             mem->age++;
             if (mem->age > mem->step * 6 - 1) {
                 Gp_ReleaseState1CMem(mem, arg0);
@@ -1587,7 +1586,7 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 /// X or Z one unit away from zero, and keeps the applied delta in
 /// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
 /// X or Z is non-zero. Works in a 0x14 block from `G_SCRATCH_HEAD`.
-static s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -1636,7 +1635,7 @@ static s32 func_acropolis_helicopter_landing_pad_801819C0(GpCoord* coord, GpRec1
 /// of every other counting record's, it moves X and Z `push` units away
 /// along that bearing. Returns 1 when a push was applied, and 0 at once
 /// while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -1651,7 +1650,7 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GpCoord* coord, GpRec1
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

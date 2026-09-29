@@ -389,7 +389,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
 void func_shelter_b2_elevator_8017D70C(Task* task)
 {
     TmdObject*          obj;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     ShelterElevatorCar* car;
     VECTOR              vec;
 
@@ -402,15 +402,15 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 taskKill(task);
                 return;
             }
-            task->work        = (TaskIdMap*)car;
-            car->travel       = 0;
-            obj->otOffset     = 0x64;
-            obj->flags        = 0;
-            coord->sub        = &gGfxViewCoord;
-            coord->coord.t[0] = 0x2A94;
-            coord->coord.t[1] = 0;
-            coord->coord.t[2] = -0x1F4;
-            coord->flg        = 0;
+            task->work          = (TaskIdMap*)car;
+            car->travel         = 0;
+            obj->otOffset       = 0x64;
+            obj->flags          = 0;
+            coord->parent       = &gGfxViewCoord;
+            coord->coord.t[0]   = 0x2A94;
+            coord->coord.t[1]   = 0;
+            coord->coord.t[2]   = -0x1F4;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             break;
         case 1:
@@ -428,7 +428,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
             } else {
                 obj->flags = 0x80;
             }
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];

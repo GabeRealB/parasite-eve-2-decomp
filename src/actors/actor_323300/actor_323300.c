@@ -85,7 +85,7 @@ typedef struct Actor323300MtxWork {
     /* 0x444 */ s32            field_444; // animation id the slots were seeded with
     /* 0x448 */ byte           pad_448[0x4];
     /* 0x44C */ s32            field_44C;
-    /* 0x450 */ GpCoord        shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
+    /* 0x450 */ GfxCoord       shadow[3];   // unsquashed copies of parts 3..5, re-parented onto 4..6
     /* 0x540 */ VECTOR         partPos[19]; // original part translations, before the squash
     /* 0x670 */ OverlayMat     light;
     /* 0x690 */ OverlayMat     color;
@@ -236,13 +236,7 @@ TmdSource D_actor_323300_8017128C = {
     D_actor_323300_8016D164,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[18];
-    AnimationPackedRotation        words[54];
-} Actor323300PoseBankF490;
-
-Actor323300PoseBankF490 D_actor_323300_801712B0 = { .poses = {
+AnimationPackedPose D_actor_323300_801712B0[18] = {
 #include "assets/actor_323300_animation_0FFC4_bank1.inc"
 };
 
@@ -264,13 +258,7 @@ GpAnimSet D_actor_323300_80171DE4 = {
     { NULL, D_actor_323300_801712B0, NULL, NULL, D_actor_323300_80171388, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor323300PoseBankFFEC;
-
-Actor323300PoseBankFFEC D_actor_323300_80171E0C = { .poses = {
+AnimationPackedPose D_actor_323300_80171E0C[6] = {
 #include "assets/actor_323300_animation_102C8_bank1.inc"
 };
 
@@ -292,13 +280,7 @@ GpAnimSet D_actor_323300_801720E8 = {
     { NULL, D_actor_323300_80171E0C, NULL, NULL, D_actor_323300_80171E54, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} Actor323300PoseBank102F0;
-
-Actor323300PoseBank102F0 D_actor_323300_80172110 = { .poses = {
+AnimationPackedPose D_actor_323300_80172110[5] = {
 #include "assets/actor_323300_animation_10700_bank1.inc"
 };
 
@@ -352,13 +334,7 @@ GpAnimArg D_actor_323300_801725C8 = { { .ptr = NULL }, 2, 1, 10, 0 };
 
 GpAnimArg D_actor_323300_801725DC = { { .ptr = NULL }, 3, 1, 10, 0 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[58];
-    AnimationPackedRotation        words[174];
-} Actor323300PoseBank107D0;
-
-Actor323300PoseBank107D0 D_actor_323300_801725F0 = { .poses = {
+AnimationPackedPose D_actor_323300_801725F0[58] = {
 #include "assets/actor_323300_animation_11FC4_bank1.inc"
 };
 
@@ -380,13 +356,7 @@ GpAnimSet D_actor_323300_80173DE4 = {
     { NULL, D_actor_323300_801725F0, NULL, NULL, D_actor_323300_801728A8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[4];
-    AnimationPackedRotation        words[12];
-} Actor323300PoseBank11FEC;
-
-Actor323300PoseBank11FEC D_actor_323300_80173E0C = { .poses = {
+AnimationPackedPose D_actor_323300_80173E0C[4] = {
 #include "assets/actor_323300_animation_123E0_bank1.inc"
 };
 
@@ -408,13 +378,7 @@ GpAnimSet D_actor_323300_80174200 = {
     { NULL, D_actor_323300_80173E0C, NULL, NULL, D_actor_323300_80173E3C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[16];
-    AnimationPackedRotation        words[48];
-} Actor323300PoseBank12408;
-
-Actor323300PoseBank12408 D_actor_323300_80174228 = { .poses = {
+AnimationPackedPose D_actor_323300_80174228[16] = {
 #include "assets/actor_323300_animation_12C18_bank1.inc"
 };
 
@@ -459,7 +423,7 @@ GpXformArg D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 
 static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2);
 static void func_actor_323300_80162BE4(Task* arg0);
 static void func_actor_323300_80162DF0(Task* arg0);
-static void func_actor_323300_80163188(GpCoord* coord, s16 angle);
+static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
 
 /// Allocates the 0x504 `Actor323300Work` this actor's whole lifetime runs on,
 /// seeds the `GpRec18` collision table and the display node at +0x480, then
@@ -549,7 +513,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShade);
         }
         Gp_ClearRec18Occupied(&work->rec);
-        arg0->extra.tmd->coords[1].flg = 0;
+        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(extra, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -647,8 +611,8 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, GpCmdArg* msg, GpXformArg* 
     GpAnimArg*       preset;
     TmdObject*       extra;
     Task*            spawned;
-    GpCoord*         src;
-    GpCoord*         dst;
+    GfxCoord*        src;
+    GfxCoord*        dst;
     SVECTOR          vec;
     s32              i;
 
@@ -793,13 +757,13 @@ static void func_actor_323300_80162748(Task* arg0)
 /// `func_actor_323300_801628B8` and parks all 18 animation slots at 0x16 --
 /// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
-/// coordinate is rebuilt as the identity matrix rotated by `vec`, with `flg`
+/// coordinate is rebuilt as the identity matrix rotated by `vec`, with `composeStamp`
 /// cleared so the next `Gp_UpdateCoord` recomputes it.
 static void func_actor_323300_801627B4(Task* arg0)
 {
     Actor323300Work* work;
     OverlayMat*      words;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     SVECTOR          vec;
     s16              diff;
     s32              vy;
@@ -834,7 +798,7 @@ static void func_actor_323300_801627B4(Task* arg0)
     words->ident.m20_m21 = 0;
     words->ident.m22     = 0x1000;
     RotMatrix(&vec, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message-0x7D3 handler, also called directly by the spawn handler and the
@@ -881,10 +845,10 @@ s32 func_actor_323300_801628B8(Task* task, s32 arg1, GpAnimArg* msg, s32 arg3)
 /// Message-0x7D4 handler: places the actor at `args`. The translation goes
 /// straight into the root part's local matrix, the Euler angles into the
 /// coordinate's `rot` slot, from which `RotMatrix` rebuilds the rotation;
-/// clearing `flg` makes the world matrix be recomputed.
+/// clearing `composeStamp` makes the world matrix be recomputed.
 s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = (task->extra.tmd)->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -894,7 +858,7 @@ s32 func_actor_323300_801629F0(Task* task, s32 msgId, GpXformArg* args, s32 arg3
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
@@ -975,7 +939,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     Actor323300MtxWork* work;
     TmdObject*          extra;
     TmdSource*          src;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     ToiletMorphTarget*  ctl;
     SVECTOR*            dst;
     SVECTOR*            nrm;
@@ -1056,7 +1020,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
 {
     Actor323300MtxWork* work;
     TmdObject*          extra;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     VECTOR              vec;
     s32                 blend;
     s32                 i;
@@ -1095,7 +1059,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
 
     coord           = &arg0->extra.tmd->coords[4];
     work->shadow[1] = *coord;
-    coord->sub      = &work->shadow[0];
+    coord->parent   = &work->shadow[0];
     vec.vx          = 0x1000;
     vec.vy          = 0x333;
     vec.vz          = 0x1000;
@@ -1104,15 +1068,15 @@ static void func_actor_323300_80162DF0(Task* arg0)
 
     coord           = &arg0->extra.tmd->coords[5];
     work->shadow[2] = *coord;
-    coord->sub      = &work->shadow[1];
+    coord->parent   = &work->shadow[1];
     vec.vx          = 0x1000;
     vec.vy          = 0x1000;
     vec.vz          = 0x1000;
     ScaleMatrix(&coord->coord, &vec);
     coord->coord.t[1] = work->partPos[5].vy - work->partPos[5].vy * 0.8 * blend / 4096.0;
 
-    coord      = &arg0->extra.tmd->coords[6];
-    coord->sub = &work->shadow[2];
+    coord         = &arg0->extra.tmd->coords[6];
+    coord->parent = &work->shadow[2];
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 
     work->field_44C -= 0x40;
@@ -1126,10 +1090,10 @@ static void func_actor_323300_80162DF0(Task* arg0)
 /// rotation in a matrix carved off the scratchpad head, applies both turns,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-static void func_actor_323300_80163188(GpCoord* coord, s16 angle)
+static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
 {
-    MATRIX*  rotation;
-    GpCoord* out;
+    MATRIX*   rotation;
+    GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -1138,26 +1102,26 @@ static void func_actor_323300_80163188(GpCoord* coord, s16 angle)
     RotMatrixX(angle / 2, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->flg = 0;
+    out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
 }
 
 static void func_actor_323300_801634B0(Task* arg0)
 {
-    GpCoord* base;
-    GpCoord* node;
-    GpCoord* sub;
+    GfxCoord* base;
+    GfxCoord* node;
+    GfxCoord* sub;
 
     do {
-        base      = arg0->extra.tmd->coords;
-        sub       = base + 3;
-        node      = base + 4;
-        node->sub = sub;
+        base         = arg0->extra.tmd->coords;
+        sub          = base + 3;
+        node         = base + 4;
+        node->parent = sub;
     } while (0);
-    sub                            = arg0->extra.tmd->coords + 5;
-    sub->sub                       = node;
-    arg0->extra.tmd->coords[6].sub = sub;
+    sub                               = arg0->extra.tmd->coords + 5;
+    sub->parent                       = node;
+    arg0->extra.tmd->coords[6].parent = sub;
     taskKill(arg0);
 }
 
@@ -1171,7 +1135,7 @@ static void func_actor_323300_80163510(Task* arg0)
     Actor323300MtxWork* work;
     OverlayMat*         light;
     OverlayMat*         color;
-    GpCoord*            coords;
+    GfxCoord*           coords;
     TmdObject*          extra;
 
     extra  = arg0->extra.tmd;
@@ -1195,7 +1159,7 @@ static void func_actor_323300_80163510(Task* arg0)
     extra->lightMtx = &light->mat;
     extra->colorMtx = &color->mat;
 
-    coords[1].flg = 0;
+    coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
@@ -1222,19 +1186,19 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
     func_actor_323300_80163188(&arg0->extra.tmd->coords[5], (var * 2) / 3);
     func_actor_323300_80163188(&arg0->extra.tmd->coords[2], var / 2);
 
-    arg0->extra.tmd->coords[5].flg = 0;
-    arg0->extra.tmd->coords[4].flg = 0;
-    arg0->extra.tmd->coords[3].flg = 0;
-    arg0->extra.tmd->coords[2].flg = 0;
+    arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+    arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+    arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+    arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// The 0x6B0 block's placement handler, the same body as
 /// `func_actor_323300_801629F0`: copies `args`' translation into the root
 /// part's local matrix and its Euler angles into the coordinate's `rot` slot,
-/// rebuilds the rotation from them and clears `flg`.
+/// rebuilds the rotation from them and clears `composeStamp`.
 static s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = (task->extra.tmd)->coords;
     coord->coord.t[0]   = args->pos.vx;
@@ -1244,7 +1208,7 @@ static s32 func_actor_323300_8016369C(Task* task, s32 msgId, GpXformArg* args, s
     coord->param.rot.vy = args->rot.vy;
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 

@@ -262,13 +262,7 @@ s16* D_dryfield_night_garage_80181E3C[1] = {
 
 GpGridParams D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} DryfieldNightGaragePoseBank48A4;
-
-DryfieldNightGaragePoseBank48A4 D_dryfield_night_garage_80181E64 = { .poses = {
+AnimationPackedPose D_dryfield_night_garage_80181E64[6] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
 };
 
@@ -290,13 +284,7 @@ GpAnimSet D_dryfield_night_garage_80182140 = {
     { NULL, D_dryfield_night_garage_80181E64, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} DryfieldNightGaragePoseBank4BA8;
-
-DryfieldNightGaragePoseBank4BA8 D_dryfield_night_garage_80182168 = { .poses = {
+AnimationPackedPose D_dryfield_night_garage_80182168[8] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank1.inc"
 };
 
@@ -318,13 +306,7 @@ GpAnimSet D_dryfield_night_garage_80182514 = {
     { NULL, D_dryfield_night_garage_80182168, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightGaragePoseBank4F7C;
-
-DryfieldNightGaragePoseBank4F7C D_dryfield_night_garage_8018253C = { .poses = {
+AnimationPackedPose D_dryfield_night_garage_8018253C[7] = {
 #include "assets/dryfield_night_garage_animation_05344_bank1.inc"
 };
 
@@ -346,13 +328,7 @@ GpAnimSet D_dryfield_night_garage_80182904 = {
     { NULL, D_dryfield_night_garage_8018253C, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} DryfieldNightGaragePoseBank536C;
-
-DryfieldNightGaragePoseBank536C D_dryfield_night_garage_8018292C = { .poses = {
+AnimationPackedPose D_dryfield_night_garage_8018292C[7] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank1.inc"
 };
 

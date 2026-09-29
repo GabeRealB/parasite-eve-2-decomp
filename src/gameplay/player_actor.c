@@ -111,7 +111,7 @@ STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
 /// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
-/// copy of `GpCoord.coord` around that rotate. `vec` is the matrix
+/// copy of `GfxCoord.coord` around that rotate. `vec` is the matrix
 /// column from `Gfx_MatrixCol2` / `VectorNormalSS`, later the Manhattan
 /// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
 typedef struct _GpMoveScratch {
@@ -143,11 +143,11 @@ STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 /// target heading, then the shortest turn toward it, then that turn clamped
 /// to the weapon's turn rate.
 typedef struct _GpYawScratch {
-    GpCoord coord;
-    VECTOR3 delta;
-    s32     pad_5C;
-    SVECTOR rot;
-    s32     angle;
+    GfxCoord coord;
+    VECTOR3  delta;
+    s32      pad_5C;
+    SVECTOR  rot;
+    s32      angle;
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
@@ -165,7 +165,7 @@ STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimPitchToLock`,
 /// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. `coord` is a
-/// temp `GpCoord`. `delta` is lock position minus that coord's
+/// temp `GfxCoord`. `delta` is lock position minus that coord's
 /// translation; `lock` is `Gp_GetLockPos` output; `rot` is the
 /// `SVECTOR` passed to `Gp_PlaceCoordOffset` (zeros then table row in
 /// `Gp_AimPitchToLockAlt`, table row in `Gp_AimPitchRec`, zeros in
@@ -175,15 +175,15 @@ STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 /// `delta`. `Gp_AimPitchToLock` also derives `field_5C` / `field_64` from
 /// the updated `field_58` / `field_60` (`/ 5` scaled by 3 then 2).
 typedef struct _GpPitchScratch {
-    /* 0x00 */ GpCoord coord;
-    /* 0x50 */ VECTOR3 delta;
-    /* 0x5C */ s32     pad_5C;
-    /* 0x60 */ VECTOR3 lock;
-    /* 0x6C */ s32     pad_6C;
-    /* 0x70 */ SVECTOR rot;
-    /* 0x78 */ s32     angle;
-    /* 0x7C */ s32     dist;
-    /* 0x80 */ s32     pad_80;
+    /* 0x00 */ GfxCoord coord;
+    /* 0x50 */ VECTOR3  delta;
+    /* 0x5C */ s32      pad_5C;
+    /* 0x60 */ VECTOR3  lock;
+    /* 0x6C */ s32      pad_6C;
+    /* 0x70 */ SVECTOR  rot;
+    /* 0x78 */ s32      angle;
+    /* 0x7C */ s32      dist;
+    /* 0x80 */ s32      pad_80;
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
@@ -217,7 +217,7 @@ extern s32 D_80112A50[];
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
 
-/// `GpCoord` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
+/// `GfxCoord` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
 /// it onto `TmdObject.coords` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
@@ -240,7 +240,7 @@ extern s16 D_80112E10[];
 /// adds `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`).
 extern u16 D_80112E20[];
 
-/// 2-wide rows of `GpCoord` indices. `func_8010403C` indexes
+/// 2-wide rows of `GfxCoord` indices. `func_8010403C` indexes
 /// `D_80112E2C[Mc_SaveData[0].state.characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
@@ -283,7 +283,7 @@ typedef struct {
         s32 (*call3)(Task*, s32, GpFacingArg*);
         s32 (*call4)(Task*);
         s32 (*call5)(Task*, s32, s32);
-        s32 (*coord)(Task*, s32, GpCoord*);
+        s32 (*coord)(Task*, s32, GfxCoord*);
         s32 (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
         s32 (*call7)(Task*, s32, GpAnimArg*);
         s32 (*call8)(Task*, s32, GpCountArg*);
@@ -334,15 +334,15 @@ s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 static void Gp_DrawEffSprite81(Task* arg0);
 
-static void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
+static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3);
 
 static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
 
-static void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
+static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
 
 static void Gp_EffTask07State1(Task* arg0);
 
-static void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 static void Gp_EffTask07State0(Task* arg0);
 
@@ -352,13 +352,13 @@ static void func_800FCD00(Task* arg0);
 /// the CLUT (palette column) and the low 12 bits are the billboard size, so it
 /// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
 /// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-static void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
+static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
 
 /// Puts `obj`, one of the player's bodies, on the object list: a sphere of
 /// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
 /// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GpCoord* coord, GpRec18* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, GpRec18* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags);
 
 static void Gp_InitPlayerWork(Task* arg0);
@@ -390,7 +390,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to);
 static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh);
 
 /// Places `block->coord` at the offset and rotation `rot` from `src`.
-static inline void _gpAimPitchPlace(GpPitchScratch* block, GpCoord* src, GpAimRot* rot);
+static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, GpAimRot* rot);
 
 /// Stores the lock target's position relative to `block->coord` in
 /// `block->delta` and returns the length of that offset in the ground plane.
@@ -416,9 +416,9 @@ static s32 Gp_HpBand(void);
 
 static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1);
 
-static void func_80103CB4(GpCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3);
+static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3);
 
-static GpCoord* func_8010403C(s32 arg0);
+static GfxCoord* func_8010403C(s32 arg0);
 
 static void func_801041FC(Task* arg0, s32 arg1);
 
@@ -1296,7 +1296,7 @@ void Gp_EffSprTask46(Task* arg0)
 {
     GpEffWork* mem;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        param;
 
@@ -1317,10 +1317,10 @@ void Gp_EffSprTask46(Task* arg0)
         case 0:
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg = 0;
-            mem->angle = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
-            param      = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->step  = param & 0xF;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            mem->angle          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xFFF;
+            param               = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            mem->step           = param & 0xF;
             if (arg0->spawnArg1.value & 0x20000000) {
                 mem->period = 0x80;
                 mem->scale  = mem->angle;
@@ -1367,7 +1367,7 @@ static void Gp_DrawEffSprite81(Task* arg0)
 {
     GpRingScratch* block;
     TmdObject*     extra;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     GpEffWork*     mem;
     POLY_FT4*      prim;
 
@@ -1413,7 +1413,7 @@ static void Gp_DrawEffSprite81(Task* arg0)
     SCRATCH_POP(GpRingScratch);
 }
 
-static void Gp_DrawEffSprite46(GpCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
+static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
     GpQuadScratch* block;
     s32            i;
@@ -1480,8 +1480,8 @@ void Gp_EffSprTask81(Task* arg0)
 {
     GpEffWork* mem;
     TmdObject* extra;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     MATRIX*    world;
     s16        flag;
@@ -1503,7 +1503,7 @@ void Gp_EffSprTask81(Task* arg0)
     gte_SetTransMatrix(&parent->workm);
     world = &gGfxViewCoord.workm;
     Gp_WorldToLocal(world, &coord->workm, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     switch (arg0->spawnArg1.value) {
@@ -1582,7 +1582,7 @@ void Gp_EffSprTask81(Task* arg0)
 void Gp_EffSprTask55(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s16              flag;
@@ -1690,11 +1690,11 @@ void Gp_EffSprTask55(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        coord->flg         = 0;
-        mem->move.vy      += 6;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        coord->coord.t[2]  += mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->move.vy       += 6;
         mem->age++;
         if (mem->age > mem->period * 8 - 1) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1705,7 +1705,7 @@ void Gp_EffSprTask55(Task* arg0)
 void Gp_EffSprTask42(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
     s16              flag;
@@ -1810,11 +1810,11 @@ void Gp_EffSprTask42(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        coord->flg         = 0;
-        mem->move.vy      += 6;
+        coord->coord.t[0]  += mem->move.vx;
+        coord->coord.t[1]  += mem->move.vy;
+        coord->coord.t[2]  += mem->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->move.vy       += 6;
         mem->age++;
         if (mem->age > mem->period * 8 - 1) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1825,7 +1825,7 @@ void Gp_EffSprTask42(Task* arg0)
 void func_800F91AC(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s16         width;
@@ -1837,22 +1837,22 @@ void func_800F91AC(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
         if (arg0->state == 0) {
-            coord->sub        = mem->parent;
-            rot               = (GpMtxWords*)&coord->coord;
-            rot->m00_m01      = 0x1000;
-            rot->m02_m10      = 0;
-            rot->m11_m12      = 0x1000;
-            rot->m20_m21      = 0;
-            rot->m22          = 0x1000;
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->flg        = 0;
-            arg0->state       = 1;
-            mem->scale        = arg0->spawnArg1.value;
-            mem->angle        = arg0->spawnArg1.value >> 16;
-            mem->period       = mem->angle * 3;
-            mem->step         = mem->scale / 768 + 1;
+            coord->parent       = mem->parent;
+            rot                 = (GpMtxWords*)&coord->coord;
+            rot->m00_m01        = 0x1000;
+            rot->m02_m10        = 0;
+            rot->m11_m12        = 0x1000;
+            rot->m20_m21        = 0;
+            rot->m22            = 0x1000;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            mem->scale          = arg0->spawnArg1.value;
+            mem->angle          = arg0->spawnArg1.value >> 16;
+            mem->period         = mem->angle * 3;
+            mem->step           = mem->scale / 768 + 1;
         }
         Gp_UpdateCoord(coord);
         if (Gp_State1C->eventState != 0) {
@@ -1883,7 +1883,7 @@ spawn:
 void Gp_EffCtlTask9B(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     GpEffWork* spawned;
     s32        temp;
@@ -1893,16 +1893,16 @@ void Gp_EffCtlTask9B(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (flag < 4) {
         if (arg0->state == 0) {
-            coord->sub        = mem->parent;
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->flg        = 0;
-            arg0->state       = 1;
-            mem->scale        = ((u16)arg0->spawnArg1.value * 3u) >> 4;
-            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->angle        = temp;
-            mem->period       = temp << 2;
+            coord->parent       = mem->parent;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
+            temp                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            mem->angle          = temp;
+            mem->period         = temp << 2;
             if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 mem->pos.vx = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
@@ -1937,7 +1937,7 @@ spawn:
 void Gp_EffSprTask30(Task* arg0)
 {
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         sub;
@@ -1991,7 +1991,7 @@ void Gp_EffSprTask30(Task* arg0)
                 gte_stsv(&mem->move);
             }
             VectorNormalSS(&mem->move, &mem->move);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             sub                   = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             arg0->state           = 1;
@@ -2010,10 +2010,10 @@ void Gp_EffSprTask30(Task* arg0)
             gte_ldsv(&mem->move);
             gte_gpf12();
             gte_stsv(&vec);
-            coord->coord.t[0] += vec.vx;
-            coord->coord.t[1] += vec.vy;
-            coord->coord.t[2] += vec.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += vec.vx;
+            coord->coord.t[1]  += vec.vy;
+            coord->coord.t[2]  += vec.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&vec);
             gte_rtv0();
@@ -2039,10 +2039,10 @@ void Gp_EffSprTask30(Task* arg0)
                 gte_ldsv(&mem->move);
                 gte_gpf12();
                 gte_stsv(&vec);
-                coord->coord.t[0] += vec.vx;
-                coord->coord.t[1] += vec.vy;
-                coord->coord.t[2] += vec.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += vec.vx;
+                coord->coord.t[1]  += vec.vy;
+                coord->coord.t[2]  += vec.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                 if ((((u32)Gp_LcgState >> 16) & 1) != 0) {
@@ -2159,7 +2159,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     GpFxQuadScratch* block;
     GpEffWork*       mem;
     TmdObject*       extra;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     POLY_FT4*        prim;
     u16              abr;
     s32              uv;
@@ -2231,7 +2231,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     SCRATCH_POP(GpFxQuadScratch);
 }
 
-static void Gp_DrawEffQuadT29(GpCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
+static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
     GpQuadScratch* block;
     s32            i;
@@ -2338,7 +2338,7 @@ static void Gp_EffTask07State1(Task* arg0)
 void func_800FAA14(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        pan;
 
     mem   = arg0->spawnArg2.pointer;
@@ -2381,8 +2381,8 @@ void func_800FAA14(Task* arg0)
 void Gp_EffCtlTask32(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     s16        angle;
     s16        temp;
@@ -2416,7 +2416,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 (gameGetPtrSlot(3))->extra.tmd->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
-            coord->sub           = parent;
+            coord->parent        = parent;
             m                    = &coord->coord;
             MATRIX_PAIR(m, 0, 2) = 0;
             MATRIX_PAIR(m, 1, 1) = one;
@@ -2427,8 +2427,8 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[1] =
                 mem->move.vy +
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2] = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->flg        = 0;
+            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             if (Gp_State1C->fadeState >= 4) {
@@ -2445,8 +2445,8 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[1] =
                 mem->move.vy +
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2] = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->flg        = 0;
+            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             if ((Gp_State1C->fadeState >= 4) || (Gp_StateC08.field_3 == 2)) {
                 newState = 3;
@@ -2465,8 +2465,8 @@ void Gp_EffCtlTask32(Task* arg0)
             coord->coord.t[1] =
                 mem->move.vy +
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
-            coord->coord.t[2] = (rsin(angle) * mem->move.vx) >> 0xC;
-            coord->flg        = 0;
+            coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             if (Gp_State1C->fadeState >= 4) {
                 newState = 4;
@@ -2482,8 +2482,8 @@ void Gp_EffCtlTask32(Task* arg0)
             }
             break;
         case 3:
-            coord->flg         = 0;
-            coord->coord.t[1] += 0x40;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[1]  += 0x40;
             Gp_UpdateCoord(coord);
             if (mem->period < 0xB) {
                 newState = 4;
@@ -2508,8 +2508,8 @@ draw:
 void Gp_EffCtlTaskAE(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     s32        state;
     s32        one;
@@ -2526,7 +2526,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 (gameGetPtrSlot(3))->extra.tmd->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
-            coord->sub           = parent + 12;
+            coord->parent        = parent + 12;
             m                    = &coord->coord;
             MATRIX_PAIR(m, 0, 2) = 0;
             MATRIX_PAIR(m, 1, 1) = one;
@@ -2535,7 +2535,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             coord->coord.t[0]    = 0;
             coord->coord.t[1]    = 0;
             coord->coord.t[2]    = 0;
-            coord->flg           = 0;
+            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             mem->scale  = 0;
@@ -2648,7 +2648,7 @@ kill:
 void Gp_EffCtlTaskC1(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        idx;
     u8         rgb[3];
@@ -2667,12 +2667,12 @@ void Gp_EffCtlTaskC1(Task* arg0)
 
     if (arg0->state == 0) {
         Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, 0);
-        coord->flg  = 0;
-        mem->scale  = 0x80;
-        mem->angle  = 0x100;
-        idx         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-        mem->period = D_80112C6C[idx & 3];
-        arg0->state = 1;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->scale          = 0x80;
+        mem->angle          = 0x100;
+        idx                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+        mem->period         = D_80112C6C[idx & 3];
+        arg0->state         = 1;
     }
 
     Gp_UpdateCoord(coord);
@@ -2695,8 +2695,8 @@ void Gp_EffCtlTaskC1(Task* arg0)
 void Gp_EffCtlTaskF3(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     Task*      slot;
     u8         rgb[3];
 
@@ -2718,8 +2718,8 @@ void Gp_EffCtlTaskF3(Task* arg0)
         coord->coord.t[0]      = 0;
         coord->coord.t[1]      = 0;
         coord->coord.t[2]      = 0;
-        coord->flg             = 0;
-        coord->sub             = parent + 8;
+        coord->composeStamp    = GRAPHICS_COORD_DIRTY;
+        coord->parent          = parent + 8;
         arg0->state            = 1;
         mem->index             = (Gp_StateC08.field_0 % 10U) - 1;
         mem->angle             = 0x20;
@@ -2755,7 +2755,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
                 mem->step | 0x8000, 0);
 }
 
-static void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G3*       prim;
@@ -2811,7 +2811,7 @@ static void Gp_DrawEffTri(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 void Gp_EffCtlTaskF4(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     Task*      slot;
     s16        flag;
     s32        y;
@@ -2844,9 +2844,9 @@ void Gp_EffCtlTaskF4(Task* arg0)
         mem->period  = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0 & 0xF000;
     }
 
-    y                 = coord->coord.t[1] + mem->move.vy;
-    coord->flg        = 0;
-    coord->coord.t[1] = y;
+    y                   = coord->coord.t[1] + mem->move.vy;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = y;
     Gp_UpdateCoord(coord);
     if ((mem->age & 3) == 0) {
         mem->index++;
@@ -2871,8 +2871,8 @@ kill:
 void Gp_EffCtlTaskAC(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     GpEffWork* spawned;
     Task*      slot;
     u8         rgb[3];
@@ -2898,8 +2898,8 @@ void Gp_EffCtlTaskAC(Task* arg0)
         coord->coord.t[0]      = 0;
         coord->coord.t[1]      = 0;
         coord->coord.t[2]      = 0;
-        coord->flg             = 0;
-        coord->sub             = parent + 1;
+        coord->composeStamp    = GRAPHICS_COORD_DIRTY;
+        coord->parent          = parent + 1;
         arg0->state            = 1;
         mem->index             = (Gp_StateC08.field_0 % 10U) - 1;
         mem->angle             = 0x20;
@@ -2978,8 +2978,8 @@ continue_fx:
 void Gp_EffCtlTask0E(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     Task*      slot;
     s16        flag;
@@ -3003,7 +3003,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         parent                 = slot->extra.tmd->coords;
         one                    = ONE;
         *(s32*)&coord->coord   = one;
-        coord->sub             = parent + 8;
+        coord->parent          = parent + 8;
         m                      = &coord->coord;
         MATRIX_PAIR(m, 0, 2)   = 0;
         MATRIX_PAIR(m, 1, 1)   = one;
@@ -3012,7 +3012,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         coord->coord.t[0]      = 0;
         coord->coord.t[1]      = 0;
         coord->coord.t[2]      = 0;
-        coord->flg             = 0;
+        coord->composeStamp    = GRAPHICS_COORD_DIRTY;
         arg0->state            = 1;
     }
 
@@ -3056,7 +3056,7 @@ void Gp_EffCtlTask07(Task* arg0)
 void Gp_EffCtlTaskA5(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        i;
     s32        temp;
@@ -3121,7 +3121,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
 void Gp_EffCtlTaskA6(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   in;
     SVECTOR*   out;
     s16        flag;
@@ -3142,7 +3142,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 mem->period = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
                 mem->step   = arg0->spawnArg1.value * 24 + 0xC0;
                 Gfx_RotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
-                coord->flg = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
                 mem->move.vz =
@@ -3162,10 +3162,10 @@ void Gp_EffCtlTaskA6(Task* arg0)
                         gte_ldv0(in);
                         gte_rtv0();
                         gte_stsv(out);
-                        coord->coord.t[0] += mem->pos.vx;
-                        coord->coord.t[1] += mem->pos.vy;
-                        coord->coord.t[2] += mem->pos.vz;
-                        coord->flg         = 0;
+                        coord->coord.t[0]  += mem->pos.vx;
+                        coord->coord.t[1]  += mem->pos.vy;
+                        coord->coord.t[2]  += mem->pos.vz;
+                        coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     }
                     if (mem->age >= 0x81) {
                         arg0->state = 2;
@@ -3201,7 +3201,7 @@ do_fcd00:
 static void func_800FCD00(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     GpEffRingScratch* block;
     POLY_F4*          prim;
     u16               y;
@@ -3353,8 +3353,8 @@ static void func_800FCD00(Task* arg0)
 void Gp_EffSprTaskA7(Task* arg0)
 {
     GpEffWork*         mem;
-    GpCoord*           coord;
-    GpCoord*           parent;
+    GfxCoord*          coord;
+    GfxCoord*          parent;
     MATRIX*            m;
     GpEffFlareScratch* block;
     POLY_FT4*          prim;
@@ -3382,7 +3382,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         mem->move.vy         = -(mem->scale & 7);
         one                  = ONE;
         *(s32*)&coord->coord = one;
-        coord->sub           = parent;
+        coord->parent        = parent;
         m                    = &coord->coord;
         MATRIX_PAIR(m, 0, 2) = 0;
         MATRIX_PAIR(m, 1, 1) = one;
@@ -3391,7 +3391,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         coord->coord.t[2]    = 0;
         coord->coord.t[1]    = 0;
         coord->coord.t[0]    = 0;
-        coord->flg           = 0;
+        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
         Gp_LcgState          = rng;
         arg0->state++;
     }
@@ -3445,17 +3445,17 @@ void Gp_EffSprTaskA7(Task* arg0)
     if (Gp_State1C->eventState != 0) {
         return;
     }
-    step               = mem->move.vy - (mem->age & 1);
-    mem->move.vy       = step;
-    coord->flg         = 0;
-    coord->coord.t[1] += step;
+    step                = mem->move.vy - (mem->age & 1);
+    mem->move.vy        = step;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]  += step;
     mem->age++;
     if (mem->age > n * 8 - 1) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }
 
-void func_800FDB18(s32 arg0, GpCoord* arg1, SVECTOR* arg2, GpEffArg* arg3)
+void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, GpEffArg* arg3)
 {
     GameActor* actor;
     s32        i;
@@ -3572,8 +3572,8 @@ static const TaskFuncTable4 Gp_PlayerWorkStates = { {
 void Gp_EffCtlTask7F(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     s16        flag;
     s16        step;
@@ -3598,7 +3598,7 @@ void Gp_EffCtlTask7F(Task* arg0)
         parent               = mem->parent;
         one                  = ONE;
         *(s32*)&coord->coord = one;
-        coord->sub           = parent;
+        coord->parent        = parent;
         m                    = &coord->coord;
         MATRIX_PAIR(m, 0, 2) = 0;
         MATRIX_PAIR(m, 1, 1) = one;
@@ -3607,7 +3607,7 @@ void Gp_EffCtlTask7F(Task* arg0)
         coord->coord.t[0]    = mem->pos.vx;
         coord->coord.t[1]    = mem->pos.vy;
         coord->coord.t[2]    = mem->pos.vz;
-        coord->flg           = 0;
+        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
         arg0->state          = 1;
         mem->scale           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
         temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
@@ -3669,7 +3669,7 @@ void Gp_EffCtlTask7F(Task* arg0)
 void Gp_EffCtlTaskE3(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s32        temp;
 
@@ -3683,16 +3683,16 @@ void Gp_EffCtlTaskE3(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
     } else {
         if (arg0->state == 0) {
-            coord->sub        = mem->parent;
-            coord->coord.t[0] = mem->pos.vx;
-            coord->coord.t[1] = mem->pos.vy;
-            coord->coord.t[2] = mem->pos.vz;
-            coord->flg        = 0;
-            arg0->state       = 1;
-            mem->scale        = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            mem->angle        = temp;
-            mem->period       = temp << 2;
+            coord->parent       = mem->parent;
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            mem->scale          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
+            temp                = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            mem->angle          = temp;
+            mem->period         = temp << 2;
         }
         Gp_UpdateCoord(coord);
         if (Gp_State1C->eventState != 0) {
@@ -3710,7 +3710,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
 void Gp_EffSprTask80(Task* arg0)
 {
     GpRingScratch* block;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     GpEffWork*     mem;
     POLY_FT4*      prim;
     s16            x;
@@ -3816,8 +3816,8 @@ void Gp_EffSprTask80(Task* arg0)
             return;
         }
         if (mem->step != 0) {
-            coord->coord.t[1] -= mem->step;
-            coord->flg         = 0;
+            coord->coord.t[1]  -= mem->step;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         mem->age++;
         if (mem->angle >= mem->age) {
@@ -3830,7 +3830,7 @@ void Gp_EffSprTask80(Task* arg0)
 void Gp_EffSprTask8D(Task* arg0)
 {
     GpRingScratch* block;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     GpEffWork*     mem;
     POLY_FT4*      prim;
     s16            x;
@@ -3923,8 +3923,8 @@ void Gp_EffSprTask8D(Task* arg0)
         if (Gp_State1C->eventState != 0) {
             return;
         }
-        coord->coord.t[1] -= mem->step;
-        coord->flg         = 0;
+        coord->coord.t[1]  -= mem->step;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         mem->age++;
         if (mem->angle >= mem->age) {
             return;
@@ -3936,7 +3936,7 @@ void Gp_EffSprTask8D(Task* arg0)
 void Gp_EffSprTask3F(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpMtxWords*      rot;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -3967,17 +3967,17 @@ void Gp_EffSprTask3F(Task* arg0)
                 sub         = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index  = sub & 1;
                 if (mem->index != 0) {
-                    rot               = (GpMtxWords*)&coord->coord;
-                    coord->sub        = mem->parent;
-                    rot->m00_m01      = 0x1000;
-                    rot->m02_m10      = 0;
-                    rot->m11_m12      = 0x1000;
-                    rot->m20_m21      = 0;
-                    rot->m22          = 0x1000;
-                    coord->coord.t[2] = 0;
-                    coord->coord.t[1] = 0;
-                    coord->coord.t[0] = 0;
-                    coord->flg        = 0;
+                    rot                 = (GpMtxWords*)&coord->coord;
+                    coord->parent       = mem->parent;
+                    rot->m00_m01        = 0x1000;
+                    rot->m02_m10        = 0;
+                    rot->m11_m12        = 0x1000;
+                    rot->m20_m21        = 0;
+                    rot->m22            = 0x1000;
+                    coord->coord.t[2]   = 0;
+                    coord->coord.t[1]   = 0;
+                    coord->coord.t[0]   = 0;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(coord);
                     Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
                     mem->move.vy = -(((u32)Gp_LcgState >> 16) & 3);
@@ -4023,14 +4023,14 @@ void Gp_EffSprTask3F(Task* arg0)
             return;
         }
         if (mem->index != 0) {
-            coord->coord.t[1] += mem->move.vy;
-            coord->flg         = 0;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         } else {
-            coord->coord.t[0] += mem->move.vx;
-            coord->coord.t[1] += mem->move.vy;
-            coord->coord.t[2] += mem->move.vz;
-            coord->coord.t[1] -= (s16)(mem->scale / 736);
-            coord->flg         = 0;
+            coord->coord.t[0]  += mem->move.vx;
+            coord->coord.t[1]  += mem->move.vy;
+            coord->coord.t[2]  += mem->move.vz;
+            coord->coord.t[1]  -= (s16)(mem->scale / 736);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         mem->age++;
         if (mem->age <= (mem->period * 8) - 1) {
@@ -4043,7 +4043,7 @@ void Gp_EffSprTask3F(Task* arg0)
 void func_800FF710(Task* arg0)
 {
     GpEffWork*   mem;
-    GpCoord*     coord;
+    GfxCoord*    coord;
     MATRIX*      m;
     s16          flag;
     register s32 old asm("v1");
@@ -4073,7 +4073,7 @@ void func_800FF710(Task* arg0)
             /* Keep the LCG upper half ahead of the coordinate stores. */
             TOUCH_REG(k);
             m                    = &coord->coord;
-            coord->sub           = mem->parent;
+            coord->parent        = mem->parent;
             *(s32*)&coord->coord = one;
             MATRIX_PAIR(m, 1, 1) = one;
             m->m[2][2]           = one;
@@ -4084,7 +4084,7 @@ void func_800FF710(Task* arg0)
             coord->coord.t[0]    = mem->pos.vx;
             coord->coord.t[1]    = mem->pos.vy;
             coord->coord.t[2]    = mem->pos.vz;
-            coord->flg           = 0;
+            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
             arg0->state          = 1;
             lcg                  = old * 5 + k;
             mem->index           = ((u32)lcg >> 16) & 0xFFF;
@@ -4135,7 +4135,7 @@ void func_800FF710(Task* arg0)
 void Gp_EffSprTaskE0(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -4236,7 +4236,7 @@ void Gp_EffSprTaskE0(Task* arg0)
 void Gp_EffSprTaskE1(Task* arg0)
 {
     GpEffWork*       mem;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
@@ -4337,8 +4337,8 @@ void Gp_EffSprTaskE1(Task* arg0)
 void Gp_EffSprTaskE2(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   parent;
+    GfxCoord*  coord;
+    GfxCoord*  parent;
     MATRIX*    m;
     s16        flag;
     s32        one;
@@ -4353,7 +4353,7 @@ void Gp_EffSprTaskE2(Task* arg0)
                 parent               = mem->parent;
                 one                  = ONE;
                 *(s32*)&coord->coord = one;
-                coord->sub           = parent;
+                coord->parent        = parent;
                 m                    = &coord->coord;
                 MATRIX_PAIR(m, 0, 2) = 0;
                 MATRIX_PAIR(m, 1, 1) = one;
@@ -4362,7 +4362,7 @@ void Gp_EffSprTaskE2(Task* arg0)
                 coord->coord.t[0]    = mem->pos.vx;
                 coord->coord.t[1]    = mem->pos.vy;
                 coord->coord.t[2]    = mem->pos.vz;
-                coord->flg           = 0;
+                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
             }
             temp        = (u16)arg0->spawnArg1.value & 0xFFF;
             mem->step   = 0;
@@ -4394,7 +4394,7 @@ void Gp_EffSprTaskE2(Task* arg0)
 /// the CLUT (palette column) and the low 12 bits are the billboard size, so it
 /// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
 /// truncation). It is unsigned because the size is divided by `otz` with `divu`.
-static void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
+static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -4457,7 +4457,7 @@ static void Gp_DrawEffSpriteE2(GpCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 /// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
 /// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
 /// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GpCoord* coord, GpRec18* recs, s16 x, s16 y,
+static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, GpRec18* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags)
 {
     obj->ctx.dir               = &actor->field_88[i];
@@ -4476,7 +4476,7 @@ static void Gp_InitPlayerWork(Task* arg0)
 {
     GameActor* actor;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpObj*     obj;
     GpRec18*   recs;
     s32        kind;
@@ -4493,8 +4493,8 @@ static void Gp_InitPlayerWork(Task* arg0)
     actor->field_938       = 0x13;
     Gp_ActorSlots[0]       = arg0;
     Player_Status.coordMtx = &coord->coord;
-    coord->sub             = &gGfxViewCoord;
-    coord->flg             = 0;
+    coord->parent          = &gGfxViewCoord;
+    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
     extra->flags           = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     Gp_BindActorAnim(arg0);
@@ -4544,7 +4544,7 @@ static void Gp_InitPlayerWork(Task* arg0)
 static void Gp_PlayerWorkState1(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpObj*     objs[2];
     s32        dy;
     s32        i;
@@ -4580,8 +4580,8 @@ static void Gp_PlayerWorkState1(Task* arg0)
             objs[i]->flags   &= ~0x4000;
         }
     }
-    actor->field_983 = 0;
-    coord->flg       = 0;
+    actor->field_983    = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 }
 
@@ -4646,7 +4646,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         }                                           \
     } while (0)
 
-s32 func_801011D0(GpCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
+s32 func_801011D0(GfxCoord* arg0, GpRec18* arg1, s32 arg2, s32* arg3)
 {
     GpDeltaScratch* s;
     s32             ret;
@@ -4749,13 +4749,6 @@ void Gp_PlayerWorkTask(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-/// Recomputes `coord` from its local transform, clearing its flags first.
-#define GP_REFRESH_COORD(coord) \
-    do {                        \
-        (coord)->flg = 0;       \
-        Gp_UpdateCoord(coord);  \
-    } while (0)
-
 /// Latches this frame's pad state into the actor of `arg0`: keeps the previous
 /// values of the per-frame bytes and of the held buttons, reads the session's
 /// pad, and derives the newly pressed and released buttons from the two.
@@ -4778,12 +4771,12 @@ static inline void _gpCaptureActorPad(Task* arg0)
 
 void Gp_UpdatePlayerMove(void)
 {
-    Task*      work;
-    GameActor* actor;
-    GpCoord*   coord;
-    SVECTOR*   vec;
-    Task*      task;
-    MATRIX*    mat;
+    Task*              work;
+    GameActor*         actor;
+    register GfxCoord* coord asm("s1");
+    SVECTOR*           vec;
+    Task*              task;
+    MATRIX*            mat;
 
     work  = gameGetPtrSlot(3);
     actor = work->work;
@@ -4808,7 +4801,8 @@ void Gp_UpdatePlayerMove(void)
     if (actor->field_984 & 1) {
         coord->coord.t[1] += 0x80;
     }
-    GP_REFRESH_COORD(coord);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(coord);
     if (actor->field_986 != 0) {
         vec->vx = actor->field_30.vx;
         vec->vy = actor->field_30.vy;
@@ -4922,7 +4916,7 @@ void Gp_TickActorAnimState(Task* arg0)
 void Gp_StepPlayerMove(Task* arg0)
 {
     GameActor*     actor;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     GpMoveScratch* s;
 
     s     = SCRATCH_PUSH(GpMoveScratch);
@@ -5007,16 +5001,16 @@ void Gp_StepPlayerMove(Task* arg0)
 /// again, and returns that node's local matrix for the caller to rebuild.
 static inline MATRIX* _gpRebuildCoordMatrix(Task* task, s32 i)
 {
-    GpCoord* coord = &task->extra.tmd->coords[i];
+    GfxCoord* coord = &task->extra.tmd->coords[i];
 
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return &coord->coord;
 }
 
 void Gp_TurnPlayer(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
     s32        moving;
     s16        step;
@@ -5085,7 +5079,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
 static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh)
 {
     GpAimRot* rec;
-    GpCoord*  src;
+    GfxCoord* src;
     VECTOR3*  lock;
     s32       dx;
     s32       dz;
@@ -5139,7 +5133,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
 }
 
 /// Places `block->coord` at the offset and rotation `rot` from `src`.
-static inline void _gpAimPitchPlace(GpPitchScratch* block, GpCoord* src, GpAimRot* rot)
+static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, GpAimRot* rot)
 {
     block->rot.vx = rot->vx;
     block->rot.vy = rot->vy;
@@ -5176,7 +5170,7 @@ void Gp_AimPitchToLock(Task* arg0)
     u8*             head;
     GameActor*      actor;
     GpPitchScratch* block;
-    GpCoord*        src;
+    GfxCoord*       src;
 
     head             = SCRATCH_HEAD(u8);
     actor            = arg0->work;
@@ -5224,7 +5218,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
     u8*             head;
     GameActor*      actor;
     GpPitchScratch* block;
-    GpCoord*        src;
+    GfxCoord*       src;
 
     head             = SCRATCH_HEAD(u8);
     actor            = arg0->work;
@@ -5302,7 +5296,7 @@ static void Gp_AimPitchDirect(Task* arg0)
     u8*             head;
     GameActor*      actor;
     GpPitchScratch* block;
-    GpCoord*        src;
+    GfxCoord*       src;
 
     head             = SCRATCH_HEAD(u8);
     actor            = arg0->work;
@@ -5384,9 +5378,9 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     Task*      task;
     GameActor* actor;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdObject* obj;
-    GpCoord*   saved;
+    GfxCoord*  saved;
     u8*        table;
     s32        type;
 
@@ -5401,8 +5395,8 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     task->parent            = arg0;
     coord                   = task->extra.tmd->coords;
-    coord->sub              = saved;
-    coord->param.clearFlags = 0;
+    coord->parent           = saved;
+    coord->param.clearFlags = false;
     obj                     = task->extra.tmd;
     if (actor->field_910 != NULL) {
         obj->tpage = 4;
@@ -5434,10 +5428,10 @@ static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
 
 inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
 {
-    GpCoord*   saved;
+    GfxCoord*  saved;
     Task*      task;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        type;
 
     saved = parent->extra.tmd->coords;
@@ -5452,8 +5446,8 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
     extra                   = task->extra.tmd;
     task->parent            = parent;
     coord                   = extra->coords;
-    coord->sub              = saved;
-    coord->param.clearFlags = 1;
+    coord->parent           = saved;
+    coord->param.clearFlags = true;
     return task;
 }
 
@@ -5468,7 +5462,7 @@ Task* Gp_SpawnWeaponEff(void)
     s32           id;
     s32           arg2;
     TmdObject*    extra;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     GpEffWork*    eff;
     GameActor*    inner;
     TmdObject*    anim;
@@ -5552,7 +5546,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
 {
     Task*      task;
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     task = Task_Spawn(7, Player_Status.field_26 + 3, arg2, arg3);
     if (task != NULL) {
@@ -5716,7 +5710,7 @@ void Gp_DetachLinkNode(Task* arg0)
 static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
 {
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        delta;
 
     actor = arg0->work;
@@ -5740,14 +5734,14 @@ static s32 Gp_ApplyDirArg(Task* arg0, GpMoveArg* arg1)
     return actor->field_973;
 }
 
-void func_80103C74(GpCoord* arg0, VECTOR3* arg1, VECTOR3* arg2)
+void func_80103C74(GfxCoord* arg0, VECTOR3* arg1, VECTOR3* arg2)
 {
     arg2->vx = arg1->vx - arg0->coord.t[0];
     arg2->vy = arg1->vy - arg0->coord.t[1];
     arg2->vz = arg1->vz - arg0->coord.t[2];
 }
 
-static void func_80103CB4(GpCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
+static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
 {
     u8*     head;
     VECTOR* vec;
@@ -5855,7 +5849,7 @@ void Gp_TrackLockTarget(Task* arg0)
     }
 }
 
-static GpCoord* func_8010403C(s32 arg0)
+static GfxCoord* func_8010403C(s32 arg0)
 {
     Task* slot;
     u8    idx;
@@ -5865,11 +5859,11 @@ static GpCoord* func_8010403C(s32 arg0)
     return &slot->extra.tmd->coords[idx];
 }
 
-void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2)
+void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
 {
     MATRIX* world;
 
-    arg0->flg = 0;
+    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg0);
     arg1->workm = arg0->workm;
     gte_SetRotMatrix(&arg0->workm);
@@ -5879,8 +5873,8 @@ void Gp_PlaceCoordOffset(GpCoord* arg0, GpCoord* arg1, SVECTOR* arg2)
     gte_stlvnl(arg1->workm.t);
     world = &gGfxViewCoord.workm;
     Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
-    arg1->sub = PARENT_OF(world, GpCoord, workm);
-    arg1->flg = 0;
+    arg1->parent       = PARENT_OF(world, GfxCoord, workm);
+    arg1->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1);
 }
 
@@ -5918,9 +5912,9 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     Task*      task;
     GameActor* actor;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     TmdObject* obj;
-    GpCoord*   saved;
+    GfxCoord*  saved;
     u8*        table;
     s32        type;
 
@@ -5935,8 +5929,8 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     task->parent            = arg0;
     coord                   = task->extra.tmd->coords;
-    coord->sub              = saved;
-    coord->param.clearFlags = 0;
+    coord->parent           = saved;
+    coord->param.clearFlags = false;
     obj                     = task->extra.tmd;
     if (actor->field_910 != NULL) {
         obj->tpage = 4;
@@ -5953,9 +5947,9 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*      task;
-    GpCoord*   saved;
+    GfxCoord*  saved;
     TmdObject* extra;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        type;
 
     saved = arg0->extra.tmd->coords;
@@ -5970,8 +5964,8 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     extra                   = task->extra.tmd;
     task->parent            = arg0;
     coord                   = extra->coords;
-    coord->sub              = saved;
-    coord->param.clearFlags = 1;
+    coord->parent           = saved;
+    coord->param.clearFlags = true;
     return task;
 }
 
@@ -6012,7 +6006,7 @@ s32 Gp_KillPlayerEffs(void)
 Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*      task;
-    GpCoord*   saved;
+    GfxCoord*  saved;
     TmdObject* extra;
 
     saved  = ((GameActor*)arg0->work)->field_91C->extra.tmd->coords;
@@ -6022,9 +6016,9 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (task == NULL) {
         return NULL;
     }
-    extra                = task->extra.tmd;
-    task->parent         = arg0;
-    (extra->coords)->sub = saved;
+    extra                   = task->extra.tmd;
+    task->parent            = arg0;
+    (extra->coords)->parent = saved;
     return task;
 }
 
@@ -6151,8 +6145,8 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
 {
     TmdObject* extra;
     GameActor* actor;
-    GpCoord*   coord;
-    GpCoord*   next;
+    GfxCoord*  coord;
+    GfxCoord*  next;
     u16        mode;
     VECTOR     vec;
 
@@ -6332,7 +6326,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     TmdObject* extra;
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    mtx;
 
     extra             = arg0->extra.tmd;
@@ -6347,7 +6341,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     mtx               = &coord->coord;
     RotMatrix((SVECTOR*)&actor->field_50, mtx);
     MatrixNormal(mtx, mtx);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     return 0;
 }
@@ -6573,7 +6567,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
 s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
 {
     GameActor*    actor;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     PlayerStatus* p;
 
     actor = arg0->work;
@@ -6838,7 +6832,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     return ret;
 }
 
-s32 func_80105A60(Task* arg0, s32 arg1, GpCoord* arg2)
+s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2)
 {
     Gp_ReparentCoord(arg2, arg0->extra.tmd->coords);
     return 0;
@@ -6906,7 +6900,7 @@ void func_80105B74(VECTOR3* arg0)
     actor->field_48 = arg0->vz;
 }
 
-s32 Gp_PickNearestRec18(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
+s32 Gp_PickNearestRec18(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2)
 {
     s32            minDist;
     s32            idx;
@@ -6938,15 +6932,15 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GpCoord* arg1, GpCoord* arg2)
         }
     }
     if (minDist != 0x7FFFFFFF) {
-        i                       = 1;
-        block->coord.sub        = 0;
-        block->coord.flg        = 1;
-        block->coord.workm.t[0] = arg0[bestIdx].point.vx;
-        block->coord.workm.t[1] = arg0[bestIdx].point.vy;
-        block->coord.workm.t[2] = arg0[bestIdx].point.vz;
-        block->offset.vx        = rand() & 7;
-        block->offset.vy        = rand() & 7;
-        block->offset.vz        = rand() & 7;
+        i                         = 1;
+        block->coord.parent       = 0;
+        block->coord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
+        block->coord.workm.t[0]   = arg0[bestIdx].point.vx;
+        block->coord.workm.t[1]   = arg0[bestIdx].point.vy;
+        block->coord.workm.t[2]   = arg0[bestIdx].point.vz;
+        block->offset.vx          = rand() & 7;
+        block->offset.vy          = rand() & 7;
+        block->offset.vz          = rand() & 7;
         if (arg2 != NULL) {
             arg2->workm.t[0] = block->coord.workm.t[0] + block->offset.vx;
             arg2->workm.t[1] = block->coord.workm.t[1] + block->offset.vy;
@@ -6972,7 +6966,7 @@ s32 func_80105ED4(Task* arg0)
 {
     GameActor* actor;
     GpAnimRec* rec;
-    GpCoord*   obj;
+    GfxCoord*  obj;
     s32        sound;
     s8         flags;
     s32        pan;
@@ -7199,7 +7193,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
     actor->field_12A &= 0x3FFF;
 }
 
-void Gp_PlayObjSfx(GpCoord* coord, s32 sfx, s32 arg2)
+void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
 {
     s32 temp;
 
@@ -7454,7 +7448,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     GameActor* actor;
     GameActor* inner;
     GpAnimRec* rec;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        base;
     s32        done;
     s32        mode;
@@ -7923,7 +7917,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
     GpDashScratch* blk;
     GpDashScratch* vel;
     GameActor*     actor;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     s32            angle;
     s32            delay;
     s32            mode;
@@ -8035,7 +8029,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
 void Gp_PlayerMode2State4(Task* arg0)
 {
     GpApproachScratch* block;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     GameActor*         actor;
     s32                val;
     s32                mode;
@@ -8978,16 +8972,16 @@ static void Gp_PlayerMode2State9(Task* arg0)
 static void func_80109720(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u16        flags;
     s16        delta;
     s32        val;
     s32        temp;
 
-    coord        = arg0->extra.tmd->coords;
-    actor        = arg0->work;
-    coord[4].flg = 0;
-    flags        = actor->field_962;
+    coord                 = arg0->extra.tmd->coords;
+    actor                 = arg0->work;
+    coord[4].composeStamp = GRAPHICS_COORD_DIRTY;
+    flags                 = actor->field_962;
     if ((flags & 0xA000) && (actor->field_954 == 0)) {
         if (flags & 0x8000) {
             delta = -0x20;
@@ -9046,7 +9040,7 @@ static void func_80109844(Task* arg0)
     GameActor* inner;
     GameActor* inner2;
     GpEffArg*  params;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        idx;
     s32        temp;
     s32        val;
@@ -9113,7 +9107,7 @@ static void func_80109A1C(Task* arg0)
 {
     GameActor* inner;
     GpEffArg*  params;
-    GpCoord*   coords;
+    GfxCoord*  coords;
     s32        idx;
     s32        temp;
 

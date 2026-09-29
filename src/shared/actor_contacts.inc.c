@@ -23,18 +23,18 @@
 #include "main/session.h"
 #include "main/session_types.h"
 
-static s32 ActorContact_FindPush(GpCoord* coord, GpRec18* recs, s16 count);
-static s32 ActorContact_Steer(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
-static s32 ActorContact_Push(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count);
+static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos);
+static s32 ActorContact_Push(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 
 /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 /// rotation in a matrix carved off the scratchpad head, applies the turn,
 /// converts the result back into the parent's frame, writes the 3x3 into the
 /// joint and refreshes it.
-static void ActorContact_TurnJoint(GpCoord* coord, s16 yaw)
+static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
 {
-    MATRIX*  rotation;
-    GpCoord* out;
+    MATRIX*   rotation;
+    GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
     rotation = SCRATCH_HEAD(MATRIX);
@@ -42,7 +42,7 @@ static void ActorContact_TurnJoint(GpCoord* coord, s16 yaw)
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->flg = 0;
+    out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
     SCRATCH_POP(MATRIX);
 }
@@ -52,7 +52,7 @@ static void ActorContact_TurnJoint(GpCoord* coord, s16 yaw)
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
 /// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1` is 1.
-static s32 ActorContact_FindPush(GpCoord* coord, GpRec18* recs, s16 count)
+static s32 ActorContact_FindPush(GfxCoord* coord, GpRec18* recs, s16 count)
 {
     ActorRepelScratch* head;
     ActorRepelScratch* s;
@@ -62,7 +62,7 @@ static s32 ActorContact_FindPush(GpCoord* coord, GpRec18* recs, s16 count)
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->flg                      = 0;
+    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
     head                            = SCRATCH_HEAD(ActorRepelScratch);
     blk                             = head - 1;
     SCRATCH_HEAD(ActorRepelScratch) = blk;
@@ -98,7 +98,7 @@ static s32 ActorContact_FindPush(GpCoord* coord, GpRec18* recs, s16 count)
         gte_gpf12();
         gte_stsv(offset);
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP(ActorRepelScratch);
     return s->hit;
 }
@@ -111,7 +111,7 @@ static s32 ActorContact_FindPush(GpCoord* coord, GpRec18* recs, s16 count)
 /// accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.field_5C1`
 /// is 1.
-static s32 ActorContact_Steer(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
+static s32 ActorContact_Steer(GfxCoord* coord, GpRec18* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;
@@ -199,7 +199,7 @@ static s32 ActorContact_Steer(GpCoord* coord, GpRec18* recs, s16 count, SVECTOR*
     return s->blocked != 0;
 }
 
-static s32 ActorContact_PushContact(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 ActorContact_PushContact(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -246,7 +246,7 @@ static s32 ActorContact_PushContact(GpCoord* coord, GpRec18* rec, s16 arg2)
 /// frame's position, relative to the point one unit in front of it. Returns
 /// whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
-static s32 ActorContact_Push(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 ActorContact_Push(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -261,7 +261,7 @@ static s32 ActorContact_Push(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

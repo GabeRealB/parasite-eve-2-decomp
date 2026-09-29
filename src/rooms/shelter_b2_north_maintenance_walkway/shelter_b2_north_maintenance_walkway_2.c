@@ -65,14 +65,14 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 static void func_shelter_b2_north_maintenance_walkway_8017E0DC(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s16 arg1);
 static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size);
-static void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1);
-static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2);
-static void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2);
-static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3);
-static void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_8017F85C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
+static void func_shelter_b2_north_maintenance_walkway_8018081C(GfxCoord* coord, s16 size);
+static void func_shelter_b2_north_maintenance_walkway_80180D48(GfxCoord* arg0, s32 arg1);
+static void func_shelter_b2_north_maintenance_walkway_801810C0(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_80181E58(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_north_maintenance_walkway_80182284(GfxCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_80182B08(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
+static void func_shelter_b2_north_maintenance_walkway_80183188(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D61C, { .model = NULL } };
 
@@ -125,8 +125,8 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
 
 ShelterB2NorthMaintenanceWalkwayHaloStorage D_shelter_b2_north_maintenance_walkway_80183C38 = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x9620 };
 
-static void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1, u8* arg2);
+static void func_shelter_b2_north_maintenance_walkway_8017FB20(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_shelter_b2_north_maintenance_walkway_8017FF44(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 /// The room's per-frame glow task. Its first tick sets the gameplay effect ids
 /// the room's effects use; every tick then draws the flares, discs and stars
@@ -562,7 +562,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017EBB4(SVECTOR* arg0, s3
 void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
@@ -601,8 +601,8 @@ void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
                 }
                 break;
             case 1:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -619,8 +619,8 @@ void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
                 }
                 break;
             case 2:
-                coord->coord.t[1] += work->move.vy;
-                coord->flg         = 0;
+                coord->coord.t[1]  += work->move.vy;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     work->index++;
@@ -644,7 +644,7 @@ void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
 /// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
 /// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
 /// the grey level and its top nibble picks the palette.
-static void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
+static void func_shelter_b2_north_maintenance_walkway_8017F85C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -709,7 +709,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017F85C(GpCoord* arg0, u1
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-static void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_north_maintenance_walkway_8017FB20(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -762,7 +762,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017FB20(GpCoord* arg0, s3
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `arg2` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void func_shelter_b2_north_maintenance_walkway_8017FF44(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_8017FF44(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -822,7 +822,7 @@ void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
 {
     u8          rgb[3];
     GpEffWork*  mem;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
     s32         shift;
@@ -839,17 +839,17 @@ void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = mem->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[0] = mem->pos.vx;
-                coord->coord.t[1] = mem->pos.vy;
-                coord->coord.t[2] = mem->pos.vz;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = mem->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[0]   = mem->pos.vx;
+                coord->coord.t[1]   = mem->pos.vy;
+                coord->coord.t[2]   = mem->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index            = shift;
@@ -910,7 +910,7 @@ void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -963,9 +963,9 @@ void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s16 size)
+static void func_shelter_b2_north_maintenance_walkway_8018081C(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -983,26 +983,26 @@ static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1080,7 +1080,7 @@ static void func_shelter_b2_north_maintenance_walkway_8018081C(GpCoord* coord, s
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s32 arg1)
+static void func_shelter_b2_north_maintenance_walkway_80180D48(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;
@@ -1162,7 +1162,7 @@ static void func_shelter_b2_north_maintenance_walkway_80180D48(GpCoord* arg0, s3
 /// scaled by depth, at half brightness, with a full-brightness disc of half the
 /// radius over it, plus four half-brightness spikes, two of them reaching twice
 /// the disc's radius. Nothing is drawn when the projection overflows.
-static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_801810C0(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;
@@ -1288,7 +1288,7 @@ static void func_shelter_b2_north_maintenance_walkway_801810C0(GpCoord* arg0, s1
 void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        ang;
 
@@ -1325,7 +1325,7 @@ void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
@@ -1389,7 +1389,7 @@ void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
 /// both scaled by depth. Nothing is drawn when the projection overflows. The
 /// same drawing as `func_shelter_b2_north_maintenance_walkway_8017FB20`, with
 /// its scratch block laid out differently.
-static void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_shelter_b2_north_maintenance_walkway_80181E58(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     RoomDraw02Scratch* block;
     POLY_G4*           prim;
@@ -1445,7 +1445,7 @@ static void func_shelter_b2_north_maintenance_walkway_80181E58(GpCoord* arg0, s3
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `arg2` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_80182284(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomFanScratch* block;
     POLY_G4*        prim;
@@ -1502,15 +1502,15 @@ static void func_shelter_b2_north_maintenance_walkway_80182284(GpCoord* arg0, s1
 /// more.
 void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
 {
-    GpCoord    coord;
-    GpCoord*   coords;
-    GpCoord*   objCoord;
-    GpCoord*   dst;
+    GfxCoord   coord;
+    GfxCoord*  coords;
+    GfxCoord*  objCoord;
+    GfxCoord*  dst;
     GpEffWork* work;
     SVECTOR*   vec;
     s32        i;
 
-    coords   = (GpCoord*)task->work;
+    coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
     objCoord = task->extra.tmd->coords;
 
@@ -1518,36 +1518,36 @@ void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coords = (GpCoord*)memCalloc(0x500, 0);
+                coords = memCalloc(sizeof(GfxCoord[16]), 0);
                 if (coords == NULL) {
                     work->age = 0;
                     return;
                 }
-                task->work           = (TaskIdMap*)coords;
-                objCoord->sub        = work->parent;
-                objCoord->coord.t[0] = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vx;
-                objCoord->coord.t[1] = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vy;
-                objCoord->coord.t[2] = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vz;
-                objCoord->flg        = 0;
+                task->work             = coords;
+                objCoord->parent       = work->parent;
+                objCoord->coord.t[0]   = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vx;
+                objCoord->coord.t[1]   = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vy;
+                objCoord->coord.t[2]   = D_shelter_b2_north_maintenance_walkway_80183C4C[0].vz;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                task->state      = 1;
-                coord.sub        = work->parent;
-                vec              = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
-                coord.coord.t[0] = vec->vx;
-                coord.coord.t[1] = vec->vy;
-                coord.coord.t[2] = vec->vz;
-                coord.flg        = 0;
+                task->state        = 1;
+                coord.parent       = work->parent;
+                vec                = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
+                coord.coord.t[0]   = vec->vx;
+                coord.coord.t[1]   = vec->vy;
+                coord.coord.t[2]   = vec->vz;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 for (i = 0; i < 8; i++) {
-                    dst        = &coords[i];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = objCoord->workm;
+                    dst         = &coords[i];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst        = &coords[i + 8];
-                    dst->sub   = &gGfxViewCoord;
-                    dst->workm = coord.workm;
+                    dst         = &coords[i + 8];
+                    dst->parent = &gGfxViewCoord;
+                    dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
@@ -1555,35 +1555,35 @@ void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
                 break;
 
             case 1:
-                objCoord->flg = 0;
+                objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(objCoord);
-                coord.sub = work->parent;
+                coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg = 0;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
-                dst        = &coords[work->age & 7];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = objCoord->workm;
+                dst         = &coords[work->age & 7];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst        = &coords[(work->age & 7) + 8];
-                dst->sub   = &gGfxViewCoord;
-                dst->workm = coord.workm;
+                dst         = &coords[(work->age & 7) + 8];
+                dst->parent = &gGfxViewCoord;
+                dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
                 Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
-                    dst      = &coords[i];
-                    dst->flg = 0;
+                    dst               = &coords[i];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
-                    dst      = &coords[i + 8];
-                    dst->flg = 0;
+                    dst               = &coords[i + 8];
+                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(dst);
                 }
                 func_shelter_b2_north_maintenance_walkway_80182B08(coords, &coords[8], work->age & 7, 0x123);
@@ -1600,11 +1600,11 @@ void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
 /// slots of both rings and dimmer the older it is. `arg3` packs the colour as
 /// three multipliers, at bits 8, 4 and 0. A quad whose projection overflows is
 /// skipped.
-static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, GpCoord* arg1, s16 arg2, s16 arg3)
+static void func_shelter_b2_north_maintenance_walkway_80182B08(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3)
 {
     RoomDraw03Scratch* blk;
-    GpCoord*           a;
-    GpCoord*           b;
+    GfxCoord*          a;
+    GfxCoord*          b;
     POLY_G4*           prim;
     s32                i;
     s32                j;
@@ -1704,7 +1704,7 @@ static void func_shelter_b2_north_maintenance_walkway_80182B08(GpCoord* arg0, Gp
 /// room's event state is set and releases the block when that state reaches 4.
 void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
 {
-    GpCoord*   objCoord;
+    GfxCoord*  objCoord;
     GpEffWork* work;
     u8         rgb[4];
 
@@ -1775,7 +1775,7 @@ void func_shelter_b2_north_maintenance_walkway_80182F00(Task* task)
 /// scaled by depth, at half brightness, with a full-brightness disc of half the
 /// radius over it, plus four half-brightness spikes, two of them reaching twice
 /// the disc's radius. Nothing is drawn when the projection overflows.
-static void func_shelter_b2_north_maintenance_walkway_80183188(GpCoord* arg0, s16 arg1, u8* arg2)
+static void func_shelter_b2_north_maintenance_walkway_80183188(GfxCoord* arg0, s16 arg1, u8* arg2)
 {
     RoomBillboardScratch* block;
     POLY_G4*              prim;

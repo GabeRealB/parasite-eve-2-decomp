@@ -80,13 +80,13 @@ extern RoomRingShape D_shelter_r48_80182FE8[];
 
 static void func_shelter_r48_8017E1A4(Task* arg0);
 static void func_shelter_r48_8017E214(Task* task);
-static void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part);
+static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part);
 static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color);
+static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color);
 
 extern GpAreaTmdRec D_shelter_r48_8018BB30[3];
 extern GpAreaTmdRec D_shelter_r48_8018BB54[3];
@@ -2282,7 +2282,7 @@ void func_shelter_r48_8017E3B8(Task* task)
 void func_shelter_r48_8017E4C4(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
     s32        i;
 
@@ -2297,7 +2297,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     }
     if (arg0->state == 0) {
         m                                = &coord->coord;
-        coord->sub                       = mem->parent;
+        coord->parent                    = mem->parent;
         MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
         MATRIX_PAIR(m, 0, 2)             = 0;
         MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -2306,7 +2306,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
-        coord->flg                       = 0;
+        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
     }
@@ -2340,7 +2340,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
 void func_shelter_r48_8017E704(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
@@ -2354,7 +2354,7 @@ void func_shelter_r48_8017E704(Task* arg0)
     }
     if (arg0->state == 0) {
         m                                = &coord->coord;
-        coord->sub                       = mem->parent;
+        coord->parent                    = mem->parent;
         MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
         MATRIX_PAIR(m, 0, 2)             = 0;
         MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -2363,7 +2363,7 @@ void func_shelter_r48_8017E704(Task* arg0)
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
-        coord->flg                       = 0;
+        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
     }
@@ -2394,7 +2394,7 @@ void func_shelter_r48_8017E704(Task* arg0)
 void func_shelter_r48_8017E9B8(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
@@ -2408,7 +2408,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     }
     if (arg0->state == 0) {
         m                                = &coord->coord;
-        coord->sub                       = mem->parent;
+        coord->parent                    = mem->parent;
         MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
         MATRIX_PAIR(m, 0, 2)             = 0;
         MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -2417,7 +2417,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
-        coord->flg                       = 0;
+        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
     }
@@ -2445,7 +2445,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
 void func_shelter_r48_8017EC18(Task* task)
 {
     GpEffWork*  work;
-    GpCoord*    coord;
+    GfxCoord*   coord;
     GpMtxWords* rot;
     u8          rgb[3];
 
@@ -2455,17 +2455,17 @@ void func_shelter_r48_8017EC18(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot               = (GpMtxWords*)&coord->coord;
-                coord->sub        = work->parent;
-                rot->m00_m01      = 0x1000;
-                rot->m02_m10      = 0;
-                rot->m11_m12      = 0x1000;
-                rot->m20_m21      = 0;
-                rot->m22          = 0x1000;
-                coord->coord.t[2] = 0;
-                coord->coord.t[1] = 0;
-                coord->coord.t[0] = 0;
-                coord->flg        = 0;
+                rot                 = (GpMtxWords*)&coord->coord;
+                coord->parent       = work->parent;
+                rot->m00_m01        = 0x1000;
+                rot->m02_m10        = 0;
+                rot->m11_m12        = 0x1000;
+                rot->m20_m21        = 0;
+                rot->m22            = 0x1000;
+                coord->coord.t[2]   = 0;
+                coord->coord.t[1]   = 0;
+                coord->coord.t[0]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 task->spawnArg1.value = 0x5A;
                 task->state           = 1;
@@ -2533,7 +2533,7 @@ void func_shelter_r48_8017EC18(Task* task)
 void func_shelter_r48_8017EFD8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -2569,7 +2569,7 @@ void func_shelter_r48_8017EFD8(Task* task)
 /// the work's radii plus the band's `D_shelter_r48_80182FE8` offsets, moves them
 /// into world space through `coord`, then projects each segment and picks its
 /// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
-static void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part)
+static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part)
 {
     void**         scratch;
     u8*            head;
@@ -2671,7 +2671,7 @@ static void func_shelter_r48_8017F124(GpEffWork* work, GpCoord* coord, s32 part)
 void func_shelter_r48_8017F6C0(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -2773,11 +2773,11 @@ void func_shelter_r48_8017F6C0(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2791,7 +2791,7 @@ void func_shelter_r48_8017F6C0(Task* task)
 /// camera, queues a semi-transparent `POLY_FT4` centred on it. `arg1` selects
 /// a 32-texel column of the texture page, `arg3` is the quad's rotation and
 /// `arg2` its size, divided by depth so the quad shrinks with distance.
-static void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2850,7 +2850,7 @@ static void func_shelter_r48_8017FB7C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
-static void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -2914,7 +2914,7 @@ static void func_shelter_r48_8017FF74(GpCoord* arg0, s32 arg1, s32 arg2)
 void func_shelter_r48_80180210(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -3010,11 +3010,11 @@ void func_shelter_r48_80180210(Task* task)
         case 1:
             func_shelter_r48_80180804(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
-                work->move.vy     -= 2;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->move.vy      -= 2;
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -3026,11 +3026,11 @@ void func_shelter_r48_80180210(Task* task)
         case 2:
             func_shelter_r48_80180C5C(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
-                work->move.vy     -= 1;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->move.vy      -= 1;
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -3042,7 +3042,7 @@ void func_shelter_r48_80180210(Task* task)
     }
 }
 
-static void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3108,7 +3108,7 @@ static void func_shelter_r48_80180804(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -3177,7 +3177,7 @@ static void func_shelter_r48_80180C5C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg
 void func_shelter_r48_801810B0(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* eff;
     u8         rgb[3];
     s32        step;
@@ -3189,12 +3189,12 @@ void func_shelter_r48_801810B0(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coord->sub = work->parent;
+                coord->parent = work->parent;
                 Gfx_RotMatrixX(&coord->coord, -0x400, 1);
-                coord->coord.t[2] = 0;
-                coord->coord.t[1] = 0;
-                coord->coord.t[0] = 0;
-                coord->flg        = 0;
+                coord->coord.t[2]   = 0;
+                coord->coord.t[1]   = 0;
+                coord->coord.t[0]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 task->state = 1;
                 work->scale = 0;
@@ -3254,7 +3254,7 @@ void func_shelter_r48_801810B0(Task* task)
 void func_shelter_r48_8018147C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
     u8         rgb[3];
 
@@ -3272,7 +3272,7 @@ void func_shelter_r48_8018147C(Task* task)
         switch (task->state) {
             case 0:
                 m                                = &coord->coord;
-                coord->sub                       = work->parent;
+                coord->parent                    = work->parent;
                 MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
                 MATRIX_PAIR(m, 0, 2)             = 0;
                 MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -3281,7 +3281,7 @@ void func_shelter_r48_8018147C(Task* task)
                 coord->coord.t[2]                = 0;
                 coord->coord.t[1]                = 0;
                 coord->coord.t[0]                = 0;
-                coord->flg                       = 0;
+                coord->composeStamp              = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 work->age   = 1;
                 work->scale = 0x80;
@@ -3328,7 +3328,7 @@ void func_shelter_r48_8018147C(Task* task)
 void func_shelter_r48_80181704(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
     u8         rgb[3];
     s32        step;
@@ -3341,7 +3341,7 @@ void func_shelter_r48_80181704(Task* task)
         switch (task->state) {
             case 0:
                 m                                = &coord->coord;
-                coord->sub                       = work->parent;
+                coord->parent                    = work->parent;
                 MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
                 MATRIX_PAIR(m, 0, 2)             = 0;
                 MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -3350,7 +3350,7 @@ void func_shelter_r48_80181704(Task* task)
                 coord->coord.t[2]                = 0;
                 coord->coord.t[1]                = 0;
                 coord->coord.t[0]                = 0;
-                coord->flg                       = 0;
+                coord->composeStamp              = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 task->state           = 1;
                 task->spawnArg1.value = 0x1E;
@@ -3449,7 +3449,7 @@ void func_shelter_r48_80181704(Task* task)
 /// queues a fan at the tip, a fan at the base and a quad joining them. `color`
 /// packs `0xRGB` nibbles, each shifted into its channel's high nibble, with
 /// `gDisplayState.animFrame & 1` shifted into bit 4 of every channel.
-static void func_shelter_r48_80181C14(GpCoord* coord, s16 size, s32 yaw, s32 color)
+static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color)
 {
     MATRIX           m;
     void**           scratch;

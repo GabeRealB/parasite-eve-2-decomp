@@ -107,8 +107,8 @@ extern u8* D_dryfield_water_hole_801828CC;
 extern s16 D_dryfield_water_hole_801828D0;
 
 static void func_dryfield_water_hole_8017E000(Task* arg0);
-static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
-static void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void func_dryfield_water_hole_8017EDE4(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
 extern GpGridParams   D_dryfield_water_hole_80180260[1];
@@ -1499,8 +1499,8 @@ static void func_dryfield_water_hole_8017D898(Task* task)
     if (Gp_StateF0.field_4 == 0) {
         D_dryfield_water_hole_801828D0++;
     }
-    phase             = -(D_dryfield_water_hole_801828D0 * 16);
-    gGfxViewCoord.flg = 0;
+    phase                      = -(D_dryfield_water_hole_801828D0 * 16);
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1641,11 +1641,11 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     Task*                     ctl;
     s32                       mask;
     _DryfieldWaterHoleSplash* splash;
-    GpCoord*                  coord;
-    GpCoord*                  ctlCoords;
-    GpCoord*                  part;
-    GpCoord*                  view;
-    GpCoord                   surface;
+    GfxCoord*                 coord;
+    GfxCoord*                 ctlCoords;
+    GfxCoord*                 part;
+    GfxCoord*                 view;
+    GfxCoord                  surface;
     s32                       i;
     u32                       rnd;
 
@@ -1676,9 +1676,9 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
-                    surface.sub        = view;
-                    surface.coord.t[1] = gGameSession->waterY;
-                    surface.flg        = 0;
+                    surface.parent       = view;
+                    surface.coord.t[1]   = gGameSession->waterY;
+                    surface.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&surface);
                     rnd = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
@@ -1723,7 +1723,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
 /// primitive takes a `Gp_AddTpageShift` tpage; the far disc sorts by the far
 /// end's `otz`, everything else by the near end's. The work block lives on the
 /// scratchpad stack.
-static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
     RoomDraw24Scratch* block;
@@ -1862,7 +1862,7 @@ static void func_dryfield_water_hole_8017E410(GpCoord* arg0, SVECTOR* arg1, SVEC
 void func_dryfield_water_hole_8017EC90(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1879,8 +1879,8 @@ void func_dryfield_water_hole_8017EC90(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_dryfield_water_hole_8017EDE4(coord, work->angle, work->scale);
@@ -1897,7 +1897,7 @@ void func_dryfield_water_hole_8017EC90(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_dryfield_water_hole_8017EDE4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_dryfield_water_hole_8017EDE4(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;

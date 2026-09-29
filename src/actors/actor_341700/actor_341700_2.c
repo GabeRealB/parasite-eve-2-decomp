@@ -806,7 +806,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1);
 static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1);
-static void func_actor_341700_8016D018(GpCoord* coord, s16 scale);
+static void func_actor_341700_8016D018(GfxCoord* coord, s16 scale);
 
 #include "../../shared/actor_contacts.h"
 
@@ -964,21 +964,21 @@ static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
             Gfx_RotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, 0);
         }
     }
-    arg1->extra.tmd->coords[0].flg  = 0;
-    arg1->extra.tmd->coords[1].flg  = 0;
-    arg1->extra.tmd->coords[2].flg  = 0;
-    arg1->extra.tmd->coords[3].flg  = 0;
-    arg1->extra.tmd->coords[4].flg  = 0;
-    arg1->extra.tmd->coords[5].flg  = 0;
-    arg1->extra.tmd->coords[6].flg  = 0;
-    arg1->extra.tmd->coords[7].flg  = 0;
-    arg1->extra.tmd->coords[8].flg  = 0;
-    arg1->extra.tmd->coords[9].flg  = 0;
-    arg1->extra.tmd->coords[10].flg = 0;
-    i                               = 0;
-    indices                         = D_actor_341700_801760FC;
-    table                           = D_actor_341700_80175F7C;
-    vecPtr                          = &vec;
+    arg1->extra.tmd->coords[0].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[1].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[2].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[3].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[4].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[5].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[6].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[7].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[8].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[9].composeStamp  = GRAPHICS_COORD_DIRTY;
+    arg1->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
+    i                                        = 0;
+    indices                                  = D_actor_341700_801760FC;
+    table                                    = D_actor_341700_80175F7C;
+    vecPtr                                   = &vec;
     for (; i < 4; i++) {
         if (work->field_6 > 240) {
             return;
@@ -1029,7 +1029,7 @@ static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
     GpEnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
 
-    arg1->extra.tmd->coords[1].flg = 0;
+    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
     block.vx = arg1->extra.tmd->coords[1].workm.t[0];
     block.vy = arg1->extra.tmd->coords[1].workm.t[1];
@@ -1051,7 +1051,7 @@ static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
             work->field_2 = work->field_0;
             sp.funcs[work->field_0](arg0, arg1);
             if (gGameSession->viewReady != 0) {
-                arg1->extra.tmd->coords->flg = 0;
+                arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
             return;
     }
@@ -1112,8 +1112,8 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, GpCmdArg* cmd)
                 work->field_0 = 0;
                 return 1;
             case 1:
-                task->extra.tmd->coords->flg = 0;
-                work->field_0                = 2;
+                task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->field_0                         = 2;
                 break;
             case 2:
             default:
@@ -1137,14 +1137,14 @@ s32 func_actor_341700_8016CF48(Task* task, s32 arg1, GpXformArg* placement)
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
     Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
-    task->extra.tmd->coords->flg = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     return 1;
 }
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), uniformly scaled by `scale`, through a 0x34-byte
 /// block borrowed from the scratchpad. Marks the coordinate dirty.
-static void func_actor_341700_8016D018(GpCoord* coord, s16 scale)
+static void func_actor_341700_8016D018(GfxCoord* coord, s16 scale)
 {
     void**                scratch;
     ActorScaleRotScratch* head;
@@ -1175,7 +1175,7 @@ static void func_actor_341700_8016D018(GpCoord* coord, s16 scale)
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     m22                  = (u16)blk->m.m[2][2];
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->flg           = 0;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
 }
 
@@ -1184,7 +1184,7 @@ static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     Actor341700SubWork* work;
     TaskIdMap*          idMap;
     TmdObject*          model;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     VECTOR              block;
 
     model      = arg1->extra.tmd;
@@ -1196,25 +1196,25 @@ static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    coord->sub                          = &gGfxViewCoord;
-    arg1->extra.tmd->coords->coord.t[1] = 0;
-    arg1->extra.tmd->coords->coord.t[0] = 0x1388;
-    arg1->extra.tmd->coords->coord.t[2] = -0x1770;
-    arg1->extra.tmd->coords->flg        = 0;
-    arg1->msgTable                      = D_actor_341700_80175F5C;
-    arg0->field_4                       = &coord->coord;
-    arg0->field_48                      = 0;
-    arg0->bodyPos.vx                    = 0;
-    arg0->bodyPos.vy                    = 0;
-    arg0->bodyPos.vz                    = 0;
-    arg0->coord                         = &arg1->extra.tmd->coords[2];
-    arg0->node.state.b.flags            = 1;
-    arg0->reactionFlags                 = 0;
-    arg0->hpMax                         = 0;
-    arg0->hp                            = 0;
-    model->lightMtx                     = &work->light;
-    model->colorMtx                     = &work->color;
-    coord->flg                          = 0;
+    coord->parent                         = &gGfxViewCoord;
+    arg1->extra.tmd->coords->coord.t[1]   = 0;
+    arg1->extra.tmd->coords->coord.t[0]   = 0x1388;
+    arg1->extra.tmd->coords->coord.t[2]   = -0x1770;
+    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    arg1->msgTable                        = D_actor_341700_80175F5C;
+    arg0->field_4                         = &coord->coord;
+    arg0->field_48                        = 0;
+    arg0->bodyPos.vx                      = 0;
+    arg0->bodyPos.vy                      = 0;
+    arg0->bodyPos.vz                      = 0;
+    arg0->coord                           = &arg1->extra.tmd->coords[2];
+    arg0->node.state.b.flags              = 1;
+    arg0->reactionFlags                   = 0;
+    arg0->hpMax                           = 0;
+    arg0->hp                              = 0;
+    model->lightMtx                       = &work->light;
+    model->colorMtx                       = &work->color;
+    coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     block.vx = coord->workm.t[0];
     block.vy = coord->workm.t[1];

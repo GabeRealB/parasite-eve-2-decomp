@@ -243,7 +243,7 @@ static GpRoomCoordSet* Gp_GetRoomCoordSet(GpAreaKey* arg0);
 static s32 Gp_GetObjLuma(GpLight* arg0);
 
 /// World X of the object's position.
-static s32 Gp_GetObjTransX(GpCoord* coord);
+static s32 Gp_GetObjTransX(GfxCoord* coord);
 
 static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
@@ -284,7 +284,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
     slot = Gp_RoomCoords;
     for (i = 0; i < 8; i++, slot++) {
         if (slot->framesLeft != 0) {
-            Gp_UpdateCoordEx(&slot->data.coord, &gGfxViewCoord);
+            Gp_UpdateCoordEx(&slot->light.head.u.coord, &gGfxViewCoord);
         }
     }
 }
@@ -299,7 +299,7 @@ void Gp_UpdateRoomCoords(Task* task)
     GpLight*        light;
     GpPointLight*   point;
     GpSpotLight*    spot;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     s32             i;
     s32             j;
 
@@ -313,15 +313,15 @@ void Gp_UpdateRoomCoords(Task* task)
     if (task->state == 0) {
         point = set->arr60;
         for (i = 0; i < set->n60; i++, point++) {
-            coord      = &point->head.u.coord;
-            coord->sub = &gGfxViewCoord;
-            coord->flg = 0;
+            coord               = &point->head.u.coord;
+            coord->parent       = &gGfxViewCoord;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
         spot = set->arr6C;
         for (i = 0; i < set->n6C; i++, spot++) {
-            coord      = &spot->head.u.coord;
-            coord->sub = &gGfxViewCoord;
+            coord         = &spot->head.u.coord;
+            coord->parent = &gGfxViewCoord;
             if (spot->dir.vy != 0 || spot->dir.vz != 0) {
                 vec->vx = 0;
                 vec->vy = -spot->dir.vz;
@@ -332,7 +332,7 @@ void Gp_UpdateRoomCoords(Task* task)
                 vec->vz = 0;
             }
             Gfx_OrthonormalBasis(&coord->coord, &spot->dir, vec);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
         if (set->n58 > 0) {
@@ -340,16 +340,16 @@ void Gp_UpdateRoomCoords(Task* task)
 
             dir = set->arr58;
             for (i = 0; i < set->n58; i++, dir++) {
-                coord      = &dir->u.coord;
-                coord->sub = &gGfxViewCoord;
-                coord->flg = 0;
+                coord               = &dir->u.coord;
+                coord->parent       = &gGfxViewCoord;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
         }
 
         for (j = 0; j < 8; j++) {
             Gp_RoomCoords[j].framesLeft = 0;
-            coord                       = &Gp_RoomCoords[j].data.coord;
-            coord->sub                  = &gGfxViewCoord;
+            coord                       = &Gp_RoomCoords[j].light.head.u.coord;
+            coord->parent               = &gGfxViewCoord;
         }
 
         task->state++;
@@ -852,7 +852,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         block->pos.vz = block->local.vz;
         do {
             if (p->framesLeft != 0) {
-                light            = &p->data.light;
+                light            = &p->light;
                 val              = Gp_LightPoint(light, (VECTOR3*)&block->pos);
                 block->intensity = val;
                 solve_rank(block->slots, val, 3, light, last);
@@ -1051,7 +1051,7 @@ static void Gp_DebugPanTask(Task* arg0)
     Task*          work;
     PlayerStatus*  cfg;
     TmdObject*     extra;
-    GpCoord*       coord;
+    GfxCoord*      coord;
     GameActor*     actor;
     GameActor*     actor2;
     MATRIX*        mtx;
@@ -1376,7 +1376,7 @@ void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
     }
 }
 
-s32 gpGetObjDepth(GpCoord* coord)
+s32 gpGetObjDepth(GfxCoord* coord)
 {
     s32 val;
 
@@ -1390,7 +1390,7 @@ s32 gpGetObjDepth(GpCoord* coord)
     return val >> 8;
 }
 
-s32 Gp_GetObjPan(GpCoord* coord)
+s32 Gp_GetObjPan(GfxCoord* coord)
 {
     u8*            head;
     _GpPanScratch* block;
@@ -1539,7 +1539,7 @@ static s32 Gp_GetObjLuma(GpLight* arg0)
 }
 
 /// World X of the object's position.
-static s32 Gp_GetObjTransX(GpCoord* coord)
+static s32 Gp_GetObjTransX(GfxCoord* coord)
 {
     return coord->workm.t[0];
 }

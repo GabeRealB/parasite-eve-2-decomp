@@ -34,13 +34,13 @@ void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
 /// and scaled down by 256, which lands in the signed byte they read.
 ///
 /// `Gp_GetObjPan` is the pan that goes with it.
-s32 gpGetObjDepth(GpCoord* coord);
+s32 gpGetObjDepth(GfxCoord* coord);
 
-/// Pan of the object's world origin, for the sound events that carry one: the
-/// origin is projected through the coordinate's world matrix, and the screen X
-/// it lands on is clamped to the screen's half width and scaled down by ten.
-/// 0 when the projection reports an error.
-s32 Gp_GetObjPan(GpCoord* coord);
+/// Pan of a node's origin, projected through its already composed local-to-view matrix.
+///
+/// Returns screen X clamped to [-160, 159] and divided by ten, or 0 when the
+/// projection reports an error. The caller must update `workm` first.
+s32 Gp_GetObjPan(GfxCoord* coord);
 
 void Gp_SetOverrideVec(SVECTOR* arg0);
 

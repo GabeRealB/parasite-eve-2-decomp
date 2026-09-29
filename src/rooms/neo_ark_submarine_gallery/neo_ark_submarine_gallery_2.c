@@ -52,12 +52,12 @@
 #define D_neo_ark_submarine_gallery_801818F8 (D_neo_ark_submarine_gallery_801818C8 + 6)
 #define D_neo_ark_submarine_gallery_80181928 (D_neo_ark_submarine_gallery_801818C8 + 12)
 
-static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2);
-static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_8017F3DC(GfxCoord* arg0, s32 arg1, s32 arg2);
+static void func_neo_ark_submarine_gallery_8017FBCC(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_submarine_gallery_8017FFB8(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_submarine_gallery_80180254(SVECTOR* pos, s32 arg1, s32 arg2);
 static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* pos, s32 arg1, s32 arg2);
-static void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1);
+static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1);
 
 // Indexed views below share one contiguous table.
 extern TaskDesc D_80147E48;
@@ -936,9 +936,9 @@ GpRoomParamRec* D_neo_ark_submarine_gallery_801858EC[8] = {
 /// also hands the task's own coordinate to `func_neo_ark_submarine_gallery_80180E80`.
 void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 {
-    SVECTOR* pos;
-    GpCoord* coord;
-    s32      view;
+    SVECTOR*  pos;
+    GfxCoord* coord;
+    s32       view;
 
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
@@ -1005,7 +1005,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 void func_neo_ark_submarine_gallery_8017F288(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.tmd->coords;
@@ -1022,8 +1022,8 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
             work->angle = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_0 & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->flg  = 0;
-            task->state = 1;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = 1;
         }
         work->angle += 0x20;
         func_neo_ark_submarine_gallery_8017F3DC(coord, work->angle, work->scale);
@@ -1040,7 +1040,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
 /// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
 /// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
 /// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_8017F3DC(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -1128,7 +1128,7 @@ static void func_neo_ark_submarine_gallery_8017F3DC(GpCoord* arg0, s32 arg1, s32
 void func_neo_ark_submarine_gallery_8017F710(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -1230,11 +1230,11 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -1251,7 +1251,7 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
 /// `arg2` is a signed half-extent; the on-screen radius is
 /// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
 /// `arg3 + 0x400` through `rsin`/`rcos`.
-static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_submarine_gallery_8017FBCC(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -1316,7 +1316,7 @@ static void func_neo_ark_submarine_gallery_8017FBCC(GpCoord* arg0, s32 arg1, s32
 /// is `2 * r` on a side with `r = (s16)arg2 * 55 / otz`, and the projected
 /// point sits a quarter of the way up from its bottom edge. The work block
 /// lives on the scratchpad stack.
-static void func_neo_ark_submarine_gallery_8017FFB8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_neo_ark_submarine_gallery_8017FFB8(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -1588,7 +1588,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
 /// from a pulsing grey on the first ring to black on the second; the closing
 /// cap over the first ring is flat grey. The grey swings a couple of steps
 /// around 0x18 with `gDisplayState.animFrame`.
-static void func_neo_ark_submarine_gallery_80180E80(GpCoord* coord, s16 arg1)
+static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
 {
     RoomQuadProjScratch* blk;
     POLY_G4*             prim;

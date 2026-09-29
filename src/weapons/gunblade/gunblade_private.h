@@ -10,9 +10,9 @@
 
 /// The eight-segment beam trails, one array per end of the blade. Every entry
 /// is parented to `gGfxViewCoord`.
-extern GpCoord D_gunblade_8012E254[8];
+extern GfxCoord D_gunblade_8012E254[8];
 
-extern GpCoord D_gunblade_8012E4D4[8];
+extern GfxCoord D_gunblade_8012E4D4[8];
 
 /// The running beam task and its `GpEffWork`, cached on entry to state 0 so
 /// `func_gunblade_8011E008` can reach them from outside the task. The work

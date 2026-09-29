@@ -182,7 +182,7 @@ STATIC_ASSERT_SIZEOF(AcropolisSquareStorage88AC, 32);
 
 extern AcropolisSquareStorage88AC D_acropolis_square_801888AC;
 
-extern GpCoord D_acropolis_square_801888CC;
+extern GfxCoord D_acropolis_square_801888CC;
 
 #define REFLECTION_SCALE_IN_CODE 1
 #include "../../shared/planar_reflection.h"
@@ -1111,7 +1111,7 @@ Task* D_acropolis_square_801888A8 = NULL;
 
 AcropolisSquareStorage88AC D_acropolis_square_801888AC = { 0 };
 
-GpCoord D_acropolis_square_801888CC = { 0 };
+GfxCoord D_acropolis_square_801888CC = { 0 };
 
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];
@@ -1466,7 +1466,7 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
             D_acropolis_square_801888CC.coord.t[1] = -0xF96;
             D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
-            D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
+            D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
             Gp_UpdateCoord(&D_acropolis_square_801888CC);
             pan = Gp_GetObjPan(&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
@@ -1481,7 +1481,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[1] = -0xF96;
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
+                D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan2 = Gp_GetObjPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
@@ -1526,7 +1526,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[1] = -0xF96;
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.sub        = &gGfxViewCoord;
+                D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan3 = Gp_GetObjPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan3,
@@ -1750,7 +1750,7 @@ s32 func_acropolis_square_80182360(s32 unused)
 void func_acropolis_square_801823DC(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
 
     coord = task->extra.tmd->coords;
     work  = task->spawnArg2.pointer;
@@ -1794,7 +1794,7 @@ void func_acropolis_square_801825DC(Task* task)
     RoomGlowScratch* blk;
     POLY_G4*         prim;
     LINE_G3*         line;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     void*            mem;
     s32              i;
     s32              pulse;

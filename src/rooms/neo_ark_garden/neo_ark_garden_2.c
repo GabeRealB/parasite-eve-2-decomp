@@ -57,11 +57,11 @@ extern s16 D_neo_ark_garden_80181400[][3];
 
 static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2);
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
-static void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_garden_801805B4(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size);
-static void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1);
+static void func_neo_ark_garden_8017FF0C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_garden_80180190(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_garden_801805B4(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_garden_80180AF4(GfxCoord* coord, s16 size);
+static void func_neo_ark_garden_80181020(GfxCoord* arg0, s32 arg1);
 
 extern GpGridParams   D_neo_ark_garden_801816C4[1];
 extern GpObj4C        D_neo_ark_garden_8018270C[6];
@@ -702,7 +702,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
 void func_neo_ark_garden_8017F790(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* spawned;
     MATRIX*    mtx;
     u8         col[4];
@@ -719,7 +719,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            coord->sub                       = mem->parent;
+            coord->parent                    = mem->parent;
             mtx                              = &coord->coord;
             MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
             MATRIX_PAIR(mtx, 0, 2)           = 0;
@@ -729,7 +729,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
             coord->coord.t[0]                = mem->pos.vx;
             coord->coord.t[1]                = mem->pos.vy;
             coord->coord.t[2]                = mem->pos.vz;
-            coord->flg                       = 0;
+            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             break;
@@ -819,8 +819,8 @@ void func_neo_ark_garden_8017F790(Task* arg0)
 void func_neo_ark_garden_8017FCE8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   target;
+    GfxCoord*  coord;
+    GfxCoord*  target;
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
@@ -848,10 +848,10 @@ void func_neo_ark_garden_8017FCE8(Task* task)
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += work->pos.vx;
-                coord->coord.t[1] += work->pos.vy;
-                coord->coord.t[2] += work->pos.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->pos.vx;
+                coord->coord.t[1]  += work->pos.vy;
+                coord->coord.t[2]  += work->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     func_neo_ark_garden_8017FF0C(coord, ++work->index, 0x200, 0x80);
@@ -870,7 +870,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
 /// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
 /// the animation frame from a row of four 24-texel frames and `arg3` is the
 /// grey level. Nothing is drawn when the projection overflows.
-static void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_garden_8017FF0C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -939,7 +939,7 @@ static void func_neo_ark_garden_8017FF0C(GpCoord* arg0, s32 arg1, s32 arg2, s32 
 /// `POLY_G4` segments. One edge of the ring lies at on-screen radius
 /// `(s16)arg1 * 64 / (otz + 1)` and is black; the other lies at
 /// `(s16)(arg1 + arg2) * 64 / (otz + 1)` and takes the RGB triple `rgb`.
-static void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_garden_80180190(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -994,7 +994,7 @@ static void func_neo_ark_garden_80180190(GpCoord* arg0, s32 arg1, s32 arg2, u8* 
 /// `POLY_G4` wedges around the projected centre. `arg1` is a half-extent;
 /// the on-screen radius is `arg1 * 64 / (otz + 1)`. Only the centre vertex
 /// takes the RGB triple `rgb`, so each wedge fades to black.
-static void func_neo_ark_garden_801805B4(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_garden_801805B4(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -1054,7 +1054,7 @@ void func_neo_ark_garden_80180948(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -1107,9 +1107,9 @@ void func_neo_ark_garden_80180948(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
+static void func_neo_ark_garden_80180AF4(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1127,26 +1127,26 @@ static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1224,7 +1224,7 @@ static void func_neo_ark_garden_80180AF4(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_neo_ark_garden_80181020(GpCoord* arg0, s32 arg1)
+static void func_neo_ark_garden_80181020(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

@@ -28,7 +28,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/geometry.h"
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -294,13 +293,7 @@ s32 func_acropolis_sanctuary_8017D808(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} AcropolisSanctuaryPoseBank2D88;
-
-AcropolisSanctuaryPoseBank2D88 D_acropolis_sanctuary_80180348 = { .poses = {
+AnimationPackedPose D_acropolis_sanctuary_80180348[8] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
 };
 
@@ -569,13 +562,7 @@ GpEvsCmd D_acropolis_sanctuary_80181814[11] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[7];
-    AnimationPackedRotation        words[21];
-} AcropolisSanctuaryPoseBank435C;
-
-AcropolisSanctuaryPoseBank435C D_acropolis_sanctuary_8018191C = { .poses = {
+AnimationPackedPose D_acropolis_sanctuary_8018191C[7] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
 };
 
@@ -597,13 +584,7 @@ GpAnimSet D_acropolis_sanctuary_80181CC8 = {
     { NULL, D_acropolis_sanctuary_8018191C, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} AcropolisSanctuaryPoseBank4730;
-
-AcropolisSanctuaryPoseBank4730 D_acropolis_sanctuary_80181CF0 = { .poses = {
+AnimationPackedPose D_acropolis_sanctuary_80181CF0[8] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
 };
 
@@ -1601,8 +1582,8 @@ Task* D_acropolis_sanctuary_80186C90 = NULL;
 
 SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
 
-static s32  func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_sanctuary_8017F974(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_sanctuary_8017FB18(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 static void func_acropolis_sanctuary_801802E0(Task* task);
 
 /// The room task's per-frame state. Once the session reaches phase 3
@@ -1967,7 +1948,7 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
 /// 0xC, 0 otherwise.
 void func_acropolis_sanctuary_8017E00C(Task* task)
 {
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpAreaKey* sess;
     s32        i;
 
@@ -2003,7 +1984,7 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     AcsTile*   tile;
     s32        quad;
     s32        i;
@@ -2064,7 +2045,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
     GpEffWork*      mem;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     void**          scratch;
     u8*             head;
     AcsTileScratch* blk;
@@ -2174,8 +2155,8 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         coord->coord.t[1] += mem->move.vy;
         coord->coord.t[2] += mem->move.vz;
         Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
-        coord->flg   = 0;
-        mem->move.vy = mem->move.vy + 3;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        mem->move.vy        = mem->move.vy + 3;
         if (mem->scale == 0) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
@@ -2245,7 +2226,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void**            scratch;
     u8*               head;
     AcsMosaicScratch* blk;
@@ -2351,8 +2332,8 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     SCRATCH_POP_BYTES(0x20);
     coord->coord.t[2] += mem->move.vz;
     Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
-    coord->flg   = 0;
-    mem->move.vy = mem->move.vy + 3;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    mem->move.vy        = mem->move.vy + 3;
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         n           = ((u32)Gp_LcgState >> 16) & 1;
@@ -2400,7 +2381,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
     GpEffWork*        mem;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void**            scratch;
     u8*               head;
     RoomShaftScratch* blk;
@@ -2483,8 +2464,8 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 /// (returns 0).
 s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
 {
-    GpCoord* coord = task->extra.tmd->coords;
-    SVECTOR  vec   = D_acropolis_sanctuary_8017D5D0;
+    GfxCoord* coord = task->extra.tmd->coords;
+    SVECTOR   vec   = D_acropolis_sanctuary_8017D5D0;
 
     Gp_SpawnEff(0x60078, coord, 0, &vec);
     return 0;
@@ -2495,7 +2476,7 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, GpMessageArg arg2, 
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_sanctuary_80186C94`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_sanctuary_8017F974(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -2542,7 +2523,7 @@ static s32 func_acropolis_sanctuary_8017F974(GpCoord* coord, GpRec18* rec, s16 a
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -2557,7 +2538,7 @@ static s32 func_acropolis_sanctuary_8017FB18(GpCoord* coord, GpRec18* recs, s16 
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

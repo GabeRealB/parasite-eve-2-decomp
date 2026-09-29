@@ -194,7 +194,7 @@ STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64BC, 32);
 extern ShelterB2LaboratoryStorage64BC D_shelter_b2_laboratory_801864BC;
 
 /// World position the looping sound is panned and attenuated from.
-extern GpCoord D_shelter_b2_laboratory_801864DC;
+extern GfxCoord D_shelter_b2_laboratory_801864DC;
 
 /// Non-zero makes the view glows of `func_shelter_b2_laboratory_80180548`
 /// pulse faster. Written through `func_shelter_b2_laboratory_801820F4`; the
@@ -1056,7 +1056,7 @@ s32 D_shelter_b2_laboratory_801864B8 = 0;
 
 ShelterB2LaboratoryStorage64BC D_shelter_b2_laboratory_801864BC = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-GpCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
+GfxCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
 RoomEventReq D_shelter_b2_laboratory_8018652C = { 0, 0, 0, 0, 0, 0 };
 
@@ -1426,11 +1426,11 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
     s8  depth;
     s32 vol;
 
-    D_shelter_b2_laboratory_801864DC.coord.t[0] = 0xC1C;
-    D_shelter_b2_laboratory_801864DC.coord.t[1] = -0x5DC;
-    D_shelter_b2_laboratory_801864DC.coord.t[2] = -0xC80;
-    D_shelter_b2_laboratory_801864DC.sub        = &gGfxViewCoord;
-    D_shelter_b2_laboratory_801864DC.flg        = 0;
+    D_shelter_b2_laboratory_801864DC.coord.t[0]   = 0xC1C;
+    D_shelter_b2_laboratory_801864DC.coord.t[1]   = -0x5DC;
+    D_shelter_b2_laboratory_801864DC.coord.t[2]   = -0xC80;
+    D_shelter_b2_laboratory_801864DC.parent       = &gGfxViewCoord;
+    D_shelter_b2_laboratory_801864DC.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&D_shelter_b2_laboratory_801864DC);
     pan   = Gp_GetObjPan(&D_shelter_b2_laboratory_801864DC);
     depth = gpGetObjDepth(&D_shelter_b2_laboratory_801864DC);

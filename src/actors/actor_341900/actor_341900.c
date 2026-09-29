@@ -97,7 +97,7 @@ extern Task* D_actor_341900_80164208;
 
 /// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
 /// `func_actor_341900_801625B4` copies the first three halves onto part 0's
-/// `GpCoord::coord.t` and hangs that part off entry `field_6` of the
+/// `GfxCoord::coord.t` and hangs that part off entry `field_6` of the
 /// spawner model's own coordinate array, so a record is a spawn offset plus the
 /// bone the actor is attached to. The first three records are all zero and only
 /// `field_6` is under 9 in the rest, which is what sizes a model's part array.
@@ -255,13 +255,7 @@ void func_actor_341900_80163224(Task*, s32, s32);
 void func_actor_341900_801632A0(Task*, s32, GpXformArg*);
 void func_actor_341900_8016332C(void);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor341900PoseBank1880;
-
-Actor341900PoseBank1880 D_actor_341900_801636A0 = { .poses = {
+AnimationPackedPose D_actor_341900_801636A0[6] = {
 #include "assets/actor_341900_animation_01B5C_bank1.inc"
 };
 
@@ -556,13 +550,13 @@ void func_actor_341900_80162200(Task* arg0)
             taskKill(arg0);
         } else {
             Mem_Set(mtx, 0, 0x44);
-            mtx->field_40                = (Task*)arg0->spawnArg2.pointer;
-            extra->flags                 = 0;
-            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
-            extra->lightMtx              = &mtx->light;
-            extra->colorMtx              = &mtx->color;
-            extra->otOffset              = 0x1F;
-            arg0->msgTable               = D_actor_341900_80163A38;
+            mtx->field_40                   = (Task*)arg0->spawnArg2.pointer;
+            extra->flags                    = 0;
+            arg0->extra.tmd->coords->parent = &gGfxViewCoord;
+            extra->lightMtx                 = &mtx->light;
+            extra->colorMtx                 = &mtx->color;
+            extra->otOffset                 = 0x1F;
+            arg0->msgTable                  = D_actor_341900_80163A38;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state++;
@@ -652,20 +646,20 @@ void func_actor_341900_801625B4(Task* arg0)
     Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->work;
     TmdObject*           extra;
     TmdObject*           mdl;
-    GpCoord*             coord;
+    GfxCoord*            coord;
     VECTOR               pos;
 
     if (arg0->state == 0) {
         func_actor_341900_80162330(arg0);
         work = (Actor341900TaskWork*)arg0->work;
 
-        extra             = arg0->extra.tmd;
-        coord             = extra->coords;
-        coord->sub        = &(work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1.value].field_6];
-        coord->coord.t[0] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_0;
-        coord->coord.t[1] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_2;
-        coord->coord.t[2] = D_actor_341900_80163A98[arg0->spawnArg1.value].field_4;
-        coord->flg        = 0;
+        extra               = arg0->extra.tmd;
+        coord               = extra->coords;
+        coord->parent       = &(work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1.value].field_6];
+        coord->coord.t[0]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_0;
+        coord->coord.t[1]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_2;
+        coord->coord.t[2]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_4;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state++;
     }
 
@@ -695,7 +689,7 @@ void func_actor_341900_80162708(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_341900_80162330(arg0);
-            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
+            arg0->extra.tmd->coords->parent = &gGfxViewCoord;
             arg0->state++;
             return;
         case 1:
@@ -1058,8 +1052,8 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
 /// marks the coordinate dirty.
 void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -1069,7 +1063,7 @@ void func_actor_341900_801632A0(Task* task, s32 arg1, GpXformArg* placement)
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Message 0x7DB handler of the actor's second message table; ignores it.

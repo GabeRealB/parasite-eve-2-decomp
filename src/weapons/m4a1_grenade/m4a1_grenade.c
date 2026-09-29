@@ -76,8 +76,8 @@ static void func_m4a1_grenade_8011DDF8(Task* task);
 static void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
     GameActor*  actor;
-    GpCoord*    coord;
-    GpCoord*    spot;
+    GfxCoord*   coord;
+    GfxCoord*   spot;
     GpAnimRec*  rec;
     McItemSlot* slot;
     s32         anim;
@@ -92,7 +92,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
        `G_SCRATCH_HEAD` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GpCoord);
+    spot = SCRATCH_HEAD(GfxCoord);
     sfx  = slot->attachId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
@@ -212,8 +212,8 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     SVECTOR*           vec;
     MATRIX*            mtx;
     TmdObject*         extra;
-    GpCoord*           coord;
-    GpCoord*           muzzle;
+    GfxCoord*          coord;
+    GfxCoord*          muzzle;
     WeaponGrenadeWork* work;
 
     extra                 = arg0->extra.tmd;
@@ -221,7 +221,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     coord                 = extra->coords;
     blk                   = (SVECTOR*)(head - 0x28);
     SCRATCH_HEAD(SVECTOR) = blk;
-    muzzle                = coord->sub;
+    muzzle                = coord->parent;
     work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
     vec                   = blk;
     if (work == NULL) {
@@ -233,10 +233,10 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     arg0->exitCallback = func_m4a1_grenade_8011DE24;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));
-    blk->vx     = 0;
-    blk->vy     = 0x220;
-    blk->vz     = 0x28;
-    muzzle->flg = 0;
+    blk->vx              = 0;
+    blk->vy              = 0x220;
+    blk->vz              = 0x28;
+    muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(muzzle);
     coord->workm = muzzle->workm;
     gte_SetRotMatrix(&muzzle->workm);
@@ -245,11 +245,11 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
-    mtx          = (MATRIX*)(head - 0x20);
-    coord->sub   = &gGfxViewCoord;
-    coord->flg   = 0;
-    extra->flags = 0;
-    *mtx         = coord->coord;
+    mtx                 = (MATRIX*)(head - 0x20);
+    coord->parent       = &gGfxViewCoord;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    extra->flags        = 0;
+    *mtx                = coord->coord;
     Gfx_RotMatrixX(mtx, -0x400, 0);
     Gfx_MatrixCol2(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
@@ -302,7 +302,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
 {
     M4a1GrenadeScratch* blk;
     WeaponGrenadeWork*  work;
-    GpCoord*            coord;
+    GfxCoord*           coord;
     McItemSlot*         slot;
     GpRoomParamRec*     param;
     s32                 idx;
@@ -311,11 +311,11 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     s32                 sfxbase;
     s32                 sfxarg;
 
-    work       = (WeaponGrenadeWork*)arg0->work;
-    coord      = arg0->extra.tmd->coords;
-    slot       = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
-    blk        = SCRATCH_PUSH(M4a1GrenadeScratch);
-    coord->flg = 0;
+    work                = (WeaponGrenadeWork*)arg0->work;
+    coord               = arg0->extra.tmd->coords;
+    slot                = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
+    blk                 = SCRATCH_PUSH(M4a1GrenadeScratch);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->sfx = slot->attachId - 0x9F;

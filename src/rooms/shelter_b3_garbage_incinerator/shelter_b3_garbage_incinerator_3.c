@@ -70,10 +70,10 @@ typedef struct {
 static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
-static void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_801837F8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80164190;
 
@@ -2225,7 +2225,7 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
 void func_shelter_b3_garbage_incinerator_80182368(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -2332,10 +2332,10 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
         case 1:
             func_shelter_b3_garbage_incinerator_80182AB8(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -2352,10 +2352,10 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
         case 2:
             func_shelter_b3_garbage_incinerator_80182F18(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -2372,7 +2372,7 @@ void func_shelter_b3_garbage_incinerator_80182368(Task* task)
     }
 }
 
-static void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -2438,7 +2438,7 @@ static void func_shelter_b3_garbage_incinerator_80182AB8(GpCoord* arg0, u16 arg1
     SCRATCH_POP_BYTES(0x1C);
 }
 
-static void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -2502,7 +2502,7 @@ static void func_shelter_b3_garbage_incinerator_80182F18(GpCoord* arg0, u16 arg1
 void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -2598,11 +2598,11 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -2618,7 +2618,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-static void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_garbage_incinerator_801837F8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2685,7 +2685,7 @@ static void func_shelter_b3_garbage_incinerator_801837F8(GpCoord* arg0, u16 arg1
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-static void func_shelter_b3_garbage_incinerator_80183BE4(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;

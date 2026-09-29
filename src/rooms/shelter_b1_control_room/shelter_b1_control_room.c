@@ -58,13 +58,13 @@ typedef struct {
 } _MirrorCfg;
 
 /// The mirror task's `Task::work`. `viewFlg` caches
-/// `gGfxViewCoord.flg & 0x7FFFFFFF` so the frame is rebuilt only when the view
+/// `gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK` so the frame is rebuilt only when the view
 /// moves. `coord` is the reflected frame the clone's root part hangs from,
 /// `light` and `color` the matrices the clone is drawn under, and `clip` the
 /// screen rectangle (left, right, top, bottom) the reflection may cover.
 typedef struct {
     s32        viewFlg;
-    GpCoord    coord;
+    GfxCoord   coord;
     MATRIX     light;
     MATRIX     color;
     s16        clip[4];
@@ -244,10 +244,10 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     TmdObject*      model;
     TmdObject*      src;
     TmdObject*      body;
-    GpCoord*        parts;
-    GpCoord*        refPart;
-    GpCoord*        from;
-    GpCoord*        to;
+    GfxCoord*       parts;
+    GfxCoord*       refPart;
+    GfxCoord*       from;
+    GfxCoord*       to;
     DR_AREA*        drArea;
     DR_STP*         drStp;
     DR_OFFSET*      drOffset;
@@ -259,7 +259,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     s32             halfWidth;
     s32             texX;
     s32             texBase;
-    GpCoord*        sub;
+    GfxCoord*       sub;
     s32             layer;
     u16             ofs[2];
     RECT            rect;
@@ -290,7 +290,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         model->otOffset        = 0x16;
         model->flags           = 0x10;
         gGameSession->field_4E = 1;
-        parts->sub             = &work->coord;
+        parts->parent          = &work->coord;
         model->lightMtx        = &work->light;
         model->colorMtx        = &work->color;
         Task_Reparent(cfg->subject, task);
@@ -303,17 +303,17 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     work    = task->work;
     parts   = model->coords;
     cfg     = &work->cfg;
-    if (work->viewFlg != (gGfxViewCoord.flg & 0x7FFFFFFF)) {
-        work->viewFlg = gGfxViewCoord.flg & 0x7FFFFFFF;
+    if (work->viewFlg != (gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
+        work->viewFlg = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
         func_shelter_b1_control_room_8017D600(task, cfg);
         if (work->cfg.active == 1) {
-            sub             = gGfxViewCoord.sub;
-            work->clip[0]   = -0xA0;
-            work->clip[1]   = 0xA0;
-            work->clip[2]   = -0x78;
-            work->coord.flg = 0;
-            work->clip[3]   = 0x78;
-            work->coord.sub = sub;
+            sub                      = gGfxViewCoord.parent;
+            work->clip[0]            = -0xA0;
+            work->clip[1]            = 0xA0;
+            work->clip[2]            = -0x78;
+            work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            work->clip[3]            = 0x78;
+            work->coord.parent       = sub;
             if (cfg->mode == 1) {
                 work->coord.coord          = gGfxViewCoord.coord;
                 work->coord.coord.m[1][0] *= -1;
@@ -476,8 +476,8 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         gte_TransposeMatrix(&parts->workm, &scratch->basis);
         gte_MulMatrix0(&from->workm, &scratch->basis, &scratch->basis);
         gte_MulMatrix0(&work->light, &scratch->basis, &work->light);
-        parts->flg = 0;
-        to         = parts;
+        parts->composeStamp = GRAPHICS_COORD_DIRTY;
+        to                  = parts;
         for (layer = 0; layer < (u32)src->partCount; layer++) {
             to->coord = from->coord;
             to++;

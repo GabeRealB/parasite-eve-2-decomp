@@ -44,8 +44,8 @@ void Gp_EffAttachTask37(Task* arg0)
     VECTOR     scale;
     TmdObject* extra;
     GpEffWork* mem;
-    GpCoord*   coord;
-    GpCoord*   player;
+    GfxCoord*  coord;
+    GfxCoord*  player;
     SVECTOR*   rot;
     MATRIX*    mtx;
     s32        state;
@@ -85,13 +85,13 @@ void Gp_EffAttachTask37(Task* arg0)
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
             mem->move.vz = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
             VectorNormalSS(&mem->move, &mem->move);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            coord->flg  = 0;
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            mem->pos.vx         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            mem->pos.vy         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            mem->pos.vz         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
@@ -105,10 +105,10 @@ void Gp_EffAttachTask37(Task* arg0)
             gte_ldsv(&mem->move);
             gte_gpf12();
             gte_stsv(&delta);
-            coord->coord.t[0] += delta.vx;
-            coord->coord.t[1] += delta.vy;
-            coord->coord.t[2] += delta.vz;
-            coord->flg         = 0;
+            coord->coord.t[0]  += delta.vx;
+            coord->coord.t[1]  += delta.vy;
+            coord->coord.t[2]  += delta.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&delta);
             gte_rtv0();
@@ -132,10 +132,10 @@ void Gp_EffAttachTask37(Task* arg0)
                 gte_ldsv(&mem->move);
                 gte_gpf12();
                 gte_stsv(&delta);
-                coord->coord.t[0] += delta.vx;
-                coord->coord.t[1] += delta.vy;
-                coord->coord.t[2] += delta.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += delta.vx;
+                coord->coord.t[1]  += delta.vy;
+                coord->coord.t[2]  += delta.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (!(mem->age & 3)) {
                     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
@@ -200,7 +200,7 @@ void Gp_EffAttachTask37(Task* arg0)
             scale.vz = 0x1000;
             scale2   = scale;
             ScaleMatrix(&coord->coord, &scale2);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (mem->period >= 0x81) {
                 trans       = mem->period - 0x80;
                 mem->period = trans;

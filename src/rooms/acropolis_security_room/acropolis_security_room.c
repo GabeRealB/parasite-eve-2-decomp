@@ -23,7 +23,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
-#include "gameplay/geometry.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/item_pickup.h"
@@ -140,7 +139,7 @@ STATIC_ASSERT_SIZEOF(AsrSpriteFrame, 0xA);
 /// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from
 /// `G_SCRATCH_HEAD` while it draws the security laser. `a` and `b` are the two
 /// endpoints of the beam in the emitter's local frame; each is rotated by the
-/// emitter's `GpCoord::workm` and then biased by that matrix's
+/// emitter's `GfxCoord::workm` and then biased by that matrix's
 /// translation, so both end up in world space. `otz` receives `SZ3 >> 2` from
 /// the `RTPS` of `a` and doubles as the OT slot selector.
 typedef struct AsrBeamScratch {
@@ -1896,8 +1895,8 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
 static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b);
 static void func_acropolis_security_room_8017F1BC(Task* task);
 static void func_acropolis_security_room_8017F300(Task* task);
-static s32  func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2);
-static s32  func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 count, s16 push);
+static s32  func_acropolis_security_room_80181C84(GfxCoord* coord, GpRec18* rec, s16 arg2);
+static s32  func_acropolis_security_room_80181E28(GfxCoord* coord, GpRec18* recs, s16 count, s16 push);
 static void func_acropolis_security_room_80182574(Task* task);
 
 /// Message 0x13EE handler: copies the incoming location record onto the
@@ -3622,7 +3621,7 @@ L_case2:
 void func_acropolis_security_room_801805A4(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s32        i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
@@ -3724,7 +3723,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
     void**          scratch;
     u8*             head;
     AsrBeamScratch* blk;
-    GpCoord*        coord;
+    GfxCoord*       coord;
     LINE_F2*        prim;
 
     coord = task->extra.tmd->coords;
@@ -3785,7 +3784,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
 void func_acropolis_security_room_80180E34(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     POLY_FT4*  prim;
     s16        x;
     s16        y;
@@ -3835,7 +3834,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
 void func_acropolis_security_room_80181108(Task* arg0)
 {
     RoomQuadScratch* blk;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     GpEffWork*       mem;
     POLY_FT4*        prim;
     s32              i;
@@ -3916,7 +3915,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         coord->coord.t[2] += mem->move.vz;
         Gfx_RotMatrixX(&coord->coord, mem->period, 0);
         Gfx_RotMatrixZ(&coord->coord, mem->step, 0);
-        coord->flg = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
         ty = mem->move.vy;
         if (ty >= 0x1D) {
@@ -3974,7 +3973,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 /// the green one, both at one random brightness.
 void func_acropolis_security_room_801817A4(Task* task)
 {
-    GpCoord*         coord;
+    GfxCoord*        coord;
     void*            mem;
     AsrFlashScratch* scratch;
     POLY_G4*         quad;
@@ -4045,7 +4044,7 @@ void func_acropolis_security_room_801817A4(Task* task)
 /// fractional part away from zero. The whole-unit displacement is also left in
 /// `D_acropolis_security_room_801855B0`. Returns non-zero when the X or Z
 /// displacement is non-zero.
-static s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s16 arg2)
+static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, GpRec18* rec, s16 arg2)
 {
     OverlayDeltaFlag* s;
     s32               val;
@@ -4092,7 +4091,7 @@ static s32 func_acropolis_security_room_80181C84(GpCoord* coord, GpRec18* rec, s
 /// record within a quarter turn of it, moves the coordinate `push` units back
 /// along that record's bearing, in X and Z. Returns non-zero if it moved the
 /// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, s16 count, s16 push)
+static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, GpRec18* recs, s16 count, s16 push)
 {
     OverlayBisectorScratch* st;
     s32                     hit;
@@ -4107,7 +4106,7 @@ static s32 func_acropolis_security_room_80181E28(GpCoord* coord, GpRec18* recs, 
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->sub, &st->eye);
+    overlayToWorld(coord->parent, &st->eye);
 
     st->aim.vx = 0;
     st->aim.vy = 0;

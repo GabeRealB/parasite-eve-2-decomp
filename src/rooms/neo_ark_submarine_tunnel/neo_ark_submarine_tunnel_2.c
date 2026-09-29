@@ -49,11 +49,11 @@
 /// level, one row per spawn argument.
 extern s16 D_neo_ark_submarine_tunnel_80181DF4[][3];
 
-static void func_neo_ark_submarine_tunnel_8017FC58(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_submarine_tunnel_8017FEDC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s16 arg1, u8* rgb);
-static void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size);
-static void func_neo_ark_submarine_tunnel_80180D6C(GpCoord* arg0, s32 arg1);
+static void func_neo_ark_submarine_tunnel_8017FC58(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void func_neo_ark_submarine_tunnel_8017FEDC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void func_neo_ark_submarine_tunnel_80180300(GfxCoord* arg0, s16 arg1, u8* rgb);
+static void func_neo_ark_submarine_tunnel_80180840(GfxCoord* coord, s16 size);
+static void func_neo_ark_submarine_tunnel_80180D6C(GfxCoord* arg0, s32 arg1);
 
 extern GpGridParams   D_neo_ark_submarine_tunnel_801824DC[1];
 extern GpObj3A        D_neo_ark_submarine_tunnel_8018781C[3];
@@ -1307,7 +1307,7 @@ void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)
 void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     GpEffWork* spawned;
     MATRIX*    mtx;
     u8         col[4];
@@ -1324,7 +1324,7 @@ void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            coord->sub                       = mem->parent;
+            coord->parent                    = mem->parent;
             mtx                              = &coord->coord;
             MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
             MATRIX_PAIR(mtx, 0, 2)           = 0;
@@ -1334,7 +1334,7 @@ void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
             coord->coord.t[0]                = mem->pos.vx;
             coord->coord.t[1]                = mem->pos.vy;
             coord->coord.t[2]                = mem->pos.vz;
-            coord->flg                       = 0;
+            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
             break;
@@ -1424,8 +1424,8 @@ void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
 void func_neo_ark_submarine_tunnel_8017FA34(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
-    GpCoord*   target;
+    GfxCoord*  coord;
+    GfxCoord*  target;
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
@@ -1453,10 +1453,10 @@ void func_neo_ark_submarine_tunnel_8017FA34(Task* task)
                 task->state = 1;
                 break;
             case 1:
-                coord->coord.t[0] += work->pos.vx;
-                coord->coord.t[1] += work->pos.vy;
-                coord->coord.t[2] += work->pos.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->pos.vx;
+                coord->coord.t[1]  += work->pos.vy;
+                coord->coord.t[2]  += work->pos.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (work->age & 1) {
                     func_neo_ark_submarine_tunnel_8017FC58(coord, ++work->index, 0x200, 0x80);
@@ -1475,7 +1475,7 @@ void func_neo_ark_submarine_tunnel_8017FA34(Task* task)
 /// position of `arg0`, of half-size `arg2` scaled by depth. `arg1 & 3` picks
 /// the animation frame from a row of four 24-texel frames and `arg3` is the
 /// grey level. Nothing is drawn when the projection overflows.
-static void func_neo_ark_submarine_tunnel_8017FC58(GpCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
+static void func_neo_ark_submarine_tunnel_8017FC58(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**         scratch;
     u8*            head;
@@ -1542,7 +1542,7 @@ static void func_neo_ark_submarine_tunnel_8017FC58(GpCoord* arg0, s32 arg1, s32 
 /// Queues a gouraud ring of sixteen quads around the projected world position
 /// of `arg0`: black at radius `arg1` and shaded `rgb` at radius `arg1 + arg2`,
 /// both scaled by depth. Nothing is drawn when the projection overflows.
-static void func_neo_ark_submarine_tunnel_8017FEDC(GpCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+static void func_neo_ark_submarine_tunnel_8017FEDC(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     GpArcScratch* block;
     POLY_G4*      prim;
@@ -1595,7 +1595,7 @@ static void func_neo_ark_submarine_tunnel_8017FEDC(GpCoord* arg0, s32 arg1, s32 
 /// Queues a gouraud disc of eight wedges around the projected world position
 /// of `arg0`, shaded `rgb` at the centre and black at the rim, of radius
 /// `arg1` scaled by depth. Nothing is drawn when the projection overflows.
-static void func_neo_ark_submarine_tunnel_80180300(GpCoord* arg0, s16 arg1, u8* rgb)
+static void func_neo_ark_submarine_tunnel_80180300(GfxCoord* arg0, s16 arg1, u8* rgb)
 {
     GpRingScratch* block;
     POLY_G4*       prim;
@@ -1653,7 +1653,7 @@ void func_neo_ark_submarine_tunnel_80180694(Task* arg0)
 {
     u8         rgb[3];
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     s16        flag;
     s16        step;
 
@@ -1706,9 +1706,9 @@ void func_neo_ark_submarine_tunnel_80180694(Task* arg0)
 /// It also points the `Gp_RoomCoords[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
-static void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size)
+static void func_neo_ark_submarine_tunnel_80180840(GfxCoord* coord, s16 size)
 {
-    GpCoord        ground;
+    GfxCoord       ground;
     POLY_FT4*      prim;
     s16            outerLeft;
     s16            outerRight;
@@ -1726,26 +1726,26 @@ static void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                        = &Gp_RoomCoords[2];
-    slot->framesLeft            = 2;
-    light                       = &slot->data.light;
-    light->inner                = 0x300;
-    light->outer                = 0x3000;
-    random                      = (Gp_LcgState * 5) + 0x71357911;
-    intensity                   = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r               = intensity;
-    shifted                     = intensity << 0x10;
-    light->head.g               = shifted >> 0x11;
-    light->head.b               = shifted >> 0x12;
-    light->head.u.at.local.t[0] = coord->coord.t[0];
-    light->head.u.at.local.t[1] = coord->coord.t[1];
-    light->head.u.at.local.t[2] = coord->coord.t[2];
-    slot->data.coord.flg        = 0;
-    Gp_LcgState                 = random;
-    block                       = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx               = coord->workm.t[0];
-    block->vec.vy               = coord->workm.t[1];
-    block->vec.vz               = coord->workm.t[2];
+    slot                                  = &Gp_RoomCoords[2];
+    slot->framesLeft                      = 2;
+    light                                 = &slot->light;
+    light->inner                          = 0x300;
+    light->outer                          = 0x3000;
+    random                                = (Gp_LcgState * 5) + 0x71357911;
+    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.r                         = intensity;
+    shifted                               = intensity << 0x10;
+    light->head.g                         = shifted >> 0x11;
+    light->head.b                         = shifted >> 0x12;
+    light->head.u.at.local.t[0]           = coord->coord.t[0];
+    light->head.u.at.local.t[1]           = coord->coord.t[1];
+    light->head.u.at.local.t[2]           = coord->coord.t[2];
+    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                           = random;
+    block                                 = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                         = coord->workm.t[0];
+    block->vec.vy                         = coord->workm.t[1];
+    block->vec.vz                         = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);
@@ -1823,7 +1823,7 @@ static void func_neo_ark_submarine_tunnel_80180840(GpCoord* coord, s16 size)
 /// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
 /// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
 /// alternates between two 32-pixel columns on successive frames.
-static void func_neo_ark_submarine_tunnel_80180D6C(GpCoord* arg0, s32 arg1)
+static void func_neo_ark_submarine_tunnel_80180D6C(GfxCoord* arg0, s32 arg1)
 {
     void**         scratch;
     u8*            head;

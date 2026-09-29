@@ -60,13 +60,13 @@
 /// `field_2A4` is the coordinate node the actor's model is re-parented to:
 /// `func_actor_342000_80162158` seeds it with `&gGfxViewCoord`, and the exit
 /// callback `func_actor_342000_80163F88` writes it back into
-/// `task->extra.tmd->coords->sub`.
+/// `task->extra.tmd->coords->parent`.
 ///
 /// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
 /// builds `coord.coord` from the euler angles below it (`Gfx_RotMatrixY` of
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
 /// scales each of its columns by the matching `field_264` component through
-/// `gpf 12` and clears `coord.flg`; `func_actor_342000_801640C0` writes all of
+/// `gpf 12` and clears `coord.composeStamp`; `func_actor_342000_801640C0` writes all of
 /// it from a `GpXformArg`.
 ///
 /// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
@@ -97,7 +97,7 @@ typedef struct Actor342000Work {
     /* 0x154 */ byte       pad_154[0x80];
     /* 0x1D4 */ MATRIX     light;
     /* 0x1F4 */ MATRIX     color;
-    /* 0x214 */ GpCoord    coord;
+    /* 0x214 */ GfxCoord   coord;
     /* 0x264 */ VECTOR     field_264;
     /* 0x274 */ s32        field_274;
     /* 0x278 */ s32        field_278;
@@ -108,7 +108,7 @@ typedef struct Actor342000Work {
     /* 0x298 */ Task*      field_298;
     /* 0x29C */ Task*      field_29C;
     /* 0x2A0 */ Task*      field_2A0;
-    /* 0x2A4 */ GpCoord*   field_2A4;
+    /* 0x2A4 */ GfxCoord*  field_2A4;
     /* 0x2A8 */ byte       pad_2A8[0x2];
     /* 0x2AA */ u16        field_2AA;
 } Actor342000Work;
@@ -207,13 +207,7 @@ void func_actor_342000_8016447C(void);
 void func_actor_342000_8016449C(void);
 void func_actor_342000_801644BC(void);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} Actor342000PoseBank26C4;
-
-Actor342000PoseBank26C4 D_actor_342000_801644E4 = { .poses = {
+AnimationPackedPose D_actor_342000_801644E4[6] = {
 #include "assets/actor_342000_animation_029A0_bank1.inc"
 };
 
@@ -521,10 +515,10 @@ void func_actor_342000_8016201C(Task* arg0)
             if (arg0->spawnArg1.value != 0) {
                 extra->otOffset = 0x1F;
             }
-            arg0->extra.tmd->coords->sub = &gGfxViewCoord;
-            extra->colorMtx              = &mtx->color;
-            extra->lightMtx              = &mtx->light;
-            arg0->msgTable               = D_actor_342000_801648A8;
+            arg0->extra.tmd->coords->parent = &gGfxViewCoord;
+            extra->colorMtx                 = &mtx->color;
+            extra->lightMtx                 = &mtx->light;
+            arg0->msgTable                  = D_actor_342000_801648A8;
             Task_Reparent(mtx->field_40, arg0);
         }
         arg0->state += 1;
@@ -544,23 +538,23 @@ void func_actor_342000_8016201C(Task* arg0)
 /// of being hoisted to the top of each case.
 static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 {
-    GpCoord*    coord;
+    GfxCoord*   coord;
     OverlayMat* mtx;
 
-    coord                        = &w->coord;
-    coord->sub                   = ((Actor342000Work*)arg0->work)->field_2A4;
-    arg0->extra.tmd->coords->sub = coord;
-    coord->coord.t[0]            = 0;
-    coord->coord.t[1]            = 0;
-    coord->coord.t[2]            = 0;
-    mtx                          = (OverlayMat*)&w->coord.coord;
-    mtx->ident.m00_m01           = 0x1000;
-    mtx->ident.m02_m10           = 0;
-    mtx->ident.m11_m12           = 0x1000;
-    mtx->ident.m20_m21           = 0;
-    mtx->ident.m22               = 0x1000;
-    w->coord.flg                 = 0;
-    arg0->extra.tmd->coords->flg = 0;
+    coord                                 = &w->coord;
+    coord->parent                         = ((Actor342000Work*)arg0->work)->field_2A4;
+    arg0->extra.tmd->coords->parent       = coord;
+    coord->coord.t[0]                     = 0;
+    coord->coord.t[1]                     = 0;
+    coord->coord.t[2]                     = 0;
+    mtx                                   = (OverlayMat*)&w->coord.coord;
+    mtx->ident.m00_m01                    = 0x1000;
+    mtx->ident.m02_m10                    = 0;
+    mtx->ident.m11_m12                    = 0x1000;
+    mtx->ident.m20_m21                    = 0;
+    mtx->ident.m22                        = 0x1000;
+    w->coord.composeStamp                 = GRAPHICS_COORD_DIRTY;
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Spawn tick shared by the actor and its child model tasks: allocates and
@@ -661,7 +655,7 @@ void func_actor_342000_801625D8(Task* arg0)
     Actor342000Work* work;
     OverlayMat*      mtx;
     VECTOR*          sc;
-    GpCoord*         coord;
+    GfxCoord*        coord;
     TmdObject*       extra;
     VECTOR           pos;
 
@@ -670,13 +664,13 @@ void func_actor_342000_801625D8(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_342000_80162158(arg0);
-            work              = (Actor342000Work*)arg0->work;
-            coord             = arg0->extra.tmd->coords;
-            coord->coord.t[0] = D_actor_342000_80164900[arg0->spawnArg1.value].vx;
-            coord->coord.t[1] = D_actor_342000_80164900[arg0->spawnArg1.value].vy;
-            coord->coord.t[2] = D_actor_342000_80164900[arg0->spawnArg1.value].vz;
-            coord->flg        = 0;
-            arg0->state      += 1;
+            work                = (Actor342000Work*)arg0->work;
+            coord               = arg0->extra.tmd->coords;
+            coord->coord.t[0]   = D_actor_342000_80164900[arg0->spawnArg1.value].vx;
+            coord->coord.t[1]   = D_actor_342000_80164900[arg0->spawnArg1.value].vy;
+            coord->coord.t[2]   = D_actor_342000_80164900[arg0->spawnArg1.value].vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state        += 1;
             break;
         case 1:
             sc                 = &((Actor342000Work*)work->field_298->work)->field_264;
@@ -687,7 +681,7 @@ void func_actor_342000_801625D8(Task* arg0)
             mtx->ident.m20_m21 = 0;
             mtx->ident.m22     = 0x1000;
             gfxScaleMatrixColumns(&mtx->mat, sc);
-            work->coord.flg = 0;
+            work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
     arg0->extra.tmd->flags = work->field_298->extra.tmd->flags;
@@ -734,7 +728,7 @@ void func_actor_342000_801628C8(Task* arg0)
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
             gfxScaleMatrixColumns(&mtx->mat, &work->field_264);
-            work->coord.flg = 0;
+            work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         default:
             data = (Actor342000Work*)arg0->work;
@@ -1311,12 +1305,12 @@ void func_actor_342000_80163EAC(Task* arg0)
 static void func_actor_342000_80163F88(Task* task)
 {
     Actor342000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
 
     coord = task->extra.tmd->coords;
     work  = (Actor342000Work*)task->work;
 
-    coord->sub = work->field_2A4;
+    coord->parent = work->field_2A4;
     taskKill(task);
 }
 
@@ -1347,8 +1341,8 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
 /// marks the coordinate dirty.
 void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = arg2->pos.vx;
@@ -1358,23 +1352,23 @@ void func_actor_342000_80164034(Task* task, s32 arg1, GpXformArg* arg2)
     Gfx_RotMatrixY(mtx, arg2->rot.vy, 1);
     Gfx_RotMatrixX(mtx, arg2->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, arg2->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_actor_342000_801640C0(Task* arg0, s32 arg1, GpXformArg* arg2)
 {
     Actor342000Work* work;
-    GpCoord*         coord;
+    GfxCoord*        coord;
 
-    work              = (Actor342000Work*)arg0->work;
-    coord             = &work->coord;
-    coord->coord.t[0] = arg2->pos.vx;
-    coord->coord.t[1] = arg2->pos.vy;
-    coord->coord.t[2] = arg2->pos.vz;
-    work->field_274   = arg2->rot.vx;
-    work->field_278   = arg2->rot.vy;
-    work->field_27C   = arg2->rot.vz;
-    work->coord.flg   = 0;
+    work                     = (Actor342000Work*)arg0->work;
+    coord                    = &work->coord;
+    coord->coord.t[0]        = arg2->pos.vx;
+    coord->coord.t[1]        = arg2->pos.vy;
+    coord->coord.t[2]        = arg2->pos.vz;
+    work->field_274          = arg2->rot.vx;
+    work->field_278          = arg2->rot.vy;
+    work->field_27C          = arg2->rot.vz;
+    work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg* arg3)

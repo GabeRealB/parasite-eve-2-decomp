@@ -58,7 +58,7 @@
 extern GpEvsCmd D_shelter_b1_sterilization_room_80188C94[];
 extern GpEvsCmd D_shelter_b1_sterilization_room_80188E14[];
 
-static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3);
+static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
 static void func_shelter_b1_sterilization_room_80182B34(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_sterilization_room_80183378(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -1102,7 +1102,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
 /// cannot bound and the radius keeps its `s16` sign extension.
 void func_shelter_b1_sterilization_room_8018188C(Task* task)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     s32 angle;
     s32 i;
@@ -1372,7 +1372,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        base;
 
@@ -1399,11 +1399,11 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             task->state    = 1;
         case 1:
             if (Gp_State1C->eventState == 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
-                work->scale       += work->step;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->scale        += work->step;
             } else {
                 work->age--;
             }
@@ -1421,7 +1421,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 /// `POLY_FT4` (tpage 0x2B, clut 0x43D0) rotated about the projected point.
 /// `frame` picks a 48x48 cell from a 5-column sheet; the half-extent is
 /// `arg2 * 47 / otz` and `arg3` is the spin angle.
-static void func_shelter_b1_sterilization_room_801826F0(GpCoord* coord, s16 frame, s16 arg2, s16 arg3)
+static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 frame, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;

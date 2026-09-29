@@ -216,13 +216,7 @@ TmdSource D_acropolis_west_elevator_hall_8018077C = {
     D_acropolis_west_elevator_hall_80180618,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[100];
-    AnimationPackedRotation        words[300];
-} AcropolisWestElevatorHallPoseBank31E0;
-
-AcropolisWestElevatorHallPoseBank31E0 D_acropolis_west_elevator_hall_801807A0 = { .poses = {
+AnimationPackedPose D_acropolis_west_elevator_hall_801807A0[100] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_bank1.inc"
 };
 
@@ -1052,7 +1046,7 @@ void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
 static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 {
     TmdObject*         extra;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     AwehElevatorState* work;
 
     extra = task->extra.tmd;
@@ -1062,14 +1056,14 @@ static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
         taskKill(task);
         return;
     }
-    task->work        = (TaskIdMap*)work;
-    work->field_0     = 0;
-    extra->flags      = 0;
-    coord->sub        = &gGfxViewCoord;
-    coord->coord.t[0] = -1000;
-    coord->coord.t[1] = -20;
-    coord->coord.t[2] = 0x974;
-    coord->flg        = 0;
+    task->work          = (TaskIdMap*)work;
+    work->field_0       = 0;
+    extra->flags        = 0;
+    coord->parent       = &gGfxViewCoord;
+    coord->coord.t[0]   = -1000;
+    coord->coord.t[1]   = -20;
+    coord->coord.t[2]   = 0x974;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state++;
 }
 
@@ -1080,7 +1074,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 {
     VECTOR             pos;
     TmdObject*         extra;
-    GpCoord*           coord;
+    GfxCoord*          coord;
     AwehElevatorState* work;
 
     work  = (AwehElevatorState*)task->work;
@@ -1100,7 +1094,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     } else {
         extra->flags = 0x80;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
@@ -1112,9 +1106,9 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 /// spawns the lift's ambient effects around the room's coordinate system.
 void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
 {
-    SVECTOR  pos;
-    SVECTOR  altPos;
-    GpCoord* coord;
+    SVECTOR   pos;
+    SVECTOR   altPos;
+    GfxCoord* coord;
 
     coord = task->extra.tmd->coords;
     switch (task->state) {
@@ -1200,7 +1194,7 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
     u8*               head;
     RoomShaftScratch* block;
     POLY_G4*          prim;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void*             mem;
     s32               i;
     s32               red;
@@ -1318,7 +1312,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     u8*               head;
     RoomShaftScratch* block;
     s32*              otzp;
-    GpCoord*          coord;
+    GfxCoord*         coord;
     void*             mem;
     POLY_FT4*         prim;
     u16               vz;

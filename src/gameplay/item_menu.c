@@ -1282,7 +1282,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 }
 
 /// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
-/// Tilts `field_8[2]` (a `GpCoord`) while playing a location-specific
+/// Tilts `field_8[2]` (a `GfxCoord`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
 /// the motion returns to 0.
 void Gp_ItemPickupTilt(Task* arg0)
@@ -1290,8 +1290,8 @@ void Gp_ItemPickupTilt(Task* arg0)
     GameSession* session;
     TmdObject*   extra;
     GpItemObj8*  obj;
-    GpCoord*     coord;
-    GpCoord*     rot;
+    GfxCoord*    coord;
+    GfxCoord*    rot;
     VECTOR       vec;
     VECTOR       vec2;
     MATRIX*      mem;
@@ -1403,7 +1403,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     } else if (arg0->state == 2) {
         arg0->killCountdown++;
         Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
-        rot->flg = 0;
+        rot->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->killCountdown >= 0x14) {
             /* Unique items and stackables open the same pickup result task. */
             if (item < 0xA0) {
@@ -1468,7 +1468,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             arg0->killCountdown = 0;
         }
         Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
-        rot->flg = 0;
+        rot->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->killCountdown == 0) {
             arg0->status = 0;
             done         = arg0->extraState.pointer;

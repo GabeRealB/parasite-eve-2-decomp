@@ -41,7 +41,7 @@ void func_800B65B0(Task* task)
     UiObject*     ui;
     UiObject*     spawned;
     Task*         child;
-    GpCoord*      coord;
+    GfxCoord*     coord;
     PlayerPos*    p;
     s32           temp;
     s32           angle;

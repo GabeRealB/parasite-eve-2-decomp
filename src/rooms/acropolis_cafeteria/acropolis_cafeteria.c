@@ -479,13 +479,7 @@ TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { 0, 192, func_acropolis_cafeteria_8017E47C, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[23];
-    AnimationPackedRotation        words[69];
-} AcropolisCafeteriaPoseBank6BDC;
-
-AcropolisCafeteriaPoseBank6BDC D_acropolis_cafeteria_8018419C = { .poses = {
+AnimationPackedPose D_acropolis_cafeteria_8018419C[23] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank1.inc"
 };
 
@@ -2745,7 +2739,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
 void func_acropolis_cafeteria_8017DF68(Task* task)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord = Gp_LookupSlot4(0)->extra.tmd->coords;
     switch (task->state) {
@@ -2765,7 +2759,7 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
                 coord->coord.t[1] = -0x12C;
             }
             coord->coord.t[2]              += D_acropolis_cafeteria_8018D6A8;
-            coord->flg                      = 0;
+            coord->composeStamp             = GRAPHICS_COORD_DIRTY;
             D_acropolis_cafeteria_8018D6A0  = D_acropolis_cafeteria_8018D6A0 / 2;
             D_acropolis_cafeteria_8018D6A4 += 5;
             if (D_acropolis_cafeteria_8018D6A4 > 0x14) {

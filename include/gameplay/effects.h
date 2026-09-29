@@ -8,7 +8,7 @@
 
 #include "main/coord.h"
 
-struct GpCoord;
+struct GfxCoord;
 struct Task;
 
 /// The scratch-pad block of a shape drawn about one projected point: `vec` is
@@ -90,9 +90,9 @@ STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
 /// A record is either a global of the overlay that spawns the effects or a
 /// member of the work block the spawner keeps beside it.
 typedef struct {
-    GpCoord* coord;      // coordinate the effects are placed under, filled in on first use
-    s16      spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
-    s16      spawnArgHi; // high half; also the repeat count of an effect spawned in a series
+    GfxCoord* coord;      // coordinate the effects are placed under, filled in on first use
+    s16       spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
+    s16       spawnArgHi; // high half; also the repeat count of an effect spawned in a series
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
@@ -111,18 +111,18 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// compare, divide and shift them as signed values. A task that wants one of
 /// them unsigned converts it where it reads it.
 typedef struct GpEffWork {
-    struct Task*    task;    // the effect's own task, which carries this block as its `spawnArg2`
-    s32             field_4; // role unproven: zeroed by the spawn path, never read
-    struct GpCoord* parent;  // coordinate the effect hangs off, copied onto `GpCoord.sub`
-    SVECTOR*        field_C; // role unproven: the offset vector the spawn was called with, never read
-    SVECTOR         move;    // vector the owning task moves the effect by
-    SVECTOR         pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
-    s16             index;   // the owning task's index into the table that picks the effect's frame or level
-    s16             age;     // frames since the effect was spawned
-    s16             scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
-    s16             angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
-    s16             period;  // frames the task's current phase lasts, or the size it holds while it lasts
-    s16             step;    // per-frame step the task advances another slot by, or a packed draw parameter
+    struct Task*     task;    // the effect's own task, which carries this block as its `spawnArg2`
+    s32              field_4; // role unproven: zeroed by the spawn path, never read
+    struct GfxCoord* parent;  // coordinate the effect hangs off, copied onto `GfxCoord.parent`
+    SVECTOR*         field_C; // role unproven: the offset vector the spawn was called with, never read
+    SVECTOR          move;    // vector the owning task moves the effect by
+    SVECTOR          pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
+    s16              index;   // the owning task's index into the table that picks the effect's frame or level
+    s16              age;     // frames since the effect was spawned
+    s16              scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
+    s16              angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
+    s16              period;  // frames the task's current phase lasts, or the size it holds while it lasts
+    s16              step;    // per-frame step the task advances another slot by, or a packed draw parameter
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 

@@ -260,11 +260,11 @@ typedef struct {
 /// Spawn record for a falling shard: where it starts relative to `parent`, its
 /// base velocity, its size, and the downward speed it gains each frame.
 typedef struct {
-    SVECTOR  pos;
-    SVECTOR  vel;
-    GpCoord* parent;
-    u16      size;
-    u16      fall;
+    SVECTOR   pos;
+    SVECTOR   vel;
+    GfxCoord* parent;
+    u16       size;
+    u16       fall;
 } DumpingHoleShardCfg;
 
 /// Work block of a falling shard: its current rotation and spin, its velocity,
@@ -283,7 +283,7 @@ typedef struct {
     GpXformArg pose;     // Sent to the task itself with message 0x7D4
     SVECTOR    field_58; // Spawn parameters handed by address to the table spawns
     SVECTOR    field_60;
-    GpCoord*   field_68;
+    GfxCoord*  field_68;
     s16        field_6C;
     s16        field_6E;
     VECTOR     scale; // Per-axis scale applied to the rotation of model part 3
@@ -392,11 +392,11 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
 static void func_shelter_b3_dumping_hole_80184638(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2);
+static void func_shelter_b3_dumping_hole_801866CC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
-static void func_shelter_b3_dumping_hole_8017FD9C(GpCoord* arg0, s32 arg1);
+static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1);
 
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
@@ -417,8 +417,8 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
-static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_8018596C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+static void func_shelter_b3_dumping_hole_80185DCC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
 void func_shelter_b3_dumping_hole_8017DCFC(Task*);
 void func_shelter_b3_dumping_hole_8017DF90(Task*);
@@ -843,13 +843,7 @@ TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
     { 2, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} ShelterB3DumpingHolePoseBankC534;
-
-ShelterB3DumpingHolePoseBankC534 D_shelter_b3_dumping_hole_80189AF4 = { .poses = {
+AnimationPackedPose D_shelter_b3_dumping_hole_80189AF4[6] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank1.inc"
 };
 
@@ -871,13 +865,7 @@ GpAnimSet D_shelter_b3_dumping_hole_80189DD0 = {
     { NULL, D_shelter_b3_dumping_hole_80189AF4, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[9];
-    AnimationPackedRotation        words[27];
-} ShelterB3DumpingHolePoseBankC838;
-
-ShelterB3DumpingHolePoseBankC838 D_shelter_b3_dumping_hole_80189DF8 = { .poses = {
+AnimationPackedPose D_shelter_b3_dumping_hole_80189DF8[9] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank1.inc"
 };
 
@@ -899,13 +887,7 @@ GpAnimSet D_shelter_b3_dumping_hole_8018A274 = {
     { NULL, D_shelter_b3_dumping_hole_80189DF8, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[28];
-    AnimationPackedRotation        words[84];
-} ShelterB3DumpingHolePoseBankCCDC;
-
-ShelterB3DumpingHolePoseBankCCDC D_shelter_b3_dumping_hole_8018A29C = { .poses = {
+AnimationPackedPose D_shelter_b3_dumping_hole_8018A29C[28] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank1.inc"
 };
 
@@ -2031,7 +2013,7 @@ u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
 s32 D_shelter_b3_dumping_hole_8018F4D8;
 
 static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y);
-static u16        func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
+static u16        func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, s16 u,
                                                         s16 v, s16 tpageX, s16 tpageY, s16 scale,
                                                         s16 clut, s32 otzOverride);
 static void       func_shelter_b3_dumping_hole_8017E7DC(Task* arg0);
@@ -2063,7 +2045,7 @@ static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
 /// Otherwise a semi-transparent `POLY_FT4` of `w` x `h` texels at (`u`, `v`),
 /// scaled by `scale` (4096 = 1.0), is linked into the ordering table at the
 /// projected depth, or at `otzOverride` when that is non-zero, and 0 is returned.
-static u16 func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s16 u,
+static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, s16 u,
                                                  s16 v, s16 tpageX, s16 tpageY, s16 scale,
                                                  s16 clut, s32 otzOverride)
 {
@@ -2120,7 +2102,7 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GpCoord* coord, s16 w, s16 h, s
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
     DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
-    GpCoord*             coord  = arg0->extra.tmd->coords;
+    GfxCoord*            coord  = arg0->extra.tmd->coords;
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
     if (entity->field_42 == 1) {
@@ -2130,7 +2112,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            coord->sub        = &gGfxViewCoord;
+            coord->parent     = &gGfxViewCoord;
             coord->coord.t[0] = W->field_0;
             coord->coord.t[1] = W->field_2;
             coord->coord.t[2] = W->field_4;
@@ -2186,13 +2168,13 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
         taskKill(arg0);
         return;
     }
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 {
     DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
-    GpCoord*             coord = arg0->extra.tmd->coords;
+    GfxCoord*            coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     SVECTOR              pos;
     DVECTOR              sxy;
@@ -2219,8 +2201,8 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2.pointer, &coord->coord, &vec);
+            coord->parent = &gGfxViewCoord;
+            Gp_ComposeParentWorld(arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx + W->field_C;
             coord->coord.t[1] = vec.vy + W->field_E;
             coord->coord.t[2] = vec.vz + W->field_10;
@@ -2291,13 +2273,13 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     prim->clut  = 0x43C0;
     prim->tpage = getTPage(0, 1, (tx / 64) * 64, (ty / 256) * 256);
     addPrim(&gGpuCurrentOt[otz >> 4], prim);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
     DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
-    GpCoord*             coord = arg0->extra.tmd->coords;
+    GfxCoord*            coord = arg0->extra.tmd->coords;
     SVECTOR              vec;
     s32                  sa1;
     u32                  roll1;
@@ -2313,8 +2295,8 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            coord->sub = &gGfxViewCoord;
-            Gp_ComposeParentWorld((GpCoord*)arg0->spawnArg2.pointer, &coord->coord, &vec);
+            coord->parent = &gGfxViewCoord;
+            Gp_ComposeParentWorld(arg0->spawnArg2.pointer, &coord->coord, &vec);
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
@@ -2390,7 +2372,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0,
                 D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_4,
                 work->field_8, 0x43C0, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
         }
     }
@@ -2400,7 +2382,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 {
     DumpingHoleCoordWork* work;
     TmdObject*            extra;
-    GpCoord*              coord;
+    GfxCoord*             coord;
     DumpingHoleCoordCfg*  cfg;
     VECTOR                v;
     TmdObject*            e2;
@@ -2415,7 +2397,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
         return;
     }
     Mem_Set(work, 0, 0x5C);
-    coord->sub             = &gGfxViewCoord;
+    coord->parent          = &gGfxViewCoord;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(extra);
     extra->lightMtx   = &work->field_0;
@@ -2426,7 +2408,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     Gfx_RotMatrixY(&coord->coord, cfg->field_12, 1);
     Gfx_RotMatrixX(&coord->coord, cfg->field_10, 0);
     Gfx_RotMatrixZ(&coord->coord, cfg->field_14, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Task_Reparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
     e2   = arg0->extra.tmd;
@@ -2444,8 +2426,8 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 {
     DumpingHoleCoordWork* work  = (DumpingHoleCoordWork*)arg0->work;
     u16                   flag  = ((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_40;
-    GpCoord*              coord = arg0->extra.tmd->coords;
-    GpCoord*              c2;
+    GfxCoord*             coord = arg0->extra.tmd->coords;
+    GfxCoord*             c2;
     DumpingHoleProjection p;
     s32                   sx;
     s32                   sy;
@@ -2538,13 +2520,13 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             work->rotZ     += work->spinZ;
             work->fall     += 5;
             c2              = arg0->extra.tmd->coords;
-            c2->sub         = &gGfxViewCoord;
+            c2->parent      = &gGfxViewCoord;
             c2->coord.t[0] += work->velX;
             c2->coord.t[1] += work->velY + work->fall;
             c2->coord.t[2] += work->velZ;
             Gfx_RotMatrixY(&c2->coord, (s16)work->rotY, 1);
             Gfx_RotMatrixX(&c2->coord, (s16)work->rotX, 0);
-            c2->flg = 0;
+            c2->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
     }
 }
@@ -2930,7 +2912,7 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
 }
 
-void func_shelter_b3_dumping_hole_8017FCF4(GpCoord* arg0, SVECTOR* arg1)
+void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
 {
     Task*                 task;
     DumpingHoleSpawnWork* work;
@@ -2948,7 +2930,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(GpCoord* arg0, SVECTOR* arg1)
     work->field_10 = (u16)arg1->vz;
 }
 
-static void func_shelter_b3_dumping_hole_8017FD9C(GpCoord* arg0, s32 arg1)
+static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) == 0) {
         Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
@@ -3045,7 +3027,7 @@ void func_shelter_b3_dumping_hole_80180034(void)
 void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 {
     DumpingHoleShard*    work;
-    GpCoord*             coord;
+    GfxCoord*            coord;
     DumpingHoleShardCfg* cfg;
     POLY_G3*             prim;
     SVECTOR              ofs;
@@ -3071,8 +3053,8 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             if (arg0->work == NULL) {
                 goto kill;
             }
-            work       = (DumpingHoleShard*)arg0->work;
-            coord->sub = &gGfxViewCoord;
+            work          = (DumpingHoleShard*)arg0->work;
+            coord->parent = &gGfxViewCoord;
             Mem_Set(arg0->work, 0, 0x34);
             Gp_ComposeParentWorld(cfg->parent, &coord->coord, &ofs);
             coord->coord.t[0] = ofs.vx + cfg->pos.vx;
@@ -3163,7 +3145,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
-            coord->flg = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
@@ -3489,8 +3471,8 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             if (task->work == NULL) {
                 taskKill(task);
             } else {
-                task->extra.tmd->coords->sub = &gGfxViewCoord;
-                work                         = task->work;
+                task->extra.tmd->coords->parent = &gGfxViewCoord;
+                work                            = task->work;
                 Mem_Set(work, 0, 0xA0);
                 work->field_80                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
@@ -3558,8 +3540,8 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
 /// coordinate is marked for recomputation.
 void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* placement)
 {
-    GpCoord* coord;
-    MATRIX*  mtx;
+    GfxCoord* coord;
+    MATRIX*   mtx;
 
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
@@ -3569,7 +3551,7 @@ void func_shelter_b3_dumping_hole_80181854(Task* task, s32 arg1, GpXformArg* pla
     Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void func_shelter_b3_dumping_hole_801818E0(void)
@@ -4475,7 +4457,7 @@ static void func_shelter_b3_dumping_hole_80184E7C(SVECTOR* arg0, s32 arg1, s32 a
 void func_shelter_b3_dumping_hole_8018521C(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        step;
     s32        level;
@@ -4582,10 +4564,10 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
         case 1:
             func_shelter_b3_dumping_hole_8018596C(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -4602,10 +4584,10 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
         case 2:
             func_shelter_b3_dumping_hole_80185DCC(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                coord->coord.t[0] += work->move.vx;
-                coord->coord.t[1] += work->move.vy;
-                coord->coord.t[2] += work->move.vz;
-                coord->flg         = 0;
+                coord->coord.t[0]  += work->move.vx;
+                coord->coord.t[1]  += work->move.vy;
+                coord->coord.t[2]  += work->move.vz;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
@@ -4622,7 +4604,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
     }
 }
 
-static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_8018596C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -4695,7 +4677,7 @@ static void func_shelter_b3_dumping_hole_8018596C(GpCoord* arg0, u16 arg1, s16 a
 /// frame, a 48x48 cell in a five-wide grid of the texture page; the top bits
 /// pick one of two palettes. Nothing is drawn when the projection flags an
 /// error.
-static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_80185DCC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -4767,7 +4749,7 @@ static void func_shelter_b3_dumping_hole_80185DCC(GpCoord* arg0, u16 arg1, s16 a
 void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
     GpEffWork* work;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     SVECTOR*   vec;
     s32        kind;
     s32        step;
@@ -4868,11 +4850,11 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
             return;
     }
     if (work->step != 0) {
-        coord->coord.t[0] += work->move.vx;
-        coord->coord.t[1] += work->move.vy;
-        coord->coord.t[2] += work->move.vz;
-        coord->flg         = 0;
-        work->move.vy     += 6;
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->move.vy      += 6;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
@@ -4888,7 +4870,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
 /// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
 /// in a row of the texture page. Nothing is drawn when the projection flags
 /// an error.
-static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+static void func_shelter_b3_dumping_hole_801866CC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -4955,7 +4937,7 @@ static void func_shelter_b3_dumping_hole_801866CC(GpCoord* arg0, u16 arg1, s16 a
 /// projected point sits three quarters of the way down it. `arg1` picks the
 /// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
 /// drawn when the projection flags an error.
-static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 arg2)
+static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -5007,7 +4989,7 @@ static void func_shelter_b3_dumping_hole_80186AB8(GpCoord* arg0, s32 arg1, s32 a
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
     GpEffWork* mem;
-    GpCoord*   coord;
+    GfxCoord*  coord;
     MATRIX*    m;
     s32        i;
 
@@ -5022,7 +5004,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     }
     if (arg0->state == 0) {
         m                                = &coord->coord;
-        coord->sub                       = mem->parent;
+        coord->parent                    = mem->parent;
         MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
         MATRIX_PAIR(m, 0, 2)             = 0;
         MATRIX_PAIR(m, 1, 1)             = 0x1000;
@@ -5031,7 +5013,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
-        coord->flg                       = 0;
+        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
     }

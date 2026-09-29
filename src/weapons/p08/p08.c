@@ -33,12 +33,12 @@ static void func_p08_8011D1D8(Task* arg0);
 static void func_p08_8011D1D8(Task* arg0)
 {
     GameActor* actor;
-    GpCoord*   coord;
-    GpCoord*   spot;
+    GfxCoord*  coord;
+    GfxCoord*  spot;
     s32        anim;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GpCoord);
+    spot  = SCRATCH_HEAD(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

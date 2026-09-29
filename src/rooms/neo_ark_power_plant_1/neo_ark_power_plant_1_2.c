@@ -76,13 +76,7 @@ extern GpAnimArg D_neo_ark_power_plant_1_8017EEAC;
 extern GpAnimSet                        D_neo_ark_power_plant_1_8017EAF0;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[10];
-    AnimationPackedRotation        words[30];
-} NeoArkPowerPlant1PoseBankFEC;
-
-NeoArkPowerPlant1PoseBankFEC D_neo_ark_power_plant_1_8017E5AC = { .poses = {
+AnimationPackedPose D_neo_ark_power_plant_1_8017E5AC[10] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank1.inc"
 };
 

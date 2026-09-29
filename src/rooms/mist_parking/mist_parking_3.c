@@ -68,13 +68,7 @@ s16* D_mist_parking_8018FCB4[1] = {
 
 GpGridParams D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[6];
-    AnimationPackedRotation        words[18];
-} MistParkingPoseBank1271C;
-
-MistParkingPoseBank1271C D_mist_parking_8018FCDC = { .poses = {
+AnimationPackedPose D_mist_parking_8018FCDC[6] = {
 #include "assets/mist_parking_animation_129F8_bank1.inc"
 };
 
@@ -96,13 +90,7 @@ GpAnimSet D_mist_parking_8018FFB8 = {
     { NULL, D_mist_parking_8018FCDC, NULL, NULL, D_mist_parking_8018FD24, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[8];
-    AnimationPackedRotation        words[24];
-} MistParkingPoseBank12A20;
-
-MistParkingPoseBank12A20 D_mist_parking_8018FFE0 = { .poses = {
+AnimationPackedPose D_mist_parking_8018FFE0[8] = {
 #include "assets/mist_parking_animation_12DCC_bank1.inc"
 };
 
@@ -124,13 +112,7 @@ GpAnimSet D_mist_parking_8019038C = {
     { NULL, D_mist_parking_8018FFE0, NULL, NULL, D_mist_parking_80190040, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    AnimationPackedPose poses[5];
-    AnimationPackedRotation        words[15];
-} MistParkingPoseBank12DF4;
-
-MistParkingPoseBank12DF4 D_mist_parking_801903B4 = { .poses = {
+AnimationPackedPose D_mist_parking_801903B4[5] = {
 #include "assets/mist_parking_animation_1323C_bank1.inc"
 };
 
@@ -328,11 +310,11 @@ static void func_mist_parking_80183A28(Task* task)
 
 /// Places the task's model at `placement`: its position becomes the
 /// coordinate frame's translation, its angles the frame's rotation, from
-/// which `RotMatrixZYX` rebuilds the matrix; clearing `flg` makes the frame
+/// which `RotMatrixZYX` rebuilds the matrix; clearing `composeStamp` makes the frame
 /// be recomputed.
 static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placement, s32 arg3)
 {
-    GpCoord* coord;
+    GfxCoord* coord;
 
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
@@ -342,7 +324,7 @@ static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, GpXformArg* placemen
     coord->param.rot.vy = placement->rot.vy;
     coord->param.rot.vz = placement->rot.vz;
     RotMatrixZYX(&coord->param.rot, &coord->coord);
-    coord->flg = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }
 
