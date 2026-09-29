@@ -63,7 +63,7 @@ GpRoomCoordRec D_neo_ark_eve_elevator_8017D75C[1] = {
     { D_neo_ark_eve_elevator_8017DBB0, NULL },
 };
 
-u8 * D_neo_ark_eve_elevator_8017D764[1] = {
+u8* D_neo_ark_eve_elevator_8017D764[1] = {
     D_8010CAF8,
 };
 
@@ -174,7 +174,7 @@ s16 D_neo_ark_eve_elevator_8017D9F4[25] = {
     -1,
 };
 
-s16 * D_neo_ark_eve_elevator_8017DA28[1] = {
+s16* D_neo_ark_eve_elevator_8017DA28[1] = {
     D_neo_ark_eve_elevator_8017D9F4,
 };
 
@@ -242,7 +242,7 @@ GpRoomParamRec D_neo_ark_eve_elevator_8017DC28[1] = {
     { 0, 0, 1, 0, D_neo_ark_eve_elevator_8017DC14 },
 };
 
-GpRoomParamRec * D_neo_ark_eve_elevator_8017DC30[8] = {
+GpRoomParamRec* D_neo_ark_eve_elevator_8017DC30[8] = {
     D_neo_ark_eve_elevator_8017DC20,
     D_neo_ark_eve_elevator_8017DC28,
     D_neo_ark_eve_elevator_8017DC20,
@@ -264,7 +264,7 @@ s32 func_neo_ark_eve_elevator_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2,
 /// record's `msgId` is 0x18 and `CdCmd_IsIdle` returns 0; in that case it
 /// returns 0, first starting cap event 1 through `Gp_SpawnIfCapIdle` when the
 /// record's `field_5` is 0.
-s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

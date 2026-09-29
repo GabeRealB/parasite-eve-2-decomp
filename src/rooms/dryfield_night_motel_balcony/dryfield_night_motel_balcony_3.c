@@ -235,7 +235,7 @@ u8 D_dryfield_night_motel_balcony_801828E0[68] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182924[3] = {
+u8* D_dryfield_night_motel_balcony_80182924[3] = {
     D_dryfield_night_motel_balcony_80182858,
     D_dryfield_night_motel_balcony_8018289C,
     D_dryfield_night_motel_balcony_801828E0,
@@ -370,7 +370,7 @@ u8 D_dryfield_night_motel_balcony_80182980[40] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_801829A8[3] = {
+u8* D_dryfield_night_motel_balcony_801829A8[3] = {
     D_dryfield_night_motel_balcony_80182930,
     D_dryfield_night_motel_balcony_80182958,
     D_dryfield_night_motel_balcony_80182980,
@@ -446,7 +446,7 @@ u8 D_dryfield_night_motel_balcony_801829D4[32] = {
     255,
 };
 
-u8 * D_dryfield_night_motel_balcony_801829F4[2] = {
+u8* D_dryfield_night_motel_balcony_801829F4[2] = {
     D_dryfield_night_motel_balcony_801829B4,
     D_dryfield_night_motel_balcony_801829D4,
 };
@@ -545,7 +545,7 @@ u8 D_dryfield_night_motel_balcony_80182A28[44] = {
     255,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182A54[2] = {
+u8* D_dryfield_night_motel_balcony_80182A54[2] = {
     D_dryfield_night_motel_balcony_801829FC,
     D_dryfield_night_motel_balcony_80182A28,
 };
@@ -660,7 +660,7 @@ u8 D_dryfield_night_motel_balcony_80182A90[52] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182AC4[2] = {
+u8* D_dryfield_night_motel_balcony_80182AC4[2] = {
     D_dryfield_night_motel_balcony_80182A5C,
     D_dryfield_night_motel_balcony_80182A90,
 };
@@ -783,7 +783,7 @@ u8 D_dryfield_night_motel_balcony_80182B04[56] = {
     255,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182B3C[2] = {
+u8* D_dryfield_night_motel_balcony_80182B3C[2] = {
     D_dryfield_night_motel_balcony_80182ACC,
     D_dryfield_night_motel_balcony_80182B04,
 };
@@ -882,7 +882,7 @@ u8 D_dryfield_night_motel_balcony_80182B70[44] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182B9C[2] = {
+u8* D_dryfield_night_motel_balcony_80182B9C[2] = {
     D_dryfield_night_motel_balcony_80182B44,
     D_dryfield_night_motel_balcony_80182B70,
 };
@@ -973,7 +973,7 @@ u8 D_dryfield_night_motel_balcony_80182BCC[40] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182BF4[2] = {
+u8* D_dryfield_night_motel_balcony_80182BF4[2] = {
     D_dryfield_night_motel_balcony_80182BA4,
     D_dryfield_night_motel_balcony_80182BCC,
 };
@@ -1040,12 +1040,12 @@ u8 D_dryfield_night_motel_balcony_80182C18[28] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182C34[2] = {
+u8* D_dryfield_night_motel_balcony_80182C34[2] = {
     D_dryfield_night_motel_balcony_80182BFC,
     D_dryfield_night_motel_balcony_80182C18,
 };
 
-u8 ** D_dryfield_night_motel_balcony_80182C3C[9] = {
+u8** D_dryfield_night_motel_balcony_80182C3C[9] = {
     D_dryfield_night_motel_balcony_80182924,
     D_dryfield_night_motel_balcony_801829A8,
     D_dryfield_night_motel_balcony_801829F4,

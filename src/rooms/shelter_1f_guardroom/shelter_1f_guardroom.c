@@ -83,7 +83,7 @@ GpRoomCoordRec D_shelter_1f_guardroom_8017DA88[1] = {
     { D_shelter_1f_guardroom_8017DE24, D_shelter_1f_guardroom_8017DFB8 },
 };
 
-u8 * D_shelter_1f_guardroom_8017DA90[1] = {
+u8* D_shelter_1f_guardroom_8017DA90[1] = {
     D_8010CAF8,
 };
 
@@ -145,7 +145,7 @@ s16 D_shelter_1f_guardroom_8017DBD8[9] = {
     -1,
 };
 
-s16 * D_shelter_1f_guardroom_8017DBEC[1] = {
+s16* D_shelter_1f_guardroom_8017DBEC[1] = {
     D_shelter_1f_guardroom_8017DBD8,
 };
 
@@ -228,7 +228,7 @@ GpRoomParamRec D_shelter_1f_guardroom_8017DFEC[1] = {
     { 0, 0, 1, 0, D_shelter_1f_guardroom_8017DFD8 },
 };
 
-GpRoomParamRec * D_shelter_1f_guardroom_8017DFF4[8] = {
+GpRoomParamRec* D_shelter_1f_guardroom_8017DFF4[8] = {
     D_shelter_1f_guardroom_8017DFE4,
     D_shelter_1f_guardroom_8017DFEC,
     D_shelter_1f_guardroom_8017DFE4,
@@ -239,7 +239,7 @@ GpRoomParamRec * D_shelter_1f_guardroom_8017DFF4[8] = {
     D_shelter_1f_guardroom_8017DFE4,
 };
 
-Task * D_shelter_1f_guardroom_8017E014 = NULL;
+Task* D_shelter_1f_guardroom_8017E014 = NULL;
 
 /// Cutscene task spawned from the 0x13F0 handler: runs cap command 2, waits for
 /// it, and when the cap event key reads 0xB hides the HUD and runs the task
@@ -295,7 +295,7 @@ s32 func_shelter_1f_guardroom_8017D73C(Task* task, s32 msgId, GpMessageArg arg2,
 
 /// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
 /// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
-s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

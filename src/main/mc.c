@@ -688,10 +688,10 @@ static void Mc_InitDualBankBuffers(void)
     GameFlagDryfieldFullBank* c;
     GameFlagShelterBank*      d;
     GameFlagNeoArkBank*       e;
-    McSaveData* p;
-    s32         one;
-    s32         two;
-    s32         idx;
+    McSaveData*               p;
+    s32                       one;
+    s32                       two;
+    s32                       idx;
 
     Mem_Set(&Player_Status, 0, 0x40);
     Mem_Set(Player_Status.saveBackup, 0xFF, 0x40);
@@ -954,9 +954,9 @@ static s32 Mc_PromptDialogFile(Task* task, s32 arg1, s32 unused3)
 
 static inline u16* Mc_EncodeTitleText(s8* arg0, u16* arg1)
 {
-    s32  ch;
-    u16  idx;
-    u8   ch_u;
+    s32 ch;
+    u16 idx;
+    u8  ch_u;
 
     ch_u = *arg0;
     if (*arg0 != 0) {
@@ -983,8 +983,8 @@ static inline u16* Mc_EncodeTitleText(s8* arg0, u16* arg1)
 
 static inline u16* Mc_EncodeTitleLiteral(s8* arg0, u16* arg1)
 {
-    s32  ch;
-    u16  idx;
+    s32 ch;
+    u16 idx;
 
     if (*arg0 != 0) {
         do {
@@ -2553,9 +2553,9 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
 
 static u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
 {
-    s32  ch;
-    u16  idx;
-    u8   ch_u;
+    s32 ch;
+    u16 idx;
+    u8  ch_u;
 
     ch_u = *arg0;
     if (*arg0 != 0) {

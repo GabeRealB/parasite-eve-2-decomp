@@ -152,7 +152,7 @@ GpRoomObjRec D_shelter_b1_elevator_hall_80182E00[1] = {
     { D_shelter_b1_elevator_hall_80183414, D_shelter_b1_elevator_hall_80184288, D_shelter_b1_elevator_hall_80184580, D_shelter_b1_elevator_hall_80184748 },
 };
 
-u8 * D_shelter_b1_elevator_hall_80182E10[1] = {
+u8* D_shelter_b1_elevator_hall_80182E10[1] = {
     D_8010CAF8,
 };
 
@@ -476,7 +476,7 @@ s16 D_shelter_b1_elevator_hall_801833CC[7] = {
     -1,
 };
 
-s16 * D_shelter_b1_elevator_hall_801833DC[14] = {
+s16* D_shelter_b1_elevator_hall_801833DC[14] = {
     D_shelter_b1_elevator_hall_80183288,
     D_shelter_b1_elevator_hall_801832A8,
     D_shelter_b1_elevator_hall_801832BC,
@@ -808,7 +808,7 @@ GpRoomParamRec D_shelter_b1_elevator_hall_801849C8[1] = {
     { 0, 0, 1, 0, D_shelter_b1_elevator_hall_801849AC },
 };
 
-GpRoomParamRec * D_shelter_b1_elevator_hall_801849D0[8] = {
+GpRoomParamRec* D_shelter_b1_elevator_hall_801849D0[8] = {
     D_shelter_b1_elevator_hall_801849B8,
     D_shelter_b1_elevator_hall_801849C0,
     D_shelter_b1_elevator_hall_801849C8,
@@ -1326,20 +1326,20 @@ void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b1_elevator_hall_80182DD4.entries[mem->index].b;
                 func_shelter_b1_elevator_hall_8017F0A8(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -2025,14 +2025,14 @@ void func_shelter_b1_elevator_hall_8018177C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_elevator_hall_80182DE8[1];
+                    SVECTOR* edge    = &D_shelter_b1_elevator_hall_80182DE8[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

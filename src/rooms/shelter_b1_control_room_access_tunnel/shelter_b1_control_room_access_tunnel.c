@@ -93,7 +93,7 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, G
 
 /// Message handler that copies the incoming record onto the outgoing one,
 /// passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -602,14 +602,14 @@ void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_control_room_access_tunnel_80181EE4[1];
+                    SVECTOR* edge    = &D_shelter_b1_control_room_access_tunnel_80181EE4[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

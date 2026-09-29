@@ -82,7 +82,7 @@ GpRoomObjRec D_dryfield_night_motel_room_4_8017DA98[1] = {
     { D_dryfield_night_motel_room_4_8017E1D0, D_dryfield_night_motel_room_4_8017FBD0, D_dryfield_night_motel_room_4_8017FE30, D_dryfield_night_motel_room_4_80180044 },
 };
 
-u8 * D_dryfield_night_motel_room_4_8017DAA8[1] = {
+u8* D_dryfield_night_motel_room_4_8017DAA8[1] = {
     D_8010CAF8,
 };
 
@@ -426,7 +426,7 @@ s16 D_dryfield_night_motel_room_4_8017E184[30] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_room_4_8017E1C0[4] = {
+s16* D_dryfield_night_motel_room_4_8017E1C0[4] = {
     D_dryfield_night_motel_room_4_8017E08C,
     D_dryfield_night_motel_room_4_8017E0E8,
     D_dryfield_night_motel_room_4_8017E134,
@@ -921,7 +921,7 @@ GpRoomParamRec D_dryfield_night_motel_room_4_80180394[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_night_motel_room_4_8018039C[8] = {
+GpRoomParamRec* D_dryfield_night_motel_room_4_8018039C[8] = {
     D_dryfield_night_motel_room_4_8018037C,
     D_dryfield_night_motel_room_4_80180384,
     D_dryfield_night_motel_room_4_8018038C,
@@ -946,7 +946,7 @@ s32 func_dryfield_night_motel_room_4_8017D5D0(Task* task, s32 msgId, GpMessageAr
 /// reply and, for a message 2 that is not report-only (`field_5 == 0`),
 /// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
 /// once it has reached 4. Returns 1.
-s32 func_dryfield_night_motel_room_4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_motel_room_4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 val;
     s32 n;

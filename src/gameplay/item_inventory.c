@@ -944,10 +944,10 @@ void func_800B8014(void)
             Mc_SaveData[0].state.attachLevels[col + row * 3] = 0;
         }
     }
-    save                  = &Mc_SaveData[0];
-    scan                  = &save->state.carriedItems;
+    save                        = &Mc_SaveData[0];
+    scan                        = &save->state.carriedItems;
     save->state.attachLevels[0] = 1;
-    cfg                   = &Player_Status;
+    cfg                         = &Player_Status;
     if (save->state.clearCount == 0) {
         cfg->bp = 0xC8;
         _gpInitStartingItems(scan, cfg);

@@ -841,8 +841,8 @@ void SndHeap_Free(void* ptr)
     // allocation function, we insert it into the linked list of blocks. To
     // prevent fragmentation, we first try to merge neighboring blocks, if they
     // are not in use.
-    size_t           heapStart;
-    size_t           heapEnd;
+    uintptr          heapStart;
+    uintptr          heapEnd;
     HeapBlockHeader* header;
 
     // If `ptr` is `NULL` we are done.
@@ -850,15 +850,17 @@ void SndHeap_Free(void* ptr)
         return;
     }
 
-    // Safety check: Ensure that the pointer is contained in the heap region.
-    // Otherwise we return.
-    heapStart = (size_t)SndHeap_Buffer;
-    if ((size_t)ptr < heapStart) {
+    // Compare numeric addresses because an invalid input may point outside
+    // this allocation; relational C pointer comparisons would not be defined.
+    // Keep the original inclusive upper-bound test. A valid input is still
+    // required to be a payload returned by SndHeap_Malloc.
+    heapStart = (uintptr)SndHeap_Buffer;
+    if ((uintptr)ptr < heapStart) {
         return;
     }
 
     heapEnd = heapStart + SNDHEAP_SIZE;
-    if (heapEnd < (size_t)ptr) {
+    if (heapEnd < (uintptr)ptr) {
         return;
     }
 

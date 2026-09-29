@@ -292,7 +292,7 @@ static inline void _gpSetPlayerScan(s32 count)
 {
     McSaveData* p;
 
-    p                        = &Mc_SaveData[0];
+    p                              = &Mc_SaveData[0];
     p->state.carriedItems.firstRow = 0;
     p->state.carriedItems.rowCount = count;
     p->state.carriedItems.table    = 0;
@@ -359,7 +359,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         }
     }
     if (arg1->status != 0xFF) {
-        saved           = arg1->spawnArg1.value;
+        saved                 = arg1->spawnArg1.value;
         arg1->spawnArg1.value = arg1->status;
         Gp_NoticePanelTask(arg1);
         arg1->spawnArg1.value = saved;
@@ -406,7 +406,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
         Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
-    saved           = arg1->spawnArg1.value;
+    saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1D;
     Gp_NoticePanelTask(arg1);
     arg1->spawnArg1.value = saved;
@@ -447,7 +447,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
         Ui_SpawnFromDesc(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
-    saved           = arg1->spawnArg1.value;
+    saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1C;
     Gp_NoticePanelTask(arg1);
     arg1->spawnArg1.value = saved;
@@ -648,14 +648,14 @@ void Gp_InitModeEquip(void)
     s32           start;
     s32           limit;
 
-    s32           item;
-    u8            slotItem;
+    s32 item;
+    u8  slotItem;
 
     cfg = &Player_Status;
     acc = 0;
     if (cfg->weapon == 0) {
         scan = &Mc_SaveData[0].state.carriedItems;
-        item     = 0x81;
+        item = 0x81;
         switch (scan->table) {
             case 2:
                 tmp = Gp_ItemTable2;

@@ -71,7 +71,7 @@ GpRoomObjRec D_dryfield_night_general_store_8017E834[1] = {
     { D_dryfield_night_general_store_8017F484, D_dryfield_night_general_store_801847D0, D_dryfield_night_general_store_80185020, D_dryfield_night_general_store_801855C4 },
 };
 
-u8 * D_dryfield_night_general_store_8017E844[1] = {
+u8* D_dryfield_night_general_store_8017E844[1] = {
     D_8010CAF8,
 };
 
@@ -671,7 +671,7 @@ s16 D_dryfield_night_general_store_8017F440[15] = {
     -1,
 };
 
-s16 * D_dryfield_night_general_store_8017F460[9] = {
+s16* D_dryfield_night_general_store_8017F460[9] = {
     D_dryfield_night_general_store_8017F1F4,
     D_dryfield_night_general_store_8017F260,
     D_dryfield_night_general_store_8017F2CC,
@@ -1999,7 +1999,7 @@ GpRoomParamRec D_dryfield_night_general_store_8018588C[1] = {
     { 0, 0, 1, 0, D_dryfield_night_general_store_80185870 },
 };
 
-GpRoomParamRec * D_dryfield_night_general_store_80185894[8] = {
+GpRoomParamRec* D_dryfield_night_general_store_80185894[8] = {
     D_dryfield_night_general_store_8018587C,
     D_dryfield_night_general_store_80185884,
     D_dryfield_night_general_store_8018588C,

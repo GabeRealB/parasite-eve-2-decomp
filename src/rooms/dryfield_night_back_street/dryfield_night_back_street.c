@@ -112,7 +112,7 @@ GpRoomCoordRec D_dryfield_night_back_street_801803BC[1] = {
     { D_dryfield_night_back_street_80181470, D_dryfield_night_back_street_801815C8 },
 };
 
-u8 * D_dryfield_night_back_street_801803C4[1] = {
+u8* D_dryfield_night_back_street_801803C4[1] = {
     D_8010CAF8,
 };
 
@@ -559,7 +559,7 @@ s16 D_dryfield_night_back_street_80180AC0[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_back_street_80180AC4[28] = {
+s16* D_dryfield_night_back_street_80180AC4[28] = {
     D_dryfield_night_back_street_80180904,
     D_dryfield_night_back_street_80180914,
     D_dryfield_night_back_street_8018092C,
@@ -767,7 +767,7 @@ GpRoomParamRec D_dryfield_night_back_street_80181614[1] = {
     { 0, 1, 0, 0, D_dryfield_night_back_street_801815F8 },
 };
 
-GpRoomParamRec * D_dryfield_night_back_street_8018161C[8] = {
+GpRoomParamRec* D_dryfield_night_back_street_8018161C[8] = {
     D_dryfield_night_back_street_80181604,
     D_dryfield_night_back_street_8018160C,
     D_dryfield_night_back_street_80181614,
@@ -796,7 +796,7 @@ static void func_dryfield_night_back_street_8017D780(Task* task);
 ///
 /// The stage load is scheduled above the prologue, so this function's `.text`
 /// starts 8 bytes before its `addiu $sp` - the `text` cut in the manifest.
-s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     GameSession* session = gGameSession;
     u8           response;

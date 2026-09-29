@@ -184,7 +184,7 @@ GpAnimArg D_acropolis_helicopter_landing_pad_801838CC = { { .index = 0 }, 2, 0, 
 
 GpAnimArg D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, 0, 0, 0 };
 
-GpAnimSet * D_acropolis_helicopter_landing_pad_801838F4[3] = {
+GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
     NULL,
     &D_actor_511000_80136AE8,
     &D_actor_511000_801398FC,
@@ -555,7 +555,7 @@ u8 D_acropolis_helicopter_landing_pad_80184F20[28] = {
     0,
 };
 
-u8 * D_acropolis_helicopter_landing_pad_80184F3C[1] = {
+u8* D_acropolis_helicopter_landing_pad_80184F3C[1] = {
     D_acropolis_helicopter_landing_pad_80184F20,
 };
 
@@ -1337,7 +1337,7 @@ s16 D_acropolis_helicopter_landing_pad_801858F8[7] = {
     -1,
 };
 
-s16 * D_acropolis_helicopter_landing_pad_80185908[36] = {
+s16* D_acropolis_helicopter_landing_pad_80185908[36] = {
     D_acropolis_helicopter_landing_pad_80185508,
     D_acropolis_helicopter_landing_pad_80185530,
     D_acropolis_helicopter_landing_pad_8018556C,

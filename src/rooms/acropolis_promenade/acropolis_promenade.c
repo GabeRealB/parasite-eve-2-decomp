@@ -190,8 +190,15 @@ u32 D_acropolis_promenade_80180384[691] = {
 };
 
 TmdSource D_acropolis_promenade_80180E50 = {
-    0, 5480, 0, 1,
-    D_acropolis_promenade_8017FE28, D_acropolis_promenade_8017FE2C, &D_acropolis_promenade_8017FE2C[171], D_acropolis_promenade_8017FE04, D_acropolis_promenade_80180384,
+    0,
+    5480,
+    0,
+    1,
+    D_acropolis_promenade_8017FE28,
+    D_acropolis_promenade_8017FE2C,
+    &D_acropolis_promenade_8017FE2C[171],
+    D_acropolis_promenade_8017FE04,
+    D_acropolis_promenade_80180384,
 };
 
 AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
@@ -598,8 +605,18 @@ u16 D_acropolis_promenade_80181B74 = 32;
 u16 D_acropolis_promenade_80181B76 = 32;
 
 u16 D_acropolis_promenade_80181B78[12] = {
-    442, 440, 440, 401, 401, 18, 18, 478,
-    510, 64, 512, 32,
+    442,
+    440,
+    440,
+    401,
+    401,
+    18,
+    18,
+    478,
+    510,
+    64,
+    512,
+    32,
 };
 
 GpRoomObjRec D_acropolis_promenade_80181B90[2] = {
@@ -626,7 +643,7 @@ u8 D_acropolis_promenade_80181BB0[16] = {
     0,
 };
 
-u8 * D_acropolis_promenade_80181BC0[2] = {
+u8* D_acropolis_promenade_80181BC0[2] = {
     D_8010CAF8,
     D_acropolis_promenade_80181BB0,
 };
@@ -988,7 +1005,7 @@ s16 D_acropolis_promenade_80182394[16] = {
     -1,
 };
 
-s16 * D_acropolis_promenade_801823B4[10] = {
+s16* D_acropolis_promenade_801823B4[10] = {
     D_acropolis_promenade_80182294,
     D_acropolis_promenade_801822BC,
     D_acropolis_promenade_801822E0,
@@ -1391,7 +1408,7 @@ s16 D_acropolis_promenade_80182B88[16] = {
     -1,
 };
 
-s16 * D_acropolis_promenade_80182BA8[10] = {
+s16* D_acropolis_promenade_80182BA8[10] = {
     D_acropolis_promenade_80182A50,
     D_acropolis_promenade_80182A80,
     D_acropolis_promenade_80182AB4,
@@ -2198,7 +2215,7 @@ GpRoomParamRec D_acropolis_promenade_801862A8[1] = {
     { 1, 1, 1, 1, D_acropolis_promenade_80186274 },
 };
 
-GpRoomParamRec * D_acropolis_promenade_801862B0[8] = {
+GpRoomParamRec* D_acropolis_promenade_801862B0[8] = {
     D_acropolis_promenade_80186280,
     D_acropolis_promenade_80186288,
     D_acropolis_promenade_80186290,
@@ -2267,7 +2284,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// through `field_3` whether nibble 2 has reached 3.
 ///
 /// `field_5` non-zero means "report only", which suppresses every side effect.
-s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventMsg unused;
     u16          msgId;
@@ -2285,9 +2302,9 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg * in, R
     }
     if (in->prefix.packed == 0xC && GameFlag_GetNibble(2) == 0) {
         if (in->field_5 == 0) {
-            out->field_2                   = 3;
-            D_acropolis_promenade_801862D0 = *out;
-            Mc_SaveData[0].state.sceneEvent      = 4;
+            out->field_2                    = 3;
+            D_acropolis_promenade_801862D0  = *out;
+            Mc_SaveData[0].state.sceneEvent = 4;
         }
         return 1;
     }

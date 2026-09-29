@@ -85,7 +85,7 @@ s16 D_shelter_b6_growth_room_8017F224[5] = {
     -1,
 };
 
-s16 * D_shelter_b6_growth_room_8017F230[1] = {
+s16* D_shelter_b6_growth_room_8017F230[1] = {
     D_shelter_b6_growth_room_8017F224,
 };
 
@@ -131,7 +131,7 @@ SVECTOR D_shelter_b6_growth_room_8017F258[36] = {
     { 3750, 0, 2000, 0 },
 };
 
-u8 * D_shelter_b6_growth_room_8017F378[1] = {
+u8* D_shelter_b6_growth_room_8017F378[1] = {
     D_8010CAF8,
 };
 
@@ -528,7 +528,7 @@ s16 D_shelter_b6_growth_room_8017FAA8[20] = {
     -1,
 };
 
-s16 * D_shelter_b6_growth_room_8017FAD0[8] = {
+s16* D_shelter_b6_growth_room_8017FAD0[8] = {
     D_shelter_b6_growth_room_8017F930,
     D_shelter_b6_growth_room_8017F968,
     D_shelter_b6_growth_room_8017F9A4,
@@ -729,7 +729,7 @@ GpRoomParamRec D_shelter_b6_growth_room_801807A0[1] = {
     { 0, 0, 1, 0, D_shelter_b6_growth_room_80180784 },
 };
 
-GpRoomParamRec * D_shelter_b6_growth_room_801807A8[8] = {
+GpRoomParamRec* D_shelter_b6_growth_room_801807A8[8] = {
     D_shelter_b6_growth_room_80180790,
     D_shelter_b6_growth_room_80180798,
     D_shelter_b6_growth_room_801807A0,

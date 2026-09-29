@@ -91,8 +91,15 @@ u32 D_neo_ark_shrine_80181FA8[106] = {
 };
 
 TmdSource D_neo_ark_shrine_80182150 = {
-    0, 800, 0, 1,
-    D_neo_ark_shrine_80181E9C, D_neo_ark_shrine_80181EA0, &D_neo_ark_shrine_80181EA0[33], D_neo_ark_shrine_80181E78, D_neo_ark_shrine_80181FA8,
+    0,
+    800,
+    0,
+    1,
+    D_neo_ark_shrine_80181E9C,
+    D_neo_ark_shrine_80181EA0,
+    &D_neo_ark_shrine_80181EA0[33],
+    D_neo_ark_shrine_80181E78,
+    D_neo_ark_shrine_80181FA8,
 };
 
 TmdBone D_neo_ark_shrine_80182174[1] = {
@@ -112,8 +119,15 @@ u32 D_neo_ark_shrine_8018222C[109] = {
 };
 
 TmdSource D_neo_ark_shrine_801823E0 = {
-    0, 672, 0, 1,
-    D_neo_ark_shrine_80182198, D_neo_ark_shrine_8018219C, &D_neo_ark_shrine_8018219C[18], D_neo_ark_shrine_80182174, D_neo_ark_shrine_8018222C,
+    0,
+    672,
+    0,
+    1,
+    D_neo_ark_shrine_80182198,
+    D_neo_ark_shrine_8018219C,
+    &D_neo_ark_shrine_8018219C[18],
+    D_neo_ark_shrine_80182174,
+    D_neo_ark_shrine_8018222C,
 };
 
 TaskDesc D_neo_ark_shrine_80182404[1] = {
@@ -252,7 +266,7 @@ s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, GpMessageArg arg2, GpMes
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -291,7 +305,7 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, GpMessageArg ar
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         if (GameFlag_GetNibble(0xDF) == 0) {
@@ -633,10 +647,10 @@ static s16 func_neo_ark_shrine_8017E254(void)
         D_neo_ark_shrine_8018686A = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = flag;
-            gGameSession->at4.loc.room  = flag;
+            gGameSession->at4.loc.room        = flag;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 4;
-            gGameSession->at4.loc.room  = 4;
+            gGameSession->at4.loc.room        = 4;
         }
         gGameSession->roomObjsDirty = 1;
         SndEvt_EnqueueType6(0x5515000A, 0, 0);

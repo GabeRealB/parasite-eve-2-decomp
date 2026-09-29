@@ -103,7 +103,7 @@ TaskDesc D_mist_parking_8018D75C[9] = {
     { 0, 192, func_mist_parking_80182F60, { .model = NULL } },
 };
 
-GpAnimSet * D_mist_parking_8018D7C8[25] = {
+GpAnimSet* D_mist_parking_8018D7C8[25] = {
     NULL,
     &D_mist_parking_80187594,
     &D_mist_parking_80187D34,
@@ -379,7 +379,7 @@ u8 D_mist_parking_8018DF1C[8] = {
     0,
 };
 
-u8 * D_mist_parking_8018DF24[4] = {
+u8* D_mist_parking_8018DF24[4] = {
     D_mist_parking_8018DF04,
     D_mist_parking_8018DF0C,
     D_mist_parking_8018DF14,
@@ -733,11 +733,19 @@ GpEvsCmd D_mist_parking_8018FB3C[8] = {
 };
 
 s32 D_mist_parking_8018FBFC[5] = {
-    161, 61, 63, 11, 108,
+    161,
+    61,
+    63,
+    11,
+    108,
 };
 
 s32 D_mist_parking_8018FC10[5] = {
-    50, 1, 1, 1, 1,
+    50,
+    1,
+    1,
+    1,
+    1,
 };
 
 /// The two text lines of the block `func_mist_parking_80183304` shows, and
@@ -921,7 +929,7 @@ void func_mist_parking_80182F60(Task* task)
             task->state++;
             break;
         case 2:
-            key             = Gp_GetCapEventKey();
+            key                   = Gp_GetCapEventKey();
             task->spawnArg1.value = key;
             switch (key) {
                 case 4:
@@ -993,7 +1001,7 @@ void func_mist_parking_8018316C(s32 arg0)
     Mc_SaveData[0].state.at4.loc.warp  = 1;
     Mc_SaveData[0].state.at4.loc.room  = 1;
     Mc_SaveData[0].state.at4.loc.area  = arg0;
-    gDisplayState.roomVariant    = 1;
+    gDisplayState.roomVariant          = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
@@ -1102,7 +1110,7 @@ static void func_mist_parking_801833F8(Task* task)
     result = ((RoomTextBlock*)task->work)->desc.field_2;
     if (result != 0) {
         *(s32*)task->spawnArg2.pointer = result;
-        task->state            = task->state + 1;
+        task->state                    = task->state + 1;
     }
 }
 
@@ -1151,7 +1159,7 @@ void func_mist_parking_8018357C(Task* arg0)
     Mc_SaveData[0].state.at4.loc.area  = 1;
     Mc_SaveData[0].state.at4.loc.warp  = 1;
     Mc_SaveData[0].state.at4.loc.room  = 1;
-    gDisplayState.roomVariant    = 1;
+    gDisplayState.roomVariant          = 1;
     Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);

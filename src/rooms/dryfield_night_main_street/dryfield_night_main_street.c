@@ -297,7 +297,7 @@ u8 D_dryfield_night_main_street_801820F0[16] = {
     0,
 };
 
-u8 * D_dryfield_night_main_street_80182100[2] = {
+u8* D_dryfield_night_main_street_80182100[2] = {
     D_dryfield_night_main_street_801820E0,
     D_dryfield_night_main_street_801820F0,
 };
@@ -340,7 +340,7 @@ u8 D_dryfield_night_main_street_80182118[16] = {
     0,
 };
 
-u8 * D_dryfield_night_main_street_80182128[2] = {
+u8* D_dryfield_night_main_street_80182128[2] = {
     D_dryfield_night_main_street_80182108,
     D_dryfield_night_main_street_80182118,
 };
@@ -375,7 +375,7 @@ u8 D_dryfield_night_main_street_8018213C[12] = {
     0,
 };
 
-u8 * D_dryfield_night_main_street_80182148[2] = {
+u8* D_dryfield_night_main_street_80182148[2] = {
     D_dryfield_night_main_street_80182130,
     D_dryfield_night_main_street_8018213C,
 };
@@ -402,23 +402,44 @@ u8 D_dryfield_night_main_street_80182158[8] = {
     0,
 };
 
-u8 * D_dryfield_night_main_street_80182160[2] = {
+u8* D_dryfield_night_main_street_80182160[2] = {
     D_dryfield_night_main_street_80182150,
     D_dryfield_night_main_street_80182158,
 };
 
-u8 ** D_dryfield_night_main_street_80182168 = D_dryfield_night_main_street_80182100;
+u8** D_dryfield_night_main_street_80182168 = D_dryfield_night_main_street_80182100;
 
-u8 ** D_dryfield_night_main_street_8018216C = D_dryfield_night_main_street_80182128;
+u8** D_dryfield_night_main_street_8018216C = D_dryfield_night_main_street_80182128;
 
-u8 ** D_dryfield_night_main_street_80182170 = D_dryfield_night_main_street_80182148;
+u8** D_dryfield_night_main_street_80182170 = D_dryfield_night_main_street_80182148;
 
-u8 ** D_dryfield_night_main_street_80182174 = D_dryfield_night_main_street_80182160;
+u8** D_dryfield_night_main_street_80182174 = D_dryfield_night_main_street_80182160;
 
 u16 D_dryfield_night_main_street_80182178[24] = {
-    0, 2, 2, 2, 0, 0, 0, 0,
-    2, 2, 2, 0, 2, 2, 2, 0,
-    0, 0, 0, 2, 2, 2, 2, 2,
+    0,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    0,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    2,
+    2,
 };
 
 // Indexed views below share one contiguous table.
@@ -529,7 +550,7 @@ u8 D_dryfield_night_main_street_801822E4[24] = {
     24,
 };
 
-u8 * D_dryfield_night_main_street_801822FC[3] = {
+u8* D_dryfield_night_main_street_801822FC[3] = {
     D_8010CAF8,
     D_dryfield_night_main_street_801822CC,
     D_dryfield_night_main_street_801822E4,
@@ -1501,7 +1522,7 @@ s16 D_dryfield_night_main_street_80183320[3] = {
     -1,
 };
 
-s16 * D_dryfield_night_main_street_80183328[42] = {
+s16* D_dryfield_night_main_street_80183328[42] = {
     D_dryfield_night_main_street_80182ED4,
     D_dryfield_night_main_street_80182EDC,
     D_dryfield_night_main_street_80182EFC,
@@ -2690,7 +2711,7 @@ s16 D_dryfield_night_main_street_80184488[7] = {
     -1,
 };
 
-s16 * D_dryfield_night_main_street_80184498[42] = {
+s16* D_dryfield_night_main_street_80184498[42] = {
     D_dryfield_night_main_street_80183EF8,
     D_dryfield_night_main_street_80183F08,
     D_dryfield_night_main_street_80183F30,
@@ -3724,7 +3745,7 @@ GpRoomParamRec D_dryfield_night_main_street_80188B7C[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_night_main_street_80188B84[8] = {
+GpRoomParamRec* D_dryfield_night_main_street_80188B84[8] = {
     D_dryfield_night_main_street_80188B5C,
     D_dryfield_night_main_street_80188B7C,
     D_dryfield_night_main_street_80188B6C,
@@ -3794,7 +3815,7 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BAC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BAC.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_main_street_80188BAC.field_3;
@@ -3901,7 +3922,7 @@ void func_dryfield_night_main_street_8017D8FC(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BBC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BBC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.field_3;
@@ -3923,7 +3944,7 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 /// 0xD and 0xE go through the event gate `func_dryfield_night_main_street_8017D798`
 /// and, when it fires, swap collected bits
 /// 0x10F / 0x112 for 0x113. Anything else is not consumed.
-s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent ev;
@@ -3964,14 +3985,14 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         return 2;
     }
     if (msg->prefix.packed == 0xB) {
-        ev.capCmd                             = 3;
-        ev.stageSnd                           = 0x52020005;
-        ev.flagId                             = 0x57;
-        ev.fade                               = 0;
+        ev.capCmd                                   = 3;
+        ev.stageSnd                                 = 0x52020005;
+        ev.flagId                                   = 0x57;
+        ev.fade                                     = 0;
         D_dryfield_night_main_street_80188BB4.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {
-                D_dryfield_night_main_street_80188BAC = *out;
+                D_dryfield_night_main_street_80188BAC       = *out;
                 D_dryfield_night_main_street_80188BC8.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
@@ -3984,14 +4005,14 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         }
         return 1;
     } else if (msg->prefix.packed == 0xC) {
-        ev.capCmd                             = 4;
-        ev.stageSnd                           = 0x52020005;
-        ev.flagId                             = 0x58;
-        ev.fade                               = 0;
+        ev.capCmd                                   = 4;
+        ev.stageSnd                                 = 0x52020005;
+        ev.flagId                                   = 0x58;
+        ev.fade                                     = 0;
         D_dryfield_night_main_street_80188BB4.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {
-                D_dryfield_night_main_street_80188BAC = *out;
+                D_dryfield_night_main_street_80188BAC       = *out;
                 D_dryfield_night_main_street_80188BC8.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
@@ -4847,20 +4868,20 @@ void func_dryfield_night_main_street_801807B0(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].r;
-                rgb[1]           = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].g;
-                rgb[2]           = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].b;
+                rgb[0]                 = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].r;
+                rgb[1]                 = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].g;
+                rgb[2]                 = mem->scale >> D_dryfield_night_main_street_80182270.shades[mem->index].b;
                 func_dryfield_night_main_street_8018041C(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;

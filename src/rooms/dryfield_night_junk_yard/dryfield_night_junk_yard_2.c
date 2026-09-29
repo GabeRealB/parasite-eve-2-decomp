@@ -102,7 +102,7 @@ u8 D_dryfield_night_junk_yard_801807B4[12] = {
     0,
 };
 
-u8 * D_dryfield_night_junk_yard_801807C0[2] = {
+u8* D_dryfield_night_junk_yard_801807C0[2] = {
     D_8010CAF8,
     D_dryfield_night_junk_yard_801807B4,
 };
@@ -600,7 +600,7 @@ s16 D_dryfield_night_junk_yard_80181168[12] = {
     -1,
 };
 
-s16 * D_dryfield_night_junk_yard_80181180[14] = {
+s16* D_dryfield_night_junk_yard_80181180[14] = {
     D_dryfield_night_junk_yard_80180FB4,
     D_dryfield_night_junk_yard_80180FD0,
     D_dryfield_night_junk_yard_80180FE8,
@@ -1321,7 +1321,7 @@ GpRoomParamRec D_dryfield_night_junk_yard_801844BC[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_night_junk_yard_801844C4[8] = {
+GpRoomParamRec* D_dryfield_night_junk_yard_801844C4[8] = {
     D_dryfield_night_junk_yard_801844AC,
     D_dryfield_night_junk_yard_801844B4,
     D_dryfield_night_junk_yard_801844BC,
@@ -1806,14 +1806,14 @@ void func_dryfield_night_junk_yard_8017F02C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_dryfield_night_junk_yard_80180774[1];
+                    SVECTOR* edge    = &D_dryfield_night_junk_yard_80180774[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

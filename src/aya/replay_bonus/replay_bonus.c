@@ -663,7 +663,7 @@ void func_replay_bonus_80116964(Task* arg0)
     } else if (arg0->state == 1) {
         spawned = func_800CD89C(obj);
         if (spawned != NULL) {
-            spawned->owner->spawnArg1.value            |= 0x10;
+            spawned->owner->spawnArg1.value      |= 0x10;
             spawned->panel.bounds.unsignedRect.y += 0x10;
             arg0->state                           = arg0->state + 1;
         }
@@ -751,8 +751,8 @@ void func_replay_bonus_80116AC0(Task* arg0)
             obj->field_2E = 6;
             return;
         }
-        arg0->extraState.value    = arg0->spawnArg1.value;
-        arg0->killCountdown = 0xBC;
+        arg0->extraState.value = arg0->spawnArg1.value;
+        arg0->killCountdown    = 0xBC;
         Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState.value), 0);
         arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + 0x20000;
     }
@@ -821,7 +821,7 @@ void func_replay_bonus_80116EC0(void)
     cfg  = &Player_Status;
     copy = Mc_SaveData[0];
     Mc_InitBufferSlots();
-    dst               = &Mc_SaveData[0];
+    dst                     = &Mc_SaveData[0];
     dst->state.clearCount   = copy.state.clearCount;
     dst->state.vibration    = copy.state.vibration;
     dst->state.demoScene    = copy.state.demoScene;
@@ -830,23 +830,23 @@ void func_replay_bonus_80116EC0(void)
     dst->state.musicVolume  = copy.state.musicVolume;
     dst->state.cursorMode   = copy.state.cursorMode;
     dst->state.soundMode    = copy.state.soundMode;
-    i                 = 0;
+    i                       = 0;
     do {
         dst->state.itemSeenBits[i] = copy.state.itemSeenBits[i];
-        i                   += 1;
+        i                         += 1;
     } while (i < 0x60);
     i = 0;
     do {
         Mc_SaveData[0].state.attachUseCounts[i] = copy.state.attachUseCounts[i];
-        i                                += 1;
+        i                                      += 1;
     } while (i < 0x12);
     i = 0;
     do {
         Mc_SaveData[0].state.weaponUseCounts[i] = copy.state.weaponUseCounts[i];
-        i                                += 1;
+        i                                      += 1;
     } while (i < 0x20);
 
-    save             = &Mc_SaveData[0];
+    save                   = &Mc_SaveData[0];
     save->state.saveCount  = 0xFF;
     save->state.field_92C  = copy.state.field_92C;
     save->state.field_930  = copy.state.field_930;
@@ -867,10 +867,10 @@ void func_replay_bonus_80116EC0(void)
     if (sum > 0x98967F) {
         sum = 0x98967F;
     }
-    cfg->bp         = sum;
+    cfg->bp               = sum;
     save->state.savePoint = 0xF;
-    exp             = D_replay_bonus_80119274.field_8;
-    cfg->exp        = exp;
+    exp                   = D_replay_bonus_80119274.field_8;
+    cfg->exp              = exp;
     save->state.playerExp = exp;
     save->state.playerBp  = cfg->bp;
     if (copy.state.gameMode >= 2) {

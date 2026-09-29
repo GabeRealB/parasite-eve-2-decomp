@@ -65,7 +65,7 @@ GpRoomObjRec D_mine_tunnel_8017E15C[1] = {
     { D_mine_tunnel_8017E86C, D_mine_tunnel_8017FBD8, D_mine_tunnel_8017FDA0, D_mine_tunnel_8018025C },
 };
 
-u8 * D_mine_tunnel_8017E16C[1] = {
+u8* D_mine_tunnel_8017E16C[1] = {
     D_8010CAF8,
 };
 
@@ -416,7 +416,7 @@ s16 D_mine_tunnel_8017E838[6] = {
     -1,
 };
 
-s16 * D_mine_tunnel_8017E844[10] = {
+s16* D_mine_tunnel_8017E844[10] = {
     D_mine_tunnel_8017E708,
     D_mine_tunnel_8017E72C,
     D_mine_tunnel_8017E748,
@@ -856,7 +856,7 @@ GpRoomParamRec D_mine_tunnel_80180324[1] = {
     { 0, 0, 1, 0, D_mine_tunnel_80180310 },
 };
 
-GpRoomParamRec * D_mine_tunnel_8018032C[8] = {
+GpRoomParamRec* D_mine_tunnel_8018032C[8] = {
     D_mine_tunnel_8018031C,
     D_mine_tunnel_80180324,
     D_mine_tunnel_8018031C,

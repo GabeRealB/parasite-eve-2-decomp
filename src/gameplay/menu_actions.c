@@ -1827,9 +1827,9 @@ static void func_800D1F90(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     GameMain_SetFrameTiming(1);
-    arg0->killCountdown = 4;
-    obj->panel.field_16 = 0;
-    arg0->spawnArg1.value     = 0;
+    arg0->killCountdown   = 4;
+    obj->panel.field_16   = 0;
+    arg0->spawnArg1.value = 0;
 }
 
 static u8 Gp_GetMapRoomId(void)
@@ -2113,7 +2113,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     PlayerStatus* cfg;
 
                     Mc_SaveData[0].state.itemLevelBonus[id - 0x60] = 0;
-                    cfg                                      = &Player_Status;
+                    cfg                                            = &Player_Status;
                     if (cfg->armor == (id - 0x5F)) {
                         cfg->armor = 0;
                     }
@@ -2503,7 +2503,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         } else if (Mc_SaveData[0].state.clearCount > 0) {
                             price = (price * 2) / 5;
                         }
-                        cfg->exp                                                               -= price & 0xFFFF;
+                        cfg->exp                                                                     -= price & 0xFFFF;
                         Mc_SaveData[0].state.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
                         cfg->mp             = cfg->mpMax;
@@ -2819,8 +2819,8 @@ void Gp_MapScreenTask(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
-        one             = 1;
-        obj             = Ui_SpawnFromDesc(&D_8010F840, arg0->spawnArg1, one, one, NULL);
+        one                     = 1;
+        obj                     = Ui_SpawnFromDesc(&D_8010F840, arg0->spawnArg1, one, one, NULL);
         arg0->spawnArg2.pointer = obj;
         if (obj != NULL) {
             obj->panel.bounds.unsignedRect.x = (u16)D_80114E8C;

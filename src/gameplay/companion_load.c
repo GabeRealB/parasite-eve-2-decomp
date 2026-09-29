@@ -174,7 +174,7 @@ s32 Gp_PickCompanion(void)
             }
         }
         Mc_SaveData[0].state.companionVariant = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
-        gGameSession->companionVariant  = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
+        gGameSession->companionVariant        = bytes[Mc_SaveData[0].state.at4.loc.area - 1] >> 4;
         return 1;
     }
 
@@ -192,8 +192,8 @@ s32 Gp_PickCompanion(void)
 
     Mc_SaveData[0].state.companionType    = 0;
     Mc_SaveData[0].state.companionVariant = 0;
-    gGameSession->companionType     = 0;
-    gGameSession->companionVariant  = 0;
+    gGameSession->companionType           = 0;
+    gGameSession->companionVariant        = 0;
     return 0;
 }
 
@@ -260,7 +260,7 @@ static void Gp_ClearFlagBank(s32 arg0)
 {
     GpFlagBank* bank;
 
-    bank             = Gp_FlagBanks[arg0];
+    bank                  = Gp_FlagBanks[arg0];
     bank->visitedAreas[0] = 0;
     bank->visitedAreas[1] = 0;
 }

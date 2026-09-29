@@ -972,7 +972,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
     }
 }
 
-void Gp_ReleaseStateF0Clear(void)
+void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
 {
     GpStateF0* p;
 

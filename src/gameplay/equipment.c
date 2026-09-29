@@ -553,7 +553,7 @@ void Gp_EquipMod(s32 arg0)
                     word = arg0 / 32;
                     bit  = 1 << (arg0 % 32);
                     if ((u32)arg0 < 0x180U) {
-                        p                      = &Mc_SaveData[0];
+                        p                            = &Mc_SaveData[0];
                         p->state.itemSeenBits[word] |= bit;
                     }
                 }

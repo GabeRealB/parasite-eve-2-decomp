@@ -49,8 +49,8 @@
 /// (if `arg4 < 3`) and the search recurses; otherwise the record is
 /// stored at `arg4+1` when there is room.
 typedef struct _GpRec12 {
-    /* 0x0 */ s32 field_0; // payload from arg2
-    /* 0x4 */ s32 field_4; // descending sort key (arg1)
+    /* 0x0 */ s32   field_0; // payload from arg2
+    /* 0x4 */ s32   field_4; // descending sort key (arg1)
     /* 0x8 */ void* field_8; // light selected by the kind in field_0
 } GpRec12;
 STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
@@ -133,9 +133,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpLightSolveScratch, 0x7C);
 
 typedef struct {
-    /* 0x00 */ byte pad[0x4C];
-    /* 0x4C */ s32  field_0;
-    /* 0x50 */ s32  field_4;
+    /* 0x00 */ byte  pad[0x4C];
+    /* 0x4C */ s32   field_0;
+    /* 0x50 */ s32   field_4;
     /* 0x54 */ void* field_8;
 } GpSolveSlotView;
 STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
@@ -1701,11 +1701,11 @@ static void Gp_CopyDefaultBound(GpRoomBoundVec* bound)
 
 static void Gp_BindDefaultMtx(Task* arg0)
 {
-    Task*      slot;
-    TmdObject* extra;
-    GameActor* actor;
+    Task*           slot;
+    TmdObject*      extra;
+    GameActor*      actor;
     GpRoomCoordSet* result;
-    s32        i;
+    s32             i;
 
     slot  = gameGetPtrSlot(3);
     extra = slot->extra.tmd;
@@ -1716,13 +1716,13 @@ static void Gp_BindDefaultMtx(Task* arg0)
             taskKill(arg0);
             return;
         }
-        arg0->spawnArg2.pointer     = result;
-        extra->lightMtx     = &Gp_DefaultMtx;
-        extra->colorMtx     = &Gp_DefaultMtx2;
-        actor               = slot->work;
-        Gp_OverrideVecFlag  = 0;
-        Gp_OverrideVec2Flag = 0;
-        D_80114F28          = 0;
+        arg0->spawnArg2.pointer = result;
+        extra->lightMtx         = &Gp_DefaultMtx;
+        extra->colorMtx         = &Gp_DefaultMtx2;
+        actor                   = slot->work;
+        Gp_OverrideVecFlag      = 0;
+        Gp_OverrideVec2Flag     = 0;
+        D_80114F28              = 0;
         do {
             extra           = (&actor->field_920)[i]->extra.tmd;
             extra->lightMtx = &Gp_DefaultMtx;

@@ -107,8 +107,15 @@ u32 D_mine_cavern_8018E520[104] = {
 };
 
 TmdSource D_mine_cavern_8018E6C0 = {
-    0, 728, 0, 1,
-    D_mine_cavern_8018E424, D_mine_cavern_8018E428, D_mine_cavern_8018E4C8, D_mine_cavern_8018E400, D_mine_cavern_8018E520,
+    0,
+    728,
+    0,
+    1,
+    D_mine_cavern_8018E424,
+    D_mine_cavern_8018E428,
+    D_mine_cavern_8018E4C8,
+    D_mine_cavern_8018E400,
+    D_mine_cavern_8018E520,
 };
 
 TmdBone D_mine_cavern_8018E6E4[1] = {
@@ -132,8 +139,15 @@ u32 D_mine_cavern_8018E804[174] = {
 };
 
 TmdSource D_mine_cavern_8018EABC = {
-    0, 1248, 0, 1,
-    D_mine_cavern_8018E708, D_mine_cavern_8018E70C, D_mine_cavern_8018E7AC, D_mine_cavern_8018E6E4, D_mine_cavern_8018E804,
+    0,
+    1248,
+    0,
+    1,
+    D_mine_cavern_8018E708,
+    D_mine_cavern_8018E70C,
+    D_mine_cavern_8018E7AC,
+    D_mine_cavern_8018E6E4,
+    D_mine_cavern_8018E804,
 };
 
 GpU16Pair D_mine_cavern_8018EAE0[1] = {

@@ -173,7 +173,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.field_3;
@@ -186,7 +186,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 0xB and 0xE start the room's event - command 3 /
 /// 2 on flag 0x14D / 0x14E; any other message answers 1.
-s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
     s32              cmd;

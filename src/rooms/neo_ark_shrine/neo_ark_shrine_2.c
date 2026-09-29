@@ -287,7 +287,7 @@ u8 D_neo_ark_shrine_801827DC[20] = {
     0,
 };
 
-u8 * D_neo_ark_shrine_801827F0[6] = {
+u8* D_neo_ark_shrine_801827F0[6] = {
     D_8010CAF8,
     D_neo_ark_shrine_801827B4,
     D_8010CAF8,
@@ -577,7 +577,7 @@ s16 D_neo_ark_shrine_80182CF4[4] = {
     -1,
 };
 
-s16 * D_neo_ark_shrine_80182CFC[12] = {
+s16* D_neo_ark_shrine_80182CFC[12] = {
     D_neo_ark_shrine_80182BE4,
     D_neo_ark_shrine_80182BF8,
     D_neo_ark_shrine_80182C10,
@@ -864,7 +864,7 @@ s16 D_neo_ark_shrine_801831A0[4] = {
     -1,
 };
 
-s16 * D_neo_ark_shrine_801831A8[12] = {
+s16* D_neo_ark_shrine_801831A8[12] = {
     D_neo_ark_shrine_8018308C,
     D_neo_ark_shrine_801830A0,
     D_neo_ark_shrine_801830B8,
@@ -1155,7 +1155,7 @@ s16 D_neo_ark_shrine_80183660[4] = {
     -1,
 };
 
-s16 * D_neo_ark_shrine_80183668[12] = {
+s16* D_neo_ark_shrine_80183668[12] = {
     D_neo_ark_shrine_80183548,
     D_neo_ark_shrine_80183560,
     D_neo_ark_shrine_80183578,
@@ -1822,7 +1822,7 @@ GpRoomParamRec D_neo_ark_shrine_8018683C[1] = {
     { 0, 0, 1, 0, D_neo_ark_shrine_80186820 },
 };
 
-GpRoomParamRec * D_neo_ark_shrine_80186844[8] = {
+GpRoomParamRec* D_neo_ark_shrine_80186844[8] = {
     D_neo_ark_shrine_8018682C,
     D_neo_ark_shrine_80186834,
     D_neo_ark_shrine_8018683C,
@@ -1833,7 +1833,7 @@ GpRoomParamRec * D_neo_ark_shrine_80186844[8] = {
     D_neo_ark_shrine_8018682C,
 };
 
-Task * D_neo_ark_shrine_80186864 = NULL;
+Task* D_neo_ark_shrine_80186864 = NULL;
 
 s16 D_neo_ark_shrine_80186868 = 0;
 
@@ -2104,8 +2104,8 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer             = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                  = (TaskIdMap*)st;
+    task->spawnArg2.pointer           = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->work                        = (TaskIdMap*)st;
     Mc_SaveData[0].state.at4.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
@@ -2184,9 +2184,9 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `Mc_SaveData[0].state.at4.loc.view` byte store, which then fills `taskKill`'s delay slot. */
@@ -2233,10 +2233,10 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room  = 2;
+            gGameSession->at4.loc.room        = 2;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 5;
-            gGameSession->at4.loc.room  = 5;
+            gGameSession->at4.loc.room        = 5;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -2315,16 +2315,16 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
 
 static void func_neo_ark_shrine_8017F274(Task* task)
 {
-    Gp_StateF0.field_20         = 2;
+    Gp_StateF0.field_20               = 2;
     Mc_SaveData[0].state.at4.loc.room = 6;
-    gGameSession->at4.loc.room  = 6;
-    gGameSession->roomObjsDirty = 1;
+    gGameSession->at4.loc.room        = 6;
+    gGameSession->roomObjsDirty       = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 0xA;
     Task_RequestKill(task, 0);
 }
@@ -2360,10 +2360,10 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->at4.loc.room  = 1;
+            gGameSession->at4.loc.room        = 1;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 4;
-            gGameSession->at4.loc.room  = 4;
+            gGameSession->at4.loc.room        = 4;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -2988,14 +2988,14 @@ void func_neo_ark_shrine_80180904(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_shrine_80182714[1];
+                    SVECTOR* edge    = &D_neo_ark_shrine_80182714[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

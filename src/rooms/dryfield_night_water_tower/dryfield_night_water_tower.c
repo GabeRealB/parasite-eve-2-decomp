@@ -64,10 +64,10 @@ static s32 func_dryfield_night_water_tower_8017D60C(RoomEventReq* req, RoomEvent
     s32 ret;
     s32 neg;
 
-    flag                                  = req->flagId;
+    flag                                     = req->flagId;
     D_dryfield_night_water_tower_80182C58[0] = 0;
-    neg                                   = flag < 0;
-    got                                   = (s16)flag;
+    neg                                      = flag < 0;
+    got                                      = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -146,7 +146,7 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_water_tower_80182C50.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_water_tower_80182C50.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_water_tower_80182C50.field_3;
@@ -166,7 +166,7 @@ void func_dryfield_night_water_tower_8017D770(Task* task)
 /// from 2 back to 1 unless it is only a query. For 0x15 it also clears nibble
 /// 0x4B when it reads 7, and answers 1 on stage 3 and otherwise only while
 /// nibble 0x32 is 2. Everything else answers 1.
-s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq req;
     s32          ret;

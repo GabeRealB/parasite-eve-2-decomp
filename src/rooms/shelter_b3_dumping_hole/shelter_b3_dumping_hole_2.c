@@ -4572,7 +4572,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
             }
         }
         if (count == 0x10) {
-            ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+            Gp_ReleaseStateF0Clear(arg0, 0);
             gGameSession->spawnPhase[0] = 2;
             taskKill(arg0);
         }

@@ -78,7 +78,7 @@ SVECTOR D_shelter_b3_incinerator_control_room_80181888[19] = {
     { -4439, -1161, -1751, 0 },
 };
 
-u8 * D_shelter_b3_incinerator_control_room_80181920[2] = {
+u8* D_shelter_b3_incinerator_control_room_80181920[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -241,7 +241,7 @@ s16 D_shelter_b3_incinerator_control_room_80181C94[6] = {
     -1,
 };
 
-s16 * D_shelter_b3_incinerator_control_room_80181CA0[8] = {
+s16* D_shelter_b3_incinerator_control_room_80181CA0[8] = {
     D_shelter_b3_incinerator_control_room_80181C18,
     D_shelter_b3_incinerator_control_room_80181C34,
     D_shelter_b3_incinerator_control_room_80181C48,
@@ -455,7 +455,7 @@ GpRoomParamRec D_shelter_b3_incinerator_control_room_80182A18[1] = {
     { 0, 0, 0, 0, D_shelter_b3_incinerator_control_room_801829E8 },
 };
 
-GpRoomParamRec * D_shelter_b3_incinerator_control_room_80182A20[8] = {
+GpRoomParamRec* D_shelter_b3_incinerator_control_room_80182A20[8] = {
     D_shelter_b3_incinerator_control_room_80182A00,
     D_shelter_b3_incinerator_control_room_80182A08,
     D_shelter_b3_incinerator_control_room_80182A10,
@@ -474,7 +474,7 @@ GpAreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_shelter_b3_incinerator_control_room_80182A54 = NULL;
+Task* D_shelter_b3_incinerator_control_room_80182A54 = NULL;
 
 RoomCutsceneRec D_shelter_b3_incinerator_control_room_80182A58;
 

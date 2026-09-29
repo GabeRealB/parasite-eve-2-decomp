@@ -162,7 +162,7 @@ GpRoomCoordRec D_dryfield_night_motel_lobby_80182918[1] = {
     { D_dryfield_night_motel_lobby_8018401C, D_dryfield_night_motel_lobby_8018441C },
 };
 
-u8 * D_dryfield_night_motel_lobby_80182920[1] = {
+u8* D_dryfield_night_motel_lobby_80182920[1] = {
     D_8010CAF8,
 };
 
@@ -390,7 +390,7 @@ s16 D_dryfield_night_motel_lobby_80182D78[22] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_lobby_80182DA4[4] = {
+s16* D_dryfield_night_motel_lobby_80182DA4[4] = {
     D_dryfield_night_motel_lobby_80182CDC,
     D_dryfield_night_motel_lobby_80182D14,
     D_dryfield_night_motel_lobby_80182D44,
@@ -718,7 +718,7 @@ GpRoomParamRec D_dryfield_night_motel_lobby_80184484[1] = {
     { 0, 0, 1, 0, D_dryfield_night_motel_lobby_80184468 },
 };
 
-GpRoomParamRec * D_dryfield_night_motel_lobby_8018448C[8] = {
+GpRoomParamRec* D_dryfield_night_motel_lobby_8018448C[8] = {
     D_dryfield_night_motel_lobby_80184474,
     D_dryfield_night_motel_lobby_8018447C,
     D_dryfield_night_motel_lobby_80184484,
@@ -740,7 +740,7 @@ GpAreaApplyRec D_dryfield_night_motel_lobby_801844AC[8] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_dryfield_night_motel_lobby_801844CC = NULL;
+Task* D_dryfield_night_motel_lobby_801844CC = NULL;
 
 RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
@@ -1158,8 +1158,8 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer             = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
-    task->work                  = (TaskIdMap*)work;
+    task->spawnArg2.pointer           = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->work                        = (TaskIdMap*)work;
     Mc_SaveData[0].state.at4.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */
@@ -1239,9 +1239,9 @@ static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
@@ -1279,9 +1279,9 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 4;
     Task_RequestKill(arg0, 0);
 }

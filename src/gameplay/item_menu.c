@@ -561,7 +561,7 @@ void Gp_ItemPaneTask(Task* arg0)
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value >= 0x100) {
             arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFF;
-            arg0->status    = 1;
+            arg0->status          = 1;
         } else {
             arg0->status = 0;
         }
@@ -1473,7 +1473,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             arg0->status = 0;
             done         = arg0->extraState.pointer;
             if (done != NULL) {
-                done->done       = 1;
+                done->done             = 1;
                 arg0->extraState.value = 0;
             }
             arg0->state = 1;
@@ -1605,9 +1605,9 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
     s32         flag;
     GpItemObj8* obj;
 
-    obj              = arg0->spawnArg2.pointer;
-    flag             = 1;
-    arg0->status     = flag;
+    obj                      = arg0->spawnArg2.pointer;
+    flag                     = 1;
+    arg0->status             = flag;
     arg0->extraState.pointer = arg2;
     if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
         arg2->done = flag;

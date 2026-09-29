@@ -105,7 +105,7 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
+u8* D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
     D_8010CAF8,
 };
 
@@ -306,7 +306,7 @@ s16 D_shelter_b2_north_maintenance_walkway_80183FE0[17] = {
     -1,
 };
 
-s16 * D_shelter_b2_north_maintenance_walkway_80184004[6] = {
+s16* D_shelter_b2_north_maintenance_walkway_80184004[6] = {
     D_shelter_b2_north_maintenance_walkway_80183F4C,
     D_shelter_b2_north_maintenance_walkway_80183F60,
     D_shelter_b2_north_maintenance_walkway_80183F84,
@@ -856,7 +856,7 @@ GpRoomParamRec D_shelter_b2_north_maintenance_walkway_80186358[1] = {
     { 0, 0, 1, 0, D_shelter_b2_north_maintenance_walkway_80186344 },
 };
 
-GpRoomParamRec * D_shelter_b2_north_maintenance_walkway_80186360[8] = {
+GpRoomParamRec* D_shelter_b2_north_maintenance_walkway_80186360[8] = {
     D_shelter_b2_north_maintenance_walkway_80186350,
     D_shelter_b2_north_maintenance_walkway_80186358,
     D_shelter_b2_north_maintenance_walkway_80186350,
@@ -939,7 +939,7 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863A8.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863A8.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863A8.field_3;
@@ -1046,7 +1046,7 @@ void func_shelter_b2_north_maintenance_walkway_8017D918(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863B8.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863B8.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863B8.field_3;
@@ -1065,7 +1065,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
     D_shelter_b2_north_maintenance_walkway_801863B0.value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->field_5 == 0) {
-            D_shelter_b2_north_maintenance_walkway_801863A8 = *dst;
+            D_shelter_b2_north_maintenance_walkway_801863A8       = *dst;
             D_shelter_b2_north_maintenance_walkway_801863C4.value = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
@@ -1083,7 +1083,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 /// 0xA8 with item 0x22 as prerequisite, answering 2 where the gate answers 0
 /// and marking item 0x122 seen when the gate started the event. Message 0x20
 /// starts the room's own event on flag 0x137; any other message answers 1.
-s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent event;
@@ -1131,7 +1131,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC4C(Task* task, s32 msgId, Gp
 /// the session's own sub-id and has not yet latched nibble 0x84, it starts the
 /// cutscene pair, runs `func_800E3FAC(0xA2, 0x20)`, latches the nibble and
 /// applies the room's area records. The outgoing record is never written.
-s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 subId = in->field_2;
 

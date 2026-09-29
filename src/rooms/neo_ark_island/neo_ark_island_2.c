@@ -75,7 +75,7 @@ GpRoomCoordRec D_neo_ark_island_80181BA4[1] = {
     { D_neo_ark_island_80183CB0, NULL },
 };
 
-u8 * D_neo_ark_island_80181BAC[1] = {
+u8* D_neo_ark_island_80181BAC[1] = {
     D_8010CAF8,
 };
 
@@ -711,14 +711,14 @@ void func_neo_ark_island_80180600(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_island_80181B84[1];
+                    SVECTOR* edge    = &D_neo_ark_island_80181B84[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

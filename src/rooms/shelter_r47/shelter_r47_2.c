@@ -170,7 +170,7 @@ ShelterR47MapMark D_shelter_r47_8018754C[15] = {
     { 255, 0, 0, 0 },
 };
 
-ShelterR47MapMark * D_shelter_r47_801875C4[5] = {
+ShelterR47MapMark* D_shelter_r47_801875C4[5] = {
     D_shelter_r47_8018743C,
     D_shelter_r47_801874C4,
     D_shelter_r47_8018751C,
@@ -178,7 +178,7 @@ ShelterR47MapMark * D_shelter_r47_801875C4[5] = {
     D_shelter_r47_80187404,
 };
 
-ShelterR47MapMark * D_shelter_r47_801875D8[5] = {
+ShelterR47MapMark* D_shelter_r47_801875D8[5] = {
     D_shelter_r47_8018743C,
     D_shelter_r47_801874C4,
     D_shelter_r47_8018751C,
@@ -187,7 +187,12 @@ ShelterR47MapMark * D_shelter_r47_801875D8[5] = {
 };
 
 s16 D_shelter_r47_801875EC[6] = {
-    10, 20, 30, 40, 0, 0,
+    10,
+    20,
+    30,
+    40,
+    0,
+    0,
 };
 
 s16 D_shelter_r47_801875F8[5][2] = {
@@ -1009,9 +1014,9 @@ static void func_shelter_r47_80182E78(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = state->field_4E;
     /* Keeps the `spawnArg2` load below the `Mc_SaveData[0].state.at4.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
@@ -1064,12 +1069,12 @@ static void func_shelter_r47_80182FDC(Task* task)
     func_shelter_r47_80181914(task, 1);
     if ((s16)func_shelter_r47_80180C48(task) != 0) {
         Mc_SaveData[0].state.at4.loc.view = D_shelter_r47_80186FAC[state->selection.index];
-        state->field_48             = 0;
-        work                        = (ShelterR47State*)task->work;
-        work->field_3A              = 0xFF;
-        work->field_3C              = 0xFF;
-        work->field_3E              = 0xFF;
-        work->field_40              = 0xFF;
+        state->field_48                   = 0;
+        work                              = (ShelterR47State*)task->work;
+        work->field_3A                    = 0xFF;
+        work->field_3C                    = 0xFF;
+        work->field_3E                    = 0xFF;
+        work->field_40                    = 0xFF;
         task->state++;
     }
 }
@@ -1229,10 +1234,10 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
             break;
         case 1:
             if (!(state->toggles[1] & 1)) {
-                D_shelter_r47_80186FAC[1]   = 0x12;
+                D_shelter_r47_80186FAC[1]         = 0x12;
                 Mc_SaveData[0].state.at4.loc.view = 0x12;
             } else {
-                D_shelter_r47_80186FAC[1]   = 0x24;
+                D_shelter_r47_80186FAC[1]         = 0x24;
                 Mc_SaveData[0].state.at4.loc.view = 0x24;
             }
             break;

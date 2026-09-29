@@ -46,7 +46,7 @@ s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;

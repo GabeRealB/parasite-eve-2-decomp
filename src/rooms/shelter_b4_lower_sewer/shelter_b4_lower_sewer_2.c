@@ -111,7 +111,7 @@ SVECTOR D_shelter_b4_lower_sewer_80181F94[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b4_lower_sewer_80181FA4[1] = {
+u8* D_shelter_b4_lower_sewer_80181FA4[1] = {
     D_8010CAF8,
 };
 
@@ -151,7 +151,7 @@ SVECTOR D_shelter_b4_lower_sewer_801820CC[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_shelter_b4_lower_sewer_8018210C[4] = {
+SVECTOR* D_shelter_b4_lower_sewer_8018210C[4] = {
     D_shelter_b4_lower_sewer_8018208C,
     D_shelter_b4_lower_sewer_801820CC,
     D_shelter_b4_lower_sewer_8018208C,
@@ -631,7 +631,7 @@ s16 D_shelter_b4_lower_sewer_80182888[13] = {
     -1,
 };
 
-s16 * D_shelter_b4_lower_sewer_801828A4[16] = {
+s16* D_shelter_b4_lower_sewer_801828A4[16] = {
     D_shelter_b4_lower_sewer_80182698,
     D_shelter_b4_lower_sewer_801826C4,
     D_shelter_b4_lower_sewer_801826F0,
@@ -954,7 +954,7 @@ GpRoomParamRec D_shelter_b4_lower_sewer_80183DEC[1] = {
     { 0, 0, 1, 0, D_shelter_b4_lower_sewer_80183DA8 },
 };
 
-GpRoomParamRec * D_shelter_b4_lower_sewer_80183DF4[8] = {
+GpRoomParamRec* D_shelter_b4_lower_sewer_80183DF4[8] = {
     D_shelter_b4_lower_sewer_80183DCC,
     D_shelter_b4_lower_sewer_80183DD4,
     D_shelter_b4_lower_sewer_80183DDC,
@@ -965,7 +965,7 @@ GpRoomParamRec * D_shelter_b4_lower_sewer_80183DF4[8] = {
     D_shelter_b4_lower_sewer_80183DCC,
 };
 
-u8 * D_shelter_b4_lower_sewer_80183E14 = NULL;
+u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
 
 /// Per-frame task drawing the room's glowing capsules. On its first tick it
 /// stores the values 0x600ED, 0x600EE and 0x600EF in three gameplay globals,
@@ -1809,14 +1809,14 @@ void func_shelter_b4_lower_sewer_80180914(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b4_lower_sewer_80181F94[1];
+                    SVECTOR* edge    = &D_shelter_b4_lower_sewer_80181F94[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

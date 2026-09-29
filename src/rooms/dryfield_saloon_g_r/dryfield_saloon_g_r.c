@@ -177,7 +177,7 @@ u8 D_dryfield_saloon_g_r_8017EDC0[16] = {
     0,
 };
 
-u8 * D_dryfield_saloon_g_r_8017EDD0[2] = {
+u8* D_dryfield_saloon_g_r_8017EDD0[2] = {
     D_dryfield_saloon_g_r_8017EDC0,
     D_dryfield_saloon_g_r_8017EDC0,
 };
@@ -705,7 +705,7 @@ s16 D_dryfield_saloon_g_r_8017F740[8] = {
     -1,
 };
 
-s16 * D_dryfield_saloon_g_r_8017F750[12] = {
+s16* D_dryfield_saloon_g_r_8017F750[12] = {
     D_dryfield_saloon_g_r_8017F520,
     D_dryfield_saloon_g_r_8017F544,
     D_dryfield_saloon_g_r_8017F578,
@@ -1212,7 +1212,7 @@ GpRoomParamRec D_dryfield_saloon_g_r_80181BB4[1] = {
     { 0, 1, 0, 0, D_dryfield_saloon_g_r_80181B90 },
 };
 
-GpRoomParamRec * D_dryfield_saloon_g_r_80181BBC[8] = {
+GpRoomParamRec* D_dryfield_saloon_g_r_80181BBC[8] = {
     D_dryfield_saloon_g_r_80181B9C,
     D_dryfield_saloon_g_r_80181BA4,
     D_dryfield_saloon_g_r_80181BAC,
@@ -1251,10 +1251,10 @@ static s32 func_dryfield_saloon_g_r_8017D5E8(RoomEventReq* req, RoomEventMsg* ms
     s32 ret;
     s32 neg;
 
-    flag                           = req->flagId;
+    flag                              = req->flagId;
     D_dryfield_saloon_g_r_80181BE4[0] = 0;
-    neg                            = flag < 0;
-    got                            = (s16)flag;
+    neg                               = flag < 0;
+    got                               = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1332,7 +1332,7 @@ void func_dryfield_saloon_g_r_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_saloon_g_r_80181BDC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_saloon_g_r_80181BDC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_saloon_g_r_80181BDC.field_3;
@@ -1356,7 +1356,7 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
 /// then passes the warp through the event gate with the room's own request -
 /// nibble 0x35, no item, cap command 2 and two stage sound ids. Any other area
 /// answers 1.
-s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u16          msgId;

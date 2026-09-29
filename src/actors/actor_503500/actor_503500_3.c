@@ -240,7 +240,7 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
     },
 };
 
-Task * D_actor_503500_80176558 = NULL;
+Task* D_actor_503500_80176558 = NULL;
 
 GpXformArg D_actor_503500_8017655C = { 0 };
 
@@ -2309,11 +2309,11 @@ static void func_actor_503500_80136AEC(Task* arg0)
 /// four `field_C` records; `arg2` raises the offset by 0x1F40 in Y.
 static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 {
-    MATRIX             mtx;
-    SVECTOR            ofs;
-    s32                i;
-    SVECTOR*           src;
-    SVECTOR*           dst;
+    MATRIX        mtx;
+    SVECTOR       ofs;
+    s32           i;
+    SVECTOR*      src;
+    SVECTOR*      dst;
     GpGridParams* out = D_shelter_r48_80183EEC;
     GpGridParams* in  = &D_actor_503500_8016F03C;
 

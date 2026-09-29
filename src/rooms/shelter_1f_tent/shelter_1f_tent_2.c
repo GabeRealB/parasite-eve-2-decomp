@@ -74,7 +74,7 @@ SVECTOR D_shelter_1f_tent_80181D3C[1] = {
     { -3230, -1130, 8780, 0 },
 };
 
-u8 * D_shelter_1f_tent_80181D44[1] = {
+u8* D_shelter_1f_tent_80181D44[1] = {
     D_8010CAF8,
 };
 
@@ -360,7 +360,7 @@ s16 D_shelter_1f_tent_801822C8[8] = {
     -1,
 };
 
-s16 * D_shelter_1f_tent_801822D8[6] = {
+s16* D_shelter_1f_tent_801822D8[6] = {
     D_shelter_1f_tent_801821D8,
     D_shelter_1f_tent_8018220C,
     D_shelter_1f_tent_80182250,
@@ -799,7 +799,7 @@ GpRoomParamRec D_shelter_1f_tent_801842AC[1] = {
     { 0, 0, 1, 0, D_shelter_1f_tent_80184298 },
 };
 
-GpRoomParamRec * D_shelter_1f_tent_801842B4[8] = {
+GpRoomParamRec* D_shelter_1f_tent_801842B4[8] = {
     D_shelter_1f_tent_801842A4,
     D_shelter_1f_tent_801842AC,
     D_shelter_1f_tent_801842A4,
@@ -881,7 +881,7 @@ GpAreaApplyRec D_shelter_1f_tent_801843B8[2] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_shelter_1f_tent_801843C0 = NULL;
+Task* D_shelter_1f_tent_801843C0 = NULL;
 
 RoomCutsceneRec D_shelter_1f_tent_801843C4 = { 0 };
 

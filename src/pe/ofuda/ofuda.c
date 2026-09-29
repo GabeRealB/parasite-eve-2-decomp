@@ -52,11 +52,11 @@ void ofudaEffectTask(Task* arg0)
     switch (arg0->state) {
         case 0:
             arg0->spawnArg1.value = 0x1E;
-            mem->scale      = 0;
-            mem->angle      = 0x100;
-            mem->step       = 0x100 / arg0->spawnArg1.value;
-            arg0->state     = 1;
-            pan             = (s8)Gp_GetObjPan(coord);
+            mem->scale            = 0;
+            mem->angle            = 0x100;
+            mem->step             = 0x100 / arg0->spawnArg1.value;
+            arg0->state           = 1;
+            pan                   = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0xE03D0001, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:

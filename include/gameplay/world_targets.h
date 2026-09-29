@@ -57,7 +57,9 @@ void Gp_IncStateF0Ref(s32 arg0);
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
 
-void Gp_ReleaseStateF0Clear(void);
+/// Clear accumulated rewards on the last release. Both caller-supplied
+/// arguments are unused.
+void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg);
 
 void Gp_ReleaseStateF0(Task* arg0, s32 arg1);
 

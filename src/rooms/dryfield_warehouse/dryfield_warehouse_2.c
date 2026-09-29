@@ -111,7 +111,7 @@ TaskDesc D_dryfield_warehouse_8017F56C[2] = {
 
 DryfieldWarehousePoseBank1FC4 D_dryfield_warehouse_8017F584 = { .poses = {
 #include "assets/dryfield_warehouse_animation_02260_bank1.inc"
-} };
+                                                                } };
 
 GpPackedSvec D_dryfield_warehouse_8017F59C[28] = {
 #include "assets/dryfield_warehouse_animation_02260_bank4.inc"
@@ -126,11 +126,12 @@ u16 D_dryfield_warehouse_8017F7F8[20] = {
 };
 
 GpAnimSet D_dryfield_warehouse_8017F820 = {
-    D_dryfield_warehouse_8017F60C, D_dryfield_warehouse_8017F7F8,
+    D_dryfield_warehouse_8017F60C,
+    D_dryfield_warehouse_8017F7F8,
     { NULL, D_dryfield_warehouse_8017F584.words, NULL, NULL, D_dryfield_warehouse_8017F59C, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_dryfield_warehouse_8017F848[2] = {
+GpAnimSet* D_dryfield_warehouse_8017F848[2] = {
     NULL,
     &D_dryfield_warehouse_8017F820,
 };
@@ -244,7 +245,7 @@ u8 D_dryfield_warehouse_8017FBF8[12] = {
     0,
 };
 
-u8 * D_dryfield_warehouse_8017FC04[3] = {
+u8* D_dryfield_warehouse_8017FC04[3] = {
     D_8010CAF8,
     D_dryfield_warehouse_8017FBEC,
     D_dryfield_warehouse_8017FBF8,
@@ -508,7 +509,7 @@ s16 D_dryfield_warehouse_80180254[38] = {
     -1,
 };
 
-s16 * D_dryfield_warehouse_801802A0[2] = {
+s16* D_dryfield_warehouse_801802A0[2] = {
     D_dryfield_warehouse_80180200,
     D_dryfield_warehouse_80180254,
 };
@@ -809,7 +810,7 @@ s16 D_dryfield_warehouse_80180988[9] = {
     -1,
 };
 
-s16 * D_dryfield_warehouse_8018099C[4] = {
+s16* D_dryfield_warehouse_8018099C[4] = {
     D_dryfield_warehouse_801808BC,
     D_dryfield_warehouse_80180910,
     D_dryfield_warehouse_80180930,
@@ -1096,7 +1097,7 @@ s16 D_dryfield_warehouse_80181014[9] = {
     -1,
 };
 
-s16 * D_dryfield_warehouse_80181028[4] = {
+s16* D_dryfield_warehouse_80181028[4] = {
     D_dryfield_warehouse_80180F50,
     D_dryfield_warehouse_80180FA4,
     D_dryfield_warehouse_80180FC4,
@@ -1255,9 +1256,9 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             Gp_DispatchMsgPtr((Task*)work->owner, 0x3E8, &rec, 0);
             Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData[0].state.at4.loc.room != 2) {
-                Mc_SaveData[0].state.at4.loc.room   = 2;
-                gGameSession->at4.loc.room    = 2;
-                D_dryfield_warehouse_801821C4 = 1;
+                Mc_SaveData[0].state.at4.loc.room = 2;
+                gGameSession->at4.loc.room        = 2;
+                D_dryfield_warehouse_801821C4     = 1;
                 return;
             }
             D_dryfield_warehouse_801821C4 = 0;
@@ -1385,8 +1386,8 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             switch (work->field_6) {
                 case 0:
                     Mc_SaveData[0].state.at4.loc.room = 2;
-                    gGameSession->at4.loc.room  = 2;
-                    work->field_8               = 0;
+                    gGameSession->at4.loc.room        = 2;
+                    work->field_8                     = 0;
                     work->field_6++;
                     break;
                 case 1:

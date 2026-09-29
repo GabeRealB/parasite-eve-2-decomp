@@ -103,7 +103,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             break;
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = (u8)D_mine_secret_passage_80183448.field_2;
             Mc_SaveData[0].state.at4.loc.warp = (u8)D_mine_secret_passage_80183448.field_4;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_mine_secret_passage_80183448.prefix.bytes.field_1;
@@ -125,7 +125,7 @@ s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, GpMessageArg arg2, 
 /// staging save location and starts the cutscene task; `field_5` set only
 /// suppresses that side effect. Returns 2 for a stage-9 request and 1 for
 /// every other one.
-s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);

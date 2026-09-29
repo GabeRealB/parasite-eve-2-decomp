@@ -259,7 +259,7 @@ u8 D_dryfield_night_motel_balcony_80182E70[40] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_balcony_80182E98[3] = {
+u8* D_dryfield_night_motel_balcony_80182E98[3] = {
     D_8010CAF8,
     D_dryfield_night_motel_balcony_80182E48,
     D_dryfield_night_motel_balcony_80182E70,
@@ -915,7 +915,7 @@ s16 D_dryfield_night_motel_balcony_8018364C[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_balcony_80183650[64] = {
+s16* D_dryfield_night_motel_balcony_80183650[64] = {
     D_dryfield_night_motel_balcony_801833A4,
     D_dryfield_night_motel_balcony_801833A8,
     D_dryfield_night_motel_balcony_801833B4,
@@ -1662,7 +1662,7 @@ s16 D_dryfield_night_motel_balcony_80183EDC[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_balcony_80183EE0[64] = {
+s16* D_dryfield_night_motel_balcony_80183EE0[64] = {
     D_dryfield_night_motel_balcony_80183C10,
     D_dryfield_night_motel_balcony_80183C14,
     D_dryfield_night_motel_balcony_80183C20,
@@ -4270,7 +4270,7 @@ GpRoomParamRec D_dryfield_night_motel_balcony_8018F2A4[1] = {
     { 0, 0, 1, 0, D_dryfield_night_motel_balcony_8018F280 },
 };
 
-GpRoomParamRec * D_dryfield_night_motel_balcony_8018F2AC[8] = {
+GpRoomParamRec* D_dryfield_night_motel_balcony_8018F2AC[8] = {
     D_dryfield_night_motel_balcony_8018F28C,
     D_dryfield_night_motel_balcony_8018F294,
     D_dryfield_night_motel_balcony_8018F29C,
@@ -4718,8 +4718,8 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 gte_stsv(&work->move);
             }
             VectorNormalSS(&work->move, &work->move);
-            coord->flg      = 0;
-            task->state     = 1;
+            coord->flg            = 0;
+            task->state           = 1;
             task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
             break;
         case 1:
@@ -5295,8 +5295,8 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
             gte_ldsv(&work->move);
             gte_gpf12();
             gte_stsv(&work->move);
-            coord->flg      = 0;
-            task->state     = 1;
+            coord->flg            = 0;
+            task->state           = 1;
             task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
             break;
         case 1:

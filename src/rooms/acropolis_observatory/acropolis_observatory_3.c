@@ -111,7 +111,7 @@ extern GpSprtCmd  D_acropolis_observatory_80182074[22];
 extern GpSprtElem D_acropolis_observatory_801817A4[49];
 extern GpSprtElem D_acropolis_observatory_80181BB0[61];
 
-GpAnimSet * D_acropolis_observatory_8017FE64 = &D_acropolis_observatory_8017FE38;
+GpAnimSet* D_acropolis_observatory_8017FE64 = &D_acropolis_observatory_8017FE38;
 
 s16 D_acropolis_observatory_8017FE68[2] = {
     -1,
@@ -158,7 +158,7 @@ u8 D_acropolis_observatory_8017FEE8[8] = {
     2,
 };
 
-u8 * D_acropolis_observatory_8017FEF0[2] = {
+u8* D_acropolis_observatory_8017FEF0[2] = {
     D_8010CAF8,
     D_acropolis_observatory_8017FEE8,
 };
@@ -684,7 +684,7 @@ s16 D_acropolis_observatory_80180A08[18] = {
     -1,
 };
 
-s16 * D_acropolis_observatory_80180A2C[9] = {
+s16* D_acropolis_observatory_80180A2C[9] = {
     D_acropolis_observatory_8018085C,
     D_acropolis_observatory_8018089C,
     D_acropolis_observatory_801808D4,
@@ -1367,7 +1367,7 @@ GpRoomParamRec D_acropolis_observatory_801834D4[1] = {
     { 0, 0, 1, 0, D_acropolis_observatory_801834C0 },
 };
 
-GpRoomParamRec * D_acropolis_observatory_801834DC[8] = {
+GpRoomParamRec* D_acropolis_observatory_801834DC[8] = {
     D_acropolis_observatory_801834CC,
     D_acropolis_observatory_801834D4,
     D_acropolis_observatory_801834CC,
@@ -1452,10 +1452,10 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.field_10        = 0;
             Gp_DispatchMsgPtr(work->target, 0x3E8, &rec, 0);
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->at4.loc.room  = 1;
-            gGameSession->roomObjsDirty = 1;
-            gGameSession->viewDirty     = 1;
-            task->state                 = task->state + 1;
+            gGameSession->at4.loc.room        = 1;
+            gGameSession->roomObjsDirty       = 1;
+            gGameSession->viewDirty           = 1;
+            task->state                       = task->state + 1;
             break;
         case 6:
             Gp_DispatchMsg(work->target, 0x3F1, 0, 0);

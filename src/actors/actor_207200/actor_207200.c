@@ -128,8 +128,15 @@ u32 D_actor_207200_8014DEE4[377] = {
 };
 
 TmdSource D_actor_207200_8014E4C8 = {
-    0, 2184, 332, 3,
-    D_actor_207200_8014DC38, D_actor_207200_8014DC44, D_actor_207200_8014DD6C, D_actor_207200_8014DBCC, D_actor_207200_8014DEE4,
+    0,
+    2184,
+    332,
+    3,
+    D_actor_207200_8014DC38,
+    D_actor_207200_8014DC44,
+    D_actor_207200_8014DD6C,
+    D_actor_207200_8014DBCC,
+    D_actor_207200_8014DEE4,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -140,7 +147,7 @@ typedef union {
 
 Actor207200PoseBank46CC D_actor_207200_8014E4EC = { .poses = {
 #include "assets/actor_207200_animation_04708_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_207200_8014E504[1] = {
 #include "assets/actor_207200_animation_04708_bank4.inc"
@@ -155,7 +162,8 @@ u16 D_actor_207200_8014E520[4] = {
 };
 
 GpAnimSet D_actor_207200_8014E528 = {
-    D_actor_207200_8014E508, D_actor_207200_8014E520,
+    D_actor_207200_8014E508,
+    D_actor_207200_8014E520,
     { NULL, D_actor_207200_8014E4EC.words, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
 };
 
@@ -167,7 +175,7 @@ typedef union {
 
 Actor207200PoseBank4730 D_actor_207200_8014E550 = { .poses = {
 #include "assets/actor_207200_animation_0495C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_207200_8014E670[10] = {
 #include "assets/actor_207200_animation_0495C_bank4.inc"
@@ -182,7 +190,8 @@ u16 D_actor_207200_8014E774[4] = {
 };
 
 GpAnimSet D_actor_207200_8014E77C = {
-    D_actor_207200_8014E698, D_actor_207200_8014E774,
+    D_actor_207200_8014E698,
+    D_actor_207200_8014E774,
     { NULL, D_actor_207200_8014E550.words, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
 };
 
@@ -207,7 +216,7 @@ SVECTOR D_actor_207200_8014E7BC = { 0, -100, 0, 0 };
 
 SVECTOR D_actor_207200_8014E7C4 = { 0, 0, 100, 0 };
 
-GpU16Pair D_actor_207200_8014E7CC[2] = { {25,11}, {10,0} };
+GpU16Pair D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
 static void            func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1);
 static void            func_actor_207200_8014A588(Task* arg0);

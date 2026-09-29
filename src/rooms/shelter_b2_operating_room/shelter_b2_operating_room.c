@@ -235,7 +235,7 @@ s16 D_shelter_b2_operating_room_80180BBC[2][3] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b2_operating_room_80180BC8[1] = {
+u8* D_shelter_b2_operating_room_80180BC8[1] = {
     D_8010CAF8,
 };
 
@@ -586,7 +586,7 @@ s16 D_shelter_b2_operating_room_80181330[9] = {
     -1,
 };
 
-s16 * D_shelter_b2_operating_room_80181344[8] = {
+s16* D_shelter_b2_operating_room_80181344[8] = {
     D_shelter_b2_operating_room_80181218,
     D_shelter_b2_operating_room_80181248,
     D_shelter_b2_operating_room_80181264,
@@ -1224,7 +1224,7 @@ GpRoomParamRec D_shelter_b2_operating_room_801841EC[1] = {
     { 0, 0, 1, 0, D_shelter_b2_operating_room_801841D0 },
 };
 
-GpRoomParamRec * D_shelter_b2_operating_room_801841F4[8] = {
+GpRoomParamRec* D_shelter_b2_operating_room_801841F4[8] = {
     D_shelter_b2_operating_room_801841DC,
     D_shelter_b2_operating_room_801841E4,
     D_shelter_b2_operating_room_801841EC,
@@ -1275,10 +1275,10 @@ static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventM
     s32 ret;
     s32 neg;
 
-    flag                                 = req->flagId;
+    flag                                       = req->flagId;
     D_shelter_b2_operating_room_80184224.value = 0;
-    neg                                  = flag < 0;
-    got                                  = (s16)flag;
+    neg                                        = flag < 0;
+    got                                        = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1290,10 +1290,10 @@ static s32 func_shelter_b2_operating_room_8017D628(RoomEventReq* req, RoomEventM
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
             if (msg->field_5 == 0) {
-                D_shelter_b2_operating_room_8018421C = *msg;
+                D_shelter_b2_operating_room_8018421C       = *msg;
                 D_shelter_b2_operating_room_80184238.value = *req;
-                id                                   = req->flagId;
-                mode                                 = 1;
+                id                                         = req->flagId;
+                mode                                       = 1;
                 if (id < 0) {
                     id   = -id;
                     mode = 0;
@@ -1358,7 +1358,7 @@ void func_shelter_b2_operating_room_8017D78C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018421C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018421C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_operating_room_8018421C.field_3;
@@ -1409,7 +1409,7 @@ void func_shelter_b2_operating_room_8017D8FC(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_operating_room_8018422C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_operating_room_8018422C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_operating_room_8018422C.field_3;
@@ -1448,7 +1448,7 @@ static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEve
 /// and runs cap command 3; once the nibble is set it starts the room event on
 /// flag 0x13A instead. Message 0x1F starts the event on flag 0x13B; any other
 /// message answers 1.
-s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent event;

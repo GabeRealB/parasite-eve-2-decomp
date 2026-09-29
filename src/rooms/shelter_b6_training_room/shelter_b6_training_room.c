@@ -56,7 +56,7 @@ static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 
 extern GpAreaTmdRec D_shelter_b6_training_room_80185994[6];
 
-u8 * D_shelter_b6_training_room_80184418[1] = {
+u8* D_shelter_b6_training_room_80184418[1] = {
     D_8010CAF8,
 };
 
@@ -229,7 +229,7 @@ s16 D_shelter_b6_training_room_80184700[14] = {
     -1,
 };
 
-s16 * D_shelter_b6_training_room_8018471C[6] = {
+s16* D_shelter_b6_training_room_8018471C[6] = {
     D_shelter_b6_training_room_80184674,
     D_shelter_b6_training_room_80184690,
     D_shelter_b6_training_room_801846B4,
@@ -479,7 +479,7 @@ GpRoomParamRec D_shelter_b6_training_room_80185C30[1] = {
     { 0, 0, 1, 0, D_shelter_b6_training_room_80185C14 },
 };
 
-GpRoomParamRec * D_shelter_b6_training_room_80185C38[8] = {
+GpRoomParamRec* D_shelter_b6_training_room_80185C38[8] = {
     D_shelter_b6_training_room_80185C20,
     D_shelter_b6_training_room_80185C28,
     D_shelter_b6_training_room_80185C30,
@@ -492,9 +492,9 @@ GpRoomParamRec * D_shelter_b6_training_room_80185C38[8] = {
 
 u8 D_shelter_b6_training_room_80185C60[3][16];
 
-GpCoord * D_shelter_b6_training_room_80185C90;
+GpCoord* D_shelter_b6_training_room_80185C90;
 
-GpCoord * D_shelter_b6_training_room_80185C94;
+GpCoord* D_shelter_b6_training_room_80185C94;
 
 u16 D_shelter_b6_training_room_80185C98;
 
@@ -509,7 +509,7 @@ s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, GpMessageArg a
 
 /// The room's handler for message 0x13EE: copies the incoming `GpSaveLoc` onto
 /// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
-s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

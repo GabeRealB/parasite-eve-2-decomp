@@ -124,7 +124,7 @@ u8 D_neo_ark_pyramid_8017FC58[8] = {
     8,
 };
 
-u8 * D_neo_ark_pyramid_8017FC60[2] = {
+u8* D_neo_ark_pyramid_8017FC60[2] = {
     D_8010CAF8,
     D_neo_ark_pyramid_8017FC58,
 };
@@ -495,7 +495,7 @@ s16 D_neo_ark_pyramid_8018027C[6] = {
     -1,
 };
 
-s16 * D_neo_ark_pyramid_80180288[15] = {
+s16* D_neo_ark_pyramid_80180288[15] = {
     D_neo_ark_pyramid_80180104,
     D_neo_ark_pyramid_80180118,
     D_neo_ark_pyramid_80180134,
@@ -836,7 +836,7 @@ GpRoomParamRec D_neo_ark_pyramid_8018187C[1] = {
     { 0, 0, 1, 0, D_neo_ark_pyramid_80181850 },
 };
 
-GpRoomParamRec * D_neo_ark_pyramid_80181884[8] = {
+GpRoomParamRec* D_neo_ark_pyramid_80181884[8] = {
     D_neo_ark_pyramid_8018185C,
     D_neo_ark_pyramid_80181864,
     D_neo_ark_pyramid_8018186C,
@@ -864,9 +864,9 @@ void func_neo_ark_pyramid_8017D600(Task* task)
     switch (task->state) {
         case 0:
             Mc_SaveData[0].state.at4.loc.view = 8;
-            gGameSession->hideHud       = 1;
-            gGameSession->eventState    = 1;
-            Gp_StateF0.field_4          = 2;
+            gGameSession->hideHud             = 1;
+            gGameSession->eventState          = 1;
+            Gp_StateF0.field_4                = 2;
             task->state++;
             break;
         case 1:
@@ -914,9 +914,9 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             break;
         case 10:
             Mc_SaveData[0].state.at4.loc.view = 3;
-            gGameSession->hideHud       = 0;
-            gGameSession->eventState    = 0;
-            Gp_StateF0.field_4          = 0;
+            gGameSession->hideHud             = 0;
+            gGameSession->eventState          = 0;
+            Gp_StateF0.field_4                = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);
@@ -979,7 +979,7 @@ s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// Handler for message 0x13EE in the room's message table: copies the
 /// incoming save-location record onto the outgoing one and forwards both to
 /// `func_map_neo_ark_80179B14`. Always answers 1.
-s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -996,7 +996,7 @@ s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// `field_2` is 1 it resets the quad's angle; once the quad has turned four
 /// times it spawns capture event 3, otherwise it has the player lower the
 /// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
@@ -1303,14 +1303,14 @@ void func_neo_ark_pyramid_8017E6B4(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_pyramid_8017FC18[1];
+                    SVECTOR* edge    = &D_neo_ark_pyramid_8017FC18[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

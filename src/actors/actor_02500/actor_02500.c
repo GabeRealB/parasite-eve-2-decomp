@@ -209,8 +209,15 @@ u32 Actor02500_D02FAC[989] = {
 };
 
 TmdSource Actor02500_D03F20 = {
-    0, 5684, 1152, 5,
-    Actor02500_D029C8, Actor02500_D029DC, Actor02500_D02CC4, Actor02500_D02914, Actor02500_D02FAC,
+    0,
+    5684,
+    1152,
+    5,
+    Actor02500_D029C8,
+    Actor02500_D029DC,
+    Actor02500_D02CC4,
+    Actor02500_D02914,
+    Actor02500_D02FAC,
 };
 
 TmdBone Actor02500_D03F44[1] = {
@@ -234,8 +241,15 @@ u32 Actor02500_D040CC[223] = {
 };
 
 TmdSource Actor02500_D04448 = {
-    0, 1292, 0, 1,
-    Actor02500_D03F68, Actor02500_D03F6C, Actor02500_D0401C, Actor02500_D03F44, Actor02500_D040CC,
+    0,
+    1292,
+    0,
+    1,
+    Actor02500_D03F68,
+    Actor02500_D03F6C,
+    Actor02500_D0401C,
+    Actor02500_D03F44,
+    Actor02500_D040CC,
 };
 
 TmdBone Actor02500_D0446C[1] = {
@@ -259,8 +273,15 @@ u32 Actor02500_D04584[130] = {
 };
 
 TmdSource Actor02500_D0478C = {
-    0, 844, 0, 1,
-    Actor02500_D04490, Actor02500_D04494, Actor02500_D0450C, Actor02500_D0446C, Actor02500_D04584,
+    0,
+    844,
+    0,
+    1,
+    Actor02500_D04490,
+    Actor02500_D04494,
+    Actor02500_D0450C,
+    Actor02500_D0446C,
+    Actor02500_D04584,
 };
 
 TmdBone Actor02500_D047B0[1] = {
@@ -284,13 +305,20 @@ u32 Actor02500_D048C8[130] = {
 };
 
 TmdSource Actor02500_D04AD0 = {
-    0, 844, 0, 1,
-    Actor02500_D047D4, Actor02500_D047D8, Actor02500_D04850, Actor02500_D047B0, Actor02500_D048C8,
+    0,
+    844,
+    0,
+    1,
+    Actor02500_D047D4,
+    Actor02500_D047D8,
+    Actor02500_D04850,
+    Actor02500_D047B0,
+    Actor02500_D048C8,
 };
 
 Actor02500PoseBank4AF4 Actor02500_D04AF4 = { .poses = {
 #include "assets/actor_102500_animation_04C64_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D04B54[21] = {
 #include "assets/actor_102500_animation_04C64_bank4.inc"
@@ -305,7 +333,8 @@ u16 Actor02500_D04C58[6] = {
 };
 
 GpAnimSet Actor02500_D04C64 = {
-    Actor02500_D04BA8, Actor02500_D04C58,
+    Actor02500_D04BA8,
+    Actor02500_D04C58,
     { NULL, Actor02500_D04AF4.words, NULL, NULL, Actor02500_D04B54, NULL, NULL, NULL },
 };
 
@@ -317,7 +346,7 @@ typedef union {
 
 Actor02500PoseBank4C8C Actor02500_D04C8C = { .poses = {
 #include "assets/actor_102500_animation_04E3C_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D04D04[27] = {
 #include "assets/actor_102500_animation_04E3C_bank4.inc"
@@ -332,7 +361,8 @@ u16 Actor02500_D04E30[6] = {
 };
 
 GpAnimSet Actor02500_D04E3C = {
-    Actor02500_D04D70, Actor02500_D04E30,
+    Actor02500_D04D70,
+    Actor02500_D04E30,
     { NULL, Actor02500_D04C8C.words, NULL, NULL, Actor02500_D04D04, NULL, NULL, NULL },
 };
 
@@ -344,7 +374,7 @@ typedef union {
 
 Actor02500PoseBank4E64 Actor02500_D04E64 = { .poses = {
 #include "assets/actor_102500_animation_04FF0_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D04EB8[27] = {
 #include "assets/actor_102500_animation_04FF0_bank4.inc"
@@ -359,7 +389,8 @@ u16 Actor02500_D04FE4[6] = {
 };
 
 GpAnimSet Actor02500_D04FF0 = {
-    Actor02500_D04F24, Actor02500_D04FE4,
+    Actor02500_D04F24,
+    Actor02500_D04FE4,
     { NULL, Actor02500_D04E64.words, NULL, NULL, Actor02500_D04EB8, NULL, NULL, NULL },
 };
 
@@ -371,7 +402,7 @@ typedef union {
 
 Actor02500PoseBank5018 Actor02500_D05018 = { .poses = {
 #include "assets/actor_102500_animation_0534C_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D05108[55] = {
 #include "assets/actor_102500_animation_0534C_bank4.inc"
@@ -386,7 +417,8 @@ u16 Actor02500_D05340[6] = {
 };
 
 GpAnimSet Actor02500_D0534C = {
-    Actor02500_D051E4, Actor02500_D05340,
+    Actor02500_D051E4,
+    Actor02500_D05340,
     { NULL, Actor02500_D05018.words, NULL, NULL, Actor02500_D05108, NULL, NULL, NULL },
 };
 
@@ -398,7 +430,7 @@ typedef union {
 
 Actor02500PoseBank5374 Actor02500_D05374 = { .poses = {
 #include "assets/actor_102500_animation_05520_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D053EC[27] = {
 #include "assets/actor_102500_animation_05520_bank4.inc"
@@ -413,7 +445,8 @@ u16 Actor02500_D05514[6] = {
 };
 
 GpAnimSet Actor02500_D05520 = {
-    Actor02500_D05458, Actor02500_D05514,
+    Actor02500_D05458,
+    Actor02500_D05514,
     { NULL, Actor02500_D05374.words, NULL, NULL, Actor02500_D053EC, NULL, NULL, NULL },
 };
 
@@ -425,7 +458,7 @@ typedef union {
 
 Actor02500PoseBank5548 Actor02500_D05548 = { .poses = {
 #include "assets/actor_102500_animation_057D4_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D05608[45] = {
 #include "assets/actor_102500_animation_057D4_bank4.inc"
@@ -440,7 +473,8 @@ u16 Actor02500_D057C8[6] = {
 };
 
 GpAnimSet Actor02500_D057D4 = {
-    Actor02500_D056BC, Actor02500_D057C8,
+    Actor02500_D056BC,
+    Actor02500_D057C8,
     { NULL, Actor02500_D05548.words, NULL, NULL, Actor02500_D05608, NULL, NULL, NULL },
 };
 
@@ -452,7 +486,7 @@ typedef union {
 
 Actor02500PoseBank57FC Actor02500_D057FC = { .poses = {
 #include "assets/actor_102500_animation_05998_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D05874[27] = {
 #include "assets/actor_102500_animation_05998_bank4.inc"
@@ -467,7 +501,8 @@ u16 Actor02500_D0598C[6] = {
 };
 
 GpAnimSet Actor02500_D05998 = {
-    Actor02500_D058E0, Actor02500_D0598C,
+    Actor02500_D058E0,
+    Actor02500_D0598C,
     { NULL, Actor02500_D057FC.words, NULL, NULL, Actor02500_D05874, NULL, NULL, NULL },
 };
 
@@ -479,7 +514,7 @@ typedef union {
 
 Actor02500PoseBank59C0 Actor02500_D059C0 = { .poses = {
 #include "assets/actor_102500_animation_05B08_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor02500_D05A14[18] = {
 #include "assets/actor_102500_animation_05B08_bank4.inc"
@@ -494,7 +529,8 @@ u16 Actor02500_D05AFC[6] = {
 };
 
 GpAnimSet Actor02500_D05B08 = {
-    Actor02500_D05A5C, Actor02500_D05AFC,
+    Actor02500_D05A5C,
+    Actor02500_D05AFC,
     { NULL, Actor02500_D059C0.words, NULL, NULL, Actor02500_D05A14, NULL, NULL, NULL },
 };
 
@@ -506,19 +542,47 @@ GpU16Pair Actor02500_D05B30[2] = {
 GpPairSrcE Actor02500_D05B38 = { Actor02500_D05B30, 68, 20, 8, 1, 0, 20, 0, 0, 0 };
 
 s16 Actor02500_D05B48[8] = {
-    16, 18, 20, 22, 22, 22, 22, 22,
+    16,
+    18,
+    20,
+    22,
+    22,
+    22,
+    22,
+    22,
 };
 
 s16 Actor02500_D05B58[8] = {
-    24, 26, 28, 30, 30, 30, 30, 30,
+    24,
+    26,
+    28,
+    30,
+    30,
+    30,
+    30,
+    30,
 };
 
 s16 Actor02500_D05B68[8] = {
-    18, 22, 26, 30, 30, 30, 30, 30,
+    18,
+    22,
+    26,
+    30,
+    30,
+    30,
+    30,
+    30,
 };
 
 s16 Actor02500_D05B78[8] = {
-    30, 34, 34, 38, 38, 38, 38, 38,
+    30,
+    34,
+    34,
+    38,
+    38,
+    38,
+    38,
+    38,
 };
 
 TaskDesc Actor02500_D05B88[2] = {
@@ -526,7 +590,7 @@ TaskDesc Actor02500_D05B88[2] = {
     { 2, 96, Actor02500_Fn02574, { .model = NULL } },
 };
 
-GpAnimSet * Actor02500_D05BA0[12] = {
+GpAnimSet* Actor02500_D05BA0[12] = {
     NULL,
     &Actor02500_D04C64,
     NULL,
@@ -1130,14 +1194,14 @@ static void Actor02500_Fn012F0(Task* actor)
     scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     switch (work->field_324) {
         case 0:
-            obj->flags                                       = 0x80;
+            obj->flags                                               = 0x80;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
-            dx                                               = Player_Status.coordMtx->t[0] - work->field_314;
-            scratch->delta.vy                                = 0;
-            scratch->delta.vx                                = dx;
-            dz                                               = Player_Status.coordMtx->t[2] - work->field_318;
-            scratch->delta.vz                                = dz;
-            dist                                             = SquareRoot0((dx * dx) + (dz * dz));
+            dx                                                       = Player_Status.coordMtx->t[0] - work->field_314;
+            scratch->delta.vy                                        = 0;
+            scratch->delta.vx                                        = dx;
+            dz                                                       = Player_Status.coordMtx->t[2] - work->field_318;
+            scratch->delta.vz                                        = dz;
+            dist                                                     = SquareRoot0((dx * dx) + (dz * dz));
             if (dist < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 Gp_StateF0.field_21 = 1;
                 work->field_324     = 2;
@@ -1145,7 +1209,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 1:
-            obj->flags                                       = 0x80;
+            obj->flags                                               = 0x80;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 work->field_324 = 2;
@@ -1153,10 +1217,10 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 2:
-            obj->flags                                       = 0x80;
+            obj->flags                                               = 0x80;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
-            timer2                                           = (u16)work->field_32E - 1;
-            work->field_32E                                  = timer2;
+            timer2                                                   = (u16)work->field_32E - 1;
+            work->field_32E                                          = timer2;
             if (timer2 <= 0) {
                 work->field_324 = 3;
                 work->field_32E = 0xA;
@@ -1173,12 +1237,12 @@ static void Actor02500_Fn012F0(Task* actor)
                 obj->flags = 0x80;
             } else {
                 Gp_SetLightMode(actor->spawnArg2.pointer, 0);
-                obj->flags                         = (u16)obj->flags | 2;
-                work->obj1A4.flags                |= 0x8000;
+                obj->flags                                 = (u16)obj->flags | 2;
+                work->obj1A4.flags                        |= 0x8000;
                 ((GpEnemy*)actor->spawnArg2.pointer)->recs = work->field_1C4;
-                work->field_31C                    = 0xA;
-                work->field_32E                    = 0;
-                work->field_324                    = 4;
+                work->field_31C                            = 0xA;
+                work->field_32E                            = 0;
+                work->field_324                            = 4;
             }
             break;
         case 4:

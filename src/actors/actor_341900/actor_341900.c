@@ -263,7 +263,7 @@ typedef union {
 
 Actor341900PoseBank1880 D_actor_341900_801636A0 = { .poses = {
 #include "assets/actor_341900_animation_01B5C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_341900_801636E8[46] = {
 #include "assets/actor_341900_animation_01B5C_bank4.inc"
@@ -278,28 +278,29 @@ u16 D_actor_341900_80163954[20] = {
 };
 
 GpAnimSet D_actor_341900_8016397C = {
-    D_actor_341900_801637A0, D_actor_341900_80163954,
+    D_actor_341900_801637A0,
+    D_actor_341900_80163954,
     { NULL, D_actor_341900_801636A0.words, NULL, NULL, D_actor_341900_801636E8, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_actor_341900_801639A4[2] = {
+GpAnimSet* D_actor_341900_801639A4[2] = {
     &D_actor_341900_8016397C,
     &D_actor_444000_8015FFB8,
 };
 
-GpAnimSet * D_actor_341900_801639AC[3] = {
+GpAnimSet* D_actor_341900_801639AC[3] = {
     &D_actor_444000_801529F4,
     &D_actor_444000_80152E34,
     &D_actor_444000_8015E060,
 };
 
-GpAnimSet * D_actor_341900_801639B8[3] = {
+GpAnimSet* D_actor_341900_801639B8[3] = {
     &D_actor_444000_80152AA0,
     &D_actor_444000_801530F8,
     &D_actor_444000_8015E0EC,
 };
 
-GpAnimSet * D_actor_341900_801639C4[3] = {
+GpAnimSet* D_actor_341900_801639C4[3] = {
     &D_actor_444000_80152B4C,
     &D_actor_444000_801533D4,
     &D_actor_444000_8015E178,
@@ -976,7 +977,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             gGameSession->flowFlags |= 3;
             goto next;
         case 1:
-            gStageSceneMusicEntry     = 4;
+            gStageSceneMusicEntry           = 4;
             Mc_SaveData[0].state.sceneEvent = 0xC;
             func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
         next:

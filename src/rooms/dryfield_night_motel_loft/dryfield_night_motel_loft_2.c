@@ -88,8 +88,15 @@ u32 D_dryfield_night_motel_loft_8017E950[106] = {
 };
 
 TmdSource D_dryfield_night_motel_loft_8017EAF8 = {
-    0, 800, 0, 1,
-    D_dryfield_night_motel_loft_8017E8AC, D_dryfield_night_motel_loft_8017E8B0, &D_dryfield_night_motel_loft_8017E8B0[20], D_dryfield_night_motel_loft_8017E888, D_dryfield_night_motel_loft_8017E950,
+    0,
+    800,
+    0,
+    1,
+    D_dryfield_night_motel_loft_8017E8AC,
+    D_dryfield_night_motel_loft_8017E8B0,
+    &D_dryfield_night_motel_loft_8017E8B0[20],
+    D_dryfield_night_motel_loft_8017E888,
+    D_dryfield_night_motel_loft_8017E950,
 };
 
 GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
@@ -159,7 +166,7 @@ s16 D_dryfield_night_motel_loft_8017ED48[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_loft_8017ED4C[2] = {
+s16* D_dryfield_night_motel_loft_8017ED4C[2] = {
     D_dryfield_night_motel_loft_8017ED44,
     D_dryfield_night_motel_loft_8017ED48,
 };
@@ -205,7 +212,7 @@ u8 D_dryfield_night_motel_loft_8017EDE0[16] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_loft_8017EDF0[2] = {
+u8* D_dryfield_night_motel_loft_8017EDF0[2] = {
     D_8010CAF8,
     D_dryfield_night_motel_loft_8017EDE0,
 };
@@ -384,7 +391,7 @@ s16 D_dryfield_night_motel_loft_8017F0F8[8] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_loft_8017F108[6] = {
+s16* D_dryfield_night_motel_loft_8017F108[6] = {
     D_dryfield_night_motel_loft_8017F064,
     D_dryfield_night_motel_loft_8017F088,
     D_dryfield_night_motel_loft_8017F0A4,

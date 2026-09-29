@@ -89,7 +89,7 @@ s16 D_dryfield_toilet_8018030C[2] = {
     -1,
 };
 
-s16 * D_dryfield_toilet_80180310[1] = {
+s16* D_dryfield_toilet_80180310[1] = {
     D_dryfield_toilet_8018030C,
 };
 
@@ -103,7 +103,7 @@ typedef union {
 
 DryfieldToiletPoseBank2D78 D_dryfield_toilet_80180338 = { .poses = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_dryfield_toilet_80180380[46] = {
 #include "assets/dryfield_toilet_animation_03054_bank4.inc"
@@ -118,7 +118,8 @@ u16 D_dryfield_toilet_801805EC[20] = {
 };
 
 GpAnimSet D_dryfield_toilet_80180614 = {
-    D_dryfield_toilet_80180438, D_dryfield_toilet_801805EC,
+    D_dryfield_toilet_80180438,
+    D_dryfield_toilet_801805EC,
     { NULL, D_dryfield_toilet_80180338.words, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
 };
 
@@ -130,7 +131,7 @@ typedef union {
 
 DryfieldToiletPoseBank307C D_dryfield_toilet_8018063C = { .poses = {
 #include "assets/dryfield_toilet_animation_035A4_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_dryfield_toilet_801806A8[131] = {
 #include "assets/dryfield_toilet_animation_035A4_bank4.inc"
@@ -145,7 +146,8 @@ u16 D_dryfield_toilet_80180B3C[20] = {
 };
 
 GpAnimSet D_dryfield_toilet_80180B64 = {
-    D_dryfield_toilet_801808B4, D_dryfield_toilet_80180B3C,
+    D_dryfield_toilet_801808B4,
+    D_dryfield_toilet_80180B3C,
     { NULL, D_dryfield_toilet_8018063C.words, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
 };
 

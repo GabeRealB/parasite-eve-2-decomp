@@ -291,7 +291,7 @@ u8 D_shelter_b4_water_supply_801826FC[64] = {
     0,
 };
 
-u8 * D_shelter_b4_water_supply_8018273C[1] = {
+u8* D_shelter_b4_water_supply_8018273C[1] = {
     D_8010CAF8,
 };
 
@@ -686,7 +686,7 @@ s16 D_shelter_b4_water_supply_80182DC8[25] = {
     -1,
 };
 
-s16 * D_shelter_b4_water_supply_80182DFC[16] = {
+s16* D_shelter_b4_water_supply_80182DFC[16] = {
     NULL,
     NULL,
     D_shelter_b4_water_supply_80182C40,
@@ -1150,7 +1150,7 @@ GpRoomParamRec D_shelter_b4_water_supply_80184E0C[1] = {
     { 0, 1, 0, 0, D_shelter_b4_water_supply_80184DDC },
 };
 
-GpRoomParamRec * D_shelter_b4_water_supply_80184E14[8] = {
+GpRoomParamRec* D_shelter_b4_water_supply_80184E14[8] = {
     D_shelter_b4_water_supply_80184DF4,
     D_shelter_b4_water_supply_80184DFC,
     D_shelter_b4_water_supply_80184E04,
@@ -1167,7 +1167,7 @@ GpSaveLoc D_shelter_b4_water_supply_80184E3C = { 0 };
 
 RoomDeparture D_shelter_b4_water_supply_80184E44 = { 0 };
 
-u8 * D_shelter_b4_water_supply_80184E50;
+u8* D_shelter_b4_water_supply_80184E50;
 
 /// The task the staged event block `D_shelter_b4_water_supply_80184E44`
 /// spawns. State 0 sends the block's `facing` to the slot-3 game pointer as
@@ -1213,7 +1213,7 @@ void func_shelter_b4_water_supply_8017D650(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_b4_water_supply_80184E44.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
@@ -1280,7 +1280,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_water_supply_80184E3C.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_water_supply_80184E3C.prefix.bytes.field_1;
@@ -1299,7 +1299,7 @@ s32 func_shelter_b4_water_supply_8017D970(Task* task, s32 msgId, GpMessageArg ar
 /// When the leading halfword of `src` is 0x2C it returns 0, first staging three
 /// bytes of `dst` and spawning from the task table unless `src->field_5` is set;
 /// any other location returns 1.
-s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
@@ -1323,7 +1323,7 @@ s32 func_shelter_b4_water_supply_8017DA28(Task* task, s32 msgId, GpMessageArg ar
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b4_water_supply_801825F0`:
 /// the directed action on the water-supply valve (`field_2` 0xA / `field_3`
 /// 0x20).
-s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, GpMsg13EF * arg2, s32 arg3)
+s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
 {
     if (arg2->field_2 == 0xA) {
         if (arg2->field_3 == 0x20) {
@@ -1367,11 +1367,11 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     work.sndEvent = 0x542E0003;
     work.facing   = 0x400;
     Gp_MsgPlayerWeapon(0);
-    wp            = &work;
-    param.prefix.packed   = wp->area;
-    param.field_2 = wp->warp;
-    param.field_3 = wp->room;
-    param.field_5 = 0;
+    wp                  = &work;
+    param.prefix.packed = wp->area;
+    param.field_2       = wp->warp;
+    param.field_3       = wp->room;
+    param.field_5       = 0;
     resolve(&param, &param);
     wp->area                           = param.prefix.packed;
     wp->warp                           = param.field_2;
@@ -1398,10 +1398,10 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.sndEvent = 0x542E0003;
         work.facing   = 0x400;
         Gp_MsgPlayerWeapon(0);
-        param.prefix.packed   = work.area;
-        param.field_2 = work.warp;
-        param.field_3 = work.room;
-        param.field_5 = 0;
+        param.prefix.packed = work.area;
+        param.field_2       = work.warp;
+        param.field_3       = work.room;
+        param.field_5       = 0;
         resolve(&param, &param);
         work.area                          = param.prefix.packed;
         work.warp                          = param.field_2;

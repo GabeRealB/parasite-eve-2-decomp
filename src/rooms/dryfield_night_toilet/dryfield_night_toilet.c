@@ -84,7 +84,7 @@ GpRoomObjRec D_dryfield_night_toilet_8017DAB8[1] = {
     { D_dryfield_night_toilet_8017DD88, D_dryfield_night_toilet_8017EE9C, D_dryfield_night_toilet_8017F064, D_dryfield_night_toilet_8017F2C4 },
 };
 
-u8 * D_dryfield_night_toilet_8017DAC8[1] = {
+u8* D_dryfield_night_toilet_8017DAC8[1] = {
     D_8010CAF8,
 };
 
@@ -207,7 +207,7 @@ s16 D_dryfield_night_toilet_8017DD60[16] = {
     -1,
 };
 
-s16 * D_dryfield_night_toilet_8017DD80[2] = {
+s16* D_dryfield_night_toilet_8017DD80[2] = {
     D_dryfield_night_toilet_8017DD38,
     D_dryfield_night_toilet_8017DD60,
 };
@@ -557,7 +557,7 @@ GpRoomParamRec D_dryfield_night_toilet_8017F3D0[1] = {
     { 0, 1, 0, 0, D_dryfield_night_toilet_8017F3B4 },
 };
 
-GpRoomParamRec * D_dryfield_night_toilet_8017F3D8[8] = {
+GpRoomParamRec* D_dryfield_night_toilet_8017F3D8[8] = {
     D_dryfield_night_toilet_8017F3C0,
     D_dryfield_night_toilet_8017F3C8,
     D_dryfield_night_toilet_8017F3D0,
@@ -575,7 +575,7 @@ static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply and, for a message 0xF that is not report-only (`field_5 == 0`),
 /// answers game nibble 0x61 plus one. Returns 1.
-s32 func_dryfield_night_toilet_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_toilet_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 0xF && in->field_5 == 0) {

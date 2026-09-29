@@ -557,18 +557,47 @@ u8 D_actor_510900_80167AA4[136] = {
     128,
 };
 
-GpAnimSet * D_actor_510900_80167B2C[3] = {
+GpAnimSet* D_actor_510900_80167B2C[3] = {
     NULL,
     &D_actor_510900_801597B4,
     &D_actor_510900_80159DFC,
 };
 
 s16 D_actor_510900_80167B38[34] = {
-    0, 8, 8, 4, 4, 0, 8, 0,
-    0, 0, 0, 0, 0, 0, 4, 4,
-    3, 3, 3, 3, 0, 8, 4, 4,
-    8, 8, 8, 0, 0, 0, 0, 0,
-    0, 0,
+    0,
+    8,
+    8,
+    4,
+    4,
+    0,
+    8,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    4,
+    3,
+    3,
+    3,
+    3,
+    0,
+    8,
+    4,
+    4,
+    8,
+    8,
+    8,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 GpEffArg D_actor_510900_80167B7C = { NULL, 300, 1 };
@@ -588,7 +617,10 @@ Actor510900PatrolStep D_actor_510900_80167B94[4] = {
 };
 
 u16 D_actor_510900_80167B9C[4] = {
-    1024, 0, 3072, 2048,
+    1024,
+    0,
+    3072,
+    2048,
 };
 
 Actor510900PatrolBox D_actor_510900_80167BA4[4] = {
@@ -637,11 +669,21 @@ SVECTOR D_actor_510900_80167C68[4] = {
 GpGridFace D_actor_510900_80167C88 = { { 12, 13, 14, 15 }, 3, 0 };
 
 u16 D_actor_510900_80167C94[12] = {
-    25, 20, 15, 12, 10, 9, 8, 7,
-    6, 5, 5, 5,
+    25,
+    20,
+    15,
+    12,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    5,
+    5,
 };
 
-GpAnimSet * D_actor_510900_80167CAC[3] = {
+GpAnimSet* D_actor_510900_80167CAC[3] = {
     NULL,
     &D_actor_510900_80167294,
     &D_actor_510900_80167940,
@@ -2109,11 +2151,11 @@ static void func_actor_510900_801384C4(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (Player_Status.hp <= 0) {
         ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 1;
-        work->field_58E                 = 1;
-        work->field_586                 = 1;
-        work->field_590                 = 0;
-        work->field_59C                 = D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-        Gp_LcgState                     = rng;
+        work->field_58E                         = 1;
+        work->field_586                         = 1;
+        work->field_590                         = 0;
+        work->field_59C                         = D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+        Gp_LcgState                             = rng;
         return;
     }
     if (work->field_594 != 0) {

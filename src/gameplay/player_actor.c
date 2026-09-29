@@ -278,6 +278,7 @@ typedef struct {
     union {
         s32 (*call0)(Task*, s32, GpAnimArg*, s32);
         s32 (*call1)(Task*, s32, GpXformArg*);
+        s32 (*transform)(Task*, s32, GpXformArg*, s32);
         s32 (*call2)(Task*, s32, s32, s32);
         s32 (*call3)(Task*, s32, GpFacingArg*);
         s32 (*call4)(Task*);
@@ -939,10 +940,10 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { 1003, { .call0 = func_80104508 } },
     { 1004, { .call0 = func_80104508 } },
     { 1005, { .call2 = func_8010583C } },
-    { 1006, { .call1 = func_80104E00 } },
+    { 1006, { .transform = func_80104E00 } },
     { 1007, { .call3 = func_80104F5C } },
     { 1008, { .call4 = func_80105828 } },
-    { 1009, { .call5 = Gp_EnterActorMode2 } },
+    { 1009, { .call2 = Gp_EnterActorMode2 } },
     { 1010, { .call6 = Gp_SetActorDest } },
     { 1011, { .call5 = func_80104684 } },
     { 1012, { .call7 = func_80104B54 } },
@@ -1507,9 +1508,9 @@ void Gp_EffSprTask81(Task* arg0)
 
     switch (arg0->spawnArg1.value) {
         case 0:
-            mem->scale      = 0x280;
-            mem->step       = 1;
-            mem->angle      = 0;
+            mem->scale            = 0x280;
+            mem->step             = 1;
+            mem->angle            = 0;
             arg0->spawnArg1.value = 1;
             if (Gp_State1C->eventState != 0) {
                 break;
@@ -1992,8 +1993,8 @@ void Gp_EffSprTask30(Task* arg0)
             VectorNormalSS(&mem->move, &mem->move);
             coord->flg = 0;
             Gp_UpdateCoord(coord);
-            sub             = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-            arg0->state     = 1;
+            sub                   = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+            arg0->state           = 1;
             arg0->spawnArg1.value = sub & 3;
             return;
         case 1:
@@ -2344,8 +2345,8 @@ void func_800FAA14(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (arg0->state == 0) {
         arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-                                     ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
-                                     ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+                                           ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
+                                           ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
     }
     Gp_UpdateCoord(coord);
     if (Gp_State1C->fadeState >= 4) {
@@ -2550,9 +2551,9 @@ void Gp_EffCtlTaskAE(Task* arg0)
                 goto kill;
             }
             arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
-                                         ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
-                                         ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
-            pan             = (s8)Gp_GetObjPan(coord);
+                                               ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
+                                               ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+            pan                   = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:
@@ -6146,7 +6147,7 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2)
+s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
 {
     TmdObject* extra;
     GameActor* actor;
@@ -6382,7 +6383,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0)
     }
 }
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3)
 {
     GameActor* actor;
     s32*       head;

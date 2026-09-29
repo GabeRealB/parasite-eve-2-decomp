@@ -354,7 +354,7 @@ u8 D_shelter_b1_sterilization_room_801893B4[24] = {
     24,
 };
 
-u8 * D_shelter_b1_sterilization_room_801893CC[3] = {
+u8* D_shelter_b1_sterilization_room_801893CC[3] = {
     D_8010CAF8,
     D_shelter_b1_sterilization_room_8018939C,
     D_shelter_b1_sterilization_room_801893B4,
@@ -879,7 +879,7 @@ s16 D_shelter_b1_sterilization_room_80189DDC[36] = {
     -1,
 };
 
-s16 * D_shelter_b1_sterilization_room_80189E24[8] = {
+s16* D_shelter_b1_sterilization_room_80189E24[8] = {
     D_shelter_b1_sterilization_room_80189C08,
     D_shelter_b1_sterilization_room_80189C38,
     D_shelter_b1_sterilization_room_80189C78,
@@ -1395,7 +1395,7 @@ GpRoomParamRec D_shelter_b1_sterilization_room_8018C30C[1] = {
     { 0, 0, 1, 0, D_shelter_b1_sterilization_room_8018C2F0 },
 };
 
-GpRoomParamRec * D_shelter_b1_sterilization_room_8018C314[8] = {
+GpRoomParamRec* D_shelter_b1_sterilization_room_8018C314[8] = {
     D_shelter_b1_sterilization_room_8018C2FC,
     D_shelter_b1_sterilization_room_8018C304,
     D_shelter_b1_sterilization_room_8018C30C,
@@ -1411,7 +1411,7 @@ GpAreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_shelter_b1_sterilization_room_8018C33C = NULL;
+Task* D_shelter_b1_sterilization_room_8018C33C = NULL;
 
 s32 D_shelter_b1_sterilization_room_8018C340 = 0;
 
@@ -1469,9 +1469,9 @@ void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
             break;
         case 1:
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room  = 2;
-            gGameSession->roomObjsDirty = state;
-            arg0->state                += 1;
+            gGameSession->at4.loc.room        = 2;
+            gGameSession->roomObjsDirty       = state;
+            arg0->state                      += 1;
             break;
         default:
             taskKill(arg0);
@@ -1877,13 +1877,13 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            base             = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_2;
-            work->scale      = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
-            work->angle      = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+            base                   = ((GpEffSpawnArg*)&task->spawnArg1.value)->field_2;
+            work->scale            = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
+            work->angle            = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
             task->spawnArg1.value &= 0xFFF;
-            work->index      = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
-            work->period     = (work->scale >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-            work->step       = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            work->index            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
+            work->period           = (work->scale >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+            work->step             = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
             gte_lddp(work->period);
             gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / 16]);
             gte_gpf12();

@@ -91,8 +91,15 @@ u32 D_actor_110800_80133F80[3973] = {
 };
 
 TmdSource D_actor_110800_80137D94 = {
-    0, 21176, 6792, 20,
-    D_actor_110800_801328C0, D_actor_110800_80132910, D_actor_110800_80133450, D_actor_110800_801325F0, D_actor_110800_80133F80,
+    0,
+    21176,
+    6792,
+    20,
+    D_actor_110800_801328C0,
+    D_actor_110800_80132910,
+    D_actor_110800_80133450,
+    D_actor_110800_801325F0,
+    D_actor_110800_80133F80,
 };
 
 TmdBone D_actor_110800_80137DB8[1] = {
@@ -116,8 +123,15 @@ u32 D_actor_110800_80137EC0[98] = {
 };
 
 TmdSource D_actor_110800_80138048 = {
-    0, 652, 0, 1,
-    D_actor_110800_80137DDC, D_actor_110800_80137DE0, D_actor_110800_80137E50, D_actor_110800_80137DB8, D_actor_110800_80137EC0,
+    0,
+    652,
+    0,
+    1,
+    D_actor_110800_80137DDC,
+    D_actor_110800_80137DE0,
+    D_actor_110800_80137E50,
+    D_actor_110800_80137DB8,
+    D_actor_110800_80137EC0,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -128,7 +142,7 @@ typedef union {
 
 Actor110800PoseBank624C D_actor_110800_8013806C = { .poses = {
 #include "assets/actor_110800_animation_066F0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110800_801380E4[108] = {
 #include "assets/actor_110800_animation_066F0_bank4.inc"
@@ -143,7 +157,8 @@ u16 D_actor_110800_801384E8[20] = {
 };
 
 GpAnimSet D_actor_110800_80138510 = {
-    D_actor_110800_80138294, D_actor_110800_801384E8,
+    D_actor_110800_80138294,
+    D_actor_110800_801384E8,
     { NULL, D_actor_110800_8013806C.words, NULL, NULL, D_actor_110800_801380E4, NULL, NULL, NULL },
 };
 
@@ -155,7 +170,7 @@ typedef union {
 
 Actor110800PoseBank6718 D_actor_110800_80138538 = { .poses = {
 #include "assets/actor_110800_animation_06A9C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110800_80138598[76] = {
 #include "assets/actor_110800_animation_06A9C_bank4.inc"
@@ -170,7 +185,8 @@ u16 D_actor_110800_80138894[20] = {
 };
 
 GpAnimSet D_actor_110800_801388BC = {
-    D_actor_110800_801386C8, D_actor_110800_80138894,
+    D_actor_110800_801386C8,
+    D_actor_110800_80138894,
     { NULL, D_actor_110800_80138538.words, NULL, NULL, D_actor_110800_80138598, NULL, NULL, NULL },
 };
 
@@ -182,7 +198,7 @@ typedef union {
 
 Actor110800PoseBank6AC4 D_actor_110800_801388E4 = { .poses = {
 #include "assets/actor_110800_animation_07050_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110800_80138998[128] = {
 #include "assets/actor_110800_animation_07050_bank4.inc"
@@ -197,7 +213,8 @@ u16 D_actor_110800_80138E48[20] = {
 };
 
 GpAnimSet D_actor_110800_80138E70 = {
-    D_actor_110800_80138B98, D_actor_110800_80138E48,
+    D_actor_110800_80138B98,
+    D_actor_110800_80138E48,
     { NULL, D_actor_110800_801388E4.words, NULL, NULL, D_actor_110800_80138998, NULL, NULL, NULL },
 };
 
@@ -209,7 +226,7 @@ typedef union {
 
 Actor110800PoseBank7078 D_actor_110800_80138E98 = { .poses = {
 #include "assets/actor_110800_animation_0770C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110800_80138F1C[170] = {
 #include "assets/actor_110800_animation_0770C_bank4.inc"
@@ -224,7 +241,8 @@ u16 D_actor_110800_80139504[20] = {
 };
 
 GpAnimSet D_actor_110800_8013952C = {
-    D_actor_110800_801391C4, D_actor_110800_80139504,
+    D_actor_110800_801391C4,
+    D_actor_110800_80139504,
     { NULL, D_actor_110800_80138E98.words, NULL, NULL, D_actor_110800_80138F1C, NULL, NULL, NULL },
 };
 
@@ -236,7 +254,7 @@ typedef union {
 
 Actor110800PoseBank7734 D_actor_110800_80139554 = { .poses = {
 #include "assets/actor_110800_animation_0807C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110800_80139680[215] = {
 #include "assets/actor_110800_animation_0807C_bank4.inc"
@@ -251,7 +269,8 @@ u16 D_actor_110800_80139E74[20] = {
 };
 
 GpAnimSet D_actor_110800_80139E9C = {
-    D_actor_110800_801399DC, D_actor_110800_80139E74,
+    D_actor_110800_801399DC,
+    D_actor_110800_80139E74,
     { NULL, D_actor_110800_80139554.words, NULL, NULL, D_actor_110800_80139680, NULL, NULL, NULL },
 };
 
@@ -297,7 +316,7 @@ u8 D_actor_110800_80139EF4[28] = {
     0,
 };
 
-Actor110300Work * D_actor_110800_80139F10;
+Actor110300Work* D_actor_110800_80139F10;
 
 Task* D_actor_110800_80139F14;
 

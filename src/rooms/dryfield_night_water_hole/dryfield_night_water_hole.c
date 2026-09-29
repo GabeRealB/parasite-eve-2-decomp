@@ -198,7 +198,7 @@ typedef union {
 
 DryfieldNightWaterHolePoseBank2C60 D_dryfield_night_water_hole_80180220 = { .poses = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
-} };
+                                                                            } };
 
 GpPackedSvec D_dryfield_night_water_hole_80180268[64] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank4.inc"
@@ -213,7 +213,8 @@ u16 D_dryfield_night_water_hole_8018059C[20] = {
 };
 
 GpAnimSet D_dryfield_night_water_hole_801805C4 = {
-    D_dryfield_night_water_hole_80180368, D_dryfield_night_water_hole_8018059C,
+    D_dryfield_night_water_hole_80180368,
+    D_dryfield_night_water_hole_8018059C,
     { NULL, D_dryfield_night_water_hole_80180220.words, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
 };
 
@@ -227,7 +228,7 @@ GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_dryfield_night_water_hole_80180620[1] = {
+GpAnimSet* D_dryfield_night_water_hole_80180620[1] = {
     &D_dryfield_night_water_hole_801805C4,
 };
 
@@ -391,7 +392,7 @@ u8 D_dryfield_night_water_hole_80180A88[12] = {
     0,
 };
 
-u8 * D_dryfield_night_water_hole_80180A94[4] = {
+u8* D_dryfield_night_water_hole_80180A94[4] = {
     D_dryfield_night_water_hole_80180A64,
     D_dryfield_night_water_hole_80180A70,
     D_dryfield_night_water_hole_80180A7C,
@@ -628,7 +629,7 @@ s16 D_dryfield_night_water_hole_80180F18[4] = {
     -1,
 };
 
-s16 * D_dryfield_night_water_hole_80180F20[12] = {
+s16* D_dryfield_night_water_hole_80180F20[12] = {
     D_dryfield_night_water_hole_80180E68,
     D_dryfield_night_water_hole_80180E74,
     D_dryfield_night_water_hole_80180E80,
@@ -1259,7 +1260,7 @@ DnwhParamOverride D_dryfield_night_water_hole_801835D8[4] = {
     { NULL, 0 },
 };
 
-GpRoomParamRec * D_dryfield_night_water_hole_801835F8[8] = {
+GpRoomParamRec* D_dryfield_night_water_hole_801835F8[8] = {
     D_dryfield_night_water_hole_801835A0,
     D_dryfield_night_water_hole_801835A8,
     D_dryfield_night_water_hole_801835B0,
@@ -1277,7 +1278,7 @@ GpAreaApplyRec D_dryfield_night_water_hole_80183618[4] = {
     { 255, 0, 0, 0 },
 };
 
-u8 * D_dryfield_night_water_hole_80183628 = NULL;
+u8* D_dryfield_night_water_hole_80183628 = NULL;
 
 s16 D_dryfield_night_water_hole_8018362C[2] = {
     0,
@@ -1430,7 +1431,7 @@ void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_dryfield_night_water_hole_80183630.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_dryfield_night_water_hole_80183630.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
@@ -1503,7 +1504,7 @@ s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, GpMessageArg 
 ///   0x51 is clear; with 0xC9 clear, 5 or 6 by whether nibble 0x51 is set.
 ///
 /// Always returns 1.
-s32 func_dryfield_night_water_hole_8017DADC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_water_hole_8017DADC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 temp;
 
@@ -1597,7 +1598,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
 /// passes `D_dryfield_night_water_hole_8018067C` or
 /// `D_dryfield_night_water_hole_801807FC` respectively to `func_800E8614`.
 /// Always returns 0.
-s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 temp_s0;
 

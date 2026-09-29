@@ -289,11 +289,11 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
         return;
     }
     if (arg1 == 0) {
-        p                      = &Mc_SaveData[0];
+        p                            = &Mc_SaveData[0];
         p->state.itemSeenBits[word] &= ~bit;
         return;
     }
-    p                      = &Mc_SaveData[0];
+    p                            = &Mc_SaveData[0];
     p->state.itemSeenBits[word] |= bit;
 }
 
@@ -359,8 +359,8 @@ void Gp_SavePlayerPos(void)
     } else if ((s16)angle < -0x800) {
         p->yaw = angle + 0x1000;
     }
-    cfg             = &Player_Status;
-    save            = &Mc_SaveData[0];
+    cfg                   = &Player_Status;
+    save                  = &Mc_SaveData[0];
     save->state.playerExp = cfg->exp;
     save->state.playerBp  = cfg->bp;
 }
@@ -552,7 +552,7 @@ static void Gp_SetPlayerScan(s32 arg0)
 {
     McSaveData* p;
 
-    p                        = &Mc_SaveData[0];
+    p                              = &Mc_SaveData[0];
     p->state.carriedItems.firstRow = 0;
     p->state.carriedItems.rowCount = arg0;
     p->state.carriedItems.table    = 0;
@@ -795,7 +795,7 @@ void Gp_ResetScanDefault(void)
 {
     McSaveData* p;
 
-    p               = &Mc_SaveData[0];
+    p                     = &Mc_SaveData[0];
     p->state.carriedItems = Gp_DefaultScan;
 }
 

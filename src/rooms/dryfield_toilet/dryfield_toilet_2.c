@@ -186,7 +186,7 @@ GpRoomObjRec D_dryfield_toilet_8018112C[1] = {
     { &D_dryfield_toilet_80181404, D_dryfield_toilet_8018227C, D_dryfield_toilet_80182444, D_dryfield_toilet_801826F0 },
 };
 
-u8 * D_dryfield_toilet_8018113C[1] = {
+u8* D_dryfield_toilet_8018113C[1] = {
     D_8010CAF8,
 };
 
@@ -312,7 +312,7 @@ s16 D_dryfield_toilet_801813DC[15] = {
     -1,
 };
 
-s16 * D_dryfield_toilet_801813FC[2] = {
+s16* D_dryfield_toilet_801813FC[2] = {
     D_dryfield_toilet_801813B8,
     D_dryfield_toilet_801813DC,
 };
@@ -2595,7 +2595,7 @@ GpRoomParamRec D_dryfield_toilet_80186604[1] = {
     { 0, 1, 0, 0, D_dryfield_toilet_801865E8 },
 };
 
-GpRoomParamRec * D_dryfield_toilet_8018660C[8] = {
+GpRoomParamRec* D_dryfield_toilet_8018660C[8] = {
     D_dryfield_toilet_801865F4,
     D_dryfield_toilet_801865FC,
     D_dryfield_toilet_80186604,

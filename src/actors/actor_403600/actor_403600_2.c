@@ -307,7 +307,7 @@ TaskDesc D_actor_403600_80160514[3] = {
     { 257, 96, func_actor_403600_80141CD4, { .value = -0x7FE96F5C } },
 };
 
-GpAnimSet * D_actor_403600_80160538[12] = {
+GpAnimSet* D_actor_403600_80160538[12] = {
     NULL,
     &D_actor_403600_8015DEE4,
     &D_actor_403600_8015DDAC,
@@ -324,7 +324,7 @@ GpAnimSet * D_actor_403600_80160538[12] = {
 
 GpAnimArg D_actor_403600_80160568 = { { .ptr = D_actor_403600_80160538 }, 1, 0, 0, 1 };
 
-GpAnimSet * D_actor_403600_8016057C[22] = {
+GpAnimSet* D_actor_403600_8016057C[22] = {
     NULL,
     &D_actor_403600_80151CD0,
     &D_actor_403600_8015270C,
@@ -395,17 +395,17 @@ s32 D_actor_403600_80160698 = 0;
 
 u8* D_actor_403600_8016069C = NULL;
 
-GpCoord * D_actor_403600_801606A0 = NULL;
+GpCoord* D_actor_403600_801606A0 = NULL;
 
 GpU16Pair D_actor_403600_801606A4 = { 0, 0 };
 
-Task * D_actor_403600_801606A8 = NULL;
+Task* D_actor_403600_801606A8 = NULL;
 
-Task * D_actor_403600_801606AC = NULL;
+Task* D_actor_403600_801606AC = NULL;
 
-Task * D_actor_403600_801606B0 = NULL;
+Task* D_actor_403600_801606B0 = NULL;
 
-Task * D_actor_403600_801606B4 = NULL;
+Task* D_actor_403600_801606B4 = NULL;
 
 Actor403600Pair D_actor_403600_801606B8 = { .fields = { 0, 0 } };
 
@@ -532,7 +532,7 @@ static u8* func_actor_403600_80138DCC(Task* arg0)
 /// its model already had, and spawns its display task above it.
 static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
 {
-    s32 state;
+    s32              state;
     SVECTOR          rot;
     s16              temp_a0_2;
     s16              temp_s0_5;
@@ -675,15 +675,15 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     temp_v0->field_7A0      = 0;
     temp_v0->field_7AE      = 0;
     func_actor_403600_8014174C(task);
-    D_actor_403600_80160568.field_4                = 0;
+    D_actor_403600_80160568.field_4        = 0;
     D_actor_403600_801606B8.fields.field_2 = 0;
     D_actor_403600_801606B8.fields.field_0 = 0;
     task->msgTable                         = D_actor_403600_80160504;
     task->exitCallback                     = func_actor_403600_80141598;
     temp_v0->field_730                     = 0;
-    state = task->state;
-    D_actor_403600_801606BC.value = 0;
-    task->state = state + 1;
+    state                                  = task->state;
+    D_actor_403600_801606BC.value          = 0;
+    task->state                            = state + 1;
 }
 
 static void func_actor_403600_8013938C(GpEnemy* arg0, Task* arg1)
@@ -2985,8 +2985,8 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         }
         temp_s1->field_588.flags &= 0x7FFF;
         Gp_PulseState1C80();
-        gGameSession->eventState = 1;
-        D_actor_403600_80160568.field_4  = 0;
+        gGameSession->eventState        = 1;
+        D_actor_403600_80160568.field_4 = 0;
         Gp_DispatchMsg(*Gp_ActorSlots, 0x3F1, 0, 0);
         temp_v0_3            = arg0->work;
         temp_v0_3->field_756 = 8;
@@ -3400,7 +3400,7 @@ static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
     } else {
         D_actor_403600_801606E0.value.rot.vy = var_v1;
     }
-    temp_s3->flg                   = 0;
+    temp_s3->flg                         = 0;
     D_actor_403600_801606E0.value.rot.vx = 0;
     D_actor_403600_801606E0.value.rot.vz = 0;
     if (arg1 & 2) {
@@ -3408,11 +3408,11 @@ static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
         if (D_actor_403600_801606E0.value.rot.vy == var_s2) {
             D_actor_403600_801606E0.value.pos.vx = D_actor_403600_801605EC.vx;
             D_actor_403600_801606E0.value.pos.vz = D_actor_403600_801605EC.vz;
-            var_s4                         = 0;
+            var_s4                               = 0;
         } else {
             D_actor_403600_801606E0.value.pos.vx = D_actor_403600_801605E4.vx;
             D_actor_403600_801606E0.value.pos.vz = D_actor_403600_801605E4.vz;
-            var_s4                         = 1;
+            var_s4                               = 1;
         }
     } else {
         D_actor_403600_801606E0.value.pos.vx = temp_s3->coord.t[0];
@@ -3425,7 +3425,7 @@ static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
 
 static void func_actor_403600_8013EA04(Task* arg0)
 {
-    s32 index;
+    s32              index;
     u32              temp_a0_3;
     s32              temp_lo;
     s32              temp_lo_3;
@@ -3546,9 +3546,9 @@ static void func_actor_403600_8013EA04(Task* arg0)
                (D_actor_403600_801606B8.values[1] != var_a2)))) {
             return;
         }
-        index = D_actor_403600_801606BC.value;
+        index                                 = D_actor_403600_801606BC.value;
         D_actor_403600_801606B8.values[index] = (u16)var_a2;
-        D_actor_403600_801606BC.value = index ^ 1;
+        D_actor_403600_801606BC.value         = index ^ 1;
     }
     var_v1 = var_a2 - 1;
     switch (var_v1) {
@@ -3712,7 +3712,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                                Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
             if ((s16)temp_s3->field_760 >= 0x66) {
-                temp_s3->field_760      = 0;
+                temp_s3->field_760              = 0;
                 D_actor_403600_80160568.field_4 = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
@@ -3785,7 +3785,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             temp_v0_2          = temp_s3->field_760 + 1;
             temp_s3->field_760 = temp_v0_2;
             if ((s16)temp_v0_2 >= 0x28) {
-                temp_s3->field_760      = 0;
+                temp_s3->field_760              = 0;
                 D_actor_403600_80160568.field_4 = 0;
                 Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F1, 0, 0);
             }
@@ -4865,9 +4865,9 @@ static void func_actor_403600_801419E8(Task* arg0)
 {
     TmdObject* obj;
 
-    obj               = arg0->extra.tmd;
+    obj          = arg0->extra.tmd;
     *&obj->tpage = -0xF;
-    obj->clut         = 2;
+    obj->clut    = 2;
     if (obj->buffer != NULL) {
         tmdProcessStream(obj);
         tmdProcessStream(obj);

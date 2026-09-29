@@ -135,8 +135,15 @@ u32 D_actor_311500_80164D0C[4027] = {
 };
 
 TmdSource D_actor_311500_80168BF8 = {
-    0, 20180, 7860, 19,
-    D_actor_311500_80163960, D_actor_311500_801639AC, D_actor_311500_80164364, D_actor_311500_801636B4, D_actor_311500_80164D0C,
+    0,
+    20180,
+    7860,
+    19,
+    D_actor_311500_80163960,
+    D_actor_311500_801639AC,
+    D_actor_311500_80164364,
+    D_actor_311500_801636B4,
+    D_actor_311500_80164D0C,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -147,7 +154,7 @@ typedef union {
 
 Actor311500PoseBank6DFC D_actor_311500_80168C1C = { .poses = {
 #include "assets/actor_311500_animation_07188_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_311500_80168C64[81] = {
 #include "assets/actor_311500_animation_07188_bank4.inc"
@@ -162,7 +169,8 @@ u16 D_actor_311500_80168F80[20] = {
 };
 
 GpAnimSet D_actor_311500_80168FA8 = {
-    D_actor_311500_80168DA8, D_actor_311500_80168F80,
+    D_actor_311500_80168DA8,
+    D_actor_311500_80168F80,
     { NULL, D_actor_311500_80168C1C.words, NULL, NULL, D_actor_311500_80168C64, NULL, NULL, NULL },
 };
 
@@ -174,7 +182,7 @@ typedef union {
 
 Actor311500PoseBank71B0 D_actor_311500_80168FD0 = { .poses = {
 #include "assets/actor_311500_animation_07470_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_311500_8016900C[52] = {
 #include "assets/actor_311500_animation_07470_bank4.inc"
@@ -189,7 +197,8 @@ u16 D_actor_311500_80169268[20] = {
 };
 
 GpAnimSet D_actor_311500_80169290 = {
-    D_actor_311500_801690DC, D_actor_311500_80169268,
+    D_actor_311500_801690DC,
+    D_actor_311500_80169268,
     { NULL, D_actor_311500_80168FD0.words, NULL, NULL, D_actor_311500_8016900C, NULL, NULL, NULL },
 };
 
@@ -221,7 +230,7 @@ u16 D_actor_311500_801692D0[18] = {
     0,
 };
 
-GpAnimSet * D_actor_311500_801692F4[2] = {
+GpAnimSet* D_actor_311500_801692F4[2] = {
     &D_actor_311500_80169290,
     &D_actor_311500_80168FA8,
 };

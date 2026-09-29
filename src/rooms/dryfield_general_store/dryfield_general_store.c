@@ -133,7 +133,7 @@ typedef union {
 
 DryfieldGeneralStorePoseBankBFC D_dryfield_general_store_8017E1BC = { .poses = {
 #include "assets/dryfield_general_store_animation_00ED8_bank1.inc"
-} };
+                                                                      } };
 
 GpPackedSvec D_dryfield_general_store_8017E204[46] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank4.inc"
@@ -148,7 +148,8 @@ u16 D_dryfield_general_store_8017E470[20] = {
 };
 
 GpAnimSet D_dryfield_general_store_8017E498 = {
-    D_dryfield_general_store_8017E2BC, D_dryfield_general_store_8017E470,
+    D_dryfield_general_store_8017E2BC,
+    D_dryfield_general_store_8017E470,
     { NULL, D_dryfield_general_store_8017E1BC.words, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
 };
 
@@ -156,7 +157,7 @@ TaskDesc D_dryfield_general_store_8017E4C0 = { 0, 192, func_dryfield_general_sto
 
 TaskDesc D_dryfield_general_store_8017E4CC = { 0, 192, func_dryfield_general_store_8017E064, { .model = NULL } };
 
-GpAnimSet * D_dryfield_general_store_8017E4D8[2] = {
+GpAnimSet* D_dryfield_general_store_8017E4D8[2] = {
     NULL,
     &D_dryfield_general_store_8017E498,
 };
@@ -200,7 +201,7 @@ GpRoomObjRec D_dryfield_general_store_8017E670[1] = {
     { D_dryfield_general_store_8017F238, D_dryfield_general_store_801840EC, D_dryfield_general_store_8018493C, D_dryfield_general_store_80184F78 },
 };
 
-u8 * D_dryfield_general_store_8017E680[1] = {
+u8* D_dryfield_general_store_8017E680[1] = {
     D_8010CAF8,
 };
 
@@ -776,7 +777,7 @@ s16 D_dryfield_general_store_8017F1F8[14] = {
     -1,
 };
 
-s16 * D_dryfield_general_store_8017F214[9] = {
+s16* D_dryfield_general_store_8017F214[9] = {
     D_dryfield_general_store_8017EFCC,
     D_dryfield_general_store_8017F030,
     D_dryfield_general_store_8017F09C,
@@ -2088,7 +2089,7 @@ GpRoomParamRec D_dryfield_general_store_801856D0[1] = {
     { 0, 0, 1, 0, D_dryfield_general_store_801856BC },
 };
 
-GpRoomParamRec * D_dryfield_general_store_801856D8[8] = {
+GpRoomParamRec* D_dryfield_general_store_801856D8[8] = {
     D_dryfield_general_store_801856C8,
     D_dryfield_general_store_801856D0,
     D_dryfield_general_store_801856C8,
@@ -2214,7 +2215,7 @@ void func_dryfield_general_store_8017D764(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_general_store_80185700.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185700.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_general_store_80185700.field_3;
@@ -2238,7 +2239,7 @@ void func_dryfield_general_store_8017D764(Task* task)
 /// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
 /// latches `field_2` / `field_3` for the spawned task and answers 2, or runs
 /// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
-s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u16          msgId;
@@ -2329,7 +2330,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             D_dryfield_general_store_801856F8 = Mc_SaveData[0].state.at4.loc.view;
-            Mc_SaveData[0].state.at4.loc.view       = 0x10;
+            Mc_SaveData[0].state.at4.loc.view = 0x10;
             arg0->state                      += 1;
             return;
         case 1:
@@ -2363,7 +2364,7 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area = 0x26;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185709;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_general_store_8018570A;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:
@@ -2451,7 +2452,7 @@ s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, GpMessageArg arg
 /// Message handler on the slot-4 table that owns the store's story flag 0x5E:
 /// message 1 spawns the cutscene task once the flag is still clear, message 2
 /// arms the cutscene object and then both paths advance the flag.
-s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg * arg2, GpMessageArg arg3)
+s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, GpMessageArg arg3)
 {
     switch (arg2->field_2) {
         case 1:

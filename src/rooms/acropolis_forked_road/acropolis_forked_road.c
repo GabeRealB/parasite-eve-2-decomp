@@ -74,7 +74,7 @@ AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 /// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless no
 /// stream file is open (`gDisplayState.field_112 < 0 || D_8006AC30.sector == 0`), in which
 /// case the message is refused with `field_2 = 2`.
-s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 8) {
@@ -160,7 +160,7 @@ s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     u8 temp;
 

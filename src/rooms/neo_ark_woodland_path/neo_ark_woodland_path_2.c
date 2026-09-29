@@ -201,11 +201,39 @@ u16 D_neo_ark_woodland_path_80184958[3][4] = {
 };
 
 u8 D_neo_ark_woodland_path_80184970[16] = {
-    0, 1, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+    1,
+    3,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 u8 D_neo_ark_woodland_path_80184980[14] = {
-    0, 3, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+    3,
+    2,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 s16 D_neo_ark_woodland_path_8018498E = 30;
@@ -1053,7 +1081,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg * msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpCmdArg* msg, GpMessageArg arg3)
 {
     s32      result;
     u16      cmd;
@@ -1286,7 +1314,7 @@ s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, GpMessageArg arg2
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8 * msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg, GpMessageArg arg3)
 {
     s16 counter;
 
@@ -1331,7 +1359,7 @@ s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, GpMessageArg arg2
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8 * msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg, GpMessageArg arg3)
 {
     s16 counter;
 

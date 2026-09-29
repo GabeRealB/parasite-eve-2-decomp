@@ -809,8 +809,8 @@ static void Gp_ReloadFromSave(void)
     Task*       slot;
     McSaveData* save;
 
-    slot            = gameGetPtrSlot(1);
-    save            = &Mc_SaveData[0];
+    slot                  = gameGetPtrSlot(1);
+    save                  = &Mc_SaveData[0];
     slot->spawnArg1.value = save->state.at4.loc.view;
     ResetGraph(1);
     Gpu_ClearOTag(0);
@@ -826,9 +826,9 @@ static void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                        = gameGetPtrSlot(1);
+    slot                              = gameGetPtrSlot(1);
     Mc_SaveData[0].state.at4.loc.view = arg0;
-    gGameSession->at4.loc.view  = arg0;
+    gGameSession->at4.loc.view        = arg0;
     slot->spawnArg1.value             = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
@@ -840,9 +840,9 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                         = (u8)task->spawnArg1.value;
+    val                               = (u8)task->spawnArg1.value;
     Mc_SaveData[0].state.at4.loc.view = val;
-    gGameSession->at4.loc.view  = val;
+    gGameSession->at4.loc.view        = val;
     taskKill(task);
 }
 
@@ -994,7 +994,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         param2[3] = 6;
         CdCmd_Enqueue(0x21, param1, param2);
         if (variant == 5) {
-            gGameSession->companionVariant  = 3;
+            gGameSession->companionVariant        = 3;
             Mc_SaveData[0].state.companionVariant = 3;
         }
     }

@@ -38,7 +38,7 @@ s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, GpMessageAr
 /// reply and, for a message 2 that is not report-only (`field_5 == 0`),
 /// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
 /// once it has reached 4. Returns 1.
-s32 func_dryfield_night_motel_room_3_8017D5FC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_motel_room_3_8017D5FC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 val;
     s32 n;

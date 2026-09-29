@@ -350,8 +350,15 @@ u32 D_dryfield_breezeway_8018244C[596] = {
 };
 
 TmdSource D_dryfield_breezeway_80182D9C = {
-    0, 4324, 0, 1,
-    D_dryfield_breezeway_801820F8, D_dryfield_breezeway_801820FC, D_dryfield_breezeway_801823BC, D_dryfield_breezeway_801820D4, D_dryfield_breezeway_8018244C,
+    0,
+    4324,
+    0,
+    1,
+    D_dryfield_breezeway_801820F8,
+    D_dryfield_breezeway_801820FC,
+    D_dryfield_breezeway_801823BC,
+    D_dryfield_breezeway_801820D4,
+    D_dryfield_breezeway_8018244C,
 };
 
 TaskDesc D_dryfield_breezeway_80182DC0 = { 0, 192, func_dryfield_breezeway_8017FA80, { .model = NULL } };
@@ -709,8 +716,8 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 
     arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
-        arg0->msgTable              = D_dryfield_breezeway_80182DCC;
-        arg0->work                  = (TaskIdMap*)work;
+        arg0->msgTable                    = D_dryfield_breezeway_80182DCC;
+        arg0->work                        = (TaskIdMap*)work;
         Mc_SaveData[0].state.at4.loc.view = 6;
     } while (0);
     arg0->state   += 1;
@@ -836,7 +843,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     m                    = &coord->coord;
     MATRIX_PAIR(m, 0, 0) = 0x1000;
     MATRIX_PAIR(m, 1, 1) = 0x1000;
-    *&m->m[2][2]   = 0x1000;
+    *&m->m[2][2]         = 0x1000;
     MATRIX_PAIR(m, 0, 2) = 0;
     MATRIX_PAIR(m, 2, 0) = 0;
 
@@ -900,7 +907,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     m                                = &coord->coord;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
     MATRIX_PAIR(m, 1, 1)             = 0x1000;
-    *&m->m[2][2]               = 0x1000;
+    *&m->m[2][2]                     = 0x1000;
     MATRIX_PAIR(m, 0, 2)             = 0;
     MATRIX_PAIR(m, 2, 0)             = 0;
 
@@ -1638,9 +1645,9 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);

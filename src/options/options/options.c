@@ -185,7 +185,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData[0].state.soundMode = selected;
-    cur                      = Mc_SaveData[0].state.soundMode;
+    cur                            = Mc_SaveData[0].state.soundMode;
     if (saved != cur) {
         if (cur != 0) {
             if (cur != 1) {
@@ -212,19 +212,19 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
         D_options_801D5B88,
         D_options_801D5B8C,
     };
-    u8** p;
-    u8*  title;
+    u8**      p;
+    u8*       title;
     UiObject* a0tmp;
-    s32  i;
-    s32  y;
-    s32  x;
-    s32  span;
-    s32  selected;
-    s32  saved;
-    s32  one;
-    s32  look;
-    s32  count;
-    s32  status;
+    s32       i;
+    s32       y;
+    s32       x;
+    s32       span;
+    s32       selected;
+    s32       saved;
+    s32       one;
+    s32       look;
+    s32       count;
+    s32       status;
 
     count = 4;
     a0tmp = arg1;
@@ -324,7 +324,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData[0].state.cursorMode = selected;
-    status                    = arg1->panel.field_0.w;
+    status                          = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5CE4, 0, 0);
     }
@@ -382,7 +382,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData[0].state.vibration = selected;
-    status                   = arg1->panel.field_0.w;
+    status                         = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D28, 0, 0);
     }
@@ -440,7 +440,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
         }
     }
     Mc_SaveData[0].state.moveMode = selected;
-    status                  = arg1->panel.field_0.w;
+    status                        = arg1->panel.field_0.w;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D68, 0, 0);
     }
@@ -556,7 +556,7 @@ static void func_options_801D4D0C(Task* task)
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(9) + 6);
         task->spawnArg1.value = Mc_SaveData[0].state.buttonLayout;
-        task->state    += 1;
+        task->state          += 1;
     }
     y1     = x + 1;
     edge   = (s16)obj->panel.field_1E.u;

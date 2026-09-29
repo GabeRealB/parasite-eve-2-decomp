@@ -172,7 +172,7 @@ s16 D_dryfield_night_water_tank_8017E080[3] = {
     -1,
 };
 
-s16 * D_dryfield_night_water_tank_8017E088[1] = {
+s16* D_dryfield_night_water_tank_8017E088[1] = {
     D_dryfield_night_water_tank_8017E080,
 };
 
@@ -199,8 +199,15 @@ u32 D_dryfield_night_water_tank_8017E5B8[531] = {
 };
 
 TmdSource D_dryfield_night_water_tank_8017EE04 = {
-    0, 3768, 0, 1,
-    D_dryfield_night_water_tank_8017E0D4, D_dryfield_night_water_tank_8017E0D8, D_dryfield_night_water_tank_8017E378, D_dryfield_night_water_tank_8017E0B0, D_dryfield_night_water_tank_8017E5B8,
+    0,
+    3768,
+    0,
+    1,
+    D_dryfield_night_water_tank_8017E0D4,
+    D_dryfield_night_water_tank_8017E0D8,
+    D_dryfield_night_water_tank_8017E378,
+    D_dryfield_night_water_tank_8017E0B0,
+    D_dryfield_night_water_tank_8017E5B8,
 };
 
 TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
@@ -239,7 +246,7 @@ u8 D_dryfield_night_water_tank_8017EE68[12] = {
     0,
 };
 
-u8 * D_dryfield_night_water_tank_8017EE74[1] = {
+u8* D_dryfield_night_water_tank_8017EE74[1] = {
     D_dryfield_night_water_tank_8017EE68,
 };
 
@@ -529,7 +536,7 @@ s16 D_dryfield_night_water_tank_8017F468[27] = {
     -1,
 };
 
-s16 * D_dryfield_night_water_tank_8017F4A0[4] = {
+s16* D_dryfield_night_water_tank_8017F4A0[4] = {
     D_dryfield_night_water_tank_8017F3A4,
     D_dryfield_night_water_tank_8017F3EC,
     D_dryfield_night_water_tank_8017F42C,
@@ -855,7 +862,7 @@ GpRoomParamRec D_dryfield_night_water_tank_80180888[1] = {
     { 0, 0, 1, 0, D_dryfield_night_water_tank_8018085C },
 };
 
-GpRoomParamRec * D_dryfield_night_water_tank_80180890[8] = {
+GpRoomParamRec* D_dryfield_night_water_tank_80180890[8] = {
     D_dryfield_night_water_tank_80180868,
     D_dryfield_night_water_tank_80180870,
     D_dryfield_night_water_tank_80180868,
@@ -925,7 +932,7 @@ s32 func_dryfield_night_water_tank_8017D70C(Task* task, s32 msgId, GpMessageArg 
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record it is handed onto the outgoing one and answers 1.
-s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;
@@ -939,7 +946,7 @@ s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, GpMe
     return 0;
 }
 
-s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg * in, GpMessageArg arg3)
+s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* in, GpMessageArg arg3)
 {
     u8 temp_v1;
 

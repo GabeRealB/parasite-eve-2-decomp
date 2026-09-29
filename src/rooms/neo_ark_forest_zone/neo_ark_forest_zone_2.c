@@ -139,7 +139,7 @@ typedef union {
 
 NeoArkForestZonePoseBank3FC0 D_neo_ark_forest_zone_80181580 = { .poses = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank1.inc"
-} };
+                                                                } };
 
 GpPackedSvec D_neo_ark_forest_zone_801815C8[64] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank4.inc"
@@ -154,7 +154,8 @@ u16 D_neo_ark_forest_zone_801818FC[20] = {
 };
 
 GpAnimSet D_neo_ark_forest_zone_80181924 = {
-    D_neo_ark_forest_zone_801816C8, D_neo_ark_forest_zone_801818FC,
+    D_neo_ark_forest_zone_801816C8,
+    D_neo_ark_forest_zone_801818FC,
     { NULL, D_neo_ark_forest_zone_80181580.words, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
 };
 
@@ -166,7 +167,7 @@ typedef union {
 
 NeoArkForestZonePoseBank438C D_neo_ark_forest_zone_8018194C = { .poses = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank1.inc"
-} };
+                                                                } };
 
 GpPackedSvec D_neo_ark_forest_zone_801819C4[95] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank4.inc"
@@ -181,7 +182,8 @@ u16 D_neo_ark_forest_zone_80181D6C[20] = {
 };
 
 GpAnimSet D_neo_ark_forest_zone_80181D94 = {
-    D_neo_ark_forest_zone_80181B40, D_neo_ark_forest_zone_80181D6C,
+    D_neo_ark_forest_zone_80181B40,
+    D_neo_ark_forest_zone_80181D6C,
     { NULL, D_neo_ark_forest_zone_8018194C.words, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
 };
 
@@ -196,7 +198,7 @@ GpMsgEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_neo_ark_forest_zone_80181DF8[2] = {
+GpAnimSet* D_neo_ark_forest_zone_80181DF8[2] = {
     &D_neo_ark_forest_zone_80181D94,
     &D_neo_ark_forest_zone_80181924,
 };
@@ -217,7 +219,7 @@ GpAnimArg D_neo_ark_forest_zone_80181E3C = { { .index = 1 }, 1, 0, 0, 1 };
 
 GpXformArg D_neo_ark_forest_zone_80181E50 = { { 2888, 128, -95, 0 }, { 0, -1024, 0, 0 } };
 
-Task * D_neo_ark_forest_zone_80181E68 = NULL;
+Task* D_neo_ark_forest_zone_80181E68 = NULL;
 
 GpEvsCmd D_neo_ark_forest_zone_80181E6C[23] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_neo_ark_forest_zone_80181E00 }, { .value = 0 } },
@@ -259,7 +261,7 @@ GpRoomCoordRec D_neo_ark_forest_zone_801820B4[1] = {
     { D_neo_ark_forest_zone_8018269C, NULL },
 };
 
-u8 * D_neo_ark_forest_zone_801820BC[1] = {
+u8* D_neo_ark_forest_zone_801820BC[1] = {
     D_8010CAF8,
 };
 
@@ -344,7 +346,7 @@ s16 D_neo_ark_forest_zone_80182254[6] = {
     -1,
 };
 
-s16 * D_neo_ark_forest_zone_80182260[5] = {
+s16* D_neo_ark_forest_zone_80182260[5] = {
     D_neo_ark_forest_zone_80182224,
     D_neo_ark_forest_zone_80182230,
     D_neo_ark_forest_zone_8018223C,
@@ -545,7 +547,7 @@ GpRoomParamRec D_neo_ark_forest_zone_80182CDC[1] = {
     { 0, 0, 1, 0, D_neo_ark_forest_zone_80182CC8 },
 };
 
-GpRoomParamRec * D_neo_ark_forest_zone_80182CE4[8] = {
+GpRoomParamRec* D_neo_ark_forest_zone_80182CE4[8] = {
     D_neo_ark_forest_zone_80182CD4,
     D_neo_ark_forest_zone_80182CDC,
     D_neo_ark_forest_zone_80182CD4,
@@ -575,11 +577,39 @@ u16 D_neo_ark_forest_zone_80182D2C[3][4] = {
 };
 
 u8 D_neo_ark_forest_zone_80182D44[16] = {
-    0, 1, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+    1,
+    3,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 u8 D_neo_ark_forest_zone_80182D54[14] = {
-    0, 3, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+    3,
+    2,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 s16 D_neo_ark_forest_zone_80182D62 = 30;
@@ -812,7 +842,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg * msg, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpCmdArg* msg, GpMessageArg arg3)
 {
     s32      result;
     u16      cmd;
@@ -1029,7 +1059,7 @@ s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, GpMessageArg arg2, 
 /* Publishes the byte at 0x2 of `arg2` as `D_neo_ark_forest_zone_80182D66` only
  * while the counter is idle, and remembers the byte in `D_...80182D68` either
  * way; a change arriving while the counter runs is suppressed to zero. */
-s32 func_neo_ark_forest_zone_801813C4(Task* arg0, s32 arg1, u8 * arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_801813C4(Task* arg0, s32 arg1, u8* arg2, GpMessageArg arg3)
 {
     s16 counter;
 
@@ -1072,7 +1102,7 @@ s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, GpMessageArg arg2, 
 /* The same latch as func_neo_ark_forest_zone_801813C4 directly above, emitted a
  * second time at 0x801814B0 - two objects in the overlay, so shared code
  * cannot cover it. */
-s32 func_neo_ark_forest_zone_801814B0(Task* arg0, s32 arg1, u8 * arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_801814B0(Task* arg0, s32 arg1, u8* arg2, GpMessageArg arg3)
 {
     s16 counter;
 

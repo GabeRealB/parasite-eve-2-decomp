@@ -140,7 +140,7 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_forest_zone_80182E38.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_forest_zone_80182E38.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_forest_zone_80182E38.field_3;
@@ -186,7 +186,7 @@ static __inline__ s32 NeoArkForestZone_StartEvent(GpSaveLoc* dst, RoomLatchedEve
 /// room's event record - cap command 2, the stage sound, flag 0x140 - and hands
 /// it to `NeoArkForestZone_StartEvent`; every other message is not consumed and
 /// answers 1.
-s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     RoomLatchedEvent event;
 
@@ -215,7 +215,7 @@ s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, GpMessageArg arg2, 
 /// 0xBD and starts the room's fade with the record at `D_..._80181E6C`. Then
 /// forwards the message to the room's own task, answering -1 while that task
 /// does not exist yet.
-s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 visit;
 
@@ -744,14 +744,14 @@ void func_neo_ark_forest_zone_8017EE84(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_forest_zone_80182094[1];
+                    SVECTOR* edge    = &D_neo_ark_forest_zone_80182094[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

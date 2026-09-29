@@ -212,9 +212,9 @@ void Gp_ItemMenuTask(Task* arg0)
 
 void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
 {
-    u8* text;
-    s32 color;
-    s32 one;
+    u8*          text;
+    s32          color;
+    s32          one;
     TaskSpawnArg val;
 
     val = arg1->spawnArg1;

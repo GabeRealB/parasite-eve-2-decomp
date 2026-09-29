@@ -189,9 +189,28 @@ Actor403900MessageEntry D_actor_403900_801383A0[2] = {
 };
 
 s16 D_actor_403900_801383B0[22] = {
-    0, 0, 0, 0, 0, 0, 8, 0,
-    1, 1, 1, 8, 0, 4, 0, 0,
-    0, 4, 0, 0, 0, 0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    8,
+    0,
+    1,
+    1,
+    1,
+    8,
+    0,
+    4,
+    0,
+    0,
+    0,
+    4,
+    0,
+    0,
+    0,
+    0,
 };
 
 Actor402200FrameStep D_actor_403900_801383DC[18] = {
@@ -216,8 +235,22 @@ Actor402200FrameStep D_actor_403900_801383DC[18] = {
 };
 
 s32 D_actor_403900_80138424[17] = {
-    0, 0x40160001, 0x40160002, 0x40160003, 0x40160004, 0x40160005, 0x40160006, 0x40160012,
-    0x40160013, 0x40160009, 0x4016000A, 0x4016000B, 0x40160014, 0, 0, 0,
+    0,
+    0x40160001,
+    0x40160002,
+    0x40160003,
+    0x40160004,
+    0x40160005,
+    0x40160006,
+    0x40160012,
+    0x40160013,
+    0x40160009,
+    0x4016000A,
+    0x4016000B,
+    0x40160014,
+    0,
+    0,
+    0,
     0,
 };
 
@@ -252,8 +285,15 @@ u32 D_actor_403900_80139D94[3985] = {
 };
 
 TmdSource D_actor_403900_8013DBD8 = {
-    0, 43904, 11888, 19,
-    D_actor_403900_80138728, D_actor_403900_80138774, D_actor_403900_801392CC, D_actor_403900_8013847C, D_actor_403900_80139D94,
+    0,
+    43904,
+    11888,
+    19,
+    D_actor_403900_80138728,
+    D_actor_403900_80138774,
+    D_actor_403900_801392CC,
+    D_actor_403900_8013847C,
+    D_actor_403900_80139D94,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -264,7 +304,7 @@ typedef union {
 
 Actor403900PoseBankBDDC D_actor_403900_8013DBFC = { .poses = {
 #include "assets/actor_403900_animation_0C44C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_8013DC8C[165] = {
 #include "assets/actor_403900_animation_0C44C_bank4.inc"
@@ -279,7 +319,8 @@ u16 D_actor_403900_8013E244[20] = {
 };
 
 GpAnimSet D_actor_403900_8013E26C = {
-    D_actor_403900_8013DF20, D_actor_403900_8013E244,
+    D_actor_403900_8013DF20,
+    D_actor_403900_8013E244,
     { NULL, D_actor_403900_8013DBFC.words, NULL, NULL, D_actor_403900_8013DC8C, NULL, NULL, NULL },
 };
 
@@ -291,7 +332,7 @@ typedef union {
 
 Actor403900PoseBankC474 D_actor_403900_8013E294 = { .poses = {
 #include "assets/actor_403900_animation_0C904_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_8013E2E8[87] = {
 #include "assets/actor_403900_animation_0C904_bank4.inc"
@@ -306,7 +347,8 @@ u16 D_actor_403900_8013E6FC[20] = {
 };
 
 GpAnimSet D_actor_403900_8013E724 = {
-    D_actor_403900_8013E444, D_actor_403900_8013E6FC,
+    D_actor_403900_8013E444,
+    D_actor_403900_8013E6FC,
     { NULL, D_actor_403900_8013E294.words, NULL, NULL, D_actor_403900_8013E2E8, NULL, NULL, NULL },
 };
 
@@ -318,7 +360,7 @@ typedef union {
 
 Actor403900PoseBankC92C D_actor_403900_8013E74C = { .poses = {
 #include "assets/actor_403900_animation_0D110_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_8013E800[197] = {
 #include "assets/actor_403900_animation_0D110_bank4.inc"
@@ -333,7 +375,8 @@ u16 D_actor_403900_8013EF08[20] = {
 };
 
 GpAnimSet D_actor_403900_8013EF30 = {
-    D_actor_403900_8013EB14, D_actor_403900_8013EF08,
+    D_actor_403900_8013EB14,
+    D_actor_403900_8013EF08,
     { NULL, D_actor_403900_8013E74C.words, NULL, NULL, D_actor_403900_8013E800, NULL, NULL, NULL },
 };
 
@@ -345,7 +388,7 @@ typedef union {
 
 Actor403900PoseBankD138 D_actor_403900_8013EF58 = { .poses = {
 #include "assets/actor_403900_animation_0DD48_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_8013F054[317] = {
 #include "assets/actor_403900_animation_0DD48_bank4.inc"
@@ -360,7 +403,8 @@ u16 D_actor_403900_8013FB40[20] = {
 };
 
 GpAnimSet D_actor_403900_8013FB68 = {
-    D_actor_403900_8013F548, D_actor_403900_8013FB40,
+    D_actor_403900_8013F548,
+    D_actor_403900_8013FB40,
     { NULL, D_actor_403900_8013EF58.words, NULL, NULL, D_actor_403900_8013F054, NULL, NULL, NULL },
 };
 
@@ -372,7 +416,7 @@ typedef union {
 
 Actor403900PoseBankDD70 D_actor_403900_8013FB90 = { .poses = {
 #include "assets/actor_403900_animation_0EDFC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_8013FCEC[451] = {
 #include "assets/actor_403900_animation_0EDFC_bank4.inc"
@@ -387,7 +431,8 @@ u16 D_actor_403900_80140BF4[20] = {
 };
 
 GpAnimSet D_actor_403900_80140C1C = {
-    D_actor_403900_801403F8, D_actor_403900_80140BF4,
+    D_actor_403900_801403F8,
+    D_actor_403900_80140BF4,
     { NULL, D_actor_403900_8013FB90.words, NULL, NULL, D_actor_403900_8013FCEC, NULL, NULL, NULL },
 };
 
@@ -399,7 +444,7 @@ typedef union {
 
 Actor403900PoseBankEE24 D_actor_403900_80140C44 = { .poses = {
 #include "assets/actor_403900_animation_0F9A8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_80140DAC[277] = {
 #include "assets/actor_403900_animation_0F9A8_bank4.inc"
@@ -414,7 +459,8 @@ u16 D_actor_403900_801417A0[20] = {
 };
 
 GpAnimSet D_actor_403900_801417C8 = {
-    D_actor_403900_80141200, D_actor_403900_801417A0,
+    D_actor_403900_80141200,
+    D_actor_403900_801417A0,
     { NULL, D_actor_403900_80140C44.words, NULL, NULL, D_actor_403900_80140DAC, NULL, NULL, NULL },
 };
 
@@ -426,7 +472,7 @@ typedef union {
 
 Actor403900PoseBankF9D0 D_actor_403900_801417F0 = { .poses = {
 #include "assets/actor_403900_animation_13A20_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_403900_80141D24[1789] = {
 #include "assets/actor_403900_animation_13A20_bank4.inc"
@@ -441,7 +487,8 @@ u16 D_actor_403900_80145818[20] = {
 };
 
 GpAnimSet D_actor_403900_80145840 = {
-    D_actor_403900_80143918, D_actor_403900_80145818,
+    D_actor_403900_80143918,
+    D_actor_403900_80145818,
     { NULL, D_actor_403900_801417F0.words, NULL, NULL, D_actor_403900_80141D24, NULL, NULL, NULL },
 };
 
@@ -453,7 +500,7 @@ typedef union {
 
 Actor403900PoseBank13A48 D_actor_403900_80145868 = { .poses = {
 #include "assets/actor_403900_animation_13F44_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_801458C8[116] = {
 #include "assets/actor_403900_animation_13F44_bank4.inc"
@@ -468,7 +515,8 @@ u16 D_actor_403900_80145D3C[20] = {
 };
 
 GpAnimSet D_actor_403900_80145D64 = {
-    D_actor_403900_80145A98, D_actor_403900_80145D3C,
+    D_actor_403900_80145A98,
+    D_actor_403900_80145D3C,
     { NULL, D_actor_403900_80145868.words, NULL, NULL, D_actor_403900_801458C8, NULL, NULL, NULL },
 };
 
@@ -480,7 +528,7 @@ typedef union {
 
 Actor403900PoseBank13F6C D_actor_403900_80145D8C = { .poses = {
 #include "assets/actor_403900_animation_1498C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80145E70[254] = {
 #include "assets/actor_403900_animation_1498C_bank4.inc"
@@ -495,7 +543,8 @@ u16 D_actor_403900_80146784[20] = {
 };
 
 GpAnimSet D_actor_403900_801467AC = {
-    D_actor_403900_80146268, D_actor_403900_80146784,
+    D_actor_403900_80146268,
+    D_actor_403900_80146784,
     { NULL, D_actor_403900_80145D8C.words, NULL, NULL, D_actor_403900_80145E70, NULL, NULL, NULL },
 };
 
@@ -507,7 +556,7 @@ typedef union {
 
 Actor403900PoseBank149B4 D_actor_403900_801467D4 = { .poses = {
 #include "assets/actor_403900_animation_1567C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_801468F4[343] = {
 #include "assets/actor_403900_animation_1567C_bank4.inc"
@@ -522,7 +571,8 @@ u16 D_actor_403900_80147474[20] = {
 };
 
 GpAnimSet D_actor_403900_8014749C = {
-    D_actor_403900_80146E50, D_actor_403900_80147474,
+    D_actor_403900_80146E50,
+    D_actor_403900_80147474,
     { NULL, D_actor_403900_801467D4.words, NULL, NULL, D_actor_403900_801468F4, NULL, NULL, NULL },
 };
 
@@ -534,7 +584,7 @@ typedef union {
 
 Actor403900PoseBank156A4 D_actor_403900_801474C4 = { .poses = {
 #include "assets/actor_403900_animation_16FB8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80147740[660] = {
 #include "assets/actor_403900_animation_16FB8_bank4.inc"
@@ -549,7 +599,8 @@ u16 D_actor_403900_80148DB0[20] = {
 };
 
 GpAnimSet D_actor_403900_80148DD8 = {
-    D_actor_403900_80148190, D_actor_403900_80148DB0,
+    D_actor_403900_80148190,
+    D_actor_403900_80148DB0,
     { NULL, D_actor_403900_801474C4.words, NULL, NULL, D_actor_403900_80147740, NULL, NULL, NULL },
 };
 
@@ -561,7 +612,7 @@ typedef union {
 
 Actor403900PoseBank16FE0 D_actor_403900_80148E00 = { .poses = {
 #include "assets/actor_403900_animation_17DC8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80148F38[365] = {
 #include "assets/actor_403900_animation_17DC8_bank4.inc"
@@ -576,7 +627,8 @@ u16 D_actor_403900_80149BC0[20] = {
 };
 
 GpAnimSet D_actor_403900_80149BE8 = {
-    D_actor_403900_801494EC, D_actor_403900_80149BC0,
+    D_actor_403900_801494EC,
+    D_actor_403900_80149BC0,
     { NULL, D_actor_403900_80148E00.words, NULL, NULL, D_actor_403900_80148F38, NULL, NULL, NULL },
 };
 
@@ -588,7 +640,7 @@ typedef union {
 
 Actor403900PoseBank17DF0 D_actor_403900_80149C10 = { .poses = {
 #include "assets/actor_403900_animation_18E40_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80149D84[429] = {
 #include "assets/actor_403900_animation_18E40_bank4.inc"
@@ -603,7 +655,8 @@ u16 D_actor_403900_8014AC38[20] = {
 };
 
 GpAnimSet D_actor_403900_8014AC60 = {
-    D_actor_403900_8014A438, D_actor_403900_8014AC38,
+    D_actor_403900_8014A438,
+    D_actor_403900_8014AC38,
     { NULL, D_actor_403900_80149C10.words, NULL, NULL, D_actor_403900_80149D84, NULL, NULL, NULL },
 };
 
@@ -615,7 +668,7 @@ typedef union {
 
 Actor403900PoseBank18E68 D_actor_403900_8014AC88 = { .poses = {
 #include "assets/actor_403900_animation_19314_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014ACF4[113] = {
 #include "assets/actor_403900_animation_19314_bank4.inc"
@@ -630,7 +683,8 @@ u16 D_actor_403900_8014B10C[20] = {
 };
 
 GpAnimSet D_actor_403900_8014B134 = {
-    D_actor_403900_8014AEB8, D_actor_403900_8014B10C,
+    D_actor_403900_8014AEB8,
+    D_actor_403900_8014B10C,
     { NULL, D_actor_403900_8014AC88.words, NULL, NULL, D_actor_403900_8014ACF4, NULL, NULL, NULL },
 };
 
@@ -642,7 +696,7 @@ typedef union {
 
 Actor403900PoseBank1933C D_actor_403900_8014B15C = { .poses = {
 #include "assets/actor_403900_animation_19624_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014B198[65] = {
 #include "assets/actor_403900_animation_19624_bank4.inc"
@@ -657,7 +711,8 @@ u16 D_actor_403900_8014B41C[20] = {
 };
 
 GpAnimSet D_actor_403900_8014B444 = {
-    D_actor_403900_8014B29C, D_actor_403900_8014B41C,
+    D_actor_403900_8014B29C,
+    D_actor_403900_8014B41C,
     { NULL, D_actor_403900_8014B15C.words, NULL, NULL, D_actor_403900_8014B198, NULL, NULL, NULL },
 };
 
@@ -669,7 +724,7 @@ typedef union {
 
 Actor403900PoseBank1964C D_actor_403900_8014B46C = { .poses = {
 #include "assets/actor_403900_animation_19800_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014B484[17] = {
 #include "assets/actor_403900_animation_19800_bank4.inc"
@@ -684,7 +739,8 @@ u16 D_actor_403900_8014B5F8[20] = {
 };
 
 GpAnimSet D_actor_403900_8014B620 = {
-    D_actor_403900_8014B4C8, D_actor_403900_8014B5F8,
+    D_actor_403900_8014B4C8,
+    D_actor_403900_8014B5F8,
     { NULL, D_actor_403900_8014B46C.words, NULL, NULL, D_actor_403900_8014B484, NULL, NULL, NULL },
 };
 
@@ -696,7 +752,7 @@ typedef union {
 
 Actor403900PoseBank19828 D_actor_403900_8014B648 = { .poses = {
 #include "assets/actor_403900_animation_1A748_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014B798[394] = {
 #include "assets/actor_403900_animation_1A748_bank4.inc"
@@ -711,7 +767,8 @@ u16 D_actor_403900_8014C540[20] = {
 };
 
 GpAnimSet D_actor_403900_8014C568 = {
-    D_actor_403900_8014BDC0, D_actor_403900_8014C540,
+    D_actor_403900_8014BDC0,
+    D_actor_403900_8014C540,
     { NULL, D_actor_403900_8014B648.words, NULL, NULL, D_actor_403900_8014B798, NULL, NULL, NULL },
 };
 
@@ -723,7 +780,7 @@ typedef union {
 
 Actor403900PoseBank1A770 D_actor_403900_8014C590 = { .poses = {
 #include "assets/actor_403900_animation_1ACDC_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014C5FC[127] = {
 #include "assets/actor_403900_animation_1ACDC_bank4.inc"
@@ -738,7 +795,8 @@ u16 D_actor_403900_8014CAD4[20] = {
 };
 
 GpAnimSet D_actor_403900_8014CAFC = {
-    D_actor_403900_8014C7F8, D_actor_403900_8014CAD4,
+    D_actor_403900_8014C7F8,
+    D_actor_403900_8014CAD4,
     { NULL, D_actor_403900_8014C590.words, NULL, NULL, D_actor_403900_8014C5FC, NULL, NULL, NULL },
 };
 
@@ -750,7 +808,7 @@ typedef union {
 
 Actor403900PoseBank1AD04 D_actor_403900_8014CB24 = { .poses = {
 #include "assets/actor_403900_animation_1AFA4_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014CB60[56] = {
 #include "assets/actor_403900_animation_1AFA4_bank4.inc"
@@ -765,7 +823,8 @@ u16 D_actor_403900_8014CD9C[20] = {
 };
 
 GpAnimSet D_actor_403900_8014CDC4 = {
-    D_actor_403900_8014CC40, D_actor_403900_8014CD9C,
+    D_actor_403900_8014CC40,
+    D_actor_403900_8014CD9C,
     { NULL, D_actor_403900_8014CB24.words, NULL, NULL, D_actor_403900_8014CB60, NULL, NULL, NULL },
 };
 
@@ -777,7 +836,7 @@ typedef union {
 
 Actor403900PoseBank1AFCC D_actor_403900_8014CDEC = { .poses = {
 #include "assets/actor_403900_animation_1B180_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014CE04[17] = {
 #include "assets/actor_403900_animation_1B180_bank4.inc"
@@ -792,7 +851,8 @@ u16 D_actor_403900_8014CF78[20] = {
 };
 
 GpAnimSet D_actor_403900_8014CFA0 = {
-    D_actor_403900_8014CE48, D_actor_403900_8014CF78,
+    D_actor_403900_8014CE48,
+    D_actor_403900_8014CF78,
     { NULL, D_actor_403900_8014CDEC.words, NULL, NULL, D_actor_403900_8014CE04, NULL, NULL, NULL },
 };
 
@@ -804,7 +864,7 @@ typedef union {
 
 Actor403900PoseBank1B1A8 D_actor_403900_8014CFC8 = { .poses = {
 #include "assets/actor_403900_animation_1E7A8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_8014D478[1463] = {
 #include "assets/actor_403900_animation_1E7A8_bank4.inc"
@@ -819,7 +879,8 @@ u16 D_actor_403900_801505A0[20] = {
 };
 
 GpAnimSet D_actor_403900_801505C8 = {
-    D_actor_403900_8014EB54, D_actor_403900_801505A0,
+    D_actor_403900_8014EB54,
+    D_actor_403900_801505A0,
     { NULL, D_actor_403900_8014CFC8.words, NULL, NULL, D_actor_403900_8014D478, NULL, NULL, NULL },
 };
 
@@ -831,7 +892,7 @@ typedef union {
 
 Actor403900PoseBank1E7D0 D_actor_403900_801505F0 = { .poses = {
 #include "assets/actor_403900_animation_1FB78_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_801507C4[525] = {
 #include "assets/actor_403900_animation_1FB78_bank4.inc"
@@ -846,7 +907,8 @@ u16 D_actor_403900_80151970[20] = {
 };
 
 GpAnimSet D_actor_403900_80151998 = {
-    D_actor_403900_80150FF8, D_actor_403900_80151970,
+    D_actor_403900_80150FF8,
+    D_actor_403900_80151970,
     { NULL, D_actor_403900_801505F0.words, NULL, NULL, D_actor_403900_801507C4, NULL, NULL, NULL },
 };
 
@@ -858,7 +920,7 @@ typedef union {
 
 Actor403900PoseBank1FBA0 D_actor_403900_801519C0 = { .poses = {
 #include "assets/actor_403900_animation_2010C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80151A38[126] = {
 #include "assets/actor_403900_animation_2010C_bank4.inc"
@@ -873,7 +935,8 @@ u16 D_actor_403900_80151F04[20] = {
 };
 
 GpAnimSet D_actor_403900_80151F2C = {
-    D_actor_403900_80151C30, D_actor_403900_80151F04,
+    D_actor_403900_80151C30,
+    D_actor_403900_80151F04,
     { NULL, D_actor_403900_801519C0.words, NULL, NULL, D_actor_403900_80151A38, NULL, NULL, NULL },
 };
 
@@ -885,7 +948,7 @@ typedef union {
 
 Actor403900PoseBank20134 D_actor_403900_80151F54 = { .poses = {
 #include "assets/actor_403900_animation_20B6C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80152050[261] = {
 #include "assets/actor_403900_animation_20B6C_bank4.inc"
@@ -900,7 +963,8 @@ u16 D_actor_403900_80152964[20] = {
 };
 
 GpAnimSet D_actor_403900_8015298C = {
-    D_actor_403900_80152464, D_actor_403900_80152964,
+    D_actor_403900_80152464,
+    D_actor_403900_80152964,
     { NULL, D_actor_403900_80151F54.words, NULL, NULL, D_actor_403900_80152050, NULL, NULL, NULL },
 };
 
@@ -912,7 +976,7 @@ typedef union {
 
 Actor403900PoseBank20B94 D_actor_403900_801529B4 = { .poses = {
 #include "assets/actor_403900_animation_21DA8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_actor_403900_80152B58[485] = {
 #include "assets/actor_403900_animation_21DA8_bank4.inc"
@@ -927,7 +991,8 @@ u16 D_actor_403900_80153BA0[20] = {
 };
 
 GpAnimSet D_actor_403900_80153BC8 = {
-    D_actor_403900_801532EC, D_actor_403900_80153BA0,
+    D_actor_403900_801532EC,
+    D_actor_403900_80153BA0,
     { NULL, D_actor_403900_801529B4.words, NULL, NULL, D_actor_403900_80152B58, NULL, NULL, NULL },
 };
 
@@ -1073,7 +1138,7 @@ Actor402200Region D_actor_403900_80153EC4[4] = {
     { 1, 2048, 7750, -3000, 6500, -6000, 9000, -9000 },
 };
 
-Actor402200Region * D_actor_403900_80153F04[9] = {
+Actor402200Region* D_actor_403900_80153F04[9] = {
     NULL,
     D_actor_403900_80153CC4,
     D_actor_403900_80153D14,
@@ -1283,7 +1348,7 @@ s16 D_actor_403900_80154058[34] = {
     0,
 };
 
-s16 * D_actor_403900_8015409C[6] = {
+s16* D_actor_403900_8015409C[6] = {
     NULL,
     D_actor_403900_80153F28,
     D_actor_403900_80153F54,
@@ -1292,7 +1357,7 @@ s16 * D_actor_403900_8015409C[6] = {
     D_actor_403900_80154058,
 };
 
-GpAnimSet * D_actor_403900_801540B4[5] = {
+GpAnimSet* D_actor_403900_801540B4[5] = {
     NULL,
     &D_actor_403900_80151998,
     &D_actor_403900_80151F2C,
@@ -1309,7 +1374,7 @@ s16 D_actor_403900_801540D0[2][4] = {
 
 TaskDesc D_actor_403900_801540E0 = { 1, 96, func_actor_403900_80138344, { .model = &D_actor_403900_8013DBD8 } };
 
-GpAnimSet * D_actor_403900_801540EC[22] = {
+GpAnimSet* D_actor_403900_801540EC[22] = {
     NULL,
     &D_actor_403900_8013E26C,
     &D_actor_403900_8013E724,

@@ -275,7 +275,7 @@ typedef union {
 
 MineCavernPoseBank66FC D_mine_cavern_80183CBC = { .poses = {
 #include "assets/mine_cavern_animation_069D8_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80183D04[46] = {
 #include "assets/mine_cavern_animation_069D8_bank4.inc"
@@ -290,7 +290,8 @@ u16 D_mine_cavern_80183F70[20] = {
 };
 
 GpAnimSet D_mine_cavern_80183F98 = {
-    D_mine_cavern_80183DBC, D_mine_cavern_80183F70,
+    D_mine_cavern_80183DBC,
+    D_mine_cavern_80183F70,
     { NULL, D_mine_cavern_80183CBC.words, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
 };
 
@@ -302,7 +303,7 @@ typedef union {
 
 MineCavernPoseBank6A00 D_mine_cavern_80183FC0 = { .poses = {
 #include "assets/mine_cavern_animation_07178_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_8018405C[179] = {
 #include "assets/mine_cavern_animation_07178_bank4.inc"
@@ -317,7 +318,8 @@ u16 D_mine_cavern_80184710[20] = {
 };
 
 GpAnimSet D_mine_cavern_80184738 = {
-    D_mine_cavern_80184328, D_mine_cavern_80184710,
+    D_mine_cavern_80184328,
+    D_mine_cavern_80184710,
     { NULL, D_mine_cavern_80183FC0.words, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
 };
 
@@ -329,7 +331,7 @@ typedef union {
 
 MineCavernPoseBank71A0 D_mine_cavern_80184760 = { .poses = {
 #include "assets/mine_cavern_animation_07544_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_801847A8[64] = {
 #include "assets/mine_cavern_animation_07544_bank4.inc"
@@ -344,7 +346,8 @@ u16 D_mine_cavern_80184ADC[20] = {
 };
 
 GpAnimSet D_mine_cavern_80184B04 = {
-    D_mine_cavern_801848A8, D_mine_cavern_80184ADC,
+    D_mine_cavern_801848A8,
+    D_mine_cavern_80184ADC,
     { NULL, D_mine_cavern_80184760.words, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
 };
 
@@ -356,7 +359,7 @@ typedef union {
 
 MineCavernPoseBank756C D_mine_cavern_80184B2C = { .poses = {
 #include "assets/mine_cavern_animation_07784_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80184B5C[42] = {
 #include "assets/mine_cavern_animation_07784_bank4.inc"
@@ -371,7 +374,8 @@ u16 D_mine_cavern_80184D1C[20] = {
 };
 
 GpAnimSet D_mine_cavern_80184D44 = {
-    D_mine_cavern_80184C04, D_mine_cavern_80184D1C,
+    D_mine_cavern_80184C04,
+    D_mine_cavern_80184D1C,
     { NULL, D_mine_cavern_80184B2C.words, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
 };
 
@@ -383,7 +387,7 @@ typedef union {
 
 MineCavernPoseBank77AC D_mine_cavern_80184D6C = { .poses = {
 #include "assets/mine_cavern_animation_07958_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80184D90[31] = {
 #include "assets/mine_cavern_animation_07958_bank4.inc"
@@ -398,7 +402,8 @@ u16 D_mine_cavern_80184EF0[20] = {
 };
 
 GpAnimSet D_mine_cavern_80184F18 = {
-    D_mine_cavern_80184E0C, D_mine_cavern_80184EF0,
+    D_mine_cavern_80184E0C,
+    D_mine_cavern_80184EF0,
     { NULL, D_mine_cavern_80184D6C.words, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
 };
 
@@ -410,7 +415,7 @@ typedef union {
 
 MineCavernPoseBank7980 D_mine_cavern_80184F40 = { .poses = {
 #include "assets/mine_cavern_animation_07BA4_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80184F64[29] = {
 #include "assets/mine_cavern_animation_07BA4_bank4.inc"
@@ -425,7 +430,8 @@ u16 D_mine_cavern_8018513C[20] = {
 };
 
 GpAnimSet D_mine_cavern_80185164 = {
-    D_mine_cavern_80184FD8, D_mine_cavern_8018513C,
+    D_mine_cavern_80184FD8,
+    D_mine_cavern_8018513C,
     { NULL, D_mine_cavern_80184F40.words, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
 };
 
@@ -437,7 +443,7 @@ typedef union {
 
 MineCavernPoseBank7BCC D_mine_cavern_8018518C = { .poses = {
 #include "assets/mine_cavern_animation_08178_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_801851EC[117] = {
 #include "assets/mine_cavern_animation_08178_bank4.inc"
@@ -452,7 +458,8 @@ u16 D_mine_cavern_80185710[20] = {
 };
 
 GpAnimSet D_mine_cavern_80185738 = {
-    D_mine_cavern_801853C0, D_mine_cavern_80185710,
+    D_mine_cavern_801853C0,
+    D_mine_cavern_80185710,
     { NULL, D_mine_cavern_8018518C.words, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
 };
 
@@ -464,7 +471,7 @@ typedef union {
 
 MineCavernPoseBank81A0 D_mine_cavern_80185760 = { .poses = {
 #include "assets/mine_cavern_animation_08420_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80185790[46] = {
 #include "assets/mine_cavern_animation_08420_bank4.inc"
@@ -479,7 +486,8 @@ u16 D_mine_cavern_801859B8[20] = {
 };
 
 GpAnimSet D_mine_cavern_801859E0 = {
-    D_mine_cavern_80185848, D_mine_cavern_801859B8,
+    D_mine_cavern_80185848,
+    D_mine_cavern_801859B8,
     { NULL, D_mine_cavern_80185760.words, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
 };
 
@@ -491,7 +499,7 @@ typedef union {
 
 MineCavernPoseBank8448 D_mine_cavern_80185A08 = { .poses = {
 #include "assets/mine_cavern_animation_08AC0_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80185A98[164] = {
 #include "assets/mine_cavern_animation_08AC0_bank4.inc"
@@ -506,7 +514,8 @@ u16 D_mine_cavern_80186058[20] = {
 };
 
 GpAnimSet D_mine_cavern_80186080 = {
-    D_mine_cavern_80185D28, D_mine_cavern_80186058,
+    D_mine_cavern_80185D28,
+    D_mine_cavern_80186058,
     { NULL, D_mine_cavern_80185A08.words, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
 };
 
@@ -518,7 +527,7 @@ typedef union {
 
 MineCavernPoseBank8AE8 D_mine_cavern_801860A8 = { .poses = {
 #include "assets/mine_cavern_animation_08CB4_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_801860C0[20] = {
 #include "assets/mine_cavern_animation_08CB4_bank4.inc"
@@ -533,7 +542,8 @@ u16 D_mine_cavern_8018624C[20] = {
 };
 
 GpAnimSet D_mine_cavern_80186274 = {
-    D_mine_cavern_80186110, D_mine_cavern_8018624C,
+    D_mine_cavern_80186110,
+    D_mine_cavern_8018624C,
     { NULL, D_mine_cavern_801860A8.words, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
 };
 
@@ -545,7 +555,7 @@ typedef union {
 
 MineCavernPoseBank8CDC D_mine_cavern_8018629C = { .poses = {
 #include "assets/mine_cavern_animation_092C4_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80186320[150] = {
 #include "assets/mine_cavern_animation_092C4_bank4.inc"
@@ -560,7 +570,8 @@ u16 D_mine_cavern_8018685C[20] = {
 };
 
 GpAnimSet D_mine_cavern_80186884 = {
-    D_mine_cavern_80186578, D_mine_cavern_8018685C,
+    D_mine_cavern_80186578,
+    D_mine_cavern_8018685C,
     { NULL, D_mine_cavern_8018629C.words, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
 };
 
@@ -572,7 +583,7 @@ typedef union {
 
 MineCavernPoseBank92EC D_mine_cavern_801868AC = { .poses = {
 #include "assets/mine_cavern_animation_096E4_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_8018690C[88] = {
 #include "assets/mine_cavern_animation_096E4_bank4.inc"
@@ -587,7 +598,8 @@ u16 D_mine_cavern_80186C7C[20] = {
 };
 
 GpAnimSet D_mine_cavern_80186CA4 = {
-    D_mine_cavern_80186A6C, D_mine_cavern_80186C7C,
+    D_mine_cavern_80186A6C,
+    D_mine_cavern_80186C7C,
     { NULL, D_mine_cavern_801868AC.words, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
 };
 
@@ -599,7 +611,7 @@ typedef union {
 
 MineCavernPoseBank970C D_mine_cavern_80186CCC = { .poses = {
 #include "assets/mine_cavern_animation_099C8_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80186D08[58] = {
 #include "assets/mine_cavern_animation_099C8_bank4.inc"
@@ -614,7 +626,8 @@ u16 D_mine_cavern_80186F60[20] = {
 };
 
 GpAnimSet D_mine_cavern_80186F88 = {
-    D_mine_cavern_80186DF0, D_mine_cavern_80186F60,
+    D_mine_cavern_80186DF0,
+    D_mine_cavern_80186F60,
     { NULL, D_mine_cavern_80186CCC.words, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
 };
 
@@ -626,7 +639,7 @@ typedef union {
 
 MineCavernPoseBank99F0 D_mine_cavern_80186FB0 = { .poses = {
 #include "assets/mine_cavern_animation_09C2C_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80186FC8[22] = {
 #include "assets/mine_cavern_animation_09C2C_bank4.inc"
@@ -641,7 +654,8 @@ u16 D_mine_cavern_801871C4[20] = {
 };
 
 GpAnimSet D_mine_cavern_801871EC = {
-    D_mine_cavern_80187020, D_mine_cavern_801871C4,
+    D_mine_cavern_80187020,
+    D_mine_cavern_801871C4,
     { NULL, D_mine_cavern_80186FB0.words, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
 };
 
@@ -653,7 +667,7 @@ typedef union {
 
 MineCavernPoseBank9C54 D_mine_cavern_80187214 = { .poses = {
 #include "assets/mine_cavern_animation_09F1C_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_80187244[40] = {
 #include "assets/mine_cavern_animation_09F1C_bank4.inc"
@@ -668,7 +682,8 @@ u16 D_mine_cavern_801874B4[20] = {
 };
 
 GpAnimSet D_mine_cavern_801874DC = {
-    D_mine_cavern_801872E4, D_mine_cavern_801874B4,
+    D_mine_cavern_801872E4,
+    D_mine_cavern_801874B4,
     { NULL, D_mine_cavern_80187214.words, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
 };
 
@@ -680,7 +695,7 @@ typedef union {
 
 MineCavernPoseBank9F44 D_mine_cavern_80187504 = { .poses = {
 #include "assets/mine_cavern_animation_0A38C_bank1.inc"
-} };
+                                                  } };
 
 GpPackedSvec D_mine_cavern_8018757C[95] = {
 #include "assets/mine_cavern_animation_0A38C_bank4.inc"
@@ -695,13 +710,14 @@ u16 D_mine_cavern_80187924[20] = {
 };
 
 GpAnimSet D_mine_cavern_8018794C = {
-    D_mine_cavern_801876F8, D_mine_cavern_80187924,
+    D_mine_cavern_801876F8,
+    D_mine_cavern_80187924,
     { NULL, D_mine_cavern_80187504.words, NULL, NULL, D_mine_cavern_8018757C, NULL, NULL, NULL },
 };
 
 TaskDesc D_mine_cavern_80187974 = { 0, 192, func_mine_cavern_8017E18C, { .model = NULL } };
 
-GpAnimSet * D_mine_cavern_80187980[17] = {
+GpAnimSet* D_mine_cavern_80187980[17] = {
     NULL,
     &D_mine_cavern_80183F98,
     &D_mine_cavern_80184B04,
@@ -1141,7 +1157,7 @@ u8 D_mine_cavern_80189044[28] = {
     0,
 };
 
-u8 * D_mine_cavern_80189060[3] = {
+u8* D_mine_cavern_80189060[3] = {
     D_8010CAF8,
     D_mine_cavern_80189028,
     D_mine_cavern_80189044,
@@ -1554,7 +1570,7 @@ s16 D_mine_cavern_801897CC[4] = {
     -1,
 };
 
-s16 * D_mine_cavern_801897D4[18] = {
+s16* D_mine_cavern_801897D4[18] = {
     D_mine_cavern_8018965C,
     D_mine_cavern_80189678,
     D_mine_cavern_8018968C,
@@ -2613,7 +2629,7 @@ GpRoomParamRec D_mine_cavern_8018E304[1] = {
     { 0, 1, 1, 0, D_mine_cavern_8018E2E8 },
 };
 
-GpRoomParamRec * D_mine_cavern_8018E30C[8] = {
+GpRoomParamRec* D_mine_cavern_8018E30C[8] = {
     D_mine_cavern_8018E2F4,
     D_mine_cavern_8018E2FC,
     D_mine_cavern_8018E304,
@@ -2652,8 +2668,8 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task);
 void func_mine_cavern_8017E330(void)
 {
     Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->at4.loc.room  = 2;
-    gGameSession->roomObjsDirty = 1;
+    gGameSession->at4.loc.room        = 2;
+    gGameSession->roomObjsDirty       = 1;
 }
 
 void func_mine_cavern_8017E358(void)
@@ -3291,20 +3307,20 @@ void func_mine_cavern_8017FF88(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
                 func_mine_cavern_8017FBF4(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;

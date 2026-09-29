@@ -136,7 +136,7 @@ SVECTOR D_shelter_b1_transfer_tunnel_80182944[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b1_transfer_tunnel_80182954[1] = {
+u8* D_shelter_b1_transfer_tunnel_80182954[1] = {
     D_8010CAF8,
 };
 
@@ -224,7 +224,7 @@ s16 D_shelter_b1_transfer_tunnel_80182AD0[2] = {
     -1,
 };
 
-s16 * D_shelter_b1_transfer_tunnel_80182AD4[6] = {
+s16* D_shelter_b1_transfer_tunnel_80182AD4[6] = {
     D_shelter_b1_transfer_tunnel_80182AA4,
     D_shelter_b1_transfer_tunnel_80182AB0,
     D_shelter_b1_transfer_tunnel_80182AB4,
@@ -363,7 +363,7 @@ GpRoomParamRec D_shelter_b1_transfer_tunnel_8018317C[1] = {
     { 0, 0, 1, 0, D_shelter_b1_transfer_tunnel_80183168 },
 };
 
-GpRoomParamRec * D_shelter_b1_transfer_tunnel_80183184[8] = {
+GpRoomParamRec* D_shelter_b1_transfer_tunnel_80183184[8] = {
     D_shelter_b1_transfer_tunnel_80183174,
     D_shelter_b1_transfer_tunnel_8018317C,
     D_shelter_b1_transfer_tunnel_80183174,
@@ -381,7 +381,7 @@ s32 func_shelter_b1_transfer_tunnel_8017D5D0(Task* task, s32 msgId, GpMessageArg
 
 /// Message handler that copies the incoming record onto the outgoing one,
 /// passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -942,20 +942,20 @@ void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b1_transfer_tunnel_80182930.entries[mem->index].b;
                 func_shelter_b1_transfer_tunnel_8017ECBC(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -1644,14 +1644,14 @@ void func_shelter_b1_transfer_tunnel_80181390(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_transfer_tunnel_80182944[1];
+                    SVECTOR* edge    = &D_shelter_b1_transfer_tunnel_80182944[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

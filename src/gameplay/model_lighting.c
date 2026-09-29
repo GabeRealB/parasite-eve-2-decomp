@@ -2592,9 +2592,9 @@ void Gp_TickPlayClock(Task* task)
                 rec->field_0++;
             }
         } else {
-            p->state.playTime  = 0xEA5F;
-            rec->field_0 = 0x3E7;
-            rec->field_4 = 0x3B;
+            p->state.playTime = 0xEA5F;
+            rec->field_0      = 0x3E7;
+            rec->field_4      = 0x3B;
         }
     }
 
@@ -2715,7 +2715,7 @@ void Gp_RestartSessionTask(Task* arg0)
     SndEvt_EnqueueType2(0, 8);
     SndEvt_EnqueueType7(0x80000000, 0x78);
     SndEvt_EnqueueType7(0x60010001, 0x78);
-    flag            = 0xFF;
+    flag                  = 0xFF;
     arg0->spawnArg1.value = flag;
     Pad_SetCooldown(0);
     Game_ClearPtrSlots();

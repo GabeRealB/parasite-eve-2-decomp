@@ -72,7 +72,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank1168 D_dryfield_night_dilapidated_house_8017E728 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017E770[46] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01444_bank4.inc"
@@ -87,7 +87,8 @@ u16 D_dryfield_night_dilapidated_house_8017E9DC[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017EA04 = {
-    D_dryfield_night_dilapidated_house_8017E828, D_dryfield_night_dilapidated_house_8017E9DC,
+    D_dryfield_night_dilapidated_house_8017E828,
+    D_dryfield_night_dilapidated_house_8017E9DC,
     { NULL, D_dryfield_night_dilapidated_house_8017E728.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017E770, NULL, NULL, NULL },
 };
 
@@ -99,7 +100,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank146C D_dryfield_night_dilapidated_house_8017EA2C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017EB34[182] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01C10_bank4.inc"
@@ -114,7 +115,8 @@ u16 D_dryfield_night_dilapidated_house_8017F1A8[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017F1D0 = {
-    D_dryfield_night_dilapidated_house_8017EE0C, D_dryfield_night_dilapidated_house_8017F1A8,
+    D_dryfield_night_dilapidated_house_8017EE0C,
+    D_dryfield_night_dilapidated_house_8017F1A8,
     { NULL, D_dryfield_night_dilapidated_house_8017EA2C.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017EB34, NULL, NULL, NULL },
 };
 
@@ -126,7 +128,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank1C38 D_dryfield_night_dilapidated_house_8017F1F8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017F210[15] = {
 #include "assets/dryfield_night_dilapidated_house_animation_01DE4_bank4.inc"
@@ -141,7 +143,8 @@ u16 D_dryfield_night_dilapidated_house_8017F37C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017F3A4 = {
-    D_dryfield_night_dilapidated_house_8017F24C, D_dryfield_night_dilapidated_house_8017F37C,
+    D_dryfield_night_dilapidated_house_8017F24C,
+    D_dryfield_night_dilapidated_house_8017F37C,
     { NULL, D_dryfield_night_dilapidated_house_8017F1F8.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017F210, NULL, NULL, NULL },
 };
 
@@ -153,7 +156,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank1E0C D_dryfield_night_dilapidated_house_8017F3CC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017F420[82] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0219C_bank4.inc"
@@ -168,7 +171,8 @@ u16 D_dryfield_night_dilapidated_house_8017F734[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017F75C = {
-    D_dryfield_night_dilapidated_house_8017F568, D_dryfield_night_dilapidated_house_8017F734,
+    D_dryfield_night_dilapidated_house_8017F568,
+    D_dryfield_night_dilapidated_house_8017F734,
     { NULL, D_dryfield_night_dilapidated_house_8017F3CC.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017F420, NULL, NULL, NULL },
 };
 
@@ -180,7 +184,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank21C4 D_dryfield_night_dilapidated_house_8017F784 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017F7A8[19] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02368_bank4.inc"
@@ -195,7 +199,8 @@ u16 D_dryfield_night_dilapidated_house_8017F900[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017F928 = {
-    D_dryfield_night_dilapidated_house_8017F7F4, D_dryfield_night_dilapidated_house_8017F900,
+    D_dryfield_night_dilapidated_house_8017F7F4,
+    D_dryfield_night_dilapidated_house_8017F900,
     { NULL, D_dryfield_night_dilapidated_house_8017F784.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017F7A8, NULL, NULL, NULL },
 };
 
@@ -207,7 +212,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank2390 D_dryfield_night_dilapidated_house_8017F950 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017F998[64] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02734_bank4.inc"
@@ -222,7 +227,8 @@ u16 D_dryfield_night_dilapidated_house_8017FCCC[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8017FCF4 = {
-    D_dryfield_night_dilapidated_house_8017FA98, D_dryfield_night_dilapidated_house_8017FCCC,
+    D_dryfield_night_dilapidated_house_8017FA98,
+    D_dryfield_night_dilapidated_house_8017FCCC,
     { NULL, D_dryfield_night_dilapidated_house_8017F950.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017F998, NULL, NULL, NULL },
 };
 
@@ -234,7 +240,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank275C D_dryfield_night_dilapidated_house_8017FD1C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8017FD70[54] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02A4C_bank4.inc"
@@ -249,7 +255,8 @@ u16 D_dryfield_night_dilapidated_house_8017FFE4[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8018000C = {
-    D_dryfield_night_dilapidated_house_8017FE48, D_dryfield_night_dilapidated_house_8017FFE4,
+    D_dryfield_night_dilapidated_house_8017FE48,
+    D_dryfield_night_dilapidated_house_8017FFE4,
     { NULL, D_dryfield_night_dilapidated_house_8017FD1C.words, NULL, NULL, D_dryfield_night_dilapidated_house_8017FD70, NULL, NULL, NULL },
 };
 
@@ -261,7 +268,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank2A74 D_dryfield_night_dilapidated_house_80180034 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801800AC[85] = {
 #include "assets/dryfield_night_dilapidated_house_animation_02E4C_bank4.inc"
@@ -276,7 +283,8 @@ u16 D_dryfield_night_dilapidated_house_801803E4[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8018040C = {
-    D_dryfield_night_dilapidated_house_80180200, D_dryfield_night_dilapidated_house_801803E4,
+    D_dryfield_night_dilapidated_house_80180200,
+    D_dryfield_night_dilapidated_house_801803E4,
     { NULL, D_dryfield_night_dilapidated_house_80180034.words, NULL, NULL, D_dryfield_night_dilapidated_house_801800AC, NULL, NULL, NULL },
 };
 
@@ -288,7 +296,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank2E74 D_dryfield_night_dilapidated_house_80180434 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80180464[17] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03048_bank4.inc"
@@ -303,7 +311,8 @@ u16 D_dryfield_night_dilapidated_house_801805E0[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80180608 = {
-    D_dryfield_night_dilapidated_house_801804A8, D_dryfield_night_dilapidated_house_801805E0,
+    D_dryfield_night_dilapidated_house_801804A8,
+    D_dryfield_night_dilapidated_house_801805E0,
     { NULL, D_dryfield_night_dilapidated_house_80180434.words, NULL, NULL, D_dryfield_night_dilapidated_house_80180464, NULL, NULL, NULL },
 };
 
@@ -315,7 +324,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank3070 D_dryfield_night_dilapidated_house_80180630 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80180690[65] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03384_bank4.inc"
@@ -330,7 +339,8 @@ u16 D_dryfield_night_dilapidated_house_8018091C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80180944 = {
-    D_dryfield_night_dilapidated_house_80180794, D_dryfield_night_dilapidated_house_8018091C,
+    D_dryfield_night_dilapidated_house_80180794,
+    D_dryfield_night_dilapidated_house_8018091C,
     { NULL, D_dryfield_night_dilapidated_house_80180630.words, NULL, NULL, D_dryfield_night_dilapidated_house_80180690, NULL, NULL, NULL },
 };
 
@@ -342,7 +352,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank33AC D_dryfield_night_dilapidated_house_8018096C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801809B4[65] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0378C_bank4.inc"
@@ -357,7 +367,8 @@ u16 D_dryfield_night_dilapidated_house_80180D24[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80180D4C = {
-    D_dryfield_night_dilapidated_house_80180AB8, D_dryfield_night_dilapidated_house_80180D24,
+    D_dryfield_night_dilapidated_house_80180AB8,
+    D_dryfield_night_dilapidated_house_80180D24,
     { NULL, D_dryfield_night_dilapidated_house_8018096C.words, NULL, NULL, D_dryfield_night_dilapidated_house_801809B4, NULL, NULL, NULL },
 };
 
@@ -369,7 +380,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank37B4 D_dryfield_night_dilapidated_house_80180D74 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80180DA4[42] = {
 #include "assets/dryfield_night_dilapidated_house_animation_039CC_bank4.inc"
@@ -384,7 +395,8 @@ u16 D_dryfield_night_dilapidated_house_80180F64[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80180F8C = {
-    D_dryfield_night_dilapidated_house_80180E4C, D_dryfield_night_dilapidated_house_80180F64,
+    D_dryfield_night_dilapidated_house_80180E4C,
+    D_dryfield_night_dilapidated_house_80180F64,
     { NULL, D_dryfield_night_dilapidated_house_80180D74.words, NULL, NULL, D_dryfield_night_dilapidated_house_80180DA4, NULL, NULL, NULL },
 };
 
@@ -396,7 +408,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank39F4 D_dryfield_night_dilapidated_house_80180FB4 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80181014[84] = {
 #include "assets/dryfield_night_dilapidated_house_animation_03DA0_bank4.inc"
@@ -411,7 +423,8 @@ u16 D_dryfield_night_dilapidated_house_80181338[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80181360 = {
-    D_dryfield_night_dilapidated_house_80181164, D_dryfield_night_dilapidated_house_80181338,
+    D_dryfield_night_dilapidated_house_80181164,
+    D_dryfield_night_dilapidated_house_80181338,
     { NULL, D_dryfield_night_dilapidated_house_80180FB4.words, NULL, NULL, D_dryfield_night_dilapidated_house_80181014, NULL, NULL, NULL },
 };
 
@@ -423,7 +436,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank3DC8 D_dryfield_night_dilapidated_house_80181388 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801813DC[74] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0410C_bank4.inc"
@@ -438,7 +451,8 @@ u16 D_dryfield_night_dilapidated_house_801816A4[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801816CC = {
-    D_dryfield_night_dilapidated_house_80181504, D_dryfield_night_dilapidated_house_801816A4,
+    D_dryfield_night_dilapidated_house_80181504,
+    D_dryfield_night_dilapidated_house_801816A4,
     { NULL, D_dryfield_night_dilapidated_house_80181388.words, NULL, NULL, D_dryfield_night_dilapidated_house_801813DC, NULL, NULL, NULL },
 };
 
@@ -450,7 +464,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank4134 D_dryfield_night_dilapidated_house_801816F4 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80181730[80] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04560_bank4.inc"
@@ -465,7 +479,8 @@ u16 D_dryfield_night_dilapidated_house_80181AF8[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80181B20 = {
-    D_dryfield_night_dilapidated_house_80181870, D_dryfield_night_dilapidated_house_80181AF8,
+    D_dryfield_night_dilapidated_house_80181870,
+    D_dryfield_night_dilapidated_house_80181AF8,
     { NULL, D_dryfield_night_dilapidated_house_801816F4.words, NULL, NULL, D_dryfield_night_dilapidated_house_80181730, NULL, NULL, NULL },
 };
 
@@ -477,7 +492,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank4588 D_dryfield_night_dilapidated_house_80181B48 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80181B78[51] = {
 #include "assets/dryfield_night_dilapidated_house_animation_047F4_bank4.inc"
@@ -492,7 +507,8 @@ u16 D_dryfield_night_dilapidated_house_80181D8C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80181DB4 = {
-    D_dryfield_night_dilapidated_house_80181C44, D_dryfield_night_dilapidated_house_80181D8C,
+    D_dryfield_night_dilapidated_house_80181C44,
+    D_dryfield_night_dilapidated_house_80181D8C,
     { NULL, D_dryfield_night_dilapidated_house_80181B48.words, NULL, NULL, D_dryfield_night_dilapidated_house_80181B78, NULL, NULL, NULL },
 };
 
@@ -504,7 +520,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank481C D_dryfield_night_dilapidated_house_80181DDC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80181E30[56] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04B20_bank4.inc"
@@ -519,7 +535,8 @@ u16 D_dryfield_night_dilapidated_house_801820B8[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801820E0 = {
-    D_dryfield_night_dilapidated_house_80181F10, D_dryfield_night_dilapidated_house_801820B8,
+    D_dryfield_night_dilapidated_house_80181F10,
+    D_dryfield_night_dilapidated_house_801820B8,
     { NULL, D_dryfield_night_dilapidated_house_80181DDC.words, NULL, NULL, D_dryfield_night_dilapidated_house_80181E30, NULL, NULL, NULL },
 };
 
@@ -531,7 +548,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank4B48 D_dryfield_night_dilapidated_house_80182108 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8018212C[81] = {
 #include "assets/dryfield_night_dilapidated_house_animation_04ED8_bank4.inc"
@@ -546,7 +563,8 @@ u16 D_dryfield_night_dilapidated_house_80182470[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80182498 = {
-    D_dryfield_night_dilapidated_house_80182270, D_dryfield_night_dilapidated_house_80182470,
+    D_dryfield_night_dilapidated_house_80182270,
+    D_dryfield_night_dilapidated_house_80182470,
     { NULL, D_dryfield_night_dilapidated_house_80182108.words, NULL, NULL, D_dryfield_night_dilapidated_house_8018212C, NULL, NULL, NULL },
 };
 
@@ -558,7 +576,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank4F00 D_dryfield_night_dilapidated_house_801824C0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801824FC[58] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0522C_bank4.inc"
@@ -573,7 +591,8 @@ u16 D_dryfield_night_dilapidated_house_801827C4[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801827EC = {
-    D_dryfield_night_dilapidated_house_801825E4, D_dryfield_night_dilapidated_house_801827C4,
+    D_dryfield_night_dilapidated_house_801825E4,
+    D_dryfield_night_dilapidated_house_801827C4,
     { NULL, D_dryfield_night_dilapidated_house_801824C0.words, NULL, NULL, D_dryfield_night_dilapidated_house_801824FC, NULL, NULL, NULL },
 };
 
@@ -585,7 +604,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank5254 D_dryfield_night_dilapidated_house_80182814 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80182838[34] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05424_bank4.inc"
@@ -600,7 +619,8 @@ u16 D_dryfield_night_dilapidated_house_801829BC[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801829E4 = {
-    D_dryfield_night_dilapidated_house_801828C0, D_dryfield_night_dilapidated_house_801829BC,
+    D_dryfield_night_dilapidated_house_801828C0,
+    D_dryfield_night_dilapidated_house_801829BC,
     { NULL, D_dryfield_night_dilapidated_house_80182814.words, NULL, NULL, D_dryfield_night_dilapidated_house_80182838, NULL, NULL, NULL },
 };
 
@@ -612,7 +632,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank544C D_dryfield_night_dilapidated_house_80182A0C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80182A30[27] = {
 #include "assets/dryfield_night_dilapidated_house_animation_055E8_bank4.inc"
@@ -627,7 +647,8 @@ u16 D_dryfield_night_dilapidated_house_80182B80[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80182BA8 = {
-    D_dryfield_night_dilapidated_house_80182A9C, D_dryfield_night_dilapidated_house_80182B80,
+    D_dryfield_night_dilapidated_house_80182A9C,
+    D_dryfield_night_dilapidated_house_80182B80,
     { NULL, D_dryfield_night_dilapidated_house_80182A0C.words, NULL, NULL, D_dryfield_night_dilapidated_house_80182A30, NULL, NULL, NULL },
 };
 
@@ -639,7 +660,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank5610 D_dryfield_night_dilapidated_house_80182BD0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80182C00[40] = {
 #include "assets/dryfield_night_dilapidated_house_animation_058A8_bank4.inc"
@@ -654,7 +675,8 @@ u16 D_dryfield_night_dilapidated_house_80182E40[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80182E68 = {
-    D_dryfield_night_dilapidated_house_80182CA0, D_dryfield_night_dilapidated_house_80182E40,
+    D_dryfield_night_dilapidated_house_80182CA0,
+    D_dryfield_night_dilapidated_house_80182E40,
     { NULL, D_dryfield_night_dilapidated_house_80182BD0.words, NULL, NULL, D_dryfield_night_dilapidated_house_80182C00, NULL, NULL, NULL },
 };
 
@@ -666,7 +688,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank58D0 D_dryfield_night_dilapidated_house_80182E90 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80182EB4[27] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05A6C_bank4.inc"
@@ -681,7 +703,8 @@ u16 D_dryfield_night_dilapidated_house_80183004[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8018302C = {
-    D_dryfield_night_dilapidated_house_80182F20, D_dryfield_night_dilapidated_house_80183004,
+    D_dryfield_night_dilapidated_house_80182F20,
+    D_dryfield_night_dilapidated_house_80183004,
     { NULL, D_dryfield_night_dilapidated_house_80182E90.words, NULL, NULL, D_dryfield_night_dilapidated_house_80182EB4, NULL, NULL, NULL },
 };
 
@@ -693,7 +716,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank5A94 D_dryfield_night_dilapidated_house_80183054 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80183078[48] = {
 #include "assets/dryfield_night_dilapidated_house_animation_05D8C_bank4.inc"
@@ -708,7 +731,8 @@ u16 D_dryfield_night_dilapidated_house_80183324[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_8018334C = {
-    D_dryfield_night_dilapidated_house_80183138, D_dryfield_night_dilapidated_house_80183324,
+    D_dryfield_night_dilapidated_house_80183138,
+    D_dryfield_night_dilapidated_house_80183324,
     { NULL, D_dryfield_night_dilapidated_house_80183054.words, NULL, NULL, D_dryfield_night_dilapidated_house_80183078, NULL, NULL, NULL },
 };
 
@@ -720,7 +744,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank5DB4 D_dryfield_night_dilapidated_house_80183374 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8018338C[32] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06008_bank4.inc"
@@ -735,7 +759,8 @@ u16 D_dryfield_night_dilapidated_house_801835A0[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801835C8 = {
-    D_dryfield_night_dilapidated_house_8018340C, D_dryfield_night_dilapidated_house_801835A0,
+    D_dryfield_night_dilapidated_house_8018340C,
+    D_dryfield_night_dilapidated_house_801835A0,
     { NULL, D_dryfield_night_dilapidated_house_80183374.words, NULL, NULL, D_dryfield_night_dilapidated_house_8018338C, NULL, NULL, NULL },
 };
 
@@ -747,7 +772,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank6030 D_dryfield_night_dilapidated_house_801835F0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801836EC[156] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0679C_bank4.inc"
@@ -762,7 +787,8 @@ u16 D_dryfield_night_dilapidated_house_80183D34[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80183D5C = {
-    D_dryfield_night_dilapidated_house_8018395C, D_dryfield_night_dilapidated_house_80183D34,
+    D_dryfield_night_dilapidated_house_8018395C,
+    D_dryfield_night_dilapidated_house_80183D34,
     { NULL, D_dryfield_night_dilapidated_house_801835F0.words, NULL, NULL, D_dryfield_night_dilapidated_house_801836EC, NULL, NULL, NULL },
 };
 
@@ -774,7 +800,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank67C4 D_dryfield_night_dilapidated_house_80183D84 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80183D9C[135] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06D10_bank4.inc"
@@ -789,7 +815,8 @@ u16 D_dryfield_night_dilapidated_house_801842A8[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801842D0 = {
-    D_dryfield_night_dilapidated_house_80183FB8, D_dryfield_night_dilapidated_house_801842A8,
+    D_dryfield_night_dilapidated_house_80183FB8,
+    D_dryfield_night_dilapidated_house_801842A8,
     { NULL, D_dryfield_night_dilapidated_house_80183D84.words, NULL, NULL, D_dryfield_night_dilapidated_house_80183D9C, NULL, NULL, NULL },
 };
 
@@ -801,7 +828,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank6D38 D_dryfield_night_dilapidated_house_801842F8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8018431C[29] = {
 #include "assets/dryfield_night_dilapidated_house_animation_06EE8_bank4.inc"
@@ -816,7 +843,8 @@ u16 D_dryfield_night_dilapidated_house_80184480[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801844A8 = {
-    D_dryfield_night_dilapidated_house_80184390, D_dryfield_night_dilapidated_house_80184480,
+    D_dryfield_night_dilapidated_house_80184390,
+    D_dryfield_night_dilapidated_house_80184480,
     { NULL, D_dryfield_night_dilapidated_house_801842F8.words, NULL, NULL, D_dryfield_night_dilapidated_house_8018431C, NULL, NULL, NULL },
 };
 
@@ -828,7 +856,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank6F10 D_dryfield_night_dilapidated_house_801844D0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801844F4[80] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07304_bank4.inc"
@@ -843,7 +871,8 @@ u16 D_dryfield_night_dilapidated_house_8018489C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_801848C4 = {
-    D_dryfield_night_dilapidated_house_80184634, D_dryfield_night_dilapidated_house_8018489C,
+    D_dryfield_night_dilapidated_house_80184634,
+    D_dryfield_night_dilapidated_house_8018489C,
     { NULL, D_dryfield_night_dilapidated_house_801844D0.words, NULL, NULL, D_dryfield_night_dilapidated_house_801844F4, NULL, NULL, NULL },
 };
 
@@ -855,7 +884,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank732C D_dryfield_night_dilapidated_house_801848EC = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80184904[25] = {
 #include "assets/dryfield_night_dilapidated_house_animation_074C0_bank4.inc"
@@ -870,7 +899,8 @@ u16 D_dryfield_night_dilapidated_house_80184A58[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80184A80 = {
-    D_dryfield_night_dilapidated_house_80184968, D_dryfield_night_dilapidated_house_80184A58,
+    D_dryfield_night_dilapidated_house_80184968,
+    D_dryfield_night_dilapidated_house_80184A58,
     { NULL, D_dryfield_night_dilapidated_house_801848EC.words, NULL, NULL, D_dryfield_night_dilapidated_house_80184904, NULL, NULL, NULL },
 };
 
@@ -882,7 +912,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank74E8 D_dryfield_night_dilapidated_house_80184AA8 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80184ACC[33] = {
 #include "assets/dryfield_night_dilapidated_house_animation_076A8_bank4.inc"
@@ -897,7 +927,8 @@ u16 D_dryfield_night_dilapidated_house_80184C40[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80184C68 = {
-    D_dryfield_night_dilapidated_house_80184B50, D_dryfield_night_dilapidated_house_80184C40,
+    D_dryfield_night_dilapidated_house_80184B50,
+    D_dryfield_night_dilapidated_house_80184C40,
     { NULL, D_dryfield_night_dilapidated_house_80184AA8.words, NULL, NULL, D_dryfield_night_dilapidated_house_80184ACC, NULL, NULL, NULL },
 };
 
@@ -909,7 +940,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank76D0 D_dryfield_night_dilapidated_house_80184C90 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80184CB4[39] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07964_bank4.inc"
@@ -924,7 +955,8 @@ u16 D_dryfield_night_dilapidated_house_80184EFC[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80184F24 = {
-    D_dryfield_night_dilapidated_house_80184D50, D_dryfield_night_dilapidated_house_80184EFC,
+    D_dryfield_night_dilapidated_house_80184D50,
+    D_dryfield_night_dilapidated_house_80184EFC,
     { NULL, D_dryfield_night_dilapidated_house_80184C90.words, NULL, NULL, D_dryfield_night_dilapidated_house_80184CB4, NULL, NULL, NULL },
 };
 
@@ -936,7 +968,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank798C D_dryfield_night_dilapidated_house_80184F4C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80184F70[31] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07B44_bank4.inc"
@@ -951,7 +983,8 @@ u16 D_dryfield_night_dilapidated_house_801850DC[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80185104 = {
-    D_dryfield_night_dilapidated_house_80184FEC, D_dryfield_night_dilapidated_house_801850DC,
+    D_dryfield_night_dilapidated_house_80184FEC,
+    D_dryfield_night_dilapidated_house_801850DC,
     { NULL, D_dryfield_night_dilapidated_house_80184F4C.words, NULL, NULL, D_dryfield_night_dilapidated_house_80184F70, NULL, NULL, NULL },
 };
 
@@ -963,7 +996,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank7B6C D_dryfield_night_dilapidated_house_8018512C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80185168[41] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07DA4_bank4.inc"
@@ -978,7 +1011,8 @@ u16 D_dryfield_night_dilapidated_house_8018533C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80185364 = {
-    D_dryfield_night_dilapidated_house_8018520C, D_dryfield_night_dilapidated_house_8018533C,
+    D_dryfield_night_dilapidated_house_8018520C,
+    D_dryfield_night_dilapidated_house_8018533C,
     { NULL, D_dryfield_night_dilapidated_house_8018512C.words, NULL, NULL, D_dryfield_night_dilapidated_house_80185168, NULL, NULL, NULL },
 };
 
@@ -990,7 +1024,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank7DCC D_dryfield_night_dilapidated_house_8018538C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801853B0[21] = {
 #include "assets/dryfield_night_dilapidated_house_animation_07FC8_bank4.inc"
@@ -1005,7 +1039,8 @@ u16 D_dryfield_night_dilapidated_house_80185560[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80185588 = {
-    D_dryfield_night_dilapidated_house_80185404, D_dryfield_night_dilapidated_house_80185560,
+    D_dryfield_night_dilapidated_house_80185404,
+    D_dryfield_night_dilapidated_house_80185560,
     { NULL, D_dryfield_night_dilapidated_house_8018538C.words, NULL, NULL, D_dryfield_night_dilapidated_house_801853B0, NULL, NULL, NULL },
 };
 
@@ -1017,7 +1052,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank7FF0 D_dryfield_night_dilapidated_house_801855B0 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_801855EC[52] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08278_bank4.inc"
@@ -1032,7 +1067,8 @@ u16 D_dryfield_night_dilapidated_house_80185810[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80185838 = {
-    D_dryfield_night_dilapidated_house_801856BC, D_dryfield_night_dilapidated_house_80185810,
+    D_dryfield_night_dilapidated_house_801856BC,
+    D_dryfield_night_dilapidated_house_80185810,
     { NULL, D_dryfield_night_dilapidated_house_801855B0.words, NULL, NULL, D_dryfield_night_dilapidated_house_801855EC, NULL, NULL, NULL },
 };
 
@@ -1044,7 +1080,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank82A0 D_dryfield_night_dilapidated_house_80185860 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80185878[87] = {
 #include "assets/dryfield_night_dilapidated_house_animation_0865C_bank4.inc"
@@ -1059,7 +1095,8 @@ u16 D_dryfield_night_dilapidated_house_80185BF4[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80185C1C = {
-    D_dryfield_night_dilapidated_house_801859D4, D_dryfield_night_dilapidated_house_80185BF4,
+    D_dryfield_night_dilapidated_house_801859D4,
+    D_dryfield_night_dilapidated_house_80185BF4,
     { NULL, D_dryfield_night_dilapidated_house_80185860.words, NULL, NULL, D_dryfield_night_dilapidated_house_80185878, NULL, NULL, NULL },
 };
 
@@ -1071,7 +1108,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank8684 D_dryfield_night_dilapidated_house_80185C44 = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_80185C74[147] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08C74_bank4.inc"
@@ -1086,7 +1123,8 @@ u16 D_dryfield_night_dilapidated_house_8018620C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80186234 = {
-    D_dryfield_night_dilapidated_house_80185EC0, D_dryfield_night_dilapidated_house_8018620C,
+    D_dryfield_night_dilapidated_house_80185EC0,
+    D_dryfield_night_dilapidated_house_8018620C,
     { NULL, D_dryfield_night_dilapidated_house_80185C44.words, NULL, NULL, D_dryfield_night_dilapidated_house_80185C74, NULL, NULL, NULL },
 };
 
@@ -1098,7 +1136,7 @@ typedef union {
 
 DryfieldNightDilapidatedHousePoseBank8C9C D_dryfield_night_dilapidated_house_8018625C = { .poses = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_bank1.inc"
-} };
+                                                                                          } };
 
 GpPackedSvec D_dryfield_night_dilapidated_house_8018628C[36] = {
 #include "assets/dryfield_night_dilapidated_house_animation_08ED4_bank4.inc"
@@ -1113,11 +1151,12 @@ u16 D_dryfield_night_dilapidated_house_8018646C[20] = {
 };
 
 GpAnimSet D_dryfield_night_dilapidated_house_80186494 = {
-    D_dryfield_night_dilapidated_house_8018631C, D_dryfield_night_dilapidated_house_8018646C,
+    D_dryfield_night_dilapidated_house_8018631C,
+    D_dryfield_night_dilapidated_house_8018646C,
     { NULL, D_dryfield_night_dilapidated_house_8018625C.words, NULL, NULL, D_dryfield_night_dilapidated_house_8018628C, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_dryfield_night_dilapidated_house_801864BC[25] = {
+GpAnimSet* D_dryfield_night_dilapidated_house_801864BC[25] = {
     NULL,
     &D_dryfield_night_dilapidated_house_8017EA04,
     &D_dryfield_night_dilapidated_house_8017F1D0,
@@ -1195,7 +1234,7 @@ GpAnimArg D_dryfield_night_dilapidated_house_80186708 = { { .index = 1 }, 71, 1,
 
 GpXformArg D_dryfield_night_dilapidated_house_8018671C = { { 2900, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 
-GpAnimSet * D_dryfield_night_dilapidated_house_80186734[16] = {
+GpAnimSet* D_dryfield_night_dilapidated_house_80186734[16] = {
     NULL,
     &D_dryfield_night_dilapidated_house_801835C8,
     &D_dryfield_night_dilapidated_house_80185364,
@@ -1404,7 +1443,7 @@ GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[1] = {
     { D_dryfield_night_dilapidated_house_80187D44, D_dryfield_night_dilapidated_house_801892A0, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
 };
 
-u8 * D_dryfield_night_dilapidated_house_801873A4[1] = {
+u8* D_dryfield_night_dilapidated_house_801873A4[1] = {
     D_8010CAF8,
 };
 
@@ -1844,7 +1883,7 @@ s16 D_dryfield_night_dilapidated_house_80187D08[17] = {
     -1,
 };
 
-s16 * D_dryfield_night_dilapidated_house_80187D2C[6] = {
+s16* D_dryfield_night_dilapidated_house_80187D2C[6] = {
     D_dryfield_night_dilapidated_house_80187B8C,
     D_dryfield_night_dilapidated_house_80187BF0,
     D_dryfield_night_dilapidated_house_80187C34,
@@ -2231,57 +2270,765 @@ GpPointLight D_dryfield_night_dilapidated_house_80189500[8] = {
 
 DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidated_house_80189800 = {
     {
-    { { { .coord = { 0, { { { -4096, 0, 0 }, { 0, -2902, 2901 }, { 0, 2901, 2901 } }, { -5000, -2500, -4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 0, 0, 0, { 0, 0 } }, { 0, 2896, 2896, 0 }, 100, 3000, 625 },
-},
+        { { { .coord = { 0, { { { -4096, 0, 0 }, { 0, -2902, 2901 }, { 0, 2901, 2901 } }, { -5000, -2500, -4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 0, 0, 0, { 0, 0 } }, { 0, 2896, 2896, 0 }, 100, 3000, 625 },
+    },
     {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0xA4, 0x50, 0x19, 0x80,
-        0x01, 0x00, 0x00, 0x00, 0xA4, 0x53, 0x00, 0x00, 0x2D, 0xFC, 0x80, 0x10, 0xD8, 0xFF, 0x00, 0x00,
-        0x55, 0xFF, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0xBE, 0xE7, 0x30, 0xF3, 0xDE, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x07, 0x00, 0x00, 0x00, 0xD4, 0x03, 0x00, 0x00, 0xF9, 0xFF, 0x00, 0x00, 0x2D, 0xFC, 0x00, 0x00,
-        0x07, 0x00, 0x00, 0x00, 0xD4, 0x03, 0xD0, 0x10, 0xF9, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xEB, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x34, 0x11, 0x00, 0x00,
-        0x06, 0x05, 0x00, 0x00, 0xE0, 0x54, 0x19, 0x80, 0x48, 0x54, 0x19, 0x80, 0xF8, 0x30, 0x07, 0x80,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xC0, 0x03, 0xE0, 0x11, 0x3A, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0xF0, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x38, 0x12, 0x00, 0x00, 0x07, 0x06, 0x61, 0x00,
-        0x2C, 0x55, 0x19, 0x80, 0x94, 0x54, 0x19, 0x80, 0x00, 0x00, 0x00, 0x00, 0x5D, 0xE8, 0x30, 0xF2,
-        0x3C, 0xFE, 0x00, 0x00, 0xB5, 0x03, 0x30, 0xEE, 0x0C, 0xFF, 0x00, 0x00, 0x4B, 0xFC, 0x00, 0x00,
-        0xF5, 0x00, 0x00, 0x00, 0xB5, 0x03, 0xD0, 0x11, 0x0C, 0xFF, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x55, 0x19, 0x80,
-        0xE0, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xEB, 0x60, 0xF2, 0x6F, 0xF4, 0x00, 0x00,
-        0xF8, 0xFF, 0x80, 0xEF, 0x7C, 0xF7, 0x00, 0x00, 0x08, 0x00, 0x80, 0xEF, 0x84, 0x08, 0x00, 0x00,
-        0xF8, 0xFF, 0x80, 0x10, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x80, 0x10, 0x84, 0x08, 0x00, 0x00,
-        0x02, 0x10, 0x00, 0x00, 0xF0, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x8C, 0x12, 0x00, 0x00, 0x02, 0x07, 0x61, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0xF7, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0xF8, 0xFF, 0x80, 0x10, 0x0C, 0xF7, 0x00, 0x00, 0xFA, 0xEF, 0x00, 0x00,
-        0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0xC2, 0x12, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x10, 0x56, 0x19, 0x80, 0x78, 0x55, 0x19, 0x80, 0xF8, 0x30, 0x07, 0x80,
-        0x40, 0xEB, 0xE0, 0xF4, 0xE0, 0x28, 0x00, 0x00, 0xEB, 0x00, 0x80, 0xEF, 0xCE, 0xFA, 0x00, 0x00,
-        0x10, 0xFF, 0x80, 0xEF, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x52, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x5C, 0x56, 0x19, 0x80, 0xC4, 0x55, 0x00, 0x00, 0xF8, 0x30, 0x07, 0x80, 0xA0, 0xEB, 0x00, 0x00,
-        0x40, 0x29, 0x00, 0x00, 0x11, 0xFF, 0x80, 0xEF, 0x2E, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0xCF, 0xFA, 0x00, 0x00, 0x11, 0xFF, 0x80, 0x10, 0x2E, 0x05, 0x00, 0x00, 0xEC, 0x00, 0x80, 0x10,
-        0xCF, 0xFA, 0x00, 0x00, 0x3F, 0xF0, 0x00, 0x00, 0x2E, 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x22, 0x05, 0x60, 0xEF, 0xA3, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5D, 0xFD, 0x00, 0x00,
-        0x22, 0x05, 0x00, 0x00, 0xA3, 0x02, 0x00, 0x00, 0xDF, 0xFA, 0x00, 0x00, 0x5D, 0xFD, 0x00, 0x00,
-        0xAA, 0xF8, 0x00, 0x00, 0x43, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x8C, 0x11, 0x00, 0x00, 0x04, 0x03, 0x61, 0x00, 0xF4, 0x56, 0x19, 0x80, 0x5C, 0x56, 0x00, 0x00,
-        0xF8, 0x30, 0x07, 0x80, 0xCC, 0xFB, 0x40, 0xF3, 0x6D, 0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x07, 0x00, 0x00,
-        0xD0, 0xF1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x6F, 0x11, 0x00, 0x00,
-        0x03, 0x04, 0x61, 0x00, 0x40, 0x57, 0x00, 0x00, 0xA8, 0x56, 0x19, 0x80, 0xF8, 0x30, 0x07, 0x80,
-        0x40, 0xEC, 0x60, 0xF3,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x08,
+        0x00,
+        0x00,
+        0x00,
+        0xA4,
+        0x50,
+        0x19,
+        0x80,
+        0x01,
+        0x00,
+        0x00,
+        0x00,
+        0xA4,
+        0x53,
+        0x00,
+        0x00,
+        0x2D,
+        0xFC,
+        0x80,
+        0x10,
+        0xD8,
+        0xFF,
+        0x00,
+        0x00,
+        0x55,
+        0xFF,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xBE,
+        0xE7,
+        0x30,
+        0xF3,
+        0xDE,
+        0x15,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x07,
+        0x00,
+        0x00,
+        0x00,
+        0xD4,
+        0x03,
+        0x00,
+        0x00,
+        0xF9,
+        0xFF,
+        0x00,
+        0x00,
+        0x2D,
+        0xFC,
+        0x00,
+        0x00,
+        0x07,
+        0x00,
+        0x00,
+        0x00,
+        0xD4,
+        0x03,
+        0xD0,
+        0x10,
+        0xF9,
+        0xFF,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xEB,
+        0xEF,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x34,
+        0x11,
+        0x00,
+        0x00,
+        0x06,
+        0x05,
+        0x00,
+        0x00,
+        0xE0,
+        0x54,
+        0x19,
+        0x80,
+        0x48,
+        0x54,
+        0x19,
+        0x80,
+        0xF8,
+        0x30,
+        0x07,
+        0x80,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xC0,
+        0x03,
+        0xE0,
+        0x11,
+        0x3A,
+        0xFF,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x51,
+        0xF0,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x38,
+        0x12,
+        0x00,
+        0x00,
+        0x07,
+        0x06,
+        0x61,
+        0x00,
+        0x2C,
+        0x55,
+        0x19,
+        0x80,
+        0x94,
+        0x54,
+        0x19,
+        0x80,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x5D,
+        0xE8,
+        0x30,
+        0xF2,
+        0x3C,
+        0xFE,
+        0x00,
+        0x00,
+        0xB5,
+        0x03,
+        0x30,
+        0xEE,
+        0x0C,
+        0xFF,
+        0x00,
+        0x00,
+        0x4B,
+        0xFC,
+        0x00,
+        0x00,
+        0xF5,
+        0x00,
+        0x00,
+        0x00,
+        0xB5,
+        0x03,
+        0xD0,
+        0x11,
+        0x0C,
+        0xFF,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x78,
+        0x55,
+        0x19,
+        0x80,
+        0xE0,
+        0x54,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x40,
+        0xEB,
+        0x60,
+        0xF2,
+        0x6F,
+        0xF4,
+        0x00,
+        0x00,
+        0xF8,
+        0xFF,
+        0x80,
+        0xEF,
+        0x7C,
+        0xF7,
+        0x00,
+        0x00,
+        0x08,
+        0x00,
+        0x80,
+        0xEF,
+        0x84,
+        0x08,
+        0x00,
+        0x00,
+        0xF8,
+        0xFF,
+        0x80,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x08,
+        0x00,
+        0x80,
+        0x10,
+        0x84,
+        0x08,
+        0x00,
+        0x00,
+        0x02,
+        0x10,
+        0x00,
+        0x00,
+        0xF0,
+        0xFF,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x8C,
+        0x12,
+        0x00,
+        0x00,
+        0x02,
+        0x07,
+        0x61,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x0C,
+        0xF7,
+        0x00,
+        0x00,
+        0x08,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xF8,
+        0xFF,
+        0x80,
+        0x10,
+        0x0C,
+        0xF7,
+        0x00,
+        0x00,
+        0xFA,
+        0xEF,
+        0x00,
+        0x00,
+        0x0E,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0xC2,
+        0x12,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x56,
+        0x19,
+        0x80,
+        0x78,
+        0x55,
+        0x19,
+        0x80,
+        0xF8,
+        0x30,
+        0x07,
+        0x80,
+        0x40,
+        0xEB,
+        0xE0,
+        0xF4,
+        0xE0,
+        0x28,
+        0x00,
+        0x00,
+        0xEB,
+        0x00,
+        0x80,
+        0xEF,
+        0xCE,
+        0xFA,
+        0x00,
+        0x00,
+        0x10,
+        0xFF,
+        0x80,
+        0xEF,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x52,
+        0x11,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x5C,
+        0x56,
+        0x19,
+        0x80,
+        0xC4,
+        0x55,
+        0x00,
+        0x00,
+        0xF8,
+        0x30,
+        0x07,
+        0x80,
+        0xA0,
+        0xEB,
+        0x00,
+        0x00,
+        0x40,
+        0x29,
+        0x00,
+        0x00,
+        0x11,
+        0xFF,
+        0x80,
+        0xEF,
+        0x2E,
+        0x05,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xCF,
+        0xFA,
+        0x00,
+        0x00,
+        0x11,
+        0xFF,
+        0x80,
+        0x10,
+        0x2E,
+        0x05,
+        0x00,
+        0x00,
+        0xEC,
+        0x00,
+        0x80,
+        0x10,
+        0xCF,
+        0xFA,
+        0x00,
+        0x00,
+        0x3F,
+        0xF0,
+        0x00,
+        0x00,
+        0x2E,
+        0xFD,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x22,
+        0x05,
+        0x60,
+        0xEF,
+        0xA3,
+        0x02,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x5D,
+        0xFD,
+        0x00,
+        0x00,
+        0x22,
+        0x05,
+        0x00,
+        0x00,
+        0xA3,
+        0x02,
+        0x00,
+        0x00,
+        0xDF,
+        0xFA,
+        0x00,
+        0x00,
+        0x5D,
+        0xFD,
+        0x00,
+        0x00,
+        0xAA,
+        0xF8,
+        0x00,
+        0x00,
+        0x43,
+        0x0E,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x8C,
+        0x11,
+        0x00,
+        0x00,
+        0x04,
+        0x03,
+        0x61,
+        0x00,
+        0xF4,
+        0x56,
+        0x19,
+        0x80,
+        0x5C,
+        0x56,
+        0x00,
+        0x00,
+        0xF8,
+        0x30,
+        0x07,
+        0x80,
+        0xCC,
+        0xFB,
+        0x40,
+        0xF3,
+        0x6D,
+        0x14,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x78,
+        0x07,
+        0x00,
+        0x00,
+        0xD0,
+        0xF1,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x00,
+        0x00,
+        0x6F,
+        0x11,
+        0x00,
+        0x00,
+        0x03,
+        0x04,
+        0x61,
+        0x00,
+        0x40,
+        0x57,
+        0x00,
+        0x00,
+        0xA8,
+        0x56,
+        0x19,
+        0x80,
+        0xF8,
+        0x30,
+        0x07,
+        0x80,
+        0x40,
+        0xEC,
+        0x60,
+        0xF3,
     },
 };
 

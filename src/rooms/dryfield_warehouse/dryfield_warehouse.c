@@ -140,7 +140,7 @@ GpRoomParamRec D_dryfield_warehouse_8018218C[1] = {
     { 0, 0, 1, 0, D_dryfield_warehouse_80182168 },
 };
 
-GpRoomParamRec * D_dryfield_warehouse_80182194[8] = {
+GpRoomParamRec* D_dryfield_warehouse_80182194[8] = {
     D_dryfield_warehouse_80182174,
     D_dryfield_warehouse_80182174,
     D_dryfield_warehouse_80182174,
@@ -151,7 +151,7 @@ GpRoomParamRec * D_dryfield_warehouse_80182194[8] = {
     D_dryfield_warehouse_80182174,
 };
 
-Task * D_dryfield_warehouse_801821B4 = NULL;
+Task* D_dryfield_warehouse_801821B4 = NULL;
 
 Task* D_dryfield_warehouse_801821BC;
 
@@ -248,7 +248,7 @@ s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 /// setting the event's nibble. field_5 suppresses the side effects (the
 /// handler only reports what *would* happen); any other message plays the
 /// "refused" sound instead.
-s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 9) {

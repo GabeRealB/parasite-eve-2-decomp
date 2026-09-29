@@ -73,7 +73,7 @@ u8 D_dryfield_night_motel_room_5_8017DAA0[12] = {
     0,
 };
 
-u8 * D_dryfield_night_motel_room_5_8017DAAC[2] = {
+u8* D_dryfield_night_motel_room_5_8017DAAC[2] = {
     D_8010CAF8,
     D_dryfield_night_motel_room_5_8017DAA0,
 };
@@ -328,7 +328,7 @@ s16 D_dryfield_night_motel_room_5_8017E010[13] = {
     -1,
 };
 
-s16 * D_dryfield_night_motel_room_5_8017E02C[4] = {
+s16* D_dryfield_night_motel_room_5_8017E02C[4] = {
     D_dryfield_night_motel_room_5_8017DF70,
     D_dryfield_night_motel_room_5_8017DFB4,
     D_dryfield_night_motel_room_5_8017DFE4,
@@ -1077,7 +1077,7 @@ GpRoomParamRec D_dryfield_night_motel_room_5_80181228[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_night_motel_room_5_80181230[8] = {
+GpRoomParamRec* D_dryfield_night_motel_room_5_80181230[8] = {
     D_dryfield_night_motel_room_5_80181210,
     D_dryfield_night_motel_room_5_80181218,
     D_dryfield_night_motel_room_5_80181220,

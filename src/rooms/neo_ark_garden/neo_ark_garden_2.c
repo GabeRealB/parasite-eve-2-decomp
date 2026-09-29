@@ -103,7 +103,7 @@ GpRoomCoordRec D_neo_ark_garden_8018141C[1] = {
     { D_neo_ark_garden_801826F4, NULL },
 };
 
-u8 * D_neo_ark_garden_80181424[1] = {
+u8* D_neo_ark_garden_80181424[1] = {
     D_8010CAF8,
 };
 
@@ -256,7 +256,7 @@ s16 D_neo_ark_garden_80181690[2] = {
     -1,
 };
 
-s16 * D_neo_ark_garden_80181694[12] = {
+s16* D_neo_ark_garden_80181694[12] = {
     D_neo_ark_garden_80181618,
     D_neo_ark_garden_80181624,
     D_neo_ark_garden_80181630,

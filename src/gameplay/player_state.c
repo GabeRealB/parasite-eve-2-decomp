@@ -135,7 +135,7 @@ s32 func_8010C4F0(Task* arg0, s32 arg1, GpAnimArg* arg2);
 
 s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2);
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2);
+s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3);
 
 s32 func_8010C6C8(Task* arg0, s32 arg1, GpXformArg* arg2, GpOverrideArg* arg3);
 
@@ -1329,7 +1329,7 @@ void func_8010B9A4(Task* arg0)
     actor->field_973 = 0;
     actor->field_975 = 0;
     if (save->state.cheatMode == 0 && (field13 = save->state.companionType) == 1) {
-        temp              = save->state.companionHp - actor->field_96E;
+        temp                    = save->state.companionHp - actor->field_96E;
         save->state.companionHp = temp;
         if ((s16)temp <= 0 && gGameSession->eventState != 0) {
             save->state.companionHp = field13;
@@ -1745,14 +1745,14 @@ s32 func_8010C648(Task* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2)
+s32 func_8010C688(Task* arg0, s32 arg1, GpXformArg* arg2, s32 arg3)
 {
     PlayerStatus* p;
     u8            saved;
 
     p     = &Player_Status;
     saved = p->field_24;
-    func_80104E00(arg0, arg1, arg2);
+    func_80104E00(arg0, arg1, arg2, arg3);
     p->field_24 = saved;
     return 0;
 }

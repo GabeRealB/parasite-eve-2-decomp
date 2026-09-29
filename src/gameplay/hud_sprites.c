@@ -46,7 +46,7 @@
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        Text_DrawString(&req, (str));                           \
+        Text_DrawString(&req, (str));                         \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -59,7 +59,7 @@
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count))); \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \
@@ -1521,9 +1521,9 @@ void Gp_ViewGateTask(Task* task)
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
-                loc                 = (u8)gGameSession->at4.loc.view;
-                task->killCountdown = 2;
-                task->spawnArg1.value     = loc;
+                loc                   = (u8)gGameSession->at4.loc.view;
+                task->killCountdown   = 2;
+                task->spawnArg1.value = loc;
                 if (task->state == 3) {
                     task->state = 1;
                 }

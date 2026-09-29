@@ -17,7 +17,9 @@
 /// whole-record copies compile to `lwl`/`lwr` pairs.
 typedef struct _RoomEventMsg {
     union {
-        struct { u8 field_0, field_1; } bytes;
+        struct {
+            u8 field_0, field_1;
+        } bytes;
         u16 packed;
     } prefix; // Destination identifier; the warp code also addresses its bytes.
     /* 0x2 */ u8  field_2;
@@ -37,17 +39,17 @@ struct _GpMsg13EF;
 /// One payload word in the PS1 message ABI. A message id determines whether
 /// the recipient interprets the word as an integer or as an object address.
 typedef union GpMessageArg {
-    s32         value;
-    const void* pointer;
-    void*       storage;
-    u8*         bytes;
-    VECTOR*     vector;
+    s32                value;
+    const void*        pointer;
+    void*              storage;
+    u8*                bytes;
+    VECTOR*            vector;
     struct GpXformArg* transform;
-    struct GpAnimArg* animation;
-    struct GpCmdArg* command;
-    RoomEventMsg* location;
+    struct GpAnimArg*  animation;
+    struct GpCmdArg*   command;
+    RoomEventMsg*      location;
     struct _GpMsg13EF* direction;
-    RoomEventMsg* roomEvent;
+    RoomEventMsg*      roomEvent;
 } GpMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
 
@@ -115,10 +117,10 @@ struct GpAnimSet;
 
 typedef struct GpCopyArg {
     union {
-        s32* words;
+        s32*               words;
         struct GpAnimSet** sets;
     } source;
-    s32  count;
+    s32 count;
 } GpCopyArg;
 STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
 

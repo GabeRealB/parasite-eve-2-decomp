@@ -215,7 +215,7 @@ typedef union {
 
 Actor342000PoseBank26C4 D_actor_342000_801644E4 = { .poses = {
 #include "assets/actor_342000_animation_029A0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_342000_8016452C[46] = {
 #include "assets/actor_342000_animation_029A0_bank4.inc"
@@ -230,34 +230,38 @@ u16 D_actor_342000_80164798[20] = {
 };
 
 GpAnimSet D_actor_342000_801647C0 = {
-    D_actor_342000_801645E4, D_actor_342000_80164798,
+    D_actor_342000_801645E4,
+    D_actor_342000_80164798,
     { NULL, D_actor_342000_801644E4.words, NULL, NULL, D_actor_342000_8016452C, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_actor_342000_801647E8[4] = {
+GpAnimSet* D_actor_342000_801647E8[4] = {
     &D_actor_342000_801647C0,
     &D_actor_444000_80160368,
     &D_actor_444000_801608A0,
     &D_actor_444000_80160C34,
 };
 
-GpAnimSet * D_actor_342000_801647F8[2] = {
+GpAnimSet* D_actor_342000_801647F8[2] = {
     &D_actor_444000_801529F4,
     &D_actor_444000_80157A00,
 };
 
-GpAnimSet * D_actor_342000_80164800[2] = {
+GpAnimSet* D_actor_342000_80164800[2] = {
     &D_actor_444000_80152AA0,
     &D_actor_444000_80157D34,
 };
 
-GpAnimSet * D_actor_342000_80164808[2] = {
+GpAnimSet* D_actor_342000_80164808[2] = {
     &D_actor_444000_80152B4C,
     &D_actor_444000_80158060,
 };
 
 s16 D_actor_342000_80164810[4] = {
-    -1, -1, -1, -1,
+    -1,
+    -1,
+    -1,
+    -1,
 };
 
 GpXformArg D_actor_342000_80164818[2] = {
@@ -1002,7 +1006,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             break;
         case 4:
             Mc_SaveData[0].state.at4.loc.view = 8;
-            work->field_64              = Task_Spawn(1, 0x2D, 0x10, 0);
+            work->field_64                    = Task_Spawn(1, 0x2D, 0x10, 0);
             break;
         case 5:
             if (work->field_64 != NULL) {
@@ -1103,11 +1107,11 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    gGameSession->at4.loc.room   = 7;
-    Mc_SaveData[0].state.at4.loc.room  = 7;
-    gGameSession->eventRoomIndex = 6;
-    gGameSession->field_133      = 1;
-    gGameSession->roomObjsDirty  = 1;
+    gGameSession->at4.loc.room        = 7;
+    Mc_SaveData[0].state.at4.loc.room = 7;
+    gGameSession->eventRoomIndex      = 6;
+    gGameSession->field_133           = 1;
+    gGameSession->roomObjsDirty       = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1224,7 +1228,7 @@ void func_actor_342000_8016382C(Task* arg0)
             break;
         case 7:
             Mc_SaveData[0].state.at4.loc.view = 0x21;
-            arg0->killCountdown         = 0;
+            arg0->killCountdown               = 0;
             arg0->state++;
             break;
         case 8:
@@ -1388,11 +1392,11 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, GpCmdArg* arg2, GpXformArg
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->at4.loc.room   = 7;
-    Mc_SaveData[0].state.at4.loc.room  = 7;
-    gGameSession->eventRoomIndex = 6;
-    gGameSession->field_133      = 1;
-    gGameSession->roomObjsDirty  = 1;
+    gGameSession->at4.loc.room        = 7;
+    Mc_SaveData[0].state.at4.loc.room = 7;
+    gGameSession->eventRoomIndex      = 6;
+    gGameSession->field_133           = 1;
+    gGameSession->roomObjsDirty       = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1463,7 +1467,7 @@ void func_actor_342000_801642F4(void)
         Gp_StateF0.prefix.bytes.field_2 = 0;
         Gp_StateF0.prefix.bytes.field_3 = 0;
         gGameSession->flowFlags        |= 0x80;
-        Mc_SaveData[0].state.sceneEvent       = 0xD;
+        Mc_SaveData[0].state.sceneEvent = 0xD;
         work->field_7C                  = 1;
     }
 }

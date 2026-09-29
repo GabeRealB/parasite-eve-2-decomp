@@ -139,7 +139,7 @@ void func_800E44A0(Task* task)
         if (spawnDelay != 0) {
             return;
         }
-        D_8011566D                  = Mc_SaveData[0].state.at4.loc.view;
+        D_8011566D                        = Mc_SaveData[0].state.at4.loc.view;
         Mc_SaveData[0].state.at4.loc.view = D_80115694;
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
@@ -227,7 +227,7 @@ resumeView:
                 if ((nextView != 0) && (nextView != Mc_SaveData[0].state.at4.loc.view)) {
                     if (D_80115688 == 0) {
                         Mc_SaveData[0].state.at4.loc.view = view;
-                        D_801155BB                  = 1;
+                        D_801155BB                        = 1;
                         if (gDisplayState.field_112 != 0) {
                             if (D_8011564A == -1) {
                                 D_8011564A = 0;
@@ -293,7 +293,7 @@ resumeView:
                 spawnDialog:
                     D_801155A0.done = 0;
                     if (D_80115666 == 1) {
-                        D_8011566D                  = Mc_SaveData[0].state.at4.loc.view;
+                        D_8011566D                        = Mc_SaveData[0].state.at4.loc.view;
                         Mc_SaveData[0].state.at4.loc.view = D_80115694;
                         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
                     } else if (D_80115666 == 2) {
@@ -697,8 +697,8 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                             Gp_MsgAlly3F3(0);
                         }
                         Mc_SaveData[0].state.at4.loc.view = sel;
-                        gGameSession->hideHud       = 1;
-                        Gp_StateF0.field_4          = 2;
+                        gGameSession->hideHud             = 1;
+                        Gp_StateF0.field_4                = 2;
                     }
                 }
                 i++;
@@ -885,7 +885,7 @@ void Gp_CapExit(Task* arg0)
         Gp_StateF0.field_4 = 0;
     }
     if (gGameSession->eventState == 0) {
-        gGameSession->hideHud       = 0;
+        gGameSession->hideHud             = 0;
         Mc_SaveData[0].state.at4.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);

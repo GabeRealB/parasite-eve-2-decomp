@@ -77,8 +77,8 @@ L_case2:
     if (queue->field_1FA == 0) {
         return;
     }
-    task->killCountdown = 0;
-    task->spawnArg1.value     = 0;
+    task->killCountdown   = 0;
+    task->spawnArg1.value = 0;
     SetDispMask(1);
     goto advance;
 

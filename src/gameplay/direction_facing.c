@@ -135,7 +135,7 @@ void Gp_CommitDirWarp(void)
     loc->field_5             = 0;
     Gp_DispatchMsgPtrs(slot, 0x13EE, loc, loc);
 
-    save               = &Mc_SaveData[0];
+    save                     = &Mc_SaveData[0];
     save->state.at4.loc.area = Gp_WarpLoc.prefix.bytes.field_0;
     save->state.at4.loc.warp = loc->field_2;
     save->state.at4.loc.room = loc->field_3;

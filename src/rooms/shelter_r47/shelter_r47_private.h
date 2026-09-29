@@ -99,7 +99,7 @@ STATIC_ASSERT_SIZEOF(ShelterR47State2, 0x30);
 
 /// Task spawned by the room's cap script; polled and cleared by
 /// `func_shelter_r47_80180714`.
-extern Task*           D_shelter_r47_8018A690;
+extern Task* D_shelter_r47_8018A690;
 
 extern u8 D_shelter_r47_8018A694;
 

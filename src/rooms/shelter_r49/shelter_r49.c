@@ -48,7 +48,7 @@ s32 func_shelter_r49_8017D5EC(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one, passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_r49_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_r49_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

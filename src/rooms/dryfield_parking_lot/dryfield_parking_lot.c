@@ -109,7 +109,7 @@ GpRoomObjRec D_dryfield_parking_lot_8017DC44[1] = {
     { D_dryfield_parking_lot_8017E8DC, D_dryfield_parking_lot_8017F0A8, D_dryfield_parking_lot_8017F3A0, D_dryfield_parking_lot_8017F6E4 },
 };
 
-u8 * D_dryfield_parking_lot_8017DC54[1] = {
+u8* D_dryfield_parking_lot_8017DC54[1] = {
     D_8010CAF8,
 };
 
@@ -888,7 +888,7 @@ s16 D_dryfield_parking_lot_8017E824[2] = {
     -1,
 };
 
-s16 * D_dryfield_parking_lot_8017E828[45] = {
+s16* D_dryfield_parking_lot_8017E828[45] = {
     D_dryfield_parking_lot_8017E4C0,
     D_dryfield_parking_lot_8017E4CC,
     D_dryfield_parking_lot_8017E4D4,
@@ -1219,7 +1219,7 @@ GpRoomParamRec D_dryfield_parking_lot_8017FB28[1] = {
     { 0, 0, 1, 0, D_dryfield_parking_lot_8017FADC },
 };
 
-GpRoomParamRec * D_dryfield_parking_lot_8017FB30[8] = {
+GpRoomParamRec* D_dryfield_parking_lot_8017FB30[8] = {
     D_dryfield_parking_lot_8017FB00,
     D_dryfield_parking_lot_8017FB20,
     D_dryfield_parking_lot_8017FB10,
@@ -1260,10 +1260,10 @@ static s32 func_dryfield_parking_lot_8017D5E8(RoomEventReq* req, RoomEventMsg* m
     s32 ret;
     s32 neg;
 
-    flag                            = req->flagId;
+    flag                               = req->flagId;
     D_dryfield_parking_lot_8017FB58[0] = 0;
-    neg                             = flag < 0;
-    got                             = (s16)flag;
+    neg                                = flag < 0;
+    got                                = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1343,7 +1343,7 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_parking_lot_8017FB50.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_parking_lot_8017FB50.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_parking_lot_8017FB50.field_3;
@@ -1367,7 +1367,7 @@ void func_dryfield_parking_lot_8017D74C(Task* task)
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `D_dryfield_night_parking_lot_8018155C` and sets nibbles 0x46 and 0x97, while 0x12 sets item-seen bit
 /// 0x110. Any other message returns 1.
-s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq req;
     s32          ret;

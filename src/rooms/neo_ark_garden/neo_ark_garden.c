@@ -106,7 +106,7 @@ GpRoomParamRec D_neo_ark_garden_80182BD0[1] = {
     { 0, 0, 1, 0, D_neo_ark_garden_80182BBC },
 };
 
-GpRoomParamRec * D_neo_ark_garden_80182BD8[8] = {
+GpRoomParamRec* D_neo_ark_garden_80182BD8[8] = {
     D_neo_ark_garden_80182BC8,
     D_neo_ark_garden_80182BC8,
     D_neo_ark_garden_80182BC8,
@@ -841,7 +841,7 @@ s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, GpMessageArg arg2, GpMes
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

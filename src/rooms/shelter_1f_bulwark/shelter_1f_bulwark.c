@@ -138,7 +138,7 @@ GpRoomCoordRec D_shelter_1f_bulwark_801803C0[1] = {
     { D_shelter_1f_bulwark_80180A74, NULL },
 };
 
-u8 * D_shelter_1f_bulwark_801803C8[1] = {
+u8* D_shelter_1f_bulwark_801803C8[1] = {
     D_8010CAF8,
 };
 
@@ -277,7 +277,7 @@ s16 D_shelter_1f_bulwark_80180620[7] = {
     -1,
 };
 
-s16 * D_shelter_1f_bulwark_80180630[6] = {
+s16* D_shelter_1f_bulwark_80180630[6] = {
     D_shelter_1f_bulwark_801805B0,
     D_shelter_1f_bulwark_801805C8,
     D_shelter_1f_bulwark_801805E0,
@@ -399,7 +399,7 @@ GpRoomParamRec D_shelter_1f_bulwark_80180E94[1] = {
     { 0, 0, 1, 0, D_shelter_1f_bulwark_80180E80 },
 };
 
-GpRoomParamRec * D_shelter_1f_bulwark_80180E9C[8] = {
+GpRoomParamRec* D_shelter_1f_bulwark_80180E9C[8] = {
     D_shelter_1f_bulwark_80180E8C,
     D_shelter_1f_bulwark_80180E94,
     D_shelter_1f_bulwark_80180E8C,
@@ -470,7 +470,7 @@ void func_shelter_1f_bulwark_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_bulwark_80180EC4.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_bulwark_80180EC4.field_3;
@@ -498,7 +498,7 @@ static __inline__ s32 Bulwark_StartEvent(GpSaveLoc* dst, RoomLatchedEvent* event
     return 1;
 }
 
-s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     RoomLatchedEvent event;
 
@@ -715,7 +715,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area  = 0x1A;
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
@@ -1054,14 +1054,14 @@ void func_shelter_1f_bulwark_8017EDF0(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_1f_bulwark_801803A0[1];
+                    SVECTOR* edge    = &D_shelter_1f_bulwark_801803A0[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

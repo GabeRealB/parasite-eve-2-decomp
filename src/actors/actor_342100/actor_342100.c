@@ -212,7 +212,7 @@ typedef union {
 
 Actor342100PoseBank1714 D_actor_342100_80163534 = { .poses = {
 #include "assets/actor_342100_animation_019F0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_342100_8016357C[46] = {
 #include "assets/actor_342100_animation_019F0_bank4.inc"
@@ -227,7 +227,8 @@ u16 D_actor_342100_801637E8[20] = {
 };
 
 GpAnimSet D_actor_342100_80163810 = {
-    D_actor_342100_80163634, D_actor_342100_801637E8,
+    D_actor_342100_80163634,
+    D_actor_342100_801637E8,
     { NULL, D_actor_342100_80163534.words, NULL, NULL, D_actor_342100_8016357C, NULL, NULL, NULL },
 };
 
@@ -239,7 +240,7 @@ typedef union {
 
 Actor342100PoseBank1A18 D_actor_342100_80163838 = { .poses = {
 #include "assets/actor_342100_animation_0242C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_342100_801638F8[246] = {
 #include "assets/actor_342100_animation_0242C_bank4.inc"
@@ -254,7 +255,8 @@ u16 D_actor_342100_80164224[20] = {
 };
 
 GpAnimSet D_actor_342100_8016424C = {
-    D_actor_342100_80163CD0, D_actor_342100_80164224,
+    D_actor_342100_80163CD0,
+    D_actor_342100_80164224,
     { NULL, D_actor_342100_80163838.words, NULL, NULL, D_actor_342100_801638F8, NULL, NULL, NULL },
 };
 
@@ -266,7 +268,7 @@ typedef union {
 
 Actor342100PoseBank2454 D_actor_342100_80164274 = { .poses = {
 #include "assets/actor_342100_animation_02A94_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_342100_8016431C[148] = {
 #include "assets/actor_342100_animation_02A94_bank4.inc"
@@ -281,7 +283,8 @@ u16 D_actor_342100_8016488C[20] = {
 };
 
 GpAnimSet D_actor_342100_801648B4 = {
-    D_actor_342100_8016456C, D_actor_342100_8016488C,
+    D_actor_342100_8016456C,
+    D_actor_342100_8016488C,
     { NULL, D_actor_342100_80164274.words, NULL, NULL, D_actor_342100_8016431C, NULL, NULL, NULL },
 };
 
@@ -296,7 +299,7 @@ Actor342100MessageEntry D_actor_342100_801648F8[1] = {
     { 2011, { .call0 = func_actor_342100_80163344 } },
 };
 
-GpAnimSet * D_actor_342100_80164900[4] = {
+GpAnimSet* D_actor_342100_80164900[4] = {
     &D_actor_342100_80163810,
     &D_actor_342100_801648B4,
     &D_actor_342100_8016424C,
@@ -304,7 +307,10 @@ GpAnimSet * D_actor_342100_80164900[4] = {
 };
 
 s16 D_actor_342100_80164910[4] = {
-    -1, -1, -1, 0,
+    -1,
+    -1,
+    -1,
+    0,
 };
 
 SVECTOR D_actor_342100_80164918[3] = {
@@ -342,8 +348,22 @@ SVECTOR D_actor_342100_80164980[4] = {
 GpEffArg D_actor_342100_801649A0 = { NULL, 0, 1 };
 
 u16 D_actor_342100_801649A8[16] = {
-    2, 4, 6, 10, 1, 3, 5, 7,
-    8, 9, 11, 12, 13, 15, 16, 18,
+    2,
+    4,
+    6,
+    10,
+    1,
+    3,
+    5,
+    7,
+    8,
+    9,
+    11,
+    12,
+    13,
+    15,
+    16,
+    18,
 };
 
 GpEvsCmd D_actor_342100_801649C8[18] = {
@@ -375,9 +395,9 @@ TaskDesc D_actor_342100_80164B78[5] = {
     { 2, 192, func_actor_342100_80162AB0, { .model = NULL } },
 };
 
-OverlayWaveCtx * D_actor_342100_80164BB4 = NULL;
+OverlayWaveCtx* D_actor_342100_80164BB4 = NULL;
 
-Task * D_actor_342100_80164BB8 = NULL;
+Task* D_actor_342100_80164BB8 = NULL;
 
 // Nine active columns and one retained zero entry.
 OverlayWaveRec D_actor_342100_80164BBC[10] = { 0 };
@@ -940,7 +960,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
                 n += 1;
             }
             msg.source.sets = &D_actor_342100_80164900[0];
-            msg.count = n & 0xFFFF;
+            msg.count       = n & 0xFFFF;
             Gp_DispatchMsgPtr(msgWork->field_2C, 0x3F7, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;

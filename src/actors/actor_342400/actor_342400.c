@@ -166,8 +166,15 @@ u32 D_actor_342400_8016C3D4[486] = {
 };
 
 TmdSource D_actor_342400_8016CB6C = {
-    0, 3260, 0, 1,
-    D_actor_342400_8016C0A8, D_actor_342400_8016C0AC, D_actor_342400_8016C22C, D_actor_342400_8016C084, D_actor_342400_8016C3D4,
+    0,
+    3260,
+    0,
+    1,
+    D_actor_342400_8016C0A8,
+    D_actor_342400_8016C0AC,
+    D_actor_342400_8016C22C,
+    D_actor_342400_8016C084,
+    D_actor_342400_8016C3D4,
 };
 
 TmdBone D_actor_342400_8016CB90[1] = {
@@ -191,8 +198,15 @@ u32 D_actor_342400_8016CDC0[276] = {
 };
 
 TmdSource D_actor_342400_8016D210 = {
-    0, 1828, 0, 1,
-    D_actor_342400_8016CBB4, D_actor_342400_8016CBB8, D_actor_342400_8016CC98, D_actor_342400_8016CB90, D_actor_342400_8016CDC0,
+    0,
+    1828,
+    0,
+    1,
+    D_actor_342400_8016CBB4,
+    D_actor_342400_8016CBB8,
+    D_actor_342400_8016CC98,
+    D_actor_342400_8016CB90,
+    D_actor_342400_8016CDC0,
 };
 
 TmdBone D_actor_342400_8016D234[1] = {
@@ -216,8 +230,15 @@ u32 D_actor_342400_8016D424[215] = {
 };
 
 TmdSource D_actor_342400_8016D780 = {
-    0, 1448, 0, 1,
-    D_actor_342400_8016D258, D_actor_342400_8016D25C, D_actor_342400_8016D324, D_actor_342400_8016D234, D_actor_342400_8016D424,
+    0,
+    1448,
+    0,
+    1,
+    D_actor_342400_8016D258,
+    D_actor_342400_8016D25C,
+    D_actor_342400_8016D324,
+    D_actor_342400_8016D234,
+    D_actor_342400_8016D424,
 };
 
 TmdBone D_actor_342400_8016D7A4[9] = {
@@ -241,8 +262,15 @@ u32 D_actor_342400_8016E47C[2105] = {
 };
 
 TmdSource D_actor_342400_80170560 = {
-    0, 11212, 3088, 9,
-    D_actor_342400_8016D8E8, D_actor_342400_8016D90C, D_actor_342400_8016DE0C, D_actor_342400_8016D7A4, D_actor_342400_8016E47C,
+    0,
+    11212,
+    3088,
+    9,
+    D_actor_342400_8016D8E8,
+    D_actor_342400_8016D90C,
+    D_actor_342400_8016DE0C,
+    D_actor_342400_8016D7A4,
+    D_actor_342400_8016E47C,
 };
 
 GpU16Pair D_actor_342400_80170584[1] = {
@@ -567,7 +595,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
             }
         }
         if (count == 17) {
-            ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+            Gp_ReleaseStateF0Clear(arg0, 0);
             gGameSession->spawnPhase[1] = 2;
             taskKill(arg0);
         }
@@ -585,8 +613,8 @@ static void func_actor_342400_80162B60(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                  = enemy;
-            enemy->placeKey                                              = D_actor_342400_80173AAC << 12;
+            work->enemy                                                        = enemy;
+            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
             arg0->state++;
             return;
@@ -661,8 +689,8 @@ static void func_actor_342400_80162DA0(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                  = enemy;
-            enemy->placeKey                                              = D_actor_342400_80173AAC << 12;
+            work->enemy                                                        = enemy;
+            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
             obj        = enemy->task->extra.tmd;
             obj->tpage = 2;

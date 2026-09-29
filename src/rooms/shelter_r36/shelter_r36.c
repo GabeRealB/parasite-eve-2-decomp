@@ -288,7 +288,7 @@ TaskDesc D_shelter_r36_8017E9A4[2] = {
     { 0, 192, func_shelter_r36_8017DA34, { .model = NULL } },
 };
 
-u8 * D_shelter_r36_8017E9BC[1] = {
+u8* D_shelter_r36_8017E9BC[1] = {
     D_8010CAF8,
 };
 
@@ -361,7 +361,7 @@ s16 D_shelter_r36_8017EA88[2] = {
     -1,
 };
 
-s16 * D_shelter_r36_8017EA8C[9] = {
+s16* D_shelter_r36_8017EA8C[9] = {
     D_shelter_r36_8017EA68,
     D_shelter_r36_8017EA6C,
     D_shelter_r36_8017EA70,
@@ -637,7 +637,7 @@ GpRoomParamRec D_shelter_r36_8017FADC[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_r36_8017FAE4[8] = {
+GpRoomParamRec* D_shelter_r36_8017FAE4[8] = {
     D_shelter_r36_8017FABC,
     D_shelter_r36_8017FADC,
     D_shelter_r36_8017FACC,
@@ -706,7 +706,7 @@ void func_shelter_r36_8017D738(void)
         Mc_SaveData[0].state.at4.loc.area  = 0x24;
         Mc_SaveData[0].state.at4.loc.warp  = 2;
         Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.roomVariant    = 1;
+        gDisplayState.roomVariant          = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     }
@@ -763,7 +763,7 @@ s32 func_shelter_r36_8017D8C8(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
 /// the outgoing one and passes both to `func_map_shelter_80179A04`. Always returns 1.
-s32 func_shelter_r36_8017D8D0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_r36_8017D8D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

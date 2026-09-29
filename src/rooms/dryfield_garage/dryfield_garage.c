@@ -114,7 +114,7 @@ GpRoomObjRec D_dryfield_garage_8017DCDC[1] = {
     { D_dryfield_garage_8017E64C, D_dryfield_garage_8017F69C, D_dryfield_garage_8017FD1C, NULL },
 };
 
-u8 * D_dryfield_garage_8017DCEC[1] = {
+u8* D_dryfield_garage_8017DCEC[1] = {
     D_8010CAF8,
 };
 
@@ -575,7 +575,7 @@ s16 D_dryfield_garage_8017E614[10] = {
     -1,
 };
 
-s16 * D_dryfield_garage_8017E628[9] = {
+s16* D_dryfield_garage_8017E628[9] = {
     D_dryfield_garage_8017E47C,
     D_dryfield_garage_8017E4B0,
     D_dryfield_garage_8017E4E8,
@@ -1009,7 +1009,7 @@ GpRoomParamRec D_dryfield_garage_801801DC[1] = {
     { 0, 0, 1, 0, D_dryfield_garage_801801C8 },
 };
 
-GpRoomParamRec * D_dryfield_garage_801801E4[8] = {
+GpRoomParamRec* D_dryfield_garage_801801E4[8] = {
     D_dryfield_garage_801801D4,
     D_dryfield_garage_801801DC,
     D_dryfield_garage_801801D4,
@@ -1060,10 +1060,10 @@ static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
     s32 ret;
     s32 neg;
 
-    flag                       = req->flagId;
+    flag                          = req->flagId;
     D_dryfield_garage_8018022C[0] = 0;
-    neg                        = flag < 0;
-    got                        = (s16)flag;
+    neg                           = flag < 0;
+    got                           = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1141,7 +1141,7 @@ void func_dryfield_garage_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_garage_80180224.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_garage_80180224.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_garage_80180224.field_3;
@@ -1188,7 +1188,7 @@ s32 func_dryfield_garage_8017D914(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// dry run; once 0x33 is set it sets nibble 0x2F (and 0x4B to 3) the first
 /// time. For area 0x17 it reports nibble 0x47 in `out->field_3`, 1 when clear
 /// and 2 when set. Otherwise it answers 1.
-s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     // Never touched, but its stack slot is load-bearing: `expand_decl` gives
     // every BLKmode local a frame slot whether or not anything reads it, and
@@ -1239,7 +1239,7 @@ s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, GpMessageArg a
 /// Handler for message 0x13EF in the room's message table: for warp point 2
 /// outside place 1 it calls `Gp_SpawnIfCapIdle(0x13, 0)`. It returns no
 /// value.
-s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg * msg, GpMessageArg arg3)
+s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, GpMessageArg arg3)
 {
     if ((msg->field_2 == 2) && (gGameSession->at4.loc.place != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
@@ -1252,13 +1252,13 @@ s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg * msg, GpMe
 void func_dryfield_garage_8017DAA0(Task* arg0)
 {
     Task* spawned;
-    s32 state;
+    s32   state;
     switch (arg0->state) {
         case 0:
-            spawned = Task_SpawnFromTable(D_80141B6C, 1, 0, 0);
-            state = arg0->state;
+            spawned                          = Task_SpawnFromTable(D_80141B6C, 1, 0, 0);
+            state                            = arg0->state;
             D_dryfield_garage_8018021C.value = spawned;
-            arg0->state = state + 1;
+            arg0->state                      = state + 1;
             break;
         case 1:
             taskKill(arg0);

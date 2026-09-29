@@ -104,8 +104,15 @@ u32 D_actor_311900_801643E8[4327] = {
 };
 
 TmdSource D_actor_311900_80168784 = {
-    0, 23980, 6012, 20,
-    D_actor_311900_80162B80, D_actor_311900_80162BD0, D_actor_311900_801637E0, D_actor_311900_801628B0, D_actor_311900_801643E8,
+    0,
+    23980,
+    6012,
+    20,
+    D_actor_311900_80162B80,
+    D_actor_311900_80162BD0,
+    D_actor_311900_801637E0,
+    D_actor_311900_801628B0,
+    D_actor_311900_801643E8,
 };
 
 TmdBone D_actor_311900_801687A8[20] = {
@@ -129,8 +136,15 @@ u32 D_actor_311900_8016A138[3973] = {
 };
 
 TmdSource D_actor_311900_8016DF4C = {
-    0, 21176, 6792, 20,
-    D_actor_311900_80168A78, D_actor_311900_80168AC8, D_actor_311900_80169608, D_actor_311900_801687A8, D_actor_311900_8016A138,
+    0,
+    21176,
+    6792,
+    20,
+    D_actor_311900_80168A78,
+    D_actor_311900_80168AC8,
+    D_actor_311900_80169608,
+    D_actor_311900_801687A8,
+    D_actor_311900_8016A138,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -141,7 +155,7 @@ typedef union {
 
 Actor311900PoseBankC150 D_actor_311900_8016DF70 = { .poses = {
 #include "assets/actor_311900_animation_0C9A8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_311900_8016DFF4[201] = {
 #include "assets/actor_311900_animation_0C9A8_bank4.inc"
@@ -156,7 +170,8 @@ u16 D_actor_311900_8016E7A0[20] = {
 };
 
 GpAnimSet D_actor_311900_8016E7C8 = {
-    D_actor_311900_8016E318, D_actor_311900_8016E7A0,
+    D_actor_311900_8016E318,
+    D_actor_311900_8016E7A0,
     { NULL, D_actor_311900_8016DF70.words, NULL, NULL, D_actor_311900_8016DFF4, NULL, NULL, NULL },
 };
 
@@ -168,7 +183,7 @@ typedef union {
 
 Actor311900PoseBankC9D0 D_actor_311900_8016E7F0 = { .poses = {
 #include "assets/actor_311900_animation_0CDA0_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_311900_8016E838[75] = {
 #include "assets/actor_311900_animation_0CDA0_bank4.inc"
@@ -183,7 +198,8 @@ u16 D_actor_311900_8016EB98[20] = {
 };
 
 GpAnimSet D_actor_311900_8016EBC0 = {
-    D_actor_311900_8016E964, D_actor_311900_8016EB98,
+    D_actor_311900_8016E964,
+    D_actor_311900_8016EB98,
     { NULL, D_actor_311900_8016E7F0.words, NULL, NULL, D_actor_311900_8016E838, NULL, NULL, NULL },
 };
 

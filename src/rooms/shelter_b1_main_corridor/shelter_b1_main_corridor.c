@@ -217,7 +217,7 @@ SVECTOR D_shelter_b1_main_corridor_801831E8[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b1_main_corridor_801831F8[1] = {
+u8* D_shelter_b1_main_corridor_801831F8[1] = {
     D_8010CAF8,
 };
 
@@ -970,7 +970,7 @@ s16 D_shelter_b1_main_corridor_80184094[10] = {
     -1,
 };
 
-s16 * D_shelter_b1_main_corridor_801840A8[18] = {
+s16* D_shelter_b1_main_corridor_801840A8[18] = {
     D_shelter_b1_main_corridor_80183D98,
     D_shelter_b1_main_corridor_80183DBC,
     D_shelter_b1_main_corridor_80183DEC,
@@ -1424,7 +1424,7 @@ GpRoomParamRec D_shelter_b1_main_corridor_80185CFC[1] = {
     { 0, 0, 1, 0, D_shelter_b1_main_corridor_80185CE0 },
 };
 
-GpRoomParamRec * D_shelter_b1_main_corridor_80185D04[8] = {
+GpRoomParamRec* D_shelter_b1_main_corridor_80185D04[8] = {
     D_shelter_b1_main_corridor_80185CEC,
     D_shelter_b1_main_corridor_80185CF4,
     D_shelter_b1_main_corridor_80185CFC,
@@ -1477,10 +1477,10 @@ static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMs
     s32 ret;
     s32 neg;
 
-    flag                                = req->flagId;
+    flag                                      = req->flagId;
     D_shelter_b1_main_corridor_80185D34.value = 0;
-    neg                                 = flag < 0;
-    got                                 = (s16)flag;
+    neg                                       = flag < 0;
+    got                                       = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1492,10 +1492,10 @@ static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMs
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
             if (msg->field_5 == 0) {
-                D_shelter_b1_main_corridor_80185D2C = *msg;
+                D_shelter_b1_main_corridor_80185D2C       = *msg;
                 D_shelter_b1_main_corridor_80185D48.value = *req;
-                id                                  = req->flagId;
-                mode                                = 1;
+                id                                        = req->flagId;
+                mode                                      = 1;
                 if (id < 0) {
                     id   = -id;
                     mode = 0;
@@ -1559,7 +1559,7 @@ void func_shelter_b1_main_corridor_8017D784(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D2C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D2C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D2C.field_3;
@@ -1610,7 +1610,7 @@ void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D3C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D3C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D3C.field_3;
@@ -1648,7 +1648,7 @@ static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
 /// nibble 0xAC is set, and before that runs CAP command 1. Message 9 runs CAP
 /// command 5 once nibble 0x7A reaches 6, and otherwise goes through the rooms'
 /// event gate on flag 0xA5. Any other message answers 1.
-s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent event;
@@ -2331,20 +2331,20 @@ void func_shelter_b1_main_corridor_8017F81C(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b1_main_corridor_801831D4.entries[mem->index].b;
                 func_shelter_b1_main_corridor_8017F488(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -3032,14 +3032,14 @@ void func_shelter_b1_main_corridor_80181B5C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_main_corridor_801831E8[1];
+                    SVECTOR* edge    = &D_shelter_b1_main_corridor_801831E8[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

@@ -98,7 +98,7 @@ GpRoomCoordRec D_neo_ark_eve_access_tunnel_8017EB88[1] = {
     { D_neo_ark_eve_access_tunnel_801802D4, NULL },
 };
 
-u8 * D_neo_ark_eve_access_tunnel_8017EB90[1] = {
+u8* D_neo_ark_eve_access_tunnel_8017EB90[1] = {
     D_8010CAF8,
 };
 
@@ -315,7 +315,7 @@ s16 D_neo_ark_eve_access_tunnel_8017F038[10] = {
     -1,
 };
 
-s16 * D_neo_ark_eve_access_tunnel_8017F04C[4] = {
+s16* D_neo_ark_eve_access_tunnel_8017F04C[4] = {
     D_neo_ark_eve_access_tunnel_8017EFA8,
     D_neo_ark_eve_access_tunnel_8017EFE0,
     D_neo_ark_eve_access_tunnel_8017F004,

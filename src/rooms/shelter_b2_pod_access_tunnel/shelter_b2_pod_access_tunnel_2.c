@@ -200,7 +200,7 @@ u8 D_shelter_b2_pod_access_tunnel_80183E1C[8] = {
     0,
 };
 
-u8 * D_shelter_b2_pod_access_tunnel_80183E24[2] = {
+u8* D_shelter_b2_pod_access_tunnel_80183E24[2] = {
     D_8010CAF8,
     D_shelter_b2_pod_access_tunnel_80183E1C,
 };
@@ -372,7 +372,7 @@ s16 D_shelter_b2_pod_access_tunnel_80184180[14] = {
     -1,
 };
 
-s16 * D_shelter_b2_pod_access_tunnel_8018419C[6] = {
+s16* D_shelter_b2_pod_access_tunnel_8018419C[6] = {
     D_shelter_b2_pod_access_tunnel_8018410C,
     D_shelter_b2_pod_access_tunnel_8018411C,
     D_shelter_b2_pod_access_tunnel_80184138,
@@ -1528,20 +1528,20 @@ void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b2_pod_access_tunnel_80183DC8.entries[mem->index].b;
                 func_shelter_b2_pod_access_tunnel_8017FFBC(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -2236,14 +2236,14 @@ void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b2_pod_access_tunnel_80183DDC[1];
+                    SVECTOR* edge    = &D_shelter_b2_pod_access_tunnel_80183DDC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

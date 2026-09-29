@@ -236,11 +236,15 @@ GpU16Pair Actor04600_D0415C = { 30, 7 };
 GpPairSrcE Actor04600_D04160 = { &Actor04600_D0415C, 70, 6, 12, 3, 100, 20, 100, 0, 0 };
 
 u32 Actor04600_D04170[3] = {
-    0x1010001, 0x2010000, 0,
+    0x1010001,
+    0x2010000,
+    0,
 };
 
 u32 Actor04600_D0417C[3] = {
-    0x90000, 0x10CFFFF, 0x1063264,
+    0x90000,
+    0x10CFFFF,
+    0x1063264,
 };
 
 TmdBone Actor04600_D04188[3] = {
@@ -264,8 +268,15 @@ u32 Actor04600_D04640[752] = {
 };
 
 TmdSource Actor04600_D05200 = {
-    0, 4516, 584, 3,
-    Actor04600_D041F4, Actor04600_D04200, Actor04600_D04420, Actor04600_D04188, Actor04600_D04640,
+    0,
+    4516,
+    584,
+    3,
+    Actor04600_D041F4,
+    Actor04600_D04200,
+    Actor04600_D04420,
+    Actor04600_D04188,
+    Actor04600_D04640,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -276,7 +287,7 @@ typedef union {
 
 Actor04600PoseBank5224 Actor04600_D05224 = { .poses = {
 #include "assets/actor_104600_animation_05554_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor04600_D053BC[26] = {
 #include "assets/actor_104600_animation_05554_bank4.inc"
@@ -291,7 +302,8 @@ u16 Actor04600_D0554C[4] = {
 };
 
 GpAnimSet Actor04600_D05554 = {
-    Actor04600_D05424, Actor04600_D0554C,
+    Actor04600_D05424,
+    Actor04600_D0554C,
     { NULL, Actor04600_D05224.words, NULL, NULL, Actor04600_D053BC, NULL, NULL, NULL },
 };
 
@@ -303,7 +315,7 @@ typedef union {
 
 Actor04600PoseBank557C Actor04600_D0557C = { .poses = {
 #include "assets/actor_104600_animation_0569C_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor04600_D05600[9] = {
 #include "assets/actor_104600_animation_0569C_bank4.inc"
@@ -318,7 +330,8 @@ u16 Actor04600_D05694[4] = {
 };
 
 GpAnimSet Actor04600_D0569C = {
-    Actor04600_D05624, Actor04600_D05694,
+    Actor04600_D05624,
+    Actor04600_D05694,
     { NULL, Actor04600_D0557C.words, NULL, NULL, Actor04600_D05600, NULL, NULL, NULL },
 };
 
@@ -330,7 +343,7 @@ typedef union {
 
 Actor04600PoseBank56C4 Actor04600_D056C4 = { .poses = {
 #include "assets/actor_104600_animation_05840_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor04600_D05778[12] = {
 #include "assets/actor_104600_animation_05840_bank4.inc"
@@ -345,7 +358,8 @@ u16 Actor04600_D05838[4] = {
 };
 
 GpAnimSet Actor04600_D05840 = {
-    Actor04600_D057A8, Actor04600_D05838,
+    Actor04600_D057A8,
+    Actor04600_D05838,
     { NULL, Actor04600_D056C4.words, NULL, NULL, Actor04600_D05778, NULL, NULL, NULL },
 };
 
@@ -358,7 +372,7 @@ TaskDesc Actor04600_D05878 = { 1, 96, Actor04600_Fn024A4, { .model = &Actor04600
 
 TaskDesc Actor04600_D05884 = { 257, 96, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
 
-GpAnimSet * Actor04600_D05890[4] = {
+GpAnimSet* Actor04600_D05890[4] = {
     NULL,
     &Actor04600_D05554,
     &Actor04600_D0569C,
@@ -394,8 +408,15 @@ u32 Actor04600_D05BDC[377] = {
 };
 
 TmdSource Actor04600_D061C0 = {
-    0, 2184, 332, 3,
-    Actor04600_D05930, Actor04600_D0593C, Actor04600_D05A64, Actor04600_D058C4, Actor04600_D05BDC,
+    0,
+    2184,
+    332,
+    3,
+    Actor04600_D05930,
+    Actor04600_D0593C,
+    Actor04600_D05A64,
+    Actor04600_D058C4,
+    Actor04600_D05BDC,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -406,7 +427,7 @@ typedef union {
 
 Actor04600PoseBank61E4 Actor04600_D061E4 = { .poses = {
 #include "assets/actor_104600_animation_06220_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor04600_D061FC[1] = {
 #include "assets/actor_104600_animation_06220_bank4.inc"
@@ -421,7 +442,8 @@ u16 Actor04600_D06218[4] = {
 };
 
 GpAnimSet Actor04600_D06220 = {
-    Actor04600_D06200, Actor04600_D06218,
+    Actor04600_D06200,
+    Actor04600_D06218,
     { NULL, Actor04600_D061E4.words, NULL, NULL, Actor04600_D061FC, NULL, NULL, NULL },
 };
 
@@ -433,7 +455,7 @@ typedef union {
 
 Actor04600PoseBank6248 Actor04600_D06248 = { .poses = {
 #include "assets/actor_104600_animation_06474_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor04600_D06368[10] = {
 #include "assets/actor_104600_animation_06474_bank4.inc"
@@ -448,13 +470,14 @@ u16 Actor04600_D0646C[4] = {
 };
 
 GpAnimSet Actor04600_D06474 = {
-    Actor04600_D06390, Actor04600_D0646C,
+    Actor04600_D06390,
+    Actor04600_D0646C,
     { NULL, Actor04600_D06248.words, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
 };
 
 TaskDesc Actor04600_D0649C = { 1, 96, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
 
-GpAnimSet * Actor04600_D064A8[3] = {
+GpAnimSet* Actor04600_D064A8[3] = {
     NULL,
     &Actor04600_D06220,
     &Actor04600_D06474,

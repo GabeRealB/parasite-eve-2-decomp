@@ -76,10 +76,10 @@ static s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEvent
     s32 ret;
     s32 neg;
 
-    flag                                  = req->flagId;
+    flag                                     = req->flagId;
     D_dryfield_night_parking_lot_8018156C[0] = 0;
-    neg                                   = flag < 0;
-    got                                   = (s16)flag;
+    neg                                      = flag < 0;
+    got                                      = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -159,7 +159,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_parking_lot_80181564.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_parking_lot_80181564.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_parking_lot_80181564.field_3;
@@ -183,7 +183,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `D_dryfield_night_parking_lot_8018155C` and sets nibbles 0x46 and 0x97,
 /// while 0x12 sets item-seen bit 0x110. Any other message returns 1.
-s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq req;
     s32          ret;
@@ -279,7 +279,7 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, GpM
 /// `field_2` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
 /// sends the player-weapon message and passes
 /// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (gGameSession->at4.loc.place == 3) && (GameFlag_GetNibble(0x79) == 0)) {
         GameFlag_SetNibble(0x79, 1);

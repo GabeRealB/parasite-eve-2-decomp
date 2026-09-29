@@ -81,7 +81,7 @@ typedef union {
 
 DryfieldUnderpassPoseBank920 D_dryfield_underpass_8017DEE0 = { .poses = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
-} };
+                                                               } };
 
 GpPackedSvec D_dryfield_underpass_8017DF58[126] = {
 #include "assets/dryfield_underpass_animation_00E64_bank4.inc"
@@ -96,7 +96,8 @@ u16 D_dryfield_underpass_8017E3FC[20] = {
 };
 
 GpAnimSet D_dryfield_underpass_8017E424 = {
-    D_dryfield_underpass_8017E150, D_dryfield_underpass_8017E3FC,
+    D_dryfield_underpass_8017E150,
+    D_dryfield_underpass_8017E3FC,
     { NULL, D_dryfield_underpass_8017DEE0.words, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
 };
 
@@ -108,7 +109,7 @@ typedef union {
 
 DryfieldUnderpassPoseBankE8C D_dryfield_underpass_8017E44C = { .poses = {
 #include "assets/dryfield_underpass_animation_01230_bank1.inc"
-} };
+                                                               } };
 
 GpPackedSvec D_dryfield_underpass_8017E494[64] = {
 #include "assets/dryfield_underpass_animation_01230_bank4.inc"
@@ -123,7 +124,8 @@ u16 D_dryfield_underpass_8017E7C8[20] = {
 };
 
 GpAnimSet D_dryfield_underpass_8017E7F0 = {
-    D_dryfield_underpass_8017E594, D_dryfield_underpass_8017E7C8,
+    D_dryfield_underpass_8017E594,
+    D_dryfield_underpass_8017E7C8,
     { NULL, D_dryfield_underpass_8017E44C.words, NULL, NULL, D_dryfield_underpass_8017E494, NULL, NULL, NULL },
 };
 
@@ -141,7 +143,7 @@ GpMsgEntry D_dryfield_underpass_8017E830[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_dryfield_underpass_8017E860[2] = {
+GpAnimSet* D_dryfield_underpass_8017E860[2] = {
     &D_dryfield_underpass_8017E424,
     &D_dryfield_underpass_8017E7F0,
 };
@@ -296,7 +298,7 @@ u8 D_dryfield_underpass_8017EBB0[12] = {
     0,
 };
 
-u8 * D_dryfield_underpass_8017EBBC[6] = {
+u8* D_dryfield_underpass_8017EBBC[6] = {
     D_8010CAF8,
     D_dryfield_underpass_8017EB80,
     D_dryfield_underpass_8017EB8C,
@@ -870,7 +872,7 @@ s16 D_dryfield_underpass_8017F40C[11] = {
     -1,
 };
 
-s16 * D_dryfield_underpass_8017F424[24] = {
+s16* D_dryfield_underpass_8017F424[24] = {
     D_dryfield_underpass_8017F170,
     D_dryfield_underpass_8017F184,
     D_dryfield_underpass_8017F19C,
@@ -1338,7 +1340,7 @@ GpRoomParamRec D_dryfield_underpass_8018115C[1] = {
     { 0, 0, 1, 0, D_dryfield_underpass_80181138 },
 };
 
-GpRoomParamRec * D_dryfield_underpass_80181164[8] = {
+GpRoomParamRec* D_dryfield_underpass_80181164[8] = {
     D_dryfield_underpass_80181144,
     D_dryfield_underpass_80181144,
     D_dryfield_underpass_80181154,
@@ -1411,9 +1413,9 @@ void func_dryfield_underpass_8017D5D0(Task* task)
                             }
                         }
                     }
-                    session                     = gGameSession;
-                    room                        = dst.field_3;
-                    session->at4.loc.room       = room;
+                    session                           = gGameSession;
+                    room                              = dst.field_3;
+                    session->at4.loc.room             = room;
                     Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
@@ -1432,7 +1434,7 @@ void func_dryfield_underpass_8017D5D0(Task* task)
 /// and, unless the query is report-only (`field_5` set), answers record id 0x20
 /// with 1 or 2 from nibble 0x51, raised by 2 while nibble 0x53 is set, and
 /// record id 0x22 with 1 or 2 from nibble 0x52. Always returns 1.
-s32 func_dryfield_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 0x20 && in->field_5 == 0) {
@@ -1491,7 +1493,7 @@ s32 func_dryfield_underpass_8017D900(Task* task, s32 msgId, GpMessageArg arg2, G
 /// Handler for message 0x13EF: the first time record `field_2` 1 arrives while
 /// the session's place is 1 and nibble 0xC9 is clear, sets that nibble and
 /// runs the room's script `D_dryfield_underpass_8017E8D8`. Always returns 0.
-s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 temp_v1;
 
@@ -1558,11 +1560,11 @@ void func_dryfield_underpass_8017DA08(void)
             }
         }
     }
-    session                     = gGameSession;
-    room                        = dst.field_3;
-    session->at4.loc.room       = room;
+    session                           = gGameSession;
+    room                              = dst.field_3;
+    session->at4.loc.room             = room;
     Mc_SaveData[0].state.at4.loc.room = room;
-    gGameSession->roomObjsDirty = 1;
+    gGameSession->roomObjsDirty       = 1;
 }
 
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed

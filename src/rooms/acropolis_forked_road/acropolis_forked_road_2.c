@@ -447,7 +447,7 @@ typedef union {
 
 AcropolisForkedRoadPoseBank4320 D_acropolis_forked_road_801818E0 = { .poses = {
 #include "assets/acropolis_forked_road_animation_045FC_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_forked_road_80181928[46] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank4.inc"
@@ -462,7 +462,8 @@ u16 D_acropolis_forked_road_80181B94[20] = {
 };
 
 GpAnimSet D_acropolis_forked_road_80181BBC = {
-    D_acropolis_forked_road_801819E0, D_acropolis_forked_road_80181B94,
+    D_acropolis_forked_road_801819E0,
+    D_acropolis_forked_road_80181B94,
     { NULL, D_acropolis_forked_road_801818E0.words, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
 };
 
@@ -474,7 +475,7 @@ typedef union {
 
 AcropolisForkedRoadPoseBank4624 D_acropolis_forked_road_80181BE4 = { .poses = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_forked_road_80181C5C[95] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank4.inc"
@@ -490,11 +491,12 @@ u16 D_acropolis_forked_road_80182004[20] = {
 };
 
 GpAnimSet D_acropolis_forked_road_8018202C = {
-    D_acropolis_forked_road_80181DD8, D_acropolis_forked_road_80182004,
+    D_acropolis_forked_road_80181DD8,
+    D_acropolis_forked_road_80182004,
     { NULL, D_acropolis_forked_road_80181BE4.words, NULL, NULL, D_acropolis_forked_road_80181C5C, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_acropolis_forked_road_80182054[3] = {
+GpAnimSet* D_acropolis_forked_road_80182054[3] = {
     NULL,
     &D_acropolis_forked_road_80181BBC,
     &D_acropolis_forked_road_8018202C,
@@ -599,7 +601,7 @@ u8 D_acropolis_forked_road_80182250[12] = {
     0,
 };
 
-u8 * D_acropolis_forked_road_8018225C[3] = {
+u8* D_acropolis_forked_road_8018225C[3] = {
     D_8010CAF8,
     D_acropolis_forked_road_80182244,
     D_acropolis_forked_road_80182250,
@@ -1111,7 +1113,7 @@ s16 D_acropolis_forked_road_80182B8C[2] = {
     -1,
 };
 
-s16 * D_acropolis_forked_road_80182B90[24] = {
+s16* D_acropolis_forked_road_80182B90[24] = {
     D_acropolis_forked_road_801829A8,
     D_acropolis_forked_road_801829BC,
     D_acropolis_forked_road_801829D4,
@@ -1695,7 +1697,7 @@ GpRoomParamRec D_acropolis_forked_road_8018509C[1] = {
     { 0, 0, 1, 0, D_acropolis_forked_road_80185078 },
 };
 
-GpRoomParamRec * D_acropolis_forked_road_801850A4[8] = {
+GpRoomParamRec* D_acropolis_forked_road_801850A4[8] = {
     D_acropolis_forked_road_80185084,
     D_acropolis_forked_road_80185084,
     D_acropolis_forked_road_8018508C,
@@ -1796,7 +1798,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Mc_SaveData[0].state.at4.loc.area  = 0xA;
             Mc_SaveData[0].state.at4.loc.warp  = 4;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= 0x7F;
             taskKill(task);
@@ -2033,10 +2035,10 @@ void func_acropolis_forked_road_8017E410(Task* task)
             } else {
                 work->scale = 0x280;
             }
-            work->angle     = (task->spawnArg1.value >> 8) & 3;
+            work->angle           = (task->spawnArg1.value >> 8) & 3;
             task->spawnArg1.value = task->spawnArg1.value & 0xF;
-            work->period    = levels[work->angle];
-            task->state     = task->state + 1;
+            work->period          = levels[work->angle];
+            task->state           = task->state + 1;
         }
         block->vec.vx = (u16)coord->workm.t[0];
         block->vec.vy = (u16)coord->workm.t[1];
@@ -2492,14 +2494,14 @@ void func_acropolis_forked_road_8017F9E4(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_acropolis_forked_road_80182204[1];
+                    SVECTOR* edge    = &D_acropolis_forked_road_80182204[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

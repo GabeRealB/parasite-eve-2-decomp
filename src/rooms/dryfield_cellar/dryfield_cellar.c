@@ -97,7 +97,7 @@ u8 D_dryfield_cellar_8017DBFC[8] = {
     0,
 };
 
-u8 * D_dryfield_cellar_8017DC04[2] = {
+u8* D_dryfield_cellar_8017DC04[2] = {
     D_8010CAF8,
     D_dryfield_cellar_8017DBFC,
 };
@@ -269,7 +269,7 @@ s16 D_dryfield_cellar_8017DF30[6] = {
     -1,
 };
 
-s16 * D_dryfield_cellar_8017DF3C[6] = {
+s16* D_dryfield_cellar_8017DF3C[6] = {
     D_dryfield_cellar_8017DEC0,
     D_dryfield_cellar_8017DED8,
     D_dryfield_cellar_8017DEEC,
@@ -864,7 +864,7 @@ GpRoomParamRec D_dryfield_cellar_80180B38[1] = {
     { 0, 0, 1, 0, D_dryfield_cellar_80180B2C },
 };
 
-GpRoomParamRec * D_dryfield_cellar_80180B40[8] = {
+GpRoomParamRec* D_dryfield_cellar_80180B40[8] = {
     D_dryfield_cellar_80180B38,
     D_dryfield_cellar_80180B38,
     D_dryfield_cellar_80180B38,
@@ -911,7 +911,7 @@ s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// the outgoing one; for a query 0x26 without `field_5` set it answers in
 /// `field_3` from event nibbles 0xC9, 0x53 and 0x51 (1 to 4 while 0xC9 is set,
 /// 5 or 6 otherwise). Always answers 1.
-s32 func_dryfield_cellar_8017D634(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_cellar_8017D634(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 0x26 && in->field_5 == 0) {

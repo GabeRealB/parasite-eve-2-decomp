@@ -78,7 +78,7 @@ GpRoomObjRec D_acropolis_hallway_8017E258[1] = {
     { D_acropolis_hallway_8017E5D0, D_acropolis_hallway_8017E5F4, D_acropolis_hallway_8017E724, NULL },
 };
 
-u8 * D_acropolis_hallway_8017E268[1] = {
+u8* D_acropolis_hallway_8017E268[1] = {
     D_8010CAF8,
 };
 
@@ -203,7 +203,7 @@ s16 D_acropolis_hallway_8017E5B0[12] = {
     -1,
 };
 
-s16 * D_acropolis_hallway_8017E5C8[2] = {
+s16* D_acropolis_hallway_8017E5C8[2] = {
     D_acropolis_hallway_8017E58C,
     D_acropolis_hallway_8017E5B0,
 };
@@ -337,7 +337,7 @@ GpRoomParamRec D_acropolis_hallway_8017ED38[1] = {
     { 0, 0, 1, 0, D_acropolis_hallway_8017ED1C },
 };
 
-GpRoomParamRec * D_acropolis_hallway_8017ED40[8] = {
+GpRoomParamRec* D_acropolis_hallway_8017ED40[8] = {
     D_acropolis_hallway_8017ED28,
     D_acropolis_hallway_8017ED30,
     D_acropolis_hallway_8017ED28,
@@ -365,8 +365,15 @@ u32 D_acropolis_hallway_8017F0A0[495] = {
 };
 
 TmdSource D_acropolis_hallway_8017F85C = {
-    0, 3728, 0, 1,
-    D_acropolis_hallway_8017ED84, D_acropolis_hallway_8017ED88, &D_acropolis_hallway_8017ED88[99], D_acropolis_hallway_8017ED60, D_acropolis_hallway_8017F0A0,
+    0,
+    3728,
+    0,
+    1,
+    D_acropolis_hallway_8017ED84,
+    D_acropolis_hallway_8017ED88,
+    &D_acropolis_hallway_8017ED88[99],
+    D_acropolis_hallway_8017ED60,
+    D_acropolis_hallway_8017F0A0,
 };
 
 TmdBone D_acropolis_hallway_8017F880[1] = {
@@ -390,9 +397,15 @@ u32 D_acropolis_hallway_8017F980[42] = {
 };
 
 TmdSource D_acropolis_hallway_8017FA28 = {
-    0, 312, 0, 1,
-    D_acropolis_hallway_8017F8A4, D_acropolis_hallway_8017F8A8, D_acropolis_hallway_8017F950,
-    D_acropolis_hallway_8017F880, D_acropolis_hallway_8017F980,
+    0,
+    312,
+    0,
+    1,
+    D_acropolis_hallway_8017F8A4,
+    D_acropolis_hallway_8017F8A8,
+    D_acropolis_hallway_8017F950,
+    D_acropolis_hallway_8017F880,
+    D_acropolis_hallway_8017F980,
 };
 
 SVECTOR D_acropolis_hallway_8017FA4C = { 0 };
@@ -405,7 +418,7 @@ static void func_acropolis_hallway_8017E1C0(Task* task);
 /// the outgoing one, then edits the copy's `field_3` (the answer the caller
 /// acts on) according to the message id and the room's progress nibbles.
 /// Returning 0 means the message was consumed.
-s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u16 msgId;
 

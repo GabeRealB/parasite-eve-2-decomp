@@ -417,17 +417,17 @@ void func_lifedrain_8012FAF8(Task* arg0)
             case 0:
                 Task_Reparent(D_lifedrain_80130B0C, arg0);
                 D_lifedrain_80130B0C->spawnArg1.value += arg0->spawnArg1.value;
-                Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx                     = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy                     = 0xFFE0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState                      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz                     = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                arg0->state                      = 1;
-                mem->scale                       = (Gp_StateC08.field_0 % 10) - 1;
-                val                              = D_lifedrain_80130AB4[mem->step].unk6;
-                mem->angle                       = val;
-                mem->period                      = val - 0x100;
+                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vx                           = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vy                           = 0xFFE0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
+                mem->move.vz                           = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                arg0->state                            = 1;
+                mem->scale                             = (Gp_StateC08.field_0 % 10) - 1;
+                val                                    = D_lifedrain_80130AB4[mem->step].unk6;
+                mem->angle                             = val;
+                mem->period                            = val - 0x100;
                 /* fallthrough */
             case 1:
                 coord->coord.t[0] += mem->move.vx;

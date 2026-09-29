@@ -217,7 +217,7 @@ GpRoomCoordRec D_neo_ark_r26_8017E0DC[1] = {
     { D_neo_ark_r26_8017E928, D_neo_ark_r26_8017E9EC },
 };
 
-u8 * D_neo_ark_r26_8017E0E4[1] = {
+u8* D_neo_ark_r26_8017E0E4[1] = {
     D_8010CAF8,
 };
 
@@ -284,7 +284,7 @@ s16 D_neo_ark_r26_8017E174[2] = {
     -1,
 };
 
-s16 * D_neo_ark_r26_8017E178[9] = {
+s16* D_neo_ark_r26_8017E178[9] = {
     D_neo_ark_r26_8017E158,
     D_neo_ark_r26_8017E15C,
     D_neo_ark_r26_8017E160,
@@ -475,7 +475,7 @@ GpRoomParamRec D_neo_ark_r26_8017EA28[1] = {
     { 0, 0, 1, 0, D_neo_ark_r26_8017EA14 },
 };
 
-GpRoomParamRec * D_neo_ark_r26_8017EA30[8] = {
+GpRoomParamRec* D_neo_ark_r26_8017EA30[8] = {
     D_neo_ark_r26_8017EA20,
     D_neo_ark_r26_8017EA28,
     D_neo_ark_r26_8017EA20,
@@ -499,7 +499,7 @@ void func_neo_ark_r26_8017D5D0(void)
         Mc_SaveData[0].state.at4.loc.area  = 0x1C;
         Mc_SaveData[0].state.at4.loc.warp  = 1;
         Mc_SaveData[0].state.at4.loc.room  = 1;
-        gDisplayState.roomVariant    = 1;
+        gDisplayState.roomVariant          = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 1);
     }
@@ -512,7 +512,7 @@ s32 func_neo_ark_r26_8017D648(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// Message handler for the save location: copies the incoming `GpSaveLoc`
 /// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
-s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

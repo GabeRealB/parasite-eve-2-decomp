@@ -37,7 +37,7 @@ GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-u8 * D_shelter_1f_heliport_s4_8017D6F8[1] = {
+u8* D_shelter_1f_heliport_s4_8017D6F8[1] = {
     D_8010CAF8,
 };
 
@@ -192,7 +192,7 @@ s16 D_shelter_1f_heliport_s4_8017D994[7] = {
     -1,
 };
 
-s16 * D_shelter_1f_heliport_s4_8017D9A4[9] = {
+s16* D_shelter_1f_heliport_s4_8017D9A4[9] = {
     D_shelter_1f_heliport_s4_8017D934,
     D_shelter_1f_heliport_s4_8017D940,
     D_shelter_1f_heliport_s4_8017D94C,
@@ -283,7 +283,7 @@ GpRoomParamRec D_shelter_1f_heliport_s4_8017E058[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_1f_heliport_s4_8017E060[8] = {
+GpRoomParamRec* D_shelter_1f_heliport_s4_8017E060[8] = {
     D_shelter_1f_heliport_s4_8017E058,
     D_shelter_1f_heliport_s4_8017E058,
     D_shelter_1f_heliport_s4_8017E058,
@@ -304,7 +304,7 @@ s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, GpMessageArg arg
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one, hands both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

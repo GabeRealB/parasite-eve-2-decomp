@@ -135,8 +135,15 @@ u32 D_dryfield_factory_80183BC4[2811] = {
 };
 
 TmdSource D_dryfield_factory_801867B0 = {
-    0, 19284, 0, 1,
-    D_dryfield_factory_80182728, D_dryfield_factory_8018272C, D_dryfield_factory_801830BC, D_dryfield_factory_80182704, D_dryfield_factory_80183BC4,
+    0,
+    19284,
+    0,
+    1,
+    D_dryfield_factory_80182728,
+    D_dryfield_factory_8018272C,
+    D_dryfield_factory_801830BC,
+    D_dryfield_factory_80182704,
+    D_dryfield_factory_80183BC4,
 };
 
 TmdBone D_dryfield_factory_801867D4[1] = {
@@ -160,8 +167,15 @@ u32 D_dryfield_factory_801869A4[139] = {
 };
 
 TmdSource D_dryfield_factory_80186BD0 = {
-    0, 856, 0, 1,
-    D_dryfield_factory_801867F8, D_dryfield_factory_801867FC, D_dryfield_factory_801868C4, D_dryfield_factory_801867D4, D_dryfield_factory_801869A4,
+    0,
+    856,
+    0,
+    1,
+    D_dryfield_factory_801867F8,
+    D_dryfield_factory_801867FC,
+    D_dryfield_factory_801868C4,
+    D_dryfield_factory_801867D4,
+    D_dryfield_factory_801869A4,
 };
 
 SVECTOR D_dryfield_factory_80186BF4[2] = {
@@ -191,7 +205,7 @@ s16 D_dryfield_factory_80186C5C[3] = {
     -1,
 };
 
-s16 * D_dryfield_factory_80186C64[1] = {
+s16* D_dryfield_factory_80186C64[1] = {
     D_dryfield_factory_80186C5C,
 };
 
@@ -237,7 +251,7 @@ s16 D_dryfield_factory_80186D28[4] = {
     -1,
 };
 
-s16 * D_dryfield_factory_80186D30[2] = {
+s16* D_dryfield_factory_80186D30[2] = {
     D_dryfield_factory_80186D1C,
     D_dryfield_factory_80186D28,
 };
@@ -283,7 +297,7 @@ s16 D_dryfield_factory_80186DF4[4] = {
     -1,
 };
 
-s16 * D_dryfield_factory_80186DFC[2] = {
+s16* D_dryfield_factory_80186DFC[2] = {
     D_dryfield_factory_80186DEC,
     D_dryfield_factory_80186DF4,
 };
@@ -357,7 +371,7 @@ u8 D_dryfield_factory_80186F30[20] = {
     0,
 };
 
-u8 * D_dryfield_factory_80186F44[2] = {
+u8* D_dryfield_factory_80186F44[2] = {
     D_8010CAF8,
     D_dryfield_factory_80186F30,
 };
@@ -1378,8 +1392,8 @@ static void func_dryfield_factory_8018182C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_factory_80186E88, 0, 1, 0);
-    task->work      = (TaskIdMap*)work;
-    task->msgTable  = D_dryfield_factory_80186EA0;
+    task->work              = (TaskIdMap*)work;
+    task->msgTable          = D_dryfield_factory_80186EA0;
     if (GameFlag_GetNibble(0x48) == 0) {
         Mc_SaveData[0].state.at4.loc.view = 0xC;
     } else {
@@ -1450,9 +1464,9 @@ static void func_dryfield_factory_80181A24(Task* arg0)
     Gp_MsgPlayer3F3(1);
     Gp_MsgAlly3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);

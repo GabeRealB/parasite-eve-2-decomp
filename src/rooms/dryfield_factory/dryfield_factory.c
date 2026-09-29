@@ -144,7 +144,7 @@ s16 D_dryfield_factory_80187BB4[18] = {
     -1,
 };
 
-s16 * D_dryfield_factory_80187BD8[8] = {
+s16* D_dryfield_factory_80187BD8[8] = {
     D_dryfield_factory_80187998,
     D_dryfield_factory_801879F0,
     D_dryfield_factory_80187A64,
@@ -746,7 +746,7 @@ GpRoomParamRec D_dryfield_factory_8018A374[1] = {
     { 0, 0, 1, 0, D_dryfield_factory_8018A350 },
 };
 
-GpRoomParamRec * D_dryfield_factory_8018A37C[8] = {
+GpRoomParamRec* D_dryfield_factory_8018A37C[8] = {
     D_dryfield_factory_8018A35C,
     D_dryfield_factory_8018A364,
     D_dryfield_factory_8018A36C,
@@ -765,11 +765,11 @@ RoomEventMsg D_dryfield_factory_8018A3B4 = { 0 };
 
 u8 D_dryfield_factory_8018A3BC = 0;
 
-TaskDesc * D_dryfield_factory_8018A3C0 = NULL;
+TaskDesc* D_dryfield_factory_8018A3C0 = NULL;
 
-TaskDesc * D_dryfield_factory_8018A3C4 = NULL;
+TaskDesc* D_dryfield_factory_8018A3C4 = NULL;
 
-Task ** D_dryfield_factory_8018A3C8 = NULL;
+Task** D_dryfield_factory_8018A3C8 = NULL;
 
 RoomEventReq D_dryfield_factory_8018A3CC = { 0 };
 
@@ -869,7 +869,7 @@ void func_dryfield_factory_8017D85C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_factory_8018A3B4.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_factory_8018A3B4.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.field_3;
@@ -915,7 +915,7 @@ static void func_dryfield_factory_8017D9CC(Task* arg0)
     arg0->state++;
 }
 
-s32 func_dryfield_factory_8017DB08(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_factory_8017DB08(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u8           variant;
@@ -1092,7 +1092,7 @@ s32 func_dryfield_factory_8017DEA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
@@ -1922,8 +1922,8 @@ void func_dryfield_factory_8017FDDC(Task* task)
             goto advance;
         case 5:
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room  = 2;
-            gGameSession->roomObjsDirty = 1;
+            gGameSession->at4.loc.room        = 2;
+            gGameSession->roomObjsDirty       = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 1:

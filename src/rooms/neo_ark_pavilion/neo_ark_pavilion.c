@@ -173,7 +173,7 @@ u8 D_neo_ark_pavilion_801838E4[8] = {
     0,
 };
 
-u8 * D_neo_ark_pavilion_801838EC[2] = {
+u8* D_neo_ark_pavilion_801838EC[2] = {
     D_8010CAF8,
     D_neo_ark_pavilion_801838E4,
 };
@@ -229,7 +229,7 @@ SVECTOR D_neo_ark_pavilion_80183A24[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_neo_ark_pavilion_80183A64[4] = {
+SVECTOR* D_neo_ark_pavilion_80183A64[4] = {
     D_neo_ark_pavilion_801839A4,
     D_neo_ark_pavilion_801839E4,
     D_neo_ark_pavilion_80183A24,
@@ -590,7 +590,7 @@ s16 D_neo_ark_pavilion_8018419C[23] = {
     -1,
 };
 
-s16 * D_neo_ark_pavilion_801841CC[6] = {
+s16* D_neo_ark_pavilion_801841CC[6] = {
     D_neo_ark_pavilion_80184094,
     D_neo_ark_pavilion_801840BC,
     D_neo_ark_pavilion_801840D8,
@@ -1407,7 +1407,7 @@ GpRoomParamRec D_neo_ark_pavilion_801879E4[1] = {
     { 0, 0, 1, 0, D_neo_ark_pavilion_801879C8 },
 };
 
-GpRoomParamRec * D_neo_ark_pavilion_801879EC[8] = {
+GpRoomParamRec* D_neo_ark_pavilion_801879EC[8] = {
     D_neo_ark_pavilion_801879D4,
     D_neo_ark_pavilion_801879DC,
     D_neo_ark_pavilion_801879D4,
@@ -2181,7 +2181,7 @@ void func_neo_ark_pavilion_8017E854(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_pavilion_80187A14.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_pavilion_80187A14.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_pavilion_80187A14.field_3;
@@ -2218,7 +2218,7 @@ static __inline__ s32 NeoArkPavilion_StartEvent(GpSaveLoc* dst, RoomLatchedEvent
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Message
 /// `0xC` builds the room's event record - cap command 4, flag `0x17E` - and
 /// hands it to `NeoArkPavilion_StartEvent`; every other message answers 1.
-s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     RoomLatchedEvent event;
 
@@ -2906,14 +2906,14 @@ void func_neo_ark_pavilion_80180714(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_pavilion_80183898[1];
+                    SVECTOR* edge    = &D_neo_ark_pavilion_80183898[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

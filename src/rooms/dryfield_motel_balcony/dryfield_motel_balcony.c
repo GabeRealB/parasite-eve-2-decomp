@@ -137,7 +137,7 @@ GpRoomObjRec D_dryfield_motel_balcony_801822D0[1] = {
     { D_dryfield_motel_balcony_80182B5C, D_dryfield_motel_balcony_80185DA0, D_dryfield_motel_balcony_80186000, D_dryfield_motel_balcony_80186130 },
 };
 
-u8 * D_dryfield_motel_balcony_801822E0[1] = {
+u8* D_dryfield_motel_balcony_801822E0[1] = {
     D_8010CAF8,
 };
 
@@ -792,7 +792,7 @@ s16 D_dryfield_motel_balcony_80182A58[2] = {
     -1,
 };
 
-s16 * D_dryfield_motel_balcony_80182A5C[64] = {
+s16* D_dryfield_motel_balcony_80182A5C[64] = {
     D_dryfield_motel_balcony_801827B0,
     D_dryfield_motel_balcony_801827B4,
     D_dryfield_motel_balcony_801827C0,
@@ -1803,7 +1803,7 @@ GpRoomParamRec D_dryfield_motel_balcony_801866F4[2] = {
     { 0, 0, 1, 0, D_dryfield_motel_balcony_801866B8 },
 };
 
-GpRoomParamRec * D_dryfield_motel_balcony_80186704[8] = {
+GpRoomParamRec* D_dryfield_motel_balcony_80186704[8] = {
     D_dryfield_motel_balcony_801866DC,
     D_dryfield_motel_balcony_801866E4,
     D_dryfield_motel_balcony_801866EC,
@@ -1846,10 +1846,10 @@ static s32 func_dryfield_motel_balcony_8017D5E8(RoomEventReq* req, RoomEventMsg*
     s32 ret;
     s32 neg;
 
-    flag                              = req->flagId;
+    flag                                 = req->flagId;
     D_dryfield_motel_balcony_8018672C[0] = 0;
-    neg                               = flag < 0;
-    got                               = (s16)flag;
+    neg                                  = flag < 0;
+    got                                  = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -1929,7 +1929,7 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_motel_balcony_80186724.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_motel_balcony_80186724.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_motel_balcony_80186724.field_3;
@@ -1945,7 +1945,7 @@ void func_dryfield_motel_balcony_8017D74C(Task* task)
 /// gate fires, it updates the collected and seen item bits (and, for 0x1E, a
 /// flag nibble and `Mc_SaveData[0].state.sceneEvent`). Any other message answers 1; a gate result
 /// of 0 is reported as 2.
-s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq req;
     s32          flagClear;
@@ -2387,20 +2387,20 @@ void func_dryfield_motel_balcony_8017EA00(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_dryfield_motel_balcony_801822AC.entries[mem->index].b;
                 func_dryfield_motel_balcony_8017E66C(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -3089,14 +3089,14 @@ void func_dryfield_motel_balcony_80180D40(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_dryfield_motel_balcony_801822C0[1];
+                    SVECTOR* edge    = &D_dryfield_motel_balcony_801822C0[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

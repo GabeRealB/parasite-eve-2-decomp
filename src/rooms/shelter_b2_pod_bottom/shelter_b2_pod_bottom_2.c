@@ -80,8 +80,15 @@ u32 D_shelter_b2_pod_bottom_80187860[172] = {
 };
 
 TmdSource D_shelter_b2_pod_bottom_80187B10 = {
-    0, 1092, 0, 1,
-    D_shelter_b2_pod_bottom_801876F4, D_shelter_b2_pod_bottom_801876F8, D_shelter_b2_pod_bottom_80187778, D_shelter_b2_pod_bottom_801876D0, D_shelter_b2_pod_bottom_80187860,
+    0,
+    1092,
+    0,
+    1,
+    D_shelter_b2_pod_bottom_801876F4,
+    D_shelter_b2_pod_bottom_801876F8,
+    D_shelter_b2_pod_bottom_80187778,
+    D_shelter_b2_pod_bottom_801876D0,
+    D_shelter_b2_pod_bottom_80187860,
 };
 
 TmdBone D_shelter_b2_pod_bottom_80187B34[1] = {
@@ -105,8 +112,15 @@ u32 D_shelter_b2_pod_bottom_80187C4C[114] = {
 };
 
 TmdSource D_shelter_b2_pod_bottom_80187E14 = {
-    0, 720, 0, 1,
-    D_shelter_b2_pod_bottom_80187B58, D_shelter_b2_pod_bottom_80187B5C, D_shelter_b2_pod_bottom_80187BB4, D_shelter_b2_pod_bottom_80187B34, D_shelter_b2_pod_bottom_80187C4C,
+    0,
+    720,
+    0,
+    1,
+    D_shelter_b2_pod_bottom_80187B58,
+    D_shelter_b2_pod_bottom_80187B5C,
+    D_shelter_b2_pod_bottom_80187BB4,
+    D_shelter_b2_pod_bottom_80187B34,
+    D_shelter_b2_pod_bottom_80187C4C,
 };
 
 TmdBone D_shelter_b2_pod_bottom_80187E38[1] = {
@@ -130,8 +144,15 @@ u32 D_shelter_b2_pod_bottom_80187FC8[167] = {
 };
 
 TmdSource D_shelter_b2_pod_bottom_80188264 = {
-    0, 1064, 0, 1,
-    D_shelter_b2_pod_bottom_80187E5C, D_shelter_b2_pod_bottom_80187E60, D_shelter_b2_pod_bottom_80187EE0, D_shelter_b2_pod_bottom_80187E38, D_shelter_b2_pod_bottom_80187FC8,
+    0,
+    1064,
+    0,
+    1,
+    D_shelter_b2_pod_bottom_80187E5C,
+    D_shelter_b2_pod_bottom_80187E60,
+    D_shelter_b2_pod_bottom_80187EE0,
+    D_shelter_b2_pod_bottom_80187E38,
+    D_shelter_b2_pod_bottom_80187FC8,
 };
 
 TmdBone D_shelter_b2_pod_bottom_80188288[1] = {
@@ -155,8 +176,15 @@ u32 D_shelter_b2_pod_bottom_80188408[145] = {
 };
 
 TmdSource D_shelter_b2_pod_bottom_8018864C = {
-    0, 928, 0, 1,
-    D_shelter_b2_pod_bottom_801882AC, D_shelter_b2_pod_bottom_801882B0, D_shelter_b2_pod_bottom_80188328, D_shelter_b2_pod_bottom_80188288, D_shelter_b2_pod_bottom_80188408,
+    0,
+    928,
+    0,
+    1,
+    D_shelter_b2_pod_bottom_801882AC,
+    D_shelter_b2_pod_bottom_801882B0,
+    D_shelter_b2_pod_bottom_80188328,
+    D_shelter_b2_pod_bottom_80188288,
+    D_shelter_b2_pod_bottom_80188408,
 };
 
 GpObj4C D_shelter_b2_pod_bottom_80188670[1] = {
@@ -205,7 +233,7 @@ GpRoomParamRec D_shelter_b2_pod_bottom_80188768[1] = {
     { 0, 0, 1, 0, D_shelter_b2_pod_bottom_80188744 },
 };
 
-GpRoomParamRec * D_shelter_b2_pod_bottom_80188770[8] = {
+GpRoomParamRec* D_shelter_b2_pod_bottom_80188770[8] = {
     D_shelter_b2_pod_bottom_80188750,
     D_shelter_b2_pod_bottom_80188758,
     D_shelter_b2_pod_bottom_80188760,

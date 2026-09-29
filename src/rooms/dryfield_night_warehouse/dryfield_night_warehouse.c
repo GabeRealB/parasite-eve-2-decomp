@@ -112,7 +112,7 @@ GpRoomObjRec D_dryfield_night_warehouse_8017E900[3] = {
     { D_dryfield_night_warehouse_8017EF08, D_dryfield_night_warehouse_8017F6F4, D_dryfield_night_warehouse_8017F84C, NULL },
 };
 
-u8 * D_dryfield_night_warehouse_8017E930[3] = {
+u8* D_dryfield_night_warehouse_8017E930[3] = {
     D_8010CAF8,
     D_8010CAF8,
     D_8010CAF8,
@@ -374,7 +374,7 @@ s16 D_dryfield_night_warehouse_8017EED4[17] = {
     -1,
 };
 
-s16 * D_dryfield_night_warehouse_8017EEF8[4] = {
+s16* D_dryfield_night_warehouse_8017EEF8[4] = {
     D_dryfield_night_warehouse_8017EE28,
     D_dryfield_night_warehouse_8017EE74,
     D_dryfield_night_warehouse_8017EE94,
@@ -581,7 +581,7 @@ GpRoomParamRec D_dryfield_night_warehouse_8017FC1C[1] = {
     { 0, 0, 1, 0, D_dryfield_night_warehouse_8017FBF8 },
 };
 
-GpRoomParamRec * D_dryfield_night_warehouse_8017FC24[8] = {
+GpRoomParamRec* D_dryfield_night_warehouse_8017FC24[8] = {
     D_dryfield_night_warehouse_8017FC04,
     D_dryfield_night_warehouse_8017FC04,
     D_dryfield_night_warehouse_8017FC04,
@@ -601,7 +601,7 @@ s32 func_dryfield_night_warehouse_8017D5D0(Task* task, s32 msgId, GpMessageArg a
 
 /// Handler for message 0x13EE in the room's message table: copies the location
 /// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_warehouse_8017D5D8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_night_warehouse_8017D5D8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;

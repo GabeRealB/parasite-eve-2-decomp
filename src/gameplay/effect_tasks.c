@@ -226,7 +226,7 @@ void Gp_EffCtlTask2B(Task* arg0)
             case 0:
                 temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index                    = temp;
-                arg0->spawnArg1.value               = (u8)arg0->spawnArg1.value;
+                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
                 slot->head.u.coord.coord.t[0] = coord->coord.t[0];
                 slot->head.u.coord.coord.t[1] = coord->coord.t[1];
                 t2                            = coord->coord.t[2];
@@ -404,7 +404,7 @@ void Gp_EffCtlTask6B(Task* arg0)
         if (arg0->state == 0) {
             temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
             mem->index                    = temp;
-            arg0->spawnArg1.value               = (u8)arg0->spawnArg1.value;
+            arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
             slot->head.u.coord.coord.t[0] = coord->coord.t[0];
             slot->head.u.coord.coord.t[1] = coord->coord.t[1];
             t2                            = coord->coord.t[2];
@@ -475,7 +475,7 @@ void func_800ED42C(Task* arg0)
             case 0:
                 temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index                    = temp;
-                arg0->spawnArg1.value               = (u8)arg0->spawnArg1.value;
+                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
                 slot->head.u.coord.coord.t[0] = coord->coord.t[0];
                 slot->head.u.coord.coord.t[1] = coord->coord.t[1];
                 t2                            = coord->coord.t[2];
@@ -666,7 +666,7 @@ void Gp_EffCtlTask6C(Task* arg0)
             case 0:
                 temp                          = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
                 mem->index                    = temp;
-                arg0->spawnArg1.value               = (u8)arg0->spawnArg1.value;
+                arg0->spawnArg1.value         = (u8)arg0->spawnArg1.value;
                 slot->head.u.coord.coord.t[0] = coord->coord.t[0];
                 slot->head.u.coord.coord.t[1] = coord->coord.t[1];
                 t2                            = coord->coord.t[2];
@@ -1585,15 +1585,15 @@ void Gp_EffCtlTask6E(Task* arg0)
         } else {
             mem->scale = 0xC;
         }
-        arg0->spawnArg1.value    = (u16)arg0->spawnArg1.value;
-        coord->sub         = mem->parent;
-        coord->coord.t[0]  = D_801125EC[arg0->spawnArg1.value].vx;
-        coord->coord.t[1]  = D_801125EC[arg0->spawnArg1.value].vy;
-        coord->coord.t[2]  = D_801125EC[arg0->spawnArg1.value].vz;
-        coord->coord.t[0] += mem->pos.vx;
-        coord->coord.t[1] += mem->pos.vy;
-        coord->coord.t[2] += mem->pos.vz;
-        coord->flg         = 0;
+        arg0->spawnArg1.value = (u16)arg0->spawnArg1.value;
+        coord->sub            = mem->parent;
+        coord->coord.t[0]     = D_801125EC[arg0->spawnArg1.value].vx;
+        coord->coord.t[1]     = D_801125EC[arg0->spawnArg1.value].vy;
+        coord->coord.t[2]     = D_801125EC[arg0->spawnArg1.value].vz;
+        coord->coord.t[0]    += mem->pos.vx;
+        coord->coord.t[1]    += mem->pos.vy;
+        coord->coord.t[2]    += mem->pos.vz;
+        coord->flg            = 0;
         Gp_UpdateCoord(coord);
         arg0->state = 1;
         rng         = Gp_LcgState * 5 + 0x71357911;

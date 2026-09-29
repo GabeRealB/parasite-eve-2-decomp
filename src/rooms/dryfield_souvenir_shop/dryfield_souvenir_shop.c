@@ -84,7 +84,7 @@ GpRoomObjRec D_dryfield_souvenir_shop_8017E0BC[1] = {
     { D_dryfield_souvenir_shop_8017E5DC, D_dryfield_souvenir_shop_8017EEF4, D_dryfield_souvenir_shop_8017EF8C, NULL },
 };
 
-u8 * D_dryfield_souvenir_shop_8017E0CC[1] = {
+u8* D_dryfield_souvenir_shop_8017E0CC[1] = {
     D_8010CAF8,
 };
 
@@ -334,7 +334,7 @@ s16 D_dryfield_souvenir_shop_8017E5A4[19] = {
     -1,
 };
 
-s16 * D_dryfield_souvenir_shop_8017E5CC[4] = {
+s16* D_dryfield_souvenir_shop_8017E5CC[4] = {
     D_dryfield_souvenir_shop_8017E4F4,
     D_dryfield_souvenir_shop_8017E53C,
     D_dryfield_souvenir_shop_8017E564,
@@ -577,7 +577,7 @@ GpRoomParamRec D_dryfield_souvenir_shop_8017F638[1] = {
     { 0, 0, 1, 0, D_dryfield_souvenir_shop_8017F60C },
 };
 
-GpRoomParamRec * D_dryfield_souvenir_shop_8017F640[8] = {
+GpRoomParamRec* D_dryfield_souvenir_shop_8017F640[8] = {
     D_dryfield_souvenir_shop_8017F618,
     D_dryfield_souvenir_shop_8017F630,
     D_dryfield_souvenir_shop_8017F638,
@@ -600,7 +600,7 @@ s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, GpMessageArg arg
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply unchanged and returns 1.
-s32 func_dryfield_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     return 1;

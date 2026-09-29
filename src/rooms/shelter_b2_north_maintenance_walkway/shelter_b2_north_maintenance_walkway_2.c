@@ -851,20 +851,20 @@ void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b2_north_maintenance_walkway_80183C38.entries[mem->index].b;
                 func_shelter_b2_north_maintenance_walkway_8017FF44(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -1557,14 +1557,14 @@ void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
+                    SVECTOR* edge    = &D_shelter_b2_north_maintenance_walkway_80183C4C[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

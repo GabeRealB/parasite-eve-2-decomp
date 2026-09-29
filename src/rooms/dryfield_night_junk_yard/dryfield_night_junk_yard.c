@@ -121,7 +121,7 @@ s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, GpMessageArg a
 /// 0x7A has reached it, latching 0x8F.
 ///
 /// `field_5` non-zero means "report only", which suppresses every side effect.
-s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventMsg unused;
     s32          state;
@@ -176,7 +176,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg * 
 /// `field_2` is 3 on the visit whose `place` is 1, it latches nibble 0x9F once
 /// and passes `D_dryfield_night_junk_yard_801805A4` to `func_800E8614`. Always
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg * in, GpMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, GpMessageArg arg3)
 {
     if ((in->field_2 == 3) && (gGameSession->at4.loc.place == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
         GameFlag_SetNibble(0x9F, 1);
@@ -189,7 +189,7 @@ s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg * 
 /// main-executable byte `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
-    gGameSession->at4.loc.room  = arg0;
+    gGameSession->at4.loc.room        = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 

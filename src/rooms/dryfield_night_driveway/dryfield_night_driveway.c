@@ -143,7 +143,7 @@ typedef union {
 
 DryfieldNightDrivewayPoseBank10C4 D_dryfield_night_driveway_8017E684 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
-} };
+                                                                         } };
 
 GpPackedSvec D_dryfield_night_driveway_8017E6FC[95] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank4.inc"
@@ -158,7 +158,8 @@ u16 D_dryfield_night_driveway_8017EAA4[20] = {
 };
 
 GpAnimSet D_dryfield_night_driveway_8017EACC = {
-    D_dryfield_night_driveway_8017E878, D_dryfield_night_driveway_8017EAA4,
+    D_dryfield_night_driveway_8017E878,
+    D_dryfield_night_driveway_8017EAA4,
     { NULL, D_dryfield_night_driveway_8017E684.words, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
 };
 
@@ -170,7 +171,7 @@ typedef union {
 
 DryfieldNightDrivewayPoseBank1534 D_dryfield_night_driveway_8017EAF4 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01870_bank1.inc"
-} };
+                                                                         } };
 
 GpPackedSvec D_dryfield_night_driveway_8017EB3C[75] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank4.inc"
@@ -185,7 +186,8 @@ u16 D_dryfield_night_driveway_8017EE08[20] = {
 };
 
 GpAnimSet D_dryfield_night_driveway_8017EE30 = {
-    D_dryfield_night_driveway_8017EC68, D_dryfield_night_driveway_8017EE08,
+    D_dryfield_night_driveway_8017EC68,
+    D_dryfield_night_driveway_8017EE08,
     { NULL, D_dryfield_night_driveway_8017EAF4.words, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
 };
 
@@ -197,7 +199,7 @@ typedef union {
 
 DryfieldNightDrivewayPoseBank1898 D_dryfield_night_driveway_8017EE58 = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank1.inc"
-} };
+                                                                         } };
 
 GpPackedSvec D_dryfield_night_driveway_8017EE70[24] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank4.inc"
@@ -212,7 +214,8 @@ u16 D_dryfield_night_driveway_8017F01C[20] = {
 };
 
 GpAnimSet D_dryfield_night_driveway_8017F044 = {
-    D_dryfield_night_driveway_8017EED0, D_dryfield_night_driveway_8017F01C,
+    D_dryfield_night_driveway_8017EED0,
+    D_dryfield_night_driveway_8017F01C,
     { NULL, D_dryfield_night_driveway_8017EE58.words, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
 };
 
@@ -224,7 +227,7 @@ typedef union {
 
 DryfieldNightDrivewayPoseBank1AAC D_dryfield_night_driveway_8017F06C = { .poses = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank1.inc"
-} };
+                                                                         } };
 
 GpPackedSvec D_dryfield_night_driveway_8017F0A8[60] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank4.inc"
@@ -239,7 +242,8 @@ u16 D_dryfield_night_driveway_8017F2FC[20] = {
 };
 
 GpAnimSet D_dryfield_night_driveway_8017F324 = {
-    D_dryfield_night_driveway_8017F198, D_dryfield_night_driveway_8017F2FC,
+    D_dryfield_night_driveway_8017F198,
+    D_dryfield_night_driveway_8017F2FC,
     { NULL, D_dryfield_night_driveway_8017F06C.words, NULL, NULL, D_dryfield_night_driveway_8017F0A8, NULL, NULL, NULL },
 };
 
@@ -249,7 +253,7 @@ TaskDesc D_dryfield_night_driveway_8017F34C[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimSet * D_dryfield_night_driveway_8017F370[2] = {
+GpAnimSet* D_dryfield_night_driveway_8017F370[2] = {
     &D_dryfield_night_driveway_8017EACC,
     NULL,
 };
@@ -540,7 +544,7 @@ u8 D_dryfield_night_driveway_80180610[12] = {
     0,
 };
 
-u8 * D_dryfield_night_driveway_8018061C[2] = {
+u8* D_dryfield_night_driveway_8018061C[2] = {
     D_8010CAF8,
     D_dryfield_night_driveway_80180610,
 };
@@ -872,7 +876,7 @@ s16 D_dryfield_night_driveway_80180BB4[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_driveway_80180BB8[21] = {
+s16* D_dryfield_night_driveway_80180BB8[21] = {
     D_dryfield_night_driveway_80180A84,
     D_dryfield_night_driveway_80180A90,
     D_dryfield_night_driveway_80180A9C,
@@ -1258,7 +1262,7 @@ GpRoomParamRec D_dryfield_night_driveway_801820E8[1] = {
     { 0, 0, 1, 0, D_dryfield_night_driveway_801820CC },
 };
 
-GpRoomParamRec * D_dryfield_night_driveway_801820F0[8] = {
+GpRoomParamRec* D_dryfield_night_driveway_801820F0[8] = {
     D_dryfield_night_driveway_801820D8,
     D_dryfield_night_driveway_801820E0,
     D_dryfield_night_driveway_801820E8,
@@ -1326,7 +1330,7 @@ void func_dryfield_night_driveway_8017D608(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_driveway_80182118.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_driveway_80182118.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_driveway_80182118.field_3;
@@ -1347,7 +1351,7 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 /// `D_dryfield_night_driveway_80182124` for `func_dryfield_night_driveway_8017D608`
 /// to replay as a CAP command, and message 0x20, which reports the gate flag and
 /// spawns the cutscene task at `D_dryfield_night_driveway_8017F34C`.
-s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent  req;
     RoomLatchedEvent* p;
@@ -1404,11 +1408,11 @@ s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg * i
             }
             return 2;
         }
-        req.capCmd                         = 9;
-        req.stageSnd                       = 0x52190003;
-        req.flagId                         = 0x11C;
-        req.fade                           = 0;
-        p                                  = &req;
+        req.capCmd                               = 9;
+        req.stageSnd                             = 0x52190003;
+        req.flagId                               = 0x11C;
+        req.fade                                 = 0;
+        p                                        = &req;
         D_dryfield_night_driveway_80182120_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->field_5 == 0) {

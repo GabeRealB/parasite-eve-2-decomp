@@ -780,7 +780,7 @@ GpRoomParamRec D_acropolis_cafeteria_8018CA24[1] = {
     { 0, 1, 0, 0, D_acropolis_cafeteria_8018C9F8 },
 };
 
-GpRoomParamRec * D_acropolis_cafeteria_8018CA2C[8] = {
+GpRoomParamRec* D_acropolis_cafeteria_8018CA2C[8] = {
     D_acropolis_cafeteria_8018CA04,
     D_acropolis_cafeteria_8018CA0C,
     D_acropolis_cafeteria_8018CA14,
@@ -812,8 +812,15 @@ u32 D_acropolis_cafeteria_8018CD64[307] = {
 };
 
 TmdSource D_acropolis_cafeteria_8018D230 = {
-    0, 2168, 0, 1,
-    D_acropolis_cafeteria_8018CA70, D_acropolis_cafeteria_8018CA74, D_acropolis_cafeteria_8018CBBC, D_acropolis_cafeteria_8018CA4C, D_acropolis_cafeteria_8018CD64,
+    0,
+    2168,
+    0,
+    1,
+    D_acropolis_cafeteria_8018CA70,
+    D_acropolis_cafeteria_8018CA74,
+    D_acropolis_cafeteria_8018CBBC,
+    D_acropolis_cafeteria_8018CA4C,
+    D_acropolis_cafeteria_8018CD64,
 };
 
 TmdBone D_acropolis_cafeteria_8018D254[1] = {
@@ -837,9 +844,15 @@ u32 D_acropolis_cafeteria_8018D3BC[112] = {
 };
 
 TmdSource D_acropolis_cafeteria_8018D57C = {
-    0, 756, 0, 1,
-    D_acropolis_cafeteria_8018D278, D_acropolis_cafeteria_8018D27C, D_acropolis_cafeteria_8018D32C,
-    D_acropolis_cafeteria_8018D254, D_acropolis_cafeteria_8018D3BC,
+    0,
+    756,
+    0,
+    1,
+    D_acropolis_cafeteria_8018D278,
+    D_acropolis_cafeteria_8018D27C,
+    D_acropolis_cafeteria_8018D32C,
+    D_acropolis_cafeteria_8018D254,
+    D_acropolis_cafeteria_8018D3BC,
 };
 
 MATRIX D_acropolis_cafeteria_8018D5A0 = { { { 2048, 2048, 2048 }, { 2048, 2048, 2048 }, { 2048, 2048, 2048 } }, { 2048, 2048, 2048 } };
@@ -916,9 +929,9 @@ L_case2:
         return;
     }
     SetDispMask(1);
-    task->killCountdown = 0;
-    task->spawnArg1.value     = 0;
-    task->state         = task->state + 1;
+    task->killCountdown   = 0;
+    task->spawnArg1.value = 0;
+    task->state           = task->state + 1;
     return;
 
 L_case3:
@@ -1563,14 +1576,14 @@ void func_acropolis_cafeteria_801803AC(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_acropolis_cafeteria_80184E80[1];
+                    SVECTOR* edge    = &D_acropolis_cafeteria_80184E80[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

@@ -90,7 +90,7 @@ GpRoomObjRec D_dryfield_night_souvenir_shop_8017E0EC[1] = {
     { D_dryfield_night_souvenir_shop_8017E604, D_dryfield_night_souvenir_shop_8017F190, D_dryfield_night_souvenir_shop_8017F248, NULL },
 };
 
-u8 * D_dryfield_night_souvenir_shop_8017E0FC[1] = {
+u8* D_dryfield_night_souvenir_shop_8017E0FC[1] = {
     D_8010CAF8,
 };
 
@@ -336,7 +336,7 @@ s16 D_dryfield_night_souvenir_shop_8017E5CC[19] = {
     -1,
 };
 
-s16 * D_dryfield_night_souvenir_shop_8017E5F4[4] = {
+s16* D_dryfield_night_souvenir_shop_8017E5F4[4] = {
     D_dryfield_night_souvenir_shop_8017E51C,
     D_dryfield_night_souvenir_shop_8017E564,
     D_dryfield_night_souvenir_shop_8017E58C,
@@ -601,7 +601,7 @@ GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6C4[1] = {
     { 0, 0, 1, 0, D_dryfield_night_souvenir_shop_8017F698 },
 };
 
-GpRoomParamRec * D_dryfield_night_souvenir_shop_8017F6CC[8] = {
+GpRoomParamRec* D_dryfield_night_souvenir_shop_8017F6CC[8] = {
     D_dryfield_night_souvenir_shop_8017F6A4,
     D_dryfield_night_souvenir_shop_8017F6BC,
     D_dryfield_night_souvenir_shop_8017F6C4,
@@ -624,7 +624,7 @@ s32 func_dryfield_night_souvenir_shop_8017D5D0(Task* task, s32 msgId, GpMessageA
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply unchanged and returns 1.
-s32 func_dryfield_night_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     return 1;

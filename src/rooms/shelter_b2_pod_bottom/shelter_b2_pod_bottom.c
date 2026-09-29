@@ -99,7 +99,7 @@ GpRoomCoordRec D_shelter_b2_pod_bottom_80181D24[1] = {
     { D_shelter_b2_pod_bottom_80186F90, D_shelter_b2_pod_bottom_801886BC },
 };
 
-u8 * D_shelter_b2_pod_bottom_80181D2C[1] = {
+u8* D_shelter_b2_pod_bottom_80181D2C[1] = {
     D_8010CAF8,
 };
 
@@ -968,7 +968,7 @@ s16 D_shelter_b2_pod_bottom_80182ACC[2] = {
     -1,
 };
 
-s16 * D_shelter_b2_pod_bottom_80182AD0[35] = {
+s16* D_shelter_b2_pod_bottom_80182AD0[35] = {
     D_shelter_b2_pod_bottom_801826EC,
     D_shelter_b2_pod_bottom_80182700,
     D_shelter_b2_pod_bottom_80182724,
@@ -1876,7 +1876,7 @@ s32 func_shelter_b2_pod_bottom_8017D5EC(Task* task, s32 msgId, GpMessageArg arg2
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one, passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_b2_pod_bottom_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_pod_bottom_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

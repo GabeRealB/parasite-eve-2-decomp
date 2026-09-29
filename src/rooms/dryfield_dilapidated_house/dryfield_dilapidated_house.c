@@ -342,7 +342,7 @@ TaskDesc D_dryfield_dilapidated_house_80183EE4[2] = {
 
 s32 D_dryfield_dilapidated_house_80183EFC = 0;
 
-GpAnimSet * D_dryfield_dilapidated_house_80183F00[16] = {
+GpAnimSet* D_dryfield_dilapidated_house_80183F00[16] = {
     NULL,
     &D_actor_521100_80138F88,
     NULL,
@@ -717,7 +717,7 @@ GpEvsCmd D_dryfield_dilapidated_house_80185788[4] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-Task * D_dryfield_dilapidated_house_801857E8 = NULL;
+Task* D_dryfield_dilapidated_house_801857E8 = NULL;
 
 TmdBone D_dryfield_dilapidated_house_801857EC[1] = {
 #include "assets/dryfield_dilapidated_house_model_08A40_skeleton.inc"
@@ -740,8 +740,15 @@ u32 D_dryfield_dilapidated_house_80185D54[171] = {
 };
 
 TmdSource D_dryfield_dilapidated_house_80186000 = {
-    0, 1160, 0, 1,
-    D_dryfield_dilapidated_house_80185810, D_dryfield_dilapidated_house_80185814, D_dryfield_dilapidated_house_80185954, D_dryfield_dilapidated_house_801857EC, D_dryfield_dilapidated_house_80185D54,
+    0,
+    1160,
+    0,
+    1,
+    D_dryfield_dilapidated_house_80185810,
+    D_dryfield_dilapidated_house_80185814,
+    D_dryfield_dilapidated_house_80185954,
+    D_dryfield_dilapidated_house_801857EC,
+    D_dryfield_dilapidated_house_80185D54,
 };
 
 TmdBone D_dryfield_dilapidated_house_80186024[1] = {
@@ -765,8 +772,15 @@ u32 D_dryfield_dilapidated_house_801862CC[171] = {
 };
 
 TmdSource D_dryfield_dilapidated_house_80186578 = {
-    0, 1160, 0, 1,
-    D_dryfield_dilapidated_house_80186048, D_dryfield_dilapidated_house_8018604C, D_dryfield_dilapidated_house_8018618C, D_dryfield_dilapidated_house_80186024, D_dryfield_dilapidated_house_801862CC,
+    0,
+    1160,
+    0,
+    1,
+    D_dryfield_dilapidated_house_80186048,
+    D_dryfield_dilapidated_house_8018604C,
+    D_dryfield_dilapidated_house_8018618C,
+    D_dryfield_dilapidated_house_80186024,
+    D_dryfield_dilapidated_house_801862CC,
 };
 
 SVECTOR D_dryfield_dilapidated_house_8018659C[32] = {
@@ -954,7 +968,7 @@ GpRoomObjRec D_dryfield_dilapidated_house_80186954[1] = {
     { D_dryfield_dilapidated_house_801872E4, D_dryfield_dilapidated_house_80188D08, D_dryfield_dilapidated_house_80188FB4, D_dryfield_dilapidated_house_80189260 },
 };
 
-u8 * D_dryfield_dilapidated_house_80186964[1] = {
+u8* D_dryfield_dilapidated_house_80186964[1] = {
     D_8010CAF8,
 };
 
@@ -1399,7 +1413,7 @@ s16 D_dryfield_dilapidated_house_801872A8[17] = {
     -1,
 };
 
-s16 * D_dryfield_dilapidated_house_801872CC[6] = {
+s16* D_dryfield_dilapidated_house_801872CC[6] = {
     D_dryfield_dilapidated_house_8018712C,
     D_dryfield_dilapidated_house_80187190,
     D_dryfield_dilapidated_house_801871D4,
@@ -1988,7 +2002,7 @@ GpRoomParamRec D_dryfield_dilapidated_house_80189A78[1] = {
     { 0, 0, 1, 0, D_dryfield_dilapidated_house_80189A5C },
 };
 
-GpRoomParamRec * D_dryfield_dilapidated_house_80189A80[8] = {
+GpRoomParamRec* D_dryfield_dilapidated_house_80189A80[8] = {
     D_dryfield_dilapidated_house_80189A68,
     D_dryfield_dilapidated_house_80189A70,
     D_dryfield_dilapidated_house_80189A78,
@@ -2078,11 +2092,11 @@ s32 D_dryfield_dilapidated_house_80189B6C = 0;
 
 s32 D_dryfield_dilapidated_house_80189B70 = 0;
 
-OverlayWaveCtx * D_dryfield_dilapidated_house_80189B74 = NULL;
+OverlayWaveCtx* D_dryfield_dilapidated_house_80189B74 = NULL;
 
-Task * D_dryfield_dilapidated_house_80189B78 = NULL;
+Task* D_dryfield_dilapidated_house_80189B78 = NULL;
 
-Task * D_dryfield_dilapidated_house_80189B7C = NULL;
+Task* D_dryfield_dilapidated_house_80189B7C = NULL;
 
 DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80 = { 0, 0 };
 
@@ -2485,7 +2499,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 Mc_SaveData[0].state.at4.loc.warp  = 1;
                 Mc_SaveData[0].state.at4.loc.room  = 1;
                 Mc_SaveData[0].state.at4.loc.area  = 8;
-                gDisplayState.roomVariant    = 1;
+                gDisplayState.roomVariant          = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);
@@ -2500,13 +2514,13 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 /// 38400 words exactly.
 static void func_dryfield_dilapidated_house_8017E48C(void)
 {
-    s32  i;
+    s32     i;
     u_long* p0;
     u_long* p1;
-    u32  hi;
-    u32  lo;
-    u32  gray;
-    u32  t;
+    u32     hi;
+    u32     lo;
+    u32     gray;
+    u32     t;
 
     p0 = Fs_ImgBuffers->words;
     i  = 0;
@@ -2559,7 +2573,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, GpMessageArg
 /// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.prefix.bytes.field_0` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
 /// clear; everything else is left to the caller and answers 1.
-s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 s1;
 
@@ -2596,7 +2610,7 @@ s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, GpMessageArg
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     u8 temp_v1;
 
@@ -2620,7 +2634,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
     switch (temp_v1) { /* irregular */
         case 0:
             arg0->spawnArg1.value = 0;
-            arg0->state    += 1;
+            arg0->state          += 1;
             return;
         case 2:
             func_800B0928(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
@@ -2667,7 +2681,7 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
         taskKill(arg0);
         var_v0 = arg0->spawnArg1.value;
     }
-    var_v0          = var_v0 - 1;
+    var_v0                = var_v0 - 1;
     arg0->spawnArg1.value = var_v0;
 }
 
@@ -2746,10 +2760,10 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
 {
     if (arg0 == 0) {
         D_dryfield_dilapidated_house_80189B7C->state = 0;
-        D_dryfield_dilapidated_house_80189B80.active     = 1;
+        D_dryfield_dilapidated_house_80189B80.active = 1;
         return;
     }
-    D_dryfield_dilapidated_house_80189B7C->state     = 2;
+    D_dryfield_dilapidated_house_80189B7C->state           = 2;
     D_dryfield_dilapidated_house_80189B7C->spawnArg1.value = arg0;
 }
 
@@ -4009,14 +4023,14 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_dryfield_dilapidated_house_80186944[1];
+                    SVECTOR* edge    = &D_dryfield_dilapidated_house_80186944[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &D_dryfield_dilapidated_house_80189DE0[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

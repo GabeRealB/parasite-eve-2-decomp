@@ -146,7 +146,7 @@ GpRoomObjRec D_shelter_r48_8018301C[1] = {
     { D_shelter_r48_80183EEC, D_shelter_r48_8018B670, D_shelter_r48_8018BC78, NULL },
 };
 
-u8 * D_shelter_r48_8018302C[1] = {
+u8* D_shelter_r48_8018302C[1] = {
     D_8010CAF8,
 };
 
@@ -1101,7 +1101,7 @@ s16 D_shelter_r48_80183E54[6] = {
     -1,
 };
 
-s16 * D_shelter_r48_80183E60[35] = {
+s16* D_shelter_r48_80183E60[35] = {
     D_shelter_r48_801839D0,
     D_shelter_r48_801839EC,
     D_shelter_r48_80183A18,
@@ -2686,7 +2686,7 @@ GpRoomParamRec D_shelter_r48_8018BE08[1] = {
     { 0, 1, 0, 0, D_shelter_r48_8018BDF4 },
 };
 
-GpRoomParamRec * D_shelter_r48_8018BE10[8] = {
+GpRoomParamRec* D_shelter_r48_8018BE10[8] = {
     D_shelter_r48_8018BE00,
     D_shelter_r48_8018BE08,
     D_shelter_r48_8018BE00,
@@ -3090,7 +3090,7 @@ static const TaskFuncTable3 D_shelter_r48_8017D608 = {
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
 /// the outgoing one and passes both on to `func_map_shelter_80179A04`. Always answers 1.
-s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -3103,7 +3103,7 @@ s32 func_shelter_r48_8017E088(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
     return 0;
 }
 
-s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg * in, GpMessageArg arg3)
+s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, GpMessageArg arg3)
 {
     if (in->field_2 == 1) {
         switch (GameFlag_GetNibble(0x100)) {
@@ -3427,10 +3427,10 @@ void func_shelter_r48_8017EC18(Task* task)
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
                 task->spawnArg1.value = 0x5A;
-                task->state     = 1;
-                work->scale     = 0;
-                work->angle     = 0x100;
-                work->step      = 0x100 / task->spawnArg1.value;
+                task->state           = 1;
+                work->scale           = 0;
+                work->angle           = 0x100;
+                work->step            = 0x100 / task->spawnArg1.value;
             case 1:
                 if (Gp_State1C->eventState != 0) {
                     rgb[0] = work->scale;
@@ -4311,11 +4311,11 @@ void func_shelter_r48_80181704(Task* task)
                 coord->coord.t[0]                = 0;
                 coord->flg                       = 0;
                 Gp_UpdateCoord(coord);
-                task->state     = 1;
+                task->state           = 1;
                 task->spawnArg1.value = 0x1E;
-                work->scale     = 0;
-                work->angle     = 0x100;
-                work->step      = 0x100 / task->spawnArg1.value;
+                work->scale           = 0;
+                work->angle           = 0x100;
+                work->step            = 0x100 / task->spawnArg1.value;
             case 1:
                 if (Gp_State1C->eventState != 0) {
                     rgb[0] = work->scale;

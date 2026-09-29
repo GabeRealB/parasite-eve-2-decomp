@@ -54,9 +54,15 @@ u32 D_shelter_b1_sleeping_quarters_801803BC[78] = {
 };
 
 TmdSource D_shelter_b1_sleeping_quarters_801804F4 = {
-    0, 552, 0, 1,
-    D_shelter_b1_sleeping_quarters_80180308, D_shelter_b1_sleeping_quarters_8018030C, &D_shelter_b1_sleeping_quarters_8018030C[22],
-    D_shelter_b1_sleeping_quarters_801802E4, D_shelter_b1_sleeping_quarters_801803BC,
+    0,
+    552,
+    0,
+    1,
+    D_shelter_b1_sleeping_quarters_80180308,
+    D_shelter_b1_sleeping_quarters_8018030C,
+    &D_shelter_b1_sleeping_quarters_8018030C[22],
+    D_shelter_b1_sleeping_quarters_801802E4,
+    D_shelter_b1_sleeping_quarters_801803BC,
 };
 
 GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
@@ -90,7 +96,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, GpMessageA
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

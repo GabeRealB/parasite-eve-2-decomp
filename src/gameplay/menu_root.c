@@ -478,8 +478,8 @@ void Gp_MenuRootTask(Task* arg0)
             if (obj == NULL) {
                 break;
             }
-            arg0->spawnArg2.pointer      = obj;
-            gGameSession->uiOpen = 1;
+            arg0->spawnArg2.pointer = obj;
+            gGameSession->uiOpen    = 1;
             if (arg0->spawnArg1.value != 0x44) {
                 SndEvt_EnqueueType6(1, 0, 0);
             }
@@ -622,14 +622,14 @@ void Gp_MenuRootTask(Task* arg0)
 
 static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
 {
-    Task*     childTask;
-    u8*       text;
-    s32       color;
-    s32       one;
-    TaskSpawnArg       val;
-    UiObject* child;
-    s32       flag;
-    u8*       map;
+    Task*        childTask;
+    u8*          text;
+    s32          color;
+    s32          one;
+    TaskSpawnArg val;
+    UiObject*    child;
+    s32          flag;
+    u8*          map;
 
     val = arg1->spawnArg1;
     map = (u8*)arg1->work;

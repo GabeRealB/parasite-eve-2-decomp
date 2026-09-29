@@ -765,7 +765,7 @@ s16 D_mist_shooting_gallery_8018518C[4] = {
     -1,
 };
 
-s16 * D_mist_shooting_gallery_80185194[1] = {
+s16* D_mist_shooting_gallery_80185194[1] = {
     D_mist_shooting_gallery_8018518C,
 };
 
@@ -791,7 +791,7 @@ s16 D_mist_shooting_gallery_801851F0[2] = {
     -1,
 };
 
-s16 * D_mist_shooting_gallery_801851F4[1] = {
+s16* D_mist_shooting_gallery_801851F4[1] = {
     D_mist_shooting_gallery_801851F0,
 };
 
@@ -882,7 +882,7 @@ GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {
     { &D_mist_shooting_gallery_80189968, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
 };
 
-u8 * D_mist_shooting_gallery_801853B8[1] = {
+u8* D_mist_shooting_gallery_801853B8[1] = {
     D_8010CAF8,
 };
 
@@ -1063,19 +1063,19 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         }
     }
 }
-static const char D_mist_shooting_gallery_8017D5D8[8] = "Select";
+static const char D_mist_shooting_gallery_8017D5D8[8]  = "Select";
 static const char D_mist_shooting_gallery_8017D5E0[12] = "Red Target";
 static const char D_mist_shooting_gallery_8017D5EC[16] = "Brown Target";
 static const char D_mist_shooting_gallery_8017D5FC[16] = "Yellow Target";
-static const char D_mist_shooting_gallery_8017D60C[8] = "Woman";
-static const char D_mist_shooting_gallery_8017D614[8] = "Crow";
-static const char D_mist_shooting_gallery_8017D61C[4] = "Bee";
-static const char D_mist_shooting_gallery_8017D620[8] = "Spider";
-static const char D_mist_shooting_gallery_8017D628[8] = "Snake";
+static const char D_mist_shooting_gallery_8017D60C[8]  = "Woman";
+static const char D_mist_shooting_gallery_8017D614[8]  = "Crow";
+static const char D_mist_shooting_gallery_8017D61C[4]  = "Bee";
+static const char D_mist_shooting_gallery_8017D620[8]  = "Spider";
+static const char D_mist_shooting_gallery_8017D628[8]  = "Snake";
 static const char D_mist_shooting_gallery_8017D630[12] = "Scorpion";
-static const char D_mist_shooting_gallery_8017D63C[4] = "Rat";
-static const char D_mist_shooting_gallery_8017D640[8] = "Monkey";
-static const char D_mist_shooting_gallery_8017D648[8] = "Bear";
+static const char D_mist_shooting_gallery_8017D63C[4]  = "Rat";
+static const char D_mist_shooting_gallery_8017D640[8]  = "Monkey";
+static const char D_mist_shooting_gallery_8017D648[8]  = "Bear";
 static const char D_mist_shooting_gallery_8017D650[12] = "Bacterium";
 
 void func_mist_shooting_gallery_8017E090(Task* task)
@@ -1738,7 +1738,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             D_mist_shooting_gallery_8018E0BC = cfg->exp;
             GameMain_SetFrameTiming(0);
             task->spawnArg2.pointer = obj;
-            task->state     = task->state + 1;
+            task->state             = task->state + 1;
         }
     } else if (task->state == 1) {
         obj = task->spawnArg2.pointer;
@@ -1973,7 +1973,7 @@ s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     if (*(u16*)src == 0x13 && src->field_5 == 0) {
@@ -1988,14 +1988,14 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, GpSaveLoc * src, 
         if (src->field_5 == 0) {
             if (dst->field_2 == 6) {
                 Mc_SaveData[0].state.sceneEvent = 2;
-                Player_Status.field_26    = 4;
-                gGameSession->hideHud     = 1;
+                Player_Status.field_26          = 4;
+                gGameSession->hideHud           = 1;
                 Gp_ResetInventory();
             }
             if (dst->field_2 == 5) {
                 Mc_SaveData[0].state.sceneEvent = 1;
-                Player_Status.field_26    = 3;
-                gGameSession->hideHud     = 1;
+                Player_Status.field_26          = 3;
+                gGameSession->hideHud           = 1;
                 Gp_ClearInventory();
             }
         }
@@ -2021,7 +2021,7 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (D_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
@@ -2365,8 +2365,8 @@ void func_mist_shooting_gallery_80180A00(Task* task)
             return;
         }
         GameMain_SetFrameTiming(0);
-        gGameSession->uiOpen = 1;
-        task->spawnArg2.pointer      = obj;
+        gGameSession->uiOpen    = 1;
+        task->spawnArg2.pointer = obj;
         task->state++;
     }
 

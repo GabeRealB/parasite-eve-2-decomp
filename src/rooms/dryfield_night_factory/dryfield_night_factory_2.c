@@ -128,8 +128,15 @@ u32 D_dryfield_night_factory_80183B7C[2811] = {
 };
 
 TmdSource D_dryfield_night_factory_80186768 = {
-    0, 19284, 0, 1,
-    D_dryfield_night_factory_801826E0, D_dryfield_night_factory_801826E4, D_dryfield_night_factory_80183074, D_dryfield_night_factory_801826BC, D_dryfield_night_factory_80183B7C,
+    0,
+    19284,
+    0,
+    1,
+    D_dryfield_night_factory_801826E0,
+    D_dryfield_night_factory_801826E4,
+    D_dryfield_night_factory_80183074,
+    D_dryfield_night_factory_801826BC,
+    D_dryfield_night_factory_80183B7C,
 };
 
 TmdBone D_dryfield_night_factory_8018678C[1] = {
@@ -153,8 +160,15 @@ u32 D_dryfield_night_factory_8018695C[139] = {
 };
 
 TmdSource D_dryfield_night_factory_80186B88 = {
-    0, 856, 0, 1,
-    D_dryfield_night_factory_801867B0, D_dryfield_night_factory_801867B4, D_dryfield_night_factory_8018687C, D_dryfield_night_factory_8018678C, D_dryfield_night_factory_8018695C,
+    0,
+    856,
+    0,
+    1,
+    D_dryfield_night_factory_801867B0,
+    D_dryfield_night_factory_801867B4,
+    D_dryfield_night_factory_8018687C,
+    D_dryfield_night_factory_8018678C,
+    D_dryfield_night_factory_8018695C,
 };
 
 SVECTOR D_dryfield_night_factory_80186BAC[2] = {
@@ -184,7 +198,7 @@ s16 D_dryfield_night_factory_80186C14[3] = {
     -1,
 };
 
-s16 * D_dryfield_night_factory_80186C1C[1] = {
+s16* D_dryfield_night_factory_80186C1C[1] = {
     D_dryfield_night_factory_80186C14,
 };
 
@@ -230,7 +244,7 @@ s16 D_dryfield_night_factory_80186CE0[4] = {
     -1,
 };
 
-s16 * D_dryfield_night_factory_80186CE8[2] = {
+s16* D_dryfield_night_factory_80186CE8[2] = {
     D_dryfield_night_factory_80186CD4,
     D_dryfield_night_factory_80186CE0,
 };
@@ -276,7 +290,7 @@ s16 D_dryfield_night_factory_80186DAC[4] = {
     -1,
 };
 
-s16 * D_dryfield_night_factory_80186DB4[2] = {
+s16* D_dryfield_night_factory_80186DB4[2] = {
     D_dryfield_night_factory_80186DA4,
     D_dryfield_night_factory_80186DAC,
 };
@@ -338,7 +352,7 @@ SVECTOR D_dryfield_night_factory_80186F0C = { 5910, -1308, 5649, 0 };
 
 SVECTOR D_dryfield_night_factory_80186F14 = { 5910, -1404, 5649, 0 };
 
-u8 * D_dryfield_night_factory_80186F1C[2] = {
+u8* D_dryfield_night_factory_80186F1C[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -953,7 +967,7 @@ s16 D_dryfield_night_factory_80187BAC[18] = {
     -1,
 };
 
-s16 * D_dryfield_night_factory_80187BD0[8] = {
+s16* D_dryfield_night_factory_80187BD0[8] = {
     D_dryfield_night_factory_80187990,
     D_dryfield_night_factory_801879E8,
     D_dryfield_night_factory_80187A5C,
@@ -1566,7 +1580,7 @@ void func_dryfield_night_factory_801802C8(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_factory_8018A7D4.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_factory_8018A7D4.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_factory_8018A7D4.field_3;
@@ -1621,7 +1635,7 @@ static void func_dryfield_night_factory_80180438(Task* arg0)
 /// 0x4A reaches 2, area 0x16 with cap command 0xD while game flag 0x37 is
 /// clear, and area 0x19 goes through the event gate with the room's own
 /// request. Any other warp answers 1.
-s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u8           variant;
@@ -1785,7 +1799,7 @@ s32 func_dryfield_night_factory_80180914(Task* task, s32 msgId, s32 arg2, s32 ar
 
 /// Message handler: the first message with `field_2` 1 while game flag 0x2C is
 /// clear starts cap 0xB, sets the flag and plays sound 0x5217000A.
-s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
@@ -2300,8 +2314,8 @@ static void func_dryfield_night_factory_8018182C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_night_factory_80186E94, 0, 1, 0);
-    task->work      = (TaskIdMap*)work;
-    task->msgTable  = D_dryfield_night_factory_80186EAC;
+    task->work              = (TaskIdMap*)work;
+    task->msgTable          = D_dryfield_night_factory_80186EAC;
     if (GameFlag_GetNibble(0x48) == 0) {
         Mc_SaveData[0].state.at4.loc.view = 0xC;
     } else {
@@ -2374,9 +2388,9 @@ static void func_dryfield_night_factory_80181A24(Task* arg0)
     Gp_MsgPlayer3F3(1);
     Gp_MsgAlly3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);

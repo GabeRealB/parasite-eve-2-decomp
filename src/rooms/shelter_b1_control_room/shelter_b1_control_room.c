@@ -589,7 +589,7 @@ s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, GpMessageArg ar
     return 0;
 }
 
-s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

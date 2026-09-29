@@ -209,7 +209,7 @@ typedef union {
 
 AcropolisPatioPoseBank172C D_acropolis_patio_8017ECEC = { .poses = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_8017ED04[20] = {
 #include "assets/acropolis_patio_animation_018A0_bank4.inc"
@@ -224,7 +224,8 @@ u16 D_acropolis_patio_8017EE38[20] = {
 };
 
 GpAnimSet D_acropolis_patio_8017EE60 = {
-    D_acropolis_patio_8017ED54, D_acropolis_patio_8017EE38,
+    D_acropolis_patio_8017ED54,
+    D_acropolis_patio_8017EE38,
     { NULL, D_acropolis_patio_8017ECEC.words, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
 };
 
@@ -236,7 +237,7 @@ typedef union {
 
 AcropolisPatioPoseBank18C8 D_acropolis_patio_8017EE88 = { .poses = {
 #include "assets/acropolis_patio_animation_01B48_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_8017EEA0[41] = {
 #include "assets/acropolis_patio_animation_01B48_bank4.inc"
@@ -251,7 +252,8 @@ u16 D_acropolis_patio_8017F0E0[20] = {
 };
 
 GpAnimSet D_acropolis_patio_8017F108 = {
-    D_acropolis_patio_8017EF44, D_acropolis_patio_8017F0E0,
+    D_acropolis_patio_8017EF44,
+    D_acropolis_patio_8017F0E0,
     { NULL, D_acropolis_patio_8017EE88.words, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
 };
 
@@ -263,7 +265,7 @@ typedef union {
 
 AcropolisPatioPoseBank1B70 D_acropolis_patio_8017F130 = { .poses = {
 #include "assets/acropolis_patio_animation_01CE4_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_8017F148[20] = {
 #include "assets/acropolis_patio_animation_01CE4_bank4.inc"
@@ -278,7 +280,8 @@ u16 D_acropolis_patio_8017F27C[20] = {
 };
 
 GpAnimSet D_acropolis_patio_8017F2A4 = {
-    D_acropolis_patio_8017F198, D_acropolis_patio_8017F27C,
+    D_acropolis_patio_8017F198,
+    D_acropolis_patio_8017F27C,
     { NULL, D_acropolis_patio_8017F130.words, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
 };
 
@@ -290,7 +293,7 @@ typedef union {
 
 AcropolisPatioPoseBank1D0C D_acropolis_patio_8017F2CC = { .poses = {
 #include "assets/acropolis_patio_animation_022B8_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_8017F35C[138] = {
 #include "assets/acropolis_patio_animation_022B8_bank4.inc"
@@ -305,7 +308,8 @@ u16 D_acropolis_patio_8017F850[20] = {
 };
 
 GpAnimSet D_acropolis_patio_8017F878 = {
-    D_acropolis_patio_8017F584, D_acropolis_patio_8017F850,
+    D_acropolis_patio_8017F584,
+    D_acropolis_patio_8017F850,
     { NULL, D_acropolis_patio_8017F2CC.words, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
 };
 
@@ -317,7 +321,7 @@ typedef union {
 
 AcropolisPatioPoseBank22E0 D_acropolis_patio_8017F8A0 = { .poses = {
 #include "assets/acropolis_patio_animation_02AD0_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_8017F984[189] = {
 #include "assets/acropolis_patio_animation_02AD0_bank4.inc"
@@ -332,7 +336,8 @@ u16 D_acropolis_patio_80180068[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80180090 = {
-    D_acropolis_patio_8017FC78, D_acropolis_patio_80180068,
+    D_acropolis_patio_8017FC78,
+    D_acropolis_patio_80180068,
     { NULL, D_acropolis_patio_8017F8A0.words, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
 };
 
@@ -344,7 +349,7 @@ typedef union {
 
 AcropolisPatioPoseBank2AF8 D_acropolis_patio_801800B8 = { .poses = {
 #include "assets/acropolis_patio_animation_02CA4_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_801800D0[15] = {
 #include "assets/acropolis_patio_animation_02CA4_bank4.inc"
@@ -359,7 +364,8 @@ u16 D_acropolis_patio_8018023C[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80180264 = {
-    D_acropolis_patio_8018010C, D_acropolis_patio_8018023C,
+    D_acropolis_patio_8018010C,
+    D_acropolis_patio_8018023C,
     { NULL, D_acropolis_patio_801800B8.words, NULL, NULL, D_acropolis_patio_801800D0, NULL, NULL, NULL },
 };
 
@@ -389,7 +395,7 @@ GpXformArg D_acropolis_patio_80180334 = { { -6612, 1, 315, 0 }, { 0, -800, 0, 0 
 
 GpXformArg D_acropolis_patio_8018034C = { { 1452, 1, 593, 0 }, { 0, -1024, 0, 0 } };
 
-GpAnimSet * D_acropolis_patio_80180364[6] = {
+GpAnimSet* D_acropolis_patio_80180364[6] = {
     &D_acropolis_patio_8017EE60,
     &D_acropolis_patio_8017F2A4,
     &D_acropolis_patio_8017F108,
@@ -579,7 +585,7 @@ typedef union {
 
 AcropolisPatioPoseBank39F4 D_acropolis_patio_80180FB4 = { .poses = {
 #include "assets/acropolis_patio_animation_03CD0_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_80180FFC[46] = {
 #include "assets/acropolis_patio_animation_03CD0_bank4.inc"
@@ -594,7 +600,8 @@ u16 D_acropolis_patio_80181268[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80181290 = {
-    D_acropolis_patio_801810B4, D_acropolis_patio_80181268,
+    D_acropolis_patio_801810B4,
+    D_acropolis_patio_80181268,
     { NULL, D_acropolis_patio_80180FB4.words, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
 };
 
@@ -606,7 +613,7 @@ typedef union {
 
 AcropolisPatioPoseBank3CF8 D_acropolis_patio_801812B8 = { .poses = {
 #include "assets/acropolis_patio_animation_04470_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_80181354[179] = {
 #include "assets/acropolis_patio_animation_04470_bank4.inc"
@@ -621,7 +628,8 @@ u16 D_acropolis_patio_80181A08[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80181A30 = {
-    D_acropolis_patio_80181620, D_acropolis_patio_80181A08,
+    D_acropolis_patio_80181620,
+    D_acropolis_patio_80181A08,
     { NULL, D_acropolis_patio_801812B8.words, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
 };
 
@@ -633,7 +641,7 @@ typedef union {
 
 AcropolisPatioPoseBank4498 D_acropolis_patio_80181A58 = { .poses = {
 #include "assets/acropolis_patio_animation_0494C_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_80181AC4[109] = {
 #include "assets/acropolis_patio_animation_0494C_bank4.inc"
@@ -648,7 +656,8 @@ u16 D_acropolis_patio_80181EE4[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80181F0C = {
-    D_acropolis_patio_80181C78, D_acropolis_patio_80181EE4,
+    D_acropolis_patio_80181C78,
+    D_acropolis_patio_80181EE4,
     { NULL, D_acropolis_patio_80181A58.words, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
 };
 
@@ -660,7 +669,7 @@ typedef union {
 
 AcropolisPatioPoseBank4974 D_acropolis_patio_80181F34 = { .poses = {
 #include "assets/acropolis_patio_animation_04FC8_bank1.inc"
-} };
+                                                          } };
 
 GpPackedSvec D_acropolis_patio_80181FB8[161] = {
 #include "assets/acropolis_patio_animation_04FC8_bank4.inc"
@@ -675,11 +684,12 @@ u16 D_acropolis_patio_80182560[20] = {
 };
 
 GpAnimSet D_acropolis_patio_80182588 = {
-    D_acropolis_patio_8018223C, D_acropolis_patio_80182560,
+    D_acropolis_patio_8018223C,
+    D_acropolis_patio_80182560,
     { NULL, D_acropolis_patio_80181F34.words, NULL, NULL, D_acropolis_patio_80181FB8, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_acropolis_patio_801825B0[5] = {
+GpAnimSet* D_acropolis_patio_801825B0[5] = {
     NULL,
     &D_acropolis_patio_80181290,
     &D_acropolis_patio_80181A30,
@@ -902,7 +912,7 @@ u8 D_acropolis_patio_80182EAC[20] = {
     0,
 };
 
-u8 * D_acropolis_patio_80182EC0[3] = {
+u8* D_acropolis_patio_80182EC0[3] = {
     D_8010CAF8,
     D_acropolis_patio_80182E98,
     D_acropolis_patio_80182EAC,
@@ -1712,7 +1722,7 @@ s16 D_acropolis_patio_80183D80[4] = {
     -1,
 };
 
-s16 * D_acropolis_patio_80183D88[28] = {
+s16* D_acropolis_patio_80183D88[28] = {
     D_acropolis_patio_80183A64,
     D_acropolis_patio_80183A98,
     D_acropolis_patio_80183ADC,
@@ -2401,7 +2411,7 @@ GpRoomParamRec D_acropolis_patio_80187034[1] = {
     { 0, 0, 1, 0, D_acropolis_patio_80187008 },
 };
 
-GpRoomParamRec * D_acropolis_patio_8018703C[9] = {
+GpRoomParamRec* D_acropolis_patio_8018703C[9] = {
     D_acropolis_patio_80187014,
     D_acropolis_patio_8018701C,
     D_acropolis_patio_80187024,
@@ -2569,7 +2579,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             }
             SndEvt_EnqueueType7(0x80000000, 0);
             Mc_SaveData[0].state.at4.loc.area = 4;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.warp = D_acropolis_patio_80187064;
             Mc_SaveData[0].state.at4.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
@@ -2587,7 +2597,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
         GameFlag_SetNibble(0x21, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         Mc_SaveData[0].state.sceneEvent = 3;
-        gGameSession->flowFlags   = 0xC1;
+        gGameSession->flowFlags         = 0xC1;
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
@@ -2666,7 +2676,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
     switch (task->state) {
         case 0:
             task->spawnArg1.value = 0;
-            task->state     = task->state + 1;
+            task->state           = task->state + 1;
             return;
         case 1:
             return;
@@ -2679,7 +2689,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            offset          = task->spawnArg1.value + 0x32;
+            offset                = task->spawnArg1.value + 0x32;
             task->spawnArg1.value = offset;
             if (offset >= 0x1001) {
                 task->spawnArg1.value = 0x1000;
@@ -2698,7 +2708,7 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 void func_acropolis_patio_8017DF48(void)
 {
     gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->roomObjsDirty                              = 1;
+    gGameSession->roomObjsDirty                                    = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {
@@ -2861,10 +2871,10 @@ void func_acropolis_patio_8017E324(Task* task)
             } else {
                 work->scale = 0x280;
             }
-            work->angle     = (task->spawnArg1.value >> 8) & 3;
+            work->angle           = (task->spawnArg1.value >> 8) & 3;
             task->spawnArg1.value = task->spawnArg1.value & 0xF;
-            work->period    = levels.level[work->angle];
-            task->state     = task->state + 1;
+            work->period          = levels.level[work->angle];
+            task->state           = task->state + 1;
         }
         block->vec.vx = (u16)coord->workm.t[0];
         block->vec.vy = (u16)coord->workm.t[1];

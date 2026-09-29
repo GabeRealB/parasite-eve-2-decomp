@@ -1438,7 +1438,7 @@ static s32 SndScript_Exec(SndScript* script)
                     result = 1;
                 } else {
                     voice->field_10.field_0 = 0;
-                    result          = 1;
+                    result                  = 1;
                 }
             }
             script->field_8  = (s32)(script->field_8 - (oneV->field_8 << 0x10));
@@ -2086,7 +2086,7 @@ static s32 SndScript_TickVoices(SndScript* script)
                     Spu_KeyOff(node->field_0);
                 }
                 if (node->field_10.field_0 != 0) {
-                    count         += 1;
+                    count                 += 1;
                     node->field_10.field_2 = 1;
                 }
             }

@@ -63,7 +63,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32           _i;                                                               \
         s32           _n;                                                               \
                                                                                         \
-        _scan   = &Mc_SaveData[0].state.carriedItems;                                         \
+        _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
         _cfg    = &Player_Status;                                                       \
         _n      = (index);                                                              \
         _rec    = Gp_GetItemTable(_scan);                                               \
@@ -88,7 +88,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32           _i;                                                               \
                                                                                         \
         (count) = 0;                                                                    \
-        _scan   = &Mc_SaveData[0].state.carriedItems;                                         \
+        _scan   = &Mc_SaveData[0].state.carriedItems;                                   \
         _cfg    = &Player_Status;                                                       \
         _rec    = Gp_GetItemTable(_scan);                                               \
         _i      = 0;                                                                    \
@@ -541,7 +541,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             if (Gp_ReloadMode == 1) {
                 if (slot->ammoId != 0) {
                     arg0->spawnArg1.value |= slot->ammoId;
-                    text             = Gp_GetItemText(slot->ammoId, 0, 0);
+                    text                   = Gp_GetItemText(slot->ammoId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;
@@ -549,7 +549,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             } else if (Gp_ReloadMode == 2) {
                 if (slot->attachId != 0) {
                     arg0->spawnArg1.value |= slot->attachId;
-                    text             = Gp_GetItemText(slot->attachId, 0, 0);
+                    text                   = Gp_GetItemText(slot->attachId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;

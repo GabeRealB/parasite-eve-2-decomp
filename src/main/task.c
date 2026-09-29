@@ -459,9 +459,9 @@ void Task_RequestKill(Task* task, s32 arg1)
     Task* cur;
     Task* temp;
 
-    task->status     = 0xFF;
+    task->status           = 0xFF;
     task->extraState.value = arg1;
-    task->callback   = textNoopCallback;
+    task->callback         = textNoopCallback;
 
     temp = task->firstChild;
     if (temp != NULL) {
@@ -690,6 +690,7 @@ void Mem_CopyUnaligned(void* src, void* dest, u32 count)
     remaining = count;
 
     while ((remaining & 0xFFFF) >= 4) {
+        /* Alignment depends on address bits, not the pointed-to value. */
         alignment = (uintptr)ptr & 3;
 
         switch (alignment) {

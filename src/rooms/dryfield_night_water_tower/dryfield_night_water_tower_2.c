@@ -85,7 +85,7 @@ GpRoomObjRec D_dryfield_night_water_tower_8017E754[1] = {
     { D_dryfield_night_water_tower_8017F3F4, D_dryfield_night_water_tower_80182410, D_dryfield_night_water_tower_80182838, NULL },
 };
 
-u8 * D_dryfield_night_water_tower_8017E764[1] = {
+u8* D_dryfield_night_water_tower_8017E764[1] = {
     D_8010CAF8,
 };
 
@@ -712,7 +712,7 @@ s16 D_dryfield_night_water_tower_8017F3B0[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_water_tower_8017F3B4[16] = {
+s16* D_dryfield_night_water_tower_8017F3B4[16] = {
     D_dryfield_night_water_tower_8017F148,
     D_dryfield_night_water_tower_8017F174,
     D_dryfield_night_water_tower_8017F1AC,
@@ -1513,7 +1513,7 @@ GpRoomParamRec D_dryfield_night_water_tower_80182C28[1] = {
     { 0, 0, 1, 0, D_dryfield_night_water_tower_80182C0C },
 };
 
-GpRoomParamRec * D_dryfield_night_water_tower_80182C30[8] = {
+GpRoomParamRec* D_dryfield_night_water_tower_80182C30[8] = {
     D_dryfield_night_water_tower_80182C18,
     D_dryfield_night_water_tower_80182C20,
     D_dryfield_night_water_tower_80182C28,

@@ -741,8 +741,15 @@ u32 D_actor_206100_801509D0[2494] = {
 };
 
 TmdSource D_actor_206100_801530C8 = {
-    0, 11652, 5104, 15,
-    D_actor_206100_8015009C, D_actor_206100_801500D8, D_actor_206100_80150560, D_actor_206100_8014FE80, D_actor_206100_801509D0,
+    0,
+    11652,
+    5104,
+    15,
+    D_actor_206100_8015009C,
+    D_actor_206100_801500D8,
+    D_actor_206100_80150560,
+    D_actor_206100_8014FE80,
+    D_actor_206100_801509D0,
 };
 
 TmdBone D_actor_206100_801530EC[1] = {
@@ -766,8 +773,15 @@ u32 D_actor_206100_8015338C[360] = {
 };
 
 TmdSource D_actor_206100_8015392C = {
-    0, 2388, 0, 1,
-    D_actor_206100_80153110, D_actor_206100_80153114, D_actor_206100_8015322C, D_actor_206100_801530EC, D_actor_206100_8015338C,
+    0,
+    2388,
+    0,
+    1,
+    D_actor_206100_80153110,
+    D_actor_206100_80153114,
+    D_actor_206100_8015322C,
+    D_actor_206100_801530EC,
+    D_actor_206100_8015338C,
 };
 
 TmdBone D_actor_206100_80153950[1] = {
@@ -791,8 +805,15 @@ u32 D_actor_206100_80153AA8[143] = {
 };
 
 TmdSource D_actor_206100_80153CE4 = {
-    0, 904, 0, 1,
-    D_actor_206100_80153974, D_actor_206100_80153978, D_actor_206100_801539E8, D_actor_206100_80153950, D_actor_206100_80153AA8,
+    0,
+    904,
+    0,
+    1,
+    D_actor_206100_80153974,
+    D_actor_206100_80153978,
+    D_actor_206100_801539E8,
+    D_actor_206100_80153950,
+    D_actor_206100_80153AA8,
 };
 
 TmdBone D_actor_206100_80153D08[1] = {
@@ -816,8 +837,15 @@ u32 D_actor_206100_80153E60[143] = {
 };
 
 TmdSource D_actor_206100_8015409C = {
-    0, 904, 0, 1,
-    D_actor_206100_80153D2C, D_actor_206100_80153D30, D_actor_206100_80153DA0, D_actor_206100_80153D08, D_actor_206100_80153E60,
+    0,
+    904,
+    0,
+    1,
+    D_actor_206100_80153D2C,
+    D_actor_206100_80153D30,
+    D_actor_206100_80153DA0,
+    D_actor_206100_80153D08,
+    D_actor_206100_80153E60,
 };
 
 TmdBone D_actor_206100_801540C0[1] = {
@@ -841,8 +869,15 @@ u32 D_actor_206100_80154288[210] = {
 };
 
 TmdSource D_actor_206100_801545D0 = {
-    0, 1360, 0, 1,
-    D_actor_206100_801540E4, D_actor_206100_801540E8, D_actor_206100_80154180, D_actor_206100_801540C0, D_actor_206100_80154288,
+    0,
+    1360,
+    0,
+    1,
+    D_actor_206100_801540E4,
+    D_actor_206100_801540E8,
+    D_actor_206100_80154180,
+    D_actor_206100_801540C0,
+    D_actor_206100_80154288,
 };
 
 TmdBone D_actor_206100_801545F4[1] = {
@@ -866,8 +901,15 @@ u32 D_actor_206100_801547BC[210] = {
 };
 
 TmdSource D_actor_206100_80154B04 = {
-    0, 1360, 0, 1,
-    D_actor_206100_80154618, D_actor_206100_8015461C, D_actor_206100_801546B4, D_actor_206100_801545F4, D_actor_206100_801547BC,
+    0,
+    1360,
+    0,
+    1,
+    D_actor_206100_80154618,
+    D_actor_206100_8015461C,
+    D_actor_206100_801546B4,
+    D_actor_206100_801545F4,
+    D_actor_206100_801547BC,
 };
 
 TmdBone D_actor_206100_80154B28[1] = {
@@ -891,9 +933,15 @@ u32 D_actor_206100_80154CD8[270] = {
 };
 
 TmdSource D_actor_206100_80155110 = {
-    0, 1760, 0, 1,
-    D_actor_206100_80154B4C, D_actor_206100_80154B50, D_actor_206100_80154C10,
-    D_actor_206100_80154B28, D_actor_206100_80154CD8,
+    0,
+    1760,
+    0,
+    1,
+    D_actor_206100_80154B4C,
+    D_actor_206100_80154B50,
+    D_actor_206100_80154C10,
+    D_actor_206100_80154B28,
+    D_actor_206100_80154CD8,
 };
 
 GpAreaPlace D_actor_206100_80155134[6] = {
@@ -917,7 +965,7 @@ typedef union {
 
 Actor206100PoseBankB388 D_actor_206100_801551A8 = { .poses = {
 #include "assets/actor_206100_animation_0B8F8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80155208[133] = {
 #include "assets/actor_206100_animation_0B8F8_bank4.inc"
@@ -932,7 +980,8 @@ u16 D_actor_206100_801556F8[16] = {
 };
 
 GpAnimSet D_actor_206100_80155718 = {
-    D_actor_206100_8015541C, D_actor_206100_801556F8,
+    D_actor_206100_8015541C,
+    D_actor_206100_801556F8,
     { NULL, D_actor_206100_801551A8.words, NULL, NULL, D_actor_206100_80155208, NULL, NULL, NULL },
 };
 
@@ -944,7 +993,7 @@ typedef union {
 
 Actor206100PoseBankB920 D_actor_206100_80155740 = { .poses = {
 #include "assets/actor_206100_animation_0BC80_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80155764[78] = {
 #include "assets/actor_206100_animation_0BC80_bank4.inc"
@@ -959,7 +1008,8 @@ u16 D_actor_206100_80155A80[16] = {
 };
 
 GpAnimSet D_actor_206100_80155AA0 = {
-    D_actor_206100_8015589C, D_actor_206100_80155A80,
+    D_actor_206100_8015589C,
+    D_actor_206100_80155A80,
     { NULL, D_actor_206100_80155740.words, NULL, NULL, D_actor_206100_80155764, NULL, NULL, NULL },
 };
 
@@ -971,7 +1021,7 @@ typedef union {
 
 Actor206100PoseBankBCA8 D_actor_206100_80155AC8 = { .poses = {
 #include "assets/actor_206100_animation_0C544_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80155B28[174] = {
 #include "assets/actor_206100_animation_0C544_bank4.inc"
@@ -986,7 +1036,8 @@ u16 D_actor_206100_80156344[16] = {
 };
 
 GpAnimSet D_actor_206100_80156364 = {
-    D_actor_206100_80155DE0, D_actor_206100_80156344,
+    D_actor_206100_80155DE0,
+    D_actor_206100_80156344,
     { NULL, D_actor_206100_80155AC8.words, NULL, NULL, D_actor_206100_80155B28, NULL, NULL, NULL },
 };
 
@@ -998,7 +1049,7 @@ typedef union {
 
 Actor206100PoseBankC56C D_actor_206100_8015638C = { .poses = {
 #include "assets/actor_206100_animation_0CC4C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80156404[167] = {
 #include "assets/actor_206100_animation_0CC4C_bank4.inc"
@@ -1013,7 +1064,8 @@ u16 D_actor_206100_80156A4C[16] = {
 };
 
 GpAnimSet D_actor_206100_80156A6C = {
-    D_actor_206100_801566A0, D_actor_206100_80156A4C,
+    D_actor_206100_801566A0,
+    D_actor_206100_80156A4C,
     { NULL, D_actor_206100_8015638C.words, NULL, NULL, D_actor_206100_80156404, NULL, NULL, NULL },
 };
 
@@ -1025,7 +1077,7 @@ typedef union {
 
 Actor206100PoseBankCC74 D_actor_206100_80156A94 = { .poses = {
 #include "assets/actor_206100_animation_0D530_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80156B0C[213] = {
 #include "assets/actor_206100_animation_0D530_bank4.inc"
@@ -1040,7 +1092,8 @@ u16 D_actor_206100_80157330[16] = {
 };
 
 GpAnimSet D_actor_206100_80157350 = {
-    D_actor_206100_80156E60, D_actor_206100_80157330,
+    D_actor_206100_80156E60,
+    D_actor_206100_80157330,
     { NULL, D_actor_206100_80156A94.words, NULL, NULL, D_actor_206100_80156B0C, NULL, NULL, NULL },
 };
 
@@ -1052,7 +1105,7 @@ typedef union {
 
 Actor206100PoseBankD558 D_actor_206100_80157378 = { .poses = {
 #include "assets/actor_206100_animation_0D968_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_801573C0[103] = {
 #include "assets/actor_206100_animation_0D968_bank4.inc"
@@ -1067,7 +1120,8 @@ u16 D_actor_206100_80157768[16] = {
 };
 
 GpAnimSet D_actor_206100_80157788 = {
-    D_actor_206100_8015755C, D_actor_206100_80157768,
+    D_actor_206100_8015755C,
+    D_actor_206100_80157768,
     { NULL, D_actor_206100_80157378.words, NULL, NULL, D_actor_206100_801573C0, NULL, NULL, NULL },
 };
 
@@ -1079,7 +1133,7 @@ typedef union {
 
 Actor206100PoseBankD990 D_actor_206100_801577B0 = { .poses = {
 #include "assets/actor_206100_animation_0DEA8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80157864[109] = {
 #include "assets/actor_206100_animation_0DEA8_bank4.inc"
@@ -1094,7 +1148,8 @@ u16 D_actor_206100_80157CA8[16] = {
 };
 
 GpAnimSet D_actor_206100_80157CC8 = {
-    D_actor_206100_80157A18, D_actor_206100_80157CA8,
+    D_actor_206100_80157A18,
+    D_actor_206100_80157CA8,
     { NULL, D_actor_206100_801577B0.words, NULL, NULL, D_actor_206100_80157864, NULL, NULL, NULL },
 };
 
@@ -1106,7 +1161,7 @@ typedef union {
 
 Actor206100PoseBankDED0 D_actor_206100_80157CF0 = { .poses = {
 #include "assets/actor_206100_animation_0E4A8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80157DE0[126] = {
 #include "assets/actor_206100_animation_0E4A8_bank4.inc"
@@ -1121,7 +1176,8 @@ u16 D_actor_206100_801582A8[16] = {
 };
 
 GpAnimSet D_actor_206100_801582C8 = {
-    D_actor_206100_80157FD8, D_actor_206100_801582A8,
+    D_actor_206100_80157FD8,
+    D_actor_206100_801582A8,
     { NULL, D_actor_206100_80157CF0.words, NULL, NULL, D_actor_206100_80157DE0, NULL, NULL, NULL },
 };
 
@@ -1133,7 +1189,7 @@ typedef union {
 
 Actor206100PoseBankE4D0 D_actor_206100_801582F0 = { .poses = {
 #include "assets/actor_206100_animation_0E798_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_8015832C[43] = {
 #include "assets/actor_206100_animation_0E798_bank4.inc"
@@ -1148,7 +1204,8 @@ u16 D_actor_206100_80158598[16] = {
 };
 
 GpAnimSet D_actor_206100_801585B8 = {
-    D_actor_206100_801583D8, D_actor_206100_80158598,
+    D_actor_206100_801583D8,
+    D_actor_206100_80158598,
     { NULL, D_actor_206100_801582F0.words, NULL, NULL, D_actor_206100_8015832C, NULL, NULL, NULL },
 };
 
@@ -1160,7 +1217,7 @@ typedef union {
 
 Actor206100PoseBankE7C0 D_actor_206100_801585E0 = { .poses = {
 #include "assets/actor_206100_animation_0ECA8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_206100_80158664[108] = {
 #include "assets/actor_206100_animation_0ECA8_bank4.inc"
@@ -1175,7 +1232,8 @@ u16 D_actor_206100_80158AA8[16] = {
 };
 
 GpAnimSet D_actor_206100_80158AC8 = {
-    D_actor_206100_80158814, D_actor_206100_80158AA8,
+    D_actor_206100_80158814,
+    D_actor_206100_80158AA8,
     { NULL, D_actor_206100_801585E0.words, NULL, NULL, D_actor_206100_80158664, NULL, NULL, NULL },
 };
 
@@ -1191,7 +1249,7 @@ TaskDesc D_actor_206100_80158B0C[2] = {
     { 2, 96, func_actor_206100_8014F134, { .model = NULL } },
 };
 
-GpAnimSet * D_actor_206100_80158B24[17] = {
+GpAnimSet* D_actor_206100_80158B24[17] = {
     NULL,
     &D_actor_206100_80155718,
     NULL,
@@ -1222,7 +1280,7 @@ Actor206100RingPos D_actor_206100_80158B68[8] = {
     { -5373, 3000, 5373, 0 },
 };
 
-OverlayWaveCtx * D_actor_206100_80158BA8 = NULL;
+OverlayWaveCtx* D_actor_206100_80158BA8 = NULL;
 
 OverlayWaveRec6 D_actor_206100_80158BAC[13] = { 0 };
 
@@ -1910,7 +1968,7 @@ static void func_actor_206100_8014B8B4(Task* task)
     mode  = 1;
     if (Gp_StateF0.field_4 == 0) {
         child->field_5A   += 2;
-        *&coord->flg = 0;
+        *&coord->flg       = 0;
         coord->coord.t[0] += child->field_58;
         coord->coord.t[1] += child->field_5A;
         coord->coord.t[2] += child->field_5C;
@@ -2276,8 +2334,8 @@ static void func_actor_206100_8014C274(Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    D_neo_ark_submarine_gallery_801818B8      = 1;
-    work->field_536 = (u16)D_neo_ark_submarine_gallery_80181A48.height;
+    D_neo_ark_submarine_gallery_801818B8 = 1;
+    work->field_536                      = (u16)D_neo_ark_submarine_gallery_80181A48.height;
     for (i = 0; i < 2; i++) {
         D_actor_206100_80158CBC[i].enemy = NULL;
         D_actor_206100_80158CBC[i].timer = 0;
@@ -2613,29 +2671,29 @@ static void func_actor_206100_8014CB68(Task* task)
         msg.rot.vy           = 0x200;
         msg.rot.vz           = 0;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &msg, 0);
-        work2                         = (Actor206100Work*)task->work;
-        work2->field_51A              = 0x10;
-        work2->field_510              = 3;
-        work2->field_50C              = 2;
-        coord->coord.t[1]             = 0xDAC;
-        work->field_526               = 0xDAC;
-        coord->coord.t[0]             = 0x157C;
-        coord->coord.t[2]             = 0x157C;
-        work->field_43C               = 0;
-        work->field_43E               = 0xA00;
-        work->field_440               = 0;
-        work->field_553               = Mc_SaveData[0].state.at4.loc.view;
-        Mc_SaveData[0].state.at4.loc.view   = 7;
-        work->field_51E               = 0;
-        work->field_54D               = 0;
-        work->field_522               = work->field_522 + 1;
-        D_actor_206100_80158CCC.span  = 1;
-        D_actor_206100_80158CCC.scale = 0x60;
-        D_actor_206100_80158CCC.r     = 0x40;
-        D_actor_206100_80158CCC.blend = 1;
-        D_actor_206100_80158CCC.g     = 0x80;
-        D_actor_206100_80158CCC.b     = 0x80;
-        work->field_4F8               = Task_SpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
+        work2                             = (Actor206100Work*)task->work;
+        work2->field_51A                  = 0x10;
+        work2->field_510                  = 3;
+        work2->field_50C                  = 2;
+        coord->coord.t[1]                 = 0xDAC;
+        work->field_526                   = 0xDAC;
+        coord->coord.t[0]                 = 0x157C;
+        coord->coord.t[2]                 = 0x157C;
+        work->field_43C                   = 0;
+        work->field_43E                   = 0xA00;
+        work->field_440                   = 0;
+        work->field_553                   = Mc_SaveData[0].state.at4.loc.view;
+        Mc_SaveData[0].state.at4.loc.view = 7;
+        work->field_51E                   = 0;
+        work->field_54D                   = 0;
+        work->field_522                   = work->field_522 + 1;
+        D_actor_206100_80158CCC.span      = 1;
+        D_actor_206100_80158CCC.scale     = 0x60;
+        D_actor_206100_80158CCC.r         = 0x40;
+        D_actor_206100_80158CCC.blend     = 1;
+        D_actor_206100_80158CCC.g         = 0x80;
+        D_actor_206100_80158CCC.b         = 0x80;
+        work->field_4F8                   = Task_SpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
     }
 }
 static void func_actor_206100_8014CD08(Task* task)
@@ -2654,12 +2712,12 @@ static void func_actor_206100_8014CD08(Task* task)
         SndEvt_EnqueueType6(0x551E0004, 0, 0);
     }
     if ((s16)work->field_51E == 0x22) {
-        coord->coord.t[0]           = 0;
-        coord->coord.t[2]           = 0;
-        work->field_526             = 0x1388;
-        work->field_51E             = 0U;
-        coord->coord.t[1]           = 0x1B58;
-        work->field_43E             = 0;
+        coord->coord.t[0]                 = 0;
+        coord->coord.t[2]                 = 0;
+        work->field_526                   = 0x1388;
+        work->field_51E                   = 0U;
+        coord->coord.t[1]                 = 0x1B58;
+        work->field_43E                   = 0;
         Mc_SaveData[0].state.at4.loc.view = 6;
         Gp_SetLightMode(task->spawnArg2.pointer, 0);
         Gp_MsgPlayer3F3(0);
@@ -2707,10 +2765,10 @@ static void func_actor_206100_8014CE60(Task* task)
     s16              y;
     s16              frame;
 
-    work            = (Actor206100Work*)task->work;
-    D_neo_ark_submarine_gallery_801818B8      = 0;
-    coord           = task->extra.tmd->coords;
-    work->field_51E = work->field_51E + 1;
+    work                                 = (Actor206100Work*)task->work;
+    D_neo_ark_submarine_gallery_801818B8 = 0;
+    coord                                = task->extra.tmd->coords;
+    work->field_51E                      = work->field_51E + 1;
     if ((s16)work->field_51E == 1) {
         D_actor_206100_80158CCC.state = 2;
     }
@@ -2739,11 +2797,11 @@ static void func_actor_206100_8014CE60(Task* task)
         Gp_MsgPlayerWeapon(1);
         Gp_MsgPlayer3F3(1);
         Mc_SaveData[0].state.at4.loc.view = 2;
-        coord->coord.t[0]           = 0;
-        coord->coord.t[2]           = 0;
-        next                        = (Actor206100Work*)task->work;
-        next->field_520             = 1;
-        next->field_522             = 0;
+        coord->coord.t[0]                 = 0;
+        coord->coord.t[2]                 = 0;
+        next                              = (Actor206100Work*)task->work;
+        next->field_520                   = 1;
+        next->field_522                   = 0;
     }
 }
 /// Clears `field_522` and hands `field_520` the new state, reloading the work

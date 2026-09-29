@@ -205,7 +205,7 @@ GpRoomParamRec D_dryfield_night_factory_8018A794[1] = {
     { 0, 0, 1, 0, D_dryfield_night_factory_8018A770 },
 };
 
-GpRoomParamRec * D_dryfield_night_factory_8018A79C[8] = {
+GpRoomParamRec* D_dryfield_night_factory_8018A79C[8] = {
     D_dryfield_night_factory_8018A77C,
     D_dryfield_night_factory_8018A784,
     D_dryfield_night_factory_8018A78C,
@@ -224,11 +224,11 @@ RoomEventMsg D_dryfield_night_factory_8018A7D4 = { 0 };
 
 u8 D_dryfield_night_factory_8018A7DC = 0;
 
-TaskDesc * D_dryfield_night_factory_8018A7E0 = NULL;
+TaskDesc* D_dryfield_night_factory_8018A7E0 = NULL;
 
-TaskDesc * D_dryfield_night_factory_8018A7E4 = NULL;
+TaskDesc* D_dryfield_night_factory_8018A7E4 = NULL;
 
-Task ** D_dryfield_night_factory_8018A7E8 = NULL;
+Task** D_dryfield_night_factory_8018A7E8 = NULL;
 
 RoomEventReq D_dryfield_night_factory_8018A7EC = { 0 };
 
@@ -1062,8 +1062,8 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             goto advance;
         case 5:
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room  = 2;
-            gGameSession->roomObjsDirty = 1;
+            gGameSession->at4.loc.room        = 2;
+            gGameSession->roomObjsDirty       = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 1:

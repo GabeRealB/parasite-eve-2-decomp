@@ -51,7 +51,7 @@ GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-u8 * D_neo_ark_r31_8017DA1C[1] = {
+u8* D_neo_ark_r31_8017DA1C[1] = {
     D_8010CAF8,
 };
 
@@ -128,7 +128,7 @@ GpRoomParamRec D_neo_ark_r31_8017DC2C[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_neo_ark_r31_8017DC34[8] = {
+GpRoomParamRec* D_neo_ark_r31_8017DC34[8] = {
     D_neo_ark_r31_8017DC2C,
     D_neo_ark_r31_8017DC2C,
     D_neo_ark_r31_8017DC2C,
@@ -216,7 +216,7 @@ s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// Message handler for the save location: copies the incoming `GpSaveLoc`
 /// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
-s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

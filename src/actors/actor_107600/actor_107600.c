@@ -689,7 +689,7 @@ Actor107600Waypoint D_actor_107600_80135610[3] = {
     { -1, 0, 0 },
 };
 
-Actor107600Waypoint * D_actor_107600_80135624[62] = {
+Actor107600Waypoint* D_actor_107600_80135624[62] = {
     D_actor_107600_80135078,
     D_actor_107600_80135084,
     D_actor_107600_80135098,
@@ -901,8 +901,8 @@ static void func_actor_107600_80132160(Task* arg0)
             x   = wp->x;
             if (x == -1) {
             stop:
-                work->field_140.step                = 5;
-                work->field_14A                     = 0;
+                work->field_140.step                      = 5;
+                work->field_14A                           = 0;
                 enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
@@ -1009,8 +1009,8 @@ static void func_actor_107600_80132514(Task* arg0)
             x   = wp->x;
             if (x == -1) {
             stop:
-                work->field_140.step                = 5;
-                work->field_14A                     = 0;
+                work->field_140.step                      = 5;
+                work->field_14A                           = 0;
                 enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
@@ -1290,11 +1290,11 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
     enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
     if (enemy != NULL) {
         Task_Reparent(arg0->task, enemy->task);
-        coord                  = enemy->task->extra.tmd->coords;
-        coord->sub             = arg0->task->extra.tmd->coords;
+        coord                        = enemy->task->extra.tmd->coords;
+        coord->sub                   = arg0->task->extra.tmd->coords;
         enemy->task->spawnArg1.value = arg1 | (arg2 << 16);
-        obj                    = enemy->task->extra.tmd;
-        obj->tpage             = 0;
+        obj                          = enemy->task->extra.tmd;
+        obj->tpage                   = 0;
         if (arg1 < 10) {
             obj->clut = 2;
         } else {
@@ -1525,7 +1525,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 if (actor->field_954 != 1) {
                     if (Player_Status.hp < 11) {
                         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
-                        actor->field_96E                                       = 0;
+                        actor->field_96E                                                             = 0;
                     } else {
                         actor->field_96E = 10;
                     }
@@ -1604,7 +1604,7 @@ static void func_actor_107600_801337FC(Task* arg0)
         case 0:
             work->field_15A++;
             arg0->spawnArg1.value |= 0x40;
-            work->field_154  = 7;
+            work->field_154        = 7;
             Gp_UnlinkNode(&enemy->node);
             enemy->recs      = 0;
             work->obj.flags &= 0x7FFF;
@@ -1667,10 +1667,10 @@ static void func_actor_107600_801339A4(Task* arg0)
     switch (work->field_15A) {
         case 0:
             work->field_15A++;
-            tmd->flags      |= 2;
+            tmd->flags            |= 2;
             arg0->spawnArg1.value |= 0x40;
-            work->field_16B  = 0;
-            work->field_15C  = 0;
+            work->field_16B        = 0;
+            work->field_15C        = 0;
             Gp_SetLightMode(enemy, 2);
             work->field_154 = 0;
             id              = arg0->spawnArg1.value & 0xF;

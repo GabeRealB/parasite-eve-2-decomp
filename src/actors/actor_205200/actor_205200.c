@@ -131,7 +131,10 @@ s32 func_actor_205200_8014B94C(Task*, s32, GpCmdArg*);
 GpPairSrcE D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0, 0 };
 
 u16 D_actor_205200_8014C9CC[4] = {
-    0, 60, 40, 20,
+    0,
+    60,
+    40,
+    20,
 };
 
 SVECTOR D_actor_205200_8014C9D4[2] = {
@@ -174,14 +177,14 @@ s16 D_actor_205200_8014CA1C[4] = {
     2,
 };
 
-SVECTOR * D_actor_205200_8014CA24[4] = {
+SVECTOR* D_actor_205200_8014CA24[4] = {
     NULL,
     D_actor_205200_8014C9D4,
     D_actor_205200_8014C9E8,
     D_actor_205200_8014CA08,
 };
 
-u16 * D_actor_205200_8014CA34[4] = {
+u16* D_actor_205200_8014CA34[4] = {
     NULL,
     D_actor_205200_8014C9E4,
     D_actor_205200_8014CA00,
@@ -226,8 +229,15 @@ u32 D_actor_205200_8014E1D0[3463] = {
 };
 
 TmdSource D_actor_205200_801517EC = {
-    0, 18392, 6232, 19,
-    D_actor_205200_8014CD34, D_actor_205200_8014CD80, D_actor_205200_8014D740, D_actor_205200_8014CA88, D_actor_205200_8014E1D0,
+    0,
+    18392,
+    6232,
+    19,
+    D_actor_205200_8014CD34,
+    D_actor_205200_8014CD80,
+    D_actor_205200_8014D740,
+    D_actor_205200_8014CA88,
+    D_actor_205200_8014E1D0,
 };
 
 static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task);

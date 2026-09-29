@@ -72,7 +72,7 @@ typedef union {
 
 DryfieldNightParkingLotPoseBank1224 D_dryfield_night_parking_lot_8017E7E4 = { .poses = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
-} };
+                                                                              } };
 
 GpPackedSvec D_dryfield_night_parking_lot_8017E85C[95] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank4.inc"
@@ -87,7 +87,8 @@ u16 D_dryfield_night_parking_lot_8017EC04[20] = {
 };
 
 GpAnimSet D_dryfield_night_parking_lot_8017EC2C = {
-    D_dryfield_night_parking_lot_8017E9D8, D_dryfield_night_parking_lot_8017EC04,
+    D_dryfield_night_parking_lot_8017E9D8,
+    D_dryfield_night_parking_lot_8017EC04,
     { NULL, D_dryfield_night_parking_lot_8017E7E4.words, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
 };
 
@@ -102,7 +103,7 @@ GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_dryfield_night_parking_lot_8017EC90[2] = {
+GpAnimSet* D_dryfield_night_parking_lot_8017EC90[2] = {
     &D_dryfield_night_parking_lot_8017EC2C,
     NULL,
 };
@@ -126,7 +127,14 @@ GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[11] = {
 };
 
 u16 D_dryfield_night_parking_lot_8017EDBC[8] = {
-    0, 2, 2, 2, 2, 0, 0, 0,
+    0,
+    2,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
 };
 
 SVECTOR D_dryfield_night_parking_lot_8017EDCC[2] = {
@@ -174,7 +182,7 @@ u8 D_dryfield_night_parking_lot_8017EE44[8] = {
     0,
 };
 
-u8 * D_dryfield_night_parking_lot_8017EE4C[2] = {
+u8* D_dryfield_night_parking_lot_8017EE4C[2] = {
     D_8010CAF8,
     D_dryfield_night_parking_lot_8017EE44,
 };
@@ -951,7 +959,7 @@ s16 D_dryfield_night_parking_lot_8017FA18[2] = {
     -1,
 };
 
-s16 * D_dryfield_night_parking_lot_8017FA1C[45] = {
+s16* D_dryfield_night_parking_lot_8017FA1C[45] = {
     D_dryfield_night_parking_lot_8017F6B4,
     D_dryfield_night_parking_lot_8017F6C0,
     D_dryfield_night_parking_lot_8017F6C8,
@@ -1386,7 +1394,7 @@ GpRoomParamRec D_dryfield_night_parking_lot_80181534[1] = {
     { 0, 0, 1, 0, D_dryfield_night_parking_lot_801814E8 },
 };
 
-GpRoomParamRec * D_dryfield_night_parking_lot_8018153C[8] = {
+GpRoomParamRec* D_dryfield_night_parking_lot_8018153C[8] = {
     D_dryfield_night_parking_lot_8018150C,
     D_dryfield_night_parking_lot_8018152C,
     D_dryfield_night_parking_lot_8018151C,

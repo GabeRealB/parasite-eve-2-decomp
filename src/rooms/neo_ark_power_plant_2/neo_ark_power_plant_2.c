@@ -113,7 +113,7 @@ typedef union {
 
 NeoArkPowerPlant2PoseBank2830 D_neo_ark_power_plant_2_8017FDF0 = { .poses = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_neo_ark_power_plant_2_8017FE14[28] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank4.inc"
@@ -128,7 +128,8 @@ u16 D_neo_ark_power_plant_2_8017FFE4[20] = {
 };
 
 GpAnimSet D_neo_ark_power_plant_2_8018000C = {
-    D_neo_ark_power_plant_2_8017FE84, D_neo_ark_power_plant_2_8017FFE4,
+    D_neo_ark_power_plant_2_8017FE84,
+    D_neo_ark_power_plant_2_8017FFE4,
     { NULL, D_neo_ark_power_plant_2_8017FDF0.words, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
 };
 
@@ -140,7 +141,7 @@ typedef union {
 
 NeoArkPowerPlant2PoseBank2A74 D_neo_ark_power_plant_2_80180034 = { .poses = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_neo_ark_power_plant_2_8018004C[22] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank4.inc"
@@ -155,7 +156,8 @@ u16 D_neo_ark_power_plant_2_801801A8[20] = {
 };
 
 GpAnimSet D_neo_ark_power_plant_2_801801D0 = {
-    D_neo_ark_power_plant_2_801800A4, D_neo_ark_power_plant_2_801801A8,
+    D_neo_ark_power_plant_2_801800A4,
+    D_neo_ark_power_plant_2_801801A8,
     { NULL, D_neo_ark_power_plant_2_80180034.words, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
 };
 
@@ -175,7 +177,7 @@ GpCmdArg D_neo_ark_power_plant_2_80180238 = { { .loc = { 5, 16 } }, 2 };
 
 GpCmdArg D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
 
-GpAnimSet * D_neo_ark_power_plant_2_80180240[3] = {
+GpAnimSet* D_neo_ark_power_plant_2_80180240[3] = {
     NULL,
     &D_neo_ark_power_plant_2_8018000C,
     &D_neo_ark_power_plant_2_801801D0,
@@ -265,7 +267,7 @@ GpRoomCoordRec D_neo_ark_power_plant_2_801806A0[1] = {
     { D_neo_ark_power_plant_2_801828A8, D_neo_ark_power_plant_2_80182EB4 },
 };
 
-u8 * D_neo_ark_power_plant_2_801806A8[1] = {
+u8* D_neo_ark_power_plant_2_801806A8[1] = {
     D_8010CAF8,
 };
 
@@ -687,7 +689,7 @@ s16 D_neo_ark_power_plant_2_80180D78[13] = {
     -1,
 };
 
-s16 * D_neo_ark_power_plant_2_80180D94[12] = {
+s16* D_neo_ark_power_plant_2_80180D94[12] = {
     D_neo_ark_power_plant_2_80180BBC,
     D_neo_ark_power_plant_2_80180BE0,
     D_neo_ark_power_plant_2_80180C0C,
@@ -1163,7 +1165,7 @@ GpRoomParamRec D_neo_ark_power_plant_2_80182F48[1] = {
     { 0, 0, 1, 0, D_neo_ark_power_plant_2_80182F1C },
 };
 
-GpRoomParamRec * D_neo_ark_power_plant_2_80182F50[8] = {
+GpRoomParamRec* D_neo_ark_power_plant_2_80182F50[8] = {
     D_neo_ark_power_plant_2_80182F28,
     D_neo_ark_power_plant_2_80182F28,
     D_neo_ark_power_plant_2_80182F30,
@@ -1202,7 +1204,7 @@ s32 func_neo_ark_power_plant_2_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2
 
 /// Message handler that copies the incoming record onto the outgoing one and
 /// passes both on to `func_map_neo_ark_80179B14`. Always returns 1.
-s32 func_neo_ark_power_plant_2_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_power_plant_2_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -1652,14 +1654,14 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_power_plant_2_80180680[1];
+                    SVECTOR* edge    = &D_neo_ark_power_plant_2_80180680[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

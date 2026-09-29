@@ -214,8 +214,15 @@ u32 D_mine_forked_tunnel_8017F108[1451] = {
 };
 
 TmdSource D_mine_forked_tunnel_801807B4 = {
-    0, 10460, 0, 1,
-    D_mine_forked_tunnel_8017E84C, D_mine_forked_tunnel_8017E850, D_mine_forked_tunnel_8017EF48, D_mine_forked_tunnel_8017E828, D_mine_forked_tunnel_8017F108,
+    0,
+    10460,
+    0,
+    1,
+    D_mine_forked_tunnel_8017E84C,
+    D_mine_forked_tunnel_8017E850,
+    D_mine_forked_tunnel_8017EF48,
+    D_mine_forked_tunnel_8017E828,
+    D_mine_forked_tunnel_8017F108,
 };
 
 TmdBone D_mine_forked_tunnel_801807D8[1] = {
@@ -239,9 +246,15 @@ u32 D_mine_forked_tunnel_80180900[104] = {
 };
 
 TmdSource D_mine_forked_tunnel_80180AA0 = {
-    0, 728, 0, 1,
-    D_mine_forked_tunnel_801807FC, D_mine_forked_tunnel_80180800, D_mine_forked_tunnel_801808A0,
-    D_mine_forked_tunnel_801807D8, D_mine_forked_tunnel_80180900,
+    0,
+    728,
+    0,
+    1,
+    D_mine_forked_tunnel_801807FC,
+    D_mine_forked_tunnel_80180800,
+    D_mine_forked_tunnel_801808A0,
+    D_mine_forked_tunnel_801807D8,
+    D_mine_forked_tunnel_80180900,
 };
 
 SVECTOR D_mine_forked_tunnel_80180AC4[240] = {
@@ -837,7 +850,7 @@ s16 D_mine_forked_tunnel_80181C50[4] = {
     -1,
 };
 
-s16 * D_mine_forked_tunnel_80181C58[1] = {
+s16* D_mine_forked_tunnel_80181C58[1] = {
     D_mine_forked_tunnel_80181C50,
 };
 
@@ -859,7 +872,7 @@ typedef union {
 
 MineForkedTunnelPoseBank46E8 D_mine_forked_tunnel_80181CA8 = { .poses = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank1.inc"
-} };
+                                                               } };
 
 GpPackedSvec D_mine_forked_tunnel_80181CF0[46] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank4.inc"
@@ -874,7 +887,8 @@ u16 D_mine_forked_tunnel_80181F5C[20] = {
 };
 
 GpAnimSet D_mine_forked_tunnel_80181F84 = {
-    D_mine_forked_tunnel_80181DA8, D_mine_forked_tunnel_80181F5C,
+    D_mine_forked_tunnel_80181DA8,
+    D_mine_forked_tunnel_80181F5C,
     { NULL, D_mine_forked_tunnel_80181CA8.words, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
 };
 
@@ -886,7 +900,7 @@ typedef union {
 
 MineForkedTunnelPoseBank49EC D_mine_forked_tunnel_80181FAC = { .poses = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank1.inc"
-} };
+                                                               } };
 
 GpPackedSvec D_mine_forked_tunnel_80181FC4[47] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank4.inc"
@@ -901,7 +915,8 @@ u16 D_mine_forked_tunnel_801821E8[20] = {
 };
 
 GpAnimSet D_mine_forked_tunnel_80182210 = {
-    D_mine_forked_tunnel_80182080, D_mine_forked_tunnel_801821E8,
+    D_mine_forked_tunnel_80182080,
+    D_mine_forked_tunnel_801821E8,
     { NULL, D_mine_forked_tunnel_80181FAC.words, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
 };
 
@@ -913,7 +928,7 @@ typedef union {
 
 MineForkedTunnelPoseBank4C78 D_mine_forked_tunnel_80182238 = { .poses = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank1.inc"
-} };
+                                                               } };
 
 GpPackedSvec D_mine_forked_tunnel_801823C4[381] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank4.inc"
@@ -928,7 +943,8 @@ u16 D_mine_forked_tunnel_801830B4[20] = {
 };
 
 GpAnimSet D_mine_forked_tunnel_801830DC = {
-    D_mine_forked_tunnel_801829B8, D_mine_forked_tunnel_801830B4,
+    D_mine_forked_tunnel_801829B8,
+    D_mine_forked_tunnel_801830B4,
     { NULL, D_mine_forked_tunnel_80182238.words, NULL, NULL, D_mine_forked_tunnel_801823C4, NULL, NULL, NULL },
 };
 
@@ -937,7 +953,7 @@ TaskDesc D_mine_forked_tunnel_80183104[2] = {
     { 0, 192, func_mine_forked_tunnel_8017E38C, { .model = NULL } },
 };
 
-GpAnimSet * D_mine_forked_tunnel_8018311C[4] = {
+GpAnimSet* D_mine_forked_tunnel_8018311C[4] = {
     NULL,
     &D_mine_forked_tunnel_80181F84,
     &D_mine_forked_tunnel_80182210,
@@ -1038,7 +1054,7 @@ GpRoomObjRec D_mine_forked_tunnel_8018363C[1] = {
     { &D_mine_forked_tunnel_80183D70, D_mine_forked_tunnel_80184F50, D_mine_forked_tunnel_80185118, NULL },
 };
 
-u8 * D_mine_forked_tunnel_8018364C[1] = {
+u8* D_mine_forked_tunnel_8018364C[1] = {
     D_8010CAF8,
 };
 
@@ -1397,7 +1413,7 @@ s16 D_mine_forked_tunnel_80183D3C[9] = {
     -1,
 };
 
-s16 * D_mine_forked_tunnel_80183D50[8] = {
+s16* D_mine_forked_tunnel_80183D50[8] = {
     D_mine_forked_tunnel_80183C10,
     D_mine_forked_tunnel_80183C38,
     D_mine_forked_tunnel_80183C70,
@@ -1805,7 +1821,7 @@ GpRoomParamRec D_mine_forked_tunnel_801855B8[1] = {
     { 0, 0, 1, 0, D_mine_forked_tunnel_801855A4 },
 };
 
-GpRoomParamRec * D_mine_forked_tunnel_801855C0[8] = {
+GpRoomParamRec* D_mine_forked_tunnel_801855C0[8] = {
     D_mine_forked_tunnel_801855B0,
     D_mine_forked_tunnel_801855B8,
     D_mine_forked_tunnel_801855B0,
@@ -1916,12 +1932,12 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, GpCmdArg* msg)
 
     switch (msg->command) {
         case 0:
-            work                = task->work;
-            task->spawnArg1.value     = 0;
-            task->killCountdown = 0;
+            work                  = task->work;
+            task->spawnArg1.value = 0;
+            task->killCountdown   = 0;
             if (work->field_40 != 0) {
-                ((Task*)work->field_40)->spawnArg1.value     = 0;
-                ((Task*)work->field_40)->killCountdown = 0;
+                ((Task*)work->field_40)->spawnArg1.value = 0;
+                ((Task*)work->field_40)->killCountdown   = 0;
             }
             placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
             placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
@@ -2194,7 +2210,7 @@ s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// Message handler that copies the incoming record onto the outgoing one and
 /// forwards both to `func_map_shelter_80179A04`, returning 1.
-s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -2215,7 +2231,7 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 
 /// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x75) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);

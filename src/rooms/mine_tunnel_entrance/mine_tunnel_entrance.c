@@ -114,7 +114,7 @@ GpRoomObjRec D_mine_tunnel_entrance_8017DB60[1] = {
     { D_mine_tunnel_entrance_8017E0C0, D_mine_tunnel_entrance_8017ECEC, D_mine_tunnel_entrance_8017EF4C, NULL },
 };
 
-u8 * D_mine_tunnel_entrance_8017DB70[1] = {
+u8* D_mine_tunnel_entrance_8017DB70[1] = {
     D_8010CAF8,
 };
 
@@ -352,7 +352,7 @@ s16 D_mine_tunnel_entrance_8017E084[10] = {
     -1,
 };
 
-s16 * D_mine_tunnel_entrance_8017E098[10] = {
+s16* D_mine_tunnel_entrance_8017E098[10] = {
     D_mine_tunnel_entrance_8017DFF0,
     D_mine_tunnel_entrance_8017E008,
     D_mine_tunnel_entrance_8017E014,
@@ -688,7 +688,7 @@ GpRoomParamRec D_mine_tunnel_entrance_8017F3E0[1] = {
     { 0, 0, 1, 0, D_mine_tunnel_entrance_8017F3C4 },
 };
 
-GpRoomParamRec * D_mine_tunnel_entrance_8017F3E8[8] = {
+GpRoomParamRec* D_mine_tunnel_entrance_8017F3E8[8] = {
     D_mine_tunnel_entrance_8017F3D0,
     D_mine_tunnel_entrance_8017F3D8,
     D_mine_tunnel_entrance_8017F3E0,
@@ -706,7 +706,7 @@ s32 func_mine_tunnel_entrance_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2,
 
 /// Message handler 0x13EE of the room's message table: copies the incoming
 /// record onto the outgoing one, passes both to `func_map_shelter_80179A04`, and returns 1.
-s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

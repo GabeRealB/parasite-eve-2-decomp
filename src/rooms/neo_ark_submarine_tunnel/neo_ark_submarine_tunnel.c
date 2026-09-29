@@ -102,7 +102,7 @@ typedef union {
 
 NeoArkSubmarineTunnelPoseBank3B3C D_neo_ark_submarine_tunnel_801810FC = { .poses = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_neo_ark_submarine_tunnel_80181144[64] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank4.inc"
@@ -117,7 +117,8 @@ u16 D_neo_ark_submarine_tunnel_80181478[20] = {
 };
 
 GpAnimSet D_neo_ark_submarine_tunnel_801814A0 = {
-    D_neo_ark_submarine_tunnel_80181244, D_neo_ark_submarine_tunnel_80181478,
+    D_neo_ark_submarine_tunnel_80181244,
+    D_neo_ark_submarine_tunnel_80181478,
     { NULL, D_neo_ark_submarine_tunnel_801810FC.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
 };
 
@@ -129,7 +130,7 @@ typedef union {
 
 NeoArkSubmarineTunnelPoseBank3F08 D_neo_ark_submarine_tunnel_801814C8 = { .poses = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_neo_ark_submarine_tunnel_80181540[126] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank4.inc"
@@ -144,7 +145,8 @@ u16 D_neo_ark_submarine_tunnel_801819E4[20] = {
 };
 
 GpAnimSet D_neo_ark_submarine_tunnel_80181A0C = {
-    D_neo_ark_submarine_tunnel_80181738, D_neo_ark_submarine_tunnel_801819E4,
+    D_neo_ark_submarine_tunnel_80181738,
+    D_neo_ark_submarine_tunnel_801819E4,
     { NULL, D_neo_ark_submarine_tunnel_801814C8.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
 };
 
@@ -163,7 +165,7 @@ GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_neo_ark_submarine_tunnel_80181A78[2] = {
+GpAnimSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
     &D_neo_ark_submarine_tunnel_80181A0C,
     &D_neo_ark_submarine_tunnel_801814A0,
 };
@@ -1092,7 +1094,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
     addPrim(&gGpuCurrentOt[0], stp);
 }
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg * arg2, GpMessageArg arg3)
+s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
 {
     u8 temp_s0;
     u8 temp_s0_2;
@@ -1142,7 +1144,7 @@ s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, GpMessageArg a
 
 /// Save-location message handler: copies the incoming `GpSaveLoc` onto the
 /// outgoing one, forwards both to `func_map_neo_ark_80179B14` and answers 1.
-s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

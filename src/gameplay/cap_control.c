@@ -157,7 +157,7 @@ s32 func_800E73E8(void)
         task = D_801156B8;
         if (task != NULL) {
             task->spawnArg1.value = 1;
-            D_801156B8      = NULL;
+            D_801156B8            = NULL;
             return 0;
         }
     } else {

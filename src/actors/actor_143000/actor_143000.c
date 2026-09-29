@@ -110,7 +110,22 @@ TaskDesc D_actor_143000_80134558 = { 0, 192, func_actor_143000_80133578, { .mode
 TaskDesc D_actor_143000_80134564 = { 0, 32, func_actor_143000_801335C8, { .model = NULL } };
 
 u8 D_actor_143000_80134570[16] = {
-    0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
 };
 
 Actor143000Rect D_actor_143000_80134580[10] = {
@@ -126,7 +141,7 @@ Actor143000Rect D_actor_143000_80134580[10] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-const char * D_actor_143000_801345F8[3] = {
+const char* D_actor_143000_801345F8[3] = {
     D_actor_143000_80131E74,
     D_actor_143000_80131E64,
     D_actor_143000_80131E54,
@@ -140,7 +155,7 @@ typedef union {
 
 Actor143000PoseBank27E4 D_actor_143000_80134604 = { .poses = {
 #include "assets/actor_143000_animation_02A20_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_143000_8013461C[26] = {
 #include "assets/actor_143000_animation_02A20_bank4.inc"
@@ -155,7 +170,8 @@ u16 D_actor_143000_80134818[20] = {
 };
 
 GpAnimSet D_actor_143000_80134840 = {
-    D_actor_143000_80134684, D_actor_143000_80134818,
+    D_actor_143000_80134684,
+    D_actor_143000_80134818,
     { NULL, D_actor_143000_80134604.words, NULL, NULL, D_actor_143000_8013461C, NULL, NULL, NULL },
 };
 
@@ -167,7 +183,7 @@ typedef union {
 
 Actor143000PoseBank2A48 D_actor_143000_80134868 = { .poses = {
 #include "assets/actor_143000_animation_02CCC_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_143000_80134880[32] = {
 #include "assets/actor_143000_animation_02CCC_bank4.inc"
@@ -182,7 +198,8 @@ u16 D_actor_143000_80134AC4[20] = {
 };
 
 GpAnimSet D_actor_143000_80134AEC = {
-    D_actor_143000_80134900, D_actor_143000_80134AC4,
+    D_actor_143000_80134900,
+    D_actor_143000_80134AC4,
     { NULL, D_actor_143000_80134868.words, NULL, NULL, D_actor_143000_80134880, NULL, NULL, NULL },
 };
 
@@ -194,7 +211,7 @@ typedef union {
 
 Actor143000PoseBank2CF4 D_actor_143000_80134B14 = { .poses = {
 #include "assets/actor_143000_animation_02EE8_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_143000_80134B2C[25] = {
 #include "assets/actor_143000_animation_02EE8_bank4.inc"
@@ -209,7 +226,8 @@ u16 D_actor_143000_80134CE0[20] = {
 };
 
 GpAnimSet D_actor_143000_80134D08 = {
-    D_actor_143000_80134B90, D_actor_143000_80134CE0,
+    D_actor_143000_80134B90,
+    D_actor_143000_80134CE0,
     { NULL, D_actor_143000_80134B14.words, NULL, NULL, D_actor_143000_80134B2C, NULL, NULL, NULL },
 };
 
@@ -221,7 +239,7 @@ typedef union {
 
 Actor143000PoseBank2F10 D_actor_143000_80134D30 = { .poses = {
 #include "assets/actor_143000_animation_03090_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_143000_80134D48[23] = {
 #include "assets/actor_143000_animation_03090_bank4.inc"
@@ -236,7 +254,8 @@ u16 D_actor_143000_80134E88[20] = {
 };
 
 GpAnimSet D_actor_143000_80134EB0 = {
-    D_actor_143000_80134DA4, D_actor_143000_80134E88,
+    D_actor_143000_80134DA4,
+    D_actor_143000_80134E88,
     { NULL, D_actor_143000_80134D30.words, NULL, NULL, D_actor_143000_80134D48, NULL, NULL, NULL },
 };
 
@@ -248,7 +267,7 @@ typedef union {
 
 Actor143000PoseBank30B8 D_actor_143000_80134ED8 = { .poses = {
 #include "assets/actor_143000_animation_03248_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_143000_80134EF0[27] = {
 #include "assets/actor_143000_animation_03248_bank4.inc"
@@ -263,7 +282,8 @@ u16 D_actor_143000_80135040[20] = {
 };
 
 GpAnimSet D_actor_143000_80135068 = {
-    D_actor_143000_80134F5C, D_actor_143000_80135040,
+    D_actor_143000_80134F5C,
+    D_actor_143000_80135040,
     { NULL, D_actor_143000_80134ED8.words, NULL, NULL, D_actor_143000_80134EF0, NULL, NULL, NULL },
 };
 
@@ -485,13 +505,13 @@ static void func_actor_143000_801324C8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->spawnArg2.pointer             = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
-    arg0->work                  = (TaskIdMap*)work;
-    temp_a0                     = Mc_SaveData[0].state.at4.loc.view;
+    arg0->spawnArg2.pointer           = Task_SpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    arg0->work                        = (TaskIdMap*)work;
+    temp_a0                           = Mc_SaveData[0].state.at4.loc.view;
     Mc_SaveData[0].state.at4.loc.view = 0xB;
     D_actor_143000_80135C0C_value     = temp_a0;
-    arg0->state                += 1;
-    work->field_4               = 0;
+    arg0->state                      += 1;
+    work->field_4                     = 0;
     Display_AcquireRef();
     if (p->field_8 != -1) {
         do {
@@ -1038,10 +1058,10 @@ static void func_actor_143000_80133800(Task* arg0)
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
     if (work->field_C == 0) {
-        D_80114D08                  = 0xA;
-        gGameSession->eventState    = 0;
-        gGameSession->hideHud       = 0;
-        Gp_StateF0.field_4          = 0;
+        D_80114D08                        = 0xA;
+        gGameSession->eventState          = 0;
+        gGameSession->hideHud             = 0;
+        Gp_StateF0.field_4                = 0;
         Mc_SaveData[0].state.at4.loc.view = D_actor_143000_80135C0C_value;
         Gp_MsgPlayer3F3(1);
     } else {

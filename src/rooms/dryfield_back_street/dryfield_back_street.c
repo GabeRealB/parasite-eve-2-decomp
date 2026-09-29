@@ -100,7 +100,7 @@ GpRoomObjRec D_dryfield_back_street_8017F9B4[1] = {
     { D_dryfield_back_street_80180284, D_dryfield_back_street_801804C0, D_dryfield_back_street_80180688, NULL },
 };
 
-u8 * D_dryfield_back_street_8017F9C4[1] = {
+u8* D_dryfield_back_street_8017F9C4[1] = {
     D_8010CAF8,
 };
 
@@ -615,7 +615,7 @@ s16 D_dryfield_back_street_80180210[2] = {
     -1,
 };
 
-s16 * D_dryfield_back_street_80180214[28] = {
+s16* D_dryfield_back_street_80180214[28] = {
     D_dryfield_back_street_80180000,
     D_dryfield_back_street_80180014,
     D_dryfield_back_street_8018002C,
@@ -809,7 +809,7 @@ GpRoomParamRec D_dryfield_back_street_8018102C[1] = {
     { 0, 1, 0, 0, D_dryfield_back_street_80181010 },
 };
 
-GpRoomParamRec * D_dryfield_back_street_80181034[8] = {
+GpRoomParamRec* D_dryfield_back_street_80181034[8] = {
     D_dryfield_back_street_8018101C,
     D_dryfield_back_street_80181024,
     D_dryfield_back_street_8018102C,
@@ -889,7 +889,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 /// otherwise), sets nibble 2 of the record's flag index and returns 0. Any
 /// other case, on stage 2, enqueues the type-7 event the ambience task uses to
 /// stop sound 0x52050006, and returns 1.
-s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u8 s1;
 
@@ -1226,14 +1226,14 @@ void func_dryfield_back_street_8017E434(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_dryfield_back_street_8017F9A4[1];
+                    SVECTOR* edge    = &D_dryfield_back_street_8017F9A4[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

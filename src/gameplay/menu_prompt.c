@@ -78,7 +78,7 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     u8*           text;
     s32           color;
     s32           one;
-    TaskSpawnArg           val;
+    TaskSpawnArg  val;
     s32           flag;
     s32           scale;
     s32           height;
@@ -1664,9 +1664,9 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     Task* parent;
                     parent = obj->owner->parent;
                     if (parent != NULL) {
-                        Gp_ItemOrderMode                                = 0;
+                        Gp_ItemOrderMode                                        = 0;
                         ((UiObject*)parent->spawnArg2.pointer)->panel.field_0.w = mode;
-                        obj->panel.field_0.w                            = 0;
+                        obj->panel.field_0.w                                    = 0;
                         SndEvt_EnqueueType6(3, 0, 0);
                     }
                 }

@@ -84,9 +84,9 @@ void func_800B65B0(Task* task)
                 gDisplayState.gameMode = 0xFF;
                 cfg                    = &Player_Status;
                 save                   = &Mc_SaveData[0];
-                save->state.playerExp        = cfg->exp;
-                save->state.playerBp         = cfg->bp;
-                save->state.savePoint        = Gp_PubItemLoc;
+                save->state.playerExp  = cfg->exp;
+                save->state.playerBp   = cfg->bp;
+                save->state.savePoint  = Gp_PubItemLoc;
                 Stage_InitPrimBufOnce();
                 desc = &D_8010D348;
                 break;

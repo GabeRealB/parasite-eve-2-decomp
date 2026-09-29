@@ -97,7 +97,7 @@ typedef union {
 
 DryfieldDrivewayPoseBank8C0 D_dryfield_driveway_8017DE80 = { .poses = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_dryfield_driveway_8017DEF8[95] = {
 #include "assets/dryfield_driveway_animation_00D08_bank4.inc"
@@ -112,7 +112,8 @@ u16 D_dryfield_driveway_8017E2A0[20] = {
 };
 
 GpAnimSet D_dryfield_driveway_8017E2C8 = {
-    D_dryfield_driveway_8017E074, D_dryfield_driveway_8017E2A0,
+    D_dryfield_driveway_8017E074,
+    D_dryfield_driveway_8017E2A0,
     { NULL, D_dryfield_driveway_8017DE80.words, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
 };
 
@@ -124,7 +125,7 @@ TaskDesc D_dryfield_driveway_8017E2FC[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimSet * D_dryfield_driveway_8017E320[2] = {
+GpAnimSet* D_dryfield_driveway_8017E320[2] = {
     &D_dryfield_driveway_8017E2C8,
     NULL,
 };
@@ -216,7 +217,7 @@ u8 D_dryfield_driveway_8017E7A4[8] = {
     0,
 };
 
-u8 * D_dryfield_driveway_8017E7AC[2] = {
+u8* D_dryfield_driveway_8017E7AC[2] = {
     D_8010CAF8,
     D_dryfield_driveway_8017E7A4,
 };
@@ -552,7 +553,7 @@ s16 D_dryfield_driveway_8017ED1C[2] = {
     -1,
 };
 
-s16 * D_dryfield_driveway_8017ED20[21] = {
+s16* D_dryfield_driveway_8017ED20[21] = {
     D_dryfield_driveway_8017EBEC,
     D_dryfield_driveway_8017EBF8,
     D_dryfield_driveway_8017EC04,
@@ -924,7 +925,7 @@ GpRoomParamRec D_dryfield_driveway_80180658[1] = {
     { 0, 0, 1, 0, D_dryfield_driveway_8018063C },
 };
 
-GpRoomParamRec * D_dryfield_driveway_80180660[8] = {
+GpRoomParamRec* D_dryfield_driveway_80180660[8] = {
     D_dryfield_driveway_80180648,
     D_dryfield_driveway_80180650,
     D_dryfield_driveway_80180658,
@@ -992,7 +993,7 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_driveway_80180688.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_driveway_80180688.field_3;
@@ -1008,7 +1009,7 @@ void func_dryfield_driveway_8017D5E4(Task* arg0)
 /// message 0x20 reports nibbles 0x51 and 0x53 and, before nibble 0x3A reaches
 /// 2, either spawns the second cutscene task of `D_dryfield_driveway_8017E2FC`
 /// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
-s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent  req;
     RoomLatchedEvent* p;
@@ -1065,11 +1066,11 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg * in, Ro
             }
             return 2;
         }
-        req.capCmd                   = 9;
-        req.stageSnd                 = 0x52190003;
-        req.flagId                   = 0x11C;
-        req.fade                     = 0;
-        p                            = &req;
+        req.capCmd                         = 9;
+        req.stageSnd                       = 0x52190003;
+        req.flagId                         = 0x11C;
+        req.fade                           = 0;
+        p                                  = &req;
         D_dryfield_driveway_80180690_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->field_5 == 0) {

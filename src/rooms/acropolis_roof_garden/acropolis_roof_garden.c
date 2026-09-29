@@ -150,7 +150,7 @@ typedef union {
 
 AcropolisRoofGardenPoseBank2C20 D_acropolis_roof_garden_801801E0 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_roof_garden_801803A8[571] = {
 #include "assets/acropolis_roof_garden_animation_04164_bank4.inc"
@@ -165,7 +165,8 @@ u16 D_acropolis_roof_garden_801816FC[20] = {
 };
 
 GpAnimSet D_acropolis_roof_garden_80181724 = {
-    D_acropolis_roof_garden_80180C94, D_acropolis_roof_garden_801816FC,
+    D_acropolis_roof_garden_80180C94,
+    D_acropolis_roof_garden_801816FC,
     { NULL, D_acropolis_roof_garden_801801E0.words, NULL, NULL, D_acropolis_roof_garden_801803A8, NULL, NULL, NULL },
 };
 
@@ -177,7 +178,7 @@ typedef union {
 
 AcropolisRoofGardenPoseBank418C D_acropolis_roof_garden_8018174C = { .poses = {
 #include "assets/acropolis_roof_garden_animation_060FC_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_roof_garden_8018192C[860] = {
 #include "assets/acropolis_roof_garden_animation_060FC_bank4.inc"
@@ -192,7 +193,8 @@ u16 D_acropolis_roof_garden_80183694[20] = {
 };
 
 GpAnimSet D_acropolis_roof_garden_801836BC = {
-    D_acropolis_roof_garden_8018269C, D_acropolis_roof_garden_80183694,
+    D_acropolis_roof_garden_8018269C,
+    D_acropolis_roof_garden_80183694,
     { NULL, D_acropolis_roof_garden_8018174C.words, NULL, NULL, D_acropolis_roof_garden_8018192C, NULL, NULL, NULL },
 };
 
@@ -204,7 +206,7 @@ typedef union {
 
 AcropolisRoofGardenPoseBank6124 D_acropolis_roof_garden_801836E4 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_065F4_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_roof_garden_8018372C[87] = {
 #include "assets/acropolis_roof_garden_animation_065F4_bank4.inc"
@@ -219,7 +221,8 @@ u16 D_acropolis_roof_garden_80183B8C[20] = {
 };
 
 GpAnimSet D_acropolis_roof_garden_80183BB4 = {
-    D_acropolis_roof_garden_80183888, D_acropolis_roof_garden_80183B8C,
+    D_acropolis_roof_garden_80183888,
+    D_acropolis_roof_garden_80183B8C,
     { NULL, D_acropolis_roof_garden_801836E4.words, NULL, NULL, D_acropolis_roof_garden_8018372C, NULL, NULL, NULL },
 };
 
@@ -232,7 +235,7 @@ GpMsgEntry D_acropolis_roof_garden_80183BDC[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-Task * D_acropolis_roof_garden_80183C0C = NULL;
+Task* D_acropolis_roof_garden_80183C0C = NULL;
 
 TaskDesc D_acropolis_roof_garden_80183C10[4] = {
     { 0, 32, func_acropolis_roof_garden_8017D5D4, { .model = NULL } },
@@ -253,7 +256,7 @@ GpXformArg D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0
 
 GpXformArg D_acropolis_roof_garden_80183CA0 = { { -7508, 0, -8572, 0 }, { 0, 407, 0, 0 } };
 
-GpAnimSet * D_acropolis_roof_garden_80183CB8[3] = {
+GpAnimSet* D_acropolis_roof_garden_80183CB8[3] = {
     &D_acropolis_roof_garden_80181724,
     &D_acropolis_roof_garden_801836BC,
     &D_acropolis_roof_garden_80183BB4,
@@ -356,7 +359,7 @@ typedef union {
 
 AcropolisRoofGardenPoseBank6D70 D_acropolis_roof_garden_80184330 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_roof_garden_80184378[46] = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank4.inc"
@@ -371,7 +374,8 @@ u16 D_acropolis_roof_garden_801845E4[20] = {
 };
 
 GpAnimSet D_acropolis_roof_garden_8018460C = {
-    D_acropolis_roof_garden_80184430, D_acropolis_roof_garden_801845E4,
+    D_acropolis_roof_garden_80184430,
+    D_acropolis_roof_garden_801845E4,
     { NULL, D_acropolis_roof_garden_80184330.words, NULL, NULL, D_acropolis_roof_garden_80184378, NULL, NULL, NULL },
 };
 
@@ -383,7 +387,7 @@ typedef union {
 
 AcropolisRoofGardenPoseBank7074 D_acropolis_roof_garden_80184634 = { .poses = {
 #include "assets/acropolis_roof_garden_animation_074BC_bank1.inc"
-} };
+                                                                     } };
 
 GpPackedSvec D_acropolis_roof_garden_801846AC[95] = {
 #include "assets/acropolis_roof_garden_animation_074BC_bank4.inc"
@@ -398,11 +402,12 @@ u16 D_acropolis_roof_garden_80184A54[20] = {
 };
 
 GpAnimSet D_acropolis_roof_garden_80184A7C = {
-    D_acropolis_roof_garden_80184828, D_acropolis_roof_garden_80184A54,
+    D_acropolis_roof_garden_80184828,
+    D_acropolis_roof_garden_80184A54,
     { NULL, D_acropolis_roof_garden_80184634.words, NULL, NULL, D_acropolis_roof_garden_801846AC, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_acropolis_roof_garden_80184AA4[3] = {
+GpAnimSet* D_acropolis_roof_garden_80184AA4[3] = {
     NULL,
     &D_acropolis_roof_garden_8018460C,
     &D_acropolis_roof_garden_80184A7C,
@@ -446,8 +451,16 @@ SVECTOR D_acropolis_roof_garden_80184BF8[10] = {
 };
 
 u16 D_acropolis_roof_garden_80184C48[10] = {
-    2, 2, 4, 2, 2, 4, 4, 12,
-    16, 24,
+    2,
+    2,
+    4,
+    2,
+    2,
+    4,
+    4,
+    12,
+    16,
+    24,
 };
 
 s16 D_acropolis_roof_garden_80184C5C[24] = {
@@ -481,7 +494,7 @@ GpRoomObjRec D_acropolis_roof_garden_80184C8C[1] = {
     { D_acropolis_roof_garden_801854A4, D_acropolis_roof_garden_801854C8, D_acropolis_roof_garden_80185690, D_acropolis_roof_garden_80186D14 },
 };
 
-u8 * D_acropolis_roof_garden_80184C9C[1] = {
+u8* D_acropolis_roof_garden_80184C9C[1] = {
     D_8010CAF8,
 };
 
@@ -841,7 +854,7 @@ s16 D_acropolis_roof_garden_80185478[3] = {
     -1,
 };
 
-s16 * D_acropolis_roof_garden_80185480[9] = {
+s16* D_acropolis_roof_garden_80185480[9] = {
     D_acropolis_roof_garden_80185370,
     D_acropolis_roof_garden_80185398,
     D_acropolis_roof_garden_801853B0,
@@ -1193,7 +1206,7 @@ GpRoomParamRec D_acropolis_roof_garden_80186DA8[1] = {
     { 0, 0, 1, 0, D_acropolis_roof_garden_80186D8C },
 };
 
-GpRoomParamRec * D_acropolis_roof_garden_80186DB0[8] = {
+GpRoomParamRec* D_acropolis_roof_garden_80186DB0[8] = {
     D_acropolis_roof_garden_80186D98,
     D_acropolis_roof_garden_80186DA0,
     D_acropolis_roof_garden_80186DA8,
@@ -1225,8 +1238,15 @@ u32 D_acropolis_roof_garden_80186E28[18] = {
 };
 
 TmdSource D_acropolis_roof_garden_80186E70 = {
-    0, 104, 0, 1,
-    D_acropolis_roof_garden_80186DF4, D_acropolis_roof_garden_80186DF8, D_acropolis_roof_garden_80186E18, D_acropolis_roof_garden_80186DD0, D_acropolis_roof_garden_80186E28,
+    0,
+    104,
+    0,
+    1,
+    D_acropolis_roof_garden_80186DF4,
+    D_acropolis_roof_garden_80186DF8,
+    D_acropolis_roof_garden_80186E18,
+    D_acropolis_roof_garden_80186DD0,
+    D_acropolis_roof_garden_80186E28,
 };
 
 s32 D_acropolis_roof_garden_80186E94 = 0;
@@ -1290,7 +1310,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 /// Message 0xC, when not a "report only" query (`field_5 == 0`) and its nibble
 /// is still clear, advances nibble 7 to 2 and sets collection bit 0x13 to 2.
 /// The copy itself is unedited, so the answer is always "allowed".
-s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 0xC && in->field_5 == 0 && GameFlag_GetNibble(7) == 0) {
@@ -1306,7 +1326,7 @@ s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, GpMessageArg arg2
     return 0;
 }
 
-s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     switch (in->field_2) {
         case 1:
@@ -1546,12 +1566,12 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
             *scratch = head - sizeof(RoomShaftScratch);
             blk      = (RoomShaftScratch*)(head - sizeof(RoomShaftScratch));
             if (arg0->state == 0) {
-                base            = D_acropolis_roof_garden_8017D5D0;
-                param           = arg0->spawnArg1.value;
-                mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-                mem->angle      = (arg0->spawnArg1.value >> 8) & 3;
+                base                  = D_acropolis_roof_garden_8017D5D0;
+                param                 = arg0->spawnArg1.value;
+                mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
+                mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
                 arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-                mem->period     = base.v[mem->angle];
+                mem->period           = base.v[mem->angle];
                 arg0->state++;
             }
             blk->vec.vx = (u16)coord->workm.t[0];

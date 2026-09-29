@@ -219,7 +219,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             light->flg = 0;
             if (task->spawnArg1.value < 0) {
                 task->spawnArg1.value = 0;
-                task->state     = 1;
+                task->state           = 1;
                 return;
             }
             if (work->age >= 0x41) {
@@ -276,7 +276,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (task->spawnArg1.value < 0) {
                 SndEvt_EnqueueType7(0x20160006, 1);
                 task->spawnArg1.value = 0;
-                task->state     = 1;
+                task->state           = 1;
                 return;
             }
             task->spawnArg1.value = task->spawnArg1.value - 1;
@@ -1112,14 +1112,14 @@ static void func_hypervelocity_8011F724(Task* arg0)
     eff                       = actor->field_91C;
     switch (actor->field_95E) {
         case 0:
-            actor->field_954            = 0;
-            actor->field_956            = 4;
-            actor->field_958            = 0;
-            actor->field_95A            = 0;
-            actor->field_95C            = 0;
-            actor->field_95E            = 1;
+            actor->field_954                  = 0;
+            actor->field_956                  = 4;
+            actor->field_958                  = 0;
+            actor->field_95A                  = 0;
+            actor->field_95C                  = 0;
+            actor->field_95E                  = 1;
             actor->field_914->spawnArg1.value = 1;
-            actor->field_934            = 0;
+            actor->field_934                  = 0;
             eff->spawnArg1.value             |= 0x10;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
@@ -1132,8 +1132,8 @@ static void func_hypervelocity_8011F724(Task* arg0)
                 if (count >= 0x5A) {
                     actor->field_981 = 0;
                     actor->field_95E++;
-                    eff->spawnArg1.value   = 0;
-                    actor->field_934 = 0x15;
+                    eff->spawnArg1.value = 0;
+                    actor->field_934     = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
@@ -1145,7 +1145,7 @@ static void func_hypervelocity_8011F724(Task* arg0)
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
-                actor->field_95E            = 3;
+                actor->field_95E                  = 3;
                 actor->field_914->spawnArg1.value = -1;
                 eff->spawnArg1.value              = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);

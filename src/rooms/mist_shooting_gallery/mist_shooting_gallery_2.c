@@ -595,17 +595,17 @@ MistShootingGallerySpawn D_mist_shooting_gallery_80186540[80] = {
     { 0xFFFF, 0, 0, 0, 0, 0 },
 };
 
-MistShootingGallerySpawn * D_mist_shooting_gallery_80186900[1] = {
+MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[1] = {
     D_mist_shooting_gallery_801856DC,
 };
 
-MistShootingGallerySpawn * D_mist_shooting_gallery_80186904 = D_mist_shooting_gallery_801859AC;
+MistShootingGallerySpawn* D_mist_shooting_gallery_80186904 = D_mist_shooting_gallery_801859AC;
 
-MistShootingGallerySpawn * D_mist_shooting_gallery_80186908 = D_mist_shooting_gallery_80185CC4;
+MistShootingGallerySpawn* D_mist_shooting_gallery_80186908 = D_mist_shooting_gallery_80185CC4;
 
-MistShootingGallerySpawn * D_mist_shooting_gallery_8018690C = D_mist_shooting_gallery_80186048;
+MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = D_mist_shooting_gallery_80186048;
 
-MistShootingGallerySpawn * D_mist_shooting_gallery_80186910 = D_mist_shooting_gallery_80186540;
+MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = D_mist_shooting_gallery_80186540;
 
 TmdBone D_mist_shooting_gallery_80186914[1] = {
 #include "assets/mist_shooting_gallery_model_09520_skeleton.inc"
@@ -628,8 +628,15 @@ u32 D_mist_shooting_gallery_801869BC[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80186AE0 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80186938, D_mist_shooting_gallery_8018693C, D_mist_shooting_gallery_8018698C, D_mist_shooting_gallery_80186914, D_mist_shooting_gallery_801869BC,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80186938,
+    D_mist_shooting_gallery_8018693C,
+    D_mist_shooting_gallery_8018698C,
+    D_mist_shooting_gallery_80186914,
+    D_mist_shooting_gallery_801869BC,
 };
 
 TmdBone D_mist_shooting_gallery_80186B04[1] = {
@@ -653,8 +660,15 @@ u32 D_mist_shooting_gallery_80186BAC[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80186CD0 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80186B28, D_mist_shooting_gallery_80186B2C, D_mist_shooting_gallery_80186B7C, D_mist_shooting_gallery_80186B04, D_mist_shooting_gallery_80186BAC,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80186B28,
+    D_mist_shooting_gallery_80186B2C,
+    D_mist_shooting_gallery_80186B7C,
+    D_mist_shooting_gallery_80186B04,
+    D_mist_shooting_gallery_80186BAC,
 };
 
 TmdBone D_mist_shooting_gallery_80186CF4[1] = {
@@ -678,8 +692,15 @@ u32 D_mist_shooting_gallery_80186D9C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80186EC0 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80186D18, D_mist_shooting_gallery_80186D1C, D_mist_shooting_gallery_80186D6C, D_mist_shooting_gallery_80186CF4, D_mist_shooting_gallery_80186D9C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80186D18,
+    D_mist_shooting_gallery_80186D1C,
+    D_mist_shooting_gallery_80186D6C,
+    D_mist_shooting_gallery_80186CF4,
+    D_mist_shooting_gallery_80186D9C,
 };
 
 TmdBone D_mist_shooting_gallery_80186EE4[1] = {
@@ -703,8 +724,15 @@ u32 D_mist_shooting_gallery_80186F8C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_801870B0 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80186F08, D_mist_shooting_gallery_80186F0C, D_mist_shooting_gallery_80186F5C, D_mist_shooting_gallery_80186EE4, D_mist_shooting_gallery_80186F8C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80186F08,
+    D_mist_shooting_gallery_80186F0C,
+    D_mist_shooting_gallery_80186F5C,
+    D_mist_shooting_gallery_80186EE4,
+    D_mist_shooting_gallery_80186F8C,
 };
 
 TmdBone D_mist_shooting_gallery_801870D4[1] = {
@@ -728,8 +756,15 @@ u32 D_mist_shooting_gallery_8018717C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_801872A0 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801870F8, D_mist_shooting_gallery_801870FC, D_mist_shooting_gallery_8018714C, D_mist_shooting_gallery_801870D4, D_mist_shooting_gallery_8018717C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801870F8,
+    D_mist_shooting_gallery_801870FC,
+    D_mist_shooting_gallery_8018714C,
+    D_mist_shooting_gallery_801870D4,
+    D_mist_shooting_gallery_8018717C,
 };
 
 TmdBone D_mist_shooting_gallery_801872C4[1] = {
@@ -753,8 +788,15 @@ u32 D_mist_shooting_gallery_8018736C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80187490 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801872E8, D_mist_shooting_gallery_801872EC, D_mist_shooting_gallery_8018733C, D_mist_shooting_gallery_801872C4, D_mist_shooting_gallery_8018736C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801872E8,
+    D_mist_shooting_gallery_801872EC,
+    D_mist_shooting_gallery_8018733C,
+    D_mist_shooting_gallery_801872C4,
+    D_mist_shooting_gallery_8018736C,
 };
 
 TmdBone D_mist_shooting_gallery_801874B4[1] = {
@@ -778,8 +820,15 @@ u32 D_mist_shooting_gallery_8018755C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80187680 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801874D8, D_mist_shooting_gallery_801874DC, D_mist_shooting_gallery_8018752C, D_mist_shooting_gallery_801874B4, D_mist_shooting_gallery_8018755C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801874D8,
+    D_mist_shooting_gallery_801874DC,
+    D_mist_shooting_gallery_8018752C,
+    D_mist_shooting_gallery_801874B4,
+    D_mist_shooting_gallery_8018755C,
 };
 
 TmdBone D_mist_shooting_gallery_801876A4[1] = {
@@ -803,8 +852,15 @@ u32 D_mist_shooting_gallery_8018774C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80187870 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801876C8, D_mist_shooting_gallery_801876CC, D_mist_shooting_gallery_8018771C, D_mist_shooting_gallery_801876A4, D_mist_shooting_gallery_8018774C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801876C8,
+    D_mist_shooting_gallery_801876CC,
+    D_mist_shooting_gallery_8018771C,
+    D_mist_shooting_gallery_801876A4,
+    D_mist_shooting_gallery_8018774C,
 };
 
 TmdBone D_mist_shooting_gallery_80187894[1] = {
@@ -828,8 +884,15 @@ u32 D_mist_shooting_gallery_8018793C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80187A60 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801878B8, D_mist_shooting_gallery_801878BC, D_mist_shooting_gallery_8018790C, D_mist_shooting_gallery_80187894, D_mist_shooting_gallery_8018793C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801878B8,
+    D_mist_shooting_gallery_801878BC,
+    D_mist_shooting_gallery_8018790C,
+    D_mist_shooting_gallery_80187894,
+    D_mist_shooting_gallery_8018793C,
 };
 
 TmdBone D_mist_shooting_gallery_80187A84[1] = {
@@ -853,8 +916,15 @@ u32 D_mist_shooting_gallery_80187B2C[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80187C50 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80187AA8, D_mist_shooting_gallery_80187AAC, D_mist_shooting_gallery_80187AFC, D_mist_shooting_gallery_80187A84, D_mist_shooting_gallery_80187B2C,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80187AA8,
+    D_mist_shooting_gallery_80187AAC,
+    D_mist_shooting_gallery_80187AFC,
+    D_mist_shooting_gallery_80187A84,
+    D_mist_shooting_gallery_80187B2C,
 };
 
 TmdBone D_mist_shooting_gallery_80187C74[1] = {
@@ -878,8 +948,15 @@ u32 D_mist_shooting_gallery_80187DDC[150] = {
 };
 
 TmdSource D_mist_shooting_gallery_80188034 = {
-    0, 1056, 0, 1,
-    D_mist_shooting_gallery_80187C98, D_mist_shooting_gallery_80187C9C, D_mist_shooting_gallery_80187D5C, D_mist_shooting_gallery_80187C74, D_mist_shooting_gallery_80187DDC,
+    0,
+    1056,
+    0,
+    1,
+    D_mist_shooting_gallery_80187C98,
+    D_mist_shooting_gallery_80187C9C,
+    D_mist_shooting_gallery_80187D5C,
+    D_mist_shooting_gallery_80187C74,
+    D_mist_shooting_gallery_80187DDC,
 };
 
 TmdBone D_mist_shooting_gallery_80188058[1] = {
@@ -903,8 +980,15 @@ u32 D_mist_shooting_gallery_801880F0[42] = {
 };
 
 TmdSource D_mist_shooting_gallery_80188198 = {
-    0, 312, 0, 1,
-    D_mist_shooting_gallery_8018807C, D_mist_shooting_gallery_80188080, D_mist_shooting_gallery_801880C0, D_mist_shooting_gallery_80188058, D_mist_shooting_gallery_801880F0,
+    0,
+    312,
+    0,
+    1,
+    D_mist_shooting_gallery_8018807C,
+    D_mist_shooting_gallery_80188080,
+    D_mist_shooting_gallery_801880C0,
+    D_mist_shooting_gallery_80188058,
+    D_mist_shooting_gallery_801880F0,
 };
 
 TmdBone D_mist_shooting_gallery_801881BC[1] = {
@@ -928,8 +1012,15 @@ u32 D_mist_shooting_gallery_80188254[42] = {
 };
 
 TmdSource D_mist_shooting_gallery_801882FC = {
-    0, 312, 0, 1,
-    D_mist_shooting_gallery_801881E0, D_mist_shooting_gallery_801881E4, D_mist_shooting_gallery_80188224, D_mist_shooting_gallery_801881BC, D_mist_shooting_gallery_80188254,
+    0,
+    312,
+    0,
+    1,
+    D_mist_shooting_gallery_801881E0,
+    D_mist_shooting_gallery_801881E4,
+    D_mist_shooting_gallery_80188224,
+    D_mist_shooting_gallery_801881BC,
+    D_mist_shooting_gallery_80188254,
 };
 
 TmdBone D_mist_shooting_gallery_80188320[1] = {
@@ -953,8 +1044,15 @@ u32 D_mist_shooting_gallery_801883B8[42] = {
 };
 
 TmdSource D_mist_shooting_gallery_80188460 = {
-    0, 312, 0, 1,
-    D_mist_shooting_gallery_80188344, D_mist_shooting_gallery_80188348, D_mist_shooting_gallery_80188388, D_mist_shooting_gallery_80188320, D_mist_shooting_gallery_801883B8,
+    0,
+    312,
+    0,
+    1,
+    D_mist_shooting_gallery_80188344,
+    D_mist_shooting_gallery_80188348,
+    D_mist_shooting_gallery_80188388,
+    D_mist_shooting_gallery_80188320,
+    D_mist_shooting_gallery_801883B8,
 };
 
 TmdBone D_mist_shooting_gallery_80188484[1] = {
@@ -978,8 +1076,15 @@ u32 D_mist_shooting_gallery_8018851C[42] = {
 };
 
 TmdSource D_mist_shooting_gallery_801885C4 = {
-    0, 312, 0, 1,
-    D_mist_shooting_gallery_801884A8, D_mist_shooting_gallery_801884AC, D_mist_shooting_gallery_801884EC, D_mist_shooting_gallery_80188484, D_mist_shooting_gallery_8018851C,
+    0,
+    312,
+    0,
+    1,
+    D_mist_shooting_gallery_801884A8,
+    D_mist_shooting_gallery_801884AC,
+    D_mist_shooting_gallery_801884EC,
+    D_mist_shooting_gallery_80188484,
+    D_mist_shooting_gallery_8018851C,
 };
 
 TmdBone D_mist_shooting_gallery_801885E8[1] = {
@@ -1003,8 +1108,15 @@ u32 D_mist_shooting_gallery_80188690[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_801887B4 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_8018860C, D_mist_shooting_gallery_80188610, D_mist_shooting_gallery_80188660, D_mist_shooting_gallery_801885E8, D_mist_shooting_gallery_80188690,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_8018860C,
+    D_mist_shooting_gallery_80188610,
+    D_mist_shooting_gallery_80188660,
+    D_mist_shooting_gallery_801885E8,
+    D_mist_shooting_gallery_80188690,
 };
 
 TmdBone D_mist_shooting_gallery_801887D8[1] = {
@@ -1028,8 +1140,15 @@ u32 D_mist_shooting_gallery_80188880[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_801889A4 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801887FC, D_mist_shooting_gallery_80188800, D_mist_shooting_gallery_80188850, D_mist_shooting_gallery_801887D8, D_mist_shooting_gallery_80188880,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801887FC,
+    D_mist_shooting_gallery_80188800,
+    D_mist_shooting_gallery_80188850,
+    D_mist_shooting_gallery_801887D8,
+    D_mist_shooting_gallery_80188880,
 };
 
 TmdBone D_mist_shooting_gallery_801889C8[1] = {
@@ -1053,8 +1172,15 @@ u32 D_mist_shooting_gallery_80188A70[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80188B94 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_801889EC, D_mist_shooting_gallery_801889F0, D_mist_shooting_gallery_80188A40, D_mist_shooting_gallery_801889C8, D_mist_shooting_gallery_80188A70,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_801889EC,
+    D_mist_shooting_gallery_801889F0,
+    D_mist_shooting_gallery_80188A40,
+    D_mist_shooting_gallery_801889C8,
+    D_mist_shooting_gallery_80188A70,
 };
 
 TmdBone D_mist_shooting_gallery_80188BB8[1] = {
@@ -1078,8 +1204,15 @@ u32 D_mist_shooting_gallery_80188C60[73] = {
 };
 
 TmdSource D_mist_shooting_gallery_80188D84 = {
-    0, 528, 0, 1,
-    D_mist_shooting_gallery_80188BDC, D_mist_shooting_gallery_80188BE0, D_mist_shooting_gallery_80188C30, D_mist_shooting_gallery_80188BB8, D_mist_shooting_gallery_80188C60,
+    0,
+    528,
+    0,
+    1,
+    D_mist_shooting_gallery_80188BDC,
+    D_mist_shooting_gallery_80188BE0,
+    D_mist_shooting_gallery_80188C30,
+    D_mist_shooting_gallery_80188BB8,
+    D_mist_shooting_gallery_80188C60,
 };
 
 SVECTOR D_mist_shooting_gallery_80188DA8[22] = {
@@ -1849,7 +1982,7 @@ s16 D_mist_shooting_gallery_801898DC[13] = {
     -1,
 };
 
-s16 * D_mist_shooting_gallery_801898F8[28] = {
+s16* D_mist_shooting_gallery_801898F8[28] = {
     D_mist_shooting_gallery_80189544,
     D_mist_shooting_gallery_80189570,
     D_mist_shooting_gallery_801895B8,
@@ -2657,7 +2790,7 @@ GpRoomParamRec D_mist_shooting_gallery_8018E094[1] = {
     { 0, 0, 1, 0, D_mist_shooting_gallery_8018E078 },
 };
 
-GpRoomParamRec * D_mist_shooting_gallery_8018E09C[8] = {
+GpRoomParamRec* D_mist_shooting_gallery_8018E09C[8] = {
     D_mist_shooting_gallery_8018E084,
     D_mist_shooting_gallery_8018E08C,
     D_mist_shooting_gallery_8018E094,
@@ -3491,7 +3624,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                     work->field_04++;
                     func_800E9BDC(5, 0xA);
                     xform.rot.vy = 0xC00;
-                    ((void (*)(Task*, s32, GpXformArg*, s32))func_80104E00)(
+                    func_80104E00(
                         gameGetPtrSlot(3), 0, &xform, 0);
                 }
                 work->field_20++;
@@ -3501,7 +3634,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             actor = gameGetPtrSlot(3)->work;
             func_800E9BDC(5, 0xA);
             if (actor->field_982 == 0) {
-                ((void (*)(Task*, s32, s32, s32))Gp_EnterActorMode2)(
+                Gp_EnterActorMode2(
                     gameGetPtrSlot(3), 0, 2, 0);
                 work->field_04++;
                 mode                 = 0x10;
@@ -3735,7 +3868,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
             timer          = work->field_0A - 1;
             work->field_0A = timer;
             if ((s32)(timer << 16) <= 0) {
-                ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+                Gp_ReleaseStateF0Clear(arg0, 0);
                 taskKill(arg0);
                 return;
             }
@@ -3784,7 +3917,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             actor->field_97B                  = 0;
             actor->field_983                  = 7;
             ((GpObj*)actor->field_AC)->flags |= 0x2000;
-            ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+            Gp_ReleaseStateF0Clear(arg0, 0);
             func_8014A908();
             return;
         case 3:
@@ -4016,7 +4149,7 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
     Display_ReleaseRef();
-    ((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+    Gp_ReleaseStateF0Clear(arg0, 0);
     taskKill(arg0);
 }
 
@@ -4036,9 +4169,9 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            arg0->state         = 1;
-            arg0->killCountdown = 0x28;
-            arg0->spawnArg1.value     = 0xFF;
+            arg0->state           = 1;
+            arg0->killCountdown   = 0x28;
+            arg0->spawnArg1.value = 0xFF;
         case 1:
             count = --arg0->killCountdown;
             if (count <= 0) {

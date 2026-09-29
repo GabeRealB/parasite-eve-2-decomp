@@ -109,7 +109,7 @@ GpRoomCoordRec D_shelter_1f_airlock_8017E5AC[1] = {
     { D_shelter_1f_airlock_8017F418, NULL },
 };
 
-u8 * D_shelter_1f_airlock_8017E5B4[1] = {
+u8* D_shelter_1f_airlock_8017E5B4[1] = {
     D_8010CAF8,
 };
 
@@ -217,7 +217,7 @@ s16 D_shelter_1f_airlock_8017E820[6] = {
     -1,
 };
 
-s16 * D_shelter_1f_airlock_8017E82C[3] = {
+s16* D_shelter_1f_airlock_8017E82C[3] = {
     D_shelter_1f_airlock_8017E7F8,
     D_shelter_1f_airlock_8017E80C,
     D_shelter_1f_airlock_8017E820,
@@ -459,7 +459,7 @@ GpRoomParamRec D_shelter_1f_airlock_8017F844[1] = {
     { 0, 0, 1, 0, D_shelter_1f_airlock_8017F830 },
 };
 
-GpRoomParamRec * D_shelter_1f_airlock_8017F84C[8] = {
+GpRoomParamRec* D_shelter_1f_airlock_8017F84C[8] = {
     D_shelter_1f_airlock_8017F83C,
     D_shelter_1f_airlock_8017F844,
     D_shelter_1f_airlock_8017F83C,
@@ -480,7 +480,7 @@ s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, G
 
 /// The room's handler for message 0x13EE: copies the incoming save location
 /// onto the outgoing one, passes both to `func_map_neo_ark_80179B14` and returns 1.
-s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

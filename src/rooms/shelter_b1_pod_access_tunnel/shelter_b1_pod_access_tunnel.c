@@ -206,7 +206,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank3C14 D_shelter_b1_pod_access_tunnel_801811D4 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_8018121C[46] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank4.inc"
@@ -221,7 +221,8 @@ u16 D_shelter_b1_pod_access_tunnel_80181488[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_801814B0 = {
-    D_shelter_b1_pod_access_tunnel_801812D4, D_shelter_b1_pod_access_tunnel_80181488,
+    D_shelter_b1_pod_access_tunnel_801812D4,
+    D_shelter_b1_pod_access_tunnel_80181488,
     { NULL, D_shelter_b1_pod_access_tunnel_801811D4.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
 };
 
@@ -233,7 +234,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank3F18 D_shelter_b1_pod_access_tunnel_801814D8 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_80181508[49] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank4.inc"
@@ -248,7 +249,8 @@ u16 D_shelter_b1_pod_access_tunnel_8018173C[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_80181764 = {
-    D_shelter_b1_pod_access_tunnel_801815CC, D_shelter_b1_pod_access_tunnel_8018173C,
+    D_shelter_b1_pod_access_tunnel_801815CC,
+    D_shelter_b1_pod_access_tunnel_8018173C,
     { NULL, D_shelter_b1_pod_access_tunnel_801814D8.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
 };
 
@@ -260,7 +262,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank41CC D_shelter_b1_pod_access_tunnel_8018178C = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_80181834[159] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank4.inc"
@@ -275,7 +277,8 @@ u16 D_shelter_b1_pod_access_tunnel_80181E74[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_80181E9C = {
-    D_shelter_b1_pod_access_tunnel_80181AB0, D_shelter_b1_pod_access_tunnel_80181E74,
+    D_shelter_b1_pod_access_tunnel_80181AB0,
+    D_shelter_b1_pod_access_tunnel_80181E74,
     { NULL, D_shelter_b1_pod_access_tunnel_8018178C.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
 };
 
@@ -287,7 +290,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank4904 D_shelter_b1_pod_access_tunnel_80181EC4 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_80181EF4[35] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank4.inc"
@@ -302,7 +305,8 @@ u16 D_shelter_b1_pod_access_tunnel_80182138[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182160 = {
-    D_shelter_b1_pod_access_tunnel_80181F80, D_shelter_b1_pod_access_tunnel_80182138,
+    D_shelter_b1_pod_access_tunnel_80181F80,
+    D_shelter_b1_pod_access_tunnel_80182138,
     { NULL, D_shelter_b1_pod_access_tunnel_80181EC4.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
 };
 
@@ -314,7 +318,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank4BC8 D_shelter_b1_pod_access_tunnel_80182188 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_801821A0[29] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank4.inc"
@@ -329,7 +333,8 @@ u16 D_shelter_b1_pod_access_tunnel_8018238C[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_801823B4 = {
-    D_shelter_b1_pod_access_tunnel_80182214, D_shelter_b1_pod_access_tunnel_8018238C,
+    D_shelter_b1_pod_access_tunnel_80182214,
+    D_shelter_b1_pod_access_tunnel_8018238C,
     { NULL, D_shelter_b1_pod_access_tunnel_80182188.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
 };
 
@@ -341,7 +346,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank4E1C D_shelter_b1_pod_access_tunnel_801823DC = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_80182454[135] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank4.inc"
@@ -356,7 +361,8 @@ u16 D_shelter_b1_pod_access_tunnel_80182910[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182938 = {
-    D_shelter_b1_pod_access_tunnel_80182670, D_shelter_b1_pod_access_tunnel_80182910,
+    D_shelter_b1_pod_access_tunnel_80182670,
+    D_shelter_b1_pod_access_tunnel_80182910,
     { NULL, D_shelter_b1_pod_access_tunnel_801823DC.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
 };
 
@@ -368,7 +374,7 @@ typedef union {
 
 ShelterB1PodAccessTunnelPoseBank53A0 D_shelter_b1_pod_access_tunnel_80182960 = { .poses = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank1.inc"
-} };
+                                                                                 } };
 
 GpPackedSvec D_shelter_b1_pod_access_tunnel_801829A8[64] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank4.inc"
@@ -383,7 +389,8 @@ u16 D_shelter_b1_pod_access_tunnel_80182CDC[20] = {
 };
 
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182D04 = {
-    D_shelter_b1_pod_access_tunnel_80182AA8, D_shelter_b1_pod_access_tunnel_80182CDC,
+    D_shelter_b1_pod_access_tunnel_80182AA8,
+    D_shelter_b1_pod_access_tunnel_80182CDC,
     { NULL, D_shelter_b1_pod_access_tunnel_80182960.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_801829A8, NULL, NULL, NULL },
 };
 
@@ -393,7 +400,7 @@ TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
     { 0, 192, func_shelter_b1_pod_access_tunnel_8017E778, { .model = NULL } },
 };
 
-GpAnimSet * D_shelter_b1_pod_access_tunnel_80182D50[8] = {
+GpAnimSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
     NULL,
     &D_shelter_b1_pod_access_tunnel_801814B0,
     &D_shelter_b1_pod_access_tunnel_80181764,
@@ -605,7 +612,7 @@ SVECTOR D_shelter_b1_pod_access_tunnel_80183A04[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b1_pod_access_tunnel_80183A14[1] = {
+u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
     D_8010CAF8,
 };
 
@@ -702,7 +709,7 @@ s16 D_shelter_b1_pod_access_tunnel_80183C08[6] = {
     -1,
 };
 
-s16 * D_shelter_b1_pod_access_tunnel_80183C14[4] = {
+s16* D_shelter_b1_pod_access_tunnel_80183C14[4] = {
     D_shelter_b1_pod_access_tunnel_80183BCC,
     D_shelter_b1_pod_access_tunnel_80183BE0,
     D_shelter_b1_pod_access_tunnel_80183BF4,
@@ -1067,7 +1074,7 @@ GpRoomParamRec D_shelter_b1_pod_access_tunnel_80184CD4[1] = {
     { 0, 0, 1, 0, D_shelter_b1_pod_access_tunnel_80184CB8 },
 };
 
-GpRoomParamRec * D_shelter_b1_pod_access_tunnel_80184CDC[8] = {
+GpRoomParamRec* D_shelter_b1_pod_access_tunnel_80184CDC[8] = {
     D_shelter_b1_pod_access_tunnel_80184CC4,
     D_shelter_b1_pod_access_tunnel_80184CCC,
     D_shelter_b1_pod_access_tunnel_80184CD4,
@@ -1135,7 +1142,7 @@ void func_shelter_b1_pod_access_tunnel_8017D61C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_pod_access_tunnel_80184D04.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_pod_access_tunnel_80184D04.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_pod_access_tunnel_80184D04.field_3;
@@ -1263,7 +1270,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             Mc_SaveData[0].state.at4.loc.area = 0x23;
             Mc_SaveData[0].state.at4.loc.warp = 3;
             Mc_SaveData[0].state.at4.loc.room = 1;
-            room                        = GameFlag_GetNibble(0x118);
+            room                              = GameFlag_GetNibble(0x118);
             if (room == 2) {
                 Mc_SaveData[0].state.at4.loc.room = room;
             }
@@ -1311,7 +1318,7 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
             Mc_SaveData[0].state.at4.loc.area = 0x17;
             Mc_SaveData[0].state.at4.loc.warp = 1;
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -1618,7 +1625,7 @@ void func_shelter_b1_pod_access_tunnel_8017E778(Task* arg0)
 {
     s32 temp_v0;
 
-    temp_v0         = arg0->spawnArg1.value - 1;
+    temp_v0               = arg0->spawnArg1.value - 1;
     arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);
@@ -2041,14 +2048,14 @@ void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_pod_access_tunnel_80183A04[1];
+                    SVECTOR* edge    = &D_shelter_b1_pod_access_tunnel_80183A04[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

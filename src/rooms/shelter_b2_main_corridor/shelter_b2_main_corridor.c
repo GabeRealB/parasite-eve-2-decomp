@@ -193,7 +193,7 @@ typedef union {
 
 ShelterB2MainCorridorPoseBank5330 D_shelter_b2_main_corridor_801828F0 = { .poses = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_shelter_b2_main_corridor_80182908[62] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank4.inc"
@@ -208,7 +208,8 @@ u16 D_shelter_b2_main_corridor_80182BB8[20] = {
 };
 
 GpAnimSet D_shelter_b2_main_corridor_80182BE0 = {
-    D_shelter_b2_main_corridor_80182A00, D_shelter_b2_main_corridor_80182BB8,
+    D_shelter_b2_main_corridor_80182A00,
+    D_shelter_b2_main_corridor_80182BB8,
     { NULL, D_shelter_b2_main_corridor_801828F0.words, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
 };
 
@@ -228,7 +229,7 @@ TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
     { 0, 32, func_shelter_b2_main_corridor_8017E210, { .model = NULL } },
 };
 
-GpAnimSet * D_shelter_b2_main_corridor_80182C5C[1] = {
+GpAnimSet* D_shelter_b2_main_corridor_80182C5C[1] = {
     &D_shelter_b2_main_corridor_80182BE0,
 };
 
@@ -303,7 +304,7 @@ SVECTOR D_shelter_b2_main_corridor_80182EAC[8] = {
     { -1700, 2200, -0x3200, 0 },
 };
 
-SVECTOR * D_shelter_b2_main_corridor_80182EEC[4] = {
+SVECTOR* D_shelter_b2_main_corridor_80182EEC[4] = {
     D_shelter_b2_main_corridor_80182E2C,
     D_shelter_b2_main_corridor_80182E6C,
     D_shelter_b2_main_corridor_80182EAC,
@@ -398,7 +399,7 @@ SVECTOR D_shelter_b2_main_corridor_801830BC[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b2_main_corridor_801830CC[1] = {
+u8* D_shelter_b2_main_corridor_801830CC[1] = {
     D_8010CAF8,
 };
 
@@ -1420,7 +1421,7 @@ s16 D_shelter_b2_main_corridor_801843AC[10] = {
     -1,
 };
 
-s16 * D_shelter_b2_main_corridor_801843C0[32] = {
+s16* D_shelter_b2_main_corridor_801843C0[32] = {
     D_shelter_b2_main_corridor_80183F74,
     D_shelter_b2_main_corridor_80183F84,
     D_shelter_b2_main_corridor_80183FA4,
@@ -2593,7 +2594,7 @@ GpRoomParamRec D_shelter_b2_main_corridor_8018961C[1] = {
     { 0, 0, 1, 0, D_shelter_b2_main_corridor_80189600 },
 };
 
-GpRoomParamRec * D_shelter_b2_main_corridor_80189624[8] = {
+GpRoomParamRec* D_shelter_b2_main_corridor_80189624[8] = {
     D_shelter_b2_main_corridor_8018960C,
     D_shelter_b2_main_corridor_80189614,
     D_shelter_b2_main_corridor_8018961C,
@@ -2620,7 +2621,7 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
     44,
 };
 
-u8 * D_shelter_b2_main_corridor_80189660 = NULL;
+u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
 ShelterB2MainCorridorStorage9664 D_shelter_b2_main_corridor_80189664 = { 0 };
 
@@ -2672,7 +2673,7 @@ void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_b2_main_corridor_80189664.value.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_b2_main_corridor_80189664.value.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_b2_main_corridor_80189664.value.warp;
@@ -2728,7 +2729,7 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_main_corridor_80189654.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_main_corridor_80189654.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_main_corridor_80189654.field_3;
@@ -2738,7 +2739,7 @@ void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
     }
 }
 
-s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent  staged;
     RoomLatchedEvent* p;
@@ -2798,16 +2799,16 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg * 
     } else {
         return 1;
     }
-    p                                   = &staged;
-    staged.capCmd                       = capCmd;
-    staged.flagId                       = flag;
-    staged.fade                         = 0;
+    p                                         = &staged;
+    staged.capCmd                             = capCmd;
+    staged.flagId                             = flag;
+    staged.fade                               = 0;
     D_shelter_b2_main_corridor_8018965C_value = 0;
     if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
         if (out->field_5 != 0) {
             return 2;
         }
-        D_shelter_b2_main_corridor_80189654 = *out;
+        D_shelter_b2_main_corridor_80189654       = *out;
         D_shelter_b2_main_corridor_80189674.value = staged;
         if (p->flagId != 0) {
             GameFlag_SetNibble(p->flagId, 1);
@@ -2819,7 +2820,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg * 
     return 1;
 }
 
-s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF * arg2, s32 arg3)
+s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
 {
     s32 id;
 
@@ -2935,15 +2936,15 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             }
             resolve = func_shelter_b2_main_corridor_8017E0FC;
             Gp_MsgPlayerWeapon(0);
-            param.prefix.packed   = D_shelter_b2_main_corridor_80189684.area;
-            param.field_2 = D_shelter_b2_main_corridor_80189684.warp;
-            param.field_3 = D_shelter_b2_main_corridor_80189684.room;
-            param.field_5 = 0;
+            param.prefix.packed = D_shelter_b2_main_corridor_80189684.area;
+            param.field_2       = D_shelter_b2_main_corridor_80189684.warp;
+            param.field_3       = D_shelter_b2_main_corridor_80189684.room;
+            param.field_5       = 0;
             resolve(&param, &param);
-            D_shelter_b2_main_corridor_80189684.area = param.prefix.packed;
-            D_shelter_b2_main_corridor_80189684.warp = param.field_2;
-            D_shelter_b2_main_corridor_80189684.room = param.field_3;
-            D_shelter_b2_main_corridor_80189664.value      = D_shelter_b2_main_corridor_80189684;
+            D_shelter_b2_main_corridor_80189684.area  = param.prefix.packed;
+            D_shelter_b2_main_corridor_80189684.warp  = param.field_2;
+            D_shelter_b2_main_corridor_80189684.room  = param.field_3;
+            D_shelter_b2_main_corridor_80189664.value = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
             taskKill(arg0);
             break;
@@ -4119,14 +4120,14 @@ void func_shelter_b2_main_corridor_801813B0(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b2_main_corridor_801830BC[1];
+                    SVECTOR* edge    = &D_shelter_b2_main_corridor_801830BC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

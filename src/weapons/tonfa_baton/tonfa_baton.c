@@ -372,7 +372,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->field_934 = delay;
                 if (delay == 0) {
                     actor->field_91C->spawnArg1.value = 1;
-                    actor->field_12A           |= 0x8000;
+                    actor->field_12A                 |= 0x8000;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
@@ -402,8 +402,8 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                     }
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else {
-                    actor->field_95E            = 5;
-                    actor->field_934            = 0xA;
+                    actor->field_95E                  = 5;
+                    actor->field_934                  = 0xA;
                     actor->field_91C->spawnArg1.value = 0;
                     Gp_AnimResetChildSlots(arg0, 0xE);
                 }
@@ -420,8 +420,8 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130002, 0);
                 } else if (step == 0) {
-                    actor->field_95E            = 4;
-                    actor->field_934            = 9;
+                    actor->field_95E                  = 4;
+                    actor->field_934                  = 9;
                     actor->field_91C->spawnArg1.value = 0;
                 }
             }

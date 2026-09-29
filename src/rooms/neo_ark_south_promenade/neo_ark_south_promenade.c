@@ -94,7 +94,7 @@ GpRoomObjRec D_neo_ark_south_promenade_8017F6F4[1] = {
     { D_neo_ark_south_promenade_8017FD8C, D_neo_ark_south_promenade_801804E8, D_neo_ark_south_promenade_801806B0, D_neo_ark_south_promenade_8018094C },
 };
 
-u8 * D_neo_ark_south_promenade_8017F704[1] = {
+u8* D_neo_ark_south_promenade_8017F704[1] = {
     D_8010CAF8,
 };
 
@@ -441,7 +441,7 @@ s16 D_neo_ark_south_promenade_8017FD28[18] = {
     -1,
 };
 
-s16 * D_neo_ark_south_promenade_8017FD4C[16] = {
+s16* D_neo_ark_south_promenade_8017FD4C[16] = {
     D_neo_ark_south_promenade_8017FC10,
     D_neo_ark_south_promenade_8017FC24,
     NULL,
@@ -670,7 +670,7 @@ GpRoomParamRec D_neo_ark_south_promenade_801809A4[1] = {
     { 0, 1, 0, 0, D_neo_ark_south_promenade_80180988 },
 };
 
-GpRoomParamRec * D_neo_ark_south_promenade_801809AC[8] = {
+GpRoomParamRec* D_neo_ark_south_promenade_801809AC[8] = {
     D_neo_ark_south_promenade_80180994,
     D_neo_ark_south_promenade_8018099C,
     D_neo_ark_south_promenade_801809A4,
@@ -691,7 +691,7 @@ s32 func_neo_ark_south_promenade_8017D5D0(Task* task, s32 msgId, GpMessageArg ar
 /// Message handler the room's message table names for one of its entries:
 /// copies the incoming message onto the outgoing one, passes both to
 /// `func_map_neo_ark_80179B14` and returns 1.
-s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -988,14 +988,14 @@ void func_neo_ark_south_promenade_8017E184(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_south_promenade_8017F6DC[1];
+                    SVECTOR* edge    = &D_neo_ark_south_promenade_8017F6DC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

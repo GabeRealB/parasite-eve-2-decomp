@@ -186,7 +186,7 @@ u8 D_dryfield_night_underpass_8017DE30[12] = {
     0,
 };
 
-u8 * D_dryfield_night_underpass_8017DE3C[6] = {
+u8* D_dryfield_night_underpass_8017DE3C[6] = {
     D_8010CAF8,
     D_dryfield_night_underpass_8017DE00,
     D_dryfield_night_underpass_8017DE0C,
@@ -751,7 +751,7 @@ s16 D_dryfield_night_underpass_8017E65C[11] = {
     -1,
 };
 
-s16 * D_dryfield_night_underpass_8017E674[24] = {
+s16* D_dryfield_night_underpass_8017E674[24] = {
     D_dryfield_night_underpass_8017E3C0,
     D_dryfield_night_underpass_8017E3D4,
     D_dryfield_night_underpass_8017E3EC,
@@ -1233,7 +1233,7 @@ GpRoomParamRec D_dryfield_night_underpass_8018036C[1] = {
     { 0, 0, 1, 0, D_dryfield_night_underpass_80180348 },
 };
 
-GpRoomParamRec * D_dryfield_night_underpass_80180374[8] = {
+GpRoomParamRec* D_dryfield_night_underpass_80180374[8] = {
     D_dryfield_night_underpass_80180354,
     D_dryfield_night_underpass_80180354,
     D_dryfield_night_underpass_80180364,
@@ -1306,9 +1306,9 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
                             }
                         }
                     }
-                    session                     = gGameSession;
-                    room                        = dst.field_3;
-                    session->at4.loc.room       = room;
+                    session                           = gGameSession;
+                    room                              = dst.field_3;
+                    session->at4.loc.room             = room;
                     Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
@@ -1327,7 +1327,7 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
 /// and, unless the query is report-only (`field_5` set), answers record id 0x20
 /// with 1 or 2 from nibble 0x51, raised by 2 while nibble 0x53 is set, and
 /// record id 0x22 with 1 or 2 from nibble 0x52. Always returns 1.
-s32 func_dryfield_night_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->prefix.packed == 0x20 && in->field_5 == 0) {

@@ -73,11 +73,11 @@ void Gp_InitStarterInv(void)
     s32           flag105;
     s32           flag107;
 
-    scan                    = &Mc_SaveData[0].state.carriedItems;
-    save                    = &Mc_SaveData[0];
+    scan                          = &Mc_SaveData[0].state.carriedItems;
+    save                          = &Mc_SaveData[0];
     save->state.itemLevelBonus[5] = 0;
     save->state.itemLevelBonus[0] = 0;
-    cfg                     = &Player_Status;
+    cfg                           = &Player_Status;
     switch (scan->table) {
         case 2:
             tmp = Gp_ItemTable2;

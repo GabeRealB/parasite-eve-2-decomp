@@ -108,7 +108,7 @@ s16 D_shelter_b1_sleeping_quarters_8018064C[2][3] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b1_sleeping_quarters_80180658[1] = {
+u8* D_shelter_b1_sleeping_quarters_80180658[1] = {
     D_8010CAF8,
 };
 
@@ -648,7 +648,7 @@ s16 D_shelter_b1_sleeping_quarters_80181088[13] = {
     -1,
 };
 
-s16 * D_shelter_b1_sleeping_quarters_801810A4[12] = {
+s16* D_shelter_b1_sleeping_quarters_801810A4[12] = {
     D_shelter_b1_sleeping_quarters_80180E80,
     D_shelter_b1_sleeping_quarters_80180E9C,
     D_shelter_b1_sleeping_quarters_80180EC0,
@@ -1314,7 +1314,7 @@ GpRoomParamRec D_shelter_b1_sleeping_quarters_801840A8[1] = {
     { 0, 0, 1, 0, D_shelter_b1_sleeping_quarters_8018408C },
 };
 
-GpRoomParamRec * D_shelter_b1_sleeping_quarters_801840B0[8] = {
+GpRoomParamRec* D_shelter_b1_sleeping_quarters_801840B0[8] = {
     D_shelter_b1_sleeping_quarters_80184098,
     D_shelter_b1_sleeping_quarters_801840A0,
     D_shelter_b1_sleeping_quarters_801840A8,

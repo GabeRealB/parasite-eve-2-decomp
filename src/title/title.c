@@ -136,7 +136,7 @@ static void Title_InitTask(Task* arg0)
     ds->at100.flags.imageSource = 0;
     Wip_UiHolder                = NULL;
     if (arg0->spawnArg1.value < 0) {
-        flag             = 0;
+        flag                   = 0;
         arg0->spawnArg1.value &= 0x7FFFFFFF;
     }
     if (arg0->spawnArg1.value > 0) {

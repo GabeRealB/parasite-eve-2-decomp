@@ -62,7 +62,7 @@ RoomHaloShade D_shelter_b3_elevator_hall_80182B48[2] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b3_elevator_hall_80182B54[1] = {
+u8* D_shelter_b3_elevator_hall_80182B54[1] = {
     D_8010CAF8,
 };
 
@@ -533,7 +533,7 @@ s16 D_shelter_b3_elevator_hall_80183480[5] = {
     -1,
 };
 
-s16 * D_shelter_b3_elevator_hall_8018348C[15] = {
+s16* D_shelter_b3_elevator_hall_8018348C[15] = {
     D_shelter_b3_elevator_hall_801832B4,
     D_shelter_b3_elevator_hall_801832F4,
     NULL,
@@ -919,7 +919,7 @@ GpRoomParamRec D_shelter_b3_elevator_hall_801849D8[1] = {
     { 0, 1, 0, 0, D_shelter_b3_elevator_hall_80184990 },
 };
 
-GpRoomParamRec * D_shelter_b3_elevator_hall_801849E0[8] = {
+GpRoomParamRec* D_shelter_b3_elevator_hall_801849E0[8] = {
     D_shelter_b3_elevator_hall_801849A8,
     D_shelter_b3_elevator_hall_801849B0,
     D_shelter_b3_elevator_hall_801849B8,

@@ -119,7 +119,7 @@ GpRoomCoordRec D_neo_ark_north_promenade_80181DC4[1] = {
     { D_neo_ark_north_promenade_80182D9C, NULL },
 };
 
-u8 * D_neo_ark_north_promenade_80181DCC[1] = {
+u8* D_neo_ark_north_promenade_80181DCC[1] = {
     D_8010CAF8,
 };
 
@@ -443,7 +443,7 @@ s16 D_neo_ark_north_promenade_801823A0[5] = {
     -1,
 };
 
-s16 * D_neo_ark_north_promenade_801823AC[16] = {
+s16* D_neo_ark_north_promenade_801823AC[16] = {
     NULL,
     D_neo_ark_north_promenade_80182290,
     D_neo_ark_north_promenade_8018229C,
@@ -704,7 +704,7 @@ GpRoomParamRec D_neo_ark_north_promenade_801832E4[1] = {
     { 0, 1, 0, 0, D_neo_ark_north_promenade_801832C8 },
 };
 
-GpRoomParamRec * D_neo_ark_north_promenade_801832EC[8] = {
+GpRoomParamRec* D_neo_ark_north_promenade_801832EC[8] = {
     D_neo_ark_north_promenade_801832D4,
     D_neo_ark_north_promenade_801832DC,
     D_neo_ark_north_promenade_801832E4,
@@ -722,7 +722,7 @@ s32 func_neo_ark_north_promenade_8017D5D0(Task* task, s32 msgId, GpMessageArg ar
     return 0;
 }
 
-s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -1085,20 +1085,20 @@ void func_neo_ark_north_promenade_8017E4F8(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_neo_ark_north_promenade_80181D90.entries[mem->index].b;
                 func_neo_ark_north_promenade_8017E164(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;
@@ -1791,14 +1791,14 @@ void func_neo_ark_north_promenade_80180838(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_north_promenade_80181DA4[1];
+                    SVECTOR* edge    = &D_neo_ark_north_promenade_80181DA4[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

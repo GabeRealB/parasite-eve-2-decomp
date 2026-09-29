@@ -44,7 +44,7 @@ GpRoomObjRec D_dryfield_motel_loft_8017D6DC[1] = {
     { D_dryfield_motel_loft_8017D9BC, D_dryfield_motel_loft_8017DE2C, D_dryfield_motel_loft_8017E1BC, NULL },
 };
 
-u8 * D_dryfield_motel_loft_8017D6EC[1] = {
+u8* D_dryfield_motel_loft_8017D6EC[1] = {
     D_8010CAF8,
 };
 
@@ -196,7 +196,7 @@ s16 D_dryfield_motel_loft_8017D994[7] = {
     -1,
 };
 
-s16 * D_dryfield_motel_loft_8017D9A4[6] = {
+s16* D_dryfield_motel_loft_8017D9A4[6] = {
     D_dryfield_motel_loft_8017D930,
     D_dryfield_motel_loft_8017D94C,
     D_dryfield_motel_loft_8017D95C,
@@ -362,7 +362,7 @@ GpRoomParamRec D_dryfield_motel_loft_8017E640[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_motel_loft_8017E648[8] = {
+GpRoomParamRec* D_dryfield_motel_loft_8017E648[8] = {
     D_dryfield_motel_loft_8017E638,
     D_dryfield_motel_loft_8017E640,
     D_dryfield_motel_loft_8017E638,
@@ -384,7 +384,7 @@ s32 func_dryfield_motel_loft_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, 
 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply unchanged and returns 1.
-s32 func_dryfield_motel_loft_8017D5D8(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_motel_loft_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     return 1;

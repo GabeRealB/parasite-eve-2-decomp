@@ -74,8 +74,15 @@ u32 D_shelter_b3_dumping_hole_801871F4[215] = {
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187550 = {
-    0, 1768, 0, 3,
-    D_shelter_b3_dumping_hole_80186FF8, D_shelter_b3_dumping_hole_80187004, D_shelter_b3_dumping_hole_801871C4, D_shelter_b3_dumping_hole_80186F8C, D_shelter_b3_dumping_hole_801871F4,
+    0,
+    1768,
+    0,
+    3,
+    D_shelter_b3_dumping_hole_80186FF8,
+    D_shelter_b3_dumping_hole_80187004,
+    D_shelter_b3_dumping_hole_801871C4,
+    D_shelter_b3_dumping_hole_80186F8C,
+    D_shelter_b3_dumping_hole_801871F4,
 };
 
 ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
@@ -108,8 +115,15 @@ u32 D_shelter_b3_dumping_hole_8018768C[90] = {
 };
 
 TmdSource D_shelter_b3_dumping_hole_801877F4 = {
-    0, 560, 0, 1,
-    D_shelter_b3_dumping_hole_801875C8, D_shelter_b3_dumping_hole_801875CC, D_shelter_b3_dumping_hole_80187614, D_shelter_b3_dumping_hole_801875A4, D_shelter_b3_dumping_hole_8018768C,
+    0,
+    560,
+    0,
+    1,
+    D_shelter_b3_dumping_hole_801875C8,
+    D_shelter_b3_dumping_hole_801875CC,
+    D_shelter_b3_dumping_hole_80187614,
+    D_shelter_b3_dumping_hole_801875A4,
+    D_shelter_b3_dumping_hole_8018768C,
 };
 
 TmdBone D_shelter_b3_dumping_hole_80187818[1] = {
@@ -133,8 +147,15 @@ u32 D_shelter_b3_dumping_hole_80187908[90] = {
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187A70 = {
-    0, 560, 0, 1,
-    D_shelter_b3_dumping_hole_8018783C, D_shelter_b3_dumping_hole_80187840, D_shelter_b3_dumping_hole_80187888, D_shelter_b3_dumping_hole_80187818, D_shelter_b3_dumping_hole_80187908,
+    0,
+    560,
+    0,
+    1,
+    D_shelter_b3_dumping_hole_8018783C,
+    D_shelter_b3_dumping_hole_80187840,
+    D_shelter_b3_dumping_hole_80187888,
+    D_shelter_b3_dumping_hole_80187818,
+    D_shelter_b3_dumping_hole_80187908,
 };
 
 TmdBone D_shelter_b3_dumping_hole_80187A94[1] = {
@@ -158,8 +179,15 @@ u32 D_shelter_b3_dumping_hole_80187BAC[114] = {
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187D74 = {
-    0, 720, 0, 1,
-    D_shelter_b3_dumping_hole_80187AB8, D_shelter_b3_dumping_hole_80187ABC, D_shelter_b3_dumping_hole_80187B14, D_shelter_b3_dumping_hole_80187A94, D_shelter_b3_dumping_hole_80187BAC,
+    0,
+    720,
+    0,
+    1,
+    D_shelter_b3_dumping_hole_80187AB8,
+    D_shelter_b3_dumping_hole_80187ABC,
+    D_shelter_b3_dumping_hole_80187B14,
+    D_shelter_b3_dumping_hole_80187A94,
+    D_shelter_b3_dumping_hole_80187BAC,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -170,7 +198,7 @@ typedef union {
 
 ShelterB3DumpingHolePoseBankA7D8 D_shelter_b3_dumping_hole_80187D98 = { .poses = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank1.inc"
-} };
+                                                                        } };
 
 GpPackedSvec D_shelter_b3_dumping_hole_80187DE0[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank4.inc"
@@ -185,13 +213,14 @@ u16 D_shelter_b3_dumping_hole_8018804C[20] = {
 };
 
 GpAnimSet D_shelter_b3_dumping_hole_80188074 = {
-    D_shelter_b3_dumping_hole_80187E98, D_shelter_b3_dumping_hole_8018804C,
+    D_shelter_b3_dumping_hole_80187E98,
+    D_shelter_b3_dumping_hole_8018804C,
     { NULL, D_shelter_b3_dumping_hole_80187D98.words, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
 };
 
 s16 D_shelter_b3_dumping_hole_8018809C = 1;
 
-GpAnimSet * D_shelter_b3_dumping_hole_801880A0[6] = {
+GpAnimSet* D_shelter_b3_dumping_hole_801880A0[6] = {
     &D_shelter_b3_dumping_hole_80188074,
     &D_actor_403200_8015ED84,
     &D_actor_403200_8015EFF0,
@@ -265,7 +294,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     if (gGameSession->at4.loc.room >= 2) {
         Task_SpawnFromTable(&D_80164B78, 0, 0, 0);
     }
-    arg0->state                       += 1;
+    arg0->state                             += 1;
     D_shelter_b3_dumping_hole_8018F4A4_value = 0;
 }
 

@@ -79,11 +79,11 @@ GpMsgEntry D_neo_ark_woodland_path_80181650[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-Task * D_neo_ark_woodland_path_80181680 = NULL;
+Task* D_neo_ark_woodland_path_80181680 = NULL;
 
 SVECTOR D_neo_ark_woodland_path_80181684[2] = { 0 };
 
-u8 * D_neo_ark_woodland_path_80181694[1] = {
+u8* D_neo_ark_woodland_path_80181694[1] = {
     D_8010CAF8,
 };
 
@@ -467,7 +467,7 @@ s16 D_neo_ark_woodland_path_80181CF8[10] = {
     -1,
 };
 
-s16 * D_neo_ark_woodland_path_80181D0C[20] = {
+s16* D_neo_ark_woodland_path_80181D0C[20] = {
     D_neo_ark_woodland_path_80181B90,
     D_neo_ark_woodland_path_80181BA8,
     D_neo_ark_woodland_path_80181BB4,
@@ -1126,7 +1126,7 @@ GpRoomParamRec D_neo_ark_woodland_path_80184908[1] = {
     { 0, 0, 1, 0, D_neo_ark_woodland_path_801848C4 },
 };
 
-GpRoomParamRec * D_neo_ark_woodland_path_80184910[8] = {
+GpRoomParamRec* D_neo_ark_woodland_path_80184910[8] = {
     D_neo_ark_woodland_path_801848E8,
     D_neo_ark_woodland_path_801848F0,
     D_neo_ark_woodland_path_801848F8,
@@ -1853,7 +1853,7 @@ s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, GpMessageArg arg2
 /// Room message handler for the path's save location: copies the incoming
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
 /// answers 1.
-s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

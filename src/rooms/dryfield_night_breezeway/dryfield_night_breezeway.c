@@ -99,7 +99,7 @@ GpRoomObjRec D_dryfield_night_breezeway_8017E6EC[1] = {
     { D_dryfield_night_breezeway_8017EBC4, D_dryfield_night_breezeway_80180170, D_dryfield_night_breezeway_801802A0, NULL },
 };
 
-u8 * D_dryfield_night_breezeway_8017E6FC[1] = {
+u8* D_dryfield_night_breezeway_8017E6FC[1] = {
     D_8010CAF8,
 };
 
@@ -360,7 +360,7 @@ s16 D_dryfield_night_breezeway_8017EB8C[12] = {
     -1,
 };
 
-s16 * D_dryfield_night_breezeway_8017EBA4[8] = {
+s16* D_dryfield_night_breezeway_8017EBA4[8] = {
     D_dryfield_night_breezeway_8017EAA0,
     D_dryfield_night_breezeway_8017EAC4,
     D_dryfield_night_breezeway_8017EAE8,
@@ -733,7 +733,7 @@ GpRoomParamRec D_dryfield_night_breezeway_801804B0[1] = {
     { 0, 0, 1, 0, D_dryfield_night_breezeway_80180494 },
 };
 
-GpRoomParamRec * D_dryfield_night_breezeway_801804B8[8] = {
+GpRoomParamRec* D_dryfield_night_breezeway_801804B8[8] = {
     D_dryfield_night_breezeway_801804A0,
     D_dryfield_night_breezeway_801804A8,
     D_dryfield_night_breezeway_801804B0,
@@ -757,7 +757,7 @@ s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, GpMessageArg a
 
 /// The room's 0x13EE message handler: copies the incoming location onto the
 /// outgoing record and answers 1.
-s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;

@@ -57,6 +57,7 @@ void Mem_Set(void* dest, u32 ch, u32 count)
     v32 = (v8 << 24) + (v8 << 16) + (v8 << 8) + v8;
 
     while (remaining >= 4) {
+        /* Alignment depends on address bits, not the pointed-to value. */
         alignment = (uintptr)ptr & 3;
 
         switch (alignment) {
@@ -113,6 +114,7 @@ void* memCalloc(size_t size, bool auxHeap)
         zero16    = 0;
 
         while (remaining >= 4) {
+            /* Select stores from the numeric address alignment. */
             switch ((uintptr)dest & 3) {
                 case 0:
                     *(u32*)dest = zero32;

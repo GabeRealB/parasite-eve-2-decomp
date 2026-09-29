@@ -86,7 +86,7 @@ s16 D_shelter_b2_breeding_room_80180550[2][3] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b2_breeding_room_8018055C[1] = {
+u8* D_shelter_b2_breeding_room_8018055C[1] = {
     D_8010CAF8,
 };
 
@@ -695,7 +695,7 @@ s16 D_shelter_b2_breeding_room_801810B4[7] = {
     -1,
 };
 
-s16 * D_shelter_b2_breeding_room_801810C4[12] = {
+s16* D_shelter_b2_breeding_room_801810C4[12] = {
     D_shelter_b2_breeding_room_80180E38,
     D_shelter_b2_breeding_room_80180E6C,
     D_shelter_b2_breeding_room_80180EB0,
@@ -1490,7 +1490,7 @@ GpRoomParamRec D_shelter_b2_breeding_room_801847EC[1] = {
     { 0, 0, 1, 0, D_shelter_b2_breeding_room_801847C0 },
 };
 
-GpRoomParamRec * D_shelter_b2_breeding_room_801847F4[8] = {
+GpRoomParamRec* D_shelter_b2_breeding_room_801847F4[8] = {
     D_shelter_b2_breeding_room_801847CC,
     D_shelter_b2_breeding_room_801847D4,
     D_shelter_b2_breeding_room_801847DC,

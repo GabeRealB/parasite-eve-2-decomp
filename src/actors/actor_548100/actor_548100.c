@@ -850,7 +850,7 @@ u8 D_actor_548100_80135B1C[8] = {
     0,
 };
 
-u8 * D_actor_548100_80135B24[10] = {
+u8* D_actor_548100_80135B24[10] = {
     NULL,
     D_actor_548100_80135A2C,
     D_actor_548100_80135A50,
@@ -863,7 +863,7 @@ u8 * D_actor_548100_80135B24[10] = {
     D_actor_548100_80135B1C,
 };
 
-Actor548100Route * D_actor_548100_80135B4C = NULL;
+Actor548100Route* D_actor_548100_80135B4C = NULL;
 
 s16 D_actor_548100_80135B50 = 0;
 
@@ -1122,11 +1122,11 @@ static void func_actor_548100_80132420(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer             = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
-    task->msgTable              = D_actor_548100_801351C0;
-    task->work                  = work;
+    task->spawnArg2.pointer           = Task_SpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
+    task->msgTable                    = D_actor_548100_801351C0;
+    task->work                        = work;
     Mc_SaveData[0].state.at4.loc.view = 4;
-    task->state                += 1;
+    task->state                      += 1;
     if (GameFlag_GetNibble(0xBE) == 0) {
         GameFlag_SetNibble(0xBE, 1);
         GameFlag_SetNibble(0xC2, 1);
@@ -2527,9 +2527,9 @@ static void func_actor_548100_80134E0C(Task* arg0)
     Gp_MsgPlayer3F3(1);
     D_80114D08 = 0xA;
     Display_ReleaseRef();
-    gGameSession->eventState    = 0;
-    gGameSession->hideHud       = 0;
-    gGameSession->cutsceneHold  = 0;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
     Mc_SaveData[0].state.at4.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);

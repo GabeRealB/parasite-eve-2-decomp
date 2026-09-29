@@ -137,8 +137,15 @@ u32 D_actor_300700_801656A0[265] = {
 };
 
 TmdSource D_actor_300700_80165AC4 = {
-    0, 1488, 208, 4,
-    D_actor_300700_80165520, D_actor_300700_80165530, D_actor_300700_80165600, D_actor_300700_80165490, D_actor_300700_801656A0,
+    0,
+    1488,
+    208,
+    4,
+    D_actor_300700_80165520,
+    D_actor_300700_80165530,
+    D_actor_300700_80165600,
+    D_actor_300700_80165490,
+    D_actor_300700_801656A0,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -149,7 +156,7 @@ typedef union {
 
 Actor300700PoseBank3CC8 D_actor_300700_80165AE8 = { .poses = {
 #include "assets/actor_300700_animation_03D1C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_300700_80165B00[1] = {
 #include "assets/actor_300700_animation_03D1C_bank4.inc"
@@ -164,7 +171,8 @@ u16 D_actor_300700_80165B34[4] = {
 };
 
 GpAnimSet D_actor_300700_80165B3C = {
-    D_actor_300700_80165B04, D_actor_300700_80165B34,
+    D_actor_300700_80165B04,
+    D_actor_300700_80165B34,
     { NULL, D_actor_300700_80165AE8.words, NULL, NULL, D_actor_300700_80165B00, NULL, NULL, NULL },
 };
 
@@ -185,7 +193,7 @@ u16 D_actor_300700_80165B78[8] = {
 
 TaskDesc D_actor_300700_80165B88 = { 1, 96, func_actor_300700_8016335C, { .model = &D_actor_300700_80165AC4 } };
 
-GpAnimSet * D_actor_300700_80165B94[2] = {
+GpAnimSet* D_actor_300700_80165B94[2] = {
     NULL,
     &D_actor_300700_80165B3C,
 };
@@ -222,8 +230,15 @@ u32 D_actor_300700_801662CC[1101] = {
 };
 
 TmdSource D_actor_300700_80167400 = {
-    0, 5164, 2392, 7,
-    D_actor_300700_80165CB8, D_actor_300700_80165CD4, D_actor_300700_80165F44, D_actor_300700_80165BBC, D_actor_300700_801662CC,
+    0,
+    5164,
+    2392,
+    7,
+    D_actor_300700_80165CB8,
+    D_actor_300700_80165CD4,
+    D_actor_300700_80165F44,
+    D_actor_300700_80165BBC,
+    D_actor_300700_801662CC,
 };
 
 static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1);
@@ -424,7 +439,7 @@ static void func_actor_300700_801622B4(Task* arg0)
         case 0:
             break;
         case 1:
-            arg0->state                     = 2;
+            arg0->state                             = 2;
             ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
             Gp_ArmStateF0(1);
             break;

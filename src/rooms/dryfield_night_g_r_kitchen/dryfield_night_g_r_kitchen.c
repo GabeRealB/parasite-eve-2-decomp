@@ -110,7 +110,7 @@ GpRoomObjRec D_dryfield_night_g_r_kitchen_8017E2C4[1] = {
     { D_dryfield_night_g_r_kitchen_8017E554, D_dryfield_night_g_r_kitchen_8017E864, D_dryfield_night_g_r_kitchen_8017E8FC, NULL },
 };
 
-u8 * D_dryfield_night_g_r_kitchen_8017E2D4[1] = {
+u8* D_dryfield_night_g_r_kitchen_8017E2D4[1] = {
     D_8010CAF8,
 };
 
@@ -217,7 +217,7 @@ s16 D_dryfield_night_g_r_kitchen_8017E530[14] = {
     -1,
 };
 
-s16 * D_dryfield_night_g_r_kitchen_8017E54C[2] = {
+s16* D_dryfield_night_g_r_kitchen_8017E54C[2] = {
     D_dryfield_night_g_r_kitchen_8017E50C,
     D_dryfield_night_g_r_kitchen_8017E530,
 };
@@ -338,7 +338,7 @@ GpRoomParamRec D_dryfield_night_g_r_kitchen_8017EBFC[1] = {
     { 0, 0, 1, 0, D_dryfield_night_g_r_kitchen_8017EBE8 },
 };
 
-GpRoomParamRec * D_dryfield_night_g_r_kitchen_8017EC04[8] = {
+GpRoomParamRec* D_dryfield_night_g_r_kitchen_8017EC04[8] = {
     D_dryfield_night_g_r_kitchen_8017EBF4,
     D_dryfield_night_g_r_kitchen_8017EBFC,
     D_dryfield_night_g_r_kitchen_8017EBF4,
@@ -380,10 +380,10 @@ static s32 func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEvent
     s32 ret;
     s32 neg;
 
-    flag                                  = req->flagId;
+    flag                                     = req->flagId;
     D_dryfield_night_g_r_kitchen_8017EC2C[0] = 0;
-    neg                                   = flag < 0;
-    got                                   = (s16)flag;
+    neg                                      = flag < 0;
+    got                                      = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -462,7 +462,7 @@ void func_dryfield_night_g_r_kitchen_8017D74C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_g_r_kitchen_8017EC24.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_g_r_kitchen_8017EC24.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_g_r_kitchen_8017EC24.field_3;
@@ -483,7 +483,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, GpMessageArg
 /// halfword is 0x14 it builds the room's event request -- flag nibble 0x34, no
 /// prerequisite item, CAP commands 3 and 3 and two sounds -- and answers what
 /// the event gate answers. Everything else answers 1.
-s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
 

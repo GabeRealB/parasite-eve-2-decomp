@@ -222,8 +222,15 @@ u32 Actor03700_D03B60[424] = {
 };
 
 TmdSource Actor03700_D04200 = {
-    0, 2184, 480, 6,
-    Actor03700_D03710, Actor03700_D03728, Actor03700_D03978, Actor03700_D03638, Actor03700_D03B60,
+    0,
+    2184,
+    480,
+    6,
+    Actor03700_D03710,
+    Actor03700_D03728,
+    Actor03700_D03978,
+    Actor03700_D03638,
+    Actor03700_D03B60,
 };
 
 TmdBone Actor03700_D04224[1] = {
@@ -247,8 +254,15 @@ u32 Actor03700_D04324[54] = {
 };
 
 TmdSource Actor03700_D043FC = {
-    0, 320, 0, 1,
-    Actor03700_D04248, Actor03700_D0424C, Actor03700_D042CC, Actor03700_D04224, Actor03700_D04324,
+    0,
+    320,
+    0,
+    1,
+    Actor03700_D04248,
+    Actor03700_D0424C,
+    Actor03700_D042CC,
+    Actor03700_D04224,
+    Actor03700_D04324,
 };
 
 TmdBone Actor03700_D04420[1] = {
@@ -272,8 +286,15 @@ u32 Actor03700_D04528[54] = {
 };
 
 TmdSource Actor03700_D04600 = {
-    0, 320, 0, 1,
-    Actor03700_D04444, Actor03700_D04448, Actor03700_D044C8, Actor03700_D04420, Actor03700_D04528,
+    0,
+    320,
+    0,
+    1,
+    Actor03700_D04444,
+    Actor03700_D04448,
+    Actor03700_D044C8,
+    Actor03700_D04420,
+    Actor03700_D04528,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -284,7 +305,7 @@ typedef union {
 
 Actor03700PoseBank4624 Actor03700_D04624 = { .poses = {
 #include "assets/actor_103700_animation_047C4_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D04684[28] = {
 #include "assets/actor_103700_animation_047C4_bank4.inc"
@@ -299,7 +320,8 @@ u16 Actor03700_D047B8[6] = {
 };
 
 GpAnimSet Actor03700_D047C4 = {
-    Actor03700_D046F4, Actor03700_D047B8,
+    Actor03700_D046F4,
+    Actor03700_D047B8,
     { NULL, Actor03700_D04624.words, NULL, NULL, Actor03700_D04684, NULL, NULL, NULL },
 };
 
@@ -311,7 +333,7 @@ typedef union {
 
 Actor03700PoseBank47EC Actor03700_D047EC = { .poses = {
 #include "assets/actor_103700_animation_04AC0_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D048D0[18] = {
 #include "assets/actor_103700_animation_04AC0_bank4.inc"
@@ -326,7 +348,8 @@ u16 Actor03700_D04AB4[6] = {
 };
 
 GpAnimSet Actor03700_D04AC0 = {
-    Actor03700_D04918, Actor03700_D04AB4,
+    Actor03700_D04918,
+    Actor03700_D04AB4,
     { NULL, Actor03700_D047EC.words, NULL, NULL, Actor03700_D048D0, NULL, NULL, NULL },
 };
 
@@ -338,7 +361,7 @@ typedef union {
 
 Actor03700PoseBank4AE8 Actor03700_D04AE8 = { .poses = {
 #include "assets/actor_103700_animation_04C58_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D04B3C[24] = {
 #include "assets/actor_103700_animation_04C58_bank4.inc"
@@ -353,7 +376,8 @@ u16 Actor03700_D04C4C[6] = {
 };
 
 GpAnimSet Actor03700_D04C58 = {
-    Actor03700_D04B9C, Actor03700_D04C4C,
+    Actor03700_D04B9C,
+    Actor03700_D04C4C,
     { NULL, Actor03700_D04AE8.words, NULL, NULL, Actor03700_D04B3C, NULL, NULL, NULL },
 };
 
@@ -365,7 +389,7 @@ typedef union {
 
 Actor03700PoseBank4C80 Actor03700_D04C80 = { .poses = {
 #include "assets/actor_103700_animation_05448_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D04ECC[126] = {
 #include "assets/actor_103700_animation_05448_bank4.inc"
@@ -380,7 +404,8 @@ u16 Actor03700_D0543C[6] = {
 };
 
 GpAnimSet Actor03700_D05448 = {
-    Actor03700_D050C4, Actor03700_D0543C,
+    Actor03700_D050C4,
+    Actor03700_D0543C,
     { NULL, Actor03700_D04C80.words, NULL, NULL, Actor03700_D04ECC, NULL, NULL, NULL },
 };
 
@@ -392,7 +417,7 @@ typedef union {
 
 Actor03700PoseBank5470 Actor03700_D05470 = { .poses = {
 #include "assets/actor_103700_animation_05CE8_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D0574C[132] = {
 #include "assets/actor_103700_animation_05CE8_bank4.inc"
@@ -407,7 +432,8 @@ u16 Actor03700_D05CDC[6] = {
 };
 
 GpAnimSet Actor03700_D05CE8 = {
-    Actor03700_D0595C, Actor03700_D05CDC,
+    Actor03700_D0595C,
+    Actor03700_D05CDC,
     { NULL, Actor03700_D05470.words, NULL, NULL, Actor03700_D0574C, NULL, NULL, NULL },
 };
 
@@ -419,7 +445,7 @@ typedef union {
 
 Actor03700PoseBank5D10 Actor03700_D05D10 = { .poses = {
 #include "assets/actor_103700_animation_06B4C_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D05E84[344] = {
 #include "assets/actor_103700_animation_06B4C_bank4.inc"
@@ -434,7 +460,8 @@ u16 Actor03700_D06B24[20] = {
 };
 
 GpAnimSet Actor03700_D06B4C = {
-    Actor03700_D063E4, Actor03700_D06B24,
+    Actor03700_D063E4,
+    Actor03700_D06B24,
     { NULL, Actor03700_D05D10.words, NULL, NULL, Actor03700_D05E84, NULL, NULL, NULL },
 };
 
@@ -446,7 +473,7 @@ typedef union {
 
 Actor03700PoseBank6B74 Actor03700_D06B74 = { .poses = {
 #include "assets/actor_103700_animation_07EE0_bank1.inc"
-} };
+                                             } };
 
 GpPackedSvec Actor03700_D06D24[522] = {
 #include "assets/actor_103700_animation_07EE0_bank4.inc"
@@ -461,7 +488,8 @@ u16 Actor03700_D07EB8[20] = {
 };
 
 GpAnimSet Actor03700_D07EE0 = {
-    Actor03700_D0754C, Actor03700_D07EB8,
+    Actor03700_D0754C,
+    Actor03700_D07EB8,
     { NULL, Actor03700_D06B74.words, NULL, NULL, Actor03700_D06D24, NULL, NULL, NULL },
 };
 
@@ -540,15 +568,55 @@ u16 Actor03700_D07F7C[8] = {
 TaskDesc Actor03700_D07F8C = { 257, 96, Actor03700_Fn02FA8, { .model = &Actor03700_D04200 } };
 
 s16 Actor03700_D07F98[30] = {
-    0, 10, 19, 24, 25, 22, 15, 5,
-    -5, -15, -22, -25, -24, -19, -10, 0,
-    20, 38, 48, 50, 44, 30, 10, -10,
-    -30, -44, -50, -48, -38, -20,
+    0,
+    10,
+    19,
+    24,
+    25,
+    22,
+    15,
+    5,
+    -5,
+    -15,
+    -22,
+    -25,
+    -24,
+    -19,
+    -10,
+    0,
+    20,
+    38,
+    48,
+    50,
+    44,
+    30,
+    10,
+    -10,
+    -30,
+    -44,
+    -50,
+    -48,
+    -38,
+    -20,
 };
 
 s16 Actor03700_D07FD4[16] = {
-    4096, 3742, 2741, 1267, -426, -2046, -3312, -4006,
-    -4007, -3316, -2052, -433, 1261, 2737, 3739, 0,
+    4096,
+    3742,
+    2741,
+    1267,
+    -426,
+    -2046,
+    -3312,
+    -4006,
+    -4007,
+    -3316,
+    -2052,
+    -433,
+    1261,
+    2737,
+    3739,
+    0,
 };
 
 Actor103700Rise Actor03700_D07FF4[7] = {
@@ -574,16 +642,65 @@ Actor103700Rise Actor03700_D0802C[9] = {
 };
 
 s16 Actor03700_D08074[56] = {
-    0, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 2, 2, 2, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 1, 0,
-    0, 3, 0, 0, 0, 0, 0, 0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
-GpAnimSet * Actor03700_D080E4[6] = {
+GpAnimSet* Actor03700_D080E4[6] = {
     NULL,
     &Actor03700_D047C4,
     &Actor03700_D04AC0,
@@ -592,7 +709,7 @@ GpAnimSet * Actor03700_D080E4[6] = {
     &Actor03700_D05CE8,
 };
 
-GpAnimSet * Actor03700_D080FC[3] = {
+GpAnimSet* Actor03700_D080FC[3] = {
     NULL,
     &Actor03700_D06B4C,
     &Actor03700_D07EE0,
@@ -868,9 +985,9 @@ move_done:
                 func_800E2C78(task->spawnArg2.pointer, work->records[i].key, damage, 0);
                 if ((s32)damage > 0) {
                     ((GpEnemy*)task->spawnArg2.pointer)->hp = 0;
-                    work->field_24E                 = 6;
-                    work->field_250                 = 0;
-                    task->state                     = 2;
+                    work->field_24E                         = 6;
+                    work->field_250                         = 0;
+                    task->state                             = 2;
                 } else if (((Gp_GetIdParam0(work->records[i].key) & 0xFFFF) == 8 || broke == 1) &&
                            (u16)(work->field_24E - 1) >= 2) {
                     if (work->field_262 == 0) {

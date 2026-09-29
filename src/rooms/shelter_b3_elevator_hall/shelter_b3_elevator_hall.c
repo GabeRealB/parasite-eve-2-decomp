@@ -165,10 +165,10 @@ static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMs
     s32 ret;
     s32 neg;
 
-    flag                                = req->flagId;
+    flag                                   = req->flagId;
     D_shelter_b3_elevator_hall_80184A08[0] = 0;
-    neg                                 = flag < 0;
-    got                                 = (s16)flag;
+    neg                                    = flag < 0;
+    got                                    = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -246,7 +246,7 @@ void func_shelter_b3_elevator_hall_8017D790(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.field_3;
@@ -308,13 +308,13 @@ void func_shelter_b3_elevator_hall_8017D900(Task* task)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            msg.field_3 = 1;
-            msg.field_5 = 0;
-            msg.prefix.packed   = Mc_SaveData[0].state.at4.loc.area;
-            msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
-            msg2        = msg;
+            msg.field_3       = 1;
+            msg.field_5       = 0;
+            msg.prefix.packed = Mc_SaveData[0].state.at4.loc.area;
+            msg.field_2       = Mc_SaveData[0].state.at4.loc.warp;
+            msg2              = msg;
             func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
             Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -392,7 +392,7 @@ s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, GpMessageArg a
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
 
@@ -933,20 +933,20 @@ void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_shelter_b3_elevator_hall_80182B34.entries[mem->index].b;
                 func_shelter_b3_elevator_hall_8017F1A8(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;

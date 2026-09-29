@@ -1415,6 +1415,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
 
     do {
         ot = BreakDraw();
+        /* BreakDraw returns the SDK sentinel -1 when it cannot suspend DMA. */
         if (ot != (u_long*)-1) {
             break;
         }
@@ -1537,6 +1538,7 @@ u8 Fs_LoadImageStrip(s32 mode)
     if (ResetRCnt(RCntCNT2) == 0) {
         return 0xFF;
     }
+    /* SDK status value, not a C object address; also accepted by ContinueDraw. */
     none  = (u_long*)-1;
     retry = (u8)mode;
     for (;;) {
@@ -1968,7 +1970,9 @@ static void Fs_OnCdError(u8 arg0)
 
 static void Fs_ContinueDrawing(u_long* ot)
 {
-    // Wait until the gpu is idling and then continue drawing.
+    // Wait until the gpu is idling and then continue drawing. With a NULL
+    // first argument, ContinueDraw passes ot to the DMA address register,
+    // including the -1 sentinel; it does not dereference ot as a C object.
     while (IsIdleGPU(-1) != 0) {
     }
     ContinueDraw(NULL, ot);

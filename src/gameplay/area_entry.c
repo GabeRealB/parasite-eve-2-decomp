@@ -56,13 +56,13 @@ TaskDesc D_8010CABC = { 0, 0xC0, Gp_AreaEnterTask };
 
 void Gp_AreaEnterTask(Task* arg0)
 {
-    u32          key;
-    GpEndWork*   work;
-    s32          i;
-    Task*        slot;
-    GameSession* session;
-    StageMusicParams*  pair;
-    McItemScan*  scan;
+    u32               key;
+    GpEndWork*        work;
+    s32               i;
+    Task*             slot;
+    GameSession*      session;
+    StageMusicParams* pair;
+    McItemScan*       scan;
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2.pointer;
@@ -113,10 +113,10 @@ void Gp_AreaEnterTask(Task* arg0)
     } else if (arg0->state == 1) {
         session = gGameSession;
         if (!(session->flowFlags & 2)) {
-            session->viewReady = 1;
-            pair               = &gStageMusicParams;
-            pair->fadeFrames      = 0;
-            pair->unusedCommandArg      = 0;
+            session->viewReady     = 1;
+            pair                   = &gStageMusicParams;
+            pair->fadeFrames       = 0;
+            pair->unusedCommandArg = 0;
             if (!(gGameSession->flowFlags & 8)) {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
             } else {
@@ -135,7 +135,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 if (obj->field_2E == 6) {
                     Ui_TeardownTree(obj, obj->owner);
                     if (arg0->status != 0) {
-                        Gp_PubItemLoc   = 0x700;
+                        Gp_PubItemLoc           = 0x700;
                         arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
                         arg0->state++;
                     } else {
@@ -185,7 +185,7 @@ void Gp_AreaEnterTask(Task* arg0)
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        Text_DrawString(&req, (str));                           \
+        Text_DrawString(&req, (str));                         \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -198,7 +198,7 @@ void Gp_AreaEnterTask(Task* arg0)
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count))); \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \

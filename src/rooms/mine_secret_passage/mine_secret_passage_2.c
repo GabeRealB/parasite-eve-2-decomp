@@ -141,7 +141,7 @@ GpRoomObjRec D_mine_secret_passage_80180FA4[1] = {
     { D_mine_secret_passage_801815E0, D_mine_secret_passage_80182DCC, D_mine_secret_passage_801830C4, D_mine_secret_passage_801831A8 },
 };
 
-u8 * D_mine_secret_passage_80180FB4[1] = {
+u8* D_mine_secret_passage_80180FB4[1] = {
     D_8010CAF8,
 };
 
@@ -512,7 +512,7 @@ s16 D_mine_secret_passage_8018157C[2] = {
     -1,
 };
 
-s16 * D_mine_secret_passage_80181580[24] = {
+s16* D_mine_secret_passage_80181580[24] = {
     D_mine_secret_passage_80181428,
     D_mine_secret_passage_80181438,
     D_mine_secret_passage_80181448,
@@ -999,7 +999,7 @@ GpRoomParamRec D_mine_secret_passage_80183418[1] = {
     { 0, 0, 1, 0, D_mine_secret_passage_801833F4 },
 };
 
-GpRoomParamRec * D_mine_secret_passage_80183420[8] = {
+GpRoomParamRec* D_mine_secret_passage_80183420[8] = {
     D_mine_secret_passage_80183400,
     D_mine_secret_passage_80183408,
     D_mine_secret_passage_80183410,
@@ -1606,20 +1606,20 @@ void func_mine_secret_passage_8017F5B0(Task* arg0)
                 coord->coord.t[2] = mem->pos.vz;
                 coord->flg        = 0;
                 Gp_UpdateCoord(coord);
-                shift           = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
-                mem->index      = shift;
+                shift                 = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_2;
+                mem->index            = shift;
                 arg0->spawnArg1.value = ((GpEffSpawnArg*)&arg0->spawnArg1.value)->field_0;
-                arg0->state     = 1;
-                mem->step       = 0x100 / arg0->spawnArg1.value;
+                arg0->state           = 1;
+                mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
-                mem->scale      += mem->step;
-                mem->angle      += mem->step;
+                mem->scale            += mem->step;
+                mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
-                rgb[0]           = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].r;
-                rgb[1]           = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].g;
-                rgb[2]           = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].b;
+                rgb[0]                 = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].r;
+                rgb[1]                 = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].g;
+                rgb[2]                 = mem->scale >> D_mine_secret_passage_80180F88.entries[mem->index].b;
                 func_mine_secret_passage_8017F21C(coord, mem->angle, rgb);
                 rgb[0] = rgb[0] >> 1;
                 rgb[1] = rgb[1] >> 1;

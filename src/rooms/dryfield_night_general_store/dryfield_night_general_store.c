@@ -163,7 +163,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_general_store_801858BC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858BC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_general_store_801858BC.field_3;
@@ -187,7 +187,7 @@ void func_dryfield_night_general_store_8017D794(Task* task)
 /// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
 /// latches `field_2` / `field_3` for the spawned task and answers 2, or runs
 /// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
-s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u16          msgId;
@@ -268,7 +268,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             D_dryfield_night_general_store_801858B4 = Mc_SaveData[0].state.at4.loc.view;
-            Mc_SaveData[0].state.at4.loc.view             = 0x10;
+            Mc_SaveData[0].state.at4.loc.view       = 0x10;
             arg0->state                            += 1;
             return;
         case 1:
@@ -302,7 +302,7 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area = 0x26;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_general_store_801858C5;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_general_store_801858C6;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

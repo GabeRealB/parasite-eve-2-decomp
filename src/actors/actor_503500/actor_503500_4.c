@@ -416,7 +416,7 @@ static void func_actor_503500_80143F78(Task* arg0);
 static void func_actor_503500_8014473C(Task* arg0);
 static void func_actor_503500_80144DA8(Task* arg0);
 
-static void               func_actor_503500_80141D04(Task* arg0);
+static void func_actor_503500_80141D04(Task* arg0);
 
 extern Actor503500Work3D8 D_actor_503500_80177B60[];
 
@@ -1135,7 +1135,7 @@ static void func_actor_503500_8013C558(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_F1) {
         case 0:
-            work->obj.flags                  &= 0x7FFF;
+            work->obj.flags                          &= 0x7FFF;
             ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
             Gp_UnlinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -1144,7 +1144,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags &= 0xF0;
-            pan                                         = (s8)Gp_GetObjPan(coord);
+            pan                                                 = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0x40230010, pan, (s8)(gpGetObjDepth(coord) / 2));
             work->field_EC = 0x1000;
             work->field_EE = 0x80;
@@ -1448,15 +1448,15 @@ static void func_actor_503500_8013CCBC(Task* arg0, Actor503500Work* arg1, GpRec1
         gte_stsv(&pos);
         {
             SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - 7];
-            pos.vx += offset->vx;
+            pos.vx         += offset->vx;
         }
         {
             SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - 7];
-            pos.vy += offset->vy;
+            pos.vy         += offset->vy;
         }
         {
             SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - 7];
-            pos.vz += offset->vz;
+            pos.vz         += offset->vz;
         }
         func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
         if (crit != 0) {
@@ -1574,7 +1574,7 @@ static void func_actor_503500_8013D558(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_F1) {
         case 0:
-            work->obj.flags                  &= 0x7FFF;
+            work->obj.flags                          &= 0x7FFF;
             ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
             Gp_UnlinkNode(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
@@ -1583,7 +1583,7 @@ static void func_actor_503500_8013D558(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags &= 0xF0;
-            pan                                         = (s8)Gp_GetObjPan(coord);
+            pan                                                 = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0x40230010, pan, (s8)(gpGetObjDepth(coord) / 2));
             work->field_F1++;
             break;
@@ -4741,7 +4741,7 @@ static void func_actor_503500_80144520(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->field_BE != 0) {
         work->field_80->spawnArg1.value = 2;
-        work->field_BC            = -1;
+        work->field_BC                  = -1;
     }
     switch (work->field_BC) {
         case 0:
@@ -4766,8 +4766,8 @@ static void func_actor_503500_80144520(Task* arg0)
             work->field_BA++;
             if ((s16)work->field_BA >= 6) {
                 work->field_80->spawnArg1.value = 2;
-                work->field_BA            = 0;
-                work->obj.flags          &= 0x7FFF;
+                work->field_BA                  = 0;
+                work->obj.flags                &= 0x7FFF;
                 work->field_BC++;
             }
             break;

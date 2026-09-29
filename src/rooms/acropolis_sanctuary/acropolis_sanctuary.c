@@ -302,7 +302,7 @@ typedef union {
 
 AcropolisSanctuaryPoseBank2D88 D_acropolis_sanctuary_80180348 = { .poses = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
-} };
+                                                                  } };
 
 GpPackedSvec D_acropolis_sanctuary_801803A8[115] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank4.inc"
@@ -317,7 +317,8 @@ u16 D_acropolis_sanctuary_801807CC[20] = {
 };
 
 GpAnimSet D_acropolis_sanctuary_801807F4 = {
-    D_acropolis_sanctuary_80180574, D_acropolis_sanctuary_801807CC,
+    D_acropolis_sanctuary_80180574,
+    D_acropolis_sanctuary_801807CC,
     { NULL, D_acropolis_sanctuary_80180348.words, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
 };
 
@@ -347,7 +348,7 @@ GpXformArg D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024
 
 GpAnimArg D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, 0, 0, 0 };
 
-GpAnimSet * D_acropolis_sanctuary_80180918[9] = {
+GpAnimSet* D_acropolis_sanctuary_80180918[9] = {
     &D_actor_210700_8014BC4C,
     &D_actor_210700_8014C618,
     &D_actor_210700_8014C974,
@@ -576,7 +577,7 @@ typedef union {
 
 AcropolisSanctuaryPoseBank435C D_acropolis_sanctuary_8018191C = { .poses = {
 #include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
-} };
+                                                                  } };
 
 GpPackedSvec D_acropolis_sanctuary_80181970[84] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank4.inc"
@@ -591,7 +592,8 @@ u16 D_acropolis_sanctuary_80181CA0[20] = {
 };
 
 GpAnimSet D_acropolis_sanctuary_80181CC8 = {
-    D_acropolis_sanctuary_80181AC0, D_acropolis_sanctuary_80181CA0,
+    D_acropolis_sanctuary_80181AC0,
+    D_acropolis_sanctuary_80181CA0,
     { NULL, D_acropolis_sanctuary_8018191C.words, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
 };
 
@@ -603,7 +605,7 @@ typedef union {
 
 AcropolisSanctuaryPoseBank4730 D_acropolis_sanctuary_80181CF0 = { .poses = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
-} };
+                                                                  } };
 
 GpPackedSvec D_acropolis_sanctuary_80181D50[88] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank4.inc"
@@ -618,11 +620,12 @@ u16 D_acropolis_sanctuary_80182094[20] = {
 };
 
 GpAnimSet D_acropolis_sanctuary_801820BC = {
-    D_acropolis_sanctuary_80181EB0, D_acropolis_sanctuary_80182094,
+    D_acropolis_sanctuary_80181EB0,
+    D_acropolis_sanctuary_80182094,
     { NULL, D_acropolis_sanctuary_80181CF0.words, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_acropolis_sanctuary_801820E4[1] = {
+GpAnimSet* D_acropolis_sanctuary_801820E4[1] = {
     &D_acropolis_sanctuary_80181CC8,
 };
 
@@ -683,7 +686,7 @@ s16 D_acropolis_sanctuary_801822DC[5] = {
     -1,
 };
 
-s16 * D_acropolis_sanctuary_801822E8[1] = {
+s16* D_acropolis_sanctuary_801822E8[1] = {
     D_acropolis_sanctuary_801822DC,
 };
 
@@ -775,8 +778,22 @@ AcsQuad D_acropolis_sanctuary_80182710[2] = {
 };
 
 s16 D_acropolis_sanctuary_80182750[16] = {
-    20, 22, 25, 26, 27, 28, 33, 34,
-    39, 40, 44, 45, 47, 48, 52, 53,
+    20,
+    22,
+    25,
+    26,
+    27,
+    28,
+    33,
+    34,
+    39,
+    40,
+    44,
+    45,
+    47,
+    48,
+    52,
+    53,
 };
 
 s32 D_acropolis_sanctuary_80182770 = 0;
@@ -815,7 +832,7 @@ GpRoomObjRec D_acropolis_sanctuary_801827EC[1] = {
     { &D_acropolis_sanctuary_80183568, D_acropolis_sanctuary_8018358C, D_acropolis_sanctuary_80183AE4, NULL },
 };
 
-u8 * D_acropolis_sanctuary_801827FC[1] = {
+u8* D_acropolis_sanctuary_801827FC[1] = {
     D_8010CAF8,
 };
 
@@ -1515,7 +1532,7 @@ s16 D_acropolis_sanctuary_80183528[14] = {
     -1,
 };
 
-s16 * D_acropolis_sanctuary_80183544[9] = {
+s16* D_acropolis_sanctuary_80183544[9] = {
     D_acropolis_sanctuary_80183240,
     D_acropolis_sanctuary_801832A8,
     D_acropolis_sanctuary_80183334,
@@ -2176,7 +2193,7 @@ GpRoomParamRec D_acropolis_sanctuary_801863F0[1] = {
     { 0, 0, 1, 0, D_acropolis_sanctuary_801863D4 },
 };
 
-GpRoomParamRec * D_acropolis_sanctuary_801863F8[8] = {
+GpRoomParamRec* D_acropolis_sanctuary_801863F8[8] = {
     D_acropolis_sanctuary_801863E0,
     D_acropolis_sanctuary_801863E8,
     D_acropolis_sanctuary_801863F0,
@@ -2222,8 +2239,15 @@ u32 D_acropolis_sanctuary_801866AC[215] = {
 };
 
 TmdSource D_acropolis_sanctuary_80186A08 = {
-    0, 1768, 0, 3,
-    D_acropolis_sanctuary_801864B0, D_acropolis_sanctuary_801864BC, D_acropolis_sanctuary_8018667C, D_acropolis_sanctuary_80186444, D_acropolis_sanctuary_801866AC,
+    0,
+    1768,
+    0,
+    3,
+    D_acropolis_sanctuary_801864B0,
+    D_acropolis_sanctuary_801864BC,
+    D_acropolis_sanctuary_8018667C,
+    D_acropolis_sanctuary_80186444,
+    D_acropolis_sanctuary_801866AC,
 };
 
 TmdBone D_acropolis_sanctuary_80186A2C[1] = {
@@ -2247,13 +2271,20 @@ u32 D_acropolis_sanctuary_80186B44[73] = {
 };
 
 TmdSource D_acropolis_sanctuary_80186C68 = {
-    0, 440, 0, 1,
-    D_acropolis_sanctuary_80186A50, D_acropolis_sanctuary_80186A54, D_acropolis_sanctuary_80186AEC, D_acropolis_sanctuary_80186A2C, D_acropolis_sanctuary_80186B44,
+    0,
+    440,
+    0,
+    1,
+    D_acropolis_sanctuary_80186A50,
+    D_acropolis_sanctuary_80186A54,
+    D_acropolis_sanctuary_80186AEC,
+    D_acropolis_sanctuary_80186A2C,
+    D_acropolis_sanctuary_80186B44,
 };
 
 u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
 
-Task * D_acropolis_sanctuary_80186C90 = NULL;
+Task* D_acropolis_sanctuary_80186C90 = NULL;
 
 SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
 
@@ -2320,7 +2351,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 /// seen for real (`field_5` == 0) it latches nibble 7 to 2 and raises the room's
 /// 0x13 bit-2 flag; the answer written back into `field_3` is 1 while nibble 2
 /// is still clear and 2 once it is set.
-s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 nib;
 
@@ -2363,7 +2394,7 @@ s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, GpMessageA
 /// arms the room's own task the first time it is seen, latching nibble 7 so a
 /// second visit does nothing. The record is not copied to the outgoing one -
 /// this handler only ever consumes the message (returns 0).
-s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_2 == 1 && GameFlag_GetNibble(7) == 0) {
         GameFlag_SetNibble(7, 1);
@@ -2486,7 +2517,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 Mc_SaveData[0].state.at4.loc.stage = 1;
                 Mc_SaveData[0].state.at4.loc.warp  = 2;
                 Mc_SaveData[0].state.at4.loc.room  = 1;
-                gDisplayState.roomVariant    = 1;
+                gDisplayState.roomVariant          = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;
@@ -2517,7 +2548,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
                         Mc_SaveData[0].state.at4.loc.view = 0xE;
-                        cutscene->step              = cutscene->step + 1;
+                        cutscene->step                    = cutscene->step + 1;
                     }
                     break;
             }
@@ -2932,7 +2963,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         if ((u16)hi != 0) {
             size = hi;
         }
-        mem->angle      = size;
+        mem->angle            = size;
         arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFFF;
         if (mem->scale != 0) {
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -3077,14 +3108,14 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
         *scratch = head - 0x14;
         blk      = (RoomShaftScratch*)(head - 0x14);
         if (arg0->state == 0) {
-            base            = D_acropolis_sanctuary_8017D5D8;
-            step            = D_acropolis_sanctuary_8017D5DC;
-            param           = arg0->spawnArg1.value;
-            mem->scale      = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-            mem->angle      = (arg0->spawnArg1.value >> 8) & 3;
+            base                  = D_acropolis_sanctuary_8017D5D8;
+            step                  = D_acropolis_sanctuary_8017D5DC;
+            param                 = arg0->spawnArg1.value;
+            mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
+            mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
             arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-            mem->period     = base.v[mem->angle];
-            mem->step       = step.v[mem->angle];
+            mem->period           = base.v[mem->angle];
+            mem->step             = step.v[mem->angle];
             arg0->state++;
         }
         blk->vec.vx = (u16)coord->workm.t[0];

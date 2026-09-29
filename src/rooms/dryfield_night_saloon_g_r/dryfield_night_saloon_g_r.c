@@ -262,7 +262,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank238C D_dryfield_night_saloon_g_r_8017F94C = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_8017F994[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank4.inc"
@@ -277,7 +277,8 @@ u16 D_dryfield_night_saloon_g_r_8017FC00[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_8017FC28 = {
-    D_dryfield_night_saloon_g_r_8017FA4C, D_dryfield_night_saloon_g_r_8017FC00,
+    D_dryfield_night_saloon_g_r_8017FA4C,
+    D_dryfield_night_saloon_g_r_8017FC00,
     { NULL, D_dryfield_night_saloon_g_r_8017F94C.words, NULL, NULL, D_dryfield_night_saloon_g_r_8017F994, NULL, NULL, NULL },
 };
 
@@ -289,7 +290,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank2690 D_dryfield_night_saloon_g_r_8017FC50 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_8017FCB0[84] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank4.inc"
@@ -304,7 +305,8 @@ u16 D_dryfield_night_saloon_g_r_8017FFD4[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_8017FFFC = {
-    D_dryfield_night_saloon_g_r_8017FE00, D_dryfield_night_saloon_g_r_8017FFD4,
+    D_dryfield_night_saloon_g_r_8017FE00,
+    D_dryfield_night_saloon_g_r_8017FFD4,
     { NULL, D_dryfield_night_saloon_g_r_8017FC50.words, NULL, NULL, D_dryfield_night_saloon_g_r_8017FCB0, NULL, NULL, NULL },
 };
 
@@ -316,7 +318,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank2A64 D_dryfield_night_saloon_g_r_80180024 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80180078[62] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank4.inc"
@@ -331,7 +333,8 @@ u16 D_dryfield_night_saloon_g_r_801803C4[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_801803EC = {
-    D_dryfield_night_saloon_g_r_80180170, D_dryfield_night_saloon_g_r_801803C4,
+    D_dryfield_night_saloon_g_r_80180170,
+    D_dryfield_night_saloon_g_r_801803C4,
     { NULL, D_dryfield_night_saloon_g_r_80180024.words, NULL, NULL, D_dryfield_night_saloon_g_r_80180078, NULL, NULL, NULL },
 };
 
@@ -343,7 +346,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank2E54 D_dryfield_night_saloon_g_r_80180414 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80180468[74] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank4.inc"
@@ -358,7 +361,8 @@ u16 D_dryfield_night_saloon_g_r_80180730[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80180758 = {
-    D_dryfield_night_saloon_g_r_80180590, D_dryfield_night_saloon_g_r_80180730,
+    D_dryfield_night_saloon_g_r_80180590,
+    D_dryfield_night_saloon_g_r_80180730,
     { NULL, D_dryfield_night_saloon_g_r_80180414.words, NULL, NULL, D_dryfield_night_saloon_g_r_80180468, NULL, NULL, NULL },
 };
 
@@ -370,7 +374,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank31C0 D_dryfield_night_saloon_g_r_80180780 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_801807F8[100] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank4.inc"
@@ -385,7 +389,8 @@ u16 D_dryfield_night_saloon_g_r_80180C50[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80180C78 = {
-    D_dryfield_night_saloon_g_r_80180988, D_dryfield_night_saloon_g_r_80180C50,
+    D_dryfield_night_saloon_g_r_80180988,
+    D_dryfield_night_saloon_g_r_80180C50,
     { NULL, D_dryfield_night_saloon_g_r_80180780.words, NULL, NULL, D_dryfield_night_saloon_g_r_801807F8, NULL, NULL, NULL },
 };
 
@@ -397,7 +402,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank36E0 D_dryfield_night_saloon_g_r_80180CA0 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80180CDC[59] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank4.inc"
@@ -412,7 +417,8 @@ u16 D_dryfield_night_saloon_g_r_80180F30[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80180F58 = {
-    D_dryfield_night_saloon_g_r_80180DC8, D_dryfield_night_saloon_g_r_80180F30,
+    D_dryfield_night_saloon_g_r_80180DC8,
+    D_dryfield_night_saloon_g_r_80180F30,
     { NULL, D_dryfield_night_saloon_g_r_80180CA0.words, NULL, NULL, D_dryfield_night_saloon_g_r_80180CDC, NULL, NULL, NULL },
 };
 
@@ -424,7 +430,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank39C0 D_dryfield_night_saloon_g_r_80180F80 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80180FC8[110] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank4.inc"
@@ -439,7 +445,8 @@ u16 D_dryfield_night_saloon_g_r_80181418[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80181440 = {
-    D_dryfield_night_saloon_g_r_80181180, D_dryfield_night_saloon_g_r_80181418,
+    D_dryfield_night_saloon_g_r_80181180,
+    D_dryfield_night_saloon_g_r_80181418,
     { NULL, D_dryfield_night_saloon_g_r_80180F80.words, NULL, NULL, D_dryfield_night_saloon_g_r_80180FC8, NULL, NULL, NULL },
 };
 
@@ -451,7 +458,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank3EA8 D_dryfield_night_saloon_g_r_80181468 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_8018148C[81] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank4.inc"
@@ -466,7 +473,8 @@ u16 D_dryfield_night_saloon_g_r_801817D0[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_801817F8 = {
-    D_dryfield_night_saloon_g_r_801815D0, D_dryfield_night_saloon_g_r_801817D0,
+    D_dryfield_night_saloon_g_r_801815D0,
+    D_dryfield_night_saloon_g_r_801817D0,
     { NULL, D_dryfield_night_saloon_g_r_80181468.words, NULL, NULL, D_dryfield_night_saloon_g_r_8018148C, NULL, NULL, NULL },
 };
 
@@ -478,7 +486,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank4260 D_dryfield_night_saloon_g_r_80181820 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80181844[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank4.inc"
@@ -493,7 +501,8 @@ u16 D_dryfield_night_saloon_g_r_801819C8[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_801819F0 = {
-    D_dryfield_night_saloon_g_r_801818CC, D_dryfield_night_saloon_g_r_801819C8,
+    D_dryfield_night_saloon_g_r_801818CC,
+    D_dryfield_night_saloon_g_r_801819C8,
     { NULL, D_dryfield_night_saloon_g_r_80181820.words, NULL, NULL, D_dryfield_night_saloon_g_r_80181844, NULL, NULL, NULL },
 };
 
@@ -505,7 +514,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank4458 D_dryfield_night_saloon_g_r_80181A18 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80181A54[58] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank4.inc"
@@ -520,7 +529,8 @@ u16 D_dryfield_night_saloon_g_r_80181D1C[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80181D44 = {
-    D_dryfield_night_saloon_g_r_80181B3C, D_dryfield_night_saloon_g_r_80181D1C,
+    D_dryfield_night_saloon_g_r_80181B3C,
+    D_dryfield_night_saloon_g_r_80181D1C,
     { NULL, D_dryfield_night_saloon_g_r_80181A18.words, NULL, NULL, D_dryfield_night_saloon_g_r_80181A54, NULL, NULL, NULL },
 };
 
@@ -532,7 +542,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank47AC D_dryfield_night_saloon_g_r_80181D6C = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80181D90[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank4.inc"
@@ -547,7 +557,8 @@ u16 D_dryfield_night_saloon_g_r_80181F14[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80181F3C = {
-    D_dryfield_night_saloon_g_r_80181E18, D_dryfield_night_saloon_g_r_80181F14,
+    D_dryfield_night_saloon_g_r_80181E18,
+    D_dryfield_night_saloon_g_r_80181F14,
     { NULL, D_dryfield_night_saloon_g_r_80181D6C.words, NULL, NULL, D_dryfield_night_saloon_g_r_80181D90, NULL, NULL, NULL },
 };
 
@@ -559,7 +570,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank49A4 D_dryfield_night_saloon_g_r_80181F64 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80181F94[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank4.inc"
@@ -574,7 +585,8 @@ u16 D_dryfield_night_saloon_g_r_801821BC[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_801821E4 = {
-    D_dryfield_night_saloon_g_r_8018204C, D_dryfield_night_saloon_g_r_801821BC,
+    D_dryfield_night_saloon_g_r_8018204C,
+    D_dryfield_night_saloon_g_r_801821BC,
     { NULL, D_dryfield_night_saloon_g_r_80181F64.words, NULL, NULL, D_dryfield_night_saloon_g_r_80181F94, NULL, NULL, NULL },
 };
 
@@ -586,7 +598,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank4C4C D_dryfield_night_saloon_g_r_8018220C = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80182254[68] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank4.inc"
@@ -601,7 +613,8 @@ u16 D_dryfield_night_saloon_g_r_801824F0[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80182518 = {
-    D_dryfield_night_saloon_g_r_80182364, D_dryfield_night_saloon_g_r_801824F0,
+    D_dryfield_night_saloon_g_r_80182364,
+    D_dryfield_night_saloon_g_r_801824F0,
     { NULL, D_dryfield_night_saloon_g_r_8018220C.words, NULL, NULL, D_dryfield_night_saloon_g_r_80182254, NULL, NULL, NULL },
 };
 
@@ -613,7 +626,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank4F80 D_dryfield_night_saloon_g_r_80182540 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_801825B8[96] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank4.inc"
@@ -628,7 +641,8 @@ u16 D_dryfield_night_saloon_g_r_80182958[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80182980 = {
-    D_dryfield_night_saloon_g_r_80182738, D_dryfield_night_saloon_g_r_80182958,
+    D_dryfield_night_saloon_g_r_80182738,
+    D_dryfield_night_saloon_g_r_80182958,
     { NULL, D_dryfield_night_saloon_g_r_80182540.words, NULL, NULL, D_dryfield_night_saloon_g_r_801825B8, NULL, NULL, NULL },
 };
 
@@ -640,7 +654,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank53E8 D_dryfield_night_saloon_g_r_801829A8 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_801829F0[71] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank4.inc"
@@ -655,7 +669,8 @@ u16 D_dryfield_night_saloon_g_r_80182CA4[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_80182CCC = {
-    D_dryfield_night_saloon_g_r_80182B0C, D_dryfield_night_saloon_g_r_80182CA4,
+    D_dryfield_night_saloon_g_r_80182B0C,
+    D_dryfield_night_saloon_g_r_80182CA4,
     { NULL, D_dryfield_night_saloon_g_r_801829A8.words, NULL, NULL, D_dryfield_night_saloon_g_r_801829F0, NULL, NULL, NULL },
 };
 
@@ -667,7 +682,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank5734 D_dryfield_night_saloon_g_r_80182CF4 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80182D30[99] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank4.inc"
@@ -682,7 +697,8 @@ u16 D_dryfield_night_saloon_g_r_80183114[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_8018313C = {
-    D_dryfield_night_saloon_g_r_80182EBC, D_dryfield_night_saloon_g_r_80183114,
+    D_dryfield_night_saloon_g_r_80182EBC,
+    D_dryfield_night_saloon_g_r_80183114,
     { NULL, D_dryfield_night_saloon_g_r_80182CF4.words, NULL, NULL, D_dryfield_night_saloon_g_r_80182D30, NULL, NULL, NULL },
 };
 
@@ -694,7 +710,7 @@ typedef union {
 
 DryfieldNightSaloonGRPoseBank5BA4 D_dryfield_night_saloon_g_r_80183164 = { .poses = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank1.inc"
-} };
+                                                                           } };
 
 GpPackedSvec D_dryfield_night_saloon_g_r_80183200[179] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank4.inc"
@@ -709,11 +725,12 @@ u16 D_dryfield_night_saloon_g_r_801838B4[20] = {
 };
 
 GpAnimSet D_dryfield_night_saloon_g_r_801838DC = {
-    D_dryfield_night_saloon_g_r_801834CC, D_dryfield_night_saloon_g_r_801838B4,
+    D_dryfield_night_saloon_g_r_801834CC,
+    D_dryfield_night_saloon_g_r_801838B4,
     { NULL, D_dryfield_night_saloon_g_r_80183164.words, NULL, NULL, D_dryfield_night_saloon_g_r_80183200, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_dryfield_night_saloon_g_r_80183904[18] = {
+GpAnimSet* D_dryfield_night_saloon_g_r_80183904[18] = {
     NULL,
     &D_dryfield_night_saloon_g_r_8017FC28,
     &D_dryfield_night_saloon_g_r_801821E4,
@@ -1173,7 +1190,7 @@ GpRoomObjRec D_dryfield_night_saloon_g_r_80185190[2] = {
     { D_dryfield_night_saloon_g_r_80185B50, D_dryfield_night_saloon_g_r_8018831C, &D_dryfield_night_saloon_g_r_8018831C[16], D_dryfield_night_saloon_g_r_80188E18 },
 };
 
-u8 * D_dryfield_night_saloon_g_r_801851B0[2] = {
+u8* D_dryfield_night_saloon_g_r_801851B0[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -1696,7 +1713,7 @@ s16 D_dryfield_night_saloon_g_r_80185B10[8] = {
     -1,
 };
 
-s16 * D_dryfield_night_saloon_g_r_80185B20[12] = {
+s16* D_dryfield_night_saloon_g_r_80185B20[12] = {
     D_dryfield_night_saloon_g_r_801858F0,
     D_dryfield_night_saloon_g_r_80185914,
     D_dryfield_night_saloon_g_r_80185948,
@@ -2406,7 +2423,7 @@ GpRoomParamRec D_dryfield_night_saloon_g_r_80188F7C[1] = {
     { 0, 1, 0, 0, D_dryfield_night_saloon_g_r_80188F58 },
 };
 
-GpRoomParamRec * D_dryfield_night_saloon_g_r_80188F84[8] = {
+GpRoomParamRec* D_dryfield_night_saloon_g_r_80188F84[8] = {
     D_dryfield_night_saloon_g_r_80188F64,
     D_dryfield_night_saloon_g_r_80188F6C,
     D_dryfield_night_saloon_g_r_80188F74,
@@ -2447,10 +2464,10 @@ static s32 func_dryfield_night_saloon_g_r_8017D8A0(RoomEventReq* req, RoomEventM
     s32 ret;
     s32 neg;
 
-    flag                                 = req->flagId;
+    flag                                    = req->flagId;
     D_dryfield_night_saloon_g_r_80188FB4[0] = 0;
-    neg                                  = flag < 0;
-    got                                  = (s16)flag;
+    neg                                     = flag < 0;
+    got                                     = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -2528,7 +2545,7 @@ void func_dryfield_night_saloon_g_r_8017DA04(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_saloon_g_r_80188FAC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_saloon_g_r_80188FAC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_saloon_g_r_80188FAC.field_3;
@@ -2556,11 +2573,11 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
 
     switch (task->state) {
         case 0:
-            gGameSession->eventState             = 1;
-            gGameSession->hideHud                = 1;
-            Gp_StateF0.field_4                   = 2;
-            save                                 = &Mc_SaveData[0];
-            temp                                 = save->state.at4.loc.view;
+            gGameSession->eventState                   = 1;
+            gGameSession->hideHud                      = 1;
+            Gp_StateF0.field_4                         = 2;
+            save                                       = &Mc_SaveData[0];
+            temp                                       = save->state.at4.loc.view;
             save->state.at4.loc.view                   = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4.value = temp;
             Gp_MsgPlayer3F3(0);
@@ -2581,10 +2598,10 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            gGameSession->eventState    = 0;
-            gGameSession->hideHud       = 0;
-            D_80114D08                  = 0xA;
-            Gp_StateF0.field_4          = 0;
+            gGameSession->eventState          = 0;
+            gGameSession->hideHud             = 0;
+            D_80114D08                        = 0xA;
+            Gp_StateF0.field_4                = 0;
             Mc_SaveData[0].state.at4.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
@@ -2656,7 +2673,7 @@ static const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
 /// then passes the warp through the event gate with the room's own request -
 /// nibble 0x35, no item, cap command 2 and two stage sound ids. Any other area
 /// answers 1.
-s32 func_dryfield_night_saloon_g_r_8017DCA4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_saloon_g_r_8017DCA4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
     u16          msgId;
@@ -2718,7 +2735,7 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// while the room's own phase (`field_2 == 2`) announces the visit to the
 /// slot-4 task with message 0x7DA carrying the session's two id bytes and a
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     GpCmdArg msg;
     u8       temp_s0;
@@ -2787,7 +2804,7 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
     Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->at4.loc.room  = arg0;
+    gGameSession->at4.loc.room        = arg0;
 }
 
 /// Row callback of the jukebox list: draws the row's track name, and on
@@ -2960,8 +2977,8 @@ void func_dryfield_night_saloon_g_r_8017E564(Task* task)
             return;
         }
         GameMain_SetFrameTiming(0);
-        gGameSession->uiOpen = 1;
-        task->spawnArg2.pointer      = obj;
+        gGameSession->uiOpen    = 1;
+        task->spawnArg2.pointer = obj;
         task->state++;
     }
 

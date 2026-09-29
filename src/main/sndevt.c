@@ -655,10 +655,10 @@ s32 Midi_InitSystem(u32 unused)
     state->sequenceBytes = 0x10;
     state->sequenceData  = D_8007F8E0;
     do {
-        bank                       = &Snd_Banks[Snd_BankSlotsByType[15]];
-        state->bank                = bank;
-        bank->bankId               = 0xF0FF;
-        state->bank->heapBlock     = SndHeap_Malloc(0x582);
+        bank                   = &Snd_Banks[Snd_BankSlotsByType[15]];
+        state->bank            = bank;
+        bank->bankId           = 0xF0FF;
+        state->bank->heapBlock = SndHeap_Malloc(0x582);
     } while (0);
     state->bank->groups     = state->bank->heapBlock;
     state->bank->notes      = state->bank->heapBlock;
@@ -691,9 +691,9 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                     return -1;
                 }
 
-                tracks       = obj->entries;
+                tracks          = obj->entries;
                 obj->format     = data[9];
-                clearPtr     = (s32*)tracks;
+                clearPtr        = (s32*)tracks;
                 obj->trackCount = data[0xB];
 
                 for (j = 0; j < obj->trackCount * (sizeof(MidiTrack) / sizeof(s32)); j++) {
@@ -721,10 +721,10 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                 obj->groups          = obj->bank->groups;
                 obj->notes           = obj->bank->notes;
                 obj->ticksPerQuarter = (data[0xC] << 8) | data[0xD];
-                obj->field_6  = 0xFF;
-                obj->field_4  = 0xFF;
-                obj->field_7  = 0;
-                obj->field_5  = 0;
+                obj->field_6         = 0xFF;
+                obj->field_4         = 0xFF;
+                obj->field_7         = 0;
+                obj->field_5         = 0;
                 obj->volumeScale     = (D_800689F0[obj->sequenceId] * 3) << 5;
                 LinInterp_Setup(&obj->volumeRamp, 0, D_8007F2F0, arg1);
 
@@ -997,7 +997,7 @@ static void Midi_SetVolumeScale(u8 arg0, u8 arg1)
     arr = &Midi_Song;
     for (; i <= 0; i++) {
         if ((arg0 == arr[i].sequenceId) || (arg0 == 0)) {
-            table          = D_800689F0;
+            table                      = D_800689F0;
             product                    = table[arr[i].sequenceId] * arg1;
             arr[i].volumeDirtyChannels = 0xFFFF;
             arr[i].volumeScale         = product;
@@ -1227,9 +1227,9 @@ static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
     } else {
         rem = temp % 3600U;
     }
-    track->field_38 = rem;
+    track->field_38  = rem;
     song->songTicks += quot;
-    ticks           = quot;
+    ticks            = quot;
     if (song->sequenceId == 0x4F) {
         song->volumeDirtyChannels = 0xFFFF;
     }
@@ -1267,19 +1267,19 @@ end:
 
 static void Midi_UpdateVoiceVolumes(MidiSong* song)
 {
-    SpuVoiceRef     sp10;
-    s16             sp18[2];
-    LinInterp*      interp;
-    s32             volume;
-    s32             i;
-    MidiNoteSlot*   slot;
-    MidiChannel*    entry;
-    s32             product;
-    u32             vol;
-    s32             channel;
-    s32             mask;
-    s32             pan;
-    s8              voice;
+    SpuVoiceRef   sp10;
+    s16           sp18[2];
+    LinInterp*    interp;
+    s32           volume;
+    s32           i;
+    MidiNoteSlot* slot;
+    MidiChannel*  entry;
+    s32           product;
+    u32           vol;
+    s32           channel;
+    s32           mask;
+    s32           pan;
+    s8            voice;
 
     interp = &song->volumeRamp;
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
@@ -1394,7 +1394,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                 }
                 voice = Spu_AllocVoice(priorities, 2, priority);
                 if (voice >= 0) {
-                    slot           = &song->voiceSlots[voice];
+                    slot                       = &song->voiceSlots[voice];
                     song->volumeDirtyChannels |= 1 << channel;
                     Spu_SetVoiceCallbacks(voice, Midi_ClearVoiceEntry, slot);
                     Spu_GetVoiceRef(voice, &ref);
@@ -1403,7 +1403,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                     slot->velocity    = velocity;
                     slot->key         = key;
                     slot->volumeScale = (group->volume * note->volume) >> 7;
-                    pan           = group->pan + note->pan - 0x40;
+                    pan               = group->pan + note->pan - 0x40;
                     if (pan < 0x80) {
                         if (pan >= 0) {
                             slot->pan = pan;
@@ -1430,7 +1430,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                         } else {
                             scale = note->bendDown;
                         }
-                        product       = (scale << 8) * bend;
+                        product         = (scale << 8) * bend;
                         slot->pitchBend = product / 8191;
                     }
                     attr        = ref.field_4;
@@ -1636,7 +1636,7 @@ static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
 
 static void Midi_InitChannelTable(MidiChannelTable* channels)
 {
-    s32 i;
+    s32  i;
     u32* words;
 
     if (channels != NULL) {
@@ -1676,9 +1676,9 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     s16           pitch;
     SpuVoiceAttr* attr;
 
-    channel                          = arg0 & 0xF;
-    i                                = 0;
-    pitchBend                        = (arg1[1] | (arg1[2] << 7)) - 0x2000;
+    channel                                   = arg0 & 0xF;
+    i                                         = 0;
+    pitchBend                                 = (arg1[1] | (arg1[2] << 7)) - 0x2000;
     song->channels.entries[channel].pitchBend = pitchBend;
     do {
         slot = &song->voiceSlots[i];
@@ -1692,12 +1692,12 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                 scale   = note->bendDown;
                 scale <<= 8;
             }
-            scale        *= pitchBend;
-            pitch         = scale / 8191;
+            scale          *= pitchBend;
+            pitch           = scale / 8191;
             slot->pitchBend = pitch;
-            attr          = sp10.field_4;
+            attr            = sp10.field_4;
             attr->pitch     = Spu_CalcVolume((u16)slot->key, pitch, note->rootKey, note->rootFine);
-            attr->mask   |= SPU_VOICE_PITCH;
+            attr->mask     |= SPU_VOICE_PITCH;
         }
         i += 1;
     } while (i < 0x12);
@@ -1741,7 +1741,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             }
             {
                 s32 id;
-                id                          = state->payload.header.bankId;
+                id           = state->payload.header.bankId;
                 *&D_800689E4 = id;
                 if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.variant) == -1) {
                     state->field_2 = 6;
@@ -1963,7 +1963,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                 if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
                     D_800689E4 = 0xFF;
                 } else {
-                    id            &= 0xFF;
+                    id                 &= 0xFF;
                     song                = Midi_GetSlot(id);
                     song->sequenceId    = id;
                     song->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
@@ -2096,18 +2096,18 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     return -1;
 
 success:
-    index          &= 0xFF;
+    index               &= 0xFF;
     state                = Midi_GetSlot(index);
     state->sequenceId    = index;
     state->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
-    temp            = load->imageBuffer;
+    temp                 = load->imageBuffer;
     state->bank          = bank;
     state->sequenceData  = temp;
     state->waveBytes     = load->payload.header.waveBytes;
-    i               = load->payload.header.noteCount;
-    base            = ((volatile SndBank*)bank)->spuAddr;
-    note            = ((volatile SndBank*)bank)->notes;
-    i               = i - 1;
+    i                    = load->payload.header.noteCount;
+    base                 = ((volatile SndBank*)bank)->spuAddr;
+    note                 = ((volatile SndBank*)bank)->notes;
+    i                    = i - 1;
     if (i != -1) {
         end = -1;
         do {

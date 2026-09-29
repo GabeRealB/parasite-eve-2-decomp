@@ -77,8 +77,15 @@ u32 D_actor_110700_80133A68[3928] = {
 };
 
 TmdSource D_actor_110700_801377C8 = {
-    0, 21588, 5944, 19,
-    D_actor_110700_801323CC, D_actor_110700_80132418, D_actor_110700_80132F48, D_actor_110700_80132120, D_actor_110700_80133A68,
+    0,
+    21588,
+    5944,
+    19,
+    D_actor_110700_801323CC,
+    D_actor_110700_80132418,
+    D_actor_110700_80132F48,
+    D_actor_110700_80132120,
+    D_actor_110700_80133A68,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -89,7 +96,7 @@ typedef union {
 
 Actor110700PoseBank59CC D_actor_110700_801377EC = { .poses = {
 #include "assets/actor_110700_animation_05D64_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110700_80137834[80] = {
 #include "assets/actor_110700_animation_05D64_bank4.inc"
@@ -104,7 +111,8 @@ u16 D_actor_110700_80137B5C[20] = {
 };
 
 GpAnimSet D_actor_110700_80137B84 = {
-    D_actor_110700_80137974, D_actor_110700_80137B5C,
+    D_actor_110700_80137974,
+    D_actor_110700_80137B5C,
     { NULL, D_actor_110700_801377EC.words, NULL, NULL, D_actor_110700_80137834, NULL, NULL, NULL },
 };
 
@@ -116,7 +124,7 @@ typedef union {
 
 Actor110700PoseBank5D8C D_actor_110700_80137BAC = { .poses = {
 #include "assets/actor_110700_animation_0667C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110700_80137C54[238] = {
 #include "assets/actor_110700_animation_0667C_bank4.inc"
@@ -131,7 +139,8 @@ u16 D_actor_110700_80138474[20] = {
 };
 
 GpAnimSet D_actor_110700_8013849C = {
-    D_actor_110700_8013800C, D_actor_110700_80138474,
+    D_actor_110700_8013800C,
+    D_actor_110700_80138474,
     { NULL, D_actor_110700_80137BAC.words, NULL, NULL, D_actor_110700_80137C54, NULL, NULL, NULL },
 };
 
@@ -143,7 +152,7 @@ typedef union {
 
 Actor110700PoseBank66A4 D_actor_110700_801384C4 = { .poses = {
 #include "assets/actor_110700_animation_0820C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110700_80138740[730] = {
 #include "assets/actor_110700_animation_0820C_bank4.inc"
@@ -158,7 +167,8 @@ u16 D_actor_110700_8013A004[20] = {
 };
 
 GpAnimSet D_actor_110700_8013A02C = {
-    D_actor_110700_801392A8, D_actor_110700_8013A004,
+    D_actor_110700_801392A8,
+    D_actor_110700_8013A004,
     { NULL, D_actor_110700_801384C4.words, NULL, NULL, D_actor_110700_80138740, NULL, NULL, NULL },
 };
 
@@ -170,7 +180,7 @@ typedef union {
 
 Actor110700PoseBank8234 D_actor_110700_8013A054 = { .poses = {
 #include "assets/actor_110700_animation_08714_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110700_8013A0D8[110] = {
 #include "assets/actor_110700_animation_08714_bank4.inc"
@@ -185,7 +195,8 @@ u16 D_actor_110700_8013A50C[20] = {
 };
 
 GpAnimSet D_actor_110700_8013A534 = {
-    D_actor_110700_8013A290, D_actor_110700_8013A50C,
+    D_actor_110700_8013A290,
+    D_actor_110700_8013A50C,
     { NULL, D_actor_110700_8013A054.words, NULL, NULL, D_actor_110700_8013A0D8, NULL, NULL, NULL },
 };
 
@@ -197,7 +208,7 @@ typedef union {
 
 Actor110700PoseBank873C D_actor_110700_8013A55C = { .poses = {
 #include "assets/actor_110700_animation_0A14C_bank1.inc"
-} };
+                                                    } };
 
 GpPackedSvec D_actor_110700_8013A7C0[692] = {
 #include "assets/actor_110700_animation_0A14C_bank4.inc"
@@ -212,7 +223,8 @@ u16 D_actor_110700_8013BF44[20] = {
 };
 
 GpAnimSet D_actor_110700_8013BF6C = {
-    D_actor_110700_8013B290, D_actor_110700_8013BF44,
+    D_actor_110700_8013B290,
+    D_actor_110700_8013BF44,
     { NULL, D_actor_110700_8013A55C.words, NULL, NULL, D_actor_110700_8013A7C0, NULL, NULL, NULL },
 };
 
@@ -226,8 +238,30 @@ Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
 };
 
 u8 D_actor_110700_8013BFC0[24] = {
-    0, 0, 0, 0, 132, 123, 19, 128, 156, 132, 19, 128, 44, 160, 19, 128,
-    52, 165, 19, 128, 108, 191, 19, 128,
+    0,
+    0,
+    0,
+    0,
+    132,
+    123,
+    19,
+    128,
+    156,
+    132,
+    19,
+    128,
+    44,
+    160,
+    19,
+    128,
+    52,
+    165,
+    19,
+    128,
+    108,
+    191,
+    19,
+    128,
 };
 
 /// The actor's task entry. Runs the handler for the task's current state,

@@ -222,7 +222,7 @@ GpRoomObjRec D_dryfield_breezeway_8018316C[1] = {
     { D_dryfield_breezeway_80183628, D_dryfield_breezeway_80183DE4, D_dryfield_breezeway_80183F14, NULL },
 };
 
-u8 * D_dryfield_breezeway_8018317C[1] = {
+u8* D_dryfield_breezeway_8018317C[1] = {
     D_8010CAF8,
 };
 
@@ -483,7 +483,7 @@ s16 D_dryfield_breezeway_801835F0[12] = {
     -1,
 };
 
-s16 * D_dryfield_breezeway_80183608[8] = {
+s16* D_dryfield_breezeway_80183608[8] = {
     D_dryfield_breezeway_8018350C,
     D_dryfield_breezeway_8018352C,
     D_dryfield_breezeway_8018354C,
@@ -719,7 +719,7 @@ GpRoomParamRec D_dryfield_breezeway_80184374[1] = {
     { 0, 0, 1, 0, D_dryfield_breezeway_80184360 },
 };
 
-GpRoomParamRec * D_dryfield_breezeway_8018437C[8] = {
+GpRoomParamRec* D_dryfield_breezeway_8018437C[8] = {
     D_dryfield_breezeway_8018436C,
     D_dryfield_breezeway_80184374,
     D_dryfield_breezeway_8018436C,
@@ -734,7 +734,7 @@ RoomEventMsg D_dryfield_breezeway_8018439C = { 0 };
 
 u8 D_dryfield_breezeway_801843A4 = 0;
 
-Task * D_dryfield_breezeway_801843A8 = NULL;
+Task* D_dryfield_breezeway_801843A8 = NULL;
 
 RoomEventReq D_dryfield_breezeway_801843AC = { 0 };
 
@@ -845,7 +845,7 @@ void func_dryfield_breezeway_8017D79C(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_breezeway_8018439C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_breezeway_8018439C.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_breezeway_8018439C.field_3;

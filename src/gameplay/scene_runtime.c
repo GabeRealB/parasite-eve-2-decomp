@@ -354,7 +354,7 @@ static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 s32 func_800AF590(s32 unused0, s32 unused1)
 {
     CdCmd58Entry header;
-    CdCmdQueue*    p;
+    CdCmdQueue*  p;
 
     p = &CdCmd_Queue;
     switch (D_80114D14[0]) {
@@ -373,7 +373,7 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                 }
                 switch ((*(D_80114D14 + 1))) {
                     case 0:
-                        D_80114D10   = p->decodeBuffer;
+                        D_80114D10               = p->decodeBuffer;
                         p->nextDecodeBufferBytes = header.nextDecodeBufferBytes;
                     default:
                         break;
@@ -591,7 +591,7 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 5: {
-            StreamSlot*     info;
+            StreamSlot*   info;
             s32           bits;
             u16           maskbits;
             GpSndMaskRec* entry;
@@ -655,7 +655,7 @@ void Gp_StepCdAudioCmd(void)
             break;
         }
         case 7: {
-            StreamSlot*     info;
+            StreamSlot*   info;
             s32           i;
             s32           bits;
             u16           maskbits;
@@ -922,10 +922,10 @@ static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
         return NULL;
     }
 
-    task->exitCallback = Gp_EnemyTaskExit;
-    task->spawnArg2.pointer    = enemy;
-    enemy->task        = task;
-    enemy->coord       = &gGfxViewCoord;
+    task->exitCallback      = Gp_EnemyTaskExit;
+    task->spawnArg2.pointer = enemy;
+    enemy->task             = task;
+    enemy->coord            = &gGfxViewCoord;
     if (parent != NULL) {
         Task_Reparent(parent->task, task);
     } else {

@@ -187,6 +187,7 @@ typedef struct {
         s32  (*call3)(Task*, s32, GpCountArg*);
         s32  (*call4)(Task*, s32, GpDelayArg*);
         s32  (*call5)(Task*, s32, GpXformArg*);
+        s32  (*transform)(Task*, s32, GpXformArg*, s32);
         s32  (*call6)(Task*, s32, GpXformArg*, GpOverrideArg*);
         s32  (*call7)(Task*, s32, s32);
         s32  (*call8)(Task*, s32, s32, s32);
@@ -270,7 +271,7 @@ Actor800100MessageEntry D_actor_800100_80167130[26] = {
     { 1004, { .call1 = func_8010C4F0 } },
     { 1001, { .call5 = func_80104D68 } },
     { 1005, { .call8 = func_8010583C } },
-    { 1006, { .call5 = func_8010C688 } },
+    { 1006, { .transform = func_8010C688 } },
     { 1007, { .call1 = func_8010C4F0 } },
     { 1008, { .call1 = func_8010C4F0 } },
     { 1009, { .call0 = func_8010C30C } },
@@ -292,28 +293,45 @@ Actor800100MessageEntry D_actor_800100_80167130[26] = {
     { 1025, { .call7 = func_80105AB0 } },
 };
 
-GpImgRec ** D_actor_800100_80167200[4] = {
+GpImgRec** D_actor_800100_80167200[4] = {
     D_actor_800100_80167A18,
     D_actor_800100_80167A20,
     D_actor_800100_80167A30,
     D_actor_800100_80167A40,
 };
 
-GpImgRec ** D_actor_800100_80167210[2] = {
+GpImgRec** D_actor_800100_80167210[2] = {
     D_actor_800100_80167A60,
     D_actor_800100_80167A58,
 };
 
 s16 D_actor_800100_80167218[6] = {
-    0, 5, 12, 3, 28, 0,
+    0,
+    5,
+    12,
+    3,
+    28,
+    0,
 };
 
 s16 D_actor_800100_80167224[6] = {
-    0, 3, 0, 3, 16, 0,
+    0,
+    3,
+    0,
+    3,
+    16,
+    0,
 };
 
 u8 D_actor_800100_80167230[8] = {
-    12, 12, 12, 100, 40, 0, 0, 0,
+    12,
+    12,
+    12,
+    100,
+    40,
+    0,
+    0,
+    0,
 };
 
 u8 D_actor_800100_80167238[48] = {
@@ -520,7 +538,7 @@ u8 D_actor_800100_801672C8[48] = {
     2,
 };
 
-u8 * D_actor_800100_801672F8[4] = {
+u8* D_actor_800100_801672F8[4] = {
     D_actor_800100_80167238,
     D_actor_800100_80167268,
     D_actor_800100_80167298,
@@ -997,26 +1015,26 @@ GpImgRec D_actor_800100_801679F8[2] = {
     { 255, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpImgRec * D_actor_800100_80167A18[2] = {
+GpImgRec* D_actor_800100_80167A18[2] = {
     D_actor_800100_80167468,
     NULL,
 };
 
-GpImgRec * D_actor_800100_80167A20[4] = {
+GpImgRec* D_actor_800100_80167A20[4] = {
     D_actor_800100_80167468,
     D_actor_800100_801675D8,
     D_actor_800100_80167748,
     NULL,
 };
 
-GpImgRec * D_actor_800100_80167A30[4] = {
+GpImgRec* D_actor_800100_80167A30[4] = {
     D_actor_800100_80167748,
     D_actor_800100_801675D8,
     D_actor_800100_80167468,
     NULL,
 };
 
-GpImgRec * D_actor_800100_80167A40[6] = {
+GpImgRec* D_actor_800100_80167A40[6] = {
     D_actor_800100_80167468,
     D_actor_800100_801675D8,
     D_actor_800100_80167748,
@@ -1025,12 +1043,12 @@ GpImgRec * D_actor_800100_80167A40[6] = {
     NULL,
 };
 
-GpImgRec * D_actor_800100_80167A58[2] = {
+GpImgRec* D_actor_800100_80167A58[2] = {
     D_actor_800100_801678A0,
     NULL,
 };
 
-GpImgRec * D_actor_800100_80167A60[2] = {
+GpImgRec* D_actor_800100_80167A60[2] = {
     D_actor_800100_801679F8,
     NULL,
 };
@@ -2325,8 +2343,8 @@ static void func_actor_800100_80164710(Task* arg0)
                 if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.b.flags & 1)) {
                     // Stored through a plain pointer: the member-access spelling schedules differently.
                     *&actor->field_90C = NULL;
-                    actor->field_97E                 = 1;
-                    actor->field_12A                &= 0x3FFF;
+                    actor->field_97E   = 1;
+                    actor->field_12A  &= 0x3FFF;
                     if ((u8)Mc_SaveData[0].state.companionVariant == 4) {
                         func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant], 0);
                     }

@@ -70,7 +70,7 @@ typedef union {
 
 MineGorgePoseBank850 D_mine_gorge_8017DE10 = { .poses = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
-} };
+                                               } };
 
 GpPackedSvec D_mine_gorge_8017DE88[95] = {
 #include "assets/mine_gorge_animation_00C98_bank4.inc"
@@ -86,7 +86,8 @@ u16 D_mine_gorge_8017E230[20] = {
 };
 
 GpAnimSet D_mine_gorge_8017E258 = {
-    D_mine_gorge_8017E004, D_mine_gorge_8017E230,
+    D_mine_gorge_8017E004,
+    D_mine_gorge_8017E230,
     { NULL, D_mine_gorge_8017DE10.words, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
 };
 
@@ -145,7 +146,7 @@ GpEvsCmd D_mine_gorge_8017E500[9] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimSet * D_mine_gorge_8017E5D8[2] = {
+GpAnimSet* D_mine_gorge_8017E5D8[2] = {
     &D_mine_gorge_8017E258,
     NULL,
 };
@@ -215,7 +216,7 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
 /// clear and `field_5` is zero sets nibble `field_6` to 2, runs cap command 3
 /// and returns 0; every other case returns 1, except that a set `field_5`
 /// returns 0 without acting.
-s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -243,7 +244,7 @@ s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, GpMessageArg arg2, GpMessage
 /// direction byte is 1, flag nibble `0xC5` is still clear and the session is in
 /// place 1, raises the nibble and starts the script blob at
 /// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     u8 temp_s0 = arg2->field_2;
 

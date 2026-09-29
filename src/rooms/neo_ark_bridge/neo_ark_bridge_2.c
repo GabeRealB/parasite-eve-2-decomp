@@ -76,7 +76,7 @@ SVECTOR D_neo_ark_bridge_80181F70[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_neo_ark_bridge_80181F80[1] = {
+u8* D_neo_ark_bridge_80181F80[1] = {
     D_8010CAF8,
 };
 
@@ -129,7 +129,7 @@ SVECTOR D_neo_ark_bridge_8018207C[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_neo_ark_bridge_801820BC[4] = {
+SVECTOR* D_neo_ark_bridge_801820BC[4] = {
     D_neo_ark_bridge_80181FFC,
     D_neo_ark_bridge_8018203C,
     D_neo_ark_bridge_8018207C,
@@ -532,7 +532,7 @@ s16 D_neo_ark_bridge_801827B0[8] = {
     -1,
 };
 
-s16 * D_neo_ark_bridge_801827C0[21] = {
+s16* D_neo_ark_bridge_801827C0[21] = {
     D_neo_ark_bridge_80182648,
     D_neo_ark_bridge_80182654,
     D_neo_ark_bridge_80182664,
@@ -1094,7 +1094,7 @@ GpRoomParamRec D_neo_ark_bridge_80184BCC[1] = {
     { 0, 0, 1, 0, D_neo_ark_bridge_80184BA8 },
 };
 
-GpRoomParamRec * D_neo_ark_bridge_80184BD4[8] = {
+GpRoomParamRec* D_neo_ark_bridge_80184BD4[8] = {
     D_neo_ark_bridge_80184BB4,
     D_neo_ark_bridge_80184BBC,
     D_neo_ark_bridge_80184BB4,
@@ -1848,14 +1848,14 @@ void func_neo_ark_bridge_801809E8(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_bridge_80181F70[1];
+                    SVECTOR* edge    = &D_neo_ark_bridge_80181F70[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

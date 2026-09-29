@@ -2174,11 +2174,11 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             if (CdStream_ErrorCode == 0) {
                 CdStream_ErrorCode = 5;
             }
-            CdStream_LastErrorCode           = CdStream_ErrorCode;
-            CdStream_Runtime.state.flags    |= 1;
-            CdStream_Runtime.state.field_4C  = 3;
-            CdStream_Runtime.state.flags2   |= 2;
-            *(&D_80068B5C + 1) = (u8)(*(&D_80068B5C + 1) + 1);
+            CdStream_LastErrorCode          = CdStream_ErrorCode;
+            CdStream_Runtime.state.flags   |= 1;
+            CdStream_Runtime.state.field_4C = 3;
+            CdStream_Runtime.state.flags2  |= 2;
+            *(&D_80068B5C + 1)              = (u8)(*(&D_80068B5C + 1) + 1);
         } else if ((u16)CdStream_Runtime.state.field_4C != 0) {
             if ((s16)(u16)CdStream_Runtime.state.field_4C != 4) {
                 CdStream_Runtime.state.field_4C = 3;

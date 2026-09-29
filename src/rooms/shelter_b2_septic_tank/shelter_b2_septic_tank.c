@@ -138,7 +138,7 @@ typedef union {
 
 ShelterB2SepticTankPoseBank55B4 D_shelter_b2_septic_tank_80182B74 = { .poses = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
-} };
+                                                                      } };
 
 GpPackedSvec D_shelter_b2_septic_tank_80182BBC[64] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank4.inc"
@@ -153,7 +153,8 @@ u16 D_shelter_b2_septic_tank_80182EF0[20] = {
 };
 
 GpAnimSet D_shelter_b2_septic_tank_80182F18 = {
-    D_shelter_b2_septic_tank_80182CBC, D_shelter_b2_septic_tank_80182EF0,
+    D_shelter_b2_septic_tank_80182CBC,
+    D_shelter_b2_septic_tank_80182EF0,
     { NULL, D_shelter_b2_septic_tank_80182B74.words, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
 };
 
@@ -167,7 +168,7 @@ GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_shelter_b2_septic_tank_80182F74[1] = {
+GpAnimSet* D_shelter_b2_septic_tank_80182F74[1] = {
     &D_shelter_b2_septic_tank_80182F18,
 };
 
@@ -344,7 +345,7 @@ SVECTOR D_shelter_b2_septic_tank_8018355C[2] = {
     { 0, 1085, 180, 0 },
 };
 
-u8 * D_shelter_b2_septic_tank_8018356C[1] = {
+u8* D_shelter_b2_septic_tank_8018356C[1] = {
     D_8010CAF8,
 };
 
@@ -394,7 +395,7 @@ SVECTOR D_shelter_b2_septic_tank_80183664[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_shelter_b2_septic_tank_801836A4[4] = {
+SVECTOR* D_shelter_b2_septic_tank_801836A4[4] = {
     D_shelter_b2_septic_tank_801835E4,
     D_shelter_b2_septic_tank_80183624,
     D_shelter_b2_septic_tank_80183664,
@@ -873,7 +874,7 @@ s16 D_shelter_b2_septic_tank_80183DB0[10] = {
     -1,
 };
 
-s16 * D_shelter_b2_septic_tank_80183DC4[18] = {
+s16* D_shelter_b2_septic_tank_80183DC4[18] = {
     D_shelter_b2_septic_tank_80183BA8,
     D_shelter_b2_septic_tank_80183BC0,
     D_shelter_b2_septic_tank_80183BDC,
@@ -1619,7 +1620,7 @@ GpRoomParamRec D_shelter_b2_septic_tank_8018700C[1] = {
     { 0, 0, 1, 0, D_shelter_b2_septic_tank_80186FF0 },
 };
 
-GpRoomParamRec * D_shelter_b2_septic_tank_80187014[8] = {
+GpRoomParamRec* D_shelter_b2_septic_tank_80187014[8] = {
     D_shelter_b2_septic_tank_80186FFC,
     D_shelter_b2_septic_tank_80187004,
     D_shelter_b2_septic_tank_8018700C,
@@ -1642,7 +1643,7 @@ u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
 RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
 
-u8 * D_shelter_b2_septic_tank_80187054;
+u8* D_shelter_b2_septic_tank_80187054;
 
 static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b2_septic_tank_8017DA18(Task* arg0);
@@ -1712,7 +1713,7 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_septic_tank_8018703C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_septic_tank_8018703C.field_3;
@@ -1730,7 +1731,7 @@ s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, GpMessageArg arg
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Message 0x21 starts the room's event on flag 0x131; any
 /// other message answers 1.
-s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
@@ -1751,7 +1752,7 @@ s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, GpMessageArg arg
     return 0;
 }
 
-s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg * arg2, GpMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
 {
     u8  kind;
     s32 flag;
@@ -3020,14 +3021,14 @@ void func_shelter_b2_septic_tank_80181644(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b2_septic_tank_8018355C[1];
+                    SVECTOR* edge    = &D_shelter_b2_septic_tank_8018355C[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

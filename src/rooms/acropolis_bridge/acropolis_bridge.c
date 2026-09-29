@@ -814,7 +814,7 @@ u8 D_acropolis_bridge_80189A74[12] = {
     0,
 };
 
-u8 * D_acropolis_bridge_80189A80[2] = {
+u8* D_acropolis_bridge_80189A80[2] = {
     D_8010CAF8,
     D_acropolis_bridge_80189A74,
 };
@@ -1496,7 +1496,7 @@ s16 D_acropolis_bridge_8018A830[4] = {
     -1,
 };
 
-s16 * D_acropolis_bridge_8018A838[25] = {
+s16* D_acropolis_bridge_8018A838[25] = {
     D_acropolis_bridge_8018A614,
     D_acropolis_bridge_8018A628,
     D_acropolis_bridge_8018A660,
@@ -2172,7 +2172,7 @@ s16 D_acropolis_bridge_8018B628[4] = {
     -1,
 };
 
-s16 * D_acropolis_bridge_8018B630[25] = {
+s16* D_acropolis_bridge_8018B630[25] = {
     D_acropolis_bridge_8018B40C,
     D_acropolis_bridge_8018B420,
     D_acropolis_bridge_8018B458,
@@ -3392,7 +3392,7 @@ GpRoomParamRec D_acropolis_bridge_80190C2C[1] = {
     { 1, 1, 1, 1, NULL },
 };
 
-GpRoomParamRec * D_acropolis_bridge_80190C34[8] = {
+GpRoomParamRec* D_acropolis_bridge_80190C34[8] = {
     D_acropolis_bridge_80190C0C,
     D_acropolis_bridge_80190C14,
     D_acropolis_bridge_80190C1C,
@@ -3431,8 +3431,15 @@ u32 D_acropolis_bridge_80190E2C[220] = {
 };
 
 TmdSource D_acropolis_bridge_8019119C = {
-    0, 1008, 416, 4,
-    D_acropolis_bridge_80190CFC, D_acropolis_bridge_80190D0C, D_acropolis_bridge_80190D9C, D_acropolis_bridge_80190C6C, D_acropolis_bridge_80190E2C,
+    0,
+    1008,
+    416,
+    4,
+    D_acropolis_bridge_80190CFC,
+    D_acropolis_bridge_80190D0C,
+    D_acropolis_bridge_80190D9C,
+    D_acropolis_bridge_80190C6C,
+    D_acropolis_bridge_80190E2C,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -3443,7 +3450,7 @@ typedef union {
 
 AcropolisBridgePoseBank13C00 D_acropolis_bridge_801911C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13CD8_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_acropolis_bridge_80191208[9] = {
 #include "assets/acropolis_bridge_animation_13CD8_bank4.inc"
@@ -3458,7 +3465,8 @@ u16 D_acropolis_bridge_80191290[4] = {
 };
 
 GpAnimSet D_acropolis_bridge_80191298 = {
-    D_acropolis_bridge_8019122C, D_acropolis_bridge_80191290,
+    D_acropolis_bridge_8019122C,
+    D_acropolis_bridge_80191290,
     { NULL, D_acropolis_bridge_801911C0.words, NULL, NULL, D_acropolis_bridge_80191208, NULL, NULL, NULL },
 };
 
@@ -3470,7 +3478,7 @@ typedef union {
 
 AcropolisBridgePoseBank13D00 D_acropolis_bridge_801912C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13DD8_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_acropolis_bridge_80191308[9] = {
 #include "assets/acropolis_bridge_animation_13DD8_bank4.inc"
@@ -3485,7 +3493,8 @@ u16 D_acropolis_bridge_80191390[4] = {
 };
 
 GpAnimSet D_acropolis_bridge_80191398 = {
-    D_acropolis_bridge_8019132C, D_acropolis_bridge_80191390,
+    D_acropolis_bridge_8019132C,
+    D_acropolis_bridge_80191390,
     { NULL, D_acropolis_bridge_801912C0.words, NULL, NULL, D_acropolis_bridge_80191308, NULL, NULL, NULL },
 };
 
@@ -3497,7 +3506,7 @@ typedef union {
 
 AcropolisBridgePoseBank13E00 D_acropolis_bridge_801913C0 = { .poses = {
 #include "assets/acropolis_bridge_animation_13E48_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_acropolis_bridge_801913D8[2] = {
 #include "assets/acropolis_bridge_animation_13E48_bank4.inc"
@@ -3512,7 +3521,8 @@ u16 D_acropolis_bridge_80191400[4] = {
 };
 
 GpAnimSet D_acropolis_bridge_80191408 = {
-    D_acropolis_bridge_801913E0, D_acropolis_bridge_80191400,
+    D_acropolis_bridge_801913E0,
+    D_acropolis_bridge_80191400,
     { NULL, D_acropolis_bridge_801913C0.words, NULL, NULL, D_acropolis_bridge_801913D8, NULL, NULL, NULL },
 };
 
@@ -3524,7 +3534,7 @@ typedef union {
 
 AcropolisBridgePoseBank13E70 D_acropolis_bridge_80191430 = { .poses = {
 #include "assets/acropolis_bridge_animation_13F60_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_acropolis_bridge_80191478[10] = {
 #include "assets/acropolis_bridge_animation_13F60_bank4.inc"
@@ -3539,7 +3549,8 @@ u16 D_acropolis_bridge_80191518[4] = {
 };
 
 GpAnimSet D_acropolis_bridge_80191520 = {
-    D_acropolis_bridge_801914A0, D_acropolis_bridge_80191518,
+    D_acropolis_bridge_801914A0,
+    D_acropolis_bridge_80191518,
     { NULL, D_acropolis_bridge_80191430.words, NULL, NULL, D_acropolis_bridge_80191478, NULL, NULL, NULL },
 };
 
@@ -3551,7 +3562,7 @@ typedef union {
 
 AcropolisBridgePoseBank13F88 D_acropolis_bridge_80191548 = { .poses = {
 #include "assets/acropolis_bridge_animation_13FE0_bank1.inc"
-} };
+                                                             } };
 
 GpPackedSvec D_acropolis_bridge_80191560[2] = {
 #include "assets/acropolis_bridge_animation_13FE0_bank4.inc"
@@ -3567,11 +3578,12 @@ u16 D_acropolis_bridge_80191598[4] = {
 };
 
 GpAnimSet D_acropolis_bridge_801915A0 = {
-    D_acropolis_bridge_80191568, D_acropolis_bridge_80191598,
+    D_acropolis_bridge_80191568,
+    D_acropolis_bridge_80191598,
     { NULL, D_acropolis_bridge_80191548.words, NULL, NULL, D_acropolis_bridge_80191560, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_acropolis_bridge_801915C8[7] = {
+GpAnimSet* D_acropolis_bridge_801915C8[7] = {
     NULL,
     &D_acropolis_bridge_80191298,
     &D_acropolis_bridge_80191398,
@@ -3727,7 +3739,7 @@ u8 D_acropolis_bridge_80191718[8] = {
     0,
 };
 
-u8 * D_acropolis_bridge_80191720[9] = {
+u8* D_acropolis_bridge_80191720[9] = {
     D_acropolis_bridge_801916D8,
     D_acropolis_bridge_801916E0,
     D_acropolis_bridge_801916E8,
@@ -3745,7 +3757,7 @@ AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-void (*D_acropolis_bridge_8019175C[9])(Task *) = {
+void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     func_acropolis_bridge_80187D04,
     func_acropolis_bridge_80185F28,
     func_acropolis_bridge_801861A0,
@@ -3759,11 +3771,11 @@ void (*D_acropolis_bridge_8019175C[9])(Task *) = {
 
 AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { 1, 96, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
 
-Task * D_acropolis_bridge_80191794 = NULL;
+Task* D_acropolis_bridge_80191794 = NULL;
 
-Task * D_acropolis_bridge_80191798 = NULL;
+Task* D_acropolis_bridge_80191798 = NULL;
 
-Task * D_acropolis_bridge_8019179C = NULL;
+Task* D_acropolis_bridge_8019179C = NULL;
 
 s32 D_acropolis_bridge_801917A0 = 0;
 
@@ -3774,7 +3786,7 @@ u16 D_acropolis_bridge_801917A4[2] = {
 
 s32 D_acropolis_bridge_801917A8;
 
-DR_MOVE * D_acropolis_bridge_801917AC;
+DR_MOVE* D_acropolis_bridge_801917AC;
 
 extern GpAnimSet* D_acropolis_bridge_801915C8[7];
 
@@ -3808,7 +3820,7 @@ static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
 /// response 2 in the outgoing copy.
-s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     GpAreaKey key;
 
@@ -3994,7 +4006,7 @@ static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
         Mc_SaveData[0].state.at4.loc.view = 8;
-        gGameSession->hideHud       = 1;
+        gGameSession->hideHud             = 1;
         Gp_MsgPlayer3F3(0);
         Gp_MsgPlayerWeapon(0);
         arg0->state = (s32)(arg0->state + 1);
@@ -4017,8 +4029,8 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
             Mc_SaveData[0].state.at4.loc.view = 6;
-            gGameSession->hideHud       = 0;
-            arg0->state                 = (s32)(arg0->state + 1);
+            gGameSession->hideHud             = 0;
+            arg0->state                       = (s32)(arg0->state + 1);
         } else {
             Mc_SaveData[0].state.at4.loc.view = 9;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
@@ -4062,8 +4074,8 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
         Mc_SaveData[0].state.at4.loc.view = 6;
         Mc_SaveData[0].state.at4.loc.room = 2;
-        gGameSession->at4.loc.room  = 2;
-        gGameSession->roomObjsDirty = 1;
+        gGameSession->at4.loc.room        = 2;
+        gGameSession->roomObjsDirty       = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
@@ -4154,10 +4166,10 @@ static void func_acropolis_bridge_8017E04C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
-    task->work      = (TaskIdMap*)work;
-    work->field_0   = 0x14;
-    work->field_4   = 0xFFF;
-    sess            = &gGameSession->at4.loc;
+    task->work              = (TaskIdMap*)work;
+    work->field_0           = 0x14;
+    work->field_4           = 0xFFF;
+    sess                    = &gGameSession->at4.loc;
     task->state++;
     view                                  = Gp_GetViewIndex();
     rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
@@ -7127,11 +7139,11 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
                     goto hide;
             }
             {
-                u16 hp = D_acropolis_bridge_80190C5C.hpMax;
-                enemy->hp = hp;
+                u16 hp          = D_acropolis_bridge_80190C5C.hpMax;
+                enemy->hp       = hp;
                 work->field_10C = hp;
             }
-            work->field_0   = 4;
+            work->field_0 = 4;
             goto done;
         reset:
             work->field_0 = 0;

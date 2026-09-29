@@ -834,7 +834,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_submarine_gallery_80185924.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_submarine_gallery_80185924.prefix.bytes.field_1;
@@ -853,7 +853,7 @@ s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, GpMessageArg 
 /// reports no pending flag, latches the save location the outgoing message
 /// carries and starts the cutscene the gallery leads out of. Returns 0 for that
 /// message and 1 for every other one.
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);

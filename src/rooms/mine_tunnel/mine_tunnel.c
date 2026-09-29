@@ -47,7 +47,7 @@ typedef union {
 
 MineTunnelPoseBank594 D_mine_tunnel_8017DB54 = { .poses = {
 #include "assets/mine_tunnel_animation_009DC_bank1.inc"
-} };
+                                                 } };
 
 GpPackedSvec D_mine_tunnel_8017DBCC[95] = {
 #include "assets/mine_tunnel_animation_009DC_bank4.inc"
@@ -62,7 +62,8 @@ u16 D_mine_tunnel_8017DF74[20] = {
 };
 
 GpAnimSet D_mine_tunnel_8017DF9C = {
-    D_mine_tunnel_8017DD48, D_mine_tunnel_8017DF74,
+    D_mine_tunnel_8017DD48,
+    D_mine_tunnel_8017DF74,
     { NULL, D_mine_tunnel_8017DB54.words, NULL, NULL, D_mine_tunnel_8017DBCC, NULL, NULL, NULL },
 };
 
@@ -74,7 +75,7 @@ GpMsgEntry D_mine_tunnel_8017DFC4[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet * D_mine_tunnel_8017DFEC[2] = {
+GpAnimSet* D_mine_tunnel_8017DFEC[2] = {
     &D_mine_tunnel_8017DF9C,
     NULL,
 };
@@ -111,7 +112,7 @@ s32 func_mine_tunnel_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one, passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_mine_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_mine_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -126,7 +127,7 @@ s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
     return 0;
 }
 
-s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg * msg, s32 arg3)
+s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     u8 temp_v1;
 

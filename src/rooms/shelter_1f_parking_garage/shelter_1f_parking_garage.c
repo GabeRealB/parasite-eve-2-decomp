@@ -156,7 +156,7 @@ GpRoomCoordRec D_shelter_1f_parking_garage_80180C74[1] = {
     { D_shelter_1f_parking_garage_801815E0, D_shelter_1f_parking_garage_801818A4 },
 };
 
-u8 * D_shelter_1f_parking_garage_80180C7C[1] = {
+u8* D_shelter_1f_parking_garage_80180C7C[1] = {
     D_8010CAF8,
 };
 
@@ -358,7 +358,7 @@ s16 D_shelter_1f_parking_garage_80180F9C[5] = {
     -1,
 };
 
-s16 * D_shelter_1f_parking_garage_80180FA8[16] = {
+s16* D_shelter_1f_parking_garage_80180FA8[16] = {
     D_shelter_1f_parking_garage_80180EF8,
     D_shelter_1f_parking_garage_80180F04,
     D_shelter_1f_parking_garage_80180F18,
@@ -533,7 +533,7 @@ GpRoomParamRec D_shelter_1f_parking_garage_8018194C[1] = {
     { 0, 0, 1, 0, D_shelter_1f_parking_garage_80181938 },
 };
 
-GpRoomParamRec * D_shelter_1f_parking_garage_80181954[8] = {
+GpRoomParamRec* D_shelter_1f_parking_garage_80181954[8] = {
     D_shelter_1f_parking_garage_80181944,
     D_shelter_1f_parking_garage_8018194C,
     D_shelter_1f_parking_garage_80181944,
@@ -726,7 +726,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_shelter_1f_parking_garage_80181988.value.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_shelter_1f_parking_garage_80181988.value.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_shelter_1f_parking_garage_80181988.value.warp;
@@ -781,7 +781,7 @@ void func_shelter_1f_parking_garage_8017D958(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_parking_garage_8018197C.field_3;
@@ -837,15 +837,15 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 rec.sndEvent = 0x55010004;
                 rec.facing   = -1;
                 Gp_MsgPlayerWeapon(0);
-                p           = &rec;
-                msg.prefix.packed   = p->area;
-                msg.field_2 = p->warp;
-                msg.field_3 = p->room;
-                msg.field_5 = 0;
+                p                 = &rec;
+                msg.prefix.packed = p->area;
+                msg.field_2       = p->warp;
+                msg.field_3       = p->room;
+                msg.field_5       = 0;
                 handler(&msg, &msg);
-                p->area                              = msg.prefix.packed;
-                p->warp                              = msg.field_2;
-                p->room                              = msg.field_3;
+                p->area                                    = msg.prefix.packed;
+                p->warp                                    = msg.field_2;
+                p->room                                    = msg.field_3;
                 D_shelter_1f_parking_garage_80181988.value = rec;
                 Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
@@ -863,7 +863,7 @@ s32 func_shelter_1f_parking_garage_8017DCEC(Task* task, s32 msgId, GpMessageArg 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_neo_ark_80179B14`. Message 5 starts the room's event on flag 0x159; any
 /// other message answers 1.
-s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
@@ -884,7 +884,7 @@ s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, GpMessageArg 
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 0xA) {
         Gp_MsgPlayerWeapon(0);
@@ -1426,14 +1426,14 @@ void func_shelter_1f_parking_garage_8017F670(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_1f_parking_garage_80180C54[1];
+                    SVECTOR* edge    = &D_shelter_1f_parking_garage_80180C54[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

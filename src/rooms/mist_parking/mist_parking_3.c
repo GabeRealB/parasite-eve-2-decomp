@@ -69,7 +69,7 @@ s16 D_mist_parking_8018FCAC[3] = {
     -1,
 };
 
-s16 * D_mist_parking_8018FCB4[1] = {
+s16* D_mist_parking_8018FCB4[1] = {
     D_mist_parking_8018FCAC,
 };
 
@@ -83,7 +83,7 @@ typedef union {
 
 MistParkingPoseBank1271C D_mist_parking_8018FCDC = { .poses = {
 #include "assets/mist_parking_animation_129F8_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_mist_parking_8018FD24[46] = {
 #include "assets/mist_parking_animation_129F8_bank4.inc"
@@ -98,7 +98,8 @@ u16 D_mist_parking_8018FF90[20] = {
 };
 
 GpAnimSet D_mist_parking_8018FFB8 = {
-    D_mist_parking_8018FDDC, D_mist_parking_8018FF90,
+    D_mist_parking_8018FDDC,
+    D_mist_parking_8018FF90,
     { NULL, D_mist_parking_8018FCDC.words, NULL, NULL, D_mist_parking_8018FD24, NULL, NULL, NULL },
 };
 
@@ -110,7 +111,7 @@ typedef union {
 
 MistParkingPoseBank12A20 D_mist_parking_8018FFE0 = { .poses = {
 #include "assets/mist_parking_animation_12DCC_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_mist_parking_80190040[84] = {
 #include "assets/mist_parking_animation_12DCC_bank4.inc"
@@ -125,7 +126,8 @@ u16 D_mist_parking_80190364[20] = {
 };
 
 GpAnimSet D_mist_parking_8019038C = {
-    D_mist_parking_80190190, D_mist_parking_80190364,
+    D_mist_parking_80190190,
+    D_mist_parking_80190364,
     { NULL, D_mist_parking_8018FFE0.words, NULL, NULL, D_mist_parking_80190040, NULL, NULL, NULL },
 };
 
@@ -137,7 +139,7 @@ typedef union {
 
 MistParkingPoseBank12DF4 D_mist_parking_801903B4 = { .poses = {
 #include "assets/mist_parking_animation_1323C_bank1.inc"
-} };
+                                                     } };
 
 GpPackedSvec D_mist_parking_801903F0[99] = {
 #include "assets/mist_parking_animation_1323C_bank4.inc"
@@ -152,7 +154,8 @@ u16 D_mist_parking_801907D4[20] = {
 };
 
 GpAnimSet D_mist_parking_801907FC = {
-    D_mist_parking_8019057C, D_mist_parking_801907D4,
+    D_mist_parking_8019057C,
+    D_mist_parking_801907D4,
     { NULL, D_mist_parking_801903B4.words, NULL, NULL, D_mist_parking_801903F0, NULL, NULL, NULL },
 };
 
@@ -188,7 +191,7 @@ void func_mist_parking_801836CC(Task* arg0)
 {
     s32 temp_v0;
 
-    temp_v0         = arg0->spawnArg1.value - 1;
+    temp_v0               = arg0->spawnArg1.value - 1;
     arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);

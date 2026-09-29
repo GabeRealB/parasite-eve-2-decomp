@@ -66,7 +66,7 @@ GpRoomParamRec D_shelter_b2_pod_access_tunnel_801856D0[1] = {
     { 0, 0, 1, 0, D_shelter_b2_pod_access_tunnel_801856AC },
 };
 
-GpRoomParamRec * D_shelter_b2_pod_access_tunnel_801856D8[8] = {
+GpRoomParamRec* D_shelter_b2_pod_access_tunnel_801856D8[8] = {
     D_shelter_b2_pod_access_tunnel_801856B8,
     D_shelter_b2_pod_access_tunnel_801856C0,
     D_shelter_b2_pod_access_tunnel_801856C8,
@@ -139,7 +139,7 @@ void func_shelter_b2_pod_access_tunnel_8017D62C(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_pod_access_tunnel_80185700.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_pod_access_tunnel_80185700.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_pod_access_tunnel_80185700.field_3;
@@ -167,7 +167,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
     return 1;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
@@ -243,7 +243,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             Mc_SaveData[0].state.at4.loc.area = 0x11;
             Mc_SaveData[0].state.at4.loc.warp = 3;
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

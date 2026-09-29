@@ -39,7 +39,7 @@ s32 func_dryfield_motel_room_1_8017D5EC(Task* task, s32 msgId, GpMessageArg arg2
 /// Fallback entry of the room's message table: copies the incoming location
 /// record onto the outgoing one and answers 1, leaving the decision to whoever
 /// reads the reply.
-s32 func_dryfield_motel_room_1_8017D5F4(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_motel_room_1_8017D5F4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;
@@ -58,7 +58,7 @@ s32 func_dryfield_motel_room_1_8017D61C(Task* task, s32 msgId, GpMessageArg arg2
 ///
 /// GCC hoists the `gGameSession` load above the `addiu $sp` prologue, which is
 /// why the function starts two instructions before its frame setup.
-s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if (gGameSession->at4.loc.place == 3 && GameFlag_GetNibble(0x5C) == 0 && in->field_2 == 1) {
         GameFlag_SetNibble(0x5C, 1);

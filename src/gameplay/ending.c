@@ -189,9 +189,9 @@ const char Gp_StrItem[] = "Item";
 
 void Gp_EndingTask(Task* arg0)
 {
-    GameSession* session;
-    GpEndWork*   work;
-    StageMusicParams*  pair;
+    GameSession*      session;
+    GpEndWork*        work;
+    StageMusicParams* pair;
 
     if (arg0->state == 0) {
         work                = arg0->spawnArg2.pointer;
@@ -206,8 +206,8 @@ void Gp_EndingTask(Task* arg0)
     } else if (arg0->state == 1) {
         session = gGameSession;
         if (!(session->flowFlags & 1)) {
-            pair          = &gStageMusicParams;
-            pair->fadeFrames = 0;
+            pair                   = &gStageMusicParams;
+            pair->fadeFrames       = 0;
             pair->unusedCommandArg = 0;
             if ((session->flowFlags & 4) == 0) {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);

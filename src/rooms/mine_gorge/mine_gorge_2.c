@@ -55,8 +55,18 @@ extern GpRoomBoundVec D_mine_gorge_801835A4[12];
 extern GpRoomCoordSet D_mine_gorge_80182ABC[1];
 
 u16 D_mine_gorge_8017E760[12] = {
-    0, 2, 0, 0, 0, 2, 0, 0,
-    0, 0, 0, 0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 SVECTOR D_mine_gorge_8017E778[2] = {
@@ -102,7 +112,7 @@ u8 D_mine_gorge_8017E7D8[12] = {
     0,
 };
 
-u8 * D_mine_gorge_8017E7E4[2] = {
+u8* D_mine_gorge_8017E7E4[2] = {
     D_8010CAF8,
     D_mine_gorge_8017E7D8,
 };
@@ -581,7 +591,7 @@ s16 D_mine_gorge_8017F13C[12] = {
     -1,
 };
 
-s16 * D_mine_gorge_8017F154[12] = {
+s16* D_mine_gorge_8017F154[12] = {
     D_mine_gorge_8017EF94,
     D_mine_gorge_8017EFC4,
     D_mine_gorge_8017EFFC,
@@ -1036,7 +1046,7 @@ s16 D_mine_gorge_8017F9A8[12] = {
     -1,
 };
 
-s16 * D_mine_gorge_8017F9C0[12] = {
+s16* D_mine_gorge_8017F9C0[12] = {
     D_mine_gorge_8017F810,
     D_mine_gorge_8017F840,
     D_mine_gorge_8017F878,
@@ -1939,7 +1949,7 @@ GpRoomParamRec D_mine_gorge_8018363C[1] = {
     { 0, 1, 0, 0, D_mine_gorge_80183610 },
 };
 
-GpRoomParamRec * D_mine_gorge_80183644[8] = {
+GpRoomParamRec* D_mine_gorge_80183644[8] = {
     D_mine_gorge_8018361C,
     D_mine_gorge_80183624,
     D_mine_gorge_8018362C,

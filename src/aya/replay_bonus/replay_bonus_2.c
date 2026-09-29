@@ -101,7 +101,7 @@ static void func_replay_bonus_80117194(Task* arg0)
             case 3:
                 if (D_replay_bonus_80119284 < 0) {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
-                    arg0->state     = arg0->state + 2;
+                    arg0->state             = arg0->state + 2;
                 } else {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
                 }
@@ -115,13 +115,13 @@ static void func_replay_bonus_80117194(Task* arg0)
             case 6:
                 GameMain_SetFrameTiming(0);
                 func_replay_bonus_80116EC0();
-                gDisplayState.gameMode = 0xFF;
-                arg0->spawnArg2.pointer        = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
+                gDisplayState.gameMode  = 0xFF;
+                arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 0, 1, 1, NULL);
                 break;
             case 7:
                 if (copied == 0x33) {
                     arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0x11, 0, 1);
-                    arg0->state     = arg0->state + 1;
+                    arg0->state             = arg0->state + 1;
                 } else {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119170, 0, 1, 2, NULL);
                 }
@@ -131,7 +131,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                     arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0xF, 0, 1);
                 } else {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_800611E4, 1, 1, 1, NULL);
-                    arg0->state     = arg0->state - 2;
+                    arg0->state             = arg0->state - 2;
                 }
                 break;
         }
@@ -360,7 +360,7 @@ static void func_replay_bonus_801178C0(Task* arg0)
     if (CdCmd_IsIdle() & 0xFFFF) {
         Text_LoadClutImages();
         arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_80119154, 0, 1, 1, NULL);
-        arg0->state     = (s32)(arg0->state + 1);
+        arg0->state             = (s32)(arg0->state + 1);
     }
 }
 
@@ -900,12 +900,12 @@ static s32 func_replay_bonus_80118B6C(ReplayBonusStfAddress base, s32 index)
     }
 
     if (base.file->field_C.offset > 0) {
-        base.file->field_C.offset += base.address;
-        base.file->field_8.offset += base.address;
+        base.file->field_C.offset  += base.address;
+        base.file->field_8.offset  += base.address;
         base.file->field_10.offset += base.address;
         base.file->field_14.offset += base.address;
-        D_replay_bonus_80119298 = (base.file->field_10.pointer)->lines;
-        D_replay_bonus_801192A0 = (base.file->field_10.pointer)->count;
+        D_replay_bonus_80119298     = (base.file->field_10.pointer)->lines;
+        D_replay_bonus_801192A0     = (base.file->field_10.pointer)->count;
         for (i = 0; i < D_replay_bonus_801192A0; i++) {
             rec                     = D_replay_bonus_80119298;
             D_replay_bonus_80119298 = rec + 1;
@@ -1002,11 +1002,11 @@ void func_replay_bonus_80118E3C(Task* arg0)
 
 static void func_replay_bonus_80118F00(s32 arg0)
 {
-    FsFolderSlot* slot;
-    s32           count;
-    s32           i;
-    s32           type;
-    ReplayBonusStfFile*           temp;
+    FsFolderSlot*       slot;
+    s32                 count;
+    s32                 i;
+    s32                 type;
+    ReplayBonusStfFile* temp;
 
     count = 0;
     i     = count;

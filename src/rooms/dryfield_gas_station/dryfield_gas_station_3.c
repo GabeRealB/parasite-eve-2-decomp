@@ -121,7 +121,7 @@ TaskDesc D_dryfield_gas_station_80181E7C[3] = {
 
 DryfieldGasStationPoseBank48E0 D_dryfield_gas_station_80181EA0 = { .poses = {
 #include "assets/dryfield_gas_station_animation_04A70_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_gas_station_80181EB8[8] = {
 #include "assets/dryfield_gas_station_animation_04A70_bank4.inc"
@@ -136,7 +136,8 @@ u16 D_dryfield_gas_station_80182008[20] = {
 };
 
 GpAnimSet D_dryfield_gas_station_80182030 = {
-    D_dryfield_gas_station_80181ED8, D_dryfield_gas_station_80182008,
+    D_dryfield_gas_station_80181ED8,
+    D_dryfield_gas_station_80182008,
     { NULL, D_dryfield_gas_station_80181EA0.words, NULL, NULL, D_dryfield_gas_station_80181EB8, NULL, NULL, NULL },
 };
 
@@ -148,7 +149,7 @@ typedef union {
 
 DryfieldGasStationPoseBank4A98 D_dryfield_gas_station_80182058 = { .poses = {
 #include "assets/dryfield_gas_station_animation_05210_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_gas_station_801820F4[179] = {
 #include "assets/dryfield_gas_station_animation_05210_bank4.inc"
@@ -163,7 +164,8 @@ u16 D_dryfield_gas_station_801827A8[20] = {
 };
 
 GpAnimSet D_dryfield_gas_station_801827D0 = {
-    D_dryfield_gas_station_801823C0, D_dryfield_gas_station_801827A8,
+    D_dryfield_gas_station_801823C0,
+    D_dryfield_gas_station_801827A8,
     { NULL, D_dryfield_gas_station_80182058.words, NULL, NULL, D_dryfield_gas_station_801820F4, NULL, NULL, NULL },
 };
 
@@ -175,7 +177,7 @@ typedef union {
 
 DryfieldGasStationPoseBank5238 D_dryfield_gas_station_801827F8 = { .poses = {
 #include "assets/dryfield_gas_station_animation_055A4_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_gas_station_8018284C[65] = {
 #include "assets/dryfield_gas_station_animation_055A4_bank4.inc"
@@ -190,7 +192,8 @@ u16 D_dryfield_gas_station_80182B3C[20] = {
 };
 
 GpAnimSet D_dryfield_gas_station_80182B64 = {
-    D_dryfield_gas_station_80182950, D_dryfield_gas_station_80182B3C,
+    D_dryfield_gas_station_80182950,
+    D_dryfield_gas_station_80182B3C,
     { NULL, D_dryfield_gas_station_801827F8.words, NULL, NULL, D_dryfield_gas_station_8018284C, NULL, NULL, NULL },
 };
 
@@ -202,7 +205,7 @@ typedef union {
 
 DryfieldGasStationPoseBank55CC D_dryfield_gas_station_80182B8C = { .poses = {
 #include "assets/dryfield_gas_station_animation_05848_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_gas_station_80182BA4[48] = {
 #include "assets/dryfield_gas_station_animation_05848_bank4.inc"
@@ -217,11 +220,12 @@ u16 D_dryfield_gas_station_80182DE0[20] = {
 };
 
 GpAnimSet D_dryfield_gas_station_80182E08 = {
-    D_dryfield_gas_station_80182C64, D_dryfield_gas_station_80182DE0,
+    D_dryfield_gas_station_80182C64,
+    D_dryfield_gas_station_80182DE0,
     { NULL, D_dryfield_gas_station_80182B8C.words, NULL, NULL, D_dryfield_gas_station_80182BA4, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_dryfield_gas_station_80182E30[5] = {
+GpAnimSet* D_dryfield_gas_station_80182E30[5] = {
     &D_dryfield_gas_station_80182030,
     &D_dryfield_gas_station_80182B64,
     &D_dryfield_gas_station_80182E08,
@@ -280,7 +284,7 @@ GpRoomObjRec D_dryfield_gas_station_8018314C[1] = {
     { D_dryfield_gas_station_80183EA4, D_dryfield_gas_station_80184350, D_dryfield_gas_station_80184694, NULL },
 };
 
-u8 * D_dryfield_gas_station_8018315C[1] = {
+u8* D_dryfield_gas_station_8018315C[1] = {
     D_8010CAF8,
 };
 
@@ -1145,7 +1149,7 @@ s16 D_dryfield_gas_station_80183DDC[3] = {
     -1,
 };
 
-s16 * D_dryfield_gas_station_80183DE4[48] = {
+s16* D_dryfield_gas_station_80183DE4[48] = {
     D_dryfield_gas_station_801839F8,
     D_dryfield_gas_station_80183A04,
     D_dryfield_gas_station_80183A14,
@@ -1441,7 +1445,7 @@ GpRoomParamRec D_dryfield_gas_station_80184BA4[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_gas_station_80184BAC[8] = {
+GpRoomParamRec* D_dryfield_gas_station_80184BAC[8] = {
     D_dryfield_gas_station_80184B84,
     D_dryfield_gas_station_80184BA4,
     D_dryfield_gas_station_80184B94,
@@ -1452,7 +1456,7 @@ GpRoomParamRec * D_dryfield_gas_station_80184BAC[8] = {
     D_dryfield_gas_station_80184B84,
 };
 
-Task * D_dryfield_gas_station_80184BCC = NULL;
+Task* D_dryfield_gas_station_80184BCC = NULL;
 
 RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 

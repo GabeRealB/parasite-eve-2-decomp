@@ -129,7 +129,7 @@ SVECTOR D_neo_ark_submarine_gallery_801818C8[40] = {
     { 540, 3400, 2990, 0 },
 };
 
-u8 * D_neo_ark_submarine_gallery_80181A08[1] = {
+u8* D_neo_ark_submarine_gallery_80181A08[1] = {
     D_8010CAF8,
 };
 
@@ -181,7 +181,7 @@ SVECTOR D_neo_ark_submarine_gallery_80181ACC[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_neo_ark_submarine_gallery_80181B0C[4] = {
+SVECTOR* D_neo_ark_submarine_gallery_80181B0C[4] = {
     D_neo_ark_submarine_gallery_80181A4C,
     D_neo_ark_submarine_gallery_80181A8C,
     D_neo_ark_submarine_gallery_80181ACC,
@@ -623,7 +623,7 @@ s16 D_neo_ark_submarine_gallery_8018236C[6] = {
     -1,
 };
 
-s16 * D_neo_ark_submarine_gallery_80182378[9] = {
+s16* D_neo_ark_submarine_gallery_80182378[9] = {
     D_neo_ark_submarine_gallery_801821DC,
     D_neo_ark_submarine_gallery_8018220C,
     D_neo_ark_submarine_gallery_80182248,
@@ -1333,7 +1333,7 @@ GpRoomParamRec D_neo_ark_submarine_gallery_801858E4[1] = {
     { 0, 0, 1, 0, D_neo_ark_submarine_gallery_801858C8 },
 };
 
-GpRoomParamRec * D_neo_ark_submarine_gallery_801858EC[8] = {
+GpRoomParamRec* D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
     D_neo_ark_submarine_gallery_801858D4,
     D_neo_ark_submarine_gallery_801858D4,

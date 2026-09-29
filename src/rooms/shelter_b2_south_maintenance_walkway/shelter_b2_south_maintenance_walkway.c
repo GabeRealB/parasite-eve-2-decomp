@@ -183,7 +183,7 @@ RoomHaloShade D_shelter_b2_south_maintenance_walkway_80182630[2] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b2_south_maintenance_walkway_8018263C[1] = {
+u8* D_shelter_b2_south_maintenance_walkway_8018263C[1] = {
     D_8010CAF8,
 };
 
@@ -372,7 +372,7 @@ s16 D_shelter_b2_south_maintenance_walkway_801829BC[10] = {
     -1,
 };
 
-s16 * D_shelter_b2_south_maintenance_walkway_801829D0[6] = {
+s16* D_shelter_b2_south_maintenance_walkway_801829D0[6] = {
     D_shelter_b2_south_maintenance_walkway_8018292C,
     D_shelter_b2_south_maintenance_walkway_80182950,
     D_shelter_b2_south_maintenance_walkway_80182970,
@@ -636,7 +636,7 @@ GpRoomParamRec D_shelter_b2_south_maintenance_walkway_801838AC[1] = {
     { 0, 0, 1, 0, D_shelter_b2_south_maintenance_walkway_80183898 },
 };
 
-GpRoomParamRec * D_shelter_b2_south_maintenance_walkway_801838B4[8] = {
+GpRoomParamRec* D_shelter_b2_south_maintenance_walkway_801838B4[8] = {
     D_shelter_b2_south_maintenance_walkway_801838A4,
     D_shelter_b2_south_maintenance_walkway_801838AC,
     D_shelter_b2_south_maintenance_walkway_801838A4,
@@ -686,10 +686,10 @@ static s32 func_shelter_b2_south_maintenance_walkway_8017D610(RoomEventReq* req,
     s32 ret;
     s32 neg;
 
-    flag                                            = req->flagId;
+    flag                                                  = req->flagId;
     D_shelter_b2_south_maintenance_walkway_801838E4.value = 0;
-    neg                                             = flag < 0;
-    got                                             = (s16)flag;
+    neg                                                   = flag < 0;
+    got                                                   = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -701,10 +701,10 @@ static s32 func_shelter_b2_south_maintenance_walkway_8017D610(RoomEventReq* req,
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
             if (msg->field_5 == 0) {
-                D_shelter_b2_south_maintenance_walkway_801838DC = *msg;
+                D_shelter_b2_south_maintenance_walkway_801838DC       = *msg;
                 D_shelter_b2_south_maintenance_walkway_801838F8.value = *req;
-                id                                              = req->flagId;
-                mode                                            = 1;
+                id                                                    = req->flagId;
+                mode                                                  = 1;
                 if (id < 0) {
                     id   = -id;
                     mode = 0;
@@ -768,7 +768,7 @@ void func_shelter_b2_south_maintenance_walkway_8017D774(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_south_maintenance_walkway_801838DC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_south_maintenance_walkway_801838DC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_south_maintenance_walkway_801838DC.field_3;
@@ -842,7 +842,7 @@ void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_south_maintenance_walkway_801838EC.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_south_maintenance_walkway_801838EC.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_south_maintenance_walkway_801838EC.field_3;
@@ -856,7 +856,7 @@ void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task* arg0)
 /// `func_map_shelter_80179A04`. Message 0x1D goes through the room's event gate on flag
 /// 0xAA with no prerequisite; message 0x1B starts the room's own event on flag
 /// 0x13C; any other message answers 1.
-s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent event;
@@ -1399,14 +1399,14 @@ void func_shelter_b2_south_maintenance_walkway_8017F400(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b2_south_maintenance_walkway_80182620[1];
+                    SVECTOR* edge    = &D_shelter_b2_south_maintenance_walkway_80182620[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

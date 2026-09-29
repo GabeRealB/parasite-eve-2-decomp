@@ -55,7 +55,7 @@ TaskDesc D_acropolis_fountain_8017E78C[2] = {
 /// before nibble 0 reaches 5 hands the record's first two bytes to
 /// `D_acropolis_fountain_80183BB0`/`BB1` and spawns the room's own task,
 /// consuming the message (returns 0); from nibble 0 == 5 on it only answers.
-s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 msgId;
 
@@ -149,7 +149,7 @@ void func_acropolis_fountain_8017D868(Task* task)
             Mc_SaveData[0].state.at4.loc.area = 3;
             Mc_SaveData[0].state.at4.loc.room = 3;
             Mc_SaveData[0].state.at4.loc.warp = D_acropolis_fountain_80183BB0;
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);
             taskKill(task);

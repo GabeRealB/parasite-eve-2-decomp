@@ -37,7 +37,7 @@ GpViewTbl* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017A
         req.glyphTable = 5;                                   \
         req.centerMode = 0;                                   \
         req.field_E    = 1;                                   \
-        Text_DrawString(&req, (str));                           \
+        Text_DrawString(&req, (str));                         \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
@@ -50,7 +50,7 @@ GpViewTbl* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017A
         req.x          = obj.panel.field_20.u + 0x94;         \
         req.y          = (obj.panel.field_22.u + 9) + (line); \
         req.otIndex    = obj.panel.field_14.s + 1;            \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));   \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count))); \
         if ((count) == 0) {                                   \
             flag = 1;                                         \
         }                                                     \

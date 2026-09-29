@@ -218,7 +218,7 @@ typedef union {
 
 DryfieldMainStreetPoseBank3914 D_dryfield_main_street_80180ED4 = { .poses = {
 #include "assets/dryfield_main_street_animation_03BF0_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_main_street_80180F1C[46] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank4.inc"
@@ -233,7 +233,8 @@ u16 D_dryfield_main_street_80181188[20] = {
 };
 
 GpAnimSet D_dryfield_main_street_801811B0 = {
-    D_dryfield_main_street_80180FD4, D_dryfield_main_street_80181188,
+    D_dryfield_main_street_80180FD4,
+    D_dryfield_main_street_80181188,
     { NULL, D_dryfield_main_street_80180ED4.words, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
 };
 
@@ -245,7 +246,7 @@ typedef union {
 
 DryfieldMainStreetPoseBank3C18 D_dryfield_main_street_801811D8 = { .poses = {
 #include "assets/dryfield_main_street_animation_03F84_bank1.inc"
-} };
+                                                                   } };
 
 GpPackedSvec D_dryfield_main_street_8018122C[65] = {
 #include "assets/dryfield_main_street_animation_03F84_bank4.inc"
@@ -260,7 +261,8 @@ u16 D_dryfield_main_street_8018151C[20] = {
 };
 
 GpAnimSet D_dryfield_main_street_80181544 = {
-    D_dryfield_main_street_80181330, D_dryfield_main_street_8018151C,
+    D_dryfield_main_street_80181330,
+    D_dryfield_main_street_8018151C,
     { NULL, D_dryfield_main_street_801811D8.words, NULL, NULL, D_dryfield_main_street_8018122C, NULL, NULL, NULL },
 };
 
@@ -355,7 +357,14 @@ GpEvsCmd D_dryfield_main_street_80181A14[16] = {
 };
 
 u16 D_dryfield_main_street_80181B94[8] = {
-    0, 2, 2, 2, 0, 0, 0, 0,
+    0,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
 };
 
 SVECTOR D_dryfield_main_street_80181BA4 = { -850, -1320, 9770, 0 };
@@ -369,7 +378,7 @@ GpRoomObjRec D_dryfield_main_street_80181BBC[1] = {
     { D_dryfield_main_street_80182C9C, D_dryfield_main_street_801843A4, D_dryfield_main_street_80184B5C, NULL },
 };
 
-u8 * D_dryfield_main_street_80181BCC[1] = {
+u8* D_dryfield_main_street_80181BCC[1] = {
     D_8010CAF8,
 };
 
@@ -1341,7 +1350,7 @@ s16 D_dryfield_main_street_80182BEC[3] = {
     -1,
 };
 
-s16 * D_dryfield_main_street_80182BF4[42] = {
+s16* D_dryfield_main_street_80182BF4[42] = {
     D_dryfield_main_street_801827A0,
     D_dryfield_main_street_801827A8,
     D_dryfield_main_street_801827C8,
@@ -1928,7 +1937,7 @@ GpRoomParamRec D_dryfield_main_street_801855E4[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_main_street_801855EC[8] = {
+GpRoomParamRec* D_dryfield_main_street_801855EC[8] = {
     D_dryfield_main_street_801855C4,
     D_dryfield_main_street_801855E4,
     D_dryfield_main_street_801855D4,
@@ -1954,7 +1963,7 @@ u8 D_dryfield_main_street_8018562C[4] = {
     28,
 };
 
-Task * D_dryfield_main_street_80185630 = NULL;
+Task* D_dryfield_main_street_80185630 = NULL;
 
 DryfieldMainStreetStorage5634 D_dryfield_main_street_80185634 = { { 0 }, { 0 } };
 
@@ -2003,7 +2012,7 @@ void func_dryfield_main_street_8017D600(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185614.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185614.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_dryfield_main_street_80185614.field_3;
@@ -2028,10 +2037,10 @@ static s32 func_dryfield_main_street_8017D798(RoomEventReq* req, RoomEventMsg* m
     s32 ret;
     s32 neg;
 
-    flag                            = req->flagId;
+    flag                               = req->flagId;
     D_dryfield_main_street_8018562C[0] = 0;
-    neg                             = flag < 0;
-    got                             = (s16)flag;
+    neg                                = flag < 0;
+    got                                = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -2110,7 +2119,7 @@ void func_dryfield_main_street_8017D8FC(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_main_street_80185624.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_main_street_80185624.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_main_street_80185624.field_3;
@@ -2132,7 +2141,7 @@ static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
 /// already set. Messages 0xD and 0xE build a request for the event gate
 /// `func_dryfield_main_street_8017D798` and, when it fires, swap collected
 /// bits 0x10F / 0x112 for 0x113. Anything else is not consumed.
-s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg * msg, RoomEventMsg * out)
+s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent ev;
@@ -2173,14 +2182,14 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg * msg
         return 2;
     }
     if (msg->prefix.packed == 0xB) {
-        ev.capCmd                       = 3;
-        ev.stageSnd                     = 0x52020005;
-        ev.flagId                       = 0x57;
-        ev.fade                         = 0;
+        ev.capCmd                             = 3;
+        ev.stageSnd                           = 0x52020005;
+        ev.flagId                             = 0x57;
+        ev.fade                               = 0;
         D_dryfield_main_street_8018561C.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {
-                D_dryfield_main_street_80185614 = *out;
+                D_dryfield_main_street_80185614       = *out;
                 D_dryfield_main_street_80185634.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
@@ -2193,14 +2202,14 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg * msg
         }
         return 1;
     } else if (msg->prefix.packed == 0xC) {
-        ev.capCmd                       = 4;
-        ev.stageSnd                     = 0x52020005;
-        ev.flagId                       = 0x58;
-        ev.fade                         = 0;
+        ev.capCmd                             = 4;
+        ev.stageSnd                           = 0x52020005;
+        ev.flagId                             = 0x58;
+        ev.fade                               = 0;
         D_dryfield_main_street_8018561C.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->field_5 == 0) {
-                D_dryfield_main_street_80185614 = *out;
+                D_dryfield_main_street_80185614       = *out;
                 D_dryfield_main_street_80185634.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
@@ -2332,7 +2341,7 @@ s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, GpMessageArg arg2,
 /// clear): forgets the task `func_dryfield_main_street_8017E320` spawned, calls
 /// `func_800E8634` with the room's two data blocks, and sets nibbles 0x5F and
 /// 0x155 and clears nibble 3. Always answers 0.
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF * msg, s32 arg3)
+s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
 {
     if ((msg->field_2 == 1) && (GameFlag_GetNibble(0x5F) == 0)) {
         func_dryfield_main_street_8017E4A4(0);
@@ -2933,14 +2942,14 @@ void func_dryfield_main_street_8017F94C(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_dryfield_main_street_80181BAC[1];
+                    SVECTOR* edge    = &D_dryfield_main_street_80181BAC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

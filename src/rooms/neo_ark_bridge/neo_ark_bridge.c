@@ -777,7 +777,7 @@ s32 func_neo_ark_bridge_8017E82C(Task* task, s32 msgId, GpMessageArg arg2, GpMes
 /// Room message handler for the bridge's save location: copies the incoming
 /// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
 /// answers 1.
-s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_bridge_8017E834(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

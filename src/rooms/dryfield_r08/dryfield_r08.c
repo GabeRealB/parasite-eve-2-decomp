@@ -147,7 +147,7 @@ GpRoomObjRec D_dryfield_r08_8017F6DC[2] = {
     { D_dryfield_r08_8017FB98, NULL, NULL, NULL },
 };
 
-u8 * D_dryfield_r08_8017F6FC[2] = {
+u8* D_dryfield_r08_8017F6FC[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -377,7 +377,7 @@ s16 D_dryfield_r08_8017FB6C[5] = {
     -1,
 };
 
-s16 * D_dryfield_r08_8017FB78[8] = {
+s16* D_dryfield_r08_8017FB78[8] = {
     D_dryfield_r08_8017FACC,
     D_dryfield_r08_8017FAF0,
     D_dryfield_r08_8017FB00,
@@ -666,7 +666,7 @@ GpRoomParamRec D_dryfield_r08_80180BFC[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_r08_80180C04[8] = {
+GpRoomParamRec* D_dryfield_r08_80180C04[8] = {
     D_dryfield_r08_80180BFC,
     D_dryfield_r08_80180BFC,
     D_dryfield_r08_80180BFC,

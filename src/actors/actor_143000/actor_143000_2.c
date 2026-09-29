@@ -59,7 +59,7 @@ extern GpEvsCmd D_actor_143000_80135870[];
 extern GpEvsCmd D_actor_143000_80135A20[];
 extern GpEvsCmd D_actor_143000_80135AE0[];
 
-extern u8       D_actor_143000_80135C38[];
+extern u8 D_actor_143000_80135C38[];
 
 void func_actor_143000_801344A8(s32);
 void func_actor_143000_801344D8(void);

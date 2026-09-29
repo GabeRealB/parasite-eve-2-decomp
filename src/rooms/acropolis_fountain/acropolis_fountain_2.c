@@ -158,7 +158,7 @@ u8 D_acropolis_fountain_8017E834[24] = {
     0,
 };
 
-u8 * D_acropolis_fountain_8017E84C[2] = {
+u8* D_acropolis_fountain_8017E84C[2] = {
     D_8010CAF8,
     D_acropolis_fountain_8017E834,
 };
@@ -833,7 +833,7 @@ s16 D_acropolis_fountain_8017F5B8[9] = {
     -1,
 };
 
-s16 * D_acropolis_fountain_8017F5CC[16] = {
+s16* D_acropolis_fountain_8017F5CC[16] = {
     D_acropolis_fountain_8017F340,
     D_acropolis_fountain_8017F360,
     D_acropolis_fountain_8017F390,
@@ -1889,7 +1889,7 @@ GpRoomParamRec D_acropolis_fountain_80183B88[1] = {
     { 1, 0, 1, 0, D_acropolis_fountain_80183B64 },
 };
 
-GpRoomParamRec * D_acropolis_fountain_80183B90[8] = {
+GpRoomParamRec* D_acropolis_fountain_80183B90[8] = {
     D_acropolis_fountain_80183B70,
     D_acropolis_fountain_80183B70,
     D_acropolis_fountain_80183B78,
@@ -1906,7 +1906,7 @@ u8 D_acropolis_fountain_80183BB1 = 0;
 
 u16 D_acropolis_fountain_80183BB2 = 8192;
 
-Task * D_acropolis_fountain_80183BB4 = NULL;
+Task* D_acropolis_fountain_80183BB4 = NULL;
 
 static void func_acropolis_fountain_8017DAA4(Task* arg0);
 static void func_acropolis_fountain_8017DB00(Task* arg0);

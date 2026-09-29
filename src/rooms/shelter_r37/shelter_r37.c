@@ -37,7 +37,7 @@ GpMsgEntry D_shelter_r37_8017D6D0[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-u8 * D_shelter_r37_8017D6F8[1] = {
+u8* D_shelter_r37_8017D6F8[1] = {
     D_8010CAF8,
 };
 
@@ -160,7 +160,7 @@ s16 D_shelter_r37_8017D8F8[7] = {
     -1,
 };
 
-s16 * D_shelter_r37_8017D908[6] = {
+s16* D_shelter_r37_8017D908[6] = {
     D_shelter_r37_8017D8A8,
     D_shelter_r37_8017D8B8,
     D_shelter_r37_8017D8C8,
@@ -260,7 +260,7 @@ GpRoomParamRec D_shelter_r37_8017DED0[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_r37_8017DED8[8] = {
+GpRoomParamRec* D_shelter_r37_8017DED8[8] = {
     D_shelter_r37_8017DEB0,
     D_shelter_r37_8017DED0,
     D_shelter_r37_8017DEC0,
@@ -282,7 +282,7 @@ s32 func_shelter_r37_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one, passes both to `func_map_shelter_80179A04` and returns 1.
-s32 func_shelter_r37_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_r37_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

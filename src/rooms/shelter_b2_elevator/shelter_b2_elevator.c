@@ -86,8 +86,15 @@ u32 D_shelter_b2_elevator_8017DC48[66] = {
 };
 
 TmdSource D_shelter_b2_elevator_8017DD50 = {
-    0, 480, 0, 1,
-    D_shelter_b2_elevator_8017DB9C, D_shelter_b2_elevator_8017DBA0, &D_shelter_b2_elevator_8017DBA0[21], D_shelter_b2_elevator_8017DB78, D_shelter_b2_elevator_8017DC48,
+    0,
+    480,
+    0,
+    1,
+    D_shelter_b2_elevator_8017DB9C,
+    D_shelter_b2_elevator_8017DBA0,
+    &D_shelter_b2_elevator_8017DBA0[21],
+    D_shelter_b2_elevator_8017DB78,
+    D_shelter_b2_elevator_8017DC48,
 };
 
 TmdBone D_shelter_b2_elevator_8017DD74[1] = {
@@ -107,8 +114,15 @@ u32 D_shelter_b2_elevator_8017DE44[66] = {
 };
 
 TmdSource D_shelter_b2_elevator_8017DF4C = {
-    0, 480, 0, 1,
-    D_shelter_b2_elevator_8017DD98, D_shelter_b2_elevator_8017DD9C, &D_shelter_b2_elevator_8017DD9C[21], D_shelter_b2_elevator_8017DD74, D_shelter_b2_elevator_8017DE44,
+    0,
+    480,
+    0,
+    1,
+    D_shelter_b2_elevator_8017DD98,
+    D_shelter_b2_elevator_8017DD9C,
+    &D_shelter_b2_elevator_8017DD9C[21],
+    D_shelter_b2_elevator_8017DD74,
+    D_shelter_b2_elevator_8017DE44,
 };
 
 TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
@@ -128,7 +142,7 @@ GpMsgEntry D_shelter_b2_elevator_8017DFA0[7] = {
     { 0x7FFFFFFF, NULL },
 };
 
-u8 * D_shelter_b2_elevator_8017DFD8[1] = {
+u8* D_shelter_b2_elevator_8017DFD8[1] = {
     D_8010CAF8,
 };
 
@@ -179,7 +193,7 @@ s16 D_shelter_b2_elevator_8017E0D0[7] = {
     -1,
 };
 
-s16 * D_shelter_b2_elevator_8017E0E0[1] = {
+s16* D_shelter_b2_elevator_8017E0E0[1] = {
     D_shelter_b2_elevator_8017E0D0,
 };
 
@@ -336,7 +350,7 @@ GpRoomParamRec D_shelter_b2_elevator_8017E9D0[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_b2_elevator_8017E9D8[8] = {
+GpRoomParamRec* D_shelter_b2_elevator_8017E9D8[8] = {
     D_shelter_b2_elevator_8017E9C8,
     D_shelter_b2_elevator_8017E9D0,
     D_shelter_b2_elevator_8017E9C8,
@@ -352,7 +366,7 @@ GpAreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_shelter_b2_elevator_8017EA00[2];
+Task* D_shelter_b2_elevator_8017EA00[2];
 
 static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction);
 static void             func_shelter_b2_elevator_8017D5E8(Task* task);
@@ -494,13 +508,13 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            msg.field_5 = 0;
-            msg.prefix.packed   = Mc_SaveData[0].state.at4.loc.area;
-            msg.field_2 = Mc_SaveData[0].state.at4.loc.warp;
-            msg.field_3 = Mc_SaveData[0].state.at4.loc.room;
-            msg2        = msg;
+            msg.field_5       = 0;
+            msg.prefix.packed = Mc_SaveData[0].state.at4.loc.area;
+            msg.field_2       = Mc_SaveData[0].state.at4.loc.warp;
+            msg.field_3       = Mc_SaveData[0].state.at4.loc.room;
+            msg2              = msg;
             func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.warp = msg2.field_2;
             Mc_SaveData[0].state.at4.loc.room = msg2.field_3;
             Task_Spawn(0, 0x11, 0, 0);
@@ -517,7 +531,7 @@ s32 func_shelter_b2_elevator_8017DA5C(Task* task, s32 msgId, GpMessageArg arg2, 
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
 /// the outgoing one and passes both to `func_map_shelter_80179A04`. Always returns 1.
-s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

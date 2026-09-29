@@ -14,6 +14,9 @@
 #include "player_actor.h"
 #include "world_collision.h"
 
+/* Contact records store a node address as low/high halfwords in at10.
+ * Reassembling that stored address is an intentional integer-to-pointer
+ * conversion; the union carries a surface normal for other contact kinds. */
 #define GP_CLAIM_CONTACT_REC(rec, obj)                                                                  \
     do {                                                                                                \
         GpRec18* _other;                                                                                \
@@ -339,7 +342,10 @@ s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1, s32 kind)
 s32 Gp_PairHandler3(GpObj* arg0, GpObj* arg1, s32 kind)
 {
     // Collision records encode the source address as two halfwords.
-    union { GpObj* object; s32 address; } sourceAddress;
+    union {
+        GpObj* object;
+        s32    address;
+    } sourceAddress;
     u8*               head;
     GpCapsuleScratch* block;
     VECTOR*           ends;
@@ -484,8 +490,8 @@ check:
         }
         if (arg1->flags & 0x800) {
             sourceAddress.object = arg0;
-            block->extra.vx = sourceAddress.address;
-            block->extra.vy = sourceAddress.address >> 16;
+            block->extra.vx      = sourceAddress.address;
+            block->extra.vy      = sourceAddress.address >> 16;
         } else {
             block->extra.vx = 0;
             block->extra.vy = 0;

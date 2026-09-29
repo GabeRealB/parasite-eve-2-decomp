@@ -649,8 +649,8 @@ void Gp_UseKeyItemRow(Task* arg0)
         ret  = Gp_DispatchMsg(slot, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
-            width           = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;
-            other           = Text_MeasureWidth(Gp_StrUsed);
+            width                 = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;
+            other                 = Text_MeasureWidth(Gp_StrUsed);
             if (width < other) {
                 width = other;
             }

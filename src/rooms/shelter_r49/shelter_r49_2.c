@@ -48,7 +48,7 @@ GpRoomObjRec D_shelter_r49_8017DA18[1] = {
     { D_shelter_r49_8017DAAC, NULL, NULL, NULL },
 };
 
-u8 * D_shelter_r49_8017DA28[1] = {
+u8* D_shelter_r49_8017DA28[1] = {
     D_8010CAF8,
 };
 
@@ -84,7 +84,7 @@ s16 D_shelter_r49_8017DAA4[2] = {
     -1,
 };
 
-s16 * D_shelter_r49_8017DAA8[1] = {
+s16* D_shelter_r49_8017DAA8[1] = {
     D_shelter_r49_8017DAA4,
 };
 
@@ -186,7 +186,7 @@ GpRoomParamRec D_shelter_r49_8017DDF0[1] = {
     { 0, 0, 1, 0, D_shelter_r49_8017DDDC },
 };
 
-GpRoomParamRec * D_shelter_r49_8017DDF8[8] = {
+GpRoomParamRec* D_shelter_r49_8017DDF8[8] = {
     D_shelter_r49_8017DDE8,
     D_shelter_r49_8017DDF0,
     D_shelter_r49_8017DDE8,
@@ -300,7 +300,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area  = 7;
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

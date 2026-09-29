@@ -163,7 +163,7 @@ typedef struct Task {
         s32   value;
         void* pointer;
     } extraState; // Stop-request word or task-owned payload, including command replies
-    byte         unknown_40[8];
+    byte unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 
@@ -178,13 +178,13 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 /// The argument is the descriptor's own: a kind-1 descriptor names the model its
 /// task attaches, and one that attaches no model keeps whatever it needs there.
 typedef struct {
-    u16      flags;       // Body kind in the low byte (0 none, 1 TMD model, 2 2D display), plus bit 8 to attach the model without allocating its buffer
-    u16      priority;    // List position the spawned task takes; its low byte is what `Task::priority` gets
-    TaskFunc callback;    // Per-frame entry point the spawned task runs
+    u16      flags;         // Body kind in the low byte (0 none, 1 TMD model, 2 2D display), plus bit 8 to attach the model without allocating its buffer
+    u16      priority;      // List position the spawned task takes; its low byte is what `Task::priority` gets
+    TaskFunc callback;      // Per-frame entry point the spawned task runs
     union {
-        TmdSource* model; // Kind 1: the model the task attaches
+        TmdSource* model;   // Kind 1: the model the task attaches
         void*      storage; // Other kinds may pass a pointer to their own data
-        s32        value; // The descriptor's own value, where it attaches no model
+        s32        value;   // The descriptor's own value, where it attaches no model
     } arg;
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);

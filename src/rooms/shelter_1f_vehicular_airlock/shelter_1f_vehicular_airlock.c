@@ -125,9 +125,15 @@ u32 D_shelter_1f_vehicular_airlock_80181018[1019] = {
 };
 
 TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
-    0, 6672, 0, 1,
-    D_shelter_1f_vehicular_airlock_80180C74, D_shelter_1f_vehicular_airlock_80180C78, &D_shelter_1f_vehicular_airlock_80180C78[116],
-    D_shelter_1f_vehicular_airlock_80180C50, D_shelter_1f_vehicular_airlock_80181018,
+    0,
+    6672,
+    0,
+    1,
+    D_shelter_1f_vehicular_airlock_80180C74,
+    D_shelter_1f_vehicular_airlock_80180C78,
+    &D_shelter_1f_vehicular_airlock_80180C78[116],
+    D_shelter_1f_vehicular_airlock_80180C50,
+    D_shelter_1f_vehicular_airlock_80181018,
 };
 
 TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, func_shelter_1f_vehicular_airlock_8017D644, { .model = NULL } };
@@ -177,7 +183,7 @@ GpRoomCoordRec D_shelter_1f_vehicular_airlock_8018210C[1] = {
     { D_shelter_1f_vehicular_airlock_801826FC, D_shelter_1f_vehicular_airlock_801829C0 },
 };
 
-u8 * D_shelter_1f_vehicular_airlock_80182114[1] = {
+u8* D_shelter_1f_vehicular_airlock_80182114[1] = {
     D_8010CAF8,
 };
 
@@ -326,7 +332,7 @@ s16 D_shelter_1f_vehicular_airlock_80182408[6] = {
     -1,
 };
 
-s16 * D_shelter_1f_vehicular_airlock_80182414[9] = {
+s16* D_shelter_1f_vehicular_airlock_80182414[9] = {
     D_shelter_1f_vehicular_airlock_801823AC,
     D_shelter_1f_vehicular_airlock_801823C0,
     D_shelter_1f_vehicular_airlock_801823D4,
@@ -438,7 +444,7 @@ GpRoomParamRec D_shelter_1f_vehicular_airlock_80182A78[1] = {
     { 0, 0, 1, 0, D_shelter_1f_vehicular_airlock_80182A64 },
 };
 
-GpRoomParamRec * D_shelter_1f_vehicular_airlock_80182A80[8] = {
+GpRoomParamRec* D_shelter_1f_vehicular_airlock_80182A80[8] = {
     D_shelter_1f_vehicular_airlock_80182A70,
     D_shelter_1f_vehicular_airlock_80182A78,
     D_shelter_1f_vehicular_airlock_80182A70,
@@ -520,7 +526,7 @@ void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.field_3;
@@ -548,7 +554,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
@@ -1236,14 +1242,14 @@ void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_1f_vehicular_airlock_801820EC[1];
+                    SVECTOR* edge    = &D_shelter_1f_vehicular_airlock_801820EC[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

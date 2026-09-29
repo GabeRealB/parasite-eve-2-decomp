@@ -707,7 +707,7 @@ GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DC0[1] = {
     { 0, 0, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_acropolis_helicopter_landing_pad_80187DC8[8] = {
+GpRoomParamRec* D_acropolis_helicopter_landing_pad_80187DC8[8] = {
     D_acropolis_helicopter_landing_pad_80187D98,
     D_acropolis_helicopter_landing_pad_80187D98,
     D_acropolis_helicopter_landing_pad_80187DA0,
@@ -739,8 +739,15 @@ u32 D_acropolis_helicopter_landing_pad_80187EA8[42] = {
 };
 
 TmdSource D_acropolis_helicopter_landing_pad_80187F50 = {
-    0, 312, 0, 1,
-    D_acropolis_helicopter_landing_pad_80187E0C, D_acropolis_helicopter_landing_pad_80187E10, D_acropolis_helicopter_landing_pad_80187E78, D_acropolis_helicopter_landing_pad_80187DE8, D_acropolis_helicopter_landing_pad_80187EA8,
+    0,
+    312,
+    0,
+    1,
+    D_acropolis_helicopter_landing_pad_80187E0C,
+    D_acropolis_helicopter_landing_pad_80187E10,
+    D_acropolis_helicopter_landing_pad_80187E78,
+    D_acropolis_helicopter_landing_pad_80187DE8,
+    D_acropolis_helicopter_landing_pad_80187EA8,
 };
 
 s32 D_acropolis_helicopter_landing_pad_80187F74 = 0;
@@ -749,7 +756,7 @@ s32 D_acropolis_helicopter_landing_pad_80187F78 = 0;
 
 s16 D_acropolis_helicopter_landing_pad_80187F7C = 0;
 
-Task * D_acropolis_helicopter_landing_pad_80187F80 = NULL;
+Task* D_acropolis_helicopter_landing_pad_80187F80 = NULL;
 
 s32 D_acropolis_helicopter_landing_pad_80187F84 = 0;
 
@@ -786,9 +793,9 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
                 Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
             Mc_SaveData[0].state.at4.loc.view = 0x12;
-            vec.vx                      = 0x4B0;
-            vec.vy                      = 0x4B0;
-            vec.vz                      = 0x610;
+            vec.vx                            = 0x4B0;
+            vec.vy                            = 0x4B0;
+            vec.vz                            = 0x610;
             Gp_SetOverrideVec(&vec);
             break;
         case 1:
@@ -836,7 +843,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
                 func_800AC000();
             }
             task->spawnArg1.value = 0x78;
-            task->state    += 1;
+            task->state          += 1;
             break;
         case 7:
             task->spawnArg1.value -= 1;
@@ -928,7 +935,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Mc_SaveData[0].state.at4.loc.area  = 0x12;
             Mc_SaveData[0].state.at4.loc.warp  = 1;
             Mc_SaveData[0].state.at4.loc.room  = 1;
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
             taskKill(arg0);
@@ -1059,7 +1066,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
 /// (`D_acropolis_helicopter_landing_pad_80184D9C`): phase 0 queues sound
 /// event 0x1E and refuses the warp (returns 1); phase 2 starts cap slot 9
 /// first. `field_5` set skips the side effect either way.
-s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     if (*(u16*)src == 0xF) {
@@ -1091,7 +1098,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, GpMess
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1 and swaps the visible `GpObj4A` from element
 /// 4 to element 0. Kind 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg13EF * msg, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg13EF* msg, GpMessageArg arg3)
 {
     u8       kind;
     GpObj4A* obj;
@@ -1267,7 +1274,7 @@ static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
     func_800E8614(D_acropolis_helicopter_landing_pad_80183A04, 1);
-    D_acropolis_helicopter_landing_pad_80187F80              = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
+    D_acropolis_helicopter_landing_pad_80187F80                    = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
     (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].field_4A &= 0xBF;
 }
 

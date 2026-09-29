@@ -144,7 +144,7 @@ typedef union {
 
 ShelterB6CorridorPoseBank1994 D_shelter_b6_corridor_8017EF54 = { .poses = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank1.inc"
-} };
+                                                                 } };
 
 GpPackedSvec D_shelter_b6_corridor_8017EF9C[46] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank4.inc"
@@ -159,11 +159,12 @@ u16 D_shelter_b6_corridor_8017F208[20] = {
 };
 
 GpAnimSet D_shelter_b6_corridor_8017F230 = {
-    D_shelter_b6_corridor_8017F054, D_shelter_b6_corridor_8017F208,
+    D_shelter_b6_corridor_8017F054,
+    D_shelter_b6_corridor_8017F208,
     { NULL, D_shelter_b6_corridor_8017EF54.words, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
 };
 
-GpAnimSet * D_shelter_b6_corridor_8017F258[2] = {
+GpAnimSet* D_shelter_b6_corridor_8017F258[2] = {
     NULL,
     &D_shelter_b6_corridor_8017F230,
 };
@@ -275,7 +276,7 @@ SVECTOR D_shelter_b6_corridor_8017F834[16] = {
     { 8000, -400, -1450, 0 },
 };
 
-u8 * D_shelter_b6_corridor_8017F8B4[1] = {
+u8* D_shelter_b6_corridor_8017F8B4[1] = {
     D_8010CAF8,
 };
 
@@ -363,7 +364,7 @@ s16 D_shelter_b6_corridor_8017FA70[10] = {
     -1,
 };
 
-s16 * D_shelter_b6_corridor_8017FA84[3] = {
+s16* D_shelter_b6_corridor_8017FA84[3] = {
     D_shelter_b6_corridor_8017FA4C,
     D_shelter_b6_corridor_8017FA60,
     D_shelter_b6_corridor_8017FA70,
@@ -559,7 +560,7 @@ GpRoomParamRec D_shelter_b6_corridor_80180540[1] = {
     { 0, 0, 1, 0, D_shelter_b6_corridor_80180524 },
 };
 
-GpRoomParamRec * D_shelter_b6_corridor_80180548[8] = {
+GpRoomParamRec* D_shelter_b6_corridor_80180548[8] = {
     D_shelter_b6_corridor_80180530,
     D_shelter_b6_corridor_80180538,
     D_shelter_b6_corridor_80180540,
@@ -570,7 +571,7 @@ GpRoomParamRec * D_shelter_b6_corridor_80180548[8] = {
     D_shelter_b6_corridor_80180530,
 };
 
-OverlayWaveCtx * D_shelter_b6_corridor_80180568 = NULL;
+OverlayWaveCtx* D_shelter_b6_corridor_80180568 = NULL;
 
 // Nine active columns and one retained zero entry.
 OverlayWaveRec D_shelter_b6_corridor_8018056C[10] = { 0 };
@@ -791,7 +792,7 @@ s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, GpMessageArg arg2, 
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     u16 id;
     s32 k;
@@ -1133,7 +1134,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
         mem->scale = 0xC0;
         mem->angle = 0x200;
         D_shelter_b6_corridor_801851B8++;
-        task->state     = 1;
+        task->state           = 1;
         task->spawnArg1.value = D_shelter_b6_corridor_801851B8;
     }
     if (task->spawnArg1.value != D_shelter_b6_corridor_801851B8) {

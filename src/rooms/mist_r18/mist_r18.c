@@ -232,8 +232,15 @@ u32 D_mist_r18_8017EEDC[98] = {
 };
 
 TmdSource D_mist_r18_8017F064 = {
-    0, 652, 0, 1,
-    D_mist_r18_8017EDE0, D_mist_r18_8017EDE4, D_mist_r18_8017EE54, D_mist_r18_8017EDBC, D_mist_r18_8017EEDC,
+    0,
+    652,
+    0,
+    1,
+    D_mist_r18_8017EDE0,
+    D_mist_r18_8017EDE4,
+    D_mist_r18_8017EE54,
+    D_mist_r18_8017EDBC,
+    D_mist_r18_8017EEDC,
 };
 
 TmdBone D_mist_r18_8017F088[1] = {
@@ -253,8 +260,15 @@ u32 D_mist_r18_8017F120[79] = {
 };
 
 TmdSource D_mist_r18_8017F25C = {
-    0, 528, 0, 1,
-    D_mist_r18_8017F0AC, D_mist_r18_8017F0B0, &D_mist_r18_8017F0B0[14], D_mist_r18_8017F088, D_mist_r18_8017F120,
+    0,
+    528,
+    0,
+    1,
+    D_mist_r18_8017F0AC,
+    D_mist_r18_8017F0B0,
+    &D_mist_r18_8017F0B0[14],
+    D_mist_r18_8017F088,
+    D_mist_r18_8017F120,
 };
 
 // The player indexes this pose bank in words, then reads a full pose.
@@ -265,7 +279,7 @@ typedef union {
 
 MistR18PoseBank1CC0 D_mist_r18_8017F280 = { .poses = {
 #include "assets/mist_r18_animation_02274_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_8017F2D4[113] = {
 #include "assets/mist_r18_animation_02274_bank4.inc"
@@ -280,7 +294,8 @@ u16 D_mist_r18_8017F80C[20] = {
 };
 
 GpAnimSet D_mist_r18_8017F834 = {
-    D_mist_r18_8017F498, D_mist_r18_8017F80C,
+    D_mist_r18_8017F498,
+    D_mist_r18_8017F80C,
     { NULL, D_mist_r18_8017F280.words, NULL, NULL, D_mist_r18_8017F2D4, NULL, NULL, NULL },
 };
 
@@ -292,7 +307,7 @@ typedef union {
 
 MistR18PoseBank229C D_mist_r18_8017F85C = { .poses = {
 #include "assets/mist_r18_animation_030E8_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_8017F898[395] = {
 #include "assets/mist_r18_animation_030E8_bank4.inc"
@@ -307,7 +322,8 @@ u16 D_mist_r18_80180680[20] = {
 };
 
 GpAnimSet D_mist_r18_801806A8 = {
-    D_mist_r18_8017FEC4, D_mist_r18_80180680,
+    D_mist_r18_8017FEC4,
+    D_mist_r18_80180680,
     { NULL, D_mist_r18_8017F85C.words, NULL, NULL, D_mist_r18_8017F898, NULL, NULL, NULL },
 };
 
@@ -319,7 +335,7 @@ typedef union {
 
 MistR18PoseBank3110 D_mist_r18_801806D0 = { .poses = {
 #include "assets/mist_r18_animation_0375C_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80180724[154] = {
 #include "assets/mist_r18_animation_0375C_bank4.inc"
@@ -334,7 +350,8 @@ u16 D_mist_r18_80180CF4[20] = {
 };
 
 GpAnimSet D_mist_r18_80180D1C = {
-    D_mist_r18_8018098C, D_mist_r18_80180CF4,
+    D_mist_r18_8018098C,
+    D_mist_r18_80180CF4,
     { NULL, D_mist_r18_801806D0.words, NULL, NULL, D_mist_r18_80180724, NULL, NULL, NULL },
 };
 
@@ -346,7 +363,7 @@ typedef union {
 
 MistR18PoseBank3784 D_mist_r18_80180D44 = { .poses = {
 #include "assets/mist_r18_animation_03C90_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80180D5C[95] = {
 #include "assets/mist_r18_animation_03C90_bank4.inc"
@@ -361,7 +378,8 @@ u16 D_mist_r18_80181228[20] = {
 };
 
 GpAnimSet D_mist_r18_80181250 = {
-    D_mist_r18_80180ED8, D_mist_r18_80181228,
+    D_mist_r18_80180ED8,
+    D_mist_r18_80181228,
     { NULL, D_mist_r18_80180D44.words, NULL, NULL, D_mist_r18_80180D5C, NULL, NULL, NULL },
 };
 
@@ -373,7 +391,7 @@ typedef union {
 
 MistR18PoseBank3CB8 D_mist_r18_80181278 = { .poses = {
 #include "assets/mist_r18_animation_0478C_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80181338[285] = {
 #include "assets/mist_r18_animation_0478C_bank4.inc"
@@ -388,7 +406,8 @@ u16 D_mist_r18_80181D24[20] = {
 };
 
 GpAnimSet D_mist_r18_80181D4C = {
-    D_mist_r18_801817AC, D_mist_r18_80181D24,
+    D_mist_r18_801817AC,
+    D_mist_r18_80181D24,
     { NULL, D_mist_r18_80181278.words, NULL, NULL, D_mist_r18_80181338, NULL, NULL, NULL },
 };
 
@@ -400,7 +419,7 @@ typedef union {
 
 MistR18PoseBank47B4 D_mist_r18_80181D74 = { .poses = {
 #include "assets/mist_r18_animation_04DD4_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80181E4C[59] = {
 #include "assets/mist_r18_animation_04DD4_bank4.inc"
@@ -415,7 +434,8 @@ u16 D_mist_r18_8018236C[20] = {
 };
 
 GpAnimSet D_mist_r18_80182394 = {
-    D_mist_r18_80181F38, D_mist_r18_8018236C,
+    D_mist_r18_80181F38,
+    D_mist_r18_8018236C,
     { NULL, D_mist_r18_80181D74.words, NULL, NULL, D_mist_r18_80181E4C, NULL, NULL, NULL },
 };
 
@@ -427,7 +447,7 @@ typedef union {
 
 MistR18PoseBank4DFC D_mist_r18_801823BC = { .poses = {
 #include "assets/mist_r18_animation_05AA4_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80182494[342] = {
 #include "assets/mist_r18_animation_05AA4_bank4.inc"
@@ -442,7 +462,8 @@ u16 D_mist_r18_8018303C[20] = {
 };
 
 GpAnimSet D_mist_r18_80183064 = {
-    D_mist_r18_801829EC, D_mist_r18_8018303C,
+    D_mist_r18_801829EC,
+    D_mist_r18_8018303C,
     { NULL, D_mist_r18_801823BC.words, NULL, NULL, D_mist_r18_80182494, NULL, NULL, NULL },
 };
 
@@ -454,7 +475,7 @@ typedef union {
 
 MistR18PoseBank5ACC D_mist_r18_8018308C = { .poses = {
 #include "assets/mist_r18_animation_07230_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_801830A4[685] = {
 #include "assets/mist_r18_animation_07230_bank4.inc"
@@ -469,7 +490,8 @@ u16 D_mist_r18_801847C8[20] = {
 };
 
 GpAnimSet D_mist_r18_801847F0 = {
-    D_mist_r18_80183B58, D_mist_r18_801847C8,
+    D_mist_r18_80183B58,
+    D_mist_r18_801847C8,
     { NULL, D_mist_r18_8018308C.words, NULL, NULL, D_mist_r18_801830A4, NULL, NULL, NULL },
 };
 
@@ -481,7 +503,7 @@ typedef union {
 
 MistR18PoseBank7258 D_mist_r18_80184818 = { .poses = {
 #include "assets/mist_r18_animation_075CC_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_8018483C[86] = {
 #include "assets/mist_r18_animation_075CC_bank4.inc"
@@ -496,7 +518,8 @@ u16 D_mist_r18_80184B64[20] = {
 };
 
 GpAnimSet D_mist_r18_80184B8C = {
-    D_mist_r18_80184994, D_mist_r18_80184B64,
+    D_mist_r18_80184994,
+    D_mist_r18_80184B64,
     { NULL, D_mist_r18_80184818.words, NULL, NULL, D_mist_r18_8018483C, NULL, NULL, NULL },
 };
 
@@ -508,7 +531,7 @@ typedef union {
 
 MistR18PoseBank75F4 D_mist_r18_80184BB4 = { .poses = {
 #include "assets/mist_r18_animation_078C0_bank1.inc"
-} };
+                                            } };
 
 GpPackedSvec D_mist_r18_80184BFC[52] = {
 #include "assets/mist_r18_animation_078C0_bank4.inc"
@@ -523,7 +546,8 @@ u16 D_mist_r18_80184E58[20] = {
 };
 
 GpAnimSet D_mist_r18_80184E80 = {
-    D_mist_r18_80184CCC, D_mist_r18_80184E58,
+    D_mist_r18_80184CCC,
+    D_mist_r18_80184E58,
     { NULL, D_mist_r18_80184BB4.words, NULL, NULL, D_mist_r18_80184BFC, NULL, NULL, NULL },
 };
 
@@ -603,7 +627,7 @@ TaskDesc D_mist_r18_80184F04[8] = {
     { 0, 192, func_mist_r18_8017EC98, { .model = NULL } },
 };
 
-GpAnimSet * D_mist_r18_80184F64[11] = {
+GpAnimSet* D_mist_r18_80184F64[11] = {
     NULL,
     &D_mist_r18_8017F834,
     &D_mist_r18_801806A8,
@@ -937,7 +961,7 @@ GpRoomObjRec D_mist_r18_8018660C[1] = {
     { D_mist_r18_801866F8, NULL, NULL, NULL },
 };
 
-u8 * D_mist_r18_8018661C[1] = {
+u8* D_mist_r18_8018661C[1] = {
     D_8010CAF8,
 };
 
@@ -1029,7 +1053,7 @@ s16 D_mist_r18_801866C4[2] = {
     -1,
 };
 
-s16 * D_mist_r18_801866C8[12] = {
+s16* D_mist_r18_801866C8[12] = {
     D_mist_r18_80186698,
     D_mist_r18_8018669C,
     D_mist_r18_801866A0,
@@ -1205,7 +1229,7 @@ GpRoomParamRec D_mist_r18_80186E68[1] = {
     { 0, 0, 1, 0, D_mist_r18_80186E5C },
 };
 
-GpRoomParamRec * D_mist_r18_80186E70[8] = {
+GpRoomParamRec* D_mist_r18_80186E70[8] = {
     D_mist_r18_80186E68,
     D_mist_r18_80186E68,
     D_mist_r18_80186E68,
@@ -1894,7 +1918,7 @@ void func_mist_r18_8017EB48(void)
     Mc_SaveData[0].state.at4.loc.area  = 0x13;
     Mc_SaveData[0].state.at4.loc.warp  = 3;
     Mc_SaveData[0].state.at4.loc.room  = 3;
-    gDisplayState.roomVariant    = 1;
+    gDisplayState.roomVariant          = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
 }

@@ -102,7 +102,7 @@ s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, GpMessageArg arg
 
 /// Message handler that copies the incoming record onto the outgoing one and
 /// passes both on to `func_map_shelter_80179A04`. Always returns 1.
-s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

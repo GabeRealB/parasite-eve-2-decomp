@@ -256,7 +256,7 @@ u8 D_dryfield_motel_room_1_8017E4A4[12] = {
     0,
 };
 
-u8 * D_dryfield_motel_room_1_8017E4B0[2] = {
+u8* D_dryfield_motel_room_1_8017E4B0[2] = {
     D_dryfield_motel_room_1_8017E4A4,
     D_dryfield_motel_room_1_8017E4A4,
 };
@@ -545,7 +545,7 @@ s16 D_dryfield_motel_room_1_8017EA84[19] = {
     -1,
 };
 
-s16 * D_dryfield_motel_room_1_8017EAAC[4] = {
+s16* D_dryfield_motel_room_1_8017EAAC[4] = {
     D_dryfield_motel_room_1_8017E9BC,
     D_dryfield_motel_room_1_8017EA08,
     D_dryfield_motel_room_1_8017EA50,
@@ -1188,7 +1188,7 @@ GpRoomParamRec D_dryfield_motel_room_1_80181574[1] = {
     { 0, 1, 0, 0, NULL },
 };
 
-GpRoomParamRec * D_dryfield_motel_room_1_8018157C[8] = {
+GpRoomParamRec* D_dryfield_motel_room_1_8018157C[8] = {
     D_dryfield_motel_room_1_8018155C,
     D_dryfield_motel_room_1_80181564,
     D_dryfield_motel_room_1_8018156C,
@@ -1199,7 +1199,7 @@ GpRoomParamRec * D_dryfield_motel_room_1_8018157C[8] = {
     D_dryfield_motel_room_1_8018155C,
 };
 
-Task * D_dryfield_motel_room_1_8018159C = NULL;
+Task* D_dryfield_motel_room_1_8018159C = NULL;
 
 static void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);

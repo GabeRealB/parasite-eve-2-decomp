@@ -477,7 +477,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
 
     poly = (POLY_F4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -542,7 +542,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
 
     poly = (POLY_F3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -597,7 +597,7 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
     u8*           flagp;
     u8*           up;
     s32           i;
@@ -685,7 +685,7 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
     u8*           flagp;
     u8*           up;
     s32           i;
@@ -794,7 +794,7 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
 
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
@@ -858,7 +858,7 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     u16*          rec;
     s32           sz;
     s32           idx;
-    s32*           szTable;
+    s32*          szTable;
 
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {

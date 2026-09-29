@@ -108,7 +108,7 @@ SVECTOR D_neo_ark_island_80181CA8[8] = {
 };
 
 // Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR * D_neo_ark_island_80181CE8[4] = {
+SVECTOR* D_neo_ark_island_80181CE8[4] = {
     D_neo_ark_island_80181C28,
     D_neo_ark_island_80181C68,
     D_neo_ark_island_80181CA8,
@@ -649,7 +649,7 @@ s16 D_neo_ark_island_80182664[10] = {
     -1,
 };
 
-s16 * D_neo_ark_island_80182678[20] = {
+s16* D_neo_ark_island_80182678[20] = {
     D_neo_ark_island_8018246C,
     D_neo_ark_island_80182474,
     D_neo_ark_island_8018247C,
@@ -1069,7 +1069,7 @@ GpRoomParamRec D_neo_ark_island_80183FE0[1] = {
     { 0, 0, 1, 0, D_neo_ark_island_80183FBC },
 };
 
-GpRoomParamRec * D_neo_ark_island_80183FE8[8] = {
+GpRoomParamRec* D_neo_ark_island_80183FE8[8] = {
     D_neo_ark_island_80183FC8,
     D_neo_ark_island_80183FD0,
     D_neo_ark_island_80183FC8,
@@ -1826,7 +1826,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_island_80184008.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_island_80184008.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_island_80184008.prefix.bytes.field_1;
@@ -1845,7 +1845,7 @@ s32 func_neo_ark_island_8017E960(Task* task, s32 msgId, GpMessageArg arg2, GpMes
 /// reports no pending flag, latches the save location the outgoing message
 /// carries and starts the cutscene that leads to the island's arrival. Returns
 /// 1 for every other message and for a location that is already latched.
-s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);

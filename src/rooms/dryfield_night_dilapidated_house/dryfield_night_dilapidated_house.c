@@ -149,7 +149,7 @@ GpRoomParamRec D_dryfield_night_dilapidated_house_8018A0DC[1] = {
     { 0, 0, 1, 0, D_dryfield_night_dilapidated_house_8018A0C0 },
 };
 
-GpRoomParamRec * D_dryfield_night_dilapidated_house_8018A0E4[8] = {
+GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
     D_dryfield_night_dilapidated_house_8018A0CC,
     D_dryfield_night_dilapidated_house_8018A0D4,
     D_dryfield_night_dilapidated_house_8018A0DC,
@@ -190,10 +190,10 @@ static s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, Roo
     s32 ret;
     s32 neg;
 
-    flag                                        = req->flagId;
+    flag                                           = req->flagId;
     D_dryfield_night_dilapidated_house_8018A10C[0] = 0;
-    neg                                         = flag < 0;
-    got                                         = (s16)flag;
+    neg                                            = flag < 0;
+    got                                            = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -273,7 +273,7 @@ void func_dryfield_night_dilapidated_house_8017D764(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_dilapidated_house_8018A104.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_dilapidated_house_8018A104.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_dilapidated_house_8018A104.field_3;
@@ -293,7 +293,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8D4(Task* task, s32 msgId, GpMess
 /// when the destination id is 5, offers the event gate a request that plays
 /// the room's pair of stage sounds under flag nibble 0x3F. Returns 1 for a
 /// destination it does not own.
-s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq req;
 

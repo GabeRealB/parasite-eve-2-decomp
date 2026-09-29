@@ -74,7 +74,7 @@ TaskDesc D_mist_parking_80190824[5] = {
     { 0, 192, func_mist_parking_801842DC, { .model = NULL } },
 };
 
-GpAnimSet * D_mist_parking_80190860[4] = {
+GpAnimSet* D_mist_parking_80190860[4] = {
     NULL,
     &D_mist_parking_8018FFB8,
     &D_mist_parking_8019038C,
@@ -92,14 +92,130 @@ GpAnimArg D_mist_parking_801908A0 = { { .index = 1 }, 49, 1, 6, 0 };
 GpAnimArg D_mist_parking_801908B4 = { { .index = 1 }, 50, 1, 6, 0 };
 
 s8 D_mist_parking_801908C8[124] = {
-    0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-    1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    2, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0,
-    0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0, 0,
-    1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0,
-    20, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0,
-    1, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    20,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    20,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    20,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    20,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    20,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
 };
 
 GpAnimArg D_mist_parking_80190944 = { { .ptr = NULL }, 6, 1, 20, 1 };
@@ -423,7 +539,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             break;
         case 8:
-            key             = Gp_GetCapEventKey();
+            key                   = Gp_GetCapEventKey();
             task->spawnArg1.value = key;
             if (key == 6) {
                 func_800E8614(D_mist_parking_80191214, 1);
@@ -495,7 +611,7 @@ void func_mist_parking_801842DC(Task* task)
             task->state++;
             break;
         case 2:
-            key             = Gp_GetCapEventKey();
+            key                   = Gp_GetCapEventKey();
             task->spawnArg1.value = key;
             switch (key) {
                 case 1:
@@ -537,7 +653,7 @@ void func_mist_parking_80184468(s32 arg0)
     Mc_SaveData[0].state.at4.loc.warp  = 1;
     Mc_SaveData[0].state.at4.loc.room  = 1;
     Mc_SaveData[0].state.at4.loc.area  = arg0;
-    gDisplayState.roomVariant    = 1;
+    gDisplayState.roomVariant          = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
@@ -554,12 +670,12 @@ void func_mist_parking_801844EC(void)
 void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
-    Player_Status.field_26       = 1;
+    Player_Status.field_26             = 1;
     Mc_SaveData[0].state.at4.loc.area  = 5;
     Mc_SaveData[0].state.at4.loc.stage = 1;
     Mc_SaveData[0].state.at4.loc.warp  = 1;
     Mc_SaveData[0].state.at4.loc.room  = 1;
-    gDisplayState.roomVariant    = 1;
+    gDisplayState.roomVariant          = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
     Fs_BeginBootLoad(&Mc_SaveData[0].state.at4.loc.view, 0);
@@ -603,7 +719,7 @@ void func_mist_parking_80184668(Task* arg0)
 {
     s32 temp_v0;
 
-    temp_v0         = arg0->spawnArg1.value - 1;
+    temp_v0               = arg0->spawnArg1.value - 1;
     arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);

@@ -94,7 +94,7 @@ s32 func_shelter_b2_breeding_room_8017D658(Task* task, s32 msgId, GpMessageArg a
 
 /// Message handler that copies the incoming record onto the outgoing one and
 /// passes both to `func_map_shelter_80179A04`, returning 1.
-s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);

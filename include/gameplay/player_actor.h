@@ -59,7 +59,8 @@ Task* Gp_SpawnWeaponEff(void);
 
 void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 
-s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2);
+/// Message 1006; the fourth dispatch argument is unused.
+s32 func_80104E00(Task* arg0, s32 arg1, GpXformArg* arg2, s32 unusedArg3);
 
 s32 Gp_PickNearestRec18(GpRec18* arg0, struct GpCoord* arg1, struct GpCoord* arg2);
 
@@ -107,7 +108,8 @@ s32 func_801041B4(Task* arg0);
 
 void Gp_PlayerMode2State4(Task* arg0);
 
-s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2);
+/// Message 1009; the fourth dispatch argument is unused.
+s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3);
 
 void func_80105B74(VECTOR3* arg0);
 

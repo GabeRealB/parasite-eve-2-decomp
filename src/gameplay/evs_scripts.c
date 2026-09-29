@@ -163,16 +163,16 @@ static const char Gp_StrDemoPause[] = "Demo Pause";
 
 static void Gp_ScriptTaskState1(Task* arg0)
 {
-    GpEvsAddress continuation;
-    GpEvsState*  st;
-    GpEvsState*  st2;
-    GpAnimArg    rec;
-    SVECTOR      vec;
-    TextDrawReq  req;
-    Task*        slot;
-    StageMusicParams*  pair;
-    s32          mode;
-    GpEvsCmd*    cmd;
+    GpEvsAddress      continuation;
+    GpEvsState*       st;
+    GpEvsState*       st2;
+    GpAnimArg         rec;
+    SVECTOR           vec;
+    TextDrawReq       req;
+    Task*             slot;
+    StageMusicParams* pair;
+    s32               mode;
+    GpEvsCmd*         cmd;
 
     st = (GpEvsState*)arg0->work;
     if (D_801156F9 != 0) {
@@ -259,7 +259,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                D_801156F4.overlays               = NULL;
+                D_801156F4.overlays      = NULL;
                 gGameSession->eventState = 0;
                 if (arg0->spawnArg1.value == 0) {
                     Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
@@ -389,12 +389,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                      = &gStageMusicParams;
+                pair                            = &gStageMusicParams;
                 Mc_SaveData[0].state.sceneEvent = (u8)st->pc->arg0.value;
-                D_801156C9                = 1;
-                pair->fadeFrames             = (u16)st->pc->arg1.value;
-                gStageMusicLoadState      = 0;
-                pair->unusedCommandArg             = (u16)st->pc->arg2.value;
+                D_801156C9                      = 1;
+                pair->fadeFrames                = (u16)st->pc->arg1.value;
+                gStageMusicLoadState            = 0;
+                pair->unusedCommandArg          = (u16)st->pc->arg2.value;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 
@@ -715,7 +715,7 @@ static void Gp_ScriptInit(Task* arg0)
         taskKill(arg0);
         return;
     }
-    D_801156F9 = 0;
+    D_801156F9          = 0;
     D_801156F4.overlays = 0;
     Display_AcquireRef();
     script              = arg0->spawnArg2.pointer;
@@ -750,8 +750,8 @@ void func_800E8888(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            arg0->killCountdown = 0;
-            arg0->spawnArg1.value     = -1;
+            arg0->killCountdown   = 0;
+            arg0->spawnArg1.value = -1;
             arg0->state++;
             break;
         case 1:

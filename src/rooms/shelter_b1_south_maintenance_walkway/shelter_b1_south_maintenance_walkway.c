@@ -159,7 +159,7 @@ GpRoomObjRec D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
     { D_shelter_b1_south_maintenance_walkway_801827B8, D_shelter_b1_south_maintenance_walkway_801830AC, D_shelter_b1_south_maintenance_walkway_801832B0, D_shelter_b1_south_maintenance_walkway_80183274 },
 };
 
-u8 * D_shelter_b1_south_maintenance_walkway_8018240C[1] = {
+u8* D_shelter_b1_south_maintenance_walkway_8018240C[1] = {
     D_8010CAF8,
 };
 
@@ -348,7 +348,7 @@ s16 D_shelter_b1_south_maintenance_walkway_8018278C[10] = {
     -1,
 };
 
-s16 * D_shelter_b1_south_maintenance_walkway_801827A0[6] = {
+s16* D_shelter_b1_south_maintenance_walkway_801827A0[6] = {
     D_shelter_b1_south_maintenance_walkway_801826FC,
     D_shelter_b1_south_maintenance_walkway_80182720,
     D_shelter_b1_south_maintenance_walkway_80182740,
@@ -597,7 +597,7 @@ GpRoomParamRec D_shelter_b1_south_maintenance_walkway_8018360C[1] = {
     { 0, 0, 1, 0, D_shelter_b1_south_maintenance_walkway_801835F8 },
 };
 
-GpRoomParamRec * D_shelter_b1_south_maintenance_walkway_80183614[8] = {
+GpRoomParamRec* D_shelter_b1_south_maintenance_walkway_80183614[8] = {
     D_shelter_b1_south_maintenance_walkway_80183604,
     D_shelter_b1_south_maintenance_walkway_8018360C,
     D_shelter_b1_south_maintenance_walkway_80183604,
@@ -691,7 +691,7 @@ void func_shelter_b1_south_maintenance_walkway_8017D5F8(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_south_maintenance_walkway_8018363C.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_south_maintenance_walkway_8018363C.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_south_maintenance_walkway_8018363C.field_3;
@@ -704,7 +704,7 @@ void func_shelter_b1_south_maintenance_walkway_8017D5F8(Task* arg0)
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 9 and 0xB start the room's event, each with its
 /// own parameters and flag; any other message answers 1.
-s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
@@ -1235,14 +1235,14 @@ void func_shelter_b1_south_maintenance_walkway_8017F1C4(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_shelter_b1_south_maintenance_walkway_801823D8[1];
+                    SVECTOR* edge    = &D_shelter_b1_south_maintenance_walkway_801823D8[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

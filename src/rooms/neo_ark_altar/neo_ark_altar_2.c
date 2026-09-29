@@ -123,13 +123,37 @@ NeoArkAltarTile D_neo_ark_altar_8017F014[5] = {
 };
 
 s16 D_neo_ark_altar_8017F050[12] = {
-    3, 4, 1, 2, 1, 2, 3, 4,
-    2, 1, 4, 3,
+    3,
+    4,
+    1,
+    2,
+    1,
+    2,
+    3,
+    4,
+    2,
+    1,
+    4,
+    3,
 };
 
 s16 D_neo_ark_altar_8017F068[16] = {
-    1, 1, 1, 1, 1, 1, 2, 2,
-    3, 3, 3, 4, 4, 4, 4, 4,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4,
 };
 
 TaskDesc D_neo_ark_altar_8017F088[1] = {
@@ -170,7 +194,7 @@ u8 D_neo_ark_altar_8017F0E4[8] = {
     8,
 };
 
-u8 * D_neo_ark_altar_8017F0EC[3] = {
+u8* D_neo_ark_altar_8017F0EC[3] = {
     D_8010CAF8,
     D_neo_ark_altar_8017F0DC,
     D_neo_ark_altar_8017F0E4,
@@ -400,7 +424,7 @@ s16 D_neo_ark_altar_8017F554[8] = {
     -1,
 };
 
-s16 * D_neo_ark_altar_8017F564[6] = {
+s16* D_neo_ark_altar_8017F564[6] = {
     D_neo_ark_altar_8017F4A8,
     D_neo_ark_altar_8017F4C8,
     D_neo_ark_altar_8017F4D4,
@@ -617,7 +641,7 @@ GpRoomParamRec D_neo_ark_altar_80180054[1] = {
     { 0, 0, 1, 0, D_neo_ark_altar_80180038 },
 };
 
-GpRoomParamRec * D_neo_ark_altar_8018005C[8] = {
+GpRoomParamRec* D_neo_ark_altar_8018005C[8] = {
     D_neo_ark_altar_80180044,
     D_neo_ark_altar_8018004C,
     D_neo_ark_altar_80180044,
@@ -1384,11 +1408,11 @@ static void func_neo_ark_altar_8017EF00(Task* arg0)
     /* Through a pointer rather than as a member: a member store is struct
        memory, which the scheduler lets the store to `Mc_SaveData[0].state.at4.loc.room` pass, and the
        original keeps the two in source order. */
-    viewDirty                   = &gGameSession->viewDirty;
-    *viewDirty                  = 1;
+    viewDirty                         = &gGameSession->viewDirty;
+    *viewDirty                        = 1;
     Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->at4.loc.room  = 2;
-    arg0->state                 = (s32)(arg0->state + 1);
+    gGameSession->at4.loc.room        = 2;
+    arg0->state                       = (s32)(arg0->state + 1);
 }
 
 static void func_neo_ark_altar_8017EF34(Task* arg0)

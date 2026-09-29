@@ -112,7 +112,7 @@ GpRoomCoordRec D_neo_ark_savanna_zone_8017F9F4[1] = {
     { D_neo_ark_savanna_zone_801804D4, D_neo_ark_savanna_zone_80180908 },
 };
 
-u8 * D_neo_ark_savanna_zone_8017F9FC[1] = {
+u8* D_neo_ark_savanna_zone_8017F9FC[1] = {
     D_8010CAF8,
 };
 
@@ -205,7 +205,7 @@ s16 D_neo_ark_savanna_zone_8017FBB0[8] = {
     -1,
 };
 
-s16 * D_neo_ark_savanna_zone_8017FBC0[4] = {
+s16* D_neo_ark_savanna_zone_8017FBC0[4] = {
     D_neo_ark_savanna_zone_8017FB80,
     D_neo_ark_savanna_zone_8017FB90,
     D_neo_ark_savanna_zone_8017FBA0,
@@ -470,7 +470,7 @@ GpRoomParamRec D_neo_ark_savanna_zone_80180960[1] = {
     { 0, 0, 1, 0, D_neo_ark_savanna_zone_8018093C },
 };
 
-GpRoomParamRec * D_neo_ark_savanna_zone_80180968[8] = {
+GpRoomParamRec* D_neo_ark_savanna_zone_80180968[8] = {
     D_neo_ark_savanna_zone_80180948,
     D_neo_ark_savanna_zone_80180950,
     D_neo_ark_savanna_zone_80180958,
@@ -534,7 +534,7 @@ void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_savanna_zone_80180990.prefix.bytes.field_0;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_savanna_zone_80180990.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_savanna_zone_80180990.field_3;
@@ -573,7 +573,7 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(GpSaveLoc* dst, RoomLatchedEv
 /// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
 /// flag 0x15E / 0x15F - and hand it to `NeoArkSavannaZone_StartEvent`; every
 /// other message is not consumed and answers 1.
-s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     RoomLatchedEvent event;
     s32              cmd;
@@ -907,14 +907,14 @@ void func_neo_ark_savanna_zone_8017E470(Task* task)
             case 1:
                 objCoord->flg = 0;
                 Gp_UpdateCoord(objCoord);
-                coord.sub        = work->parent;
+                coord.sub = work->parent;
                 {
-                    SVECTOR* edge = &D_neo_ark_savanna_zone_8017F9D4[1];
+                    SVECTOR* edge    = &D_neo_ark_savanna_zone_8017F9D4[1];
                     coord.coord.t[0] = edge->vx;
                     coord.coord.t[1] = edge->vy;
                     coord.coord.t[2] = edge->vz;
                 }
-                coord.flg        = 0;
+                coord.flg = 0;
                 Gp_UpdateCoord(&coord);
                 dst        = &coords[work->age & 7];
                 dst->sub   = &gGfxViewCoord;

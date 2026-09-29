@@ -160,7 +160,7 @@ SVECTOR D_shelter_b1_access_tunnel_8017E7D4[2] = {
     { 750, -2510, 8940, 0 },
 };
 
-u8 * D_shelter_b1_access_tunnel_8017E7E4[1] = {
+u8* D_shelter_b1_access_tunnel_8017E7E4[1] = {
     D_8010CAF8,
 };
 
@@ -320,7 +320,7 @@ s16 D_shelter_b1_access_tunnel_8017EAEC[9] = {
     -1,
 };
 
-s16 * D_shelter_b1_access_tunnel_8017EB00[9] = {
+s16* D_shelter_b1_access_tunnel_8017EB00[9] = {
     NULL,
     D_shelter_b1_access_tunnel_8017EA70,
     D_shelter_b1_access_tunnel_8017EA7C,
@@ -638,7 +638,7 @@ GpRoomParamRec D_shelter_b1_access_tunnel_8017FF1C[1] = {
     { 0, 1, 0, 0, D_shelter_b1_access_tunnel_8017FF00 },
 };
 
-GpRoomParamRec * D_shelter_b1_access_tunnel_8017FF24[8] = {
+GpRoomParamRec* D_shelter_b1_access_tunnel_8017FF24[8] = {
     D_shelter_b1_access_tunnel_8017FF0C,
     D_shelter_b1_access_tunnel_8017FF14,
     D_shelter_b1_access_tunnel_8017FF1C,
@@ -690,10 +690,10 @@ static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMs
     s32 ret;
     s32 neg;
 
-    flag                                = req->flagId;
+    flag                                      = req->flagId;
     D_shelter_b1_access_tunnel_8017FF5C.value = 0;
-    neg                                 = flag < 0;
-    got                                 = (s16)flag;
+    neg                                       = flag < 0;
+    got                                       = (s16)flag;
     if (neg) {
         flag = -flag;
         got  = GameFlag_GetNibble(flag) == 0;
@@ -705,10 +705,10 @@ static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMs
         if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
             ret = 2;
             if (msg->field_5 == 0) {
-                D_shelter_b1_access_tunnel_8017FF54 = *msg;
+                D_shelter_b1_access_tunnel_8017FF54       = *msg;
                 D_shelter_b1_access_tunnel_8017FF70.value = *req;
-                id                                  = req->flagId;
-                mode                                = 1;
+                id                                        = req->flagId;
+                mode                                      = 1;
                 if (id < 0) {
                     id   = -id;
                     mode = 0;
@@ -771,7 +771,7 @@ void func_shelter_b1_access_tunnel_8017D760(Task* task)
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.field_2;
             Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.field_3;
@@ -822,7 +822,7 @@ void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.prefix.packed;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.field_2;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.field_3;
@@ -862,7 +862,7 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 /// `Gp_SetNibbleIf` and runs cap command 1. Otherwise message 0x12 goes through
 /// the rooms' event gate on flag 0xAD, message 0x14 starts the room event on
 /// flag 0x13F, and any other message answers 1.
-s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomEventReq     req;
     RoomLatchedEvent event;

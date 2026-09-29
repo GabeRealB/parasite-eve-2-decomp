@@ -813,7 +813,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
     }
     if (arg1->status != 0xFF) {
-        saved           = arg1->spawnArg1.value;
+        saved                 = arg1->spawnArg1.value;
         arg1->spawnArg1.value = arg1->status;
         Gp_NoticePanelTask(arg1);
         arg1->spawnArg1.value = saved;
@@ -1778,7 +1778,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 break;
             case 8:
                 Gp_SavePlayerPos();
-                desc                     = &D_8010D348;
+                desc                           = &D_8010D348;
                 Mc_SaveData[0].state.savePoint = Gp_PubItemLoc;
                 break;
             default:
@@ -1788,9 +1788,9 @@ void Gp_SpawnPickupUiTask(Task* arg0)
         }
         obj = Ui_SpawnFromDesc(desc, 0, 0, 0, NULL);
         if (obj != NULL) {
-            arg0->spawnArg1.pointer    = obj;
-            gGameSession->uiOpen = 1;
-            arg0->state          = arg0->state + 1;
+            arg0->spawnArg1.pointer = obj;
+            gGameSession->uiOpen    = 1;
+            arg0->state             = arg0->state + 1;
         }
     }
 }

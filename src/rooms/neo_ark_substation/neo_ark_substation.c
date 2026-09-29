@@ -153,7 +153,7 @@ GpRoomCoordRec D_neo_ark_substation_8017E400[1] = {
     { D_neo_ark_substation_8017FC44, NULL },
 };
 
-u8 * D_neo_ark_substation_8017E408[1] = {
+u8* D_neo_ark_substation_8017E408[1] = {
     D_8010CAF8,
 };
 
@@ -436,7 +436,7 @@ s16 D_neo_ark_substation_8017E858[13] = {
     -1,
 };
 
-s16 * D_neo_ark_substation_8017E874[12] = {
+s16* D_neo_ark_substation_8017E874[12] = {
     D_neo_ark_substation_8017E73C,
     D_neo_ark_substation_8017E748,
     D_neo_ark_substation_8017E75C,
@@ -764,7 +764,7 @@ GpRoomParamRec D_neo_ark_substation_80180320[1] = {
     { 0, 0, 1, 0, D_neo_ark_substation_801802F0 },
 };
 
-GpRoomParamRec * D_neo_ark_substation_80180328[8] = {
+GpRoomParamRec* D_neo_ark_substation_80180328[8] = {
     D_neo_ark_substation_80180308,
     D_neo_ark_substation_80180308,
     D_neo_ark_substation_80180310,
@@ -827,7 +827,7 @@ s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, GpMessageArg arg2, G
 /// Handler the room's message table gives message 0x13EE: copies the incoming
 /// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);

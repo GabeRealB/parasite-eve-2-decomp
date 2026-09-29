@@ -76,9 +76,9 @@ L_case2:
 L_case3:
     if (CdCmd_IsIdle() & 0xFFFF) {
         SetDispMask(0);
-        state           = task->state;
+        state                 = task->state;
         task->spawnArg1.value = 0;
-        task->state     = state + 1;
+        task->state           = state + 1;
         return;
     }
     if (Pad_CheckFlag800() == 0) {
@@ -87,7 +87,7 @@ L_case3:
     SetDispMask(0);
     CdCmd_ActivatePhase1();
     task->spawnArg1.value = 1;
-    task->state     = task->state + 1;
+    task->state           = task->state + 1;
     return;
 
 L_case4:

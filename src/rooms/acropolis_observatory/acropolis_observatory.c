@@ -51,7 +51,7 @@ static void func_acropolis_observatory_8017D8AC(Task* task);
 /// each also advances that nibble, so the refusal only shows on later visits.
 /// `field_5` non-zero means "report only", which suppresses both the nibble
 /// writes and the refusals.
-s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 answer;
 
@@ -107,7 +107,7 @@ s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2
 /// first time it fires during session phase 2, latching nibble 0xCA so a later
 /// visit does nothing. The outgoing record is never written - this handler only
 /// consumes the message.
-s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if ((in->field_2 == 1) && (gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         GameFlag_SetNibble(0xCA, 1);

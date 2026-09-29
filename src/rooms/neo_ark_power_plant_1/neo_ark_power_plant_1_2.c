@@ -84,7 +84,7 @@ typedef union {
 
 NeoArkPowerPlant1PoseBankFEC D_neo_ark_power_plant_1_8017E5AC = { .poses = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank1.inc"
-} };
+                                                                  } };
 
 GpPackedSvec D_neo_ark_power_plant_1_8017E624[126] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank4.inc"
@@ -99,7 +99,8 @@ u16 D_neo_ark_power_plant_1_8017EAC8[20] = {
 };
 
 GpAnimSet D_neo_ark_power_plant_1_8017EAF0 = {
-    D_neo_ark_power_plant_1_8017E81C, D_neo_ark_power_plant_1_8017EAC8,
+    D_neo_ark_power_plant_1_8017E81C,
+    D_neo_ark_power_plant_1_8017EAC8,
     { NULL, D_neo_ark_power_plant_1_8017E5AC.words, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },
 };
 
@@ -261,7 +262,7 @@ GpRoomCoordRec D_neo_ark_power_plant_1_8017F1D8[1] = {
     { D_neo_ark_power_plant_1_8017FB80, NULL },
 };
 
-u8 * D_neo_ark_power_plant_1_8017F1E0[1] = {
+u8* D_neo_ark_power_plant_1_8017F1E0[1] = {
     D_8010CAF8,
 };
 
@@ -603,7 +604,7 @@ s16 D_neo_ark_power_plant_1_80180050[7] = {
     -1,
 };
 
-s16 * D_neo_ark_power_plant_1_80180060[12] = {
+s16* D_neo_ark_power_plant_1_80180060[12] = {
     D_neo_ark_power_plant_1_8017FF20,
     D_neo_ark_power_plant_1_8017FF40,
     D_neo_ark_power_plant_1_8017FF64,

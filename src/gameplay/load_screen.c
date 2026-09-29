@@ -331,16 +331,16 @@ void Gp_LoadWaitStage(Task* task)
 
 void Gp_LoadState2(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
-    McSaveData*   save;
-    StageMusicParams*   pair;
-    GpAreaKey*    sess;
+    TILE*             tile;
+    DR_TPAGE*         dr;
+    DisplayState*     ds;
+    s32               color;
+    s32               queued;
+    s32               buf;
+    s8                yoff;
+    McSaveData*       save;
+    StageMusicParams* pair;
+    GpAreaKey*        sess;
 
     color  = 8;
     queued = CdCmd_Queue.field_224;
@@ -384,8 +384,8 @@ void Gp_LoadState2(Task* task)
         *(s8*)&gGameSession->field_12E  = -0x80;
         gGameSession->deathRestartDelay = 0x1E;
         pair                            = &gStageMusicParams;
-        pair->fadeFrames                   = 0x3C;
-        pair->unusedCommandArg                   = 0;
+        pair->fadeFrames                = 0x3C;
+        pair->unusedCommandArg          = 0;
         Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
         task->state++;
     }
@@ -617,7 +617,7 @@ static void Gp_InitStageVisit(GpAreaKey* arg0)
         func_800B8014();
     }
     if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
-        bank             = banks[arg0->stage];
+        bank                  = banks[arg0->stage];
         bank->visitedAreas[0] = 0;
         bank->visitedAreas[1] = 0;
         Gp_ApplyBit2Bank(arg0->stage);

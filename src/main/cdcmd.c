@@ -615,8 +615,8 @@ static void CdCmd_HandleMount(void)
             state->field_242 = 0;
             if (state->readIdx != state->writeIdx) {
                 (state->entries + state->readIdx)->cmd = 0;
-                state->readIdx        = state->readIdx + 1;
-                state->readIdx        = state->readIdx % 8;
+                state->readIdx                         = state->readIdx + 1;
+                state->readIdx                         = state->readIdx % 8;
             }
             return;
         case55_cont:

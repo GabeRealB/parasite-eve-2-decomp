@@ -235,9 +235,9 @@ static void func_map_akropolis_80179D78(Task* task)
     Ui_DrawText(&(obj)->panel, D_map_akropolis_8017997C);
     if (task->state == 0) {
         Ui_LayoutListPanel(list, &(obj)->panel);
-        list->field_A   = 1;
+        list->field_A         = 1;
         task->spawnArg1.value = -1;
-        task->state    += 1;
+        task->state          += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.field_0.w == 1 && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
@@ -274,9 +274,9 @@ static void func_map_akropolis_80179E8C(Task* task)
             return;
         }
         GameMain_SetFrameTiming(0);
-        gGameSession->uiOpen = 1;
-        task->spawnArg2.pointer      = obj;
-        task->state         += 1;
+        gGameSession->uiOpen    = 1;
+        task->spawnArg2.pointer = obj;
+        task->state            += 1;
     }
 
     if (task->state == 1) {

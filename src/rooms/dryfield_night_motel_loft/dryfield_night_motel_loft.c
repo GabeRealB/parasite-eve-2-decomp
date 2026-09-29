@@ -177,7 +177,7 @@ GpRoomParamRec D_dryfield_night_motel_loft_80180904[1] = {
     { 0, 0, 1, 0, D_dryfield_night_motel_loft_801808F0 },
 };
 
-GpRoomParamRec * D_dryfield_night_motel_loft_8018090C[8] = {
+GpRoomParamRec* D_dryfield_night_motel_loft_8018090C[8] = {
     D_dryfield_night_motel_loft_801808FC,
     D_dryfield_night_motel_loft_80180904,
     D_dryfield_night_motel_loft_801808FC,
@@ -202,7 +202,7 @@ s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, GpMessageArg 
 /// Message-table handler for id 0x13EE: echoes the incoming record into the
 /// reply and, for a message 0x1D that is not report-only (`field_5 == 0`),
 /// answers 1 while game nibble 0x61 is clear and 3 once it is set. Returns 1.
-s32 func_dryfield_night_motel_loft_8017D600(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_dryfield_night_motel_loft_8017D600(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     s32 nib;
 
@@ -280,7 +280,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
 /// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
-    gGameSession->at4.loc.room  = arg0;
+    gGameSession->at4.loc.room        = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 
@@ -309,7 +309,7 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
     if (Gp_GetCurBit2Flag(0xA) == 2) {
         {
-            GpObj4C* object = &D_dryfield_night_motel_loft_801803F4[1];
+            GpObj4C* object   = &D_dryfield_night_motel_loft_801803F4[1];
             object->field_4A &= 0xBF;
         }
     }

@@ -432,8 +432,15 @@ u32 D_dryfield_water_tank_80186034[531] = {
 };
 
 TmdSource D_dryfield_water_tank_80186880 = {
-    0, 3768, 0, 1,
-    D_dryfield_water_tank_80185B50, D_dryfield_water_tank_80185B54, D_dryfield_water_tank_80185DF4, D_dryfield_water_tank_80185B2C, D_dryfield_water_tank_80186034,
+    0,
+    3768,
+    0,
+    1,
+    D_dryfield_water_tank_80185B50,
+    D_dryfield_water_tank_80185B54,
+    D_dryfield_water_tank_80185DF4,
+    D_dryfield_water_tank_80185B2C,
+    D_dryfield_water_tank_80186034,
 };
 
 TaskDesc D_dryfield_water_tank_801868A4[2] = {
@@ -466,7 +473,7 @@ GpRoomObjRec D_dryfield_water_tank_801868E0[1] = {
     { D_dryfield_water_tank_80186EBC, D_dryfield_water_tank_80187FF8, D_dryfield_water_tank_80188920, NULL },
 };
 
-u8 * D_dryfield_water_tank_801868F0[1] = {
+u8* D_dryfield_water_tank_801868F0[1] = {
     D_8010CAF8,
 };
 
@@ -741,7 +748,7 @@ s16 D_dryfield_water_tank_80186E78[25] = {
     -1,
 };
 
-s16 * D_dryfield_water_tank_80186EAC[4] = {
+s16* D_dryfield_water_tank_80186EAC[4] = {
     D_dryfield_water_tank_80186DC0,
     D_dryfield_water_tank_80186E04,
     D_dryfield_water_tank_80186E40,
@@ -1164,7 +1171,7 @@ GpRoomParamRec D_dryfield_water_tank_80188CF4[1] = {
     { 0, 0, 1, 0, D_dryfield_water_tank_80188CC8 },
 };
 
-GpRoomParamRec * D_dryfield_water_tank_80188CFC[8] = {
+GpRoomParamRec* D_dryfield_water_tank_80188CFC[8] = {
     D_dryfield_water_tank_80188CD4,
     D_dryfield_water_tank_80188CDC,
     D_dryfield_water_tank_80188CD4,
@@ -1188,7 +1195,7 @@ GpAreaApplyRec D_dryfield_water_tank_80188D1C[10] = {
     { 255, 0, 0, 0 },
 };
 
-Task * D_dryfield_water_tank_80188D44 = NULL;
+Task* D_dryfield_water_tank_80188D44 = NULL;
 
 Task* D_dryfield_water_tank_80188D50;
 
@@ -1228,9 +1235,9 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
-                gGameSession->eventState    = 0;
-                gGameSession->hideHud       = 0;
-                Gp_StateF0.field_4          = 0;
+                gGameSession->eventState          = 0;
+                gGameSession->hideHud             = 0;
+                Gp_StateF0.field_4                = 0;
                 Mc_SaveData[0].state.at4.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
@@ -1251,13 +1258,13 @@ s32 func_dryfield_water_tank_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2, 
 
 /// Handler for message 0x13EE in the room task's message table: copies the
 /// location record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 1) {
         if (GameFlag_GetNibble(0x36) == 0) {
@@ -1554,7 +1561,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
         case 2:
             Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);
-            gGameSession->viewDirty     = 1;
+            gGameSession->viewDirty           = 1;
             /* Through a pointer rather than as `work->owner`: a member load is
              * struct memory, which lets the store to the view index sink into
              * the call's delay slot; the two request tails then no longer
@@ -1645,7 +1652,7 @@ void func_dryfield_water_tank_8017E1B4(void)
     DwtScriptWork* work;
     Task**         owner;
 
-    work                        = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
+    work                              = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
     Mc_SaveData[0].state.at4.loc.view = Gp_FindViewIndex(3);
     /* Through a pointer rather than as `work->owner`: a member load is struct
      * memory, which lets the store to the view index sink into the call's

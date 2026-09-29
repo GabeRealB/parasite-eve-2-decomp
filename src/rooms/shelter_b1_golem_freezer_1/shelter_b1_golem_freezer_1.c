@@ -99,7 +99,7 @@ s16 D_shelter_b1_golem_freezer_1_8017E70C[2] = {
     -1,
 };
 
-s16 * D_shelter_b1_golem_freezer_1_8017E710[1] = {
+s16* D_shelter_b1_golem_freezer_1_8017E710[1] = {
     D_shelter_b1_golem_freezer_1_8017E70C,
 };
 
@@ -122,7 +122,7 @@ SVECTOR D_shelter_b1_golem_freezer_1_8017E740[10] = {
     { 6500, 0, 2500, 0 },
 };
 
-u8 * D_shelter_b1_golem_freezer_1_8017E790[1] = {
+u8* D_shelter_b1_golem_freezer_1_8017E790[1] = {
     D_8010CAF8,
 };
 
@@ -223,7 +223,7 @@ s16 D_shelter_b1_golem_freezer_1_8017E9A0[12] = {
     -1,
 };
 
-s16 * D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
+s16* D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
     D_shelter_b1_golem_freezer_1_8017E988,
     D_shelter_b1_golem_freezer_1_8017E9A0,
 };
@@ -409,7 +409,7 @@ GpRoomParamRec D_shelter_b1_golem_freezer_1_8017F288[1] = {
     { 0, 0, 1, 0, D_shelter_b1_golem_freezer_1_8017F274 },
 };
 
-GpRoomParamRec * D_shelter_b1_golem_freezer_1_8017F290[8] = {
+GpRoomParamRec* D_shelter_b1_golem_freezer_1_8017F290[8] = {
     D_shelter_b1_golem_freezer_1_8017F280,
     D_shelter_b1_golem_freezer_1_8017F288,
     D_shelter_b1_golem_freezer_1_8017F280,
@@ -431,7 +431,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, GpMessageArg
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
 /// the outgoing one and passes both on to `func_map_shelter_80179A04`. Always answers 1.
-s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_shelter_80179A04(in, out);
@@ -446,7 +446,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, GpMessageArg
 
 /// Message-table handler for message 0x13EF: when the message's `field_2` is 1
 /// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg * msg, GpMessageArg arg3)
+s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, GpMessageArg arg3)
 {
     if (msg->field_2 == 1 && gGameSession->at4.loc.place == 0x15) {
         func_80131E70();

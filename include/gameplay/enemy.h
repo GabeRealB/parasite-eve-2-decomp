@@ -99,7 +99,7 @@ typedef struct {
 /// spawned from, whose `entryId` `Gp_ApplyAreaTmdFlags` matches. Full size unknown.
 typedef struct _GpWorkObj {
     /* 0x00 */ Task* field_0; // task owning this slot-4 object
-    /* 0x04 */ byte pad_4[4];
+    /* 0x04 */ byte  pad_4[4];
     /* 0x08 */ union {
         u16 as_u16;
         u8  as_u8;

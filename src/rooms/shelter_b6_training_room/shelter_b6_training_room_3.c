@@ -114,7 +114,7 @@ typedef union {
 
 ShelterB6TrainingRoomPoseBank5568 D_shelter_b6_training_room_80182B28 = { .poses = {
 #include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_shelter_b6_training_room_80182B70[46] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank4.inc"
@@ -129,7 +129,8 @@ u16 D_shelter_b6_training_room_80182DDC[20] = {
 };
 
 GpAnimSet D_shelter_b6_training_room_80182E04 = {
-    D_shelter_b6_training_room_80182C28, D_shelter_b6_training_room_80182DDC,
+    D_shelter_b6_training_room_80182C28,
+    D_shelter_b6_training_room_80182DDC,
     { NULL, D_shelter_b6_training_room_80182B28.words, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
 };
 
@@ -141,7 +142,7 @@ typedef union {
 
 ShelterB6TrainingRoomPoseBank586C D_shelter_b6_training_room_80182E2C = { .poses = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_shelter_b6_training_room_80182EC8[171] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank4.inc"
@@ -156,7 +157,8 @@ u16 D_shelter_b6_training_room_8018350C[20] = {
 };
 
 GpAnimSet D_shelter_b6_training_room_80183534 = {
-    D_shelter_b6_training_room_80183174, D_shelter_b6_training_room_8018350C,
+    D_shelter_b6_training_room_80183174,
+    D_shelter_b6_training_room_8018350C,
     { NULL, D_shelter_b6_training_room_80182E2C.words, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
 };
 
@@ -168,7 +170,7 @@ typedef union {
 
 ShelterB6TrainingRoomPoseBank5F9C D_shelter_b6_training_room_8018355C = { .poses = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_shelter_b6_training_room_80183580[28] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank4.inc"
@@ -183,7 +185,8 @@ u16 D_shelter_b6_training_room_80183750[20] = {
 };
 
 GpAnimSet D_shelter_b6_training_room_80183778 = {
-    D_shelter_b6_training_room_801835F0, D_shelter_b6_training_room_80183750,
+    D_shelter_b6_training_room_801835F0,
+    D_shelter_b6_training_room_80183750,
     { NULL, D_shelter_b6_training_room_8018355C.words, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
 };
 
@@ -195,7 +198,7 @@ typedef union {
 
 ShelterB6TrainingRoomPoseBank61E0 D_shelter_b6_training_room_801837A0 = { .poses = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank1.inc"
-} };
+                                                                          } };
 
 GpPackedSvec D_shelter_b6_training_room_801837B8[29] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank4.inc"
@@ -210,13 +213,14 @@ u16 D_shelter_b6_training_room_80183958[20] = {
 };
 
 GpAnimSet D_shelter_b6_training_room_80183980 = {
-    D_shelter_b6_training_room_8018382C, D_shelter_b6_training_room_80183958,
+    D_shelter_b6_training_room_8018382C,
+    D_shelter_b6_training_room_80183958,
     { NULL, D_shelter_b6_training_room_801837A0.words, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b6_training_room_801839A8 = { 0, 96, func_shelter_b6_training_room_8017D9C8, { .model = NULL } };
 
-GpAnimSet * D_shelter_b6_training_room_801839B4[5] = {
+GpAnimSet* D_shelter_b6_training_room_801839B4[5] = {
     NULL,
     &D_shelter_b6_training_room_80182E04,
     &D_shelter_b6_training_room_80183534,
@@ -398,7 +402,10 @@ SVECTOR D_shelter_b6_training_room_80184334[25] = {
 };
 
 u16 D_shelter_b6_training_room_801843FC[4] = {
-    258, 532, 1064, 1596,
+    258,
+    532,
+    1064,
+    1596,
 };
 
 ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
@@ -1768,7 +1775,7 @@ void func_shelter_b6_training_room_8018245C(Task* task)
         mem->scale = 0xC0;
         mem->angle = 0x200;
         D_shelter_b6_training_room_80185C98++;
-        task->state     = 1;
+        task->state           = 1;
         task->spawnArg1.value = D_shelter_b6_training_room_80185C98;
     }
     if (task->spawnArg1.value != D_shelter_b6_training_room_80185C98) {

@@ -62,7 +62,7 @@ GpRoomParamRec D_shelter_b1_pod_service_gantry_80182518[1] = {
     { 0, 0, 1, 0, NULL },
 };
 
-GpRoomParamRec * D_shelter_b1_pod_service_gantry_80182520[8] = {
+GpRoomParamRec* D_shelter_b1_pod_service_gantry_80182520[8] = {
     D_shelter_b1_pod_service_gantry_80182518,
     D_shelter_b1_pod_service_gantry_80182518,
     D_shelter_b1_pod_service_gantry_80182518,

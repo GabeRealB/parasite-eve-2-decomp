@@ -69,9 +69,9 @@ void func_neo_ark_altar_8017D668(Task* task)
     switch (task->state) {
         case 0:
             Mc_SaveData[0].state.at4.loc.view = 5;
-            gGameSession->hideHud       = 1;
-            gGameSession->eventState    = 1;
-            Gp_StateF0.field_4          = 2;
+            gGameSession->hideHud             = 1;
+            gGameSession->eventState          = 1;
+            Gp_StateF0.field_4                = 2;
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             task->state++;
@@ -133,9 +133,9 @@ void func_neo_ark_altar_8017D668(Task* task)
         case 10:
             SetDispMask(1);
             Mc_SaveData[0].state.at4.loc.view = 2;
-            gGameSession->hideHud       = 0;
-            gGameSession->eventState    = 0;
-            Gp_StateF0.field_4          = 0;
+            gGameSession->hideHud             = 0;
+            gGameSession->eventState          = 0;
+            Gp_StateF0.field_4                = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);
@@ -151,7 +151,7 @@ s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMess
 /// Handler the room's message table gives message 0x13EE: copies the incoming
 /// `GpSaveLoc` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
 /// Always returns 1.
-s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, GpSaveLoc * in, GpSaveLoc * out)
+s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, GpSaveLoc* in, GpSaveLoc* out)
 {
     *out = *in;
     func_map_neo_ark_80179B14(in, out);
@@ -170,7 +170,7 @@ s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, GpMessageArg arg2, GpMess
 /// cutscene-driver task through `D_neo_ark_altar_8017EF8C`. Any other byte is
 /// ignored, and the outgoing record is never written - this handler only
 /// consumes the message.
-s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg * in, RoomEventMsg * out)
+s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->field_2 == 1) {
         if (gGameSession->at4.loc.room == in->field_2) {

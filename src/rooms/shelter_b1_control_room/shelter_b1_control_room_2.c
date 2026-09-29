@@ -88,7 +88,7 @@ s16 D_shelter_b1_control_room_80181C64[2][3] = {
     { 0, 1, 0 },
 };
 
-u8 * D_shelter_b1_control_room_80181C70[1] = {
+u8* D_shelter_b1_control_room_80181C70[1] = {
     D_8010CAF8,
 };
 
@@ -270,7 +270,7 @@ s16 D_shelter_b1_control_room_801820C0[21] = {
     -1,
 };
 
-s16 * D_shelter_b1_control_room_801820EC[3] = {
+s16* D_shelter_b1_control_room_801820EC[3] = {
     D_shelter_b1_control_room_80182074,
     D_shelter_b1_control_room_80182090,
     D_shelter_b1_control_room_801820C0,
@@ -730,7 +730,7 @@ GpRoomParamRec D_shelter_b1_control_room_80183BB8[1] = {
     { 0, 0, 1, 0, D_shelter_b1_control_room_80183B9C },
 };
 
-GpRoomParamRec * D_shelter_b1_control_room_80183BC0[8] = {
+GpRoomParamRec* D_shelter_b1_control_room_80183BC0[8] = {
     D_shelter_b1_control_room_80183BA8,
     D_shelter_b1_control_room_80183BB0,
     D_shelter_b1_control_room_80183BB8,
@@ -803,9 +803,9 @@ L_case2:
 L_case3:
     if (CdCmd_IsIdle() & 0xFFFF) {
         SetDispMask(0);
-        state           = task->state;
+        state                 = task->state;
         task->spawnArg1.value = 0;
-        task->state     = state + 1;
+        task->state           = state + 1;
         return;
     }
     if (Pad_CheckFlag800() == 0) {
@@ -814,7 +814,7 @@ L_case3:
     SetDispMask(0);
     CdCmd_ActivatePhase1();
     task->spawnArg1.value = 1;
-    task->state     = task->state + 1;
+    task->state           = task->state + 1;
     return;
 
 L_case4:

@@ -78,7 +78,7 @@ GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[1] = {
     { D_neo_ark_submarine_tunnel_801824DC, D_neo_ark_submarine_tunnel_80187248, D_neo_ark_submarine_tunnel_801874D8, D_neo_ark_submarine_tunnel_8018781C },
 };
 
-u8 * D_neo_ark_submarine_tunnel_80181E18[1] = {
+u8* D_neo_ark_submarine_tunnel_80181E18[1] = {
     D_8010CAF8,
 };
 
@@ -137,7 +137,7 @@ SVECTOR D_neo_ark_submarine_tunnel_80181F54[8] = {
     { 8320, 0, 1632, 0 },
 };
 
-SVECTOR * D_neo_ark_submarine_tunnel_80181F94[4] = {
+SVECTOR* D_neo_ark_submarine_tunnel_80181F94[4] = {
     D_neo_ark_submarine_tunnel_80181E94,
     D_neo_ark_submarine_tunnel_80181ED4,
     D_neo_ark_submarine_tunnel_80181F14,
@@ -393,7 +393,7 @@ s16 D_neo_ark_submarine_tunnel_801824AC[11] = {
     -1,
 };
 
-s16 * D_neo_ark_submarine_tunnel_801824C4[6] = {
+s16* D_neo_ark_submarine_tunnel_801824C4[6] = {
     D_neo_ark_submarine_tunnel_801823F8,
     D_neo_ark_submarine_tunnel_80182420,
     D_neo_ark_submarine_tunnel_80182448,
@@ -1500,7 +1500,7 @@ GpRoomParamRec D_neo_ark_submarine_tunnel_801878E4[1] = {
     { 0, 0, 1, 0, D_neo_ark_submarine_tunnel_801878D0 },
 };
 
-GpRoomParamRec * D_neo_ark_submarine_tunnel_801878EC[8] = {
+GpRoomParamRec* D_neo_ark_submarine_tunnel_801878EC[8] = {
     D_neo_ark_submarine_tunnel_801878DC,
     D_neo_ark_submarine_tunnel_801878DC,
     D_neo_ark_submarine_tunnel_801878DC,
@@ -1511,7 +1511,7 @@ GpRoomParamRec * D_neo_ark_submarine_tunnel_801878EC[8] = {
     D_neo_ark_submarine_tunnel_801878DC,
 };
 
-OverlayWaveCtx * D_neo_ark_submarine_tunnel_8018790C = NULL;
+OverlayWaveCtx* D_neo_ark_submarine_tunnel_8018790C = NULL;
 
 OverlayWaveRec6 D_neo_ark_submarine_tunnel_80187910[13];
 

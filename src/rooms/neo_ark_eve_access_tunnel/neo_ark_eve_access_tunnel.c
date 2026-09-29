@@ -403,7 +403,7 @@ GpRoomParamRec D_neo_ark_eve_access_tunnel_80180778[1] = {
     { 0, 0, 1, 0, D_neo_ark_eve_access_tunnel_8018075C },
 };
 
-GpRoomParamRec * D_neo_ark_eve_access_tunnel_80180780[8] = {
+GpRoomParamRec* D_neo_ark_eve_access_tunnel_80180780[8] = {
     D_neo_ark_eve_access_tunnel_80180768,
     D_neo_ark_eve_access_tunnel_80180770,
     D_neo_ark_eve_access_tunnel_80180778,
@@ -559,7 +559,7 @@ void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.roomVariant    = 1;
+            gDisplayState.roomVariant          = 1;
             Mc_SaveData[0].state.at4.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
             Mc_SaveData[0].state.at4.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
             Mc_SaveData[0].state.at4.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
@@ -679,7 +679,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_neo_ark_eve_access_tunnel_801807A0.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1;
@@ -702,7 +702,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, GpMessageArg 
 /// leads to the EVE encounter. The two `switch`es are load-bearing: the
 /// equivalent `if` / `else` chain makes reorg fill the second field_5 branch's
 /// delay slot from the return block instead of the fall-through.
-s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_neo_ark_80179B14(src, dst);
@@ -717,7 +717,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, GpSaveLoc * s
                     break;
                 default:
                     if (src->field_5 == 0) {
-                        Mc_SaveData[0].state.sceneEvent                                 = 0x18;
+                        Mc_SaveData[0].state.sceneEvent                           = 0x18;
                         D_neo_ark_eve_access_tunnel_801807A0.field_2              = dst->prefix.bytes.field_0;
                         D_neo_ark_eve_access_tunnel_801807A0.field_4              = dst->field_2;
                         D_neo_ark_eve_access_tunnel_801807A0.prefix.bytes.field_1 = dst->field_3;
@@ -758,7 +758,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, GpMe
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, GpMsg13EF * arg2, GpMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
 {
     if (arg2->field_2 == 0xA) {
         if (GameFlag_GetNibble(0xF8) != 0) {

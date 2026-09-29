@@ -245,8 +245,15 @@ u32 D_shelter_b4_reservoir_801847E0[46] = {
 };
 
 TmdSource D_shelter_b4_reservoir_80184898 = {
-    0, 320, 0, 1,
-    D_shelter_b4_reservoir_80184764, D_shelter_b4_reservoir_80184768, &D_shelter_b4_reservoir_80184768[15], D_shelter_b4_reservoir_80184740, D_shelter_b4_reservoir_801847E0,
+    0,
+    320,
+    0,
+    1,
+    D_shelter_b4_reservoir_80184764,
+    D_shelter_b4_reservoir_80184768,
+    &D_shelter_b4_reservoir_80184768[15],
+    D_shelter_b4_reservoir_80184740,
+    D_shelter_b4_reservoir_801847E0,
 };
 
 GpMsgEntry D_shelter_b4_reservoir_801848BC[6] = {
@@ -273,7 +280,7 @@ TaskDesc D_shelter_b4_reservoir_80184920[1] = {
 
 Task* D_shelter_b4_reservoir_8018492C = 0;
 
-Task * D_shelter_b4_reservoir_80184930 = NULL;
+Task* D_shelter_b4_reservoir_80184930 = NULL;
 
 GpAnimArg D_shelter_b4_reservoir_80184934 = { { .index = 1 }, 1, 0, 0, 1 };
 
@@ -431,10 +438,40 @@ s16 D_shelter_b4_reservoir_801850BC[2][3] = {
 // Each row reserves 16 byte positions for the encoded direction index.
 // The final zero bytes may also have served as alignment in the original C.
 u8 D_shelter_b4_reservoir_801850C8[16] = {
-    2, 2, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5, 0,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    0,
 };
 u8 D_shelter_b4_reservoir_801850D8[16] = {
-    3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 0, 0, 0,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    0,
+    0,
+    0,
 };
 
 GpRoomCoordRec D_shelter_b4_reservoir_801850E8[2] = {
@@ -447,7 +484,7 @@ GpRoomObjRec D_shelter_b4_reservoir_801850F8[2] = {
     { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186F34, D_shelter_b4_reservoir_801873B0 },
 };
 
-u8 * D_shelter_b4_reservoir_80185118[2] = {
+u8* D_shelter_b4_reservoir_80185118[2] = {
     D_8010CAF8,
     D_8010CAF8,
 };
@@ -473,7 +510,7 @@ SVECTOR D_shelter_b4_reservoir_80185194[8] = {
     { 1000, 1000, -4500, 0 },
 };
 
-SVECTOR * D_shelter_b4_reservoir_801851D4[4] = {
+SVECTOR* D_shelter_b4_reservoir_801851D4[4] = {
     D_shelter_b4_reservoir_80185194,
     D_shelter_b4_reservoir_80185194,
     D_shelter_b4_reservoir_80185194,
@@ -1020,7 +1057,7 @@ s16 D_shelter_b4_reservoir_80185A50[2] = {
     -1,
 };
 
-s16 * D_shelter_b4_reservoir_80185A54[25] = {
+s16* D_shelter_b4_reservoir_80185A54[25] = {
     D_shelter_b4_reservoir_801857E8,
     NULL,
     NULL,
@@ -1444,7 +1481,7 @@ GpRoomParamRec D_shelter_b4_reservoir_80187478[1] = {
     { 0, 0, 1, 0, D_shelter_b4_reservoir_80187434 },
 };
 
-GpRoomParamRec * D_shelter_b4_reservoir_80187480[8] = {
+GpRoomParamRec* D_shelter_b4_reservoir_80187480[8] = {
     D_shelter_b4_reservoir_80187458,
     D_shelter_b4_reservoir_80187460,
     D_shelter_b4_reservoir_80187468,
@@ -1484,7 +1521,7 @@ GpAreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
 
 GpFadeWork D_shelter_b4_reservoir_80187500 = { 0 };
 
-OverlayWaveCtx * D_shelter_b4_reservoir_80187504 = NULL;
+OverlayWaveCtx* D_shelter_b4_reservoir_80187504 = NULL;
 
 GpSaveLoc D_shelter_b4_reservoir_80187508 = { 0 };
 
@@ -1496,7 +1533,7 @@ OverlayWaveRec6 D_shelter_b4_reservoir_80187564[32] = { 0 };
 
 OverlayWaveCtx D_shelter_b4_reservoir_80187624 = { 0 };
 
-u8 * D_shelter_b4_reservoir_80187630 = NULL;
+u8* D_shelter_b4_reservoir_80187630 = NULL;
 
 SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
 
@@ -1700,8 +1737,8 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
         case 4:
             if (gGameSession->eventState == 0) {
                 Mc_SaveData[0].state.at4.loc.room = 2;
-                gGameSession->at4.loc.room  = 2;
-                gGameSession->roomObjsDirty = 1;
+                gGameSession->at4.loc.room        = 2;
+                gGameSession->roomObjsDirty       = 1;
                 GameFlag_SetNibble(0xB7, 1);
                 GameFlag_SetNibble(0x1BF, 2);
                 GameFlag_SetNibble(0xB6, 1);
@@ -1762,7 +1799,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.roomVariant   = 1;
+            gDisplayState.roomVariant         = 1;
             Mc_SaveData[0].state.at4.loc.area = D_shelter_b4_reservoir_80187508.field_2;
             Mc_SaveData[0].state.at4.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
             Mc_SaveData[0].state.at4.loc.room = D_shelter_b4_reservoir_80187508.prefix.bytes.field_1;
@@ -1777,7 +1814,7 @@ s32 func_shelter_b4_reservoir_8017E25C(Task* task, s32 msgId, GpMessageArg arg2,
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, GpSaveLoc * src, GpSaveLoc * dst)
+s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, GpSaveLoc* src, GpSaveLoc* dst)
 {
     *dst = *src;
     func_map_shelter_80179A04(src, dst);
@@ -1808,7 +1845,7 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, GpMessage
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
         Mc_SaveData[0].state.at4.loc.view = 6;
-        Gp_StateF0.field_4          = 2;
+        Gp_StateF0.field_4                = 2;
         Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;
