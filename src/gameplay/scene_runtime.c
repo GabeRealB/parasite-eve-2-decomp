@@ -396,29 +396,29 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                         break;
                     case 1:
                         D_80114D10 = (u8*)Fs_ActorLoadBase0;
-                        if (p->field_190->field_1A == 1) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase0 + 0x11000;
+                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+                            D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->bufferKind == 2) {
-                            D_80114D10 += p->field_190->field_1E;
+                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
+                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
                     case 2:
                         D_80114D10 = (u8*)Fs_ActorLoadBase1;
-                        if (p->field_190->field_1A == 2) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase1 + 0x11000;
+                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+                            D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->bufferKind == 3) {
-                            D_80114D10 += p->field_190->field_1E;
+                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
+                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
                     case 3:
                         D_80114D10 = (u8*)Fs_ActorLoadBase2;
-                        if (p->field_190->field_1A == 3) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase2 + 0x11000;
+                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+                            D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->bufferKind == 4) {
-                            D_80114D10 += p->field_190->field_1E;
+                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
+                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
                     case 4:
@@ -464,22 +464,22 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     u16         count;
     u16         i;
     u16         found;
-    s32         temp;
-    u16         streamType;
+    s32         decodeBufferBytes;
+    u16         vlcTableMode;
     s32         seed;
 
     p = &CdCmd_Queue;
     if (arg0 == 0) {
         slot  = Fs_Streams;
-        count = 0xA;
+        count = ARRAY_SIZE(Fs_Streams);
     } else {
         slot  = Stream_Slots;
-        count = 0xF;
+        count = ARRAY_SIZE(Stream_Slots);
     }
 
     for (i = 0, found = 0; i < count; i++, slot++) {
-        if (slot->field_0 == 2 && slot->field_4 != 0 && slot->key.parts.group == arg0 && slot->key.parts.id == arg1 &&
-            slot->field_10 == arg2 && slot->field_12 == arg3) {
+        if (slot->kind == STREAM_KIND_SCENE_AUDIO && slot->startSector != 0 && slot->key.parts.group == arg0 && slot->key.parts.id == arg1 &&
+            slot->subId == arg2 && slot->data.scene.subId2 == arg3) {
             found = 1;
             break;
         }
@@ -490,11 +490,11 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     }
 
     Mem_Set(p->field_58, 0, 0x12C);
-    p->field_190 = slot;
-    p->field_216 = 1;
-    temp         = slot->field_8;
-    if (temp != 0) {
-        p->decodeBufferBytes = temp;
+    p->field_190      = slot;
+    p->field_216      = 1;
+    decodeBufferBytes = slot->source.decodeBufferBytes;
+    if (decodeBufferBytes != 0) {
+        p->decodeBufferBytes = decodeBufferBytes;
     } else {
         p->decodeBufferBytes = 0;
     }
@@ -502,10 +502,10 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     p->field_21E   = 0;
     p->field_218   = 0;
     p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-    streamType     = slot->field_18;
+    vlcTableMode   = slot->data.scene.vlcTableMode;
     seed           = Gp_LcgState;
     *D_80114D14    = 0;
-    p->field_238   = streamType;
+    p->field_238   = vlcTableMode;
     p->field_1A8   = seed;
     p->field_1AC   = rand();
     Gp_LcgState    = 0;
@@ -516,6 +516,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 
 void Gp_StepCdAudioCmd(void)
 {
+    enum { STREAM_CD_SECTOR_BYTES = 0x800 };
     s32         one;
     s32         i_s1;
     CdCmdQueue* p;
@@ -570,16 +571,16 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 3: {
-            StreamSlot* info;
+            StreamSlot* sceneStream;
 
-            info         = p->field_190;
+            sceneStream  = p->field_190;
             p->field_242 = 1;
-            if (info->bufferKind != 0) {
-                sector = info->field_4;
-                if ((info->field_1C - 1) / 0x800 != 0) {
-                    sector += 1 + (info->field_1C - 1) / 0x800;
+            if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                sector = sceneStream->startSector;
+                if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
+                    sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
                 }
-                Fs_ReadSectorEx(p->field_190->field_4, sector, p->field_1A4, 0);
+                Fs_ReadSectorEx(p->field_190->startSector, sector, p->field_1A4, 0);
                 p->step = p->step + 1;
             } else {
                 p->step = 5;
@@ -608,20 +609,20 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 5: {
-            StreamSlot*   info;
+            StreamSlot*   sceneStream;
             s32           bits;
             u16           maskbits;
             GpSndMaskRec* entry;
 
-            info   = p->field_190;
-            sector = info->field_4;
-            if (info->bufferKind != 0) {
+            sceneStream = p->field_190;
+            sector      = sceneStream->startSector;
+            if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                 sector += 1;
-                sector += (info->field_1C - 1) / 0x800;
+                sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
             }
-            CdAudio_StartTrack(sector, p->field_190->volumeIndex);
+            CdAudio_StartTrack(sector, p->field_190->control.scene.volumeIndex);
             i_s1     = 0;
-            maskbits = p->field_190->field_16;
+            maskbits = p->field_190->data.scene.soundBankMask;
             if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
@@ -661,7 +662,7 @@ void Gp_StepCdAudioCmd(void)
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
-            if (p->field_190->bufferKind != 0) {
+            if (p->field_190->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                 p->field_240 = one;
             }
             p->field_1A0 = 0;
@@ -672,7 +673,7 @@ void Gp_StepCdAudioCmd(void)
             break;
         }
         case 7: {
-            StreamSlot*   info;
+            StreamSlot*   sceneStream;
             s32           i;
             s32           bits;
             u16           maskbits;
@@ -685,16 +686,16 @@ void Gp_StepCdAudioCmd(void)
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->field_40, 0, 0x10);
-            info            = p->field_190;
+            sceneStream     = p->field_190;
             p->field_50.cmd = 0;
-            if (info->field_14 != 0) {
-                CdAudio_JumpToSector(info->field_4 + info->field_14);
+            if (sceneStream->data.scene.resumeSectorOffset != 0) {
+                CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
                 p->field_242 = 1;
                 p->step      = p->step + 1;
                 break;
             }
             i        = 0;
-            maskbits = info->field_16;
+            maskbits = sceneStream->data.scene.soundBankMask;
             if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
@@ -735,7 +736,7 @@ void Gp_StepCdAudioCmd(void)
                 break;
             }
             i        = 0;
-            maskbits = p->field_190->field_16;
+            maskbits = p->field_190->data.scene.soundBankMask;
             if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {

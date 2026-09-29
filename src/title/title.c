@@ -421,7 +421,7 @@ void Title_DemoStreamTask(Task* task)
 
     switch (task->state) {
         case 0:
-            Mem_CopyUnaligned(Fs_Streams, Stream_Slots, 0x190);
+            Mem_CopyUnaligned(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
             task->state++;

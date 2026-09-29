@@ -65534,7 +65534,7 @@ ranges to distinguish these effects from register coloring.
 
 Changing the shared state declaration from scalar to array also changed
 `Gp_FindStreamSlot`: its reset could now alias the subsequent slot/RNG reads.
-Explicitly loading `slot->field_18` and `Gp_LcgState` into locals before the
+Explicitly loading `slot->data.scene.vlcTableMode` and `Gp_LcgState` into locals before the
 reset restored that already-matched sibling's scheduling without new pins.
 The scoped rebuild then matched every byte of the gameplay overlay.
 

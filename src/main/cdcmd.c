@@ -85,28 +85,28 @@ static s32* CdCmd_MapHeapSizes[] = {
 void* CdCmd_SetupMdecBuffers(void)
 {
     CdCmdQueue* p;
-    u16         slot;
-    u8          kind;
+    u16         vlcBufferKind;
+    u8          timingBufferKind;
     s32*        sizeRow;
     s32         size;
 
     p = &CdCmd_Queue;
     if (p->field_216 != 0) {
-        if (p->field_238 == 0) {
-            slot = p->field_190->field_1A;
-            switch (slot) {
-                case 0:
-                    p->field_18C = Mem_Malloc(0x11000, 1);
+        if (p->field_238 == STREAM_SCENE_VLC_RESERVED_TABLE) {
+            vlcBufferKind = p->field_190->data.scene.vlcBufferKind;
+            switch (vlcBufferKind) {
+                case STREAM_VLC_BUFFER_ALLOCATE:
+                    p->field_18C = Mem_Malloc(STREAM_VLC_TABLE_BYTES, 1);
                     break;
-                case 1:
+                case STREAM_VLC_BUFFER_ACTOR_0:
                     gGameSession->field_7C = 0;
                     p->field_18C           = Fs_ActorLoadBase0;
                     break;
-                case 2:
+                case STREAM_VLC_BUFFER_ACTOR_1:
                     gGameSession->field_7E = 0;
                     p->field_18C           = Fs_ActorLoadBase1;
                     break;
-                case 3:
+                case STREAM_VLC_BUFFER_ACTOR_2:
                     gGameSession->field_80 = 0;
                     p->field_18C           = Fs_ActorLoadBase2;
                     break;
@@ -119,31 +119,31 @@ void* CdCmd_SetupMdecBuffers(void)
             p->field_18C = NULL;
         }
 
-        p->field_1A4 = NULL;
-        kind         = p->field_190->bufferKind;
-        switch (kind) {
-            case 1:
-                p->field_1A4 = Mem_Malloc(p->field_190->field_1E, 1);
+        p->field_1A4     = NULL;
+        timingBufferKind = p->field_190->control.scene.timingBufferKind;
+        switch (timingBufferKind) {
+            case STREAM_TIMING_BUFFER_ALLOCATE:
+                p->field_1A4 = Mem_Malloc(p->field_190->data.scene.timingBufferBytes, 1);
                 break;
-            case 2:
+            case STREAM_TIMING_BUFFER_ACTOR_0:
                 gGameSession->field_7C = 0;
                 p->field_1A4           = Fs_ActorLoadBase0;
-                if (p->field_190->field_1A == 1) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase0 + 0x11000;
+                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
                 }
                 break;
-            case 3:
+            case STREAM_TIMING_BUFFER_ACTOR_1:
                 gGameSession->field_7E = 0;
                 p->field_1A4           = Fs_ActorLoadBase1;
-                if (p->field_190->field_1A == 2) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase1 + 0x11000;
+                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
                 }
                 break;
-            case 4:
+            case STREAM_TIMING_BUFFER_ACTOR_2:
                 gGameSession->field_80 = 0;
                 p->field_1A4           = Fs_ActorLoadBase2;
-                if (p->field_190->field_1A == 3) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase2 + 0x11000;
+                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+                    p->field_1A4 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
                 }
                 break;
         }
@@ -674,7 +674,7 @@ static void CdCmd_ProcessPhase1(void)
     u16*        statePtr;
     u16         ret;
     s32         temp;
-    StreamSlot* info;
+    StreamSlot* sceneStream;
 
     p = &CdCmd_Queue;
     switch (p->field_40.cmd >> 4) {
@@ -761,10 +761,10 @@ static void CdCmd_ProcessPhase1(void)
                         return;
                     case 1:
                         if (CdAudio_Phase.field_2 == 4) {
-                            info = p->field_190;
-                            temp = info->field_14;
+                            sceneStream = p->field_190;
+                            temp        = sceneStream->data.scene.resumeSectorOffset;
                             if (temp) {
-                                CdAudio_JumpToSector(info->field_4 + temp);
+                                CdAudio_JumpToSector(sceneStream->startSector + temp);
                                 p->field_1fc = p->field_1fc + 1;
                                 return;
                             }
@@ -786,7 +786,7 @@ static void CdCmd_ProcessPhase1(void)
                 p->field_50.cmd = 0;
                 p->field_244    = 0;
                 p->field_20E    = 0;
-                Gp_ApplySndBankMasks(p->field_190->field_16);
+                Gp_ApplySndBankMasks(p->field_190->data.scene.soundBankMask);
                 Gp_RestoreStreamRng();
                 if (p->busy != 0) {
                     p->busy              = 0;

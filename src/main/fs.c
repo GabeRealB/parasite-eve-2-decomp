@@ -952,8 +952,8 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
         D_8006C338[i].field_0 = 0;
     }
 
-    for (i = 0; i < 0xF; i++) {
-        Stream_Slots[i].field_4 = 0;
+    for (i = 0; i < ARRAY_SIZE(Stream_Slots); i++) {
+        Stream_Slots[i].startSector = 0;
     }
 
     D_8006ADE2 = 0;
@@ -973,6 +973,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
 
 void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
 {
+    enum { FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET = 0x514 };
     s32 i;
     s32 j;
     s32 folderId;
@@ -983,8 +984,8 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
     s32*         table;
     s32          offset;
     FsCdfFolder* folder;
-    StreamSlot*  streams;
-    StreamSlot*  destBase;
+    StreamSlot*  sourceStreams;
+    StreamSlot*  destinationStreams;
     s32          k;
     u8*          src;
     u8*          dst;
@@ -1012,9 +1013,10 @@ loop_files:
         goto loop_files;
     }
 
-    i        = 0;
-    folderId = ((u8)arg1 * 100) + 1;
-    streams  = (StreamSlot*)(Fs_CdSector.bytes + 0x514);
+    // Resolve the stream folder independently of the file-load folder.
+    i             = 0;
+    folderId      = ((u8)arg1 * 100) + 1;
+    sourceStreams = (StreamSlot*)(Fs_CdSector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
     for (; (u16)i < Fs_FolderTableLen; i++) {
         if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
             break;
@@ -1030,13 +1032,14 @@ loop_files:
         s32* sp = Fs_StageCdfSectors;
         table   = sp + (u8)arg0;
     }
-    destBase = Stream_Slots;
+    // Publish complete descriptors with absolute CD sectors.
+    destinationStreams = Stream_Slots;
 loop_streams:
-    if (streams[j & 0xFFFF].key.word != 0) {
-        streams[j & 0xFFFF].field_4 += files.folder->offset + *table;
-        src                          = (u8*)&streams[j & 0xFFFF];
-        dst                          = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
-        for (k = 0; (u16)k < 0x28; k++) {
+    if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
+        sourceStreams[j & 0xFFFF].startSector += files.folder->offset + *table;
+        src                                    = (u8*)&sourceStreams[j & 0xFFFF];
+        dst                                    = (u8*)(((j & 0xFFFF) * (s32)sizeof(*destinationStreams)) + (s32)destinationStreams);
+        for (k = 0; (u16)k < sizeof(*destinationStreams); k++) {
             dst[k & 0xFFFF] = src[k & 0xFFFF];
         }
         j += 1;
@@ -1046,6 +1049,7 @@ loop_streams:
 
 static void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
+    enum { FILE_SYSTEM_HED_STREAM_HEADER_MASK = 0x7FFFFFFF };
     CdlLOC          currLoc[3];
     s32             currPos;
     u32             headerOffset;
@@ -1117,7 +1121,7 @@ sector_start:
         }
 
         if ((s32)fileId < 0) {
-            *entry    &= 0x7fffffff;
+            *entry    &= FILE_SYSTEM_HED_STREAM_HEADER_MASK;
             entryBytes = (u8*)entry;
 
             // Copy the stream header into the stream table.
@@ -1128,8 +1132,8 @@ sector_start:
 
             // Move to the next entry and adjust the offset to be the absolute
             // offset on the CD rom.
-            streamTable[(u16)streamIdx++].field_4 += Fs_StageCdfSectors[0];
-            headerOffset                          += sizeof(StreamSlot) / sizeof(u32);
+            streamTable[(u16)streamIdx++].startSector += Fs_StageCdfSectors[0];
+            headerOffset                              += sizeof(StreamSlot) / sizeof(u32);
         } else {
             fileCategory = fileId / 10000;
 

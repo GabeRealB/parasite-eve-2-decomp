@@ -135,14 +135,14 @@ static void Mdec_SetupBuffers(u8* arg0)
     CdCmd_Queue.field_22C = 0;
     D_8006AC24            = 0x20;
     D_8006AC38            = Fs_ActorLoadBase0;
-    D_8006AC60            = (u16*)((u8*)Fs_ActorLoadBase0 + 0x11000);
+    D_8006AC60            = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
     D_8006AC64            = D_8006AC40;
 
     switch ((s8)(arg0[3] + 1)) {
         case 0:
             D_8006AC24 = 0x28;
             D_8006AC38 = (u_short*)D_8006AC40;
-            temp_v1    = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + 0x11000));
+            temp_v1    = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + STREAM_VLC_TABLE_BYTES));
             {
                 u16 h         = D_8006AC6C;
                 s32 stride    = h * 0x30;
@@ -184,23 +184,23 @@ static void Mdec_SetupBuffers(u8* arg0)
 
 static void Stream_InitFromSlot(u32 arg0)
 {
-    StreamSlot* base;
-    StreamSlot* entry;
+    StreamSlot* slots;
+    StreamSlot* slot;
 
     CdCmd_Queue.field_20A = 0;
-    base                  = Stream_Slots;
+    slots                 = Stream_Slots;
     D_8006AC12            = 0;
-    entry                 = &base[arg0 & 0xFFFF];
-    D_8006AC08            = entry->field_4;
-    D_8006AC0C            = entry->field_1A;
-    D_8006AC5A            = entry->field_12;
-    D_8006AC6C            = entry->field_14;
-    D_8006AC0E            = entry->field_16;
-    D_8006AC10            = entry->field_18;
-    D_8006AC16            = entry->field_1C;
-    D_8006AC14            = entry->field_22;
-    D_8006AC58            = entry->field_24;
-    D_8006AC18            = entry->field_26;
+    slot                  = &slots[arg0 & 0xFFFF];
+    D_8006AC08            = slot->startSector;
+    D_8006AC0C            = slot->data.movie.frameLimit;
+    D_8006AC5A            = slot->data.movie.width;
+    D_8006AC6C            = slot->data.movie.height;
+    D_8006AC0E            = slot->data.movie.vramX;
+    D_8006AC10            = slot->data.movie.vramY;
+    D_8006AC16            = slot->data.movie.loopMode;
+    D_8006AC14            = slot->data.movie.displayMode;
+    D_8006AC58            = slot->data.movie.volumeTableIndex;
+    D_8006AC18            = slot->data.movie.uploadMode;
 }
 
 s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
@@ -208,35 +208,35 @@ s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
     s32         i;
     s32         found;
     s32         result;
-    StreamSlot* base;
+    StreamSlot* slots;
     s32         one;
     s32         ret;
 
     result = 0;
     i      = result;
     found  = result;
-    base   = Stream_Slots;
-    one    = 1;
+    slots  = Stream_Slots;
+    one    = STREAM_KIND_MOVIE;
     arg2  &= 0xFFFF;
 
 loop:
-    if (base[i & 0xFFFF].field_0 == one) {
-        if (base[i & 0xFFFF].field_4 != 0) {
-            if (base[i & 0xFFFF].key.parts.id == arg0[0]) {
-                if (base[i & 0xFFFF].field_10 == (arg1 & 0xFFFF)) {
-                    if (base[i & 0xFFFF].key.parts.group == 0) {
+    if (slots[i & 0xFFFF].kind == one) {
+        if (slots[i & 0xFFFF].startSector != 0) {
+            if (slots[i & 0xFFFF].key.parts.id == arg0[0]) {
+                if (slots[i & 0xFFFF].subId == (arg1 & 0xFFFF)) {
+                    if (slots[i & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
                         if (arg2 == 0) {
                             goto matched;
                         }
-                        if (base[i & 0xFFFF].field_1E != 0) {
+                        if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
                             found = 1;
                             goto matched_result;
                         }
-                    } else if (base[i & 0xFFFF].key.parts.group == arg0[1]) {
+                    } else if (slots[i & 0xFFFF].key.parts.group == arg0[1]) {
                         if (arg2 == 0) {
                             goto matched;
                         }
-                        if (base[i & 0xFFFF].field_1E == 0) {
+                        if (slots[i & 0xFFFF].data.movie.viewStream == 0) {
                             goto done;
                         }
                         found = 1;
@@ -247,7 +247,7 @@ loop:
         }
     }
     i = i + 1;
-    if ((u32)(i & 0xFFFF) < 0xFU) {
+    if ((u32)(i & 0xFFFF) < ARRAY_SIZE(Stream_Slots)) {
         goto loop;
     }
 done:
@@ -270,24 +270,24 @@ ret_neg:
 s16 Stream_FindSlotByKey(u8* arg0)
 {
     s32         i;
-    StreamSlot* base;
+    StreamSlot* slots;
     s32         one;
     s32         ret;
 
-    i    = 0;
-    base = Stream_Slots;
-    one  = 1;
+    i     = 0;
+    slots = Stream_Slots;
+    one   = STREAM_KIND_MOVIE;
     while (1) {
-        if (base[i & 0xFFFF].field_0 == one) {
-            if (base[i & 0xFFFF].key.parts.id == arg0[0]) {
-                if (base[i & 0xFFFF].key.parts.group == 0) {
-                    if (base[i & 0xFFFF].field_1E != 0) {
+        if (slots[i & 0xFFFF].kind == one) {
+            if (slots[i & 0xFFFF].key.parts.id == arg0[0]) {
+                if (slots[i & 0xFFFF].key.parts.group == STREAM_KEY_ANY_GROUP) {
+                    if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
                         ret = i << 0x10;
                         return ret >> 0x10;
                     }
                 }
-                if (base[i & 0xFFFF].key.parts.group == arg0[1]) {
-                    if (base[i & 0xFFFF].field_1E != 0) {
+                if (slots[i & 0xFFFF].key.parts.group == arg0[1]) {
+                    if (slots[i & 0xFFFF].data.movie.viewStream != 0) {
                         ret = i << 0x10;
                         return ret >> 0x10;
                     }
@@ -295,7 +295,7 @@ s16 Stream_FindSlotByKey(u8* arg0)
             }
         }
         i = i + 1;
-        if ((u32)(i & 0xFFFF) >= 0xFU) {
+        if ((u32)(i & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
             break;
         }
     }
@@ -385,7 +385,7 @@ static __inline__ void _streamClearDisplayBuffers(RECT* rect)
 {
     rect->y = 0;
     rect->x = 0;
-    if (D_8006AC14 == 1) {
+    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
         rect->w = 0x1E0;
     } else {
         rect->w = 0x140;
@@ -414,14 +414,14 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         if (D_8006AC30.sector == 0) {
             return 1U;
         }
-        D_8006AC08 = Stream_Slots[slot].field_8 + D_8006AC30.sector;
+        D_8006AC08 = Stream_Slots[slot].source.interSectorOffset + D_8006AC30.sector;
     }
-    if (D_8006AC14 != 0) {
+    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
         params[3] = 0xFF;
         Mdec_SetupBuffers(params);
         queue->field_1EA = 1;
         _streamClearDisplayBuffers(&clearRect);
-        if (D_8006AC14 == 1) {
+        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         } else {
             Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
@@ -454,7 +454,7 @@ s32 CdCmd_StopMdec(s32 arg0)
         p->field_1F4         = 0;
         p->field_1E2         = 0;
         p->field_1E4         = 0;
-        if (ac14 != 0) {
+        if (ac14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
             f12a = gDisplayState.videoMode;
             if (f12a == 1) {
                 if (arg0 & 0xFFFF) {
@@ -523,14 +523,14 @@ static void Stream_StartDecoder(void)
         queue->field_1EE = (D_8006AC0C - frame) + 1;
     }
     queue->field_1EC = 0;
-    if (D_8006AC14 == 0) {
+    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_TEXTURE) {
         queue->field_1E6 = 1;
     } else {
         nextStrip  = D_8006AC1C + 1;
         D_8006AC1C = nextStrip;
         index      = (nextStrip & 0xFFFF) - 1;
         originX    = D_8006AC0E;
-        if (D_8006AC14 == 1) {
+        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             imageX = originX + index * 0x18;
         } else {
             imageX = originX + index * 0x10;
@@ -542,7 +542,7 @@ static void Stream_StartDecoder(void)
         }
         rect.y = imageY;
         width  = 0x10;
-        if (D_8006AC14 == 1) {
+        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             width = 0x18;
         }
         rect.h = D_8006AC6C;
@@ -555,7 +555,7 @@ static void Stream_StartDecoder(void)
         x         = queue->field_230;
         y         = queue->field_232;
         stripRect = &rect;
-        if (D_8006AC14 == 1) {
+        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             stripWidth = 0x18;
         }
         stripRect->y = y;
@@ -588,8 +588,8 @@ static void Mdec_UploadSlice(void)
     s32      size;
     u_long** out;
 
-    if (D_8006AC14 != 0) {
-        if ((D_8006AC14 == 1) && (StCdIntrFlag != 0)) {
+    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
+        if ((D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) && (StCdIntrFlag != 0)) {
             StCdInterrupt();
             StCdIntrFlag = 0;
         }
@@ -598,7 +598,7 @@ static void Mdec_UploadSlice(void)
             D_8006AC1C = nextStrip;
             index      = (nextStrip & 0xFFFF) - 1;
             originX    = D_8006AC0E;
-            if (D_8006AC14 == 1) {
+            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
                 imageX = originX + index * 0x18;
             } else {
                 imageX = originX + index * 0x10;
@@ -610,7 +610,7 @@ static void Mdec_UploadSlice(void)
             }
             width  = 0x10;
             rect.y = imageY;
-            if (D_8006AC14 == 1) {
+            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
                 width = 0x18;
             }
             rect.h = D_8006AC6C;
@@ -619,7 +619,7 @@ static void Mdec_UploadSlice(void)
             D_8005EAEE ^= 1;
             out         = &D_8006AC48[D_8005EAEE ^ 1];
             height      = D_8006AC6C;
-            if (D_8006AC14 == 1) {
+            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
                 size = height * 12;
             } else {
                 size = height * 8;
@@ -642,12 +642,12 @@ static void Mdec_KickStrip(void)
 
     p = &CdCmd_Queue;
     StFreeRing(D_8006AC68);
-    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == 2 ? 0 : D_8006AC14);
-    if (D_8006AC14 != 0) {
+    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14);
+    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
         base = D_8006AC48;
         outs = &base[D_8005EAEE ^ 1];
         ac6c = D_8006AC6C;
-        if (D_8006AC14 == 1) {
+        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             size = ac6c * 12;
         } else {
             size = ac6c * 8;
@@ -723,7 +723,7 @@ static __inline__ void _streamStartDecode(void)
 
     queue = &CdCmd_Queue;
     DecDCTReset(0);
-    StSetStream(D_8006AC14 == 2 ? 0 : D_8006AC14, 0, -1, NULL, NULL);
+    StSetStream(D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14, 0, -1, NULL, NULL);
     StSetRing((u_long*)D_8006AC60, D_8006AC24);
     StClearRing();
     Wip_SysFlags.field_6 = 1;
@@ -819,7 +819,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             }
             break;
         case 5:
-            if (D_8006AC16 == 1) {
+            if (D_8006AC16 == STREAM_MOVIE_REPEAT) {
                 CdCmd_SetBusy();
                 state->field_1EA = 1;
                 state->field_1E4 = 1;
@@ -867,8 +867,8 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             break;
         case 7:
             if ((s16)CdCmd_StopMdec(0) != 0) {
-                if (D_8006AC14 != 0) {
-                    if (D_8006AC14 == 1) {
+                if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
+                    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
                         Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                     }
                     gDisplayState.mdecActive = 1;
@@ -912,7 +912,7 @@ static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 us
     u32 frameWidth;
 
     stripWidth = 0x10;
-    if (D_8006AC14 == 1) {
+    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
         stripWidth = 0x18;
     }
     if (useDisplayBuffer & 0xFFFF) {
@@ -957,7 +957,7 @@ void Stream_PresentFrame(void)
             queue->field_1F2 = 1;
         }
         if (queue->field_22C == 0) {
-            useDisplayBuffer = D_8006AC18 != 1;
+            useDisplayBuffer = D_8006AC18 != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
             x                = D_8006AC0E;
             y                = D_8006AC10;
             Stream_UploadFrameStrips(&rect, x, y, useDisplayBuffer);
@@ -966,7 +966,7 @@ void Stream_PresentFrame(void)
             rect.y = queue->field_232;
             rect.w = (s16)D_8006AC5A;
             rect.h = (s16)D_8006AC6C;
-            if (D_8006AC18 == 1) {
+            if (D_8006AC18 == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
                 yOffset = 0;
             } else {
                 yOffset = gDisplayState.drawBuffer != 0 ? 0x110 : 0;
@@ -1024,16 +1024,16 @@ s16 Stream_HasActiveLowId(void* unused)
     i      = 0;
     result = 0;
     while (1) {
-        if (Stream_Slots[i & 0xFFFF].field_0 == 1) {
+        if (Stream_Slots[i & 0xFFFF].kind == STREAM_KIND_MOVIE) {
             if (Stream_Slots[i & 0xFFFF].key.parts.id < 0x64U) {
-                if (Stream_Slots[i & 0xFFFF].field_4 != 0) {
+                if (Stream_Slots[i & 0xFFFF].startSector != 0) {
                     result = 1;
                     break;
                 }
             }
         }
         i = i + 1;
-        if ((u32)(i & 0xFFFF) >= 0xFU) {
+        if ((u32)(i & 0xFFFF) >= ARRAY_SIZE(Stream_Slots)) {
             break;
         }
     }
@@ -1042,7 +1042,7 @@ s16 Stream_HasActiveLowId(void* unused)
 
 u16 Stream_GetSlotField1A(u32 arg0)
 {
-    return Stream_Slots[arg0 & 0xFFFF].field_1A;
+    return Stream_Slots[arg0 & 0xFFFF].data.movie.frameLimit;
 }
 
 void Stream_KickDecode(u32 arg0)

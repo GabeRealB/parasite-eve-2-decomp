@@ -910,31 +910,31 @@ success:
             goto store_base;
         case 1:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
-            if (p->field_190->field_1A == 1) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + 0x11000;
+            if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->field_190->bufferKind == 2) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
+            if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->data.scene.timingBufferBytes;
             }
             gGameSession->field_7C = 0;
             break;
         case 2:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1;
-            if (p->field_190->field_1A == 2) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + 0x11000;
+            if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->field_190->bufferKind == 3) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
+            if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->data.scene.timingBufferBytes;
             }
             gGameSession->field_7E = 0;
             break;
         case 3:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2;
-            if (p->field_190->field_1A == 3) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + 0x11000;
+            if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->field_190->bufferKind == 4) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
+            if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->data.scene.timingBufferBytes;
             }
             gGameSession->field_80 = 0;
             break;
@@ -989,7 +989,7 @@ static void Mdec_ProcessDecode(void)
         case 0:
             Gpu_ResetGraphAndOt();
             p->field_1EC = 1;
-            if (p->field_238 == 1) {
+            if (p->field_238 == STREAM_SCENE_VLC_IMAGE_BUFFER) {
                 DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
                 p->field_234 = 0;
                 p->field_18C = (u16*)((u8*)Fs_ImgBuffers + 0x8800);
@@ -1044,7 +1044,7 @@ static void Mdec_ProcessDecode(void)
                 if (Stage_CdEntry->field_34 == 0) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
-                if (p->field_190->bufferKind != 0) {
+                if (p->field_190->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                     Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->field_1C], p->field_1A4,
                                       Stage_CdEntry->field_38);
                 }

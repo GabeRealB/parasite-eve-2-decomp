@@ -11,7 +11,7 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 
 | Area | Code / tools |
 |------|----------------|
-| Descriptor struct | `include/main/fs.h` (`FsCdfStream`), `tools/peassets/format.py` |
+| Descriptor struct | `include/main/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
 | Runtime load of descriptors | `src/main/fs.c` (`Fs_BuildFolderTables`, `Fs_InitStage0TablesCb`) |
 | Movie play | `src/main/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
 | Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `MtsSector`) |
@@ -34,7 +34,7 @@ SPK one-shot banks (§9.1 there) are separate from MTS streams.
 | **STAGE0.HED** | Bytes `0x00`… — first entries of the HED | **3** entries (`0x3 × 0x28`) |
 | **STAGE1–5 folder** | Folder base + **`0x514`** (after `0xA2` file slots + pad) | **18** entries (`0x12 × 0x28`) |
 
-Each entry is **`0x28` bytes** (`FsCdfStream` / peassets `STREAMING_LIST_ENTRY_SIZE`).
+Each entry is **`0x28` bytes** (`StreamSlot` / peassets `STREAMING_LIST_ENTRY_SIZE`).
 
 Empty slots are all zeros. STAGE0 HED mixes streams with the file table using
 the high bit of the first word when scanned as a flat sector list (see
@@ -44,25 +44,32 @@ the high bit of the first word when scanned as a flat sector list (see
 
 | `u16` @ `0x00` | Meaning |
 |----------------|---------|
-| `1` | **Movie** (`FS_CDF_STREAM_TYPE_MOVIE`) |
-| `2` | **Audio** (`FS_CDF_STREAM_TYPE_AUDIO`) |
+| `1` | **Movie** (`STREAM_KIND_MOVIE`) |
+| `2` | **Scene/audio** (`STREAM_KIND_SCENE_AUDIO`) |
 
-Layout after the common header differs by type (union in `FsCdfStream`).
+The named `control`, `source` and `data` unions in `StreamSlot` distinguish movie presentation from scene/audio resource and timing data.
 
 ### 1.3 Common header (both types)
 
 | Off | Size | C / peassets | Notes |
-|-----|------|--------------|--------|
-| `0x00` | `u16` | `type` / `stream_type` | `1` movie, `2` audio |
-| `0x02` | `u16` | `field_2` / `unknown1` | STAGE0: bit 15 (`0x8000`) marks stream in mixed HED walk; low bits vary |
-| `0x04` | `u32` | `offset` | **Sector count** on disc (× `0x800` → bytes in tools) |
+|-----|------|--------------|-------|
+| `0x00` | `s16` | `kind` / `stream_type` | `1` movie, `2` scene/audio; `0` in empty entries |
+| `0x02` | `u16` | `control.headerBits` / `unknown1` | STAGE0 bit 15 (`0x8000`) marks a stream in the mixed HED walk; other movie bits are unproven. Scene/audio splits this into two bytes |
+| `0x04` | `s32` | `startSector` / offset fields | CD sector offset on disc, absolute sector in a live slot; `0` marks an unloaded sector |
+| `0x0C` | `u16` | `key.parts.group` | Movie room selector (`0` wildcard); scene/audio exact group |
+| `0x0E` | `u16` | `key.parts.id` / `stream_id` | Primary stream ID; movie lookup matches the location/view byte |
+| `0x10` | `u16` | `subId` / low half of `stream_sub_id` | First exact selection qualifier |
 
-Runtime **absolutizes** `offset` when loading:
+Runtime **absolutizes** `startSector` when loading:
 
 - STAGE0: `+= Fs_StageCdfSectors[0]`
-- Folder: `+= folder.offset + stage_cdf_base`  
-  On-disc folder movie/audio offsets are **folder-relative sectors** for the
-  common `offset` field (audio: stage/CDF-relative per comments; see §2 / §3).
+- Folder: `+= folder.offset + stage_cdf_base`
+
+Both movie and scene/audio offsets in a folder are relative to that folder's
+base. Peassets offset fields are measured in **bytes**, whereas the C descriptor
+stores **2048-byte sectors**. A zero complete `key.word` terminates the serialized
+folder run. The loader relies on that run fitting the fifteen-entry live table;
+the eighteen-entry serialized capacity does not enlarge the runtime table.
 
 ### 1.4 Runtime table
 
@@ -77,21 +84,35 @@ CD command queue / CdAudio.
 
 ### 2.1 Descriptor (type = 2)
 
-| Off | Size | C (`data.audio`) | peassets | Role |
-|-----|------|------------------|----------|------|
-| `0x00` | `u16` | `type` | `stream_type` | **`2`** |
-| `0x02` | `u16` | `field_2` | `unknown1` | Flags / tag; STAGE0 often has `0x8000` |
-| `0x04` | `u32` | `offset` | `offset_stage` | Start **sector** (folder: relative to folder; STAGE0: relative to stage CDF) |
-| `0x08` | `u32` | `field_8` | `unknown2` | Often `0` or SPU-range (`0x5800`…`0x19000`) — likely SPU base |
-| `0x0C` | `u16` | `stageIdx` | `stage_number` | Stage index `0`…`5` |
-| `0x0E` | `u16` | `id` | `stream_id` | Lookup id |
-| `0x10` | `u32` | `subId` | `stream_sub_id` | Low half almost always `0xB`; high half `0` |
-| `0x14` | `u16` | `field_14` | `unknown3` | Often **length in sectors** when non-zero (rough; not always exact gap) |
-| `0x16` | `u16` | `field_16` | `unknown4` | Almost always **`0x20`** (matches volume-ramp constant) |
-| `0x18` | `u32` | `field_18` | `unknown5` | Mode/flags: `0`, `1`, `2`, or `0x20000` |
-| `0x1C` | `u16` | `field_1c` | low of `unknown6` | Often `0x800` / `0` / `0x1000` — buffer size-ish |
-| `0x1E` | `u16` | `field_1e` | high of `unknown6` | Often `0x800` or larger |
-| `0x20` | 8 | `field_20` | `unknown7` | Always zero in retail samples |
+These entries can load scene images/resources and a frame-timing prefix alongside
+CD audio. Their common key is matched by `Gp_FindStreamSlot` without a wildcard;
+group zero selects the stage-zero table, and a nonzero group selects the folder
+table. `data.scene` occupies the same bytes as `data.movie`.
+
+| Off | Size | C | peassets | Role |
+|-----|------|---|----------|------|
+| `0x00` | `s16` | `kind` | `stream_type` | **`2`** (`STREAM_KIND_SCENE_AUDIO`) |
+| `0x02` | `u8` | `control.scene.volumeIndex` | low byte of `unknown1` | CD-audio volume-table index |
+| `0x03` | `u8` | `control.scene.timingBufferKind` | high byte of `unknown1` | `0` none, `1` auxiliary allocation, `2/3/4` actor buffers `0/1/2`; HED marker is cleared before use |
+| `0x04` | `s32` | `startSector` | `offset_stage` | Absolute start sector after loading |
+| `0x08` | `s32` | `source.decodeBufferBytes` | `unknown2` | Initial auxiliary decode-buffer allocation size in bytes |
+| `0x0C` | `u16` | `key.parts.group` | `stage_number` | Exact stream-selection group; the external schema name does not establish a stage index |
+| `0x0E` | `u16` | `key.parts.id` | `stream_id` | Exact stream ID |
+| `0x10` | `u16` | `subId` | low half of `stream_sub_id` | First exact qualifier |
+| `0x12` | `u16` | `data.scene.subId2` | high half of `stream_sub_id` | Second exact qualifier |
+| `0x14` | `u16` | `data.scene.resumeSectorOffset` | `unknown3` | Resume CD audio at `startSector + resumeSectorOffset`; `0` skips this seek |
+| `0x16` | `u16` | `data.scene.soundBankMask` | `unknown4` | Sound-bank selection mask applied around scene playback |
+| `0x18` | `u16` | `data.scene.vlcTableMode` | low half of `unknown5` | `0` reserves/builds a VLC table, `1` builds it in the image buffer during decode; other modes are unproven |
+| `0x1A` | `u16` | `data.scene.vlcBufferKind` | high half of `unknown5` | Reserved VLC table: `0` allocate, `1/2/3` actor buffers `0/1/2` |
+| `0x1C` | `u16` | `data.scene.timingBytes` | low half of `unknown6` | Timing-prefix bytes rounded to sectors before audio starts |
+| `0x1E` | `u16` | `data.scene.timingBufferBytes` | high half of `unknown6` | Timing-buffer allocation/reservation size in bytes |
+| `0x20` | 8 | `data.scene.unknown_20` | `unknown7` | Role unproven; always zero in retail samples |
+
+The timing buffer contains the `u32` entries used to pace scene frames. When it
+shares an actor buffer with the reserved VLC table, it starts after the table's
+`STREAM_VLC_TABLE_BYTES` (`0x11000`) bytes. Scene payloads in that same actor buffer start after the timing
+buffer's reserved byte extent. The source allocation and timing-prefix byte
+counts have separate roles and are not sector addresses.
 
 ### 2.2 Payload: MTS sector stream
 
@@ -132,8 +153,8 @@ Some streams have a short **preamble** (TOC-like table) before the first MTS
 header; skip until magic.
 
 Nominal body length: `chunk_count × channels × period` sectors (from first
-header). Descriptor `field_14` often matches total span from the list offset
-when set; else derive from headers.
+header). The descriptor's `data.scene.resumeSectorOffset` supplies a subsequent
+audio seek; derive the body length from the MTS headers.
 
 ### 2.3 `CdStream_ReadyMts` write sizes (critical for decode)
 
@@ -154,8 +175,8 @@ Odd period windows often end with an ADPCM frame whose **end flag** is set
 (`flags & 1`, e.g. `0x03`). Hardware hits that flag and loops/stops; trailing
 zero frames are **not** heard. Offline decode should:
 
-1. Keep samples through the end-flag frame  
-2. Drop trailing all-zero 16-byte frames  
+1. Keep samples through the end-flag frame
+2. Drop trailing all-zero 16-byte frames
 3. Drop leading zero frames on later windows (optional keep on first window)
 
 ### 2.5 Sample rate and extract layout
@@ -177,16 +198,19 @@ python3 tools/peassets/extract.py ... -o assets/USA
 python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
 ```
 
-### 2.6 Open / low-confidence audio fields
+### 2.6 Field contracts and remaining questions
 
 | Field | Confidence |
 |-------|------------|
-| type, offset, stageIdx, id | High |
-| field_2 bit15 on STAGE0 | High (HED stream marker) |
-| field_14 as sector length | Medium |
-| field_8 as SPU base | Medium |
-| field_16 = `0x20` | Medium (volume/ramp) |
-| field_18, field_1c/1e | Low (mode / buffer sizes) |
+| `kind`, `startSector`, `key.parts.group`, `key.parts.id` | High |
+| `control.headerBits` bit15 on STAGE0 | High (HED stream marker) |
+| `data.scene.resumeSectorOffset` as a subsequent audio seek | High |
+| `source.decodeBufferBytes` as an initial auxiliary allocation | High |
+| `data.scene.soundBankMask`, usually `0x20` | High (sound-bank mask consumers) |
+| `data.scene.vlcTableMode` values `0` / `1` | High; other modes remain unproven |
+| `control.scene.timingBufferKind`, `data.scene.vlcBufferKind` | High (allocation/reuse selectors) |
+| `data.scene.timingBytes`, `data.scene.timingBufferBytes` | High (prefix and reservation byte counts) |
+| `data.scene.unknown_20` | Role unproven |
 | Interleaved **XA** speech on movie STR | Separate; MTS path is SPU-ADPCM only |
 | Pack / re-encode MTS | Not implemented (raw preferred) |
 
@@ -205,7 +229,7 @@ python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
 matches for a long prefix (title at sector 0 is the same); later they diverge.
 There is no “one INTER shared by both discs.”
 
-Practical mapping when playing **INTER** movies (`movie_number ≠ 0`):
+Practical mapping when playing **INTER** movies (`data.movie.volumeTableIndex != 0`):
 
 | Stage | Lives on | INTER used |
 |-------|----------|------------|
@@ -218,52 +242,57 @@ The engine does **not** map stage number → INTER index. It always seeks the
 **first `.STR` on the inserted disc** (`D_8006AC30` from ISO root scan). Which
 stages exist on that disc is how the player reaches disk1 vs disk2 content.
 
-Some movies use `movie_number == 0` and live in the **STAGE*.CDF** folder (not
+Some movies use `data.movie.volumeTableIndex == 0` and live in the **STAGE*.CDF** folder (not
 INTER). The table above is only for INTER payloads.
 
 ### 3.2 Descriptor (type = 1) — field map
 
-Layout matches `FsCdfStream` / `StreamSlot` (`0x28` bytes). USA retail survey
-(~65 movie rows on both discs).
+Layout matches `StreamSlot` (`0x28` bytes). USA retail survey
+(~65 movie rows on both discs). Peassets retains its external serialized field
+names; the C movie interpretation is `data.movie`.
 
-| Off | Size | C (`data.movie`) | peassets | Role | Conf. |
-|-----|------|------------------|----------|------|-------|
-| `0x00` | `u16` | `type` | `stream_type` | **`1`** = movie | High |
-| `0x02` | `u16` | `field_2` | `unknown1` | STAGE0 HED stream marker bit15 (`0x8000`); else usually `0` | High (bit15); low bits unused? |
-| `0x04` | `u32` | `offset` | `offset_folder` | Start **sector** (folder-relative STAGE1–5; STAGE0-relative on HED). Absolutized at table load. **Seek LBA only if `movie_number == 0`** | High |
-| `0x08` | `u32` | `interOffset` | `offset_inter` | Sector index **within** the disc’s `INTER*.STR` (`0` = file start). **Seek base when `movie_number ≠ 0`** | High |
-| `0x0C` | `u16` | `field_c` | `unknown2` | Secondary match key in `Stream_FindSlot`: if ≠0, must equal `key[1]`; if `0`, any secondary. USA: almost always `0` | Medium |
-| `0x0E` | `u16` | `id` | `stream_id` | **Primary lookup key** (`Stream_FindSlot` matches `key[0]`) | High |
-| `0x10` | `u16` | `subId` | `stream_sub_id` | Matched against `value` in `Stream_FindSlot` (often `0`; small room sub-indices) | High |
-| `0x12` | `u16` | `width` | `picture_width` | MDEC width (e.g. 320) → `D_8006AC5A` | High |
-| `0x14` | `u16` | `height` | `picture_height` | MDEC height (e.g. 240, 192) → `D_8006AC6C` | High |
-| `0x16` | `u16` | `field_16` | `unknown3` | Copied to `D_8006AC0E`. Usually `0`; occasional non-zero (display/crop-related?) | Low |
-| `0x18` | `u16` | `field_18` | `unknown4` | Copied to `D_8006AC10`. Often **`24`** (`0x18`); else `0` / small values | Low–med |
-| `0x1A` | `u16` | `field_1a` | `unknown5` | **≈ frame count** (stop / length hint), **not** sector count → `D_8006AC0C` | High (empirical) |
-| `0x1C` | 6 | `field_1c` | `unknown6` | Mostly zeros. Low `u16` at `0x1C` → `D_8006AC16`. Sparse non-zero patterns | Low |
-| `0x22` | `u16` | `field_22` | `unknown7` | **Display / buffer mode** → `D_8006AC14`. USA: **`0` or `1`**. Non-zero takes the title-style clear/setup path in `func_8001F180` (`Display_SetMode` 0xD010 vs 0xF010 when `== 1`) | Medium–high |
-| `0x24` | `u16` | `field_24` | `movie_number` | **`0`** → payload in STAGE CDF; **≠0** → payload in INTER + rewrite seek. Also → `D_8006AC58` (volume fade path). Same value often shared by dual-disc pair rows | High |
-| `0x26` | `u16` | `field_26` | `unknown8` | → `D_8006AC18`. Almost always `0` on USA | Low |
+| Off | Size | C | peassets | Role | Conf. |
+|-----|------|---|----------|------|-------|
+| `0x00` | `s16` | `kind` | `stream_type` | **`1`** = movie | High |
+| `0x02` | `u16` | `control.headerBits` | `unknown1` | STAGE0 HED stream marker bit15 (`0x8000`); other movie bits unproven | High (bit15) |
+| `0x04` | `s32` | `startSector` | `offset_folder` | Start **sector**, absolutized at table load; seek base when `volumeTableIndex == 0` | High |
+| `0x08` | `s32` | `source.interSectorOffset` | `offset_inter` | Sector offset **within** `INTER*.STR`; seek base when `volumeTableIndex != 0` | High |
+| `0x0C` | `u16` | `key.parts.group` | `unknown2` | Movie room selector: `0` wildcard, otherwise matches key byte 1. USA: almost always `0` | High |
+| `0x0E` | `u16` | `key.parts.id` | `stream_id` | Primary lookup ID matched against key byte 0 | High |
+| `0x10` | `u16` | `subId` | `stream_sub_id` | Exact selection qualifier (often `0`; small room sub-indices) | High |
+| `0x12` | `u16` | `data.movie.width` | `picture_width` | Decoded width in pixels (e.g. 320) → `D_8006AC5A` | High |
+| `0x14` | `u16` | `data.movie.height` | `picture_height` | Decoded height in rows (e.g. 240, 192) → `D_8006AC6C` | High |
+| `0x16` | `u16` | `data.movie.vramX` | `unknown3` | Upload origin X in VRAM words → `D_8006AC0E` | High |
+| `0x18` | `u16` | `data.movie.vramY` | `unknown4` | Upload origin Y in VRAM rows → `D_8006AC10`; often **24** (`0x18`) | High |
+| `0x1A` | `u16` | `data.movie.frameLimit` | `unknown5` | One-based playback stop frame → `D_8006AC0C`; can precede the physical STR end | High |
+| `0x1C` | `u16` | `data.movie.loopMode` | low half of `unknown6` | `1` restarts playback after pausing at completion; other values stop | High |
+| `0x1E` | `u16` | `data.movie.viewStream` | middle half of `unknown6` | Nonzero permits selection for view-stream playback | High |
+| `0x20` | 2 | `data.movie.unknown_20` | high half of `unknown6` | Role unproven | Low |
+| `0x22` | `u16` | `data.movie.displayMode` | `unknown7` | `0` texture stream, `1` full-screen RGB24, `2` full-screen RGB16 → `D_8006AC14` | High |
+| `0x24` | `u16` | `data.movie.volumeTableIndex` | `movie_number` | Low byte selects CD volume; any nonzero value selects INTER seeking and enables streaming audio → `D_8006AC58` | High |
+| `0x26` | `u16` | `data.movie.uploadMode` | `unknown8` | `1` uses fixed VRAM coordinates; other values add the current draw-buffer Y offset → `D_8006AC18` | High |
 
 `Stream_InitFromSlot` wiring (slot field → BSS):
 
 ```text
-offset      → D_8006AC08   (seek sector; may be rewritten)
-field_1a    → D_8006AC0C   (frame-count / stop hint)
-width       → D_8006AC5A
-height      → D_8006AC6C
-field_16    → D_8006AC0E
-field_18    → D_8006AC10
-field_1c    → D_8006AC16   (first halfword of the 6-byte block)
-field_22    → D_8006AC14   (display mode branch)
-movie_number→ D_8006AC58
-field_26    → D_8006AC18
+startSector                → D_8006AC08   (seek sector; may be rewritten)
+data.movie.frameLimit      → D_8006AC0C
+data.movie.width           → D_8006AC5A
+data.movie.height          → D_8006AC6C
+data.movie.vramX           → D_8006AC0E
+data.movie.vramY           → D_8006AC10
+data.movie.loopMode        → D_8006AC16
+data.movie.displayMode     → D_8006AC14
+data.movie.volumeTableIndex→ D_8006AC58
+data.movie.uploadMode      → D_8006AC18
 ```
 
-**Still unknown in detail:** semantic meaning of `field_16`, `field_18`, most of
-`field_1c[6]`, and `field_26` beyond “copied into globals.” `offset` when
-`movie_number ≠ 0` is still absolutized at load but **not used for INTER seek**
-(legacy / unused for play head).
+The two bytes in `data.movie.unknown_20` have no field-level consumer.
+`startSector` is still absolutized at load when `volumeTableIndex != 0`, but
+INTER playback replaces that seek base with the root STR LBA plus
+`source.interSectorOffset`. The extracted schema's `movie_number` therefore
+selects an audio-volume entry and INTER playback, rather than identifying a
+particular movie.
 
 ### 3.3 How the game picks which descriptor
 
@@ -271,9 +300,9 @@ The engine does **not** scan INTER for a valid frame. It always:
 
 ```text
 caller supplies stream id (+ optional sub keys)
-    → Stream_FindSlot (exact match on id / subId / field_c rules)
+    → Stream_FindSlot (exact match on key.parts.id / subId / key.parts.group rules)
     → Stream_InitFromSlot(slot)
-    → if movie_number ≠ 0: seek INTER_LBA + interOffset
+    → if data.movie.volumeTableIndex ≠ 0: seek INTER_LBA + source.interSectorOffset
       else:                seek absolutized offset (stage CDF)
     → CdCmd 0x61 play
 ```
@@ -295,8 +324,8 @@ slot = Stream_FindSlot(key, 0, 0);
 CdCmd_Enqueue(0x61, slot);
 ```
 
-Both title rows share `interOffset = 0` (same video). Disc → id is still how
-the key is chosen. `field_22 == 1`: 24-bit MDEC (`Display_SetMode` 0xD010
+Both title rows share `source.interSectorOffset = 0` (same video). Disc → id is still how
+the key is chosen. `data.movie.displayMode == STREAM_MOVIE_DISPLAY_RGB24`: 24-bit MDEC (`Display_SetMode` 0xD010
 path). 320×240.
 
 #### In-game
@@ -309,13 +338,13 @@ chooses id 100 vs 101 for stage‑3 duals; the engine side is only **id → slot
 ### 3.4 Dual descriptors (stage 3) — not dual-valid
 
 Stage 3 appears on **both** discs. Its streaming list often contains **two rows
-for the same cutscene** (same length / same `movie_number` pair, different
-`stream_id` and `interOffset`):
+for the same cutscene** (same length / same `data.movie.volumeTableIndex` pair, different
+`stream_id` and `source.interSectorOffset`):
 
 ```text
 Same cutscene
-  ├─ id A  +  interOffset_high  →  real clip head on INTER0 (disk1)
-  └─ id B  +  interOffset_low   →  real clip head on INTER1 (disk2)
+  ├─ id A  +  higher source.interSectorOffset  →  real clip head on INTER0 (disk1)
+  └─ id B  +  lower source.interSectorOffset   →  real clip head on INTER1 (disk2)
 ```
 
 Both rows are listed in STAGE3 on **both** discs. Only one is a real frame‑1
@@ -329,34 +358,34 @@ two table rows.
 
 Extract policy (`extract.py` / `extract_movies.py`):
 
-1. Keep INTER starts only if STR magic and **frame ≤ 1** on that disc’s file  
-2. One owner per `(disk, INTER, sector)` (earlier stage wins shared starts)  
-3. One extract per stem across discs  
+1. Keep INTER starts only if STR magic and **frame ≤ 1** on that disc’s file
+2. One owner per `(disk, INTER, sector)` (earlier stage wins shared starts)
+3. One extract per stem across discs
 4. Length = gap to next **validated** start, or `unknown5 × 11 + pad` if the gap
    is far shorter than the frame hint (avoids false boundaries)
 
 ### 3.5 Payload locations and seek start
 
-Runtime absolutization of `offset` (table load):
+Runtime absolutization of `startSector` (table load):
 
-- STAGE0: `offset += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
-- Folder: `offset += folder.offset + Fs_StageCdfSectors[stage]`
+- STAGE0: `startSector += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
+- Folder: `startSector += folder.offset + Fs_StageCdfSectors[stage]`
 
-Play init (`Stream_InitFromSlot` + `func_8001F180`):
+Play init (`Stream_InitFromSlot` + `Stream_InitializePlayback`):
 
-1. `D_8006AC08 = offset` (absolute LBA into stage CDF space)
-2. If **`movie_number ≠ 0`**: **overwrite**  
-   `D_8006AC08 = interOffset + D_8006AC30.sector`  
+1. `D_8006AC08 = startSector` (absolute LBA into stage CDF space)
+2. If **`data.movie.volumeTableIndex != 0`**: **overwrite**
+   `D_8006AC08 = source.interSectorOffset + D_8006AC30.sector`
    (`D_8006AC30.sector` = ISO-root LBA of the disc’s `INTER*.STR`)
 3. Seek with `CdIntToPos(D_8006AC08)` / `CdRead2`
 
-| `movie_number` | Container | Sector form | Start |
+| `data.movie.volumeTableIndex` | Container | Sector form | Start |
 |----------------|-----------|-------------|--------|
-| **`0`** | `STAGE*.CDF` folder | 2048 B ISO user | Folder base + `offset` |
-| **≠ 0** | `INTER0` / `INTER1` on current disc | 2336 B Mode 2 Form 1 | **`interOffset` only** (`0` valid = file start). Never fall back to `offset` |
+| **`0`** | `STAGE*.CDF` folder | 2048 B ISO user | Absolutized `startSector` |
+| **≠ 0** | `INTER0` / `INTER1` on current disc | 2336 B Mode 2 Form 1 | **`source.interSectorOffset` only** (`0` valid = file start). Never fall back to `startSector` |
 
-STAGE0 title: `interOffset = 0`, `offset = 0x41B` (unused for seek). Playing from
-`offset` as an INTER index wrongly starts mid-clip (~frame 106).
+STAGE0 title: `source.interSectorOffset = 0`, serialized `startSector = 0x41B` (unused for seek). Playing from
+`startSector` as an INTER index wrongly starts mid-clip (~frame 106).
 
 INTER sector layout:
 
@@ -369,15 +398,15 @@ INTER sector layout:
 
 ISO-extracted CDF sectors are already 2048 B user data (no 2336 wrapper).
 
-### 3.6 Length: `field_1a` / `unknown5` is frame count
+### 3.6 Length: `data.movie.frameLimit` / `unknown5` is a playback frame limit
 
 | Interpretation | Result |
 |----------------|--------|
 | As **sector** count (wrong) | ~1/10 of real duration |
-| Gap to next movie start on same container | Frame count ≈ `field_1a` |
+| Gap to next movie start on same container | Physical frame count ≈ `data.movie.frameLimit`; playback may stop earlier |
 
 ~**10 user-sectors per frame** (video + XA pad). Extract: gap to next validated
-start, else `field_1a × 11 + pad`, then frame-align window ends.
+start, else `data.movie.frameLimit × 11 + pad`, then frame-align window ends.
 
 ### 3.7 STR sector header (2048 B user data)
 
@@ -414,10 +443,10 @@ Same layout as room backgrounds (`.bs`):
 0x08  …    VLC bitstream (16-bit LE words)
 ```
 
-- **v2:** DC signed 10-bit absolute per block  
-- **v3:** DC differential Huffman (separate Cr/Cb predictors; shared luma)  
+- **v2:** DC signed 10-bit absolute per block
+- **v3:** DC differential Huffman (separate Cr/Cb predictors; shared luma)
 
-Macroblocks **column-major**. Decode: `bs_codec.decode_bs_frame`.  
+Macroblocks **column-major**. Decode: `bs_codec.decode_bs_frame`.
 Typical sizes: **320×240** (title), **320×192** (many in-game), plus smaller clips.
 
 ### 3.9 XA audio (INTER movies)
@@ -435,7 +464,7 @@ pad/EDC inside the 2336-byte raw sector. Decode matches FFmpeg ``xa_decode``
 (filter headers at bytes 4–11, samples in column-major nibbles at
 ``16+i+j*4``): `tools/peassets/xa_codec.py`.
 
-**CDF / ISO movies** (`movie_number == 0`) are stored as 2048-byte Form 1 user
+**CDF / ISO movies** (`data.movie.volumeTableIndex == 0`) are stored as 2048-byte Form 1 user
 sectors only in the extracted dump — **no XA track** there (often silent video,
 or audio comes from a separate type-2 MTS stream).
 
@@ -477,8 +506,8 @@ Folder/HED load → Stream_Slots (all descriptors, including duals)
 Caller sets stream id (title: disc flag; in-game: session/event)
 Stream_FindSlot(id) → slot
 CdCmd 0x61 + Stream_InitFromSlot
-  movie_number≠0 → seek INTER + interOffset
-  movie_number==0 → seek stage CDF + offset
+  data.movie.volumeTableIndex≠0 → seek INTER + source.interSectorOffset
+  data.movie.volumeTableIndex==0 → seek stage CDF + startSector
 STR → demux → MDEC → VRAM
 ```
 
@@ -487,17 +516,18 @@ STR → demux → MDEC → VRAM
 | Topic | Status |
 |-------|--------|
 | Disc STAGE / INTER inventory | High |
-| INTER seek = `interOffset + INTER_LBA` (incl. 0) | High (`func_8001F180`) |
-| `movie_number` CDF vs INTER | High |
+| INTER seek = `source.interSectorOffset + INTER_LBA` (incl. 0) | High (`Stream_InitializePlayback`) |
+| `data.movie.volumeTableIndex` volume selection and CDF vs INTER | High |
 | Stream id lookup (`Stream_FindSlot`) | High |
 | Title disc flag → id 100/101 | High (`title.c` + ISO scan) |
 | Stage‑3 dual rows = per-disc packing (not dual-valid) | High (hashes + frame heads) |
 | In-game script choice of id 100 vs 101 | Medium (path clear; not all callers decompiled) |
-| `field_1a` ≈ frame count | High (empirical) |
-| `field_22` display mode 0/1 | Medium–high (`func_8001F180`) |
-| `field_c` secondary FindSlot key | Medium |
-| `field_16` / `field_18` / `field_1c` / `field_26` | Low |
-| `offset` meaning when `movie_number ≠ 0` | Low (loaded, unused for seek) |
+| `data.movie.frameLimit` ≈ frame count | High (empirical) |
+| `data.movie.displayMode` (texture / RGB24 / RGB16) | High (`Stream_InitializePlayback`) |
+| `key.parts.group` movie room selector | High |
+| `data.movie.vramX`, `vramY`, `loopMode`, `uploadMode` | High (upload and playback consumers) |
+| `data.movie.unknown_20` | Role unproven |
+| `startSector` when `data.movie.volumeTableIndex != 0` | Absolutized at load, then replaced for INTER seeking |
 | Sector length without next-start gap | Medium (`×11` estimate) |
 | Frame rate (extract WebP @ 15 fps) | Medium |
 | **XA audio** demux (INTER, codinginfo 0x01) | High (title ~122 s matches video) |
@@ -530,23 +560,23 @@ MTS stereo, period 10, ~285 chunks → long BGM-style stream
 ### Movie (STAGE0 title FMV)
 
 ```text
-type=1  id=100/101  movie_number=1  320×240
-interOffset = 0  → sector 0 of that disc’s INTER (frame 1)
-offset = 0x41B (ignored for INTER seek)
-field_1a = 0x73A (~1850 frames)
+kind=1  key.parts.id=100/101  data.movie.volumeTableIndex=1  320×240
+source.interSectorOffset = 0  → sector 0 of that disc’s INTER (frame 1)
+serialized startSector = 0x41B (ignored for INTER seek)
+data.movie.frameLimit = 0x73A (~1850 frames)
 span to next INTER clip (~18620 sectors) → full title (~2 min @ 15 fps)
 title pick: disk1 → id 100, disk2 → id 101 (same video)
 ```
 
-Wrong: treat `offset` as INTER start when `interOffset == 0` → mid-clip frame 106.  
+Wrong: treat `startSector` as INTER start when `source.interSectorOffset == 0` → mid-clip frame 106.
 Wrong: treat `0x73A` as sector count → ~186 frames only.
 
 ### Movie (stage 3 dual packing)
 
 ```text
 Same cutscene, two STAGE3 rows (example folder 901):
-  id=100  interOffset=75977  → valid frame-1 start on INTER0 only
-  id=101  interOffset=18620  → valid frame-1 start on INTER1 only
+  id=100  source.interSectorOffset=75977  → valid frame-1 start on INTER0 only
+  id=101  source.interSectorOffset=18620  → valid frame-1 start on INTER1 only
 Content at INTER0@75977 == INTER1@18620 (hash match)
 ```
 
@@ -554,7 +584,7 @@ Content at INTER0@75977 == INTER1@18620 (hash match)
 
 ## 6. Related docs
 
-- [`ASSET_FORMATS.md`](ASSET_FORMATS.md) — stage chunks, BS stills, SPK, stages.json  
-- jPSXdec *PlayStation1_STR_format* — general STR/MDEC reference  
-- `include/main/cdstream.h` — `MtsSector`, `CdStreamState`  
-- `include/main/stream.h` — `StreamSlot`, MDEC helpers  
+- [`ASSET_FORMATS.md`](ASSET_FORMATS.md) — stage chunks, BS stills, SPK, stages.json
+- jPSXdec *PlayStation1_STR_format* — general STR/MDEC reference
+- `include/main/cdstream.h` — `MtsSector`, `CdStreamState`
+- `include/main/stream_types.h` — `StreamSlot`; `include/main/stream.h` — MDEC helpers

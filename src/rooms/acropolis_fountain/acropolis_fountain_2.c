@@ -1569,8 +1569,8 @@ void func_acropolis_fountain_8017E3D4(Task* task)
 {
     CdCmdQueue* queue;
     CdCmdQueue* queue2;
-    StreamSlot* slot;
-    StreamSlot* slot2;
+    StreamSlot* textureStream;
+    StreamSlot* loopStream;
     SPRT*       p;
     DR_TPAGE*   dr;
     GameLoc     key;
@@ -1608,7 +1608,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     gGameSession->field_4E = 1;
                     key                    = gGameSession->at4;
                     key.loc.view           = view;
-                    slot                   = Stream_GetSlot(Stream_FindSlotByKey((u8*)&key) & 0xFFFF);
+                    textureStream          = Stream_GetSlot(Stream_FindSlotByKey((u8*)&key) & 0xFFFF);
 
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
@@ -1626,15 +1626,15 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         p->y0 = 0x2A;
                     }
                     dr   = gGpuPrimCursor;
-                    p->w = slot->field_12;
-                    p->h = slot->field_14;
+                    p->w = textureStream->data.movie.width;
+                    p->h = textureStream->data.movie.height;
                     addPrim(&gGpuCurrentOt[ot], p);
 
                     gGpuPrimCursor = dr + 1;
                     setlen(dr, 1);
-                    tpage       = (u32)(slot->field_18 & 0x100) >> 4;
-                    dr->code[0] = tpage | (((u32)(slot->field_16 & 0x3FF) >> 6) | 0x100) |
-                                  ((slot->field_18 & 0x200) * 4) | 0xE1000000;
+                    tpage       = (u32)(textureStream->data.movie.vramY & 0x100) >> 4;
+                    dr->code[0] = tpage | (((u32)(textureStream->data.movie.vramX & 0x3FF) >> 6) | 0x100) |
+                                  ((textureStream->data.movie.vramY & 0x200) * 4) | 0xE1000000;
                     addPrim(&gGpuCurrentOt[ot], dr);
                     break;
 
@@ -1644,10 +1644,10 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                         queue2            = &CdCmd_Queue;
                         key2              = gGameSession->at4;
                         key2.loc.view     = Gp_FindViewIndex(4);
-                        slot2             = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);
+                        loopStream        = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);
                         count             = queue2->field_1EA + 1;
                         queue2->field_1EA = count;
-                        if (count >= slot2->field_1A - 0xA) {
+                        if (count >= loopStream->data.movie.frameLimit - 0xA) {
                             queue2->field_1EA = 1;
                         }
                     }

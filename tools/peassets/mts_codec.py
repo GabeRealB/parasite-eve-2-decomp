@@ -6,7 +6,7 @@ Retail audio streams (streaming-list type ``2``) are sector streams of
 
 ## On-disc layout
 
-Descriptor (``FsCdfStream`` audio arm, ``0x28`` bytes) points at a start
+Descriptor (``StreamSlot.data.scene`` interpretation, ``0x28`` bytes) points at a start
 sector. Payload is a run of CD sectors (``0x800`` bytes each):
 
 Every *period* sectors an **MTS header sector** appears::
