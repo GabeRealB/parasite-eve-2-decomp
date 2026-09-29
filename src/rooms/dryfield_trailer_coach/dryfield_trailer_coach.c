@@ -269,17 +269,11 @@ TmdSource D_dryfield_trailer_coach_80184554 = {
 
 #include "../../shared/telephone_data.inc.c"
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} DryfieldTrailerCoachPoseBank72D8;
-
-DryfieldTrailerCoachPoseBank72D8 D_dryfield_trailer_coach_80184898 = { .poses = {
+GpPackedPose D_dryfield_trailer_coach_80184898[3] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank1.inc"
-                                                                       } };
+};
 
-GpPackedSvec D_dryfield_trailer_coach_801848BC[81] = {
+AnimationPackedRotation D_dryfield_trailer_coach_801848BC[81] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank4.inc"
 };
 
@@ -294,20 +288,14 @@ u16 D_dryfield_trailer_coach_80184C00[20] = {
 GpAnimSet D_dryfield_trailer_coach_80184C28 = {
     D_dryfield_trailer_coach_80184A00,
     D_dryfield_trailer_coach_80184C00,
-    { NULL, D_dryfield_trailer_coach_80184898.words, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
+    { NULL, D_dryfield_trailer_coach_80184898, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} DryfieldTrailerCoachPoseBank7690;
-
-DryfieldTrailerCoachPoseBank7690 D_dryfield_trailer_coach_80184C50 = { .poses = {
+GpPackedPose D_dryfield_trailer_coach_80184C50[7] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank1.inc"
-                                                                       } };
+};
 
-GpPackedSvec D_dryfield_trailer_coach_80184CA4[56] = {
+AnimationPackedRotation D_dryfield_trailer_coach_80184CA4[56] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank4.inc"
 };
 
@@ -322,7 +310,7 @@ u16 D_dryfield_trailer_coach_80184F2C[20] = {
 GpAnimSet D_dryfield_trailer_coach_80184F54 = {
     D_dryfield_trailer_coach_80184D84,
     D_dryfield_trailer_coach_80184F2C,
-    { NULL, D_dryfield_trailer_coach_80184C50.words, NULL, NULL, D_dryfield_trailer_coach_80184CA4, NULL, NULL, NULL },
+    { NULL, D_dryfield_trailer_coach_80184C50, NULL, NULL, D_dryfield_trailer_coach_80184CA4, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_trailer_coach_80184F7C[3] = {

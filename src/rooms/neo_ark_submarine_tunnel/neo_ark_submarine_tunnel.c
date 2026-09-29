@@ -94,17 +94,11 @@ TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, func_neo_ark_submarine_
 
 TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { 0, 192, func_neo_ark_submarine_tunnel_8017E288, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} NeoArkSubmarineTunnelPoseBank3B3C;
-
-NeoArkSubmarineTunnelPoseBank3B3C D_neo_ark_submarine_tunnel_801810FC = { .poses = {
+GpPackedPose D_neo_ark_submarine_tunnel_801810FC[6] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_neo_ark_submarine_tunnel_80181144[64] = {
+AnimationPackedRotation D_neo_ark_submarine_tunnel_80181144[64] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank4.inc"
 };
 
@@ -119,20 +113,14 @@ u16 D_neo_ark_submarine_tunnel_80181478[20] = {
 GpAnimSet D_neo_ark_submarine_tunnel_801814A0 = {
     D_neo_ark_submarine_tunnel_80181244,
     D_neo_ark_submarine_tunnel_80181478,
-    { NULL, D_neo_ark_submarine_tunnel_801810FC.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
+    { NULL, D_neo_ark_submarine_tunnel_801810FC, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} NeoArkSubmarineTunnelPoseBank3F08;
-
-NeoArkSubmarineTunnelPoseBank3F08 D_neo_ark_submarine_tunnel_801814C8 = { .poses = {
+GpPackedPose D_neo_ark_submarine_tunnel_801814C8[10] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_neo_ark_submarine_tunnel_80181540[126] = {
+AnimationPackedRotation D_neo_ark_submarine_tunnel_80181540[126] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank4.inc"
 };
 
@@ -147,7 +135,7 @@ u16 D_neo_ark_submarine_tunnel_801819E4[20] = {
 GpAnimSet D_neo_ark_submarine_tunnel_80181A0C = {
     D_neo_ark_submarine_tunnel_80181738,
     D_neo_ark_submarine_tunnel_801819E4,
-    { NULL, D_neo_ark_submarine_tunnel_801814C8.words, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
+    { NULL, D_neo_ark_submarine_tunnel_801814C8, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
 };
 
 TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {

@@ -64,17 +64,11 @@ extern GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} DryfieldNightParkingLotPoseBank1224;
-
-DryfieldNightParkingLotPoseBank1224 D_dryfield_night_parking_lot_8017E7E4 = { .poses = {
+GpPackedPose D_dryfield_night_parking_lot_8017E7E4[10] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
-                                                                              } };
+};
 
-GpPackedSvec D_dryfield_night_parking_lot_8017E85C[95] = {
+AnimationPackedRotation D_dryfield_night_parking_lot_8017E85C[95] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank4.inc"
 };
 
@@ -89,7 +83,7 @@ u16 D_dryfield_night_parking_lot_8017EC04[20] = {
 GpAnimSet D_dryfield_night_parking_lot_8017EC2C = {
     D_dryfield_night_parking_lot_8017E9D8,
     D_dryfield_night_parking_lot_8017EC04,
-    { NULL, D_dryfield_night_parking_lot_8017E7E4.words, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_parking_lot_8017E7E4, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_night_parking_lot_8017EC54 = { 0, 32, func_dryfield_night_parking_lot_8017D760, { .model = NULL } };

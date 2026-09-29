@@ -273,17 +273,11 @@ s16* D_shelter_b1_sterilization_room_80184F24[1] = {
 
 GpGridParams D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB1SterilizationRoomPoseBank798C;
-
-ShelterB1SterilizationRoomPoseBank798C D_shelter_b1_sterilization_room_80184F4C = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80184F4C[6] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80184F94[46] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80184F94[46] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank4.inc"
 };
 
@@ -298,20 +292,14 @@ u16 D_shelter_b1_sterilization_room_80185200[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_80185228 = {
     D_shelter_b1_sterilization_room_8018504C,
     D_shelter_b1_sterilization_room_80185200,
-    { NULL, D_shelter_b1_sterilization_room_80184F4C.words, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80184F4C, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} ShelterB1SterilizationRoomPoseBank7C90;
-
-ShelterB1SterilizationRoomPoseBank7C90 D_shelter_b1_sterilization_room_80185250 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80185250[2] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80185268[26] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80185268[26] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank4.inc"
 };
 
@@ -326,20 +314,14 @@ u16 D_shelter_b1_sterilization_room_801853B4[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_801853DC = {
     D_shelter_b1_sterilization_room_801852D0,
     D_shelter_b1_sterilization_room_801853B4,
-    { NULL, D_shelter_b1_sterilization_room_80185250.words, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80185250, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} ShelterB1SterilizationRoomPoseBank7E44;
-
-ShelterB1SterilizationRoomPoseBank7E44 D_shelter_b1_sterilization_room_80185404 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80185404[8] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80185464[161] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80185464[161] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank4.inc"
 };
 
@@ -354,20 +336,14 @@ u16 D_shelter_b1_sterilization_room_80185AD4[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_80185AFC = {
     D_shelter_b1_sterilization_room_801856E8,
     D_shelter_b1_sterilization_room_80185AD4,
-    { NULL, D_shelter_b1_sterilization_room_80185404.words, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80185404, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} ShelterB1SterilizationRoomPoseBank8564;
-
-ShelterB1SterilizationRoomPoseBank8564 D_shelter_b1_sterilization_room_80185B24 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80185B24[2] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80185B3C[17] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80185B3C[17] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank4.inc"
 };
 
@@ -382,20 +358,14 @@ u16 D_shelter_b1_sterilization_room_80185C64[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_80185C8C = {
     D_shelter_b1_sterilization_room_80185B80,
     D_shelter_b1_sterilization_room_80185C64,
-    { NULL, D_shelter_b1_sterilization_room_80185B24.words, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80185B24, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[31];
-    GpPackedSvec words[93];
-} ShelterB1SterilizationRoomPoseBank86F4;
-
-ShelterB1SterilizationRoomPoseBank86F4 D_shelter_b1_sterilization_room_80185CB4 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80185CB4[31] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80185E28[308] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80185E28[308] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank4.inc"
 };
 
@@ -410,20 +380,14 @@ u16 D_shelter_b1_sterilization_room_801868E8[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_80186910 = {
     D_shelter_b1_sterilization_room_801862F8,
     D_shelter_b1_sterilization_room_801868E8,
-    { NULL, D_shelter_b1_sterilization_room_80185CB4.words, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80185CB4, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[41];
-    GpPackedSvec words[123];
-} ShelterB1SterilizationRoomPoseBank9378;
-
-ShelterB1SterilizationRoomPoseBank9378 D_shelter_b1_sterilization_room_80186938 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80186938[41] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80186B24[549] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80186B24[549] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank4.inc"
 };
 
@@ -438,20 +402,14 @@ u16 D_shelter_b1_sterilization_room_80187DF0[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_80187E18 = {
     D_shelter_b1_sterilization_room_801873B8,
     D_shelter_b1_sterilization_room_80187DF0,
-    { NULL, D_shelter_b1_sterilization_room_80186938.words, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80186938, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} ShelterB1SterilizationRoomPoseBankA880;
-
-ShelterB1SterilizationRoomPoseBankA880 D_shelter_b1_sterilization_room_80187E40 = { .poses = {
+GpPackedPose D_shelter_b1_sterilization_room_80187E40[4] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank1.inc"
-                                                                                    } };
+};
 
-GpPackedSvec D_shelter_b1_sterilization_room_80187E70[151] = {
+AnimationPackedRotation D_shelter_b1_sterilization_room_80187E70[151] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank4.inc"
 };
 
@@ -466,7 +424,7 @@ u16 D_shelter_b1_sterilization_room_801884B4[20] = {
 GpAnimSet D_shelter_b1_sterilization_room_801884DC = {
     D_shelter_b1_sterilization_room_801880CC,
     D_shelter_b1_sterilization_room_801884B4,
-    { NULL, D_shelter_b1_sterilization_room_80187E40.words, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_sterilization_room_80187E40, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {

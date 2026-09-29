@@ -92,12 +92,6 @@ void func_dryfield_warehouse_8017E308(Task*);
 void func_dryfield_warehouse_8017DA58(s32);
 void func_dryfield_warehouse_8017E3F4(s16);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} DryfieldWarehousePoseBank1FC4;
-
 GpMsgEntry D_dryfield_warehouse_8017F554[3] = {
     { 5102, func_dryfield_warehouse_8017D824 },
     { 5105, func_dryfield_warehouse_8017D764 },
@@ -109,11 +103,11 @@ TaskDesc D_dryfield_warehouse_8017F56C[2] = {
     { 0, 32, func_dryfield_warehouse_8017D5E8, { .model = NULL } },
 };
 
-DryfieldWarehousePoseBank1FC4 D_dryfield_warehouse_8017F584 = { .poses = {
+GpPackedPose D_dryfield_warehouse_8017F584[2] = {
 #include "assets/dryfield_warehouse_animation_02260_bank1.inc"
-                                                                } };
+};
 
-GpPackedSvec D_dryfield_warehouse_8017F59C[28] = {
+AnimationPackedRotation D_dryfield_warehouse_8017F59C[28] = {
 #include "assets/dryfield_warehouse_animation_02260_bank4.inc"
 };
 
@@ -128,7 +122,7 @@ u16 D_dryfield_warehouse_8017F7F8[20] = {
 GpAnimSet D_dryfield_warehouse_8017F820 = {
     D_dryfield_warehouse_8017F60C,
     D_dryfield_warehouse_8017F7F8,
-    { NULL, D_dryfield_warehouse_8017F584.words, NULL, NULL, D_dryfield_warehouse_8017F59C, NULL, NULL, NULL },
+    { NULL, D_dryfield_warehouse_8017F584, NULL, NULL, D_dryfield_warehouse_8017F59C, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_dryfield_warehouse_8017F848[2] = {

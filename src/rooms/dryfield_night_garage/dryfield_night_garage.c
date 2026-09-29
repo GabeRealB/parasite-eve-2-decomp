@@ -262,17 +262,11 @@ s16* D_dryfield_night_garage_80181E3C[1] = {
 
 GpGridParams D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldNightGaragePoseBank48A4;
-
-DryfieldNightGaragePoseBank48A4 D_dryfield_night_garage_80181E64 = { .poses = {
+GpPackedPose D_dryfield_night_garage_80181E64[6] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_dryfield_night_garage_80181EAC[46] = {
+AnimationPackedRotation D_dryfield_night_garage_80181EAC[46] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank4.inc"
 };
 
@@ -287,20 +281,14 @@ u16 D_dryfield_night_garage_80182118[20] = {
 GpAnimSet D_dryfield_night_garage_80182140 = {
     D_dryfield_night_garage_80181F64,
     D_dryfield_night_garage_80182118,
-    { NULL, D_dryfield_night_garage_80181E64.words, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_garage_80181E64, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} DryfieldNightGaragePoseBank4BA8;
-
-DryfieldNightGaragePoseBank4BA8 D_dryfield_night_garage_80182168 = { .poses = {
+GpPackedPose D_dryfield_night_garage_80182168[8] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_dryfield_night_garage_801821C8[84] = {
+AnimationPackedRotation D_dryfield_night_garage_801821C8[84] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank4.inc"
 };
 
@@ -315,20 +303,14 @@ u16 D_dryfield_night_garage_801824EC[20] = {
 GpAnimSet D_dryfield_night_garage_80182514 = {
     D_dryfield_night_garage_80182318,
     D_dryfield_night_garage_801824EC,
-    { NULL, D_dryfield_night_garage_80182168.words, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_garage_80182168, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} DryfieldNightGaragePoseBank4F7C;
-
-DryfieldNightGaragePoseBank4F7C D_dryfield_night_garage_8018253C = { .poses = {
+GpPackedPose D_dryfield_night_garage_8018253C[7] = {
 #include "assets/dryfield_night_garage_animation_05344_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_dryfield_night_garage_80182590[62] = {
+AnimationPackedRotation D_dryfield_night_garage_80182590[62] = {
 #include "assets/dryfield_night_garage_animation_05344_bank4.inc"
 };
 
@@ -343,20 +325,14 @@ u16 D_dryfield_night_garage_801828DC[20] = {
 GpAnimSet D_dryfield_night_garage_80182904 = {
     D_dryfield_night_garage_80182688,
     D_dryfield_night_garage_801828DC,
-    { NULL, D_dryfield_night_garage_8018253C.words, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_garage_8018253C, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} DryfieldNightGaragePoseBank536C;
-
-DryfieldNightGaragePoseBank536C D_dryfield_night_garage_8018292C = { .poses = {
+GpPackedPose D_dryfield_night_garage_8018292C[7] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_dryfield_night_garage_80182980[74] = {
+AnimationPackedRotation D_dryfield_night_garage_80182980[74] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank4.inc"
 };
 
@@ -371,7 +347,7 @@ u16 D_dryfield_night_garage_80182C48[20] = {
 GpAnimSet D_dryfield_night_garage_80182C70 = {
     D_dryfield_night_garage_80182AA8,
     D_dryfield_night_garage_80182C48,
-    { NULL, D_dryfield_night_garage_8018292C.words, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_garage_8018292C, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },
 };
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);

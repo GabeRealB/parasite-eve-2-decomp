@@ -198,17 +198,11 @@ GpEvsCmd D_shelter_b1_pod_access_tunnel_80181120[7] = {
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { 0, 192, func_shelter_b1_pod_access_tunnel_8017DF40, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB1PodAccessTunnelPoseBank3C14;
-
-ShelterB1PodAccessTunnelPoseBank3C14 D_shelter_b1_pod_access_tunnel_801811D4 = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_801811D4[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_8018121C[46] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_8018121C[46] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank4.inc"
 };
 
@@ -223,20 +217,14 @@ u16 D_shelter_b1_pod_access_tunnel_80181488[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_801814B0 = {
     D_shelter_b1_pod_access_tunnel_801812D4,
     D_shelter_b1_pod_access_tunnel_80181488,
-    { NULL, D_shelter_b1_pod_access_tunnel_801811D4.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_801811D4, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} ShelterB1PodAccessTunnelPoseBank3F18;
-
-ShelterB1PodAccessTunnelPoseBank3F18 D_shelter_b1_pod_access_tunnel_801814D8 = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_801814D8[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_80181508[49] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181508[49] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank4.inc"
 };
 
@@ -251,20 +239,14 @@ u16 D_shelter_b1_pod_access_tunnel_8018173C[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_80181764 = {
     D_shelter_b1_pod_access_tunnel_801815CC,
     D_shelter_b1_pod_access_tunnel_8018173C,
-    { NULL, D_shelter_b1_pod_access_tunnel_801814D8.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_801814D8, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[14];
-    GpPackedSvec words[42];
-} ShelterB1PodAccessTunnelPoseBank41CC;
-
-ShelterB1PodAccessTunnelPoseBank41CC D_shelter_b1_pod_access_tunnel_8018178C = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_8018178C[14] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_80181834[159] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181834[159] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank4.inc"
 };
 
@@ -279,20 +261,14 @@ u16 D_shelter_b1_pod_access_tunnel_80181E74[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_80181E9C = {
     D_shelter_b1_pod_access_tunnel_80181AB0,
     D_shelter_b1_pod_access_tunnel_80181E74,
-    { NULL, D_shelter_b1_pod_access_tunnel_8018178C.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_8018178C, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} ShelterB1PodAccessTunnelPoseBank4904;
-
-ShelterB1PodAccessTunnelPoseBank4904 D_shelter_b1_pod_access_tunnel_80181EC4 = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_80181EC4[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_80181EF4[35] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181EF4[35] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank4.inc"
 };
 
@@ -307,20 +283,14 @@ u16 D_shelter_b1_pod_access_tunnel_80182138[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182160 = {
     D_shelter_b1_pod_access_tunnel_80181F80,
     D_shelter_b1_pod_access_tunnel_80182138,
-    { NULL, D_shelter_b1_pod_access_tunnel_80181EC4.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_80181EC4, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} ShelterB1PodAccessTunnelPoseBank4BC8;
-
-ShelterB1PodAccessTunnelPoseBank4BC8 D_shelter_b1_pod_access_tunnel_80182188 = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_80182188[2] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_801821A0[29] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801821A0[29] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank4.inc"
 };
 
@@ -335,20 +305,14 @@ u16 D_shelter_b1_pod_access_tunnel_8018238C[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_801823B4 = {
     D_shelter_b1_pod_access_tunnel_80182214,
     D_shelter_b1_pod_access_tunnel_8018238C,
-    { NULL, D_shelter_b1_pod_access_tunnel_80182188.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_80182188, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} ShelterB1PodAccessTunnelPoseBank4E1C;
-
-ShelterB1PodAccessTunnelPoseBank4E1C D_shelter_b1_pod_access_tunnel_801823DC = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_801823DC[10] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_80182454[135] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80182454[135] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank4.inc"
 };
 
@@ -363,20 +327,14 @@ u16 D_shelter_b1_pod_access_tunnel_80182910[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182938 = {
     D_shelter_b1_pod_access_tunnel_80182670,
     D_shelter_b1_pod_access_tunnel_80182910,
-    { NULL, D_shelter_b1_pod_access_tunnel_801823DC.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_801823DC, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB1PodAccessTunnelPoseBank53A0;
-
-ShelterB1PodAccessTunnelPoseBank53A0 D_shelter_b1_pod_access_tunnel_80182960 = { .poses = {
+GpPackedPose D_shelter_b1_pod_access_tunnel_80182960[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank1.inc"
-                                                                                 } };
+};
 
-GpPackedSvec D_shelter_b1_pod_access_tunnel_801829A8[64] = {
+AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801829A8[64] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank4.inc"
 };
 
@@ -391,7 +349,7 @@ u16 D_shelter_b1_pod_access_tunnel_80182CDC[20] = {
 GpAnimSet D_shelter_b1_pod_access_tunnel_80182D04 = {
     D_shelter_b1_pod_access_tunnel_80182AA8,
     D_shelter_b1_pod_access_tunnel_80182CDC,
-    { NULL, D_shelter_b1_pod_access_tunnel_80182960.words, NULL, NULL, D_shelter_b1_pod_access_tunnel_801829A8, NULL, NULL, NULL },
+    { NULL, D_shelter_b1_pod_access_tunnel_80182960, NULL, NULL, D_shelter_b1_pod_access_tunnel_801829A8, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {

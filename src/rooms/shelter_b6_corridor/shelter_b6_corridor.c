@@ -136,17 +136,11 @@ GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB6CorridorPoseBank1994;
-
-ShelterB6CorridorPoseBank1994 D_shelter_b6_corridor_8017EF54 = { .poses = {
+GpPackedPose D_shelter_b6_corridor_8017EF54[6] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank1.inc"
-                                                                 } };
+};
 
-GpPackedSvec D_shelter_b6_corridor_8017EF9C[46] = {
+AnimationPackedRotation D_shelter_b6_corridor_8017EF9C[46] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank4.inc"
 };
 
@@ -161,7 +155,7 @@ u16 D_shelter_b6_corridor_8017F208[20] = {
 GpAnimSet D_shelter_b6_corridor_8017F230 = {
     D_shelter_b6_corridor_8017F054,
     D_shelter_b6_corridor_8017F208,
-    { NULL, D_shelter_b6_corridor_8017EF54.words, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
+    { NULL, D_shelter_b6_corridor_8017EF54, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_shelter_b6_corridor_8017F258[2] = {

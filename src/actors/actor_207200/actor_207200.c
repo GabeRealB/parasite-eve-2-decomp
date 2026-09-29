@@ -139,17 +139,11 @@ TmdSource D_actor_207200_8014E4C8 = {
     D_actor_207200_8014DEE4,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} Actor207200PoseBank46CC;
-
-Actor207200PoseBank46CC D_actor_207200_8014E4EC = { .poses = {
+GpPackedPose D_actor_207200_8014E4EC[2] = {
 #include "assets/actor_207200_animation_04708_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_207200_8014E504[1] = {
+AnimationPackedRotation D_actor_207200_8014E504[1] = {
 #include "assets/actor_207200_animation_04708_bank4.inc"
 };
 
@@ -164,20 +158,14 @@ u16 D_actor_207200_8014E520[4] = {
 GpAnimSet D_actor_207200_8014E528 = {
     D_actor_207200_8014E508,
     D_actor_207200_8014E520,
-    { NULL, D_actor_207200_8014E4EC.words, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
+    { NULL, D_actor_207200_8014E4EC, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[24];
-    GpPackedSvec words[72];
-} Actor207200PoseBank4730;
-
-Actor207200PoseBank4730 D_actor_207200_8014E550 = { .poses = {
+GpPackedPose D_actor_207200_8014E550[24] = {
 #include "assets/actor_207200_animation_0495C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_207200_8014E670[10] = {
+AnimationPackedRotation D_actor_207200_8014E670[10] = {
 #include "assets/actor_207200_animation_0495C_bank4.inc"
 };
 
@@ -192,7 +180,7 @@ u16 D_actor_207200_8014E774[4] = {
 GpAnimSet D_actor_207200_8014E77C = {
     D_actor_207200_8014E698,
     D_actor_207200_8014E774,
-    { NULL, D_actor_207200_8014E550.words, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
+    { NULL, D_actor_207200_8014E550, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
 };
 
 TaskDesc D_actor_207200_8014E7A4 = { 1, 96, func_actor_207200_8014AC9C, { .model = &D_actor_207200_8014E4C8 } };

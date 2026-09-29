@@ -73,17 +73,11 @@ s32  func_dryfield_underpass_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_underpass_8017D5D0(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} DryfieldUnderpassPoseBank920;
-
-DryfieldUnderpassPoseBank920 D_dryfield_underpass_8017DEE0 = { .poses = {
+GpPackedPose D_dryfield_underpass_8017DEE0[10] = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
-                                                               } };
+};
 
-GpPackedSvec D_dryfield_underpass_8017DF58[126] = {
+AnimationPackedRotation D_dryfield_underpass_8017DF58[126] = {
 #include "assets/dryfield_underpass_animation_00E64_bank4.inc"
 };
 
@@ -98,20 +92,14 @@ u16 D_dryfield_underpass_8017E3FC[20] = {
 GpAnimSet D_dryfield_underpass_8017E424 = {
     D_dryfield_underpass_8017E150,
     D_dryfield_underpass_8017E3FC,
-    { NULL, D_dryfield_underpass_8017DEE0.words, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
+    { NULL, D_dryfield_underpass_8017DEE0, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldUnderpassPoseBankE8C;
-
-DryfieldUnderpassPoseBankE8C D_dryfield_underpass_8017E44C = { .poses = {
+GpPackedPose D_dryfield_underpass_8017E44C[6] = {
 #include "assets/dryfield_underpass_animation_01230_bank1.inc"
-                                                               } };
+};
 
-GpPackedSvec D_dryfield_underpass_8017E494[64] = {
+AnimationPackedRotation D_dryfield_underpass_8017E494[64] = {
 #include "assets/dryfield_underpass_animation_01230_bank4.inc"
 };
 
@@ -126,7 +114,7 @@ u16 D_dryfield_underpass_8017E7C8[20] = {
 GpAnimSet D_dryfield_underpass_8017E7F0 = {
     D_dryfield_underpass_8017E594,
     D_dryfield_underpass_8017E7C8,
-    { NULL, D_dryfield_underpass_8017E44C.words, NULL, NULL, D_dryfield_underpass_8017E494, NULL, NULL, NULL },
+    { NULL, D_dryfield_underpass_8017E44C, NULL, NULL, D_dryfield_underpass_8017E494, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_underpass_8017E818[2] = {

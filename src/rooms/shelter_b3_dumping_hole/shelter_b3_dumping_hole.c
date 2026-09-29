@@ -190,17 +190,11 @@ TmdSource D_shelter_b3_dumping_hole_80187D74 = {
     D_shelter_b3_dumping_hole_80187BAC,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB3DumpingHolePoseBankA7D8;
-
-ShelterB3DumpingHolePoseBankA7D8 D_shelter_b3_dumping_hole_80187D98 = { .poses = {
+GpPackedPose D_shelter_b3_dumping_hole_80187D98[6] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank1.inc"
-                                                                        } };
+};
 
-GpPackedSvec D_shelter_b3_dumping_hole_80187DE0[46] = {
+AnimationPackedRotation D_shelter_b3_dumping_hole_80187DE0[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank4.inc"
 };
 
@@ -215,7 +209,7 @@ u16 D_shelter_b3_dumping_hole_8018804C[20] = {
 GpAnimSet D_shelter_b3_dumping_hole_80188074 = {
     D_shelter_b3_dumping_hole_80187E98,
     D_shelter_b3_dumping_hole_8018804C,
-    { NULL, D_shelter_b3_dumping_hole_80187D98.words, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
+    { NULL, D_shelter_b3_dumping_hole_80187D98, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
 };
 
 s16 D_shelter_b3_dumping_hole_8018809C = 1;

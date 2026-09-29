@@ -216,17 +216,11 @@ TmdSource D_acropolis_west_elevator_hall_8018077C = {
     D_acropolis_west_elevator_hall_80180618,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[100];
-    GpPackedSvec words[300];
-} AcropolisWestElevatorHallPoseBank31E0;
-
-AcropolisWestElevatorHallPoseBank31E0 D_acropolis_west_elevator_hall_801807A0 = { .poses = {
+GpPackedPose D_acropolis_west_elevator_hall_801807A0[100] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_bank1.inc"
-                                                                                  } };
+};
 
-GpPackedSvec D_acropolis_west_elevator_hall_80180C50[1644] = {
+AnimationPackedRotation D_acropolis_west_elevator_hall_80180C50[1644] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_bank4.inc"
 };
 
@@ -241,7 +235,7 @@ u16 D_acropolis_west_elevator_hall_80184518[20] = {
 GpAnimSet D_acropolis_west_elevator_hall_80184540 = {
     D_acropolis_west_elevator_hall_80182600,
     D_acropolis_west_elevator_hall_80184518,
-    { NULL, D_acropolis_west_elevator_hall_801807A0.words, NULL, NULL, D_acropolis_west_elevator_hall_80180C50, NULL, NULL, NULL },
+    { NULL, D_acropolis_west_elevator_hall_801807A0, NULL, NULL, D_acropolis_west_elevator_hall_80180C50, NULL, NULL, NULL },
 };
 
 TaskDesc D_acropolis_west_elevator_hall_80184568[3] = {

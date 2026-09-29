@@ -106,17 +106,11 @@ GpMsgEntry D_shelter_b6_training_room_80182AF4[6] = {
 
 s32 D_shelter_b6_training_room_80182B24 = 0x11805;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB6TrainingRoomPoseBank5568;
-
-ShelterB6TrainingRoomPoseBank5568 D_shelter_b6_training_room_80182B28 = { .poses = {
+GpPackedPose D_shelter_b6_training_room_80182B28[6] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_shelter_b6_training_room_80182B70[46] = {
+AnimationPackedRotation D_shelter_b6_training_room_80182B70[46] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank4.inc"
 };
 
@@ -131,20 +125,14 @@ u16 D_shelter_b6_training_room_80182DDC[20] = {
 GpAnimSet D_shelter_b6_training_room_80182E04 = {
     D_shelter_b6_training_room_80182C28,
     D_shelter_b6_training_room_80182DDC,
-    { NULL, D_shelter_b6_training_room_80182B28.words, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
+    { NULL, D_shelter_b6_training_room_80182B28, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} ShelterB6TrainingRoomPoseBank586C;
-
-ShelterB6TrainingRoomPoseBank586C D_shelter_b6_training_room_80182E2C = { .poses = {
+GpPackedPose D_shelter_b6_training_room_80182E2C[13] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_shelter_b6_training_room_80182EC8[171] = {
+AnimationPackedRotation D_shelter_b6_training_room_80182EC8[171] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank4.inc"
 };
 
@@ -159,20 +147,14 @@ u16 D_shelter_b6_training_room_8018350C[20] = {
 GpAnimSet D_shelter_b6_training_room_80183534 = {
     D_shelter_b6_training_room_80183174,
     D_shelter_b6_training_room_8018350C,
-    { NULL, D_shelter_b6_training_room_80182E2C.words, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
+    { NULL, D_shelter_b6_training_room_80182E2C, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} ShelterB6TrainingRoomPoseBank5F9C;
-
-ShelterB6TrainingRoomPoseBank5F9C D_shelter_b6_training_room_8018355C = { .poses = {
+GpPackedPose D_shelter_b6_training_room_8018355C[3] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_shelter_b6_training_room_80183580[28] = {
+AnimationPackedRotation D_shelter_b6_training_room_80183580[28] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank4.inc"
 };
 
@@ -187,20 +169,14 @@ u16 D_shelter_b6_training_room_80183750[20] = {
 GpAnimSet D_shelter_b6_training_room_80183778 = {
     D_shelter_b6_training_room_801835F0,
     D_shelter_b6_training_room_80183750,
-    { NULL, D_shelter_b6_training_room_8018355C.words, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
+    { NULL, D_shelter_b6_training_room_8018355C, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} ShelterB6TrainingRoomPoseBank61E0;
-
-ShelterB6TrainingRoomPoseBank61E0 D_shelter_b6_training_room_801837A0 = { .poses = {
+GpPackedPose D_shelter_b6_training_room_801837A0[2] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_shelter_b6_training_room_801837B8[29] = {
+AnimationPackedRotation D_shelter_b6_training_room_801837B8[29] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank4.inc"
 };
 
@@ -215,7 +191,7 @@ u16 D_shelter_b6_training_room_80183958[20] = {
 GpAnimSet D_shelter_b6_training_room_80183980 = {
     D_shelter_b6_training_room_8018382C,
     D_shelter_b6_training_room_80183958,
-    { NULL, D_shelter_b6_training_room_801837A0.words, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
+    { NULL, D_shelter_b6_training_room_801837A0, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b6_training_room_801839A8 = { 0, 96, func_shelter_b6_training_room_8017D9C8, { .model = NULL } };

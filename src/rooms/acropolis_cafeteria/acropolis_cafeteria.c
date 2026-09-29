@@ -479,17 +479,11 @@ TaskDesc D_acropolis_cafeteria_80184178[3] = {
     { 0, 192, func_acropolis_cafeteria_8017E47C, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[23];
-    GpPackedSvec words[69];
-} AcropolisCafeteriaPoseBank6BDC;
-
-AcropolisCafeteriaPoseBank6BDC D_acropolis_cafeteria_8018419C = { .poses = {
+GpPackedPose D_acropolis_cafeteria_8018419C[23] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank1.inc"
-                                                                  } };
+};
 
-GpPackedSvec D_acropolis_cafeteria_801842B0[286] = {
+AnimationPackedRotation D_acropolis_cafeteria_801842B0[286] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank4.inc"
 };
 
@@ -504,7 +498,7 @@ u16 D_acropolis_cafeteria_80184C9C[20] = {
 GpAnimSet D_acropolis_cafeteria_80184CC4 = {
     D_acropolis_cafeteria_80184728,
     D_acropolis_cafeteria_80184C9C,
-    { NULL, D_acropolis_cafeteria_8018419C.words, NULL, NULL, D_acropolis_cafeteria_801842B0, NULL, NULL, NULL },
+    { NULL, D_acropolis_cafeteria_8018419C, NULL, NULL, D_acropolis_cafeteria_801842B0, NULL, NULL, NULL },
 };
 
 GpMsgEntry D_acropolis_cafeteria_80184CEC[2] = {

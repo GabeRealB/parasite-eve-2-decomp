@@ -852,17 +852,11 @@ GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MineForkedTunnelPoseBank46E8;
-
-MineForkedTunnelPoseBank46E8 D_mine_forked_tunnel_80181CA8 = { .poses = {
+GpPackedPose D_mine_forked_tunnel_80181CA8[6] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank1.inc"
-                                                               } };
+};
 
-GpPackedSvec D_mine_forked_tunnel_80181CF0[46] = {
+AnimationPackedRotation D_mine_forked_tunnel_80181CF0[46] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank4.inc"
 };
 
@@ -877,20 +871,14 @@ u16 D_mine_forked_tunnel_80181F5C[20] = {
 GpAnimSet D_mine_forked_tunnel_80181F84 = {
     D_mine_forked_tunnel_80181DA8,
     D_mine_forked_tunnel_80181F5C,
-    { NULL, D_mine_forked_tunnel_80181CA8.words, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
+    { NULL, D_mine_forked_tunnel_80181CA8, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} MineForkedTunnelPoseBank49EC;
-
-MineForkedTunnelPoseBank49EC D_mine_forked_tunnel_80181FAC = { .poses = {
+GpPackedPose D_mine_forked_tunnel_80181FAC[2] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank1.inc"
-                                                               } };
+};
 
-GpPackedSvec D_mine_forked_tunnel_80181FC4[47] = {
+AnimationPackedRotation D_mine_forked_tunnel_80181FC4[47] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank4.inc"
 };
 
@@ -905,20 +893,14 @@ u16 D_mine_forked_tunnel_801821E8[20] = {
 GpAnimSet D_mine_forked_tunnel_80182210 = {
     D_mine_forked_tunnel_80182080,
     D_mine_forked_tunnel_801821E8,
-    { NULL, D_mine_forked_tunnel_80181FAC.words, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
+    { NULL, D_mine_forked_tunnel_80181FAC, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[33];
-    GpPackedSvec words[99];
-} MineForkedTunnelPoseBank4C78;
-
-MineForkedTunnelPoseBank4C78 D_mine_forked_tunnel_80182238 = { .poses = {
+GpPackedPose D_mine_forked_tunnel_80182238[33] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank1.inc"
-                                                               } };
+};
 
-GpPackedSvec D_mine_forked_tunnel_801823C4[381] = {
+AnimationPackedRotation D_mine_forked_tunnel_801823C4[381] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank4.inc"
 };
 
@@ -933,7 +915,7 @@ u16 D_mine_forked_tunnel_801830B4[20] = {
 GpAnimSet D_mine_forked_tunnel_801830DC = {
     D_mine_forked_tunnel_801829B8,
     D_mine_forked_tunnel_801830B4,
-    { NULL, D_mine_forked_tunnel_80182238.words, NULL, NULL, D_mine_forked_tunnel_801823C4, NULL, NULL, NULL },
+    { NULL, D_mine_forked_tunnel_80182238, NULL, NULL, D_mine_forked_tunnel_801823C4, NULL, NULL, NULL },
 };
 
 TaskDesc D_mine_forked_tunnel_80183104[2] = {

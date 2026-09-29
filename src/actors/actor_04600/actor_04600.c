@@ -279,17 +279,11 @@ TmdSource Actor04600_D05200 = {
     Actor04600_D04640,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[34];
-    GpPackedSvec words[102];
-} Actor04600PoseBank5224;
-
-Actor04600PoseBank5224 Actor04600_D05224 = { .poses = {
+GpPackedPose Actor04600_D05224[34] = {
 #include "assets/actor_104600_animation_05554_bank1.inc"
-                                             } };
+};
 
-GpPackedSvec Actor04600_D053BC[26] = {
+AnimationPackedRotation Actor04600_D053BC[26] = {
 #include "assets/actor_104600_animation_05554_bank4.inc"
 };
 
@@ -304,20 +298,14 @@ u16 Actor04600_D0554C[4] = {
 GpAnimSet Actor04600_D05554 = {
     Actor04600_D05424,
     Actor04600_D0554C,
-    { NULL, Actor04600_D05224.words, NULL, NULL, Actor04600_D053BC, NULL, NULL, NULL },
+    { NULL, Actor04600_D05224, NULL, NULL, Actor04600_D053BC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[11];
-    GpPackedSvec words[33];
-} Actor04600PoseBank557C;
-
-Actor04600PoseBank557C Actor04600_D0557C = { .poses = {
+GpPackedPose Actor04600_D0557C[11] = {
 #include "assets/actor_104600_animation_0569C_bank1.inc"
-                                             } };
+};
 
-GpPackedSvec Actor04600_D05600[9] = {
+AnimationPackedRotation Actor04600_D05600[9] = {
 #include "assets/actor_104600_animation_0569C_bank4.inc"
 };
 
@@ -332,20 +320,14 @@ u16 Actor04600_D05694[4] = {
 GpAnimSet Actor04600_D0569C = {
     Actor04600_D05624,
     Actor04600_D05694,
-    { NULL, Actor04600_D0557C.words, NULL, NULL, Actor04600_D05600, NULL, NULL, NULL },
+    { NULL, Actor04600_D0557C, NULL, NULL, Actor04600_D05600, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[15];
-    GpPackedSvec words[45];
-} Actor04600PoseBank56C4;
-
-Actor04600PoseBank56C4 Actor04600_D056C4 = { .poses = {
+GpPackedPose Actor04600_D056C4[15] = {
 #include "assets/actor_104600_animation_05840_bank1.inc"
-                                             } };
+};
 
-GpPackedSvec Actor04600_D05778[12] = {
+AnimationPackedRotation Actor04600_D05778[12] = {
 #include "assets/actor_104600_animation_05840_bank4.inc"
 };
 
@@ -360,7 +342,7 @@ u16 Actor04600_D05838[4] = {
 GpAnimSet Actor04600_D05840 = {
     Actor04600_D057A8,
     Actor04600_D05838,
-    { NULL, Actor04600_D056C4.words, NULL, NULL, Actor04600_D05778, NULL, NULL, NULL },
+    { NULL, Actor04600_D056C4, NULL, NULL, Actor04600_D05778, NULL, NULL, NULL },
 };
 
 Actor04600RecoveredMsgEntry Actor04600_D05868[2] = {
@@ -419,17 +401,11 @@ TmdSource Actor04600_D061C0 = {
     Actor04600_D05BDC,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} Actor04600PoseBank61E4;
-
-Actor04600PoseBank61E4 Actor04600_D061E4 = { .poses = {
+GpPackedPose Actor04600_D061E4[2] = {
 #include "assets/actor_104600_animation_06220_bank1.inc"
-                                             } };
+};
 
-GpPackedSvec Actor04600_D061FC[1] = {
+AnimationPackedRotation Actor04600_D061FC[1] = {
 #include "assets/actor_104600_animation_06220_bank4.inc"
 };
 
@@ -444,20 +420,14 @@ u16 Actor04600_D06218[4] = {
 GpAnimSet Actor04600_D06220 = {
     Actor04600_D06200,
     Actor04600_D06218,
-    { NULL, Actor04600_D061E4.words, NULL, NULL, Actor04600_D061FC, NULL, NULL, NULL },
+    { NULL, Actor04600_D061E4, NULL, NULL, Actor04600_D061FC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[24];
-    GpPackedSvec words[72];
-} Actor04600PoseBank6248;
-
-Actor04600PoseBank6248 Actor04600_D06248 = { .poses = {
+GpPackedPose Actor04600_D06248[24] = {
 #include "assets/actor_104600_animation_06474_bank1.inc"
-                                             } };
+};
 
-GpPackedSvec Actor04600_D06368[10] = {
+AnimationPackedRotation Actor04600_D06368[10] = {
 #include "assets/actor_104600_animation_06474_bank4.inc"
 };
 
@@ -472,7 +442,7 @@ u16 Actor04600_D0646C[4] = {
 GpAnimSet Actor04600_D06474 = {
     Actor04600_D06390,
     Actor04600_D0646C,
-    { NULL, Actor04600_D06248.words, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
+    { NULL, Actor04600_D06248, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
 };
 
 TaskDesc Actor04600_D0649C = { 1, 96, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };

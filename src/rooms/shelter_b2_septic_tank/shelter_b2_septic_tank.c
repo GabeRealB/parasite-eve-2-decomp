@@ -130,17 +130,11 @@ s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, GpMessageArg, GpMessageArg
 s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, GpMessageArg);
 void func_shelter_b2_septic_tank_8017D614(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB2SepticTankPoseBank55B4;
-
-ShelterB2SepticTankPoseBank55B4 D_shelter_b2_septic_tank_80182B74 = { .poses = {
+GpPackedPose D_shelter_b2_septic_tank_80182B74[6] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
-                                                                      } };
+};
 
-GpPackedSvec D_shelter_b2_septic_tank_80182BBC[64] = {
+AnimationPackedRotation D_shelter_b2_septic_tank_80182BBC[64] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank4.inc"
 };
 
@@ -155,7 +149,7 @@ u16 D_shelter_b2_septic_tank_80182EF0[20] = {
 GpAnimSet D_shelter_b2_septic_tank_80182F18 = {
     D_shelter_b2_septic_tank_80182CBC,
     D_shelter_b2_septic_tank_80182EF0,
-    { NULL, D_shelter_b2_septic_tank_80182B74.words, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
+    { NULL, D_shelter_b2_septic_tank_80182B74, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b2_septic_tank_80182F40 = { 0, 32, func_shelter_b2_septic_tank_8017D614, { .model = NULL } };

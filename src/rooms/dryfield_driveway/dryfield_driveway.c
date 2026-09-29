@@ -89,17 +89,11 @@ void func_dryfield_driveway_8017D5E4(Task*);
 void func_dryfield_driveway_8017DAD0(Task*);
 void func_dryfield_driveway_8017DB68(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} DryfieldDrivewayPoseBank8C0;
-
-DryfieldDrivewayPoseBank8C0 D_dryfield_driveway_8017DE80 = { .poses = {
+GpPackedPose D_dryfield_driveway_8017DE80[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
-                                                             } };
+};
 
-GpPackedSvec D_dryfield_driveway_8017DEF8[95] = {
+AnimationPackedRotation D_dryfield_driveway_8017DEF8[95] = {
 #include "assets/dryfield_driveway_animation_00D08_bank4.inc"
 };
 
@@ -114,7 +108,7 @@ u16 D_dryfield_driveway_8017E2A0[20] = {
 GpAnimSet D_dryfield_driveway_8017E2C8 = {
     D_dryfield_driveway_8017E074,
     D_dryfield_driveway_8017E2A0,
-    { NULL, D_dryfield_driveway_8017DE80.words, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
+    { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_driveway_8017E2F0 = { 0, 32, func_dryfield_driveway_8017D5E4, { .model = NULL } };

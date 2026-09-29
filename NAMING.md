@@ -301,7 +301,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
 | `actorRender` | Actor model drawing and coordinate updates | `actor_render.c` | `include/gameplay/actor_render.h`, `src/gameplay/actor_render.h` |
-| `modelObject`, `animation` | Model attachments and animation state | `model_objects.c` | `include/gameplay/model_objects.h`, `include/gameplay/animation.h`, `src/gameplay/model_objects.h` |
+| `modelObject`, `animation` | Model attachments and animation state | `model_objects.c`, `scene_runtime.c` | `include/gameplay/model_objects.h`, `include/gameplay/animation.h`, `src/gameplay/model_objects.h` |
 | `modelLighting` | Lit model transforms and primitive emission | `model_lighting.c` | `include/gameplay/model_lighting.h`, `src/gameplay/model_lighting.h` |
 | `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `include/gameplay/world_coords.h`, `src/gameplay/world_coords.h` |
 | `worldCollision` | Collision grids, object lists and contact dispatch | `world_collision.c`, `collision_grid.c`, `object_lists.c` | `include/gameplay/world_collision.h`, `include/gameplay/collision.h`, `src/gameplay/world_collision.h` |
@@ -397,7 +397,7 @@ aligns a run of trailing comments, and a two-line comment ends the run, so the
 fields after it align to a different column.
 
 **Bitfields are for layouts whose bits have proven meanings**, as in `GPUSTAT`
-and `GpPackedSvec` — a hardware register and a packed 11-10-11 vector, where
+and `AnimationPackedRotation` — a hardware register and a packed 11-10-11 Euler rotation, where
 every component is named. A byte that is merely a bitmask of unidentified flags
 stays a plain integer with a comment; unnamed bitfields add structure without
 adding information, and rewriting a multi-bit test such as `& 0x84` as two

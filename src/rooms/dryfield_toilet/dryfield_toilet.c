@@ -93,17 +93,11 @@ s16* D_dryfield_toilet_80180310[1] = {
 
 GpGridParams D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldToiletPoseBank2D78;
-
-DryfieldToiletPoseBank2D78 D_dryfield_toilet_80180338 = { .poses = {
+GpPackedPose D_dryfield_toilet_80180338[6] = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_dryfield_toilet_80180380[46] = {
+AnimationPackedRotation D_dryfield_toilet_80180380[46] = {
 #include "assets/dryfield_toilet_animation_03054_bank4.inc"
 };
 
@@ -118,20 +112,14 @@ u16 D_dryfield_toilet_801805EC[20] = {
 GpAnimSet D_dryfield_toilet_80180614 = {
     D_dryfield_toilet_80180438,
     D_dryfield_toilet_801805EC,
-    { NULL, D_dryfield_toilet_80180338.words, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
+    { NULL, D_dryfield_toilet_80180338, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} DryfieldToiletPoseBank307C;
-
-DryfieldToiletPoseBank307C D_dryfield_toilet_8018063C = { .poses = {
+GpPackedPose D_dryfield_toilet_8018063C[9] = {
 #include "assets/dryfield_toilet_animation_035A4_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_dryfield_toilet_801806A8[131] = {
+AnimationPackedRotation D_dryfield_toilet_801806A8[131] = {
 #include "assets/dryfield_toilet_animation_035A4_bank4.inc"
 };
 
@@ -146,7 +134,7 @@ u16 D_dryfield_toilet_80180B3C[20] = {
 GpAnimSet D_dryfield_toilet_80180B64 = {
     D_dryfield_toilet_801808B4,
     D_dryfield_toilet_80180B3C,
-    { NULL, D_dryfield_toilet_8018063C.words, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
+    { NULL, D_dryfield_toilet_8018063C, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },
 };
 
 static void func_dryfield_toilet_8017D5E4(void);

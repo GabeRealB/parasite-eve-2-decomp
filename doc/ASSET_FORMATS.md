@@ -638,7 +638,7 @@ table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
 GpAnimSet (types in include/gameplay/animation.h):
   0x00  GpAnimRec*     recs        base of the 4-byte clip records
   0x04  u16*           trackStart  clip index table (values are record indices)
-  0x08  GpPackedSvec*  poseBanks[8] pose banks, indexed by a record's flags & 0xF
+  0x08  void*          poseBanks[8] pose banks, indexed by a record's flags & 0xF
 
 GpAnimRec (4 bytes):
   0x00  u16 pose       word offset into the pose bank; on a control entry,
@@ -648,12 +648,12 @@ GpAnimRec (4 bytes):
                        0x80 marks a control entry, 0xC0 ends the clip
 ```
 
-Pose bank formats, dispatched by `func_800B3448` on `GpAnimSlot.poseKind`:
+Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind`:
 
 | `flags & 0xF` | Bank type | Layout |
 |---|---|---|
 | 1 | `GpPackedPose` | packed translation + rotation |
-| 4 | `GpPackedSvec` | `s32 rx:11, ry:10, rz:11` |
+| 4 | `AnimationPackedRotation` | `s32 rx:11, ry:10, rz:11` |
 
 **Clip walk.** Entry *n* of the index table gives the first record of clip *n*;
 records run on until one has `flags >= 0xC0`. The index table has no explicit
@@ -737,15 +737,15 @@ is never read on a control entry — it continues at `pose` or ends the track
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
-it once (`value->field_B = op & 0xF`) and `func_800B3448` reads
-`op = slot->field_B` for every record after that. The control records carry 0
+it once (`value->poseKind = op & 0xF`) and `animationTickSlotPose` reads
+`poseKind = slot->poseKind` for every record after that. The control records carry 0
 in those bits, so reading the kind per record throws away the final keyframe.
 Kind **1** is `GpPackedPose`, six `s16` — translation then ZYX Euler. Kind **4**
-is `GpPackedSvec`, one word split 11/10/11 with each component shifted `<< 3`;
+is `AnimationPackedRotation`, one word split 11/10/11 with each component shifted `<< 3`;
 it has no translation, so the bone keeps its rest offset. The root comes out
 kind 1 and the limbs kind 4.
 
-**Playback interpolates.** `Gp_AnimBlendPose` / `Gp_AnimBlendPacked` hold a
+**Playback interpolates.** `_animationBlendPose` / `_animationBlendPackedRotation` hold a
 current and a next pose and blend with a GTE `GPF`/`GPL` pair over
 `field_C / field_E`, interpolating the Euler angles themselves rather than the
 matrices. `sample_animation` does the same and takes a fractional frame, so
@@ -768,7 +768,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
 - **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
   are not decoded; a frame handler reads them off the record `Gp_AnimGetRec`
-  hands it, so what each one means is the handler's own. `Gp_BlendAnimRot`
+  hands it, so what each one means is the handler's own. `_animationBlendRotation`
   has a second path (`GpAnimSlot.bufPose`) that blends through a delta matrix
   rather than the Euler angles, taken when the pose comes from the context's
   pose buffer instead of a keyframe.

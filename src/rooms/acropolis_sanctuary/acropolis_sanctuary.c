@@ -294,17 +294,11 @@ s32 func_acropolis_sanctuary_8017D808(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, GpMessageArg);
 s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} AcropolisSanctuaryPoseBank2D88;
-
-AcropolisSanctuaryPoseBank2D88 D_acropolis_sanctuary_80180348 = { .poses = {
+GpPackedPose D_acropolis_sanctuary_80180348[8] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
-                                                                  } };
+};
 
-GpPackedSvec D_acropolis_sanctuary_801803A8[115] = {
+AnimationPackedRotation D_acropolis_sanctuary_801803A8[115] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank4.inc"
 };
 
@@ -319,7 +313,7 @@ u16 D_acropolis_sanctuary_801807CC[20] = {
 GpAnimSet D_acropolis_sanctuary_801807F4 = {
     D_acropolis_sanctuary_80180574,
     D_acropolis_sanctuary_801807CC,
-    { NULL, D_acropolis_sanctuary_80180348.words, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
+    { NULL, D_acropolis_sanctuary_80180348, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
 };
 
 GpMsgEntry D_acropolis_sanctuary_8018081C[5] = {
@@ -569,17 +563,11 @@ GpEvsCmd D_acropolis_sanctuary_80181814[11] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} AcropolisSanctuaryPoseBank435C;
-
-AcropolisSanctuaryPoseBank435C D_acropolis_sanctuary_8018191C = { .poses = {
+GpPackedPose D_acropolis_sanctuary_8018191C[7] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank1.inc"
-                                                                  } };
+};
 
-GpPackedSvec D_acropolis_sanctuary_80181970[84] = {
+AnimationPackedRotation D_acropolis_sanctuary_80181970[84] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank4.inc"
 };
 
@@ -594,20 +582,14 @@ u16 D_acropolis_sanctuary_80181CA0[20] = {
 GpAnimSet D_acropolis_sanctuary_80181CC8 = {
     D_acropolis_sanctuary_80181AC0,
     D_acropolis_sanctuary_80181CA0,
-    { NULL, D_acropolis_sanctuary_8018191C.words, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
+    { NULL, D_acropolis_sanctuary_8018191C, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} AcropolisSanctuaryPoseBank4730;
-
-AcropolisSanctuaryPoseBank4730 D_acropolis_sanctuary_80181CF0 = { .poses = {
+GpPackedPose D_acropolis_sanctuary_80181CF0[8] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank1.inc"
-                                                                  } };
+};
 
-GpPackedSvec D_acropolis_sanctuary_80181D50[88] = {
+AnimationPackedRotation D_acropolis_sanctuary_80181D50[88] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank4.inc"
 };
 
@@ -622,7 +604,7 @@ u16 D_acropolis_sanctuary_80182094[20] = {
 GpAnimSet D_acropolis_sanctuary_801820BC = {
     D_acropolis_sanctuary_80181EB0,
     D_acropolis_sanctuary_80182094,
-    { NULL, D_acropolis_sanctuary_80181CF0.words, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
+    { NULL, D_acropolis_sanctuary_80181CF0, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_acropolis_sanctuary_801820E4[1] = {

@@ -62,17 +62,11 @@ extern GpAnimArg D_mine_gorge_8017E5E8;
 extern GpCopyArg D_mine_gorge_8017E5E0;
 void             func_mine_gorge_8017D8C8(s32);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} MineGorgePoseBank850;
-
-MineGorgePoseBank850 D_mine_gorge_8017DE10 = { .poses = {
+GpPackedPose D_mine_gorge_8017DE10[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
-                                               } };
+};
 
-GpPackedSvec D_mine_gorge_8017DE88[95] = {
+AnimationPackedRotation D_mine_gorge_8017DE88[95] = {
 #include "assets/mine_gorge_animation_00C98_bank4.inc"
 };
 
@@ -88,7 +82,7 @@ u16 D_mine_gorge_8017E230[20] = {
 GpAnimSet D_mine_gorge_8017E258 = {
     D_mine_gorge_8017E004,
     D_mine_gorge_8017E230,
-    { NULL, D_mine_gorge_8017DE10.words, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
+    { NULL, D_mine_gorge_8017DE10, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
 };
 
 GpMsgEntry D_mine_gorge_8017E280[6] = {

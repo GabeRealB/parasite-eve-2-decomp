@@ -201,17 +201,11 @@ void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} AcropolisPatioPoseBank172C;
-
-AcropolisPatioPoseBank172C D_acropolis_patio_8017ECEC = { .poses = {
+GpPackedPose D_acropolis_patio_8017ECEC[2] = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_8017ED04[20] = {
+AnimationPackedRotation D_acropolis_patio_8017ED04[20] = {
 #include "assets/acropolis_patio_animation_018A0_bank4.inc"
 };
 
@@ -226,20 +220,14 @@ u16 D_acropolis_patio_8017EE38[20] = {
 GpAnimSet D_acropolis_patio_8017EE60 = {
     D_acropolis_patio_8017ED54,
     D_acropolis_patio_8017EE38,
-    { NULL, D_acropolis_patio_8017ECEC.words, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_8017ECEC, NULL, NULL, D_acropolis_patio_8017ED04, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} AcropolisPatioPoseBank18C8;
-
-AcropolisPatioPoseBank18C8 D_acropolis_patio_8017EE88 = { .poses = {
+GpPackedPose D_acropolis_patio_8017EE88[2] = {
 #include "assets/acropolis_patio_animation_01B48_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_8017EEA0[41] = {
+AnimationPackedRotation D_acropolis_patio_8017EEA0[41] = {
 #include "assets/acropolis_patio_animation_01B48_bank4.inc"
 };
 
@@ -254,20 +242,14 @@ u16 D_acropolis_patio_8017F0E0[20] = {
 GpAnimSet D_acropolis_patio_8017F108 = {
     D_acropolis_patio_8017EF44,
     D_acropolis_patio_8017F0E0,
-    { NULL, D_acropolis_patio_8017EE88.words, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_8017EE88, NULL, NULL, D_acropolis_patio_8017EEA0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} AcropolisPatioPoseBank1B70;
-
-AcropolisPatioPoseBank1B70 D_acropolis_patio_8017F130 = { .poses = {
+GpPackedPose D_acropolis_patio_8017F130[2] = {
 #include "assets/acropolis_patio_animation_01CE4_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_8017F148[20] = {
+AnimationPackedRotation D_acropolis_patio_8017F148[20] = {
 #include "assets/acropolis_patio_animation_01CE4_bank4.inc"
 };
 
@@ -282,20 +264,14 @@ u16 D_acropolis_patio_8017F27C[20] = {
 GpAnimSet D_acropolis_patio_8017F2A4 = {
     D_acropolis_patio_8017F198,
     D_acropolis_patio_8017F27C,
-    { NULL, D_acropolis_patio_8017F130.words, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_8017F130, NULL, NULL, D_acropolis_patio_8017F148, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} AcropolisPatioPoseBank1D0C;
-
-AcropolisPatioPoseBank1D0C D_acropolis_patio_8017F2CC = { .poses = {
+GpPackedPose D_acropolis_patio_8017F2CC[12] = {
 #include "assets/acropolis_patio_animation_022B8_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_8017F35C[138] = {
+AnimationPackedRotation D_acropolis_patio_8017F35C[138] = {
 #include "assets/acropolis_patio_animation_022B8_bank4.inc"
 };
 
@@ -310,20 +286,14 @@ u16 D_acropolis_patio_8017F850[20] = {
 GpAnimSet D_acropolis_patio_8017F878 = {
     D_acropolis_patio_8017F584,
     D_acropolis_patio_8017F850,
-    { NULL, D_acropolis_patio_8017F2CC.words, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_8017F2CC, NULL, NULL, D_acropolis_patio_8017F35C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[19];
-    GpPackedSvec words[57];
-} AcropolisPatioPoseBank22E0;
-
-AcropolisPatioPoseBank22E0 D_acropolis_patio_8017F8A0 = { .poses = {
+GpPackedPose D_acropolis_patio_8017F8A0[19] = {
 #include "assets/acropolis_patio_animation_02AD0_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_8017F984[189] = {
+AnimationPackedRotation D_acropolis_patio_8017F984[189] = {
 #include "assets/acropolis_patio_animation_02AD0_bank4.inc"
 };
 
@@ -338,20 +308,14 @@ u16 D_acropolis_patio_80180068[20] = {
 GpAnimSet D_acropolis_patio_80180090 = {
     D_acropolis_patio_8017FC78,
     D_acropolis_patio_80180068,
-    { NULL, D_acropolis_patio_8017F8A0.words, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_8017F8A0, NULL, NULL, D_acropolis_patio_8017F984, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} AcropolisPatioPoseBank2AF8;
-
-AcropolisPatioPoseBank2AF8 D_acropolis_patio_801800B8 = { .poses = {
+GpPackedPose D_acropolis_patio_801800B8[2] = {
 #include "assets/acropolis_patio_animation_02CA4_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_801800D0[15] = {
+AnimationPackedRotation D_acropolis_patio_801800D0[15] = {
 #include "assets/acropolis_patio_animation_02CA4_bank4.inc"
 };
 
@@ -366,7 +330,7 @@ u16 D_acropolis_patio_8018023C[20] = {
 GpAnimSet D_acropolis_patio_80180264 = {
     D_acropolis_patio_8018010C,
     D_acropolis_patio_8018023C,
-    { NULL, D_acropolis_patio_801800B8.words, NULL, NULL, D_acropolis_patio_801800D0, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_801800B8, NULL, NULL, D_acropolis_patio_801800D0, NULL, NULL, NULL },
 };
 
 AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
@@ -577,17 +541,11 @@ GpEvsCmd D_acropolis_patio_80180EDC[9] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} AcropolisPatioPoseBank39F4;
-
-AcropolisPatioPoseBank39F4 D_acropolis_patio_80180FB4 = { .poses = {
+GpPackedPose D_acropolis_patio_80180FB4[6] = {
 #include "assets/acropolis_patio_animation_03CD0_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_80180FFC[46] = {
+AnimationPackedRotation D_acropolis_patio_80180FFC[46] = {
 #include "assets/acropolis_patio_animation_03CD0_bank4.inc"
 };
 
@@ -602,20 +560,14 @@ u16 D_acropolis_patio_80181268[20] = {
 GpAnimSet D_acropolis_patio_80181290 = {
     D_acropolis_patio_801810B4,
     D_acropolis_patio_80181268,
-    { NULL, D_acropolis_patio_80180FB4.words, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_80180FB4, NULL, NULL, D_acropolis_patio_80180FFC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} AcropolisPatioPoseBank3CF8;
-
-AcropolisPatioPoseBank3CF8 D_acropolis_patio_801812B8 = { .poses = {
+GpPackedPose D_acropolis_patio_801812B8[13] = {
 #include "assets/acropolis_patio_animation_04470_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_80181354[179] = {
+AnimationPackedRotation D_acropolis_patio_80181354[179] = {
 #include "assets/acropolis_patio_animation_04470_bank4.inc"
 };
 
@@ -630,20 +582,14 @@ u16 D_acropolis_patio_80181A08[20] = {
 GpAnimSet D_acropolis_patio_80181A30 = {
     D_acropolis_patio_80181620,
     D_acropolis_patio_80181A08,
-    { NULL, D_acropolis_patio_801812B8.words, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_801812B8, NULL, NULL, D_acropolis_patio_80181354, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} AcropolisPatioPoseBank4498;
-
-AcropolisPatioPoseBank4498 D_acropolis_patio_80181A58 = { .poses = {
+GpPackedPose D_acropolis_patio_80181A58[9] = {
 #include "assets/acropolis_patio_animation_0494C_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_80181AC4[109] = {
+AnimationPackedRotation D_acropolis_patio_80181AC4[109] = {
 #include "assets/acropolis_patio_animation_0494C_bank4.inc"
 };
 
@@ -658,20 +604,14 @@ u16 D_acropolis_patio_80181EE4[20] = {
 GpAnimSet D_acropolis_patio_80181F0C = {
     D_acropolis_patio_80181C78,
     D_acropolis_patio_80181EE4,
-    { NULL, D_acropolis_patio_80181A58.words, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_80181A58, NULL, NULL, D_acropolis_patio_80181AC4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[11];
-    GpPackedSvec words[33];
-} AcropolisPatioPoseBank4974;
-
-AcropolisPatioPoseBank4974 D_acropolis_patio_80181F34 = { .poses = {
+GpPackedPose D_acropolis_patio_80181F34[11] = {
 #include "assets/acropolis_patio_animation_04FC8_bank1.inc"
-                                                          } };
+};
 
-GpPackedSvec D_acropolis_patio_80181FB8[161] = {
+AnimationPackedRotation D_acropolis_patio_80181FB8[161] = {
 #include "assets/acropolis_patio_animation_04FC8_bank4.inc"
 };
 
@@ -686,7 +626,7 @@ u16 D_acropolis_patio_80182560[20] = {
 GpAnimSet D_acropolis_patio_80182588 = {
     D_acropolis_patio_8018223C,
     D_acropolis_patio_80182560,
-    { NULL, D_acropolis_patio_80181F34.words, NULL, NULL, D_acropolis_patio_80181FB8, NULL, NULL, NULL },
+    { NULL, D_acropolis_patio_80181F34, NULL, NULL, D_acropolis_patio_80181FB8, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_acropolis_patio_801825B0[5] = {

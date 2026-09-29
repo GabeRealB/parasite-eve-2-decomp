@@ -439,17 +439,11 @@ SVECTOR D_acropolis_forked_road_80180F80[300] = {
     { 6590, -2995, 1250, 0 },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} AcropolisForkedRoadPoseBank4320;
-
-AcropolisForkedRoadPoseBank4320 D_acropolis_forked_road_801818E0 = { .poses = {
+GpPackedPose D_acropolis_forked_road_801818E0[6] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_acropolis_forked_road_80181928[46] = {
+AnimationPackedRotation D_acropolis_forked_road_80181928[46] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank4.inc"
 };
 
@@ -464,20 +458,14 @@ u16 D_acropolis_forked_road_80181B94[20] = {
 GpAnimSet D_acropolis_forked_road_80181BBC = {
     D_acropolis_forked_road_801819E0,
     D_acropolis_forked_road_80181B94,
-    { NULL, D_acropolis_forked_road_801818E0.words, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
+    { NULL, D_acropolis_forked_road_801818E0, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} AcropolisForkedRoadPoseBank4624;
-
-AcropolisForkedRoadPoseBank4624 D_acropolis_forked_road_80181BE4 = { .poses = {
+GpPackedPose D_acropolis_forked_road_80181BE4[10] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank1.inc"
-                                                                     } };
+};
 
-GpPackedSvec D_acropolis_forked_road_80181C5C[95] = {
+AnimationPackedRotation D_acropolis_forked_road_80181C5C[95] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank4.inc"
 };
 
@@ -493,7 +481,7 @@ u16 D_acropolis_forked_road_80182004[20] = {
 GpAnimSet D_acropolis_forked_road_8018202C = {
     D_acropolis_forked_road_80181DD8,
     D_acropolis_forked_road_80182004,
-    { NULL, D_acropolis_forked_road_80181BE4.words, NULL, NULL, D_acropolis_forked_road_80181C5C, NULL, NULL, NULL },
+    { NULL, D_acropolis_forked_road_80181BE4, NULL, NULL, D_acropolis_forked_road_80181C5C, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_acropolis_forked_road_80182054[3] = {

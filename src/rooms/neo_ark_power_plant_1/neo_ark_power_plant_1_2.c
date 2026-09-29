@@ -76,17 +76,11 @@ extern GpAnimArg D_neo_ark_power_plant_1_8017EEAC;
 extern GpAnimSet                        D_neo_ark_power_plant_1_8017EAF0;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} NeoArkPowerPlant1PoseBankFEC;
-
-NeoArkPowerPlant1PoseBankFEC D_neo_ark_power_plant_1_8017E5AC = { .poses = {
+GpPackedPose D_neo_ark_power_plant_1_8017E5AC[10] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank1.inc"
-                                                                  } };
+};
 
-GpPackedSvec D_neo_ark_power_plant_1_8017E624[126] = {
+AnimationPackedRotation D_neo_ark_power_plant_1_8017E624[126] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank4.inc"
 };
 
@@ -101,7 +95,7 @@ u16 D_neo_ark_power_plant_1_8017EAC8[20] = {
 GpAnimSet D_neo_ark_power_plant_1_8017EAF0 = {
     D_neo_ark_power_plant_1_8017E81C,
     D_neo_ark_power_plant_1_8017EAC8,
-    { NULL, D_neo_ark_power_plant_1_8017E5AC.words, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },
+    { NULL, D_neo_ark_power_plant_1_8017E5AC, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },
 };
 
 GpMsgEntry D_neo_ark_power_plant_1_8017EB18[5] = {

@@ -135,17 +135,11 @@ void func_dryfield_night_driveway_8017DB8C(Task*);
 
 TaskDesc D_dryfield_night_driveway_8017E678 = { 0, 32, func_dryfield_night_driveway_8017D608, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} DryfieldNightDrivewayPoseBank10C4;
-
-DryfieldNightDrivewayPoseBank10C4 D_dryfield_night_driveway_8017E684 = { .poses = {
+GpPackedPose D_dryfield_night_driveway_8017E684[10] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
-                                                                         } };
+};
 
-GpPackedSvec D_dryfield_night_driveway_8017E6FC[95] = {
+AnimationPackedRotation D_dryfield_night_driveway_8017E6FC[95] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank4.inc"
 };
 
@@ -160,20 +154,14 @@ u16 D_dryfield_night_driveway_8017EAA4[20] = {
 GpAnimSet D_dryfield_night_driveway_8017EACC = {
     D_dryfield_night_driveway_8017E878,
     D_dryfield_night_driveway_8017EAA4,
-    { NULL, D_dryfield_night_driveway_8017E684.words, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_driveway_8017E684, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldNightDrivewayPoseBank1534;
-
-DryfieldNightDrivewayPoseBank1534 D_dryfield_night_driveway_8017EAF4 = { .poses = {
+GpPackedPose D_dryfield_night_driveway_8017EAF4[6] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank1.inc"
-                                                                         } };
+};
 
-GpPackedSvec D_dryfield_night_driveway_8017EB3C[75] = {
+AnimationPackedRotation D_dryfield_night_driveway_8017EB3C[75] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank4.inc"
 };
 
@@ -188,20 +176,14 @@ u16 D_dryfield_night_driveway_8017EE08[20] = {
 GpAnimSet D_dryfield_night_driveway_8017EE30 = {
     D_dryfield_night_driveway_8017EC68,
     D_dryfield_night_driveway_8017EE08,
-    { NULL, D_dryfield_night_driveway_8017EAF4.words, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_driveway_8017EAF4, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} DryfieldNightDrivewayPoseBank1898;
-
-DryfieldNightDrivewayPoseBank1898 D_dryfield_night_driveway_8017EE58 = { .poses = {
+GpPackedPose D_dryfield_night_driveway_8017EE58[2] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank1.inc"
-                                                                         } };
+};
 
-GpPackedSvec D_dryfield_night_driveway_8017EE70[24] = {
+AnimationPackedRotation D_dryfield_night_driveway_8017EE70[24] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank4.inc"
 };
 
@@ -216,20 +198,14 @@ u16 D_dryfield_night_driveway_8017F01C[20] = {
 GpAnimSet D_dryfield_night_driveway_8017F044 = {
     D_dryfield_night_driveway_8017EED0,
     D_dryfield_night_driveway_8017F01C,
-    { NULL, D_dryfield_night_driveway_8017EE58.words, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_driveway_8017EE58, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} DryfieldNightDrivewayPoseBank1AAC;
-
-DryfieldNightDrivewayPoseBank1AAC D_dryfield_night_driveway_8017F06C = { .poses = {
+GpPackedPose D_dryfield_night_driveway_8017F06C[5] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank1.inc"
-                                                                         } };
+};
 
-GpPackedSvec D_dryfield_night_driveway_8017F0A8[60] = {
+AnimationPackedRotation D_dryfield_night_driveway_8017F0A8[60] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank4.inc"
 };
 
@@ -244,7 +220,7 @@ u16 D_dryfield_night_driveway_8017F2FC[20] = {
 GpAnimSet D_dryfield_night_driveway_8017F324 = {
     D_dryfield_night_driveway_8017F198,
     D_dryfield_night_driveway_8017F2FC,
-    { NULL, D_dryfield_night_driveway_8017F06C.words, NULL, NULL, D_dryfield_night_driveway_8017F0A8, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_driveway_8017F06C, NULL, NULL, D_dryfield_night_driveway_8017F0A8, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_night_driveway_8017F34C[3] = {

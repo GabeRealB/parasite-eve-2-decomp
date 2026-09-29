@@ -334,17 +334,11 @@ TaskDesc D_mine_mesa_80181990[2] = {
 
 TaskDesc D_mine_mesa_801819A8 = { 0, 192, func_mine_mesa_8017DFC4, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MineMesaPoseBank43F4;
-
-MineMesaPoseBank43F4 D_mine_mesa_801819B4 = { .poses = {
+GpPackedPose D_mine_mesa_801819B4[6] = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_801819FC[46] = {
+AnimationPackedRotation D_mine_mesa_801819FC[46] = {
 #include "assets/mine_mesa_animation_046D0_bank4.inc"
 };
 
@@ -359,20 +353,14 @@ u16 D_mine_mesa_80181C68[20] = {
 GpAnimSet D_mine_mesa_80181C90 = {
     D_mine_mesa_80181AB4,
     D_mine_mesa_80181C68,
-    { NULL, D_mine_mesa_801819B4.words, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_801819B4, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} MineMesaPoseBank46F8;
-
-MineMesaPoseBank46F8 D_mine_mesa_80181CB8 = { .poses = {
+GpPackedPose D_mine_mesa_80181CB8[2] = {
 #include "assets/mine_mesa_animation_0494C_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80181CD0[32] = {
+AnimationPackedRotation D_mine_mesa_80181CD0[32] = {
 #include "assets/mine_mesa_animation_0494C_bank4.inc"
 };
 
@@ -387,20 +375,14 @@ u16 D_mine_mesa_80181EE4[20] = {
 GpAnimSet D_mine_mesa_80181F0C = {
     D_mine_mesa_80181D50,
     D_mine_mesa_80181EE4,
-    { NULL, D_mine_mesa_80181CB8.words, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80181CB8, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} MineMesaPoseBank4974;
-
-MineMesaPoseBank4974 D_mine_mesa_80181F34 = { .poses = {
+GpPackedPose D_mine_mesa_80181F34[4] = {
 #include "assets/mine_mesa_animation_04B54_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80181F64[34] = {
+AnimationPackedRotation D_mine_mesa_80181F64[34] = {
 #include "assets/mine_mesa_animation_04B54_bank4.inc"
 };
 
@@ -415,20 +397,14 @@ u16 D_mine_mesa_801820EC[20] = {
 GpAnimSet D_mine_mesa_80182114 = {
     D_mine_mesa_80181FEC,
     D_mine_mesa_801820EC,
-    { NULL, D_mine_mesa_80181F34.words, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80181F34, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MineMesaPoseBank4B7C;
-
-MineMesaPoseBank4B7C D_mine_mesa_8018213C = { .poses = {
+GpPackedPose D_mine_mesa_8018213C[6] = {
 #include "assets/mine_mesa_animation_04ED8_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80182184[71] = {
+AnimationPackedRotation D_mine_mesa_80182184[71] = {
 #include "assets/mine_mesa_animation_04ED8_bank4.inc"
 };
 
@@ -443,20 +419,14 @@ u16 D_mine_mesa_80182470[20] = {
 GpAnimSet D_mine_mesa_80182498 = {
     D_mine_mesa_801822A0,
     D_mine_mesa_80182470,
-    { NULL, D_mine_mesa_8018213C.words, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_8018213C, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} MineMesaPoseBank4F00;
-
-MineMesaPoseBank4F00 D_mine_mesa_801824C0 = { .poses = {
+GpPackedPose D_mine_mesa_801824C0[3] = {
 #include "assets/mine_mesa_animation_0515C_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_801824E4[34] = {
+AnimationPackedRotation D_mine_mesa_801824E4[34] = {
 #include "assets/mine_mesa_animation_0515C_bank4.inc"
 };
 
@@ -471,20 +441,14 @@ u16 D_mine_mesa_801826F4[20] = {
 GpAnimSet D_mine_mesa_8018271C = {
     D_mine_mesa_8018256C,
     D_mine_mesa_801826F4,
-    { NULL, D_mine_mesa_801824C0.words, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_801824C0, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[28];
-    GpPackedSvec words[84];
-} MineMesaPoseBank5184;
-
-MineMesaPoseBank5184 D_mine_mesa_80182744 = { .poses = {
+GpPackedPose D_mine_mesa_80182744[28] = {
 #include "assets/mine_mesa_animation_06160_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80182894[423] = {
+AnimationPackedRotation D_mine_mesa_80182894[423] = {
 #include "assets/mine_mesa_animation_06160_bank4.inc"
 };
 
@@ -499,20 +463,14 @@ u16 D_mine_mesa_801836F8[20] = {
 GpAnimSet D_mine_mesa_80183720 = {
     D_mine_mesa_80182F30,
     D_mine_mesa_801836F8,
-    { NULL, D_mine_mesa_80182744.words, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80182744, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} MineMesaPoseBank6188;
-
-MineMesaPoseBank6188 D_mine_mesa_80183748 = { .poses = {
+GpPackedPose D_mine_mesa_80183748[4] = {
 #include "assets/mine_mesa_animation_0645C_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80183778[56] = {
+AnimationPackedRotation D_mine_mesa_80183778[56] = {
 #include "assets/mine_mesa_animation_0645C_bank4.inc"
 };
 
@@ -527,20 +485,14 @@ u16 D_mine_mesa_801839F4[20] = {
 GpAnimSet D_mine_mesa_80183A1C = {
     D_mine_mesa_80183858,
     D_mine_mesa_801839F4,
-    { NULL, D_mine_mesa_80183748.words, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80183748, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} MineMesaPoseBank6484;
-
-MineMesaPoseBank6484 D_mine_mesa_80183A44 = { .poses = {
+GpPackedPose D_mine_mesa_80183A44[2] = {
 #include "assets/mine_mesa_animation_065FC_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80183A5C[18] = {
+AnimationPackedRotation D_mine_mesa_80183A5C[18] = {
 #include "assets/mine_mesa_animation_065FC_bank4.inc"
 };
 
@@ -555,20 +507,14 @@ u16 D_mine_mesa_80183B94[20] = {
 GpAnimSet D_mine_mesa_80183BBC = {
     D_mine_mesa_80183AA4,
     D_mine_mesa_80183B94,
-    { NULL, D_mine_mesa_80183A44.words, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80183A44, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} MineMesaPoseBank6624;
-
-MineMesaPoseBank6624 D_mine_mesa_80183BE4 = { .poses = {
+GpPackedPose D_mine_mesa_80183BE4[4] = {
 #include "assets/mine_mesa_animation_068E4_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80183C14[45] = {
+AnimationPackedRotation D_mine_mesa_80183C14[45] = {
 #include "assets/mine_mesa_animation_068E4_bank4.inc"
 };
 
@@ -583,20 +529,14 @@ u16 D_mine_mesa_80183E7C[20] = {
 GpAnimSet D_mine_mesa_80183EA4 = {
     D_mine_mesa_80183CC8,
     D_mine_mesa_80183E7C,
-    { NULL, D_mine_mesa_80183BE4.words, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80183BE4, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} MineMesaPoseBank690C;
-
-MineMesaPoseBank690C D_mine_mesa_80183ECC = { .poses = {
+GpPackedPose D_mine_mesa_80183ECC[2] = {
 #include "assets/mine_mesa_animation_06B9C_bank1.inc"
-                                              } };
+};
 
-GpPackedSvec D_mine_mesa_80183EE4[39] = {
+AnimationPackedRotation D_mine_mesa_80183EE4[39] = {
 #include "assets/mine_mesa_animation_06B9C_bank4.inc"
 };
 
@@ -612,7 +552,7 @@ u16 D_mine_mesa_80184134[20] = {
 GpAnimSet D_mine_mesa_8018415C = {
     D_mine_mesa_80183F80,
     D_mine_mesa_80184134,
-    { NULL, D_mine_mesa_80183ECC.words, NULL, NULL, D_mine_mesa_80183EE4, NULL, NULL, NULL },
+    { NULL, D_mine_mesa_80183ECC, NULL, NULL, D_mine_mesa_80183EE4, NULL, NULL, NULL },
 };
 
 SVECTOR D_mine_mesa_80184184[46] = {

@@ -31019,7 +31019,7 @@ register void* sets asm("s1");
 
 extra = arg4;
 sets  = arg7;
-func_800B3448(...);
+animationTickSlotPose(...);
 if (sets != NULL) {
     ctx->field_0 = sets;
     slot->sets    = sets;
@@ -32738,7 +32738,7 @@ val = one << 4;
 
 ## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
 
-`func_800B3448(ctx, i, 0, field_8 + (i << 4))` wants `addu a3, a3, t0` in
+`animationTickSlotPose(ctx, i, 0, field_8 + (i << 4))` wants `addu a3, a3, t0` in
 the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
 `call_a3 = field_8 + off` emits the add too early and leaves `a2 = 0` as
 the `jal` delay.
@@ -32757,7 +32757,7 @@ raw = arg2;
 off = arg1 << 4;
 f8  = (s32)arg0->field_8;
 asm volatile("" : "+r"(raw));
-func_800B3448(arg0, arg1, 0, f8 + off);
+animationTickSlotPose(arg0, arg1, 0, f8 + off);
 ```
 
 `Gp_AnimSeekSlotEx` is the example. `slot->sets[arg2]` loads `sets`
@@ -34370,7 +34370,7 @@ jal   f
 `register T* dest asm("a3")` for that later NULL-check makes GCC prepare
 `$a3` (4th arg) before `$a0`, swapping the two delay-slot fills (99.8%).
 Leave `dest` unpinned; GCC still loads it into `$a3` after the return.
-`Gp_AnimBlendPacked` is the example.
+`_animationBlendPackedRotation` is the example.
 
 ## Reuse `$v1` across scratch head, dividend, and bitfield pointer
 
@@ -34394,7 +34394,7 @@ tmp -= 1;
 the copy into `$s0` fills the `beq field_0, field_4` delay. Pin `blend` so
 `lh v1, field_C` / `div v1, v0` / `mflo v1` and the invBlend phi stay in
 `$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
-reloading the pointer from `$s1`. `Gp_AnimBlendPacked` is the example.
+reloading the pointer from `$s1`. `_animationBlendPackedRotation` is the example.
 
 ## Full-screen POLY_F4 + `setDrawTPage`: extents first, `setSemiTrans` after `addPrim`
 
@@ -36086,7 +36086,7 @@ Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
 cannot hoist into the `beqz dest` delay. Write `field_C` dest through
 `index->field_C->vx` (no local) so each `sh` reloads the pointer. A named
 `z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
-rather than the `vy` delay. `Gp_AnimBlendPose` is the example.
+rather than the `vy` delay. `_animationBlendPose` is the example.
 
 ## Put a later call's constant in each wrap-select arm
 
@@ -39064,7 +39064,7 @@ and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
 
 ## One C variable = one hard register: split reused temporaries per loop
 
-`func_800B3448` stalled at ~98% with the *same* mismatch shape in two similar
+`animationTickSlotPose` stalled at ~98% with the *same* mismatch shape in two similar
 loops: the target used one register pair (`a2`/`t1`) for `(setIdx, field_15*2)`
 and mine used the swap, and likewise for `(idx, lim)`. GCC 2.8.1 builds one
 pseudo per declared local, so a variable reused in two disjoint loops gets a
@@ -39100,19 +39100,19 @@ took it from 98.86% (regs only) to 100%.
 
 ## Split `&base[i]` into a base-pointer local to control the final `addu` dest
 
-The last two diffs in `func_800B3448` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
+The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
 same operands, different destination — from
 
 ```c
-s->src.field_0 = &set->poseBanks[op][recs[slot->curRec].pose];
+scratch->src.currentPose = &((u8*)set->poseBanks[poseKind])[records[slot->curRec].pose * sizeof(u32)];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
 Hoisting the inner pointer into its own local flips that choice:
 
 ```c
-poses          = set->poseBanks[op];
-s->src.field_0 = &poses[recs[slot->curRec].pose];
+poseBytes                = set->poseBanks[poseKind];
+scratch->src.currentPose = &poseBytes[records[slot->curRec].pose * sizeof(u32)];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -39120,7 +39120,7 @@ Neither a temporary for the whole address (`p = &...; x = p;`) nor the
 
 ## `lbu` + `sll 24` + `sra 24` vs `lb`: it is the statement form, not the cast
 
-Both branches of an if in `func_800B3448` sign-extend the same `u8` field, but
+Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
 the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The cast is
 identical in both; what differs is the assignment:
 
@@ -67011,7 +67011,7 @@ a `preferences:` line naming an argument register, look for a pseudo that dies
 into it. Shorten the recipient to a single block rather than pinning.
 
 The opposite shape has a second fix: `expand_preferences` only merges across a
-dying copy when the two allocnos do **not** conflict. `Gp_AnimBlendPose` reads
+dying copy when the two allocnos do **not** conflict. `_animationBlendPose` reads
 three packed-pose pointers off `index` (`field_0`, `field_4`, then `field_8`
 after the call). With a separate `dest` for the last one, `dest` inherited
 `$a0` from the dying `index` and landed in `$a0`, not the target's `$v1`. Using
@@ -100912,7 +100912,7 @@ The struct that fixes it here is also the layout worth reusing in this family:
 typedef struct Actor311900Anim {
     /* 0x000 */ GpAnimCtx  context;
     /* 0x014 */ GpAnimSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
-    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx.poses, GpPackedSvec at a 0x10 stride */
+    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx.poses, packed encodings in 0x10-byte slots */
 } Actor311900Anim;
 STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 ```
@@ -124007,7 +124007,7 @@ pins, no empty asm, no permuter run. Scratch
 ## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
-function passes two 0x10-byte `GpAnimPose` locals to `func_800B3448` and
+function passes two 0x10-byte `GpAnimPose` locals to `animationTickSlotPose` and
 `Gp_AnimWritePoseCopy`, the seed's frame comes out one pose short
 (`addiu sp,sp,-0x48` against a target `-0x58`) and the two poses sit at
 `sp+0x18` / `sp+0x1c` instead of the target's `sp+0x18` / `sp+0x28`.
@@ -132592,7 +132592,7 @@ typedef struct {
     s32 rx : 11;   /* bits 0-10  */
     s32 ry : 10;   /* bits 11-20 */
     s32 rz : 11;   /* bits 21-31 */
-} GpPackedSvec;
+} AnimationPackedRotation;
 ```
 
 The access shapes then say the same thing the declaration does, which is what
@@ -132632,7 +132632,7 @@ descriptor address.
 pointers is 0x28; the offsets to the next structure were 0x28 for 43 of 44 sets
 in `m93r`, 34–36 of 44 in the other three weapons, and 18 of 34 / 9 of 34 in the
 two actors that carry an animation block — the rest larger. That turns the
-placeholder `GpPackedSvec* poseBanks[1]`, which compiled because nothing checks
+placeholder `void* poseBanks[1]`, which compiled because nothing checks
 an index against the declared length at runtime, into `poseBanks[8]` under a
 `STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28)` that the build now enforces.
 

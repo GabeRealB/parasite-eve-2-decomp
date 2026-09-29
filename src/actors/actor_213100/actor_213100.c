@@ -157,17 +157,11 @@ TmdSource D_actor_213100_801503DC = {
     D_actor_213100_801502A0,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} Actor213100PoseBank65E0;
-
-Actor213100PoseBank65E0 D_actor_213100_80150400 = { .poses = {
+GpPackedPose D_actor_213100_80150400[6] = {
 #include "assets/actor_213100_animation_068BC_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80150448[46] = {
+AnimationPackedRotation D_actor_213100_80150448[46] = {
 #include "assets/actor_213100_animation_068BC_bank4.inc"
 };
 
@@ -182,20 +176,14 @@ u16 D_actor_213100_801506B4[20] = {
 GpAnimSet D_actor_213100_801506DC = {
     D_actor_213100_80150500,
     D_actor_213100_801506B4,
-    { NULL, D_actor_213100_80150400.words, NULL, NULL, D_actor_213100_80150448, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80150400, NULL, NULL, D_actor_213100_80150448, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} Actor213100PoseBank68E4;
-
-Actor213100PoseBank68E4 D_actor_213100_80150704 = { .poses = {
+GpPackedPose D_actor_213100_80150704[8] = {
 #include "assets/actor_213100_animation_06C90_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80150764[84] = {
+AnimationPackedRotation D_actor_213100_80150764[84] = {
 #include "assets/actor_213100_animation_06C90_bank4.inc"
 };
 
@@ -210,20 +198,14 @@ u16 D_actor_213100_80150A88[20] = {
 GpAnimSet D_actor_213100_80150AB0 = {
     D_actor_213100_801508B4,
     D_actor_213100_80150A88,
-    { NULL, D_actor_213100_80150704.words, NULL, NULL, D_actor_213100_80150764, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80150704, NULL, NULL, D_actor_213100_80150764, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} Actor213100PoseBank6CB8;
-
-Actor213100PoseBank6CB8 D_actor_213100_80150AD8 = { .poses = {
+GpPackedPose D_actor_213100_80150AD8[7] = {
 #include "assets/actor_213100_animation_07080_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80150B2C[62] = {
+AnimationPackedRotation D_actor_213100_80150B2C[62] = {
 #include "assets/actor_213100_animation_07080_bank4.inc"
 };
 
@@ -238,20 +220,14 @@ u16 D_actor_213100_80150E78[20] = {
 GpAnimSet D_actor_213100_80150EA0 = {
     D_actor_213100_80150C24,
     D_actor_213100_80150E78,
-    { NULL, D_actor_213100_80150AD8.words, NULL, NULL, D_actor_213100_80150B2C, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80150AD8, NULL, NULL, D_actor_213100_80150B2C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} Actor213100PoseBank70A8;
-
-Actor213100PoseBank70A8 D_actor_213100_80150EC8 = { .poses = {
+GpPackedPose D_actor_213100_80150EC8[7] = {
 #include "assets/actor_213100_animation_073EC_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80150F1C[74] = {
+AnimationPackedRotation D_actor_213100_80150F1C[74] = {
 #include "assets/actor_213100_animation_073EC_bank4.inc"
 };
 
@@ -266,20 +242,14 @@ u16 D_actor_213100_801511E4[20] = {
 GpAnimSet D_actor_213100_8015120C = {
     D_actor_213100_80151044,
     D_actor_213100_801511E4,
-    { NULL, D_actor_213100_80150EC8.words, NULL, NULL, D_actor_213100_80150F1C, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80150EC8, NULL, NULL, D_actor_213100_80150F1C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} Actor213100PoseBank7414;
-
-Actor213100PoseBank7414 D_actor_213100_80151234 = { .poses = {
+GpPackedPose D_actor_213100_80151234[9] = {
 #include "assets/actor_213100_animation_0793C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_801512A0[100] = {
+AnimationPackedRotation D_actor_213100_801512A0[100] = {
 #include "assets/actor_213100_animation_0793C_bank4.inc"
 };
 
@@ -294,20 +264,14 @@ u16 D_actor_213100_80151734[20] = {
 GpAnimSet D_actor_213100_8015175C = {
     D_actor_213100_80151430,
     D_actor_213100_80151734,
-    { NULL, D_actor_213100_80151234.words, NULL, NULL, D_actor_213100_801512A0, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80151234, NULL, NULL, D_actor_213100_801512A0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} Actor213100PoseBank7964;
-
-Actor213100PoseBank7964 D_actor_213100_80151784 = { .poses = {
+GpPackedPose D_actor_213100_80151784[7] = {
 #include "assets/actor_213100_animation_07CEC_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_801517D8[81] = {
+AnimationPackedRotation D_actor_213100_801517D8[81] = {
 #include "assets/actor_213100_animation_07CEC_bank4.inc"
 };
 
@@ -322,20 +286,14 @@ u16 D_actor_213100_80151AE4[20] = {
 GpAnimSet D_actor_213100_80151B0C = {
     D_actor_213100_8015191C,
     D_actor_213100_80151AE4,
-    { NULL, D_actor_213100_80151784.words, NULL, NULL, D_actor_213100_801517D8, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80151784, NULL, NULL, D_actor_213100_801517D8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} Actor213100PoseBank7D14;
-
-Actor213100PoseBank7D14 D_actor_213100_80151B34 = { .poses = {
+GpPackedPose D_actor_213100_80151B34[3] = {
 #include "assets/actor_213100_animation_07EB0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80151B58[27] = {
+AnimationPackedRotation D_actor_213100_80151B58[27] = {
 #include "assets/actor_213100_animation_07EB0_bank4.inc"
 };
 
@@ -350,20 +308,14 @@ u16 D_actor_213100_80151CA8[20] = {
 GpAnimSet D_actor_213100_80151CD0 = {
     D_actor_213100_80151BC4,
     D_actor_213100_80151CA8,
-    { NULL, D_actor_213100_80151B34.words, NULL, NULL, D_actor_213100_80151B58, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80151B34, NULL, NULL, D_actor_213100_80151B58, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} Actor213100PoseBank7ED8;
-
-Actor213100PoseBank7ED8 D_actor_213100_80151CF8 = { .poses = {
+GpPackedPose D_actor_213100_80151CF8[4] = {
 #include "assets/actor_213100_animation_08170_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80151D28[40] = {
+AnimationPackedRotation D_actor_213100_80151D28[40] = {
 #include "assets/actor_213100_animation_08170_bank4.inc"
 };
 
@@ -378,20 +330,14 @@ u16 D_actor_213100_80151F68[20] = {
 GpAnimSet D_actor_213100_80151F90 = {
     D_actor_213100_80151DC8,
     D_actor_213100_80151F68,
-    { NULL, D_actor_213100_80151CF8.words, NULL, NULL, D_actor_213100_80151D28, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80151CF8, NULL, NULL, D_actor_213100_80151D28, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} Actor213100PoseBank8198;
-
-Actor213100PoseBank8198 D_actor_213100_80151FB8 = { .poses = {
+GpPackedPose D_actor_213100_80151FB8[3] = {
 #include "assets/actor_213100_animation_08334_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_213100_80151FDC[27] = {
+AnimationPackedRotation D_actor_213100_80151FDC[27] = {
 #include "assets/actor_213100_animation_08334_bank4.inc"
 };
 
@@ -406,7 +352,7 @@ u16 D_actor_213100_8015212C[20] = {
 GpAnimSet D_actor_213100_80152154 = {
     D_actor_213100_80152048,
     D_actor_213100_8015212C,
-    { NULL, D_actor_213100_80151FB8.words, NULL, NULL, D_actor_213100_80151FDC, NULL, NULL, NULL },
+    { NULL, D_actor_213100_80151FB8, NULL, NULL, D_actor_213100_80151FDC, NULL, NULL, NULL },
 };
 
 GpAnimSet* D_actor_213100_8015217C[10] = {

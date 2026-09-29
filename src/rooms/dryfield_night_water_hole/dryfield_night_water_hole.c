@@ -190,17 +190,11 @@ s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_night_water_hole_8017D7E8(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldNightWaterHolePoseBank2C60;
-
-DryfieldNightWaterHolePoseBank2C60 D_dryfield_night_water_hole_80180220 = { .poses = {
+GpPackedPose D_dryfield_night_water_hole_80180220[6] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
-                                                                            } };
+};
 
-GpPackedSvec D_dryfield_night_water_hole_80180268[64] = {
+AnimationPackedRotation D_dryfield_night_water_hole_80180268[64] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank4.inc"
 };
 
@@ -215,7 +209,7 @@ u16 D_dryfield_night_water_hole_8018059C[20] = {
 GpAnimSet D_dryfield_night_water_hole_801805C4 = {
     D_dryfield_night_water_hole_80180368,
     D_dryfield_night_water_hole_8018059C,
-    { NULL, D_dryfield_night_water_hole_80180220.words, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
+    { NULL, D_dryfield_night_water_hole_80180220, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_night_water_hole_801805EC = { 0, 32, func_dryfield_night_water_hole_8017D7E8, { .model = NULL } };

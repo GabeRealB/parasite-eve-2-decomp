@@ -21,7 +21,7 @@ def components(data: bytes, load: int, offset: int) -> list[dict]:
     for kind, bank in sorted(aset["pose_banks"].items(), key=lambda pair: pair[1]["offset"]):
         if kind == 1 and bank["words"] % 3:
             raise ValueError(f"animation at 0x{offset:X}: partial translation/rotation pose")
-        result.append(dict(name=f"bank{kind}", type="GpPackedPose" if kind == 1 else "GpPackedSvec",
+        result.append(dict(name=f"bank{kind}", type="GpPackedPose" if kind == 1 else "AnimationPackedRotation",
                            offset=bank["offset"], size=bank["words"] * 4,
                            count=bank["words"] // (3 if kind == 1 else 1)))
     result.append(dict(name="records", type="GpAnimRec", offset=aset["records_offset"],
@@ -35,7 +35,7 @@ def components(data: bytes, load: int, offset: int) -> list[dict]:
 
 def initializer(data: bytes, part: dict) -> str:
     start, size, typ = part["offset"], part["size"], part["type"]
-    if typ == "GpPackedSvec":
+    if typ == "AnimationPackedRotation":
         def signed(value: int, bits: int) -> int:
             value &= (1 << bits) - 1
             return value - (1 << bits) if value & (1 << (bits - 1)) else value

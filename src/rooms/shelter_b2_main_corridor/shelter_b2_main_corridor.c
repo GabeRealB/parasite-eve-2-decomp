@@ -185,17 +185,11 @@ void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
 ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, func_shelter_b2_main_corridor_8017D6BC, { .model = NULL } } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} ShelterB2MainCorridorPoseBank5330;
-
-ShelterB2MainCorridorPoseBank5330 D_shelter_b2_main_corridor_801828F0 = { .poses = {
+GpPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
-                                                                          } };
+};
 
-GpPackedSvec D_shelter_b2_main_corridor_80182908[62] = {
+AnimationPackedRotation D_shelter_b2_main_corridor_80182908[62] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank4.inc"
 };
 
@@ -210,7 +204,7 @@ u16 D_shelter_b2_main_corridor_80182BB8[20] = {
 GpAnimSet D_shelter_b2_main_corridor_80182BE0 = {
     D_shelter_b2_main_corridor_80182A00,
     D_shelter_b2_main_corridor_80182BB8,
-    { NULL, D_shelter_b2_main_corridor_801828F0.words, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
+    { NULL, D_shelter_b2_main_corridor_801828F0, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182C08 = { 0, 32, func_shelter_b2_main_corridor_8017D82C, { .model = NULL } };

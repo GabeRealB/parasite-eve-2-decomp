@@ -161,17 +161,11 @@ TaskDesc D_mist_parking_801869B8[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} MistParkingPoseBank941C;
-
-MistParkingPoseBank941C D_mist_parking_801869DC = { .poses = {
+GpPackedPose D_mist_parking_801869DC[2] = {
 #include "assets/mist_parking_animation_095D0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_801869F4[17] = {
+AnimationPackedRotation D_mist_parking_801869F4[17] = {
 #include "assets/mist_parking_animation_095D0_bank4.inc"
 };
 
@@ -186,7 +180,7 @@ u16 D_mist_parking_80186B68[20] = {
 GpAnimSet D_mist_parking_80186B90 = {
     D_mist_parking_80186A38,
     D_mist_parking_80186B68,
-    { NULL, D_mist_parking_801869DC.words, NULL, NULL, D_mist_parking_801869F4, NULL, NULL, NULL },
+    { NULL, D_mist_parking_801869DC, NULL, NULL, D_mist_parking_801869F4, NULL, NULL, NULL },
 };
 
 // Message-table callbacks use the argument views required by this TU.
@@ -302,17 +296,11 @@ TmdSource D_mist_parking_80187294 = {
     D_mist_parking_8018715C,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MistParkingPoseBank9CF8;
-
-MistParkingPoseBank9CF8 D_mist_parking_801872B8 = { .poses = {
+GpPackedPose D_mist_parking_801872B8[6] = {
 #include "assets/mist_parking_animation_09FD4_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80187300[46] = {
+AnimationPackedRotation D_mist_parking_80187300[46] = {
 #include "assets/mist_parking_animation_09FD4_bank4.inc"
 };
 
@@ -327,20 +315,14 @@ u16 D_mist_parking_8018756C[20] = {
 GpAnimSet D_mist_parking_80187594 = {
     D_mist_parking_801873B8,
     D_mist_parking_8018756C,
-    { NULL, D_mist_parking_801872B8.words, NULL, NULL, D_mist_parking_80187300, NULL, NULL, NULL },
+    { NULL, D_mist_parking_801872B8, NULL, NULL, D_mist_parking_80187300, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[13];
-    GpPackedSvec words[39];
-} MistParkingPoseBank9FFC;
-
-MistParkingPoseBank9FFC D_mist_parking_801875BC = { .poses = {
+GpPackedPose D_mist_parking_801875BC[13] = {
 #include "assets/mist_parking_animation_0A774_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80187658[179] = {
+AnimationPackedRotation D_mist_parking_80187658[179] = {
 #include "assets/mist_parking_animation_0A774_bank4.inc"
 };
 
@@ -355,20 +337,14 @@ u16 D_mist_parking_80187D0C[20] = {
 GpAnimSet D_mist_parking_80187D34 = {
     D_mist_parking_80187924,
     D_mist_parking_80187D0C,
-    { NULL, D_mist_parking_801875BC.words, NULL, NULL, D_mist_parking_80187658, NULL, NULL, NULL },
+    { NULL, D_mist_parking_801875BC, NULL, NULL, D_mist_parking_80187658, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MistParkingPoseBankA79C;
-
-MistParkingPoseBankA79C D_mist_parking_80187D5C = { .poses = {
+GpPackedPose D_mist_parking_80187D5C[6] = {
 #include "assets/mist_parking_animation_0AC5C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80187DA4[110] = {
+AnimationPackedRotation D_mist_parking_80187DA4[110] = {
 #include "assets/mist_parking_animation_0AC5C_bank4.inc"
 };
 
@@ -383,20 +359,14 @@ u16 D_mist_parking_801881F4[20] = {
 GpAnimSet D_mist_parking_8018821C = {
     D_mist_parking_80187F5C,
     D_mist_parking_801881F4,
-    { NULL, D_mist_parking_80187D5C.words, NULL, NULL, D_mist_parking_80187DA4, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80187D5C, NULL, NULL, D_mist_parking_80187DA4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[9];
-    GpPackedSvec words[27];
-} MistParkingPoseBankAC84;
-
-MistParkingPoseBankAC84 D_mist_parking_80188244 = { .poses = {
+GpPackedPose D_mist_parking_80188244[9] = {
 #include "assets/mist_parking_animation_0B138_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_801882B0[117] = {
+AnimationPackedRotation D_mist_parking_801882B0[117] = {
 #include "assets/mist_parking_animation_0B138_bank4.inc"
 };
 
@@ -411,20 +381,14 @@ u16 D_mist_parking_801886D0[20] = {
 GpAnimSet D_mist_parking_801886F8 = {
     D_mist_parking_80188484,
     D_mist_parking_801886D0,
-    { NULL, D_mist_parking_80188244.words, NULL, NULL, D_mist_parking_801882B0, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80188244, NULL, NULL, D_mist_parking_801882B0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} MistParkingPoseBankB160;
-
-MistParkingPoseBankB160 D_mist_parking_80188720 = { .poses = {
+GpPackedPose D_mist_parking_80188720[10] = {
 #include "assets/mist_parking_animation_0B700_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80188798[143] = {
+AnimationPackedRotation D_mist_parking_80188798[143] = {
 #include "assets/mist_parking_animation_0B700_bank4.inc"
 };
 
@@ -439,20 +403,14 @@ u16 D_mist_parking_80188C98[20] = {
 GpAnimSet D_mist_parking_80188CC0 = {
     D_mist_parking_801889D4,
     D_mist_parking_80188C98,
-    { NULL, D_mist_parking_80188720.words, NULL, NULL, D_mist_parking_80188798, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80188720, NULL, NULL, D_mist_parking_80188798, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} MistParkingPoseBankB728;
-
-MistParkingPoseBankB728 D_mist_parking_80188CE8 = { .poses = {
+GpPackedPose D_mist_parking_80188CE8[5] = {
 #include "assets/mist_parking_animation_0BAB4_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80188D24[65] = {
+AnimationPackedRotation D_mist_parking_80188D24[65] = {
 #include "assets/mist_parking_animation_0BAB4_bank4.inc"
 };
 
@@ -467,20 +425,14 @@ u16 D_mist_parking_8018904C[20] = {
 GpAnimSet D_mist_parking_80189074 = {
     D_mist_parking_80188E28,
     D_mist_parking_8018904C,
-    { NULL, D_mist_parking_80188CE8.words, NULL, NULL, D_mist_parking_80188D24, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80188CE8, NULL, NULL, D_mist_parking_80188D24, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} MistParkingPoseBankBADC;
-
-MistParkingPoseBankBADC D_mist_parking_8018909C = { .poses = {
+GpPackedPose D_mist_parking_8018909C[12] = {
 #include "assets/mist_parking_animation_0C1B0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018912C[153] = {
+AnimationPackedRotation D_mist_parking_8018912C[153] = {
 #include "assets/mist_parking_animation_0C1B0_bank4.inc"
 };
 
@@ -495,20 +447,14 @@ u16 D_mist_parking_80189748[20] = {
 GpAnimSet D_mist_parking_80189770 = {
     D_mist_parking_80189390,
     D_mist_parking_80189748,
-    { NULL, D_mist_parking_8018909C.words, NULL, NULL, D_mist_parking_8018912C, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018909C, NULL, NULL, D_mist_parking_8018912C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} MistParkingPoseBankC1D8;
-
-MistParkingPoseBankC1D8 D_mist_parking_80189798 = { .poses = {
+GpPackedPose D_mist_parking_80189798[7] = {
 #include "assets/mist_parking_animation_0C688_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_801897EC[94] = {
+AnimationPackedRotation D_mist_parking_801897EC[94] = {
 #include "assets/mist_parking_animation_0C688_bank4.inc"
 };
 
@@ -523,20 +469,14 @@ u16 D_mist_parking_80189C20[20] = {
 GpAnimSet D_mist_parking_80189C48 = {
     D_mist_parking_80189964,
     D_mist_parking_80189C20,
-    { NULL, D_mist_parking_80189798.words, NULL, NULL, D_mist_parking_801897EC, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80189798, NULL, NULL, D_mist_parking_801897EC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[12];
-    GpPackedSvec words[36];
-} MistParkingPoseBankC6B0;
-
-MistParkingPoseBankC6B0 D_mist_parking_80189C70 = { .poses = {
+GpPackedPose D_mist_parking_80189C70[12] = {
 #include "assets/mist_parking_animation_0CD80_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_80189D00[177] = {
+AnimationPackedRotation D_mist_parking_80189D00[177] = {
 #include "assets/mist_parking_animation_0CD80_bank4.inc"
 };
 
@@ -551,20 +491,14 @@ u16 D_mist_parking_8018A318[20] = {
 GpAnimSet D_mist_parking_8018A340 = {
     D_mist_parking_80189FC4,
     D_mist_parking_8018A318,
-    { NULL, D_mist_parking_80189C70.words, NULL, NULL, D_mist_parking_80189D00, NULL, NULL, NULL },
+    { NULL, D_mist_parking_80189C70, NULL, NULL, D_mist_parking_80189D00, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} MistParkingPoseBankCDA8;
-
-MistParkingPoseBankCDA8 D_mist_parking_8018A368 = { .poses = {
+GpPackedPose D_mist_parking_8018A368[3] = {
 #include "assets/mist_parking_animation_0D060_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018A38C[63] = {
+AnimationPackedRotation D_mist_parking_8018A38C[63] = {
 #include "assets/mist_parking_animation_0D060_bank4.inc"
 };
 
@@ -579,20 +513,14 @@ u16 D_mist_parking_8018A5F8[20] = {
 GpAnimSet D_mist_parking_8018A620 = {
     D_mist_parking_8018A488,
     D_mist_parking_8018A5F8,
-    { NULL, D_mist_parking_8018A368.words, NULL, NULL, D_mist_parking_8018A38C, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018A368, NULL, NULL, D_mist_parking_8018A38C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} MistParkingPoseBankD088;
-
-MistParkingPoseBankD088 D_mist_parking_8018A648 = { .poses = {
+GpPackedPose D_mist_parking_8018A648[6] = {
 #include "assets/mist_parking_animation_0D3E4_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018A690[69] = {
+AnimationPackedRotation D_mist_parking_8018A690[69] = {
 #include "assets/mist_parking_animation_0D3E4_bank4.inc"
 };
 
@@ -607,20 +535,14 @@ u16 D_mist_parking_8018A97C[20] = {
 GpAnimSet D_mist_parking_8018A9A4 = {
     D_mist_parking_8018A7A4,
     D_mist_parking_8018A97C,
-    { NULL, D_mist_parking_8018A648.words, NULL, NULL, D_mist_parking_8018A690, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018A648, NULL, NULL, D_mist_parking_8018A690, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} MistParkingPoseBankD40C;
-
-MistParkingPoseBankD40C D_mist_parking_8018A9CC = { .poses = {
+GpPackedPose D_mist_parking_8018A9CC[4] = {
 #include "assets/mist_parking_animation_0D6A4_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018A9FC[40] = {
+AnimationPackedRotation D_mist_parking_8018A9FC[40] = {
 #include "assets/mist_parking_animation_0D6A4_bank4.inc"
 };
 
@@ -635,20 +557,14 @@ u16 D_mist_parking_8018AC3C[20] = {
 GpAnimSet D_mist_parking_8018AC64 = {
     D_mist_parking_8018AA9C,
     D_mist_parking_8018AC3C,
-    { NULL, D_mist_parking_8018A9CC.words, NULL, NULL, D_mist_parking_8018A9FC, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018A9CC, NULL, NULL, D_mist_parking_8018A9FC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} MistParkingPoseBankD6CC;
-
-MistParkingPoseBankD6CC D_mist_parking_8018AC8C = { .poses = {
+GpPackedPose D_mist_parking_8018AC8C[7] = {
 #include "assets/mist_parking_animation_0DA94_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018ACE0[62] = {
+AnimationPackedRotation D_mist_parking_8018ACE0[62] = {
 #include "assets/mist_parking_animation_0DA94_bank4.inc"
 };
 
@@ -663,20 +579,14 @@ u16 D_mist_parking_8018B02C[20] = {
 GpAnimSet D_mist_parking_8018B054 = {
     D_mist_parking_8018ADD8,
     D_mist_parking_8018B02C,
-    { NULL, D_mist_parking_8018AC8C.words, NULL, NULL, D_mist_parking_8018ACE0, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018AC8C, NULL, NULL, D_mist_parking_8018ACE0, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} MistParkingPoseBankDABC;
-
-MistParkingPoseBankDABC D_mist_parking_8018B07C = { .poses = {
+GpPackedPose D_mist_parking_8018B07C[10] = {
 #include "assets/mist_parking_animation_0DE94_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018B0F4[85] = {
+AnimationPackedRotation D_mist_parking_8018B0F4[85] = {
 #include "assets/mist_parking_animation_0DE94_bank4.inc"
 };
 
@@ -691,20 +601,14 @@ u16 D_mist_parking_8018B42C[20] = {
 GpAnimSet D_mist_parking_8018B454 = {
     D_mist_parking_8018B248,
     D_mist_parking_8018B42C,
-    { NULL, D_mist_parking_8018B07C.words, NULL, NULL, D_mist_parking_8018B0F4, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018B07C, NULL, NULL, D_mist_parking_8018B0F4, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} MistParkingPoseBankDEBC;
-
-MistParkingPoseBankDEBC D_mist_parking_8018B47C = { .poses = {
+GpPackedPose D_mist_parking_8018B47C[8] = {
 #include "assets/mist_parking_animation_0E1D0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018B4DC[65] = {
+AnimationPackedRotation D_mist_parking_8018B4DC[65] = {
 #include "assets/mist_parking_animation_0E1D0_bank4.inc"
 };
 
@@ -719,20 +623,14 @@ u16 D_mist_parking_8018B768[20] = {
 GpAnimSet D_mist_parking_8018B790 = {
     D_mist_parking_8018B5E0,
     D_mist_parking_8018B768,
-    { NULL, D_mist_parking_8018B47C.words, NULL, NULL, D_mist_parking_8018B4DC, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018B47C, NULL, NULL, D_mist_parking_8018B4DC, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} MistParkingPoseBankE1F8;
-
-MistParkingPoseBankE1F8 D_mist_parking_8018B7B8 = { .poses = {
+GpPackedPose D_mist_parking_8018B7B8[10] = {
 #include "assets/mist_parking_animation_0E6E0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018B830[109] = {
+AnimationPackedRotation D_mist_parking_8018B830[109] = {
 #include "assets/mist_parking_animation_0E6E0_bank4.inc"
 };
 
@@ -747,20 +645,14 @@ u16 D_mist_parking_8018BC78[20] = {
 GpAnimSet D_mist_parking_8018BCA0 = {
     D_mist_parking_8018B9E4,
     D_mist_parking_8018BC78,
-    { NULL, D_mist_parking_8018B7B8.words, NULL, NULL, D_mist_parking_8018B830, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018B7B8, NULL, NULL, D_mist_parking_8018B830, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} MistParkingPoseBankE708;
-
-MistParkingPoseBankE708 D_mist_parking_8018BCC8 = { .poses = {
+GpPackedPose D_mist_parking_8018BCC8[7] = {
 #include "assets/mist_parking_animation_0EA0C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018BD1C[56] = {
+AnimationPackedRotation D_mist_parking_8018BD1C[56] = {
 #include "assets/mist_parking_animation_0EA0C_bank4.inc"
 };
 
@@ -775,20 +667,14 @@ u16 D_mist_parking_8018BFA4[20] = {
 GpAnimSet D_mist_parking_8018BFCC = {
     D_mist_parking_8018BDFC,
     D_mist_parking_8018BFA4,
-    { NULL, D_mist_parking_8018BCC8.words, NULL, NULL, D_mist_parking_8018BD1C, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018BCC8, NULL, NULL, D_mist_parking_8018BD1C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[8];
-    GpPackedSvec words[24];
-} MistParkingPoseBankEA34;
-
-MistParkingPoseBankEA34 D_mist_parking_8018BFF4 = { .poses = {
+GpPackedPose D_mist_parking_8018BFF4[8] = {
 #include "assets/mist_parking_animation_0EDE0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018C054[84] = {
+AnimationPackedRotation D_mist_parking_8018C054[84] = {
 #include "assets/mist_parking_animation_0EDE0_bank4.inc"
 };
 
@@ -803,20 +689,14 @@ u16 D_mist_parking_8018C378[20] = {
 GpAnimSet D_mist_parking_8018C3A0 = {
     D_mist_parking_8018C1A4,
     D_mist_parking_8018C378,
-    { NULL, D_mist_parking_8018BFF4.words, NULL, NULL, D_mist_parking_8018C054, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018BFF4, NULL, NULL, D_mist_parking_8018C054, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} MistParkingPoseBankEE08;
-
-MistParkingPoseBankEE08 D_mist_parking_8018C3C8 = { .poses = {
+GpPackedPose D_mist_parking_8018C3C8[7] = {
 #include "assets/mist_parking_animation_0F14C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018C41C[74] = {
+AnimationPackedRotation D_mist_parking_8018C41C[74] = {
 #include "assets/mist_parking_animation_0F14C_bank4.inc"
 };
 
@@ -831,20 +711,14 @@ u16 D_mist_parking_8018C6E4[20] = {
 GpAnimSet D_mist_parking_8018C70C = {
     D_mist_parking_8018C544,
     D_mist_parking_8018C6E4,
-    { NULL, D_mist_parking_8018C3C8.words, NULL, NULL, D_mist_parking_8018C41C, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018C3C8, NULL, NULL, D_mist_parking_8018C41C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} MistParkingPoseBankF174;
-
-MistParkingPoseBankF174 D_mist_parking_8018C734 = { .poses = {
+GpPackedPose D_mist_parking_8018C734[5] = {
 #include "assets/mist_parking_animation_0F574_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018C770[90] = {
+AnimationPackedRotation D_mist_parking_8018C770[90] = {
 #include "assets/mist_parking_animation_0F574_bank4.inc"
 };
 
@@ -859,20 +733,14 @@ u16 D_mist_parking_8018CB0C[20] = {
 GpAnimSet D_mist_parking_8018CB34 = {
     D_mist_parking_8018C8D8,
     D_mist_parking_8018CB0C,
-    { NULL, D_mist_parking_8018C734.words, NULL, NULL, D_mist_parking_8018C770, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018C734, NULL, NULL, D_mist_parking_8018C770, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} MistParkingPoseBankF59C;
-
-MistParkingPoseBankF59C D_mist_parking_8018CB5C = { .poses = {
+GpPackedPose D_mist_parking_8018CB5C[3] = {
 #include "assets/mist_parking_animation_0F7F0_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018CB80[43] = {
+AnimationPackedRotation D_mist_parking_8018CB80[43] = {
 #include "assets/mist_parking_animation_0F7F0_bank4.inc"
 };
 
@@ -887,20 +755,14 @@ u16 D_mist_parking_8018CD88[20] = {
 GpAnimSet D_mist_parking_8018CDB0 = {
     D_mist_parking_8018CC2C,
     D_mist_parking_8018CD88,
-    { NULL, D_mist_parking_8018CB5C.words, NULL, NULL, D_mist_parking_8018CB80, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018CB5C, NULL, NULL, D_mist_parking_8018CB80, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[5];
-    GpPackedSvec words[15];
-} MistParkingPoseBankF818;
-
-MistParkingPoseBankF818 D_mist_parking_8018CDD8 = { .poses = {
+GpPackedPose D_mist_parking_8018CDD8[5] = {
 #include "assets/mist_parking_animation_0FC60_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018CE14[99] = {
+AnimationPackedRotation D_mist_parking_8018CE14[99] = {
 #include "assets/mist_parking_animation_0FC60_bank4.inc"
 };
 
@@ -915,20 +777,14 @@ u16 D_mist_parking_8018D1F8[20] = {
 GpAnimSet D_mist_parking_8018D220 = {
     D_mist_parking_8018CFA0,
     D_mist_parking_8018D1F8,
-    { NULL, D_mist_parking_8018CDD8.words, NULL, NULL, D_mist_parking_8018CE14, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018CDD8, NULL, NULL, D_mist_parking_8018CE14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[4];
-    GpPackedSvec words[12];
-} MistParkingPoseBankFC88;
-
-MistParkingPoseBankFC88 D_mist_parking_8018D248 = { .poses = {
+GpPackedPose D_mist_parking_8018D248[4] = {
 #include "assets/mist_parking_animation_0FE5C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018D278[17] = {
+AnimationPackedRotation D_mist_parking_8018D278[17] = {
 #include "assets/mist_parking_animation_0FE5C_bank4.inc"
 };
 
@@ -943,20 +799,14 @@ u16 D_mist_parking_8018D3F4[20] = {
 GpAnimSet D_mist_parking_8018D41C = {
     D_mist_parking_8018D2BC,
     D_mist_parking_8018D3F4,
-    { NULL, D_mist_parking_8018D248.words, NULL, NULL, D_mist_parking_8018D278, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018D248, NULL, NULL, D_mist_parking_8018D278, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} MistParkingPoseBankFE84;
-
-MistParkingPoseBankFE84 D_mist_parking_8018D444 = { .poses = {
+GpPackedPose D_mist_parking_8018D444[7] = {
 #include "assets/mist_parking_animation_10174_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_mist_parking_8018D498[54] = {
+AnimationPackedRotation D_mist_parking_8018D498[54] = {
 #include "assets/mist_parking_animation_10174_bank4.inc"
 };
 
@@ -971,7 +821,7 @@ u16 D_mist_parking_8018D70C[20] = {
 GpAnimSet D_mist_parking_8018D734 = {
     D_mist_parking_8018D570,
     D_mist_parking_8018D70C,
-    { NULL, D_mist_parking_8018D444.words, NULL, NULL, D_mist_parking_8018D498, NULL, NULL, NULL },
+    { NULL, D_mist_parking_8018D444, NULL, NULL, D_mist_parking_8018D498, NULL, NULL, NULL },
 };
 
 /// Texts and panel descriptors of the shop list's two special rows (ids

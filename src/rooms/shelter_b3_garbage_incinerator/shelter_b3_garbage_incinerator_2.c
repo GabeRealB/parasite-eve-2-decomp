@@ -251,17 +251,11 @@ TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
 
 s32 D_shelter_b3_garbage_incinerator_80185BC4 = 256;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} ShelterB3GarbageIncineratorPoseBank8608;
-
-ShelterB3GarbageIncineratorPoseBank8608 D_shelter_b3_garbage_incinerator_80185BC8 = { .poses = {
+GpPackedPose D_shelter_b3_garbage_incinerator_80185BC8[6] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"
-                                                                                      } };
+};
 
-GpPackedSvec D_shelter_b3_garbage_incinerator_80185C10[46] = {
+AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185C10[46] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank4.inc"
 };
 
@@ -276,20 +270,14 @@ u16 D_shelter_b3_garbage_incinerator_80185E7C[20] = {
 GpAnimSet D_shelter_b3_garbage_incinerator_80185EA4 = {
     D_shelter_b3_garbage_incinerator_80185CC8,
     D_shelter_b3_garbage_incinerator_80185E7C,
-    { NULL, D_shelter_b3_garbage_incinerator_80185BC8.words, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
+    { NULL, D_shelter_b3_garbage_incinerator_80185BC8, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[16];
-    GpPackedSvec words[48];
-} ShelterB3GarbageIncineratorPoseBank890C;
-
-ShelterB3GarbageIncineratorPoseBank890C D_shelter_b3_garbage_incinerator_80185ECC = { .poses = {
+GpPackedPose D_shelter_b3_garbage_incinerator_80185ECC[16] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank1.inc"
-                                                                                      } };
+};
 
-GpPackedSvec D_shelter_b3_garbage_incinerator_80185F8C[246] = {
+AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185F8C[246] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank4.inc"
 };
 
@@ -304,20 +292,14 @@ u16 D_shelter_b3_garbage_incinerator_801868B8[20] = {
 GpAnimSet D_shelter_b3_garbage_incinerator_801868E0 = {
     D_shelter_b3_garbage_incinerator_80186364,
     D_shelter_b3_garbage_incinerator_801868B8,
-    { NULL, D_shelter_b3_garbage_incinerator_80185ECC.words, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
+    { NULL, D_shelter_b3_garbage_incinerator_80185ECC, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[14];
-    GpPackedSvec words[42];
-} ShelterB3GarbageIncineratorPoseBank9348;
-
-ShelterB3GarbageIncineratorPoseBank9348 D_shelter_b3_garbage_incinerator_80186908 = { .poses = {
+GpPackedPose D_shelter_b3_garbage_incinerator_80186908[14] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank1.inc"
-                                                                                      } };
+};
 
-GpPackedSvec D_shelter_b3_garbage_incinerator_801869B0[148] = {
+AnimationPackedRotation D_shelter_b3_garbage_incinerator_801869B0[148] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank4.inc"
 };
 
@@ -332,7 +314,7 @@ u16 D_shelter_b3_garbage_incinerator_80186F20[20] = {
 GpAnimSet D_shelter_b3_garbage_incinerator_80186F48 = {
     D_shelter_b3_garbage_incinerator_80186C00,
     D_shelter_b3_garbage_incinerator_80186F20,
-    { NULL, D_shelter_b3_garbage_incinerator_80186908.words, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
+    { NULL, D_shelter_b3_garbage_incinerator_80186908, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
 };
 
 ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F70[1] = {

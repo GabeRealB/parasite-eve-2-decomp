@@ -210,17 +210,11 @@ GpMsgEntry D_dryfield_main_street_80180EA0[6] = {
 
 s32 D_dryfield_main_street_80180ED0 = 514;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldMainStreetPoseBank3914;
-
-DryfieldMainStreetPoseBank3914 D_dryfield_main_street_80180ED4 = { .poses = {
+GpPackedPose D_dryfield_main_street_80180ED4[6] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank1.inc"
-                                                                   } };
+};
 
-GpPackedSvec D_dryfield_main_street_80180F1C[46] = {
+AnimationPackedRotation D_dryfield_main_street_80180F1C[46] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank4.inc"
 };
 
@@ -235,20 +229,14 @@ u16 D_dryfield_main_street_80181188[20] = {
 GpAnimSet D_dryfield_main_street_801811B0 = {
     D_dryfield_main_street_80180FD4,
     D_dryfield_main_street_80181188,
-    { NULL, D_dryfield_main_street_80180ED4.words, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
+    { NULL, D_dryfield_main_street_80180ED4, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[7];
-    GpPackedSvec words[21];
-} DryfieldMainStreetPoseBank3C18;
-
-DryfieldMainStreetPoseBank3C18 D_dryfield_main_street_801811D8 = { .poses = {
+GpPackedPose D_dryfield_main_street_801811D8[7] = {
 #include "assets/dryfield_main_street_animation_03F84_bank1.inc"
-                                                                   } };
+};
 
-GpPackedSvec D_dryfield_main_street_8018122C[65] = {
+AnimationPackedRotation D_dryfield_main_street_8018122C[65] = {
 #include "assets/dryfield_main_street_animation_03F84_bank4.inc"
 };
 
@@ -263,7 +251,7 @@ u16 D_dryfield_main_street_8018151C[20] = {
 GpAnimSet D_dryfield_main_street_80181544 = {
     D_dryfield_main_street_80181330,
     D_dryfield_main_street_8018151C,
-    { NULL, D_dryfield_main_street_801811D8.words, NULL, NULL, D_dryfield_main_street_8018122C, NULL, NULL, NULL },
+    { NULL, D_dryfield_main_street_801811D8, NULL, NULL, D_dryfield_main_street_8018122C, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_main_street_8018156C[2] = {

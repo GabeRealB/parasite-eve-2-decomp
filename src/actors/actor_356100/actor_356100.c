@@ -311,17 +311,11 @@ TmdSource D_actor_356100_8016FC74 = {
     D_actor_356100_8016C174,
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[75];
-    GpPackedSvec words[225];
-} Actor356100PoseBankDE78;
-
-Actor356100PoseBankDE78 D_actor_356100_8016FC98 = { .poses = {
+GpPackedPose D_actor_356100_8016FC98[75] = {
 #include "assets/actor_356100_animation_0FE9C_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_356100_8017001C[657] = {
+AnimationPackedRotation D_actor_356100_8017001C[657] = {
 #include "assets/actor_356100_animation_0FE9C_bank4.inc"
 };
 
@@ -336,20 +330,14 @@ u16 D_actor_356100_80171C90[22] = {
 GpAnimSet D_actor_356100_80171CBC = {
     D_actor_356100_80170A60,
     D_actor_356100_80171C90,
-    { NULL, D_actor_356100_8016FC98.words, NULL, NULL, D_actor_356100_8017001C, NULL, NULL, NULL },
+    { NULL, D_actor_356100_8016FC98, NULL, NULL, D_actor_356100_8017001C, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[28];
-    GpPackedSvec words[84];
-} Actor356100PoseBankFEC4;
-
-Actor356100PoseBankFEC4 D_actor_356100_80171CE4 = { .poses = {
+GpPackedPose D_actor_356100_80171CE4[28] = {
 #include "assets/actor_356100_animation_10A84_bank1.inc"
-                                                    } };
+};
 
-GpPackedSvec D_actor_356100_80171E34[263] = {
+AnimationPackedRotation D_actor_356100_80171E34[263] = {
 #include "assets/actor_356100_animation_10A84_bank4.inc"
 };
 
@@ -364,7 +352,7 @@ u16 D_actor_356100_80172878[22] = {
 GpAnimSet D_actor_356100_801728A4 = {
     D_actor_356100_80172250,
     D_actor_356100_80172878,
-    { NULL, D_actor_356100_80171CE4.words, NULL, NULL, D_actor_356100_80171E34, NULL, NULL, NULL },
+    { NULL, D_actor_356100_80171CE4, NULL, NULL, D_actor_356100_80171E34, NULL, NULL, NULL },
 };
 
 s8 D_actor_356100_801728CC[45][45] = {
@@ -1073,8 +1061,8 @@ static void func_actor_356100_801633DC(Task* arg0)
         if (i < 0xB) {
             work->blendSlots[i].rate = (u8)work->field_98A;
             work->slots[i].rate      = (u8)(work->field_982 - 3);
-            func_800B3448(anim, i, &pose, 0);
-            func_800B3448(&work->blendAnim, i, &blendPose, 0);
+            animationTickSlotPose(anim, i, &pose, 0);
+            animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (u8)(work->field_982 - 3);

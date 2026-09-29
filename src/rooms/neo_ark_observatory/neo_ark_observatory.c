@@ -177,17 +177,11 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, func_neo_ark_observatory_8017F588, { .model = NULL } };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} NeoArkObservatoryPoseBank3820;
-
-NeoArkObservatoryPoseBank3820 D_neo_ark_observatory_80180DE0 = { .poses = {
+GpPackedPose D_neo_ark_observatory_80180DE0[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
-                                                                 } };
+};
 
-GpPackedSvec D_neo_ark_observatory_80180E28[64] = {
+AnimationPackedRotation D_neo_ark_observatory_80180E28[64] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank4.inc"
 };
 
@@ -202,7 +196,7 @@ u16 D_neo_ark_observatory_8018115C[20] = {
 GpAnimSet D_neo_ark_observatory_80181184 = {
     D_neo_ark_observatory_80180F28,
     D_neo_ark_observatory_8018115C,
-    { NULL, D_neo_ark_observatory_80180DE0.words, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },
+    { NULL, D_neo_ark_observatory_80180DE0, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },
 };
 
 TaskDesc D_neo_ark_observatory_801811AC = { 0, 192, func_neo_ark_observatory_8017FB1C, { .model = NULL } };

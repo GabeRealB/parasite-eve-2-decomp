@@ -125,17 +125,11 @@ GpMsgEntry D_dryfield_general_store_8017E188[6] = {
 
 s32 D_dryfield_general_store_8017E1B8 = 0x90302;
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} DryfieldGeneralStorePoseBankBFC;
-
-DryfieldGeneralStorePoseBankBFC D_dryfield_general_store_8017E1BC = { .poses = {
+GpPackedPose D_dryfield_general_store_8017E1BC[6] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank1.inc"
-                                                                      } };
+};
 
-GpPackedSvec D_dryfield_general_store_8017E204[46] = {
+AnimationPackedRotation D_dryfield_general_store_8017E204[46] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank4.inc"
 };
 
@@ -150,7 +144,7 @@ u16 D_dryfield_general_store_8017E470[20] = {
 GpAnimSet D_dryfield_general_store_8017E498 = {
     D_dryfield_general_store_8017E2BC,
     D_dryfield_general_store_8017E470,
-    { NULL, D_dryfield_general_store_8017E1BC.words, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
+    { NULL, D_dryfield_general_store_8017E1BC, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
 };
 
 TaskDesc D_dryfield_general_store_8017E4C0 = { 0, 192, func_dryfield_general_store_8017DFB4, { .model = NULL } };

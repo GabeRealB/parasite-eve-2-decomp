@@ -125,7 +125,14 @@ void Gp_DrawFloorQuad(GpCoord* arg0, u32 arg1, SVECTOR* arg2);
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
 
-void func_800B3448(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpPackedSvec* arg3);
+/// Advances a slot and blends its poses, updating the model when `poseOut` is NULL.
+///
+/// `slotIndex` must index the context's slots and 16-byte pose-buffer regions.
+/// An optional `packedPoseOut` receives the slot's encoding (1 GpPackedPose,
+/// 4 AnimationPackedRotation) and may be its own buffered source. It must be
+/// word-aligned and have room for 12 or 4 bytes respectively. An unpacked output
+/// receives rotation; translation is written only for encoding 1.
+void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* poseOut, void* packedPoseOut);
 
 Task* func_800B2968(void);
 

@@ -105,17 +105,11 @@ s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, GpMessageArg, GpMessageArg)
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[3];
-    GpPackedSvec words[9];
-} NeoArkPowerPlant2PoseBank2830;
-
-NeoArkPowerPlant2PoseBank2830 D_neo_ark_power_plant_2_8017FDF0 = { .poses = {
+GpPackedPose D_neo_ark_power_plant_2_8017FDF0[3] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
-                                                                   } };
+};
 
-GpPackedSvec D_neo_ark_power_plant_2_8017FE14[28] = {
+AnimationPackedRotation D_neo_ark_power_plant_2_8017FE14[28] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank4.inc"
 };
 
@@ -130,20 +124,14 @@ u16 D_neo_ark_power_plant_2_8017FFE4[20] = {
 GpAnimSet D_neo_ark_power_plant_2_8018000C = {
     D_neo_ark_power_plant_2_8017FE84,
     D_neo_ark_power_plant_2_8017FFE4,
-    { NULL, D_neo_ark_power_plant_2_8017FDF0.words, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
+    { NULL, D_neo_ark_power_plant_2_8017FDF0, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[2];
-    GpPackedSvec words[6];
-} NeoArkPowerPlant2PoseBank2A74;
-
-NeoArkPowerPlant2PoseBank2A74 D_neo_ark_power_plant_2_80180034 = { .poses = {
+GpPackedPose D_neo_ark_power_plant_2_80180034[2] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank1.inc"
-                                                                   } };
+};
 
-GpPackedSvec D_neo_ark_power_plant_2_8018004C[22] = {
+AnimationPackedRotation D_neo_ark_power_plant_2_8018004C[22] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank4.inc"
 };
 
@@ -158,7 +146,7 @@ u16 D_neo_ark_power_plant_2_801801A8[20] = {
 GpAnimSet D_neo_ark_power_plant_2_801801D0 = {
     D_neo_ark_power_plant_2_801800A4,
     D_neo_ark_power_plant_2_801801A8,
-    { NULL, D_neo_ark_power_plant_2_80180034.words, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
+    { NULL, D_neo_ark_power_plant_2_80180034, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
 };
 
 GpMsgEntry D_neo_ark_power_plant_2_801801F8[5] = {

@@ -131,17 +131,11 @@ extern GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1];
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[6];
-    GpPackedSvec words[18];
-} NeoArkForestZonePoseBank3FC0;
-
-NeoArkForestZonePoseBank3FC0 D_neo_ark_forest_zone_80181580 = { .poses = {
+GpPackedPose D_neo_ark_forest_zone_80181580[6] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank1.inc"
-                                                                } };
+};
 
-GpPackedSvec D_neo_ark_forest_zone_801815C8[64] = {
+AnimationPackedRotation D_neo_ark_forest_zone_801815C8[64] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank4.inc"
 };
 
@@ -156,20 +150,14 @@ u16 D_neo_ark_forest_zone_801818FC[20] = {
 GpAnimSet D_neo_ark_forest_zone_80181924 = {
     D_neo_ark_forest_zone_801816C8,
     D_neo_ark_forest_zone_801818FC,
-    { NULL, D_neo_ark_forest_zone_80181580.words, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
+    { NULL, D_neo_ark_forest_zone_80181580, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
 };
 
-// The player indexes this pose bank in words, then reads a full pose.
-typedef union {
-    GpPackedPose poses[10];
-    GpPackedSvec words[30];
-} NeoArkForestZonePoseBank438C;
-
-NeoArkForestZonePoseBank438C D_neo_ark_forest_zone_8018194C = { .poses = {
+GpPackedPose D_neo_ark_forest_zone_8018194C[10] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank1.inc"
-                                                                } };
+};
 
-GpPackedSvec D_neo_ark_forest_zone_801819C4[95] = {
+AnimationPackedRotation D_neo_ark_forest_zone_801819C4[95] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank4.inc"
 };
 
@@ -184,7 +172,7 @@ u16 D_neo_ark_forest_zone_80181D6C[20] = {
 GpAnimSet D_neo_ark_forest_zone_80181D94 = {
     D_neo_ark_forest_zone_80181B40,
     D_neo_ark_forest_zone_80181D6C,
-    { NULL, D_neo_ark_forest_zone_8018194C.words, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
+    { NULL, D_neo_ark_forest_zone_8018194C, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
 };
 
 TaskDesc D_neo_ark_forest_zone_80181DBC = { 0, 32, func_neo_ark_forest_zone_8017D644, { .model = NULL } };

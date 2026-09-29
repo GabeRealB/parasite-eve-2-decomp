@@ -19,7 +19,7 @@ Layout, from ``Gp_AnimInitCtx`` / ``Gp_AnimResetSlot`` in ``src/gameplay/scene_r
     GpAnimSet.trackStart   -> u16[]         clip index table, values are record
                               indices
     GpAnimSet.poseBanks[n] -> pose bank, selected by a record's ``flags & 0xF``
-                              (1 = GpPackedPose, 4 = GpPackedSvec)
+                              (1 = GpPackedPose, 4 = AnimationPackedRotation)
 
 This writes structure, not poses: how many clips a weapon or actor has, how
 long each is, and which pose format it uses. Decoding the banks themselves

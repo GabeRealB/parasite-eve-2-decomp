@@ -21,32 +21,31 @@ typedef struct _GpAnimPose {
 } GpAnimPose;
 STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
 
-/// Packed translation + rotation (no `SVECTOR` pad). `Gp_AnimBlendPose`
-/// GPF/GPL-blends `vx`/`vy`/`vz` and copies `rx`/`ry`/`rz` into
-/// `GpAnimScratch80.vec0` / `vec1`. `func_800B3448` dispatches here when
-/// `GpAnimSlot.poseKind == 1`.
-typedef struct _GpPackedPose {
-    /* 0x00 */ s16 vx;
-    /* 0x02 */ s16 vy;
-    /* 0x04 */ s16 vz;
-    /* 0x06 */ s16 rx;
-    /* 0x08 */ s16 ry;
-    /* 0x0A */ s16 rz;
+/// Translation and Euler rotation for one keyframe, without SVECTOR padding.
+///
+/// Encoding 1 occupies three four-byte words; banks and buffered poses are
+/// word-aligned, and animation records index the banks in words, not poses.
+typedef struct {
+    s16 vx; // X translation in model-local coordinates
+    s16 vy; // Y translation in model-local coordinates
+    s16 vz; // Z translation in model-local coordinates
+    s16 rx; // X rotation in PsyQ angle units (4096 per turn)
+    s16 ry; // Y rotation in PsyQ angle units
+    s16 rz; // Z rotation in PsyQ angle units
 } GpPackedPose;
 STATIC_ASSERT_SIZEOF(GpPackedPose, 0xC);
 
-/// One bone pose of a track that only rotates: the three Euler angles of the
-/// pose's `SVECTOR`, packed into a single 11/10/11-bit word at a resolution of
-/// 8 angle units.
+/// Euler rotation for one animation keyframe, stored in one four-byte word.
 ///
-/// The rotation-only companion of `GpPackedPose`, which carries a translation
-/// beside the same angles and so takes three words per pose to this type's one.
+/// Signed X, Y and Z components occupy bits 0-10, 11-20 and 21-31.
+/// Each stored step is eight PsyQ angle units (4096 angle units per turn).
+/// Encoding 4 contains no translation; the model part keeps its current offset.
 typedef struct {
-    s32 rx : 11;
-    s32 ry : 10;
-    s32 rz : 11;
-} GpPackedSvec;
-STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
+    s32 rx : 11; // X rotation in eight-unit steps (-1024..1023)
+    s32 ry : 10; // Y rotation in eight-unit steps (-512..511)
+    s32 rz : 11; // Z rotation in eight-unit steps (-1024..1023)
+} AnimationPackedRotation;
+STATIC_ASSERT_SIZEOF(AnimationPackedRotation, 4);
 
 /// One entry of an animation set's 4-byte record array (`GpAnimSet.recs`),
 /// walked by the slot code to find the pose a clip is showing. A keyframe entry
@@ -60,13 +59,13 @@ STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
 /// control entry's `duration` is written but never read.
 ///
 /// `pose` counts **4-byte words, not poses**, in the pose bank and in the
-/// record array alike: the record array and a `GpPackedSvec` bank are one word
+/// record array alike: the record array and an `AnimationPackedRotation` bank are one word
 /// per element, a `GpPackedPose` bank three, so the latter's poses sit at every
 /// third offset.
 typedef struct GpAnimRec {
     /* 0x00 */ u16 pose;     // word offset into the set's pose bank; a control entry's continuation record
     /* 0x02 */ u8  duration; // frames this keyframe is held
-    /* 0x03 */ u8  flags;    // 0-3 pose encoding (0 control, 1 GpPackedPose, 4 GpPackedSvec), 4-5 cue bits, 7 control entry, 6 end of clip
+    /* 0x03 */ u8  flags;    // 0-3 pose encoding (0 control, 1 GpPackedPose, 4 AnimationPackedRotation), 4-5 cue bits, 7 control entry, 6 end of clip
 } GpAnimRec;
 STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
 
@@ -78,9 +77,9 @@ STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
 /// keyframes that begins at the record `trackStart` names, plus one pose bank
 /// per pose encoding, which those records index into by 4-byte word.
 typedef struct GpAnimSet {
-    GpAnimRec*    recs;         // keyframe records of every track, one run per model part
-    u16*          trackStart;   // record index each track begins at, indexed by `GpAnimSlot.trackIndex`
-    GpPackedSvec* poseBanks[8]; // pose bank per pose encoding, indexed by `GpAnimRec.flags & 0xF` (1 `GpPackedPose`, 4 `GpPackedSvec`)
+    GpAnimRec* recs;         // keyframe records of every track, one run per model part
+    u16*       trackStart;   // record index each track begins at, indexed by `GpAnimSlot.trackIndex`
+    void*      poseBanks[8]; // Borrowed word-aligned banks (1 GpPackedPose, 4 AnimationPackedRotation); records give word offsets
 } GpAnimSet;
 STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
 
@@ -95,12 +94,12 @@ STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
 /// The slots and the pose buffer are the caller's: one playback slot per model
 /// part, and one pose record per slot, where a slot keeps a pose that no
 /// keyframe supplies.
-typedef struct _GpAnimCtx {
-    GpAnimSet**   sets;      // Set table the slots index by animation id
-    GpCoord*      coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
-    GpPackedSvec* poses;     // Pose buffer, one 0x10-byte record per slot, in the encoding that slot's `GpAnimSlot.poseKind` names
-    GpAnimSlot*   slots;     // Playback state, one slot per model part
-    s32           partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
+typedef struct {
+    GpAnimSet** sets;      // Set table the slots index by animation id
+    GpCoord*    coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
+    u8*         poses;     // Borrowed writable buffer: 16 bytes per slot, holding that slot's packed encoding
+    GpAnimSlot* slots;     // Playback state, one slot per model part
+    s32         partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
 } GpAnimCtx;
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
