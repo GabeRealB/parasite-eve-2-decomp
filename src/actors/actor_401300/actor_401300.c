@@ -503,7 +503,7 @@ AnimationPackedRotation D_actor_401300_80148B88[247] = {
 #include "assets/actor_401300_animation_17714_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80148F64[362] = {
+AnimationRecord D_actor_401300_80148F64[362] = {
 #include "assets/actor_401300_animation_17714_records.inc"
 };
 
@@ -525,7 +525,7 @@ AnimationPackedRotation D_actor_401300_801496B8[374] = {
 #include "assets/actor_401300_animation_186D8_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80149C90[528] = {
+AnimationRecord D_actor_401300_80149C90[528] = {
 #include "assets/actor_401300_animation_186D8_records.inc"
 };
 
@@ -547,7 +547,7 @@ AnimationPackedRotation D_actor_401300_8014A664[406] = {
 #include "assets/actor_401300_animation_19700_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014ACBC[527] = {
+AnimationRecord D_actor_401300_8014ACBC[527] = {
 #include "assets/actor_401300_animation_19700_records.inc"
 };
 
@@ -569,7 +569,7 @@ AnimationPackedRotation D_actor_401300_8014B668[248] = {
 #include "assets/actor_401300_animation_1A170_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014BA48[328] = {
+AnimationRecord D_actor_401300_8014BA48[328] = {
 #include "assets/actor_401300_animation_1A170_records.inc"
 };
 
@@ -591,7 +591,7 @@ AnimationPackedRotation D_actor_401300_8014C030[138] = {
 #include "assets/actor_401300_animation_1A750_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014C258[188] = {
+AnimationRecord D_actor_401300_8014C258[188] = {
 #include "assets/actor_401300_animation_1A750_records.inc"
 };
 
@@ -613,7 +613,7 @@ AnimationPackedRotation D_actor_401300_8014C5F8[151] = {
 #include "assets/actor_401300_animation_1AD34_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014C854[182] = {
+AnimationRecord D_actor_401300_8014C854[182] = {
 #include "assets/actor_401300_animation_1AD34_records.inc"
 };
 
@@ -635,7 +635,7 @@ AnimationPackedRotation D_actor_401300_8014CC6C[228] = {
 #include "assets/actor_401300_animation_1B788_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014CFFC[353] = {
+AnimationRecord D_actor_401300_8014CFFC[353] = {
 #include "assets/actor_401300_animation_1B788_records.inc"
 };
 
@@ -657,7 +657,7 @@ AnimationPackedRotation D_actor_401300_8014D6E4[334] = {
 #include "assets/actor_401300_animation_1C4CC_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014DC1C[426] = {
+AnimationRecord D_actor_401300_8014DC1C[426] = {
 #include "assets/actor_401300_animation_1C4CC_records.inc"
 };
 
@@ -679,7 +679,7 @@ AnimationPackedRotation D_actor_401300_8014E3BC[216] = {
 #include "assets/actor_401300_animation_1CD3C_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014E71C[262] = {
+AnimationRecord D_actor_401300_8014E71C[262] = {
 #include "assets/actor_401300_animation_1CD3C_records.inc"
 };
 
@@ -701,7 +701,7 @@ AnimationPackedRotation D_actor_401300_8014EBC0[82] = {
 #include "assets/actor_401300_animation_1D0CC_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014ED08[111] = {
+AnimationRecord D_actor_401300_8014ED08[111] = {
 #include "assets/actor_401300_animation_1D0CC_records.inc"
 };
 
@@ -723,7 +723,7 @@ AnimationPackedRotation D_actor_401300_8014EFD4[199] = {
 #include "assets/actor_401300_animation_1D904_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014F2F0[259] = {
+AnimationRecord D_actor_401300_8014F2F0[259] = {
 #include "assets/actor_401300_animation_1D904_records.inc"
 };
 
@@ -745,7 +745,7 @@ AnimationPackedRotation D_actor_401300_8014F7C4[113] = {
 #include "assets/actor_401300_animation_1DE54_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_8014F988[177] = {
+AnimationRecord D_actor_401300_8014F988[177] = {
 #include "assets/actor_401300_animation_1DE54_records.inc"
 };
 
@@ -767,7 +767,7 @@ AnimationPackedRotation D_actor_401300_8014FDD4[330] = {
 #include "assets/actor_401300_animation_1ED6C_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801502FC[538] = {
+AnimationRecord D_actor_401300_801502FC[538] = {
 #include "assets/actor_401300_animation_1ED6C_records.inc"
 };
 
@@ -789,7 +789,7 @@ AnimationPackedRotation D_actor_401300_80150C2C[73] = {
 #include "assets/actor_401300_animation_1F110_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80150D50[110] = {
+AnimationRecord D_actor_401300_80150D50[110] = {
 #include "assets/actor_401300_animation_1F110_records.inc"
 };
 
@@ -811,7 +811,7 @@ AnimationPackedRotation D_actor_401300_80150FA0[81] = {
 #include "assets/actor_401300_animation_1F4C4_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801510E4[118] = {
+AnimationRecord D_actor_401300_801510E4[118] = {
 #include "assets/actor_401300_animation_1F4C4_records.inc"
 };
 
@@ -833,7 +833,7 @@ AnimationPackedRotation D_actor_401300_801513A8[58] = {
 #include "assets/actor_401300_animation_1F848_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80151490[108] = {
+AnimationRecord D_actor_401300_80151490[108] = {
 #include "assets/actor_401300_animation_1F848_records.inc"
 };
 
@@ -855,7 +855,7 @@ AnimationPackedRotation D_actor_401300_80151744[159] = {
 #include "assets/actor_401300_animation_1FF3C_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801519C0[221] = {
+AnimationRecord D_actor_401300_801519C0[221] = {
 #include "assets/actor_401300_animation_1FF3C_records.inc"
 };
 
@@ -877,7 +877,7 @@ AnimationPackedRotation D_actor_401300_80151E5C[361] = {
 #include "assets/actor_401300_animation_20D98_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80152400[484] = {
+AnimationRecord D_actor_401300_80152400[484] = {
 #include "assets/actor_401300_animation_20D98_records.inc"
 };
 
@@ -899,7 +899,7 @@ AnimationPackedRotation D_actor_401300_80152D18[165] = {
 #include "assets/actor_401300_animation_21618_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80152FAC[281] = {
+AnimationRecord D_actor_401300_80152FAC[281] = {
 #include "assets/actor_401300_animation_21618_records.inc"
 };
 
@@ -921,7 +921,7 @@ AnimationPackedRotation D_actor_401300_80153580[150] = {
 #include "assets/actor_401300_animation_21DE0_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801537D8[256] = {
+AnimationRecord D_actor_401300_801537D8[256] = {
 #include "assets/actor_401300_animation_21DE0_records.inc"
 };
 
@@ -943,7 +943,7 @@ AnimationPackedRotation D_actor_401300_80153D00[107] = {
 #include "assets/actor_401300_animation_2231C_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80153EAC[154] = {
+AnimationRecord D_actor_401300_80153EAC[154] = {
 #include "assets/actor_401300_animation_2231C_records.inc"
 };
 
@@ -965,7 +965,7 @@ AnimationPackedRotation D_actor_401300_8015426C[147] = {
 #include "assets/actor_401300_animation_22A58_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801544B8[230] = {
+AnimationRecord D_actor_401300_801544B8[230] = {
 #include "assets/actor_401300_animation_22A58_records.inc"
 };
 
@@ -987,7 +987,7 @@ AnimationPackedRotation D_actor_401300_80154954[129] = {
 #include "assets/actor_401300_animation_2303C_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80154B58[183] = {
+AnimationRecord D_actor_401300_80154B58[183] = {
 #include "assets/actor_401300_animation_2303C_records.inc"
 };
 
@@ -1009,7 +1009,7 @@ AnimationPackedRotation D_actor_401300_80154ECC[70] = {
 #include "assets/actor_401300_animation_23444_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80154FE4[150] = {
+AnimationRecord D_actor_401300_80154FE4[150] = {
 #include "assets/actor_401300_animation_23444_records.inc"
 };
 
@@ -1031,7 +1031,7 @@ AnimationPackedRotation D_actor_401300_80155364[146] = {
 #include "assets/actor_401300_animation_23A98_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_801555AC[185] = {
+AnimationRecord D_actor_401300_801555AC[185] = {
 #include "assets/actor_401300_animation_23A98_records.inc"
 };
 
@@ -1053,7 +1053,7 @@ AnimationPackedRotation D_actor_401300_801559C4[174] = {
 #include "assets/actor_401300_animation_24200_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80155C7C[223] = {
+AnimationRecord D_actor_401300_80155C7C[223] = {
 #include "assets/actor_401300_animation_24200_records.inc"
 };
 
@@ -1075,7 +1075,7 @@ AnimationPackedRotation D_actor_401300_80156144[193] = {
 #include "assets/actor_401300_animation_24A48_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80156448[254] = {
+AnimationRecord D_actor_401300_80156448[254] = {
 #include "assets/actor_401300_animation_24A48_records.inc"
 };
 
@@ -1097,7 +1097,7 @@ AnimationPackedRotation D_actor_401300_80156980[172] = {
 #include "assets/actor_401300_animation_251E4_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80156C30[235] = {
+AnimationRecord D_actor_401300_80156C30[235] = {
 #include "assets/actor_401300_animation_251E4_records.inc"
 };
 
@@ -1119,7 +1119,7 @@ AnimationPackedRotation D_actor_401300_801570E0[206] = {
 #include "assets/actor_401300_animation_259F0_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80157418[244] = {
+AnimationRecord D_actor_401300_80157418[244] = {
 #include "assets/actor_401300_animation_259F0_records.inc"
 };
 
@@ -1141,7 +1141,7 @@ AnimationPackedRotation D_actor_401300_801578E0[207] = {
 #include "assets/actor_401300_animation_26204_bank4.inc"
 };
 
-GpAnimRec D_actor_401300_80157C1C[248] = {
+AnimationRecord D_actor_401300_80157C1C[248] = {
 #include "assets/actor_401300_animation_26204_records.inc"
 };
 

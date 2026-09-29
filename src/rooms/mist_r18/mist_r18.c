@@ -279,7 +279,7 @@ AnimationPackedRotation D_mist_r18_8017F2D4[113] = {
 #include "assets/mist_r18_animation_02274_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_8017F498[221] = {
+AnimationRecord D_mist_r18_8017F498[221] = {
 #include "assets/mist_r18_animation_02274_records.inc"
 };
 
@@ -301,7 +301,7 @@ AnimationPackedRotation D_mist_r18_8017F898[395] = {
 #include "assets/mist_r18_animation_030E8_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_8017FEC4[495] = {
+AnimationRecord D_mist_r18_8017FEC4[495] = {
 #include "assets/mist_r18_animation_030E8_records.inc"
 };
 
@@ -323,7 +323,7 @@ AnimationPackedRotation D_mist_r18_80180724[154] = {
 #include "assets/mist_r18_animation_0375C_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_8018098C[218] = {
+AnimationRecord D_mist_r18_8018098C[218] = {
 #include "assets/mist_r18_animation_0375C_records.inc"
 };
 
@@ -345,7 +345,7 @@ AnimationPackedRotation D_mist_r18_80180D5C[95] = {
 #include "assets/mist_r18_animation_03C90_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_80180ED8[212] = {
+AnimationRecord D_mist_r18_80180ED8[212] = {
 #include "assets/mist_r18_animation_03C90_records.inc"
 };
 
@@ -367,7 +367,7 @@ AnimationPackedRotation D_mist_r18_80181338[285] = {
 #include "assets/mist_r18_animation_0478C_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_801817AC[350] = {
+AnimationRecord D_mist_r18_801817AC[350] = {
 #include "assets/mist_r18_animation_0478C_records.inc"
 };
 
@@ -389,7 +389,7 @@ AnimationPackedRotation D_mist_r18_80181E4C[59] = {
 #include "assets/mist_r18_animation_04DD4_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_80181F38[269] = {
+AnimationRecord D_mist_r18_80181F38[269] = {
 #include "assets/mist_r18_animation_04DD4_records.inc"
 };
 
@@ -411,7 +411,7 @@ AnimationPackedRotation D_mist_r18_80182494[342] = {
 #include "assets/mist_r18_animation_05AA4_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_801829EC[404] = {
+AnimationRecord D_mist_r18_801829EC[404] = {
 #include "assets/mist_r18_animation_05AA4_records.inc"
 };
 
@@ -433,7 +433,7 @@ AnimationPackedRotation D_mist_r18_801830A4[685] = {
 #include "assets/mist_r18_animation_07230_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_80183B58[796] = {
+AnimationRecord D_mist_r18_80183B58[796] = {
 #include "assets/mist_r18_animation_07230_records.inc"
 };
 
@@ -455,7 +455,7 @@ AnimationPackedRotation D_mist_r18_8018483C[86] = {
 #include "assets/mist_r18_animation_075CC_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_80184994[116] = {
+AnimationRecord D_mist_r18_80184994[116] = {
 #include "assets/mist_r18_animation_075CC_records.inc"
 };
 
@@ -477,7 +477,7 @@ AnimationPackedRotation D_mist_r18_80184BFC[52] = {
 #include "assets/mist_r18_animation_078C0_bank4.inc"
 };
 
-GpAnimRec D_mist_r18_80184CCC[99] = {
+AnimationRecord D_mist_r18_80184CCC[99] = {
 #include "assets/mist_r18_animation_078C0_records.inc"
 };
 

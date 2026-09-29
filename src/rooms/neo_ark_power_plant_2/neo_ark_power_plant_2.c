@@ -113,7 +113,7 @@ AnimationPackedRotation D_neo_ark_power_plant_2_8017FE14[28] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_power_plant_2_8017FE84[88] = {
+AnimationRecord D_neo_ark_power_plant_2_8017FE84[88] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_records.inc"
 };
 
@@ -135,7 +135,7 @@ AnimationPackedRotation D_neo_ark_power_plant_2_8018004C[22] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_power_plant_2_801800A4[65] = {
+AnimationRecord D_neo_ark_power_plant_2_801800A4[65] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_records.inc"
 };
 

@@ -198,7 +198,7 @@ AnimationPackedRotation D_shelter_b3_dumping_hole_80187DE0[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_dumping_hole_80187E98[109] = {
+AnimationRecord D_shelter_b3_dumping_hole_80187E98[109] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_records.inc"
 };
 

@@ -61,7 +61,7 @@ AnimationPackedRotation D_actor_215100_8014D084[61] = {
 #include "assets/actor_215100_animation_034E4_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014D178[89] = {
+AnimationRecord D_actor_215100_8014D178[89] = {
 #include "assets/actor_215100_animation_034E4_records.inc"
 };
 
@@ -83,7 +83,7 @@ AnimationPackedRotation D_actor_215100_8014D344[26] = {
 #include "assets/actor_215100_animation_03754_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014D3AC[104] = {
+AnimationRecord D_actor_215100_8014D3AC[104] = {
 #include "assets/actor_215100_animation_03754_records.inc"
 };
 
@@ -105,7 +105,7 @@ AnimationPackedRotation D_actor_215100_8014D5B4[35] = {
 #include "assets/actor_215100_animation_039AC_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014D640[89] = {
+AnimationRecord D_actor_215100_8014D640[89] = {
 #include "assets/actor_215100_animation_039AC_records.inc"
 };
 
@@ -127,7 +127,7 @@ AnimationPackedRotation D_actor_215100_8014D80C[20] = {
 #include "assets/actor_215100_animation_03B48_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014D85C[57] = {
+AnimationRecord D_actor_215100_8014D85C[57] = {
 #include "assets/actor_215100_animation_03B48_records.inc"
 };
 
@@ -149,7 +149,7 @@ AnimationPackedRotation D_actor_215100_8014D9A8[45] = {
 #include "assets/actor_215100_animation_03D98_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014DA5C[77] = {
+AnimationRecord D_actor_215100_8014DA5C[77] = {
 #include "assets/actor_215100_animation_03D98_records.inc"
 };
 
@@ -171,7 +171,7 @@ AnimationPackedRotation D_actor_215100_8014DBF8[46] = {
 #include "assets/actor_215100_animation_03FF0_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014DCB0[78] = {
+AnimationRecord D_actor_215100_8014DCB0[78] = {
 #include "assets/actor_215100_animation_03FF0_records.inc"
 };
 
@@ -193,7 +193,7 @@ AnimationPackedRotation D_actor_215100_8014DE80[46] = {
 #include "assets/actor_215100_animation_042F4_bank4.inc"
 };
 
-GpAnimRec D_actor_215100_8014DF38[109] = {
+AnimationRecord D_actor_215100_8014DF38[109] = {
 #include "assets/actor_215100_animation_042F4_records.inc"
 };
 

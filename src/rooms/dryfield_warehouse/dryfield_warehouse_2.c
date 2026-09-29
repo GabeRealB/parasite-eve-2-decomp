@@ -111,7 +111,7 @@ AnimationPackedRotation D_dryfield_warehouse_8017F59C[28] = {
 #include "assets/dryfield_warehouse_animation_02260_bank4.inc"
 };
 
-GpAnimRec D_dryfield_warehouse_8017F60C[123] = {
+AnimationRecord D_dryfield_warehouse_8017F60C[123] = {
 #include "assets/dryfield_warehouse_animation_02260_records.inc"
 };
 

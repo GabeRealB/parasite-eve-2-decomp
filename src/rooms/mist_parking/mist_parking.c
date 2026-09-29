@@ -169,7 +169,7 @@ AnimationPackedRotation D_mist_parking_801869F4[17] = {
 #include "assets/mist_parking_animation_095D0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80186A38[76] = {
+AnimationRecord D_mist_parking_80186A38[76] = {
 #include "assets/mist_parking_animation_095D0_records.inc"
 };
 
@@ -304,7 +304,7 @@ AnimationPackedRotation D_mist_parking_80187300[46] = {
 #include "assets/mist_parking_animation_09FD4_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_801873B8[109] = {
+AnimationRecord D_mist_parking_801873B8[109] = {
 #include "assets/mist_parking_animation_09FD4_records.inc"
 };
 
@@ -326,7 +326,7 @@ AnimationPackedRotation D_mist_parking_80187658[179] = {
 #include "assets/mist_parking_animation_0A774_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80187924[250] = {
+AnimationRecord D_mist_parking_80187924[250] = {
 #include "assets/mist_parking_animation_0A774_records.inc"
 };
 
@@ -348,7 +348,7 @@ AnimationPackedRotation D_mist_parking_80187DA4[110] = {
 #include "assets/mist_parking_animation_0AC5C_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80187F5C[166] = {
+AnimationRecord D_mist_parking_80187F5C[166] = {
 #include "assets/mist_parking_animation_0AC5C_records.inc"
 };
 
@@ -370,7 +370,7 @@ AnimationPackedRotation D_mist_parking_801882B0[117] = {
 #include "assets/mist_parking_animation_0B138_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80188484[147] = {
+AnimationRecord D_mist_parking_80188484[147] = {
 #include "assets/mist_parking_animation_0B138_records.inc"
 };
 
@@ -392,7 +392,7 @@ AnimationPackedRotation D_mist_parking_80188798[143] = {
 #include "assets/mist_parking_animation_0B700_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_801889D4[177] = {
+AnimationRecord D_mist_parking_801889D4[177] = {
 #include "assets/mist_parking_animation_0B700_records.inc"
 };
 
@@ -414,7 +414,7 @@ AnimationPackedRotation D_mist_parking_80188D24[65] = {
 #include "assets/mist_parking_animation_0BAB4_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80188E28[137] = {
+AnimationRecord D_mist_parking_80188E28[137] = {
 #include "assets/mist_parking_animation_0BAB4_records.inc"
 };
 
@@ -436,7 +436,7 @@ AnimationPackedRotation D_mist_parking_8018912C[153] = {
 #include "assets/mist_parking_animation_0C1B0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80189390[238] = {
+AnimationRecord D_mist_parking_80189390[238] = {
 #include "assets/mist_parking_animation_0C1B0_records.inc"
 };
 
@@ -458,7 +458,7 @@ AnimationPackedRotation D_mist_parking_801897EC[94] = {
 #include "assets/mist_parking_animation_0C688_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80189964[175] = {
+AnimationRecord D_mist_parking_80189964[175] = {
 #include "assets/mist_parking_animation_0C688_records.inc"
 };
 
@@ -480,7 +480,7 @@ AnimationPackedRotation D_mist_parking_80189D00[177] = {
 #include "assets/mist_parking_animation_0CD80_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_80189FC4[213] = {
+AnimationRecord D_mist_parking_80189FC4[213] = {
 #include "assets/mist_parking_animation_0CD80_records.inc"
 };
 
@@ -502,7 +502,7 @@ AnimationPackedRotation D_mist_parking_8018A38C[63] = {
 #include "assets/mist_parking_animation_0D060_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018A488[92] = {
+AnimationRecord D_mist_parking_8018A488[92] = {
 #include "assets/mist_parking_animation_0D060_records.inc"
 };
 
@@ -524,7 +524,7 @@ AnimationPackedRotation D_mist_parking_8018A690[69] = {
 #include "assets/mist_parking_animation_0D3E4_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018A7A4[118] = {
+AnimationRecord D_mist_parking_8018A7A4[118] = {
 #include "assets/mist_parking_animation_0D3E4_records.inc"
 };
 
@@ -546,7 +546,7 @@ AnimationPackedRotation D_mist_parking_8018A9FC[40] = {
 #include "assets/mist_parking_animation_0D6A4_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018AA9C[104] = {
+AnimationRecord D_mist_parking_8018AA9C[104] = {
 #include "assets/mist_parking_animation_0D6A4_records.inc"
 };
 
@@ -568,7 +568,7 @@ AnimationPackedRotation D_mist_parking_8018ACE0[62] = {
 #include "assets/mist_parking_animation_0DA94_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018ADD8[149] = {
+AnimationRecord D_mist_parking_8018ADD8[149] = {
 #include "assets/mist_parking_animation_0DA94_records.inc"
 };
 
@@ -590,7 +590,7 @@ AnimationPackedRotation D_mist_parking_8018B0F4[85] = {
 #include "assets/mist_parking_animation_0DE94_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018B248[121] = {
+AnimationRecord D_mist_parking_8018B248[121] = {
 #include "assets/mist_parking_animation_0DE94_records.inc"
 };
 
@@ -612,7 +612,7 @@ AnimationPackedRotation D_mist_parking_8018B4DC[65] = {
 #include "assets/mist_parking_animation_0E1D0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018B5E0[98] = {
+AnimationRecord D_mist_parking_8018B5E0[98] = {
 #include "assets/mist_parking_animation_0E1D0_records.inc"
 };
 
@@ -634,7 +634,7 @@ AnimationPackedRotation D_mist_parking_8018B830[109] = {
 #include "assets/mist_parking_animation_0E6E0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018B9E4[165] = {
+AnimationRecord D_mist_parking_8018B9E4[165] = {
 #include "assets/mist_parking_animation_0E6E0_records.inc"
 };
 
@@ -656,7 +656,7 @@ AnimationPackedRotation D_mist_parking_8018BD1C[56] = {
 #include "assets/mist_parking_animation_0EA0C_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018BDFC[106] = {
+AnimationRecord D_mist_parking_8018BDFC[106] = {
 #include "assets/mist_parking_animation_0EA0C_records.inc"
 };
 
@@ -678,7 +678,7 @@ AnimationPackedRotation D_mist_parking_8018C054[84] = {
 #include "assets/mist_parking_animation_0EDE0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018C1A4[117] = {
+AnimationRecord D_mist_parking_8018C1A4[117] = {
 #include "assets/mist_parking_animation_0EDE0_records.inc"
 };
 
@@ -700,7 +700,7 @@ AnimationPackedRotation D_mist_parking_8018C41C[74] = {
 #include "assets/mist_parking_animation_0F14C_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018C544[104] = {
+AnimationRecord D_mist_parking_8018C544[104] = {
 #include "assets/mist_parking_animation_0F14C_records.inc"
 };
 
@@ -722,7 +722,7 @@ AnimationPackedRotation D_mist_parking_8018C770[90] = {
 #include "assets/mist_parking_animation_0F574_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018C8D8[141] = {
+AnimationRecord D_mist_parking_8018C8D8[141] = {
 #include "assets/mist_parking_animation_0F574_records.inc"
 };
 
@@ -744,7 +744,7 @@ AnimationPackedRotation D_mist_parking_8018CB80[43] = {
 #include "assets/mist_parking_animation_0F7F0_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018CC2C[87] = {
+AnimationRecord D_mist_parking_8018CC2C[87] = {
 #include "assets/mist_parking_animation_0F7F0_records.inc"
 };
 
@@ -766,7 +766,7 @@ AnimationPackedRotation D_mist_parking_8018CE14[99] = {
 #include "assets/mist_parking_animation_0FC60_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018CFA0[150] = {
+AnimationRecord D_mist_parking_8018CFA0[150] = {
 #include "assets/mist_parking_animation_0FC60_records.inc"
 };
 
@@ -788,7 +788,7 @@ AnimationPackedRotation D_mist_parking_8018D278[17] = {
 #include "assets/mist_parking_animation_0FE5C_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018D2BC[78] = {
+AnimationRecord D_mist_parking_8018D2BC[78] = {
 #include "assets/mist_parking_animation_0FE5C_records.inc"
 };
 
@@ -810,7 +810,7 @@ AnimationPackedRotation D_mist_parking_8018D498[54] = {
 #include "assets/mist_parking_animation_10174_bank4.inc"
 };
 
-GpAnimRec D_mist_parking_8018D570[103] = {
+AnimationRecord D_mist_parking_8018D570[103] = {
 #include "assets/mist_parking_animation_10174_records.inc"
 };
 

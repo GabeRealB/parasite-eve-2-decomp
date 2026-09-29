@@ -101,7 +101,7 @@ AnimationPackedRotation D_dryfield_toilet_80180380[46] = {
 #include "assets/dryfield_toilet_animation_03054_bank4.inc"
 };
 
-GpAnimRec D_dryfield_toilet_80180438[109] = {
+AnimationRecord D_dryfield_toilet_80180438[109] = {
 #include "assets/dryfield_toilet_animation_03054_records.inc"
 };
 
@@ -123,7 +123,7 @@ AnimationPackedRotation D_dryfield_toilet_801806A8[131] = {
 #include "assets/dryfield_toilet_animation_035A4_bank4.inc"
 };
 
-GpAnimRec D_dryfield_toilet_801808B4[162] = {
+AnimationRecord D_dryfield_toilet_801808B4[162] = {
 #include "assets/dryfield_toilet_animation_035A4_records.inc"
 };
 

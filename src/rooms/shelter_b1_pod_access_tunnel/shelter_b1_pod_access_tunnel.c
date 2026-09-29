@@ -206,7 +206,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_8018121C[46] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_801812D4[109] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_801812D4[109] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_records.inc"
 };
 
@@ -228,7 +228,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181508[49] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_801815CC[92] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_801815CC[92] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_records.inc"
 };
 
@@ -250,7 +250,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181834[159] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_80181AB0[241] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_80181AB0[241] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_records.inc"
 };
 
@@ -272,7 +272,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80181EF4[35] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_80181F80[110] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_80181F80[110] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_records.inc"
 };
 
@@ -294,7 +294,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801821A0[29] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_80182214[94] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_80182214[94] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_records.inc"
 };
 
@@ -316,7 +316,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_80182454[135] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_80182670[168] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_80182670[168] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_records.inc"
 };
 
@@ -338,7 +338,7 @@ AnimationPackedRotation D_shelter_b1_pod_access_tunnel_801829A8[64] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_pod_access_tunnel_80182AA8[141] = {
+AnimationRecord D_shelter_b1_pod_access_tunnel_80182AA8[141] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_records.inc"
 };
 

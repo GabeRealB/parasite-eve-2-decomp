@@ -270,7 +270,7 @@ AnimationPackedRotation D_dryfield_night_garage_80181EAC[46] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_garage_80181F64[109] = {
+AnimationRecord D_dryfield_night_garage_80181F64[109] = {
 #include "assets/dryfield_night_garage_animation_04B80_records.inc"
 };
 
@@ -292,7 +292,7 @@ AnimationPackedRotation D_dryfield_night_garage_801821C8[84] = {
 #include "assets/dryfield_night_garage_animation_04F54_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_garage_80182318[117] = {
+AnimationRecord D_dryfield_night_garage_80182318[117] = {
 #include "assets/dryfield_night_garage_animation_04F54_records.inc"
 };
 
@@ -314,7 +314,7 @@ AnimationPackedRotation D_dryfield_night_garage_80182590[62] = {
 #include "assets/dryfield_night_garage_animation_05344_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_garage_80182688[149] = {
+AnimationRecord D_dryfield_night_garage_80182688[149] = {
 #include "assets/dryfield_night_garage_animation_05344_records.inc"
 };
 
@@ -336,7 +336,7 @@ AnimationPackedRotation D_dryfield_night_garage_80182980[74] = {
 #include "assets/dryfield_night_garage_animation_056B0_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_garage_80182AA8[104] = {
+AnimationRecord D_dryfield_night_garage_80182AA8[104] = {
 #include "assets/dryfield_night_garage_animation_056B0_records.inc"
 };
 

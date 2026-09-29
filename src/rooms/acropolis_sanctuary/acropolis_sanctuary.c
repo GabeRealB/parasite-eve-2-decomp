@@ -301,7 +301,7 @@ AnimationPackedRotation D_acropolis_sanctuary_801803A8[115] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank4.inc"
 };
 
-GpAnimRec D_acropolis_sanctuary_80180574[150] = {
+AnimationRecord D_acropolis_sanctuary_80180574[150] = {
 #include "assets/acropolis_sanctuary_animation_03234_records.inc"
 };
 
@@ -570,7 +570,7 @@ AnimationPackedRotation D_acropolis_sanctuary_80181970[84] = {
 #include "assets/acropolis_sanctuary_animation_04708_bank4.inc"
 };
 
-GpAnimRec D_acropolis_sanctuary_80181AC0[120] = {
+AnimationRecord D_acropolis_sanctuary_80181AC0[120] = {
 #include "assets/acropolis_sanctuary_animation_04708_records.inc"
 };
 
@@ -592,7 +592,7 @@ AnimationPackedRotation D_acropolis_sanctuary_80181D50[88] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_bank4.inc"
 };
 
-GpAnimRec D_acropolis_sanctuary_80181EB0[121] = {
+AnimationRecord D_acropolis_sanctuary_80181EB0[121] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_records.inc"
 };
 

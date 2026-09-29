@@ -119,7 +119,7 @@ AnimationPackedRotation D_actor_151000_80132AEC[25] = {
 #include "assets/actor_151000_animation_00ED8_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_80132B50[96] = {
+AnimationRecord D_actor_151000_80132B50[96] = {
 #include "assets/actor_151000_animation_00ED8_records.inc"
 };
 
@@ -141,7 +141,7 @@ AnimationPackedRotation D_actor_151000_80132D68[76] = {
 #include "assets/actor_151000_animation_012A0_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_80132E98[128] = {
+AnimationRecord D_actor_151000_80132E98[128] = {
 #include "assets/actor_151000_animation_012A0_records.inc"
 };
 
@@ -163,7 +163,7 @@ AnimationPackedRotation D_actor_151000_8013310C[45] = {
 #include "assets/actor_151000_animation_01518_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_801331C0[84] = {
+AnimationRecord D_actor_151000_801331C0[84] = {
 #include "assets/actor_151000_animation_01518_records.inc"
 };
 
@@ -316,7 +316,7 @@ AnimationPackedRotation D_actor_151000_801392AC[23] = {
 #include "assets/actor_151000_animation_07660_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_80139308[84] = {
+AnimationRecord D_actor_151000_80139308[84] = {
 #include "assets/actor_151000_animation_07660_records.inc"
 };
 
@@ -338,7 +338,7 @@ AnimationPackedRotation D_actor_151000_801394FC[75] = {
 #include "assets/actor_151000_animation_07A58_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_80139628[138] = {
+AnimationRecord D_actor_151000_80139628[138] = {
 #include "assets/actor_151000_animation_07A58_records.inc"
 };
 
@@ -360,7 +360,7 @@ AnimationPackedRotation D_actor_151000_801399A8[298] = {
 #include "assets/actor_151000_animation_0863C_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_80139E50[377] = {
+AnimationRecord D_actor_151000_80139E50[377] = {
 #include "assets/actor_151000_animation_0863C_records.inc"
 };
 
@@ -382,7 +382,7 @@ AnimationPackedRotation D_actor_151000_8013A4B4[48] = {
 #include "assets/actor_151000_animation_088A4_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013A574[74] = {
+AnimationRecord D_actor_151000_8013A574[74] = {
 #include "assets/actor_151000_animation_088A4_records.inc"
 };
 
@@ -404,7 +404,7 @@ AnimationPackedRotation D_actor_151000_8013A728[76] = {
 #include "assets/actor_151000_animation_08CAC_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013A858[147] = {
+AnimationRecord D_actor_151000_8013A858[147] = {
 #include "assets/actor_151000_animation_08CAC_records.inc"
 };
 
@@ -426,7 +426,7 @@ AnimationPackedRotation D_actor_151000_8013AB30[89] = {
 #include "assets/actor_151000_animation_090B8_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013AC94[135] = {
+AnimationRecord D_actor_151000_8013AC94[135] = {
 #include "assets/actor_151000_animation_090B8_records.inc"
 };
 
@@ -448,7 +448,7 @@ AnimationPackedRotation D_actor_151000_8013AF30[59] = {
 #include "assets/actor_151000_animation_093C8_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013B01C[105] = {
+AnimationRecord D_actor_151000_8013B01C[105] = {
 #include "assets/actor_151000_animation_093C8_records.inc"
 };
 
@@ -470,7 +470,7 @@ AnimationPackedRotation D_actor_151000_8013B228[30] = {
 #include "assets/actor_151000_animation_09620_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013B2A0[94] = {
+AnimationRecord D_actor_151000_8013B2A0[94] = {
 #include "assets/actor_151000_animation_09620_records.inc"
 };
 
@@ -492,7 +492,7 @@ AnimationPackedRotation D_actor_151000_8013B480[48] = {
 #include "assets/actor_151000_animation_098B0_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013B540[90] = {
+AnimationRecord D_actor_151000_8013B540[90] = {
 #include "assets/actor_151000_animation_098B0_records.inc"
 };
 
@@ -514,7 +514,7 @@ AnimationPackedRotation D_actor_151000_8013B734[59] = {
 #include "assets/actor_151000_animation_09C98_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013B820[156] = {
+AnimationRecord D_actor_151000_8013B820[156] = {
 #include "assets/actor_151000_animation_09C98_records.inc"
 };
 
@@ -536,7 +536,7 @@ AnimationPackedRotation D_actor_151000_8013BB04[29] = {
 #include "assets/actor_151000_animation_09F48_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013BB78[114] = {
+AnimationRecord D_actor_151000_8013BB78[114] = {
 #include "assets/actor_151000_animation_09F48_records.inc"
 };
 
@@ -558,7 +558,7 @@ AnimationPackedRotation D_actor_151000_8013BDA8[20] = {
 #include "assets/actor_151000_animation_0A104_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013BDF8[65] = {
+AnimationRecord D_actor_151000_8013BDF8[65] = {
 #include "assets/actor_151000_animation_0A104_records.inc"
 };
 
@@ -580,7 +580,7 @@ AnimationPackedRotation D_actor_151000_8013BF70[65] = {
 #include "assets/actor_151000_animation_0A4EC_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013C074[156] = {
+AnimationRecord D_actor_151000_8013C074[156] = {
 #include "assets/actor_151000_animation_0A4EC_records.inc"
 };
 
@@ -602,7 +602,7 @@ AnimationPackedRotation D_actor_151000_8013C40C[232] = {
 #include "assets/actor_151000_animation_0AE9C_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013C7AC[314] = {
+AnimationRecord D_actor_151000_8013C7AC[314] = {
 #include "assets/actor_151000_animation_0AE9C_records.inc"
 };
 
@@ -624,7 +624,7 @@ AnimationPackedRotation D_actor_151000_8013CD14[68] = {
 #include "assets/actor_151000_animation_0B218_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013CE24[123] = {
+AnimationRecord D_actor_151000_8013CE24[123] = {
 #include "assets/actor_151000_animation_0B218_records.inc"
 };
 
@@ -646,7 +646,7 @@ AnimationPackedRotation D_actor_151000_8013D078[27] = {
 #include "assets/actor_151000_animation_0B464_bank4.inc"
 };
 
-GpAnimRec D_actor_151000_8013D0E4[94] = {
+AnimationRecord D_actor_151000_8013D0E4[94] = {
 #include "assets/actor_151000_animation_0B464_records.inc"
 };
 
@@ -1013,8 +1013,8 @@ static void func_actor_151000_801324FC(Task* task)
 {
     Actor151000Work* work;
     GfxCoord*        obj;
-    GpAnimRec*       rec;
-    s32              kind;
+    AnimationRecord* rec;
+    s32              cueBits;
     s32              id;
     s32              pan;
 
@@ -1025,12 +1025,12 @@ static void func_actor_151000_801324FC(Task* task)
         return;
     }
     work->stepRec = rec;
-    kind          = rec->flags & 0x30;
-    if (kind != 0x10 && kind != 0x20) {
+    cueBits       = rec->flags & ANIMATION_RECORD_CUE_MASK;
+    if (cueBits != ANIMATION_RECORD_CUE_1 && cueBits != ANIMATION_RECORD_CUE_2) {
         return;
     }
     id = 0x1000000F;
-    if (kind == 0x10) {
+    if (cueBits == ANIMATION_RECORD_CUE_1) {
         id = 0x10000010;
     }
     id += 0x64;

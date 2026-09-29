@@ -121,7 +121,7 @@ AnimationPackedRotation D_dryfield_gas_station_80181EB8[8] = {
 #include "assets/dryfield_gas_station_animation_04A70_bank4.inc"
 };
 
-GpAnimRec D_dryfield_gas_station_80181ED8[76] = {
+AnimationRecord D_dryfield_gas_station_80181ED8[76] = {
 #include "assets/dryfield_gas_station_animation_04A70_records.inc"
 };
 
@@ -143,7 +143,7 @@ AnimationPackedRotation D_dryfield_gas_station_801820F4[179] = {
 #include "assets/dryfield_gas_station_animation_05210_bank4.inc"
 };
 
-GpAnimRec D_dryfield_gas_station_801823C0[250] = {
+AnimationRecord D_dryfield_gas_station_801823C0[250] = {
 #include "assets/dryfield_gas_station_animation_05210_records.inc"
 };
 
@@ -165,7 +165,7 @@ AnimationPackedRotation D_dryfield_gas_station_8018284C[65] = {
 #include "assets/dryfield_gas_station_animation_055A4_bank4.inc"
 };
 
-GpAnimRec D_dryfield_gas_station_80182950[123] = {
+AnimationRecord D_dryfield_gas_station_80182950[123] = {
 #include "assets/dryfield_gas_station_animation_055A4_records.inc"
 };
 
@@ -187,7 +187,7 @@ AnimationPackedRotation D_dryfield_gas_station_80182BA4[48] = {
 #include "assets/dryfield_gas_station_animation_05848_bank4.inc"
 };
 
-GpAnimRec D_dryfield_gas_station_80182C64[95] = {
+AnimationRecord D_dryfield_gas_station_80182C64[95] = {
 #include "assets/dryfield_gas_station_animation_05848_records.inc"
 };
 

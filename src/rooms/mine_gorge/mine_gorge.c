@@ -70,7 +70,7 @@ AnimationPackedRotation D_mine_gorge_8017DE88[95] = {
 #include "assets/mine_gorge_animation_00C98_bank4.inc"
 };
 
-GpAnimRec D_mine_gorge_8017E004[139] = {
+AnimationRecord D_mine_gorge_8017E004[139] = {
 #include "assets/mine_gorge_animation_00C98_records.inc"
 };
 

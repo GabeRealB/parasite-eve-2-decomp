@@ -72,7 +72,7 @@ AnimationPackedRotation D_dryfield_night_parking_lot_8017E85C[95] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_parking_lot_8017E9D8[139] = {
+AnimationRecord D_dryfield_night_parking_lot_8017E9D8[139] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_records.inc"
 };
 

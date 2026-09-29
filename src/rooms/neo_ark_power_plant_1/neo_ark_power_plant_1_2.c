@@ -84,7 +84,7 @@ AnimationPackedRotation D_neo_ark_power_plant_1_8017E624[126] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_power_plant_1_8017E81C[171] = {
+AnimationRecord D_neo_ark_power_plant_1_8017E81C[171] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_records.inc"
 };
 

@@ -143,7 +143,7 @@ AnimationPackedRotation D_dryfield_night_driveway_8017E6FC[95] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_driveway_8017E878[139] = {
+AnimationRecord D_dryfield_night_driveway_8017E878[139] = {
 #include "assets/dryfield_night_driveway_animation_0150C_records.inc"
 };
 
@@ -165,7 +165,7 @@ AnimationPackedRotation D_dryfield_night_driveway_8017EB3C[75] = {
 #include "assets/dryfield_night_driveway_animation_01870_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_driveway_8017EC68[104] = {
+AnimationRecord D_dryfield_night_driveway_8017EC68[104] = {
 #include "assets/dryfield_night_driveway_animation_01870_records.inc"
 };
 
@@ -187,7 +187,7 @@ AnimationPackedRotation D_dryfield_night_driveway_8017EE70[24] = {
 #include "assets/dryfield_night_driveway_animation_01A84_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_driveway_8017EED0[83] = {
+AnimationRecord D_dryfield_night_driveway_8017EED0[83] = {
 #include "assets/dryfield_night_driveway_animation_01A84_records.inc"
 };
 
@@ -209,7 +209,7 @@ AnimationPackedRotation D_dryfield_night_driveway_8017F0A8[60] = {
 #include "assets/dryfield_night_driveway_animation_01D64_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_driveway_8017F198[89] = {
+AnimationRecord D_dryfield_night_driveway_8017F198[89] = {
 #include "assets/dryfield_night_driveway_animation_01D64_records.inc"
 };
 

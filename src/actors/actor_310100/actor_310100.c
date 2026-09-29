@@ -43,22 +43,22 @@ typedef struct Actor310100Work {
     /* 0x000 */ ActorAnimRig19 rig;
     /// Light and colour matrices, handed to the model `TmdObject`'s `field_1C`
     /// and `field_20`.
-    /* 0x43C */ MATRIX     field_43C;
-    /* 0x45C */ MATRIX     field_45C;
-    /* 0x47C */ byte       pad_47C[0x68];
-    /* 0x4E4 */ Task*      field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ Task*      field_4E8; // gameGetPtrSlot(3)
-    /* 0x4EC */ GpAnimRec* field_4EC; // record the frame handler last saw on slot 1
-    /* 0x4F0 */ u16        field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
-    /* 0x4F2 */ byte       pad_4F2[0x4];
-    /* 0x4F6 */ u16        field_4F6; // floor-quad yaw seed (func_actor_310100_80161F80)
-    /* 0x4F8 */ u16        field_4F8;
-    /* 0x4FA */ u16        field_4FA;
-    /* 0x4FC */ byte       pad_4FC[0x8];
-    /* 0x504 */ u16        field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
-    /* 0x506 */ u16        field_506; // passed down as the model task's spawnArg1
-    /* 0x508 */ u16        field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
-    /* 0x50A */ u16        field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
+    /* 0x43C */ MATRIX           field_43C;
+    /* 0x45C */ MATRIX           field_45C;
+    /* 0x47C */ byte             pad_47C[0x68];
+    /* 0x4E4 */ Task*            field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
+    /* 0x4E8 */ Task*            field_4E8; // gameGetPtrSlot(3)
+    /* 0x4EC */ AnimationRecord* field_4EC; // record the frame handler last saw on slot 1
+    /* 0x4F0 */ u16              field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
+    /* 0x4F2 */ byte             pad_4F2[0x4];
+    /* 0x4F6 */ u16              field_4F6; // floor-quad yaw seed (func_actor_310100_80161F80)
+    /* 0x4F8 */ u16              field_4F8;
+    /* 0x4FA */ u16              field_4FA;
+    /* 0x4FC */ byte             pad_4FC[0x8];
+    /* 0x504 */ u16              field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
+    /* 0x506 */ u16              field_506; // passed down as the model task's spawnArg1
+    /* 0x508 */ u16              field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
+    /* 0x50A */ u16              field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
 } Actor310100Work;
 STATIC_ASSERT_SIZEOF(Actor310100Work, 0x50C);
 
@@ -296,7 +296,7 @@ AnimationPackedRotation D_actor_310100_80177ACC[77] = {
 #include "assets/actor_310100_animation_15FF8_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80177C00[124] = {
+AnimationRecord D_actor_310100_80177C00[124] = {
 #include "assets/actor_310100_animation_15FF8_records.inc"
 };
 
@@ -318,7 +318,7 @@ AnimationPackedRotation D_actor_310100_80177E64[24] = {
 #include "assets/actor_310100_animation_1620C_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80177EC4[80] = {
+AnimationRecord D_actor_310100_80177EC4[80] = {
 #include "assets/actor_310100_animation_1620C_records.inc"
 };
 
@@ -340,7 +340,7 @@ AnimationPackedRotation D_actor_310100_801780FC[33] = {
 #include "assets/actor_310100_animation_164B8_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80178180[76] = {
+AnimationRecord D_actor_310100_80178180[76] = {
 #include "assets/actor_310100_animation_164B8_records.inc"
 };
 
@@ -362,7 +362,7 @@ AnimationPackedRotation D_actor_310100_801785AC[121] = {
 #include "assets/actor_310100_animation_16CE8_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80178790[212] = {
+AnimationRecord D_actor_310100_80178790[212] = {
 #include "assets/actor_310100_animation_16CE8_records.inc"
 };
 
@@ -384,7 +384,7 @@ AnimationPackedRotation D_actor_310100_80178BA8[37] = {
 #include "assets/actor_310100_animation_16F64_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80178C3C[72] = {
+AnimationRecord D_actor_310100_80178C3C[72] = {
 #include "assets/actor_310100_animation_16F64_records.inc"
 };
 
@@ -406,7 +406,7 @@ AnimationPackedRotation D_actor_310100_80178DC4[19] = {
 #include "assets/actor_310100_animation_17148_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80178E10[76] = {
+AnimationRecord D_actor_310100_80178E10[76] = {
 #include "assets/actor_310100_animation_17148_records.inc"
 };
 
@@ -428,7 +428,7 @@ AnimationPackedRotation D_actor_310100_80178FA8[61] = {
 #include "assets/actor_310100_animation_1744C_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_8017909C[106] = {
+AnimationRecord D_actor_310100_8017909C[106] = {
 #include "assets/actor_310100_animation_1744C_records.inc"
 };
 
@@ -450,7 +450,7 @@ AnimationPackedRotation D_actor_310100_801792AC[30] = {
 #include "assets/actor_310100_animation_17638_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_80179324[67] = {
+AnimationRecord D_actor_310100_80179324[67] = {
 #include "assets/actor_310100_animation_17638_records.inc"
 };
 
@@ -472,7 +472,7 @@ AnimationPackedRotation D_actor_310100_80179504[45] = {
 #include "assets/actor_310100_animation_1790C_bank4.inc"
 };
 
-GpAnimRec D_actor_310100_801795B8[83] = {
+AnimationRecord D_actor_310100_801795B8[83] = {
 #include "assets/actor_310100_animation_1790C_records.inc"
 };
 
@@ -665,7 +665,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1);
 static s32 func_actor_310100_80161E24(Task* task)
 {
     Actor310100Work* work;
-    GpAnimRec*       rec;
+    AnimationRecord* rec;
     GfxCoord*        obj;
     s32              i;
     u16              step;
@@ -676,7 +676,7 @@ static s32 func_actor_310100_80161E24(Task* task)
     if (rec != work->field_4EC) {
         if (rec != NULL) {
             if (work->field_508 == 0x6C) {
-                if (rec->flags & 0x20) {
+                if (rec->flags & ANIMATION_RECORD_CUE_2) {
                     SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], Gp_GetObjPan(obj), 0);
                     step = work->field_50A;
                     if (step < 2U) {
@@ -684,10 +684,10 @@ static s32 func_actor_310100_80161E24(Task* task)
                     }
                 }
             } else {
-                if (rec->flags & 0x20) {
+                if (rec->flags & ANIMATION_RECORD_CUE_2) {
                     SndEvt_EnqueueType6(0x51050006, Gp_GetObjPan(obj), 0);
                 }
-                if (rec->flags & 0x10) {
+                if (rec->flags & ANIMATION_RECORD_CUE_1) {
                     SndEvt_EnqueueType6(0x51050007, Gp_GetObjPan(obj), 0);
                 }
             }

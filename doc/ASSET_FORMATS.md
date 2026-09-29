@@ -636,16 +636,17 @@ Layout, from `Gp_AnimInitCtx` / `Gp_AnimResetSlot` / `Gp_AnimResetSlotEx` in
 table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
 
 GpAnimSet (types in include/gameplay/animation.h):
-  0x00  GpAnimRec*     recs        base of the 4-byte clip records
-  0x04  u16*           trackStart  clip index table (values are record indices)
-  0x08  void*          poseBanks[8] pose banks, indexed by a record's flags & 0xF
+  0x00  AnimationRecord* recs         base of the 4-byte track records
+  0x04  u16*             trackStart   track index table (values are record indices)
+  0x08  AnimationPackedRotation*     poseBanks[8] pose banks, indexed by a record's flags & 0xF
 
-GpAnimRec (4 bytes):
-  0x00  u16 pose       word offset into the pose bank; on a control entry,
-                       the record the walk continues at
-  0x02  u8  duration   frames the keyframe is held
-  0x03  u8  flags      low nibble picks the pose bank, 0x30 the cue bits;
-                       0x80 marks a control entry, 0xC0 ends the clip
+AnimationRecord (4 bytes):
+  0x00  u16 wordOffset     pose-bank word offset, or absolute record index for a jump;
+                           ignored by an end record
+  0x02  u8  durationFrames frames allotted to interpolate to the keyframe;
+                           ignored by control records
+  0x03  u8  flags          low nibble picks the pose bank, 0x30 the cue bits;
+                           0x80 marks a control entry, 0xC0 ends the track
 ```
 
 Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind`:
@@ -659,8 +660,8 @@ Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind
 records run on until one has `flags >= 0xC0`. The index table has no explicit
 terminator, and stopping at the first non-ascending value is *not* enough — past
 the real end it keeps finding plausible ascending `u16`s and over-runs. The
-record array is the bound: it runs from `field_0` up to `field_4`, so no index
-may be `>= (field_4 - field_0) / 4`.
+record array is the bound: it runs from `recs` up to `trackStart`, so no index
+may reach the byte distance between them divided by four.
 
 Worked example — `pe2pkg_2` (a weapon), set at `0x8011DAD8`:
 
@@ -726,24 +727,24 @@ A set has one track per bone; a track is a run of 4-byte records:
 
 | Field | Meaning |
 |---|---|
-| `pose` | pose word offset — the game indexes the bank through a 4-byte-strided pointer, so the byte offset is `pose * 4` |
-| `duration` | frames the keyframe is held |
+| `wordOffset` | pose-bank offset in four-byte words, or an absolute record index for a jump; ignored by an end record |
+| `durationFrames` | positive segment duration in frames, used to interpolate toward this keyframe; ignored by control records |
 | `flags` | `0x80` marks a control entry, `0xC0` ends the track |
 
 **Two of the records are control, not keyframes**, and reading them as poses
 turns a 63-tick clip into a 320-frame one that sits still after the first
-quarter: the trailing `0x80`/`0xC0` pair holds 129 + 128 in `duration`, which
-is never read on a control entry — it continues at `pose` or ends the track
+quarter: the trailing `0x80`/`0xC0` pair holds 129 + 128 in `durationFrames`, which
+is never read on a control entry — it continues at `wordOffset` or ends the track
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
-it once (`value->poseKind = op & 0xF`) and `animationTickSlotPose` reads
-`op = slot->poseKind` for every record after that. The control records carry 0
+it once (`slot->poseKind = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK`) and
+`animationTickSlotPose` reads `poseKind = slot->poseKind` for every record after that. The control records carry 0
 in those bits, so reading the kind per record throws away the final keyframe.
 Kind **1** is `AnimationPackedPose`, six `s16` — local XYZ translation followed
 by XYZ Euler angles, with 4096 angle units per turn. A pose takes three words;
 its record's word offset must identify the start of the full 12-byte pose.
-The C banks also expose a word-strided view for this indexing. Kind **4**
+Playback uses byte views for these word offsets. Kind **4**
 is `AnimationPackedRotation`, one word split 11/10/11 with each component shifted `<< 3`;
 it has no translation, so the bone keeps its rest offset. The root comes out
 kind 1 and the limbs kind 4.

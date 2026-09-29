@@ -860,7 +860,7 @@ AnimationPackedRotation D_mine_forked_tunnel_80181CF0[46] = {
 #include "assets/mine_forked_tunnel_animation_049C4_bank4.inc"
 };
 
-GpAnimRec D_mine_forked_tunnel_80181DA8[109] = {
+AnimationRecord D_mine_forked_tunnel_80181DA8[109] = {
 #include "assets/mine_forked_tunnel_animation_049C4_records.inc"
 };
 
@@ -882,7 +882,7 @@ AnimationPackedRotation D_mine_forked_tunnel_80181FC4[47] = {
 #include "assets/mine_forked_tunnel_animation_04C50_bank4.inc"
 };
 
-GpAnimRec D_mine_forked_tunnel_80182080[90] = {
+AnimationRecord D_mine_forked_tunnel_80182080[90] = {
 #include "assets/mine_forked_tunnel_animation_04C50_records.inc"
 };
 
@@ -904,7 +904,7 @@ AnimationPackedRotation D_mine_forked_tunnel_801823C4[381] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_bank4.inc"
 };
 
-GpAnimRec D_mine_forked_tunnel_801829B8[447] = {
+AnimationRecord D_mine_forked_tunnel_801829B8[447] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_records.inc"
 };
 

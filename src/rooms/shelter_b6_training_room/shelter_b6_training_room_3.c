@@ -114,7 +114,7 @@ AnimationPackedRotation D_shelter_b6_training_room_80182B70[46] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank4.inc"
 };
 
-GpAnimRec D_shelter_b6_training_room_80182C28[109] = {
+AnimationRecord D_shelter_b6_training_room_80182C28[109] = {
 #include "assets/shelter_b6_training_room_animation_05844_records.inc"
 };
 
@@ -136,7 +136,7 @@ AnimationPackedRotation D_shelter_b6_training_room_80182EC8[171] = {
 #include "assets/shelter_b6_training_room_animation_05F74_bank4.inc"
 };
 
-GpAnimRec D_shelter_b6_training_room_80183174[230] = {
+AnimationRecord D_shelter_b6_training_room_80183174[230] = {
 #include "assets/shelter_b6_training_room_animation_05F74_records.inc"
 };
 
@@ -158,7 +158,7 @@ AnimationPackedRotation D_shelter_b6_training_room_80183580[28] = {
 #include "assets/shelter_b6_training_room_animation_061B8_bank4.inc"
 };
 
-GpAnimRec D_shelter_b6_training_room_801835F0[88] = {
+AnimationRecord D_shelter_b6_training_room_801835F0[88] = {
 #include "assets/shelter_b6_training_room_animation_061B8_records.inc"
 };
 
@@ -180,7 +180,7 @@ AnimationPackedRotation D_shelter_b6_training_room_801837B8[29] = {
 #include "assets/shelter_b6_training_room_animation_063C0_bank4.inc"
 };
 
-GpAnimRec D_shelter_b6_training_room_8018382C[75] = {
+AnimationRecord D_shelter_b6_training_room_8018382C[75] = {
 #include "assets/shelter_b6_training_room_animation_063C0_records.inc"
 };
 

@@ -277,7 +277,7 @@ AnimationPackedRotation D_dryfield_trailer_coach_801848BC[81] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank4.inc"
 };
 
-GpAnimRec D_dryfield_trailer_coach_80184A00[128] = {
+AnimationRecord D_dryfield_trailer_coach_80184A00[128] = {
 #include "assets/dryfield_trailer_coach_animation_07668_records.inc"
 };
 
@@ -299,7 +299,7 @@ AnimationPackedRotation D_dryfield_trailer_coach_80184CA4[56] = {
 #include "assets/dryfield_trailer_coach_animation_07994_bank4.inc"
 };
 
-GpAnimRec D_dryfield_trailer_coach_80184D84[106] = {
+AnimationRecord D_dryfield_trailer_coach_80184D84[106] = {
 #include "assets/dryfield_trailer_coach_animation_07994_records.inc"
 };
 

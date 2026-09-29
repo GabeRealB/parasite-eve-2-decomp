@@ -14,7 +14,7 @@ the right block per package on its own.
 Layout, from ``Gp_AnimInitCtx`` / ``Gp_AnimResetSlot`` in ``src/gameplay/scene_runtime.c``:
 
     table entry            -> GpAnimSet*[]  (slot 0 unused)
-    GpAnimSet.recs         -> GpAnimRec[]   4-byte records; a clip ends at the
+    GpAnimSet.recs         -> AnimationRecord[] 4-byte records; a clip ends at the
                               first record with flags >= 0xC0
     GpAnimSet.trackStart   -> u16[]         clip index table, values are record
                               indices

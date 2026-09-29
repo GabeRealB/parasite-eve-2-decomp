@@ -447,7 +447,7 @@ AnimationPackedRotation D_acropolis_forked_road_80181928[46] = {
 #include "assets/acropolis_forked_road_animation_045FC_bank4.inc"
 };
 
-GpAnimRec D_acropolis_forked_road_801819E0[109] = {
+AnimationRecord D_acropolis_forked_road_801819E0[109] = {
 #include "assets/acropolis_forked_road_animation_045FC_records.inc"
 };
 
@@ -469,7 +469,7 @@ AnimationPackedRotation D_acropolis_forked_road_80181C5C[95] = {
 #include "assets/acropolis_forked_road_animation_04A6C_bank4.inc"
 };
 
-GpAnimRec D_acropolis_forked_road_80181DD8[139] = {
+AnimationRecord D_acropolis_forked_road_80181DD8[139] = {
 #include "assets/acropolis_forked_road_animation_04A6C_records.inc"
 };
 

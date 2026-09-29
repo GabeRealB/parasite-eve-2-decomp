@@ -134,7 +134,7 @@ AnimationPackedRotation D_acropolis_east_elevator_hall_8017FCD8[216] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_bank4.inc"
 };
 
-GpAnimRec D_acropolis_east_elevator_hall_80180038[262] = {
+AnimationRecord D_acropolis_east_elevator_hall_80180038[262] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_records.inc"
 };
 
@@ -156,7 +156,7 @@ AnimationPackedRotation D_acropolis_east_elevator_hall_80180BF0[1724] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_bank4.inc"
 };
 
-GpAnimRec D_acropolis_east_elevator_hall_801826E0[2487] = {
+AnimationRecord D_acropolis_east_elevator_hall_801826E0[2487] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_records.inc"
 };
 
@@ -178,7 +178,7 @@ AnimationPackedRotation D_acropolis_east_elevator_hall_80184F08[370] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_bank4.inc"
 };
 
-GpAnimRec D_acropolis_east_elevator_hall_801854D0[434] = {
+AnimationRecord D_acropolis_east_elevator_hall_801854D0[434] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_records.inc"
 };
 

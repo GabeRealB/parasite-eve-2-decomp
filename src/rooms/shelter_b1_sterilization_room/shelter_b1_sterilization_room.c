@@ -281,7 +281,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80184F94[46] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_8018504C[109] = {
+AnimationRecord D_shelter_b1_sterilization_room_8018504C[109] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_records.inc"
 };
 
@@ -303,7 +303,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80185268[26] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_801852D0[57] = {
+AnimationRecord D_shelter_b1_sterilization_room_801852D0[57] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_records.inc"
 };
 
@@ -325,7 +325,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80185464[161] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_801856E8[251] = {
+AnimationRecord D_shelter_b1_sterilization_room_801856E8[251] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_records.inc"
 };
 
@@ -347,7 +347,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80185B3C[17] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_80185B80[57] = {
+AnimationRecord D_shelter_b1_sterilization_room_80185B80[57] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_records.inc"
 };
 
@@ -369,7 +369,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80185E28[308] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_801862F8[380] = {
+AnimationRecord D_shelter_b1_sterilization_room_801862F8[380] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_records.inc"
 };
 
@@ -391,7 +391,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80186B24[549] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_801873B8[654] = {
+AnimationRecord D_shelter_b1_sterilization_room_801873B8[654] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_records.inc"
 };
 
@@ -413,7 +413,7 @@ AnimationPackedRotation D_shelter_b1_sterilization_room_80187E70[151] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_bank4.inc"
 };
 
-GpAnimRec D_shelter_b1_sterilization_room_801880CC[250] = {
+AnimationRecord D_shelter_b1_sterilization_room_801880CC[250] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_records.inc"
 };
 

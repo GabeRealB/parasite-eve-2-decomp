@@ -487,7 +487,7 @@ AnimationPackedRotation D_acropolis_cafeteria_801842B0[286] = {
 #include "assets/acropolis_cafeteria_animation_07704_bank4.inc"
 };
 
-GpAnimRec D_acropolis_cafeteria_80184728[349] = {
+AnimationRecord D_acropolis_cafeteria_80184728[349] = {
 #include "assets/acropolis_cafeteria_animation_07704_records.inc"
 };
 

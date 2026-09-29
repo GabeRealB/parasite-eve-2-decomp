@@ -1996,15 +1996,15 @@ STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
 /// footstep fires once, and `footsteps` is the flag the message handler sets
 /// that makes the per-frame step play them.
 typedef struct Actor151000Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig19  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
-    byte            pad_4B6[0x2];
-    GpAnimRec*      stepRec;
-    u8              footsteps;
-    byte            pad_4BD[0x3];
+    MATRIX           light;
+    MATRIX           color;
+    ActorAnimRig19   rig;
+    ActorEnemyState  st;
+    s16              turnFrames;
+    byte             pad_4B6[0x2];
+    AnimationRecord* stepRec;
+    u8               footsteps;
+    byte             pad_4BD[0x3];
 } Actor151000Work;
 STATIC_ASSERT_SIZEOF(Actor151000Work, 0x4C0);
 

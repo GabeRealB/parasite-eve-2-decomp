@@ -156,7 +156,7 @@ AnimationPackedRotation D_actor_300700_80165B00[1] = {
 #include "assets/actor_300700_animation_03D1C_bank4.inc"
 };
 
-GpAnimRec D_actor_300700_80165B04[12] = {
+AnimationRecord D_actor_300700_80165B04[12] = {
 #include "assets/actor_300700_animation_03D1C_records.inc"
 };
 

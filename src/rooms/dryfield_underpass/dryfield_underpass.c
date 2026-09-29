@@ -81,7 +81,7 @@ AnimationPackedRotation D_dryfield_underpass_8017DF58[126] = {
 #include "assets/dryfield_underpass_animation_00E64_bank4.inc"
 };
 
-GpAnimRec D_dryfield_underpass_8017E150[171] = {
+AnimationRecord D_dryfield_underpass_8017E150[171] = {
 #include "assets/dryfield_underpass_animation_00E64_records.inc"
 };
 
@@ -103,7 +103,7 @@ AnimationPackedRotation D_dryfield_underpass_8017E494[64] = {
 #include "assets/dryfield_underpass_animation_01230_bank4.inc"
 };
 
-GpAnimRec D_dryfield_underpass_8017E594[141] = {
+AnimationRecord D_dryfield_underpass_8017E594[141] = {
 #include "assets/dryfield_underpass_animation_01230_records.inc"
 };
 

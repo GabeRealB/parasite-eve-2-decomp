@@ -263,7 +263,7 @@ AnimationPackedRotation D_actor_341900_801636E8[46] = {
 #include "assets/actor_341900_animation_01B5C_bank4.inc"
 };
 
-GpAnimRec D_actor_341900_801637A0[109] = {
+AnimationRecord D_actor_341900_801637A0[109] = {
 #include "assets/actor_341900_animation_01B5C_records.inc"
 };
 

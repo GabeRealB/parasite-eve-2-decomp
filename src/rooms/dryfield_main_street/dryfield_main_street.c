@@ -218,7 +218,7 @@ AnimationPackedRotation D_dryfield_main_street_80180F1C[46] = {
 #include "assets/dryfield_main_street_animation_03BF0_bank4.inc"
 };
 
-GpAnimRec D_dryfield_main_street_80180FD4[109] = {
+AnimationRecord D_dryfield_main_street_80180FD4[109] = {
 #include "assets/dryfield_main_street_animation_03BF0_records.inc"
 };
 
@@ -240,7 +240,7 @@ AnimationPackedRotation D_dryfield_main_street_8018122C[65] = {
 #include "assets/dryfield_main_street_animation_03F84_bank4.inc"
 };
 
-GpAnimRec D_dryfield_main_street_80181330[123] = {
+AnimationRecord D_dryfield_main_street_80181330[123] = {
 #include "assets/dryfield_main_street_animation_03F84_records.inc"
 };
 

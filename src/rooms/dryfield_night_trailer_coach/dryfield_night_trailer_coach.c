@@ -228,7 +228,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_8018502C[81] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_80185170[128] = {
+AnimationRecord D_dryfield_night_trailer_coach_80185170[128] = {
 #include "assets/dryfield_night_trailer_coach_animation_07DD8_records.inc"
 };
 
@@ -250,7 +250,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_801853E4[34] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_8018546C[63] = {
+AnimationRecord D_dryfield_night_trailer_coach_8018546C[63] = {
 #include "assets/dryfield_night_trailer_coach_animation_07FD0_records.inc"
 };
 
@@ -272,7 +272,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_801855F4[58] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_801856DC[120] = {
+AnimationRecord D_dryfield_night_trailer_coach_801856DC[120] = {
 #include "assets/dryfield_night_trailer_coach_animation_08324_records.inc"
 };
 
@@ -294,7 +294,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80185930[34] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_801859B8[63] = {
+AnimationRecord D_dryfield_night_trailer_coach_801859B8[63] = {
 #include "assets/dryfield_night_trailer_coach_animation_0851C_records.inc"
 };
 
@@ -316,7 +316,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80185B40[55] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_80185C1C[103] = {
+AnimationRecord D_dryfield_night_trailer_coach_80185C1C[103] = {
 #include "assets/dryfield_night_trailer_coach_animation_08820_records.inc"
 };
 
@@ -338,7 +338,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80185E44[90] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_80185FAC[141] = {
+AnimationRecord D_dryfield_night_trailer_coach_80185FAC[141] = {
 #include "assets/dryfield_night_trailer_coach_animation_08C48_records.inc"
 };
 
@@ -360,7 +360,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_801862D8[135] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_801864F4[202] = {
+AnimationRecord D_dryfield_night_trailer_coach_801864F4[202] = {
 #include "assets/dryfield_night_trailer_coach_animation_09284_records.inc"
 };
 
@@ -382,7 +382,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_801868C0[54] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_80186998[103] = {
+AnimationRecord D_dryfield_night_trailer_coach_80186998[103] = {
 #include "assets/dryfield_night_trailer_coach_animation_0959C_records.inc"
 };
 
@@ -404,7 +404,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80186BD8[56] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_80186CB8[106] = {
+AnimationRecord D_dryfield_night_trailer_coach_80186CB8[106] = {
 #include "assets/dryfield_night_trailer_coach_animation_098C8_records.inc"
 };
 
@@ -426,7 +426,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80186F10[121] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_801870F4[173] = {
+AnimationRecord D_dryfield_night_trailer_coach_801870F4[173] = {
 #include "assets/dryfield_night_trailer_coach_animation_09E10_records.inc"
 };
 
@@ -448,7 +448,7 @@ AnimationPackedRotation D_dryfield_night_trailer_coach_80187464[106] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_trailer_coach_8018760C[188] = {
+AnimationRecord D_dryfield_night_trailer_coach_8018760C[188] = {
 #include "assets/dryfield_night_trailer_coach_animation_0A364_records.inc"
 };
 

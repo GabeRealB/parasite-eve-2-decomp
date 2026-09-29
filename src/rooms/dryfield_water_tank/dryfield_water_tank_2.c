@@ -242,7 +242,7 @@ AnimationPackedRotation D_dryfield_water_tank_8017FFB8[8] = {
 #include "assets/dryfield_water_tank_animation_02B70_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_8017FFD8[76] = {
+AnimationRecord D_dryfield_water_tank_8017FFD8[76] = {
 #include "assets/dryfield_water_tank_animation_02B70_records.inc"
 };
 
@@ -264,7 +264,7 @@ AnimationPackedRotation D_dryfield_water_tank_801801AC[65] = {
 #include "assets/dryfield_water_tank_animation_02F04_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801802B0[123] = {
+AnimationRecord D_dryfield_water_tank_801802B0[123] = {
 #include "assets/dryfield_water_tank_animation_02F04_records.inc"
 };
 
@@ -333,7 +333,7 @@ AnimationPackedRotation D_dryfield_water_tank_801807E8[46] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801808A0[109] = {
+AnimationRecord D_dryfield_water_tank_801808A0[109] = {
 #include "assets/dryfield_water_tank_animation_034BC_records.inc"
 };
 
@@ -355,7 +355,7 @@ AnimationPackedRotation D_dryfield_water_tank_80180AD4[55] = {
 #include "assets/dryfield_water_tank_animation_0377C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80180BB0[89] = {
+AnimationRecord D_dryfield_water_tank_80180BB0[89] = {
 #include "assets/dryfield_water_tank_animation_0377C_records.inc"
 };
 
@@ -377,7 +377,7 @@ AnimationPackedRotation D_dryfield_water_tank_80180DA0[60] = {
 #include "assets/dryfield_water_tank_animation_03A60_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80180E90[90] = {
+AnimationRecord D_dryfield_water_tank_80180E90[90] = {
 #include "assets/dryfield_water_tank_animation_03A60_records.inc"
 };
 
@@ -399,7 +399,7 @@ AnimationPackedRotation D_dryfield_water_tank_80181060[30] = {
 #include "assets/dryfield_water_tank_animation_03CB4_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801810D8[93] = {
+AnimationRecord D_dryfield_water_tank_801810D8[93] = {
 #include "assets/dryfield_water_tank_animation_03CB4_records.inc"
 };
 
@@ -421,7 +421,7 @@ AnimationPackedRotation D_dryfield_water_tank_801812E4[60] = {
 #include "assets/dryfield_water_tank_animation_04000_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801813D4[113] = {
+AnimationRecord D_dryfield_water_tank_801813D4[113] = {
 #include "assets/dryfield_water_tank_animation_04000_records.inc"
 };
 
@@ -443,7 +443,7 @@ AnimationPackedRotation D_dryfield_water_tank_801816F0[170] = {
 #include "assets/dryfield_water_tank_animation_047BC_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80181998[239] = {
+AnimationRecord D_dryfield_water_tank_80181998[239] = {
 #include "assets/dryfield_water_tank_animation_047BC_records.inc"
 };
 
@@ -465,7 +465,7 @@ AnimationPackedRotation D_dryfield_water_tank_80181DE0[60] = {
 #include "assets/dryfield_water_tank_animation_04AA0_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80181ED0[90] = {
+AnimationRecord D_dryfield_water_tank_80181ED0[90] = {
 #include "assets/dryfield_water_tank_animation_04AA0_records.inc"
 };
 
@@ -487,7 +487,7 @@ AnimationPackedRotation D_dryfield_water_tank_801820AC[34] = {
 #include "assets/dryfield_water_tank_animation_04C98_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80182134[63] = {
+AnimationRecord D_dryfield_water_tank_80182134[63] = {
 #include "assets/dryfield_water_tank_animation_04C98_records.inc"
 };
 
@@ -509,7 +509,7 @@ AnimationPackedRotation D_dryfield_water_tank_801822BC[58] = {
 #include "assets/dryfield_water_tank_animation_04FEC_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801823A4[120] = {
+AnimationRecord D_dryfield_water_tank_801823A4[120] = {
 #include "assets/dryfield_water_tank_animation_04FEC_records.inc"
 };
 
@@ -531,7 +531,7 @@ AnimationPackedRotation D_dryfield_water_tank_801825F8[34] = {
 #include "assets/dryfield_water_tank_animation_051E4_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80182680[63] = {
+AnimationRecord D_dryfield_water_tank_80182680[63] = {
 #include "assets/dryfield_water_tank_animation_051E4_records.inc"
 };
 
@@ -553,7 +553,7 @@ AnimationPackedRotation D_dryfield_water_tank_80182844[100] = {
 #include "assets/dryfield_water_tank_animation_05704_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801829D4[178] = {
+AnimationRecord D_dryfield_water_tank_801829D4[178] = {
 #include "assets/dryfield_water_tank_animation_05704_records.inc"
 };
 
@@ -575,7 +575,7 @@ AnimationPackedRotation D_dryfield_water_tank_80182D28[59] = {
 #include "assets/dryfield_water_tank_animation_059E4_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80182E14[90] = {
+AnimationRecord D_dryfield_water_tank_80182E14[90] = {
 #include "assets/dryfield_water_tank_animation_059E4_records.inc"
 };
 
@@ -597,7 +597,7 @@ AnimationPackedRotation D_dryfield_water_tank_8018302C[84] = {
 #include "assets/dryfield_water_tank_animation_05DB8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_8018317C[117] = {
+AnimationRecord D_dryfield_water_tank_8018317C[117] = {
 #include "assets/dryfield_water_tank_animation_05DB8_records.inc"
 };
 
@@ -619,7 +619,7 @@ AnimationPackedRotation D_dryfield_water_tank_801833F4[62] = {
 #include "assets/dryfield_water_tank_animation_061A8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_801834EC[149] = {
+AnimationRecord D_dryfield_water_tank_801834EC[149] = {
 #include "assets/dryfield_water_tank_animation_061A8_records.inc"
 };
 
@@ -641,7 +641,7 @@ AnimationPackedRotation D_dryfield_water_tank_801837E4[74] = {
 #include "assets/dryfield_water_tank_animation_06514_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_8018390C[104] = {
+AnimationRecord D_dryfield_water_tank_8018390C[104] = {
 #include "assets/dryfield_water_tank_animation_06514_records.inc"
 };
 
@@ -663,7 +663,7 @@ AnimationPackedRotation D_dryfield_water_tank_80183B50[56] = {
 #include "assets/dryfield_water_tank_animation_06840_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80183C30[106] = {
+AnimationRecord D_dryfield_water_tank_80183C30[106] = {
 #include "assets/dryfield_water_tank_animation_06840_records.inc"
 };
 
@@ -685,7 +685,7 @@ AnimationPackedRotation D_dryfield_water_tank_80183E64[90] = {
 #include "assets/dryfield_water_tank_animation_06C68_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80183FCC[141] = {
+AnimationRecord D_dryfield_water_tank_80183FCC[141] = {
 #include "assets/dryfield_water_tank_animation_06C68_records.inc"
 };
 
@@ -707,7 +707,7 @@ AnimationPackedRotation D_dryfield_water_tank_80184274[51] = {
 #include "assets/dryfield_water_tank_animation_06F48_bank4.inc"
 };
 
-GpAnimRec D_dryfield_water_tank_80184340[104] = {
+AnimationRecord D_dryfield_water_tank_80184340[104] = {
 #include "assets/dryfield_water_tank_animation_06F48_records.inc"
 };
 

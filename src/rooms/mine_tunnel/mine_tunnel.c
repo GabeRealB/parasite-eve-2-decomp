@@ -47,7 +47,7 @@ AnimationPackedRotation D_mine_tunnel_8017DBCC[95] = {
 #include "assets/mine_tunnel_animation_009DC_bank4.inc"
 };
 
-GpAnimRec D_mine_tunnel_8017DD48[139] = {
+AnimationRecord D_mine_tunnel_8017DD48[139] = {
 #include "assets/mine_tunnel_animation_009DC_records.inc"
 };
 

@@ -39119,6 +39119,7 @@ same operands, different destination — from
 
 ```c
 scratch->request.currentPose = &set->poseBanks[poseKind][records[slot->curRec].pose];
+scratch->src.field_0 = &set->poseBanks[poseKind][recs[slot->curRec].wordOffset];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
@@ -39129,6 +39130,8 @@ poseBytes                = set->poseBanks[poseKind];
 scratch->src.currentPose = &poseBytes[records[slot->curRec].pose * sizeof(u32)];
 bankWords                     = set->poseBanks[poseKind];
 scratch->request.currentPose = &bankWords[records[slot->curRec].pose];
+poses                = set->poseBanks[poseKind];
+scratch->src.field_0 = &poses[recs[slot->curRec].wordOffset];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -132366,11 +132369,16 @@ per rewritten site, with `cmp` against the target image putting it inside a few
 bytes. Keep the spelling whose operand order the ROM has:
 
 ```c
-rec = (GpAnimRec*)((idx << 2) + (s32)recs);
+rec = recs - -(s32)recordIndex;
 ```
 
 `Gp_AnimAdvanceSlot` and its seven siblings are the example - all eight sites
 flip together.
+
+Typed subtraction of the negated signed index preserves the original operand
+order too. Integer-plus-pointer (`idx + recs`) still puts the base first, but
+`recs - -(s32)recordIndex` removes both pointer/integer casts and emits the
+original instruction words. The index is a `u16`, so its negation fits in `s32`.
 
 ## Folding several members into one: let the compiler enumerate the sites
 

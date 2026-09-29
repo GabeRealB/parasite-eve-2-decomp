@@ -4835,12 +4835,12 @@ void Gp_UpdatePlayerMove(void)
 
 void Gp_TickActorAnimState(Task* arg0)
 {
-    GameActor* actor;
-    GpAnimRec* rec;
-    s32        i;
-    s32        anim;
-    s32        extra;
-    u16        flags;
+    GameActor*       actor;
+    AnimationRecord* rec;
+    s32              i;
+    s32              anim;
+    s32              extra;
+    u16              flags;
 
     actor = arg0->work;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
@@ -6964,14 +6964,14 @@ s32 Gp_PickNearestRec18(GpRec18* arg0, GfxCoord* arg1, GfxCoord* arg2)
 
 s32 func_80105ED4(Task* arg0)
 {
-    GameActor* actor;
-    GpAnimRec* rec;
-    GfxCoord*  obj;
-    s32        sound;
-    s8         flags;
-    s32        pan;
-    s32        index;
-    s32*       sounds;
+    GameActor*       actor;
+    AnimationRecord* rec;
+    GfxCoord*        obj;
+    s32              sound;
+    s8               cueBits;
+    s32              pan;
+    s32              index;
+    s32*             sounds;
 
     sound = 0;
     actor = arg0->work;
@@ -6979,9 +6979,9 @@ s32 func_80105ED4(Task* arg0)
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
-        switch (flags = rec->flags & 0x30) {
-            case 0x10:
-            case 0x20:
+        switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
+            case ANIMATION_RECORD_CUE_1:
+            case ANIMATION_RECORD_CUE_2:
                 sounds = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][actor->field_930]->field_4;
                 if (sounds != NULL) {
                     if (*(s32*)&actor->field_954 == 0x30002) {
@@ -6993,7 +6993,7 @@ s32 func_80105ED4(Task* arg0)
                         sound = sounds[0];
                     }
                     if (sound != 0) {
-                        if (flags == 0x10) {
+                        if (cueBits == ANIMATION_RECORD_CUE_1) {
                             sound++;
                         }
                         if (actor->field_910 != NULL) {
@@ -7007,7 +7007,7 @@ s32 func_80105ED4(Task* arg0)
                         if (actor->field_910 != NULL) {
                             index = 0x13;
                         }
-                        if (flags == 0x10) {
+                        if (cueBits == ANIMATION_RECORD_CUE_1) {
                             index -= 3;
                         }
                         Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[index], 0x80002300, NULL);
@@ -7445,20 +7445,20 @@ static void Gp_PlayerNormalState2(Task* arg0)
 
 static void Gp_PlayerNormalState5(Task* arg0)
 {
-    GameActor* actor;
-    GameActor* inner;
-    GpAnimRec* rec;
-    GfxCoord*  coord;
-    s32        base;
-    s32        done;
-    s32        mode;
-    s32        temp;
-    s32        flags;
-    s32        tick;
-    s32        step;
-    u8         item;
-    u16        next;
-    s32        variant;
+    GameActor*       actor;
+    GameActor*       inner;
+    AnimationRecord* rec;
+    GfxCoord*        coord;
+    s32              base;
+    s32              done;
+    s32              mode;
+    s32              temp;
+    s32              flags;
+    s32              tick;
+    s32              step;
+    u8               item;
+    u16              next;
+    s32              variant;
 
     actor            = arg0->work;
     done             = 0;
@@ -7511,7 +7511,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
@@ -7546,7 +7546,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                                         actor->field_438 + 1);
                     if (rec != NULL && rec != actor->field_92C) {
                         actor->field_92C = rec;
-                        if ((rec->flags & 0x30) == 0x30) {
+                        if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                             Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
                             done             = 1;
                             actor->field_98F = 0;
@@ -7566,7 +7566,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                                     actor->field_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
-                    if ((rec->flags & 0x30) == 0x30) {
+                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                         flags = 0x20000003;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
                         done             = 1;
@@ -7586,7 +7586,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     flags = 0x20000003;
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
                     done             = 1;
@@ -7601,7 +7601,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->field_95E == 0) {
                         flags = 0x20000003;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
@@ -7618,7 +7618,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     switch (actor->field_95E) {
                         case 0:
                             actor->field_95E = 1;
@@ -7649,7 +7649,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
@@ -7667,7 +7667,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->attachId;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
@@ -7704,7 +7704,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                                     actor->field_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
-                    if ((rec->flags & 0x30) == 0x30) {
+                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;

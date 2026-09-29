@@ -102,7 +102,7 @@ AnimationPackedRotation D_neo_ark_submarine_tunnel_80181144[64] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_submarine_tunnel_80181244[141] = {
+AnimationRecord D_neo_ark_submarine_tunnel_80181244[141] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_records.inc"
 };
 
@@ -124,7 +124,7 @@ AnimationPackedRotation D_neo_ark_submarine_tunnel_80181540[126] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_submarine_tunnel_80181738[171] = {
+AnimationRecord D_neo_ark_submarine_tunnel_80181738[171] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_records.inc"
 };
 

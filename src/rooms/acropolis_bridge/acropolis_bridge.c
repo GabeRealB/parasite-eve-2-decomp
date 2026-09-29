@@ -2159,7 +2159,7 @@ AnimationPackedRotation D_acropolis_bridge_80191208[9] = {
 #include "assets/acropolis_bridge_animation_13CD8_bank4.inc"
 };
 
-GpAnimRec D_acropolis_bridge_8019122C[25] = {
+AnimationRecord D_acropolis_bridge_8019122C[25] = {
 #include "assets/acropolis_bridge_animation_13CD8_records.inc"
 };
 
@@ -2181,7 +2181,7 @@ AnimationPackedRotation D_acropolis_bridge_80191308[9] = {
 #include "assets/acropolis_bridge_animation_13DD8_bank4.inc"
 };
 
-GpAnimRec D_acropolis_bridge_8019132C[25] = {
+AnimationRecord D_acropolis_bridge_8019132C[25] = {
 #include "assets/acropolis_bridge_animation_13DD8_records.inc"
 };
 
@@ -2203,7 +2203,7 @@ AnimationPackedRotation D_acropolis_bridge_801913D8[2] = {
 #include "assets/acropolis_bridge_animation_13E48_bank4.inc"
 };
 
-GpAnimRec D_acropolis_bridge_801913E0[8] = {
+AnimationRecord D_acropolis_bridge_801913E0[8] = {
 #include "assets/acropolis_bridge_animation_13E48_records.inc"
 };
 
@@ -2225,7 +2225,7 @@ AnimationPackedRotation D_acropolis_bridge_80191478[10] = {
 #include "assets/acropolis_bridge_animation_13F60_bank4.inc"
 };
 
-GpAnimRec D_acropolis_bridge_801914A0[30] = {
+AnimationRecord D_acropolis_bridge_801914A0[30] = {
 #include "assets/acropolis_bridge_animation_13F60_records.inc"
 };
 
@@ -2247,7 +2247,7 @@ AnimationPackedRotation D_acropolis_bridge_80191560[2] = {
 #include "assets/acropolis_bridge_animation_13FE0_bank4.inc"
 };
 
-GpAnimRec D_acropolis_bridge_80191568[12] = {
+AnimationRecord D_acropolis_bridge_80191568[12] = {
 #include "assets/acropolis_bridge_animation_13FE0_records.inc"
 };
 

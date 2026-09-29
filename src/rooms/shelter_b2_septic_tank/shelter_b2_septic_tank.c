@@ -138,7 +138,7 @@ AnimationPackedRotation D_shelter_b2_septic_tank_80182BBC[64] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank4.inc"
 };
 
-GpAnimRec D_shelter_b2_septic_tank_80182CBC[141] = {
+AnimationRecord D_shelter_b2_septic_tank_80182CBC[141] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_records.inc"
 };
 

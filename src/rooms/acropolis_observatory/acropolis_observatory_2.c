@@ -662,7 +662,7 @@ AnimationPackedRotation D_acropolis_observatory_8017FB20[65] = {
 #include "assets/acropolis_observatory_animation_02878_bank4.inc"
 };
 
-GpAnimRec D_acropolis_observatory_8017FC24[123] = {
+AnimationRecord D_acropolis_observatory_8017FC24[123] = {
 #include "assets/acropolis_observatory_animation_02878_records.inc"
 };
 

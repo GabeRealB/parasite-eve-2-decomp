@@ -275,7 +275,7 @@ AnimationPackedRotation D_mine_cavern_80183D04[46] = {
 #include "assets/mine_cavern_animation_069D8_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80183DBC[109] = {
+AnimationRecord D_mine_cavern_80183DBC[109] = {
 #include "assets/mine_cavern_animation_069D8_records.inc"
 };
 
@@ -297,7 +297,7 @@ AnimationPackedRotation D_mine_cavern_8018405C[179] = {
 #include "assets/mine_cavern_animation_07178_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80184328[250] = {
+AnimationRecord D_mine_cavern_80184328[250] = {
 #include "assets/mine_cavern_animation_07178_records.inc"
 };
 
@@ -319,7 +319,7 @@ AnimationPackedRotation D_mine_cavern_801847A8[64] = {
 #include "assets/mine_cavern_animation_07544_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_801848A8[141] = {
+AnimationRecord D_mine_cavern_801848A8[141] = {
 #include "assets/mine_cavern_animation_07544_records.inc"
 };
 
@@ -341,7 +341,7 @@ AnimationPackedRotation D_mine_cavern_80184B5C[42] = {
 #include "assets/mine_cavern_animation_07784_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80184C04[70] = {
+AnimationRecord D_mine_cavern_80184C04[70] = {
 #include "assets/mine_cavern_animation_07784_records.inc"
 };
 
@@ -363,7 +363,7 @@ AnimationPackedRotation D_mine_cavern_80184D90[31] = {
 #include "assets/mine_cavern_animation_07958_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80184E0C[57] = {
+AnimationRecord D_mine_cavern_80184E0C[57] = {
 #include "assets/mine_cavern_animation_07958_records.inc"
 };
 
@@ -385,7 +385,7 @@ AnimationPackedRotation D_mine_cavern_80184F64[29] = {
 #include "assets/mine_cavern_animation_07BA4_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80184FD8[89] = {
+AnimationRecord D_mine_cavern_80184FD8[89] = {
 #include "assets/mine_cavern_animation_07BA4_records.inc"
 };
 
@@ -407,7 +407,7 @@ AnimationPackedRotation D_mine_cavern_801851EC[117] = {
 #include "assets/mine_cavern_animation_08178_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_801853C0[212] = {
+AnimationRecord D_mine_cavern_801853C0[212] = {
 #include "assets/mine_cavern_animation_08178_records.inc"
 };
 
@@ -429,7 +429,7 @@ AnimationPackedRotation D_mine_cavern_80185790[46] = {
 #include "assets/mine_cavern_animation_08420_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80185848[92] = {
+AnimationRecord D_mine_cavern_80185848[92] = {
 #include "assets/mine_cavern_animation_08420_records.inc"
 };
 
@@ -451,7 +451,7 @@ AnimationPackedRotation D_mine_cavern_80185A98[164] = {
 #include "assets/mine_cavern_animation_08AC0_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80185D28[204] = {
+AnimationRecord D_mine_cavern_80185D28[204] = {
 #include "assets/mine_cavern_animation_08AC0_records.inc"
 };
 
@@ -473,7 +473,7 @@ AnimationPackedRotation D_mine_cavern_801860C0[20] = {
 #include "assets/mine_cavern_animation_08CB4_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80186110[79] = {
+AnimationRecord D_mine_cavern_80186110[79] = {
 #include "assets/mine_cavern_animation_08CB4_records.inc"
 };
 
@@ -495,7 +495,7 @@ AnimationPackedRotation D_mine_cavern_80186320[150] = {
 #include "assets/mine_cavern_animation_092C4_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80186578[185] = {
+AnimationRecord D_mine_cavern_80186578[185] = {
 #include "assets/mine_cavern_animation_092C4_records.inc"
 };
 
@@ -517,7 +517,7 @@ AnimationPackedRotation D_mine_cavern_8018690C[88] = {
 #include "assets/mine_cavern_animation_096E4_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80186A6C[132] = {
+AnimationRecord D_mine_cavern_80186A6C[132] = {
 #include "assets/mine_cavern_animation_096E4_records.inc"
 };
 
@@ -539,7 +539,7 @@ AnimationPackedRotation D_mine_cavern_80186D08[58] = {
 #include "assets/mine_cavern_animation_099C8_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80186DF0[92] = {
+AnimationRecord D_mine_cavern_80186DF0[92] = {
 #include "assets/mine_cavern_animation_099C8_records.inc"
 };
 
@@ -561,7 +561,7 @@ AnimationPackedRotation D_mine_cavern_80186FC8[22] = {
 #include "assets/mine_cavern_animation_09C2C_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_80187020[105] = {
+AnimationRecord D_mine_cavern_80187020[105] = {
 #include "assets/mine_cavern_animation_09C2C_records.inc"
 };
 
@@ -583,7 +583,7 @@ AnimationPackedRotation D_mine_cavern_80187244[40] = {
 #include "assets/mine_cavern_animation_09F1C_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_801872E4[116] = {
+AnimationRecord D_mine_cavern_801872E4[116] = {
 #include "assets/mine_cavern_animation_09F1C_records.inc"
 };
 
@@ -605,7 +605,7 @@ AnimationPackedRotation D_mine_cavern_8018757C[95] = {
 #include "assets/mine_cavern_animation_0A38C_bank4.inc"
 };
 
-GpAnimRec D_mine_cavern_801876F8[139] = {
+AnimationRecord D_mine_cavern_801876F8[139] = {
 #include "assets/mine_cavern_animation_0A38C_records.inc"
 };
 

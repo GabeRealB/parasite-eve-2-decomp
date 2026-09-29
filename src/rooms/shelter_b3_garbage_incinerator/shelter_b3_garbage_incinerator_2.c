@@ -259,7 +259,7 @@ AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185C10[46] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_garbage_incinerator_80185CC8[109] = {
+AnimationRecord D_shelter_b3_garbage_incinerator_80185CC8[109] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_records.inc"
 };
 
@@ -281,7 +281,7 @@ AnimationPackedRotation D_shelter_b3_garbage_incinerator_80185F8C[246] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_garbage_incinerator_80186364[341] = {
+AnimationRecord D_shelter_b3_garbage_incinerator_80186364[341] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_records.inc"
 };
 
@@ -303,7 +303,7 @@ AnimationPackedRotation D_shelter_b3_garbage_incinerator_801869B0[148] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_garbage_incinerator_80186C00[200] = {
+AnimationRecord D_shelter_b3_garbage_incinerator_80186C00[200] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_records.inc"
 };
 

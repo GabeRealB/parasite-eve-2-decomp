@@ -97,7 +97,7 @@ AnimationPackedRotation D_dryfield_driveway_8017DEF8[95] = {
 #include "assets/dryfield_driveway_animation_00D08_bank4.inc"
 };
 
-GpAnimRec D_dryfield_driveway_8017E074[139] = {
+AnimationRecord D_dryfield_driveway_8017E074[139] = {
 #include "assets/dryfield_driveway_animation_00D08_records.inc"
 };
 

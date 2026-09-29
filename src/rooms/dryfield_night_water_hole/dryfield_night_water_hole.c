@@ -198,7 +198,7 @@ AnimationPackedRotation D_dryfield_night_water_hole_80180268[64] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_water_hole_80180368[141] = {
+AnimationRecord D_dryfield_night_water_hole_80180368[141] = {
 #include "assets/dryfield_night_water_hole_animation_03004_records.inc"
 };
 

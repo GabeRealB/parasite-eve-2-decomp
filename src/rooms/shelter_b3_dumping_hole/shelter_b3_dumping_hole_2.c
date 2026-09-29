@@ -851,7 +851,7 @@ AnimationPackedRotation D_shelter_b3_dumping_hole_80189B3C[46] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_dumping_hole_80189BF4[109] = {
+AnimationRecord D_shelter_b3_dumping_hole_80189BF4[109] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_records.inc"
 };
 
@@ -873,7 +873,7 @@ AnimationPackedRotation D_shelter_b3_dumping_hole_80189E64[97] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_dumping_hole_80189FE8[153] = {
+AnimationRecord D_shelter_b3_dumping_hole_80189FE8[153] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_records.inc"
 };
 
@@ -895,7 +895,7 @@ AnimationPackedRotation D_shelter_b3_dumping_hole_8018A3EC[232] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_bank4.inc"
 };
 
-GpAnimRec D_shelter_b3_dumping_hole_8018A78C[500] = {
+AnimationRecord D_shelter_b3_dumping_hole_8018A78C[500] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_records.inc"
 };
 

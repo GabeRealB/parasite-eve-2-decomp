@@ -154,7 +154,7 @@ AnimationPackedRotation D_actor_311500_80168C64[81] = {
 #include "assets/actor_311500_animation_07188_bank4.inc"
 };
 
-GpAnimRec D_actor_311500_80168DA8[118] = {
+AnimationRecord D_actor_311500_80168DA8[118] = {
 #include "assets/actor_311500_animation_07188_records.inc"
 };
 
@@ -176,7 +176,7 @@ AnimationPackedRotation D_actor_311500_8016900C[52] = {
 #include "assets/actor_311500_animation_07470_bank4.inc"
 };
 
-GpAnimRec D_actor_311500_801690DC[99] = {
+AnimationRecord D_actor_311500_801690DC[99] = {
 #include "assets/actor_311500_animation_07470_records.inc"
 };
 

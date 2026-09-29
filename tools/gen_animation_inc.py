@@ -24,7 +24,7 @@ def components(data: bytes, load: int, offset: int) -> list[dict]:
         result.append(dict(name=f"bank{kind}", type="AnimationPackedPose" if kind == 1 else "AnimationPackedRotation",
                            offset=bank["offset"], size=bank["words"] * 4,
                            count=bank["words"] // (3 if kind == 1 else 1)))
-    result.append(dict(name="records", type="GpAnimRec", offset=aset["records_offset"],
+    result.append(dict(name="records", type="AnimationRecord", offset=aset["records_offset"],
                        size=aset["record_count"] * 4, count=aset["record_count"]))
     # Retain the exporter's final halfword when an odd track count leaves one.
     size = offset - aset["indices_offset"]
@@ -42,7 +42,7 @@ def initializer(data: bytes, part: dict) -> str:
 
         values = [(signed(word, 11), signed(word >> 11, 10), signed(word >> 21, 11))
                   for word, in struct.iter_unpack("<I", data[start:start + size])]
-    elif typ in ("AnimationPackedPose", "GpAnimRec"):
+    elif typ in ("AnimationPackedPose", "AnimationRecord"):
         fmt = "<6h" if typ == "AnimationPackedPose" else "<HBB"
         values = struct.iter_unpack(fmt, data[start:start + size])
     else:

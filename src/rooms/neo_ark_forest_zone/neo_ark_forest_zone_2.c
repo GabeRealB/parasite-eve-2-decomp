@@ -139,7 +139,7 @@ AnimationPackedRotation D_neo_ark_forest_zone_801815C8[64] = {
 #include "assets/neo_ark_forest_zone_animation_04364_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_forest_zone_801816C8[141] = {
+AnimationRecord D_neo_ark_forest_zone_801816C8[141] = {
 #include "assets/neo_ark_forest_zone_animation_04364_records.inc"
 };
 
@@ -161,7 +161,7 @@ AnimationPackedRotation D_neo_ark_forest_zone_801819C4[95] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_forest_zone_80181B40[139] = {
+AnimationRecord D_neo_ark_forest_zone_80181B40[139] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_records.inc"
 };
 

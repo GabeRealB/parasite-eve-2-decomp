@@ -418,7 +418,7 @@ AnimationPackedRotation Actor07000_D07B84[26] = {
 #include "assets/actor_107000_animation_07D1C_bank4.inc"
 };
 
-GpAnimRec Actor07000_D07BEC[74] = {
+AnimationRecord Actor07000_D07BEC[74] = {
 #include "assets/actor_107000_animation_07D1C_records.inc"
 };
 
@@ -440,7 +440,7 @@ AnimationPackedRotation Actor07000_D07DC8[9] = {
 #include "assets/actor_107000_animation_07E64_bank4.inc"
 };
 
-GpAnimRec Actor07000_D07DEC[28] = {
+AnimationRecord Actor07000_D07DEC[28] = {
 #include "assets/actor_107000_animation_07E64_records.inc"
 };
 
@@ -462,7 +462,7 @@ AnimationPackedRotation Actor07000_D07F40[12] = {
 #include "assets/actor_107000_animation_08008_bank4.inc"
 };
 
-GpAnimRec Actor07000_D07F70[36] = {
+AnimationRecord Actor07000_D07F70[36] = {
 #include "assets/actor_107000_animation_08008_records.inc"
 };
 
@@ -639,7 +639,7 @@ AnimationPackedRotation Actor07000_D0B784[12] = {
 #include "assets/actor_107000_animation_0B868_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0B7B4[41] = {
+AnimationRecord Actor07000_D0B7B4[41] = {
 #include "assets/actor_107000_animation_0B868_records.inc"
 };
 
@@ -661,7 +661,7 @@ AnimationPackedRotation Actor07000_D0B968[92] = {
 #include "assets/actor_107000_animation_0BCF4_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0BAD8[131] = {
+AnimationRecord Actor07000_D0BAD8[131] = {
 #include "assets/actor_107000_animation_0BCF4_records.inc"
 };
 
@@ -683,7 +683,7 @@ AnimationPackedRotation Actor07000_D0BD64[41] = {
 #include "assets/actor_107000_animation_0BF18_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0BE08[64] = {
+AnimationRecord Actor07000_D0BE08[64] = {
 #include "assets/actor_107000_animation_0BF18_records.inc"
 };
 
@@ -705,7 +705,7 @@ AnimationPackedRotation Actor07000_D0BFDC[66] = {
 #include "assets/actor_107000_animation_0C268_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0C0E4[93] = {
+AnimationRecord Actor07000_D0C0E4[93] = {
 #include "assets/actor_107000_animation_0C268_records.inc"
 };
 
@@ -727,7 +727,7 @@ AnimationPackedRotation Actor07000_D0C2CC[21] = {
 #include "assets/actor_107000_animation_0C3D4_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0C320[41] = {
+AnimationRecord Actor07000_D0C320[41] = {
 #include "assets/actor_107000_animation_0C3D4_records.inc"
 };
 
@@ -749,7 +749,7 @@ AnimationPackedRotation Actor07000_D0C564[140] = {
 #include "assets/actor_107000_animation_0CA98_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0C794[189] = {
+AnimationRecord Actor07000_D0C794[189] = {
 #include "assets/actor_107000_animation_0CA98_records.inc"
 };
 
@@ -771,7 +771,7 @@ AnimationPackedRotation Actor07000_D0CC40[171] = {
 #include "assets/actor_107000_animation_0D270_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0CEEC[221] = {
+AnimationRecord Actor07000_D0CEEC[221] = {
 #include "assets/actor_107000_animation_0D270_records.inc"
 };
 
@@ -793,7 +793,7 @@ AnimationPackedRotation Actor07000_D0D2B0[5] = {
 #include "assets/actor_107000_animation_0D344_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0D2C4[28] = {
+AnimationRecord Actor07000_D0D2C4[28] = {
 #include "assets/actor_107000_animation_0D344_records.inc"
 };
 
@@ -815,7 +815,7 @@ AnimationPackedRotation Actor07000_D0D39C[15] = {
 #include "assets/actor_107000_animation_0D458_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0D3D8[28] = {
+AnimationRecord Actor07000_D0D3D8[28] = {
 #include "assets/actor_107000_animation_0D458_records.inc"
 };
 
@@ -837,7 +837,7 @@ AnimationPackedRotation Actor07000_D0D4BC[17] = {
 #include "assets/actor_107000_animation_0D5A8_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0D500[38] = {
+AnimationRecord Actor07000_D0D500[38] = {
 #include "assets/actor_107000_animation_0D5A8_records.inc"
 };
 
@@ -859,7 +859,7 @@ AnimationPackedRotation Actor07000_D0D5F4[9] = {
 #include "assets/actor_107000_animation_0D67C_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0D618[21] = {
+AnimationRecord Actor07000_D0D618[21] = {
 #include "assets/actor_107000_animation_0D67C_records.inc"
 };
 
@@ -881,7 +881,7 @@ AnimationPackedRotation Actor07000_D0D6C8[10] = {
 #include "assets/actor_107000_animation_0D754_bank4.inc"
 };
 
-GpAnimRec Actor07000_D0D6F0[21] = {
+AnimationRecord Actor07000_D0D6F0[21] = {
 #include "assets/actor_107000_animation_0D754_records.inc"
 };
 

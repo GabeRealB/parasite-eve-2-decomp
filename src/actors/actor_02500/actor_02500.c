@@ -318,7 +318,7 @@ AnimationPackedRotation Actor02500_D04B54[21] = {
 #include "assets/actor_102500_animation_04C64_bank4.inc"
 };
 
-GpAnimRec Actor02500_D04BA8[44] = {
+AnimationRecord Actor02500_D04BA8[44] = {
 #include "assets/actor_102500_animation_04C64_records.inc"
 };
 
@@ -340,7 +340,7 @@ AnimationPackedRotation Actor02500_D04D04[27] = {
 #include "assets/actor_102500_animation_04E3C_bank4.inc"
 };
 
-GpAnimRec Actor02500_D04D70[48] = {
+AnimationRecord Actor02500_D04D70[48] = {
 #include "assets/actor_102500_animation_04E3C_records.inc"
 };
 
@@ -362,7 +362,7 @@ AnimationPackedRotation Actor02500_D04EB8[27] = {
 #include "assets/actor_102500_animation_04FF0_bank4.inc"
 };
 
-GpAnimRec Actor02500_D04F24[48] = {
+AnimationRecord Actor02500_D04F24[48] = {
 #include "assets/actor_102500_animation_04FF0_records.inc"
 };
 
@@ -384,7 +384,7 @@ AnimationPackedRotation Actor02500_D05108[55] = {
 #include "assets/actor_102500_animation_0534C_bank4.inc"
 };
 
-GpAnimRec Actor02500_D051E4[87] = {
+AnimationRecord Actor02500_D051E4[87] = {
 #include "assets/actor_102500_animation_0534C_records.inc"
 };
 
@@ -406,7 +406,7 @@ AnimationPackedRotation Actor02500_D053EC[27] = {
 #include "assets/actor_102500_animation_05520_bank4.inc"
 };
 
-GpAnimRec Actor02500_D05458[47] = {
+AnimationRecord Actor02500_D05458[47] = {
 #include "assets/actor_102500_animation_05520_records.inc"
 };
 
@@ -428,7 +428,7 @@ AnimationPackedRotation Actor02500_D05608[45] = {
 #include "assets/actor_102500_animation_057D4_bank4.inc"
 };
 
-GpAnimRec Actor02500_D056BC[67] = {
+AnimationRecord Actor02500_D056BC[67] = {
 #include "assets/actor_102500_animation_057D4_records.inc"
 };
 
@@ -450,7 +450,7 @@ AnimationPackedRotation Actor02500_D05874[27] = {
 #include "assets/actor_102500_animation_05998_bank4.inc"
 };
 
-GpAnimRec Actor02500_D058E0[43] = {
+AnimationRecord Actor02500_D058E0[43] = {
 #include "assets/actor_102500_animation_05998_records.inc"
 };
 
@@ -472,7 +472,7 @@ AnimationPackedRotation Actor02500_D05A14[18] = {
 #include "assets/actor_102500_animation_05B08_bank4.inc"
 };
 
-GpAnimRec Actor02500_D05A5C[40] = {
+AnimationRecord Actor02500_D05A5C[40] = {
 #include "assets/actor_102500_animation_05B08_records.inc"
 };
 

@@ -144,7 +144,7 @@ AnimationPackedRotation D_shelter_b6_corridor_8017EF9C[46] = {
 #include "assets/shelter_b6_corridor_animation_01C70_bank4.inc"
 };
 
-GpAnimRec D_shelter_b6_corridor_8017F054[109] = {
+AnimationRecord D_shelter_b6_corridor_8017F054[109] = {
 #include "assets/shelter_b6_corridor_animation_01C70_records.inc"
 };
 

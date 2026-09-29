@@ -2583,12 +2583,12 @@ tail:
 
 static void func_actor_800100_80164E60(Task* arg0)
 {
-    GameActor* actor;
-    GameActor* target;
-    GpActorD4* d4;
-    GpAnimRec* rec;
-    GfxCoord*  coord;
-    s16        sel;
+    GameActor*       actor;
+    GameActor*       target;
+    GpActorD4*       d4;
+    AnimationRecord* rec;
+    GfxCoord*        coord;
+    s16              sel;
 
     actor = arg0->work;
     d4    = actor->field_910;
@@ -2601,7 +2601,7 @@ static void func_actor_800100_80164E60(Task* arg0)
             if (rec != NULL) {
                 if (rec != actor->field_92C) {
                     actor->field_92C = rec;
-                    if ((rec->flags & 0x30) == 0x30) {
+                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                         if (actor->field_95E == 0) {
                             actor->field_95E = 1;
                         }

@@ -133,7 +133,7 @@ AnimationPackedRotation D_dryfield_general_store_8017E204[46] = {
 #include "assets/dryfield_general_store_animation_00ED8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_general_store_8017E2BC[109] = {
+AnimationRecord D_dryfield_general_store_8017E2BC[109] = {
 #include "assets/dryfield_general_store_animation_00ED8_records.inc"
 };
 

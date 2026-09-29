@@ -247,7 +247,7 @@ AnimationPackedRotation Actor04000_D0876C[21] = {
 #include "assets/actor_104000_animation_08878_bank4.inc"
 };
 
-GpAnimRec Actor04000_D087C0[43] = {
+AnimationRecord Actor04000_D087C0[43] = {
 #include "assets/actor_104000_animation_08878_records.inc"
 };
 
@@ -269,7 +269,7 @@ AnimationPackedRotation Actor04000_D08984[36] = {
 #include "assets/actor_104000_animation_08B3C_bank4.inc"
 };
 
-GpAnimRec Actor04000_D08A14[71] = {
+AnimationRecord Actor04000_D08A14[71] = {
 #include "assets/actor_104000_animation_08B3C_records.inc"
 };
 
@@ -291,7 +291,7 @@ AnimationPackedRotation Actor04000_D08C54[31] = {
 #include "assets/actor_104000_animation_08DE0_bank4.inc"
 };
 
-GpAnimRec Actor04000_D08CD0[65] = {
+AnimationRecord Actor04000_D08CD0[65] = {
 #include "assets/actor_104000_animation_08DE0_records.inc"
 };
 
@@ -313,7 +313,7 @@ AnimationPackedRotation Actor04000_D08E50[38] = {
 #include "assets/actor_104000_animation_08FC0_bank4.inc"
 };
 
-GpAnimRec Actor04000_D08EE8[51] = {
+AnimationRecord Actor04000_D08EE8[51] = {
 #include "assets/actor_104000_animation_08FC0_records.inc"
 };
 
@@ -335,7 +335,7 @@ AnimationPackedRotation Actor04000_D09018[13] = {
 #include "assets/actor_104000_animation_090F8_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0904C[40] = {
+AnimationRecord Actor04000_D0904C[40] = {
 #include "assets/actor_104000_animation_090F8_records.inc"
 };
 
@@ -357,7 +357,7 @@ AnimationPackedRotation Actor04000_D09174[28] = {
 #include "assets/actor_104000_animation_09298_bank4.inc"
 };
 
-GpAnimRec Actor04000_D091E4[42] = {
+AnimationRecord Actor04000_D091E4[42] = {
 #include "assets/actor_104000_animation_09298_records.inc"
 };
 
@@ -379,7 +379,7 @@ AnimationPackedRotation Actor04000_D09308[42] = {
 #include "assets/actor_104000_animation_094AC_bank4.inc"
 };
 
-GpAnimRec Actor04000_D093B0[60] = {
+AnimationRecord Actor04000_D093B0[60] = {
 #include "assets/actor_104000_animation_094AC_records.inc"
 };
 
@@ -401,7 +401,7 @@ AnimationPackedRotation Actor04000_D095A0[85] = {
 #include "assets/actor_104000_animation_098BC_bank4.inc"
 };
 
-GpAnimRec Actor04000_D096F4[111] = {
+AnimationRecord Actor04000_D096F4[111] = {
 #include "assets/actor_104000_animation_098BC_records.inc"
 };
 
@@ -423,7 +423,7 @@ AnimationPackedRotation Actor04000_D09920[19] = {
 #include "assets/actor_104000_animation_09A94_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0996C[71] = {
+AnimationRecord Actor04000_D0996C[71] = {
 #include "assets/actor_104000_animation_09A94_records.inc"
 };
 
@@ -445,7 +445,7 @@ AnimationPackedRotation Actor04000_D09B64[158] = {
 #include "assets/actor_104000_animation_0A260_bank4.inc"
 };
 
-GpAnimRec Actor04000_D09DDC[279] = {
+AnimationRecord Actor04000_D09DDC[279] = {
 #include "assets/actor_104000_animation_0A260_records.inc"
 };
 
@@ -467,7 +467,7 @@ AnimationPackedRotation Actor04000_D0A300[105] = {
 #include "assets/actor_104000_animation_0A71C_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0A4A4[148] = {
+AnimationRecord Actor04000_D0A4A4[148] = {
 #include "assets/actor_104000_animation_0A71C_records.inc"
 };
 
@@ -489,7 +489,7 @@ AnimationPackedRotation Actor04000_D0A7EC[147] = {
 #include "assets/actor_104000_animation_0AECC_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0AA38[283] = {
+AnimationRecord Actor04000_D0AA38[283] = {
 #include "assets/actor_104000_animation_0AECC_records.inc"
 };
 
@@ -511,7 +511,7 @@ AnimationPackedRotation Actor04000_D0AF6C[103] = {
 #include "assets/actor_104000_animation_0B374_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0B108[145] = {
+AnimationRecord Actor04000_D0B108[145] = {
 #include "assets/actor_104000_animation_0B374_records.inc"
 };
 
@@ -533,7 +533,7 @@ AnimationPackedRotation Actor04000_D0B450[70] = {
 #include "assets/actor_104000_animation_0B6F0_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0B568[95] = {
+AnimationRecord Actor04000_D0B568[95] = {
 #include "assets/actor_104000_animation_0B6F0_records.inc"
 };
 
@@ -555,7 +555,7 @@ AnimationPackedRotation Actor04000_D0B7C0[64] = {
 #include "assets/actor_104000_animation_0BAA0_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0B8C0[117] = {
+AnimationRecord Actor04000_D0B8C0[117] = {
 #include "assets/actor_104000_animation_0BAA0_records.inc"
 };
 
@@ -577,7 +577,7 @@ AnimationPackedRotation Actor04000_D0BB70[28] = {
 #include "assets/actor_104000_animation_0BCDC_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0BBE0[60] = {
+AnimationRecord Actor04000_D0BBE0[60] = {
 #include "assets/actor_104000_animation_0BCDC_records.inc"
 };
 
@@ -599,7 +599,7 @@ AnimationPackedRotation Actor04000_D0BD7C[40] = {
 #include "assets/actor_104000_animation_0BF20_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0BE1C[62] = {
+AnimationRecord Actor04000_D0BE1C[62] = {
 #include "assets/actor_104000_animation_0BF20_records.inc"
 };
 
@@ -621,7 +621,7 @@ AnimationPackedRotation Actor04000_D0BF90[20] = {
 #include "assets/actor_104000_animation_0C070_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0BFE0[33] = {
+AnimationRecord Actor04000_D0BFE0[33] = {
 #include "assets/actor_104000_animation_0C070_records.inc"
 };
 
@@ -643,7 +643,7 @@ AnimationPackedRotation Actor04000_D0C0E0[20] = {
 #include "assets/actor_104000_animation_0C1C0_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0C130[33] = {
+AnimationRecord Actor04000_D0C130[33] = {
 #include "assets/actor_104000_animation_0C1C0_records.inc"
 };
 
@@ -665,7 +665,7 @@ AnimationPackedRotation Actor04000_D0C224[14] = {
 #include "assets/actor_104000_animation_0C2EC_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0C25C[33] = {
+AnimationRecord Actor04000_D0C25C[33] = {
 #include "assets/actor_104000_animation_0C2EC_records.inc"
 };
 
@@ -687,7 +687,7 @@ AnimationPackedRotation Actor04000_D0C374[28] = {
 #include "assets/actor_104000_animation_0C49C_bank4.inc"
 };
 
-GpAnimRec Actor04000_D0C3E4[43] = {
+AnimationRecord Actor04000_D0C3E4[43] = {
 #include "assets/actor_104000_animation_0C49C_records.inc"
 };
 

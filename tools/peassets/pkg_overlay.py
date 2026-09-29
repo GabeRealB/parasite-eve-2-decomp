@@ -395,7 +395,7 @@ def package_id(path: Path) -> int | None:
 #
 # The pose *kind* is a property of the track, not of each record: the slot
 # takes it once in `Gp_AnimInitSlot` (`arg1->poseKind = op & 0xF`) and
-# `animationTickIndex` reads `op = slot->poseKind` for every record afterwards. The
+# `animationTickSlotPose` reads `op = slot->poseKind` for every record afterwards. The
 # control records carry 0 in those bits, so reading the kind per record loses
 # the final keyframe.
 #

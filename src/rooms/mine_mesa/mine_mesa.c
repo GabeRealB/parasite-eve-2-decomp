@@ -342,7 +342,7 @@ AnimationPackedRotation D_mine_mesa_801819FC[46] = {
 #include "assets/mine_mesa_animation_046D0_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80181AB4[109] = {
+AnimationRecord D_mine_mesa_80181AB4[109] = {
 #include "assets/mine_mesa_animation_046D0_records.inc"
 };
 
@@ -364,7 +364,7 @@ AnimationPackedRotation D_mine_mesa_80181CD0[32] = {
 #include "assets/mine_mesa_animation_0494C_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80181D50[101] = {
+AnimationRecord D_mine_mesa_80181D50[101] = {
 #include "assets/mine_mesa_animation_0494C_records.inc"
 };
 
@@ -386,7 +386,7 @@ AnimationPackedRotation D_mine_mesa_80181F64[34] = {
 #include "assets/mine_mesa_animation_04B54_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80181FEC[64] = {
+AnimationRecord D_mine_mesa_80181FEC[64] = {
 #include "assets/mine_mesa_animation_04B54_records.inc"
 };
 
@@ -408,7 +408,7 @@ AnimationPackedRotation D_mine_mesa_80182184[71] = {
 #include "assets/mine_mesa_animation_04ED8_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_801822A0[116] = {
+AnimationRecord D_mine_mesa_801822A0[116] = {
 #include "assets/mine_mesa_animation_04ED8_records.inc"
 };
 
@@ -430,7 +430,7 @@ AnimationPackedRotation D_mine_mesa_801824E4[34] = {
 #include "assets/mine_mesa_animation_0515C_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_8018256C[98] = {
+AnimationRecord D_mine_mesa_8018256C[98] = {
 #include "assets/mine_mesa_animation_0515C_records.inc"
 };
 
@@ -452,7 +452,7 @@ AnimationPackedRotation D_mine_mesa_80182894[423] = {
 #include "assets/mine_mesa_animation_06160_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80182F30[498] = {
+AnimationRecord D_mine_mesa_80182F30[498] = {
 #include "assets/mine_mesa_animation_06160_records.inc"
 };
 
@@ -474,7 +474,7 @@ AnimationPackedRotation D_mine_mesa_80183778[56] = {
 #include "assets/mine_mesa_animation_0645C_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80183858[103] = {
+AnimationRecord D_mine_mesa_80183858[103] = {
 #include "assets/mine_mesa_animation_0645C_records.inc"
 };
 
@@ -496,7 +496,7 @@ AnimationPackedRotation D_mine_mesa_80183A5C[18] = {
 #include "assets/mine_mesa_animation_065FC_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80183AA4[60] = {
+AnimationRecord D_mine_mesa_80183AA4[60] = {
 #include "assets/mine_mesa_animation_065FC_records.inc"
 };
 
@@ -518,7 +518,7 @@ AnimationPackedRotation D_mine_mesa_80183C14[45] = {
 #include "assets/mine_mesa_animation_068E4_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80183CC8[109] = {
+AnimationRecord D_mine_mesa_80183CC8[109] = {
 #include "assets/mine_mesa_animation_068E4_records.inc"
 };
 
@@ -540,7 +540,7 @@ AnimationPackedRotation D_mine_mesa_80183EE4[39] = {
 #include "assets/mine_mesa_animation_06B9C_bank4.inc"
 };
 
-GpAnimRec D_mine_mesa_80183F80[109] = {
+AnimationRecord D_mine_mesa_80183F80[109] = {
 #include "assets/mine_mesa_animation_06B9C_records.inc"
 };
 

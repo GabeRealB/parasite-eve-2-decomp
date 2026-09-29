@@ -2317,23 +2317,23 @@ static void func_actor_510900_80138A9C(Task* arg0)
     s32              pan2;
     Actor510900Work* work;
     GfxCoord*        coord;
-    GpAnimRec*       rec;
+    AnimationRecord* rec;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
     if (rec != NULL) {
-        if (!(rec->flags & 0x20) && (work->field_59A & 0x20)) {
+        if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_59A & ANIMATION_RECORD_CUE_2)) {
             snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40780001;
             pan = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
         }
-        if (!(rec->flags & 0x10) && (work->field_59A & 0x10)) {
+        if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->field_59A & ANIMATION_RECORD_CUE_1)) {
             snd  = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40780002;
             pan2 = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
         }
-        work->field_59A = (u16)(rec->flags & 0x30);
+        work->field_59A = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
     }
 }
 

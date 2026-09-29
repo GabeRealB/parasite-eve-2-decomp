@@ -209,7 +209,7 @@ AnimationPackedRotation D_acropolis_patio_8017ED04[20] = {
 #include "assets/acropolis_patio_animation_018A0_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8017ED54[57] = {
+AnimationRecord D_acropolis_patio_8017ED54[57] = {
 #include "assets/acropolis_patio_animation_018A0_records.inc"
 };
 
@@ -231,7 +231,7 @@ AnimationPackedRotation D_acropolis_patio_8017EEA0[41] = {
 #include "assets/acropolis_patio_animation_01B48_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8017EF44[103] = {
+AnimationRecord D_acropolis_patio_8017EF44[103] = {
 #include "assets/acropolis_patio_animation_01B48_records.inc"
 };
 
@@ -253,7 +253,7 @@ AnimationPackedRotation D_acropolis_patio_8017F148[20] = {
 #include "assets/acropolis_patio_animation_01CE4_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8017F198[57] = {
+AnimationRecord D_acropolis_patio_8017F198[57] = {
 #include "assets/acropolis_patio_animation_01CE4_records.inc"
 };
 
@@ -275,7 +275,7 @@ AnimationPackedRotation D_acropolis_patio_8017F35C[138] = {
 #include "assets/acropolis_patio_animation_022B8_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8017F584[179] = {
+AnimationRecord D_acropolis_patio_8017F584[179] = {
 #include "assets/acropolis_patio_animation_022B8_records.inc"
 };
 
@@ -297,7 +297,7 @@ AnimationPackedRotation D_acropolis_patio_8017F984[189] = {
 #include "assets/acropolis_patio_animation_02AD0_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8017FC78[252] = {
+AnimationRecord D_acropolis_patio_8017FC78[252] = {
 #include "assets/acropolis_patio_animation_02AD0_records.inc"
 };
 
@@ -319,7 +319,7 @@ AnimationPackedRotation D_acropolis_patio_801800D0[15] = {
 #include "assets/acropolis_patio_animation_02CA4_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8018010C[76] = {
+AnimationRecord D_acropolis_patio_8018010C[76] = {
 #include "assets/acropolis_patio_animation_02CA4_records.inc"
 };
 
@@ -549,7 +549,7 @@ AnimationPackedRotation D_acropolis_patio_80180FFC[46] = {
 #include "assets/acropolis_patio_animation_03CD0_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_801810B4[109] = {
+AnimationRecord D_acropolis_patio_801810B4[109] = {
 #include "assets/acropolis_patio_animation_03CD0_records.inc"
 };
 
@@ -571,7 +571,7 @@ AnimationPackedRotation D_acropolis_patio_80181354[179] = {
 #include "assets/acropolis_patio_animation_04470_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_80181620[250] = {
+AnimationRecord D_acropolis_patio_80181620[250] = {
 #include "assets/acropolis_patio_animation_04470_records.inc"
 };
 
@@ -593,7 +593,7 @@ AnimationPackedRotation D_acropolis_patio_80181AC4[109] = {
 #include "assets/acropolis_patio_animation_0494C_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_80181C78[155] = {
+AnimationRecord D_acropolis_patio_80181C78[155] = {
 #include "assets/acropolis_patio_animation_0494C_records.inc"
 };
 
@@ -615,7 +615,7 @@ AnimationPackedRotation D_acropolis_patio_80181FB8[161] = {
 #include "assets/acropolis_patio_animation_04FC8_bank4.inc"
 };
 
-GpAnimRec D_acropolis_patio_8018223C[201] = {
+AnimationRecord D_acropolis_patio_8018223C[201] = {
 #include "assets/acropolis_patio_animation_04FC8_records.inc"
 };
 

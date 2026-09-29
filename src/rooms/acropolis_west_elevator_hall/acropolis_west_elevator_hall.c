@@ -224,7 +224,7 @@ AnimationPackedRotation D_acropolis_west_elevator_hall_80180C50[1644] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_bank4.inc"
 };
 
-GpAnimRec D_acropolis_west_elevator_hall_80182600[1990] = {
+AnimationRecord D_acropolis_west_elevator_hall_80182600[1990] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_records.inc"
 };
 

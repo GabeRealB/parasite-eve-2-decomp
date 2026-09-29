@@ -193,7 +193,7 @@ AnimationPackedRotation D_shelter_b2_main_corridor_80182908[62] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank4.inc"
 };
 
-GpAnimRec D_shelter_b2_main_corridor_80182A00[110] = {
+AnimationRecord D_shelter_b2_main_corridor_80182A00[110] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_records.inc"
 };
 

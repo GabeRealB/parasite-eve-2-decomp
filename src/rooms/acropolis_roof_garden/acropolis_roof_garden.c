@@ -149,7 +149,7 @@ AnimationPackedRotation D_acropolis_roof_garden_801803A8[571] = {
 #include "assets/acropolis_roof_garden_animation_04164_bank4.inc"
 };
 
-GpAnimRec D_acropolis_roof_garden_80180C94[666] = {
+AnimationRecord D_acropolis_roof_garden_80180C94[666] = {
 #include "assets/acropolis_roof_garden_animation_04164_records.inc"
 };
 
@@ -171,7 +171,7 @@ AnimationPackedRotation D_acropolis_roof_garden_8018192C[860] = {
 #include "assets/acropolis_roof_garden_animation_060FC_bank4.inc"
 };
 
-GpAnimRec D_acropolis_roof_garden_8018269C[1022] = {
+AnimationRecord D_acropolis_roof_garden_8018269C[1022] = {
 #include "assets/acropolis_roof_garden_animation_060FC_records.inc"
 };
 
@@ -193,7 +193,7 @@ AnimationPackedRotation D_acropolis_roof_garden_8018372C[87] = {
 #include "assets/acropolis_roof_garden_animation_065F4_bank4.inc"
 };
 
-GpAnimRec D_acropolis_roof_garden_80183888[193] = {
+AnimationRecord D_acropolis_roof_garden_80183888[193] = {
 #include "assets/acropolis_roof_garden_animation_065F4_records.inc"
 };
 
@@ -340,7 +340,7 @@ AnimationPackedRotation D_acropolis_roof_garden_80184378[46] = {
 #include "assets/acropolis_roof_garden_animation_0704C_bank4.inc"
 };
 
-GpAnimRec D_acropolis_roof_garden_80184430[109] = {
+AnimationRecord D_acropolis_roof_garden_80184430[109] = {
 #include "assets/acropolis_roof_garden_animation_0704C_records.inc"
 };
 
@@ -362,7 +362,7 @@ AnimationPackedRotation D_acropolis_roof_garden_801846AC[95] = {
 #include "assets/acropolis_roof_garden_animation_074BC_bank4.inc"
 };
 
-GpAnimRec D_acropolis_roof_garden_80184828[139] = {
+AnimationRecord D_acropolis_roof_garden_80184828[139] = {
 #include "assets/acropolis_roof_garden_animation_074BC_records.inc"
 };
 

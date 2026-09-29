@@ -100,7 +100,13 @@ void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);
 
-GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1);
+/// Returns the current keyframe record, or `NULL` when the slot uses a buffered pose (set 0x7FFF).
+///
+/// `slot` must have a valid current set and record index. The returned pointer
+/// borrows the set's record array and remains valid while that resource is loaded;
+/// callers may compare it across ticks to detect a new keyframe. `unusedContext`
+/// is ignored and may be `NULL`.
+AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot);
 
 void Gp_SaveEnemyPose(GpEnemy* arg0);
 

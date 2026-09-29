@@ -262,7 +262,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_8017F994[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_8017FA4C[109] = {
+AnimationRecord D_dryfield_night_saloon_g_r_8017FA4C[109] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_records.inc"
 };
 
@@ -284,7 +284,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_8017FCB0[84] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_8017FE00[117] = {
+AnimationRecord D_dryfield_night_saloon_g_r_8017FE00[117] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_records.inc"
 };
 
@@ -306,7 +306,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80180078[62] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80180170[149] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80180170[149] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_records.inc"
 };
 
@@ -328,7 +328,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80180468[74] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80180590[104] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80180590[104] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_records.inc"
 };
 
@@ -350,7 +350,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_801807F8[100] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80180988[178] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80180988[178] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_records.inc"
 };
 
@@ -372,7 +372,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80180CDC[59] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80180DC8[90] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80180DC8[90] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_records.inc"
 };
 
@@ -394,7 +394,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80180FC8[110] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80181180[166] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80181180[166] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_records.inc"
 };
 
@@ -416,7 +416,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_8018148C[81] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_801815D0[128] = {
+AnimationRecord D_dryfield_night_saloon_g_r_801815D0[128] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_records.inc"
 };
 
@@ -438,7 +438,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80181844[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_801818CC[63] = {
+AnimationRecord D_dryfield_night_saloon_g_r_801818CC[63] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_records.inc"
 };
 
@@ -460,7 +460,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80181A54[58] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80181B3C[120] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80181B3C[120] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_records.inc"
 };
 
@@ -482,7 +482,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80181D90[34] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80181E18[63] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80181E18[63] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_records.inc"
 };
 
@@ -504,7 +504,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80181F94[46] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_8018204C[92] = {
+AnimationRecord D_dryfield_night_saloon_g_r_8018204C[92] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_records.inc"
 };
 
@@ -526,7 +526,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80182254[68] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80182364[99] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80182364[99] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_records.inc"
 };
 
@@ -548,7 +548,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_801825B8[96] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80182738[136] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80182738[136] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_records.inc"
 };
 
@@ -570,7 +570,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_801829F0[71] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80182B0C[102] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80182B0C[102] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_records.inc"
 };
 
@@ -592,7 +592,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80182D30[99] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_80182EBC[150] = {
+AnimationRecord D_dryfield_night_saloon_g_r_80182EBC[150] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_records.inc"
 };
 
@@ -614,7 +614,7 @@ AnimationPackedRotation D_dryfield_night_saloon_g_r_80183200[179] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_bank4.inc"
 };
 
-GpAnimRec D_dryfield_night_saloon_g_r_801834CC[250] = {
+AnimationRecord D_dryfield_night_saloon_g_r_801834CC[250] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_records.inc"
 };
 

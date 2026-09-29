@@ -75,14 +75,14 @@ static void func_m4a1_grenade_8011DDF8(Task* task);
 /// clip is done or the recoil timer has run out.
 static void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
-    GameActor*  actor;
-    GfxCoord*   coord;
-    GfxCoord*   spot;
-    GpAnimRec*  rec;
-    McItemSlot* slot;
-    s32         anim;
-    s32         delay;
-    s32         sfx;
+    GameActor*       actor;
+    GfxCoord*        coord;
+    GfxCoord*        spot;
+    AnimationRecord* rec;
+    McItemSlot*      slot;
+    s32              anim;
+    s32              delay;
+    s32              sfx;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -183,7 +183,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
-                if ((rec->flags & 0x30) == 0x30) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     Gp_PlayObjSfx(arg0->extra.tmd->coords,
                                   (actor->field_93E + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->field_93E++;

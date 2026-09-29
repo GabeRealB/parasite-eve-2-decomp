@@ -185,7 +185,7 @@ AnimationPackedRotation D_neo_ark_observatory_80180E28[64] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank4.inc"
 };
 
-GpAnimRec D_neo_ark_observatory_80180F28[141] = {
+AnimationRecord D_neo_ark_observatory_80180F28[141] = {
 #include "assets/neo_ark_observatory_animation_03BC4_records.inc"
 };
 
